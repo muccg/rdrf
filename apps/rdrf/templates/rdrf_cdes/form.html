@@ -1,0 +1,55 @@
+{% load staticfiles %}
+{% load get_form %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Common Data Elements for {{ name }}</title>
+<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/dmd_admin.css' %}" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+<![endif]-->
+</head>
+<body>
+  <!-- Header -->
+    <div id="header">
+        <div id="branding">
+            <h1 id="site-name">{{registry}} Registry</h1>
+        </div>
+
+        <div id="user-tools">
+            Welcome,
+            <strong>admin</strong>.
+                <a href="/admin/password_change/">Change password</a> /
+                <a href="/admin/logout/">Log out</a>
+        </div>
+    </div>
+    <!-- END Header -->
+
+    <div id="content" class="colM">
+        <h1>Form name: {{ form_name }}</h1>
+        <h2>Patient name: </h2>
+            
+            <div id="content-main">
+                <form action="/cdes/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
+                    {% for s in sections %}
+                        <div class="inline-group">
+                            <h2>{{s}}</h2>
+                            {{forms|get_form:s}}
+                        </div>
+                        <!--<fieldset><legend>{{s}}</legend>
+                        </fieldset>-->
+                    {% endfor %}
+                    <input type="submit" value="Submit" />
+                </form>
+            </div>
+    </div>
+
+</body>
+</html>

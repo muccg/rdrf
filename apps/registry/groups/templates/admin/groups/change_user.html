@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static admin_modify %}
+{% load url from future %}
+{% load admin_urls %}
+
+{% block extrahead %}{{ block.super }}
+{% url 'admin:jsi18n' as jsi18nurl %}
+<script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block content %}<div id="content-main">
+
+{% block object-tools %}
+	{% if change %}
+		{% if not is_popup %}
+  			<ul class="object-tools">
+    			{% block object-tools-items %}
+					<li><a href="password">{% trans "Change password" %}</a></li>
+    				<li><a href="history" class="historylink">{% trans "History" %}</a></li>
+    			{% endblock %}
+  			</ul>
+		{% endif %}
+	{% endif %}
+{% endblock %}
+
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
+<div>
+{% if is_popup %}
+	<input type="hidden" name="_popup" value="1" />
+{% endif %}
+
+{% if save_on_top %}
+	{% block submit_buttons_top %}
+		{% submit_row %}
+	{% endblock %}
+{% endif %}
+
+{% if errors %}
+    <p class="errornote">
+    	{% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+    </p>
+    {{ adminform.form.non_field_errors }}
+{% endif %}
+
+<fieldset class="module aligned">
+{% for field in form %}
+    <p {% if field.field.required %}class='required'{% endif %}>{{field.label_tag}}{{field}}{{field.errors}}</p>
+{% endfor %}
+</fieldset>
+
+{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+
+
+{# JavaScript for prepopulated fields #}
+{% prepopulated_fields_js %}
+
+</div>
+</form></div>
+{% endblock %}

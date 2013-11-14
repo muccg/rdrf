@@ -1,0 +1,54 @@
+.calendar-popup {
+    padding-right: 0.5em;
+}
+
+.calendar-table {
+    border: solid 1px silver;
+    border-collapse: collapse;
+}
+
+.calendar-table tbody tr:last-child td {
+    border-bottom: solid 1px silver;
+}
+
+.calendar-table tbody td {
+    width: 3em;
+    cursor: pointer;
+}
+
+.calendar-table tbody td:hover {
+    background: #ccc;
+}
+
+.calendar-table tbody td.empty:hover {
+    background: transparent;
+}
+
+.calendar-table .highlight {
+    background: #ddd;
+}
+
+.spinner .previous {
+    display: block;
+    float: left;
+}
+
+.spinner .next {
+    display: block;
+    float: right;
+}
+
+.spinner span {
+    display: block;
+    text-align: center;
+}
+
+
+@media print {
+    .date a {
+        display: none;
+    }
+}
+
+
+/* vim: set nocin ai et ts=4 sw=4: */

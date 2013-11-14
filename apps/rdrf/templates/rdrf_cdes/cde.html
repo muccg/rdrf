@@ -1,0 +1,53 @@
+{% load staticfiles %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Common Data Elements for {{ name }}</title>
+<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/dmd_admin.css' %}" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+<![endif]-->
+</head>
+<body>
+  <!-- Header -->
+    <div id="header">
+        <div id="branding">
+
+<h1 id="site-name">Duchenne Muscular Dystrophy Registry (1.7.0)</h1>
+
+        </div>
+
+        <div id="user-tools">
+            Welcome,
+            <strong>admin</strong>.
+
+
+
+
+                <a href="/admin/password_change/">Change password</a> /
+
+                <a href="/admin/logout/">Log out</a>
+
+        </div>
+
+
+    </div>
+    <!-- END Header -->
+
+<div id="content" class="colM">
+<h1>CDES for {{ name }}</h1>
+<div id="content-main">
+<form action="/cdes/{{owner}}/{{owner_id}}" method="post">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+</div>
+</div>
+</body>
+</html>

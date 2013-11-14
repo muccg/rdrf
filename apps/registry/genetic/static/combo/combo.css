@@ -1,0 +1,28 @@
+.combo-dropdown {
+    position: absolute;
+    z-index: 1;
+    overflow: auto;
+    max-height: 12em;
+    min-width: 20em;
+    background: white;
+    border: solid 1px #ccc;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+}
+
+.combo-dropdown table {
+    width: 100%;
+}
+
+.combo-dropdown tr {
+    cursor: pointer;
+}
+
+.combo-dropdown tr.selected {
+    background: #ccc;
+}
+
+
+/* vim: set nocin ai et ts=4 sw=4: */

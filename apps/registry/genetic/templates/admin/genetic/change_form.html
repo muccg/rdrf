@@ -1,0 +1,34 @@
+{% extends "admin/change_form.html" %}
+
+{% load overrides %}
+{% block extrahead %}
+{{ block.super }}
+
+<script type="text/javascript">
+var ValidationOverrides = {
+    available: Boolean("{{ perms.genetic.can_override_validation }}"),
+
+    // overides function called "original" - do not know where that var comes from
+
+    {% if add %}
+    ids: {},
+    {% else %}
+    ids: {},
+    {% endif %}
+    contains: function (id, type) {
+        if (!id) {
+            return false;
+        }
+
+        if (id in this.ids) {
+            return this.ids[id][type];
+        }
+
+        return false;
+    }
+};
+
+var CSRF_COOKIE_NAME = "{{ CSRF_COOKIE_NAME }}"
+
+</script>
+{% endblock %}

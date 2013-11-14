@@ -1,0 +1,38 @@
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
+from django.http import Http404
+from django.conf import settings
+from django.core.context_processors import csrf
+from dynamic_forms import create_form_class
+
+
+def patient_cdes(request, patient_id):
+    owner_model_func = settings.CDE_MODEL_MAP["Patient"]
+    owner_model = owner_model_func()  # a Model _class_
+
+    try:
+        owner_instance = owner_model.objects.get(pk=patient_id)
+    except owner_model.DoesNotExist:
+        raise Http404("Patient does not exist")
+
+    form_class = create_form_class('Patient')
+
+    if request.method == "POST":
+        form = form_class(request.POST)
+        if form.is_valid():
+            owner_instance.save_dynamic_data("dmd", "cdes", form.cleaned_data)
+            return HttpResponseRedirect('/cdes/patient/%s' % patient_id)
+    else:
+        form = form_class(owner_instance.load_dynamic_data("dmd", "cdes"))
+
+    context = {'form': form, 'owner':  'patient',
+                                        'owner_id': patient_id,
+                                        'name': owner_instance.given_names + " " + owner_instance.family_name,
+                }
+
+    context.update(csrf(request))
+
+    return render_to_response('rdrf_cdes/cde.html', context)
+
+
+

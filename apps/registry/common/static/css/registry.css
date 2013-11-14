@@ -1,0 +1,138 @@
+
+html, body {
+    font-family: Sans-Serif;
+    margin: 0;
+    padding: 0;
+    color: #444;
+}
+
+h1, h2, h3 {
+    font-family: Helvetica, Arial, Sans-Serif;
+}
+
+h2 {
+    font-size: 150%;
+    color: #333;
+    border-bottom: solid 1px #eee;
+}
+
+a {
+    color: #194c9d;
+}
+
+
+#header-container {
+    position: absolute;
+    background: #3D6E2B;
+    color: white;
+    height: 4em;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+#header-container h1 {
+    font-size: 150%;
+    margin: 0 auto;
+    padding: 0 8px;
+    min-width: 760px;
+    max-width: 980px;
+    line-height: 2.5em;
+    vertical-align: middle;
+}
+
+
+#container {
+    margin: 4em auto 0 auto;
+    padding: 0 8px;
+    min-width: 760px;
+    max-width: 980px;
+}
+
+
+#introduction {
+    float: left;
+    width: 65%;
+}
+
+#introduction h2 {
+    margin: 1.2ex 0;
+    padding: 0;
+}
+
+#introduction p {
+    margin: 0 0 1em 0;
+    padding: 0;
+}
+
+
+#stakeholders {
+    float: right;
+    width: 30%;
+    padding-bottom: 2em;
+}
+
+#stakeholders h2 {
+    margin: 0;
+    padding: 1.2ex 0.27ex 0 0.27ex;
+}
+
+#stakeholders h3 {
+    font-family: Sans-Serif;
+    font-size: 100%;
+    margin: 0;
+    padding: 1.6ex 0.36ex;
+}
+
+#stakeholders ul, #stakeholders li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 90%;
+}
+
+#stakeholders a {
+    color: #444;
+    display: block;
+    text-decoration: none;
+    margin: 0;
+    padding: 0.4ex 0.4ex;
+    border-bottom: solid 1px #eee;
+}
+
+#stakeholders a:hover {
+    background: #3D6E2B;
+    color: white;
+}
+
+#stakeholders ul li:first-child a {
+    border-top: solid 1px #eee;
+}
+
+
+#footer-container {
+    clear: both;
+    background: #3D6E2B;
+    color: #eee;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    margin: 0;
+}
+
+#footer-container a {
+    color: white;
+}
+
+#footer {
+    font-size: 80%;
+    margin: 0 auto;
+    padding: 0.6em 8px;
+    min-width: 760px;
+    max-width: 980px;
+    text-align: left;
+}
+
+
+/* vim: set nocin ai et ts=4 sw=4: */

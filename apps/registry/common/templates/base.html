@@ -1,0 +1,40 @@
+{% load staticfiles %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <title>{% block headertitle %} Australian Rare disease Registry {% endblock %}  &mdash;</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+        {% block extra_head %}{% endblock %}
+        <!--[if IE 6]>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+        <![endif]-->
+        <!--[if IE 7]>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+        <![endif]-->        
+    </head>
+    
+    <body>
+        <div id="header-container">
+            <h1>{% block bodytitle %} Australian Rare disease Registry {% endblock %}</h1>
+        </div>
+
+        <div id="container">
+			{% block content %} {% endblock %}
+        </div> 
+
+        <div id="footer-container">
+            <div id="footer">
+                Authorised by Hugh Dawkins for the
+                <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a>.
+                <br/>
+                All content &copy; 2011 <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a> on behalf of the Australian Facioscapulohumeral Muscular Dystrophy Registry.
+                <br/>
+                Supported by <a href="http://www.ivec.org/">iVEC</a> and the <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a>.
+                <br/>
+                Developed and hosted by the <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au/">Murdoch University</a>.
+                <br/>
+                <a href="{% url 'admin:index' %}">Administration</a>
+            </div>
+        </div>
+    </body>
+</html>

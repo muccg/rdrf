@@ -1,0 +1,10 @@
+body {
+    margin: 10px 15px;
+}
+
+#preview-container {
+    display: none;
+}
+
+
+/* vim: set nocin ai et ts=4 sw=4: */
