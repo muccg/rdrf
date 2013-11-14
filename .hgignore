@@ -5,6 +5,7 @@ bootstrap
 build
 dist
 *.rpm
+*.log
 
 virt_*/*
 django_rdrf.egg-info*
