@@ -1,20 +1,36 @@
+import os
 from setuptools import setup
 from rdrf import VERSION
 
 data_files = {}
 start_dir = os.getcwd()
-for package in ['rdrf']:
-    data_files['rdrf.' + package] = []
-    os.chdir(os.path.join('rdrf', package))
+
+def add_file_for_package(package, subdir, f):
+    full_path = os.path.join(subdir, f)
+    #print "%s: %s" % (package, full_path)
+    return full_path
+
+for package in ['rdrf', 'registry.common', 'registry.configuration','registry.forms',
+            'registry.genetic', 'registry.groups', 'registry.humangenome', 'registry.patients']:
+    data_files[package] = []
+    if "." in package:
+        base_dir,package_dir = package.split(".")
+        os.chdir(os.path.join(start_dir,base_dir, package_dir))
+    else:
+        base_dir = package
+        os.chdir(os.path.join(start_dir, base_dir))
+
     for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'templatetags', 'management'):
-	    data_files['rdrf.' + package].extend(
-	        [os.path.join(subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
+	    data_files[package].extend(
+	        [ add_file_for_package(package, subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
+
     os.chdir(start_dir)
+
+#print "data_files dict = %s" % data_files
 
 setup(name='django-rdrf',
     version=VERSION,
-    packages=['rdrf',
-                'rdrf.rdrf',
+    packages=[  'rdrf',
                 'registry.common',
                 'registry.patients',
                 'registry.genetic',
