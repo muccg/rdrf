@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'registry.genetic',
     'registry.common',
     'registry.configuration',
-    'rdrf.rdrf',
+    'rdrf',
     'django_qbe',
     'django_qbe.savedqueries',
     'django.contrib.admin',
