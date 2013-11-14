@@ -12,10 +12,11 @@ def get_owner_choices():
     """
     from django.conf import settings
     choices = [('UNUSED', 'UNUSED')]
-    for display_name, owner_model_func in settings.CDE_MODEL_MAP.items():
-        owner_class_name = owner_model_func().__name__
-        choices.append((owner_class_name, display_name))
-    return choices
+    # for display_name, owner_model_func in settings.CDE_MODEL_MAP.items():
+    #     owner_class_name = owner_model_func().__name__
+    #     choices.append((owner_class_name, display_name))
+
+    return [("UNUSED","UNUSED"), ("USED", "USED")]
 
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
