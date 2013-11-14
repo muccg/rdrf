@@ -1,23 +1,63 @@
 from setuptools import setup
+from rdrf import VERSION
+
+data_files = {}
+start_dir = os.getcwd()
+for package in ['rdrf']:
+    data_files['rdrf.' + package] = []
+    os.chdir(os.path.join('rdrf', package))
+    for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'templatetags', 'management'):
+	    data_files['rdrf.' + package].extend(
+	        [os.path.join(subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
+    os.chdir(start_dir)
 
 setup(name='django-rdrf',
-    version='0.1',
-    packages=['rdrf',],
-    description='RDRF CDEs',
-    long_description='Rare Disease Registry Common Data Elements',
+    version=VERSION,
+    packages=['rdrf',
+                'rdrf.rdrf',
+                'registry.common',
+                'registry.patients',
+                'registry.genetic',
+                'registry.groups',
+                'registry.forms',
+                'registry.humangenome',
+                'registry.configuration'
+    ],
+    description='RDRF',
+    long_description='Rare Disease Registry Framework',
     author='Centre for Comparative Genomics',
     author_email='web@ccg.murdoch.edu.au',
-    package_data= {'rdrf': ['templates/rdrf/cde.html',
-                                 'templates/rdrf/form.html',
-                                 'templatetags/get_form.py',
-                                 'templatetags/__init__.py']},
+    package_data= data_files,
+    zip_safe=False,
     install_requires=[
         'Django==1.5.4',
-	'pymongo',
-	'South>=0.7.3',
+	    'pymongo',
+	    'South>=0.7.3',
+        'django-extensions>=0.7.1',
+        'django-picklefield==0.1.9',
+        'django-templatetag-sugar==0.1',
+        'pyparsing==1.5.6',
+        'wsgiref==0.1.2',
+        'python-memcached==1.48',
+        'South>=0.7.3',
+        'django-extensions>=0.7.1',
+        'django-messages-ui==0.2.6',
+        'ccg-auth==0.3.2',
+        'ccg-extras==0.1.6',
+        'django-userlog==0.2.1',
+        'django_qbe',
+        'django-nose',
+        'django-admin-views',
+        'django-reversion',
+        'sure==1.2.1',
+        'django-templatetag-handlebars==1.2.0',
+        'django-iprestrict==0.1'
     ],
     dependency_links = [
         "http://repo.ccgapps.com.au",
+        "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",
+        "https://bitbucket.org/ccgmurdoch/django-userlog/downloads/django_userlog-0.2.1.tar.gz",
+        "https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/django-iprestrict-0.1.tar.gz"
     ],
 )
 
