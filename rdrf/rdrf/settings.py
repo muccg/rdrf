@@ -48,7 +48,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -71,7 +71,7 @@ INSTALLED_APPS = (
     'admin_views',
     'reversion',
     'iprestrict',
-)
+]
 
 
 # these determine which authentication method to use
