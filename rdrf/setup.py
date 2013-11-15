@@ -31,6 +31,7 @@ for package in ['rdrf', 'registry.common', 'registry.configuration','registry.fo
 setup(name='django-rdrf',
     version=VERSION,
     packages=[  'rdrf',
+		'registry',
                 'registry.common',
                 'registry.patients',
                 'registry.genetic',
