@@ -95,7 +95,7 @@ function ci_staging_tests() {
     REMOTE_TEST_RESULTS=${REMOTE_TEST_DIR}/tests.xml
 
     # Grant permission to create a test database.
-    DATABASE_USER=registryapp
+    DATABASE_USER=rdrf
     ccg ${AWS_STAGING_INSTANCE} dsudo:"su postgres -c \"psql -c 'ALTER ROLE ${DATABASE_USER} CREATEDB;'\""
 
     # This is the command which runs manage.py with the correct environment
@@ -128,9 +128,9 @@ function jslint() {
 
 # some db commands I use
 function dropdb() {
-    # assumes postgres, user registryapp exists, appropriate pg_hba.conf
+    # assumes postgres, user rdrf exists, appropriate pg_hba.conf
     echo "Drop the dev database manually:"
-    echo "psql -aeE -U postgres -c \"SELECT pg_terminate_backend(pg_stat_activity.procpid) FROM pg_stat_activity where pg_stat_activity.datname = 'rdrf'\" && psql -aeE -U postgres -c \"alter user registryapp createdb;\" template1 && psql -aeE -U registryapp -c \"drop database rdrf\" template1 && psql -aeE -U registryapp -c \"create database rdrf;\" template1"
+    echo "psql -aeE -U postgres -c \"SELECT pg_terminate_backend(pg_stat_activity.procpid) FROM pg_stat_activity where pg_stat_activity.datname = 'rdrf'\" && psql -aeE -U postgres -c \"alter user rdrf createdb;\" template1 && psql -aeE -U rdrf -c \"drop database rdrf\" template1 && psql -aeE -U rdrf -c \"create database rdrf;\" template1"
 }
 
 
@@ -174,9 +174,9 @@ function installapp() {
 # django syncdb, migrate and collect static
 function syncmigrate() {
     echo "syncdb"
-    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 1> syncdb-develop.log
+    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
     echo "migrate"
-    virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE} 1> migrate-develop.log
+    virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE} 
     echo "collectstatic"
     virt_rdrf/bin/django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 1> collectstatic-develop.log
 }
