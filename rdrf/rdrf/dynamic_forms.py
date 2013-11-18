@@ -35,7 +35,7 @@ def create_form_class_for_section(section):
     section = Section.objects.get(code=section)
     base_fields = {}
     for s in section.elements.split(","):
-        cde = CommonDataElement.objects.get(code=s)
+        cde = CommonDataElement.objects.get(code=s.strip())
         cde_field = FieldFactory(cde).create_field()
         base_fields[cde.code] = cde_field
 
