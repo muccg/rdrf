@@ -72,10 +72,15 @@ class FieldFactory(object):
         return self.cde.datatype
 
     def _get_field_options(self):
-        return {"label": self._get_field_name(), "help_text": self._get_help_text()}
+        return {"label": self._get_field_name(),
+                "help_text": self._get_help_text(),
+                "required": self._get_required()}
 
     def _get_help_text(self):
         return self.cde.instructions
+
+    def _get_required(self):
+        return self.cde.is_required
 
     def _is_dropdown(self):
         return self.cde.pv_group is not None
@@ -192,3 +197,10 @@ class FieldFactory(object):
             else:
                 logger.debug("field = %s options = %s" % (field, options))
                 return field(**options)
+
+class ValidatorFactory(object):
+    def __init__(self, cde):
+        self.cde = cde
+
+    def create_validator(self):
+        pass
