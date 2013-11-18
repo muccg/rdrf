@@ -1,19 +1,28 @@
-def has_dynamic_data(cls):
+from pymongo import MongoClient
+
+class DynamicDataWrapper(object):
     """
-    :param cls: the Registry Model class to decorate
-    :return: The class with extra methods to get dynamic data from MongoDB
+    Utility class to save and load dynamic data for a Django model object
+    Usage:
+    E.G. wrapper = DynamicDataWrapper(patient)
+    data = wrapper.load_dynamic_data("sma", "cdes)
+    ... modify data to new_data
+    wrapper.save_dynamic_data("sma","cdes", new_data)
+
     """
 
+    def __init__(self, obj):
+        self.obj = obj
+        self.client = MongoClient()
+
     def _get_record(self):
-        django_model = self.__class__.__name__
-        django_id = self.pk
+        django_model = self.obj.__class__.__name__
+        django_id = self.obj.pk
         return {"django_model": django_model,
                 "django_id": django_id}
 
     def _get_collection(self, registry, collection_name):
-        from pymongo import MongoClient
-        client = MongoClient()
-        db = client[registry]
+        db = self.client[registry]
         collection = db[collection_name]
         return collection
 
@@ -40,24 +49,3 @@ def has_dynamic_data(cls):
 
             collection = self._get_collection(registry, collection_name)
             collection.insert(record)
-
-    setattr(cls, '_get_record', _get_record)
-    setattr(cls, '_get_collection', _get_collection)
-    setattr(cls, 'load_dynamic_data', load_dynamic_data)
-    setattr(cls, 'save_dynamic_data', save_dynamic_data)
-
-    return cls
-
-
-
-
-
-
-
-
-
-
-
-
-
-
