@@ -81,7 +81,7 @@ function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'dmd run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true'
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
     
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
