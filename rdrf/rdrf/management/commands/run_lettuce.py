@@ -35,7 +35,6 @@ class Command(BaseCommand):
         app_name = 'rdrf'
         module = __import__(app_name)
         path = '%s/features/' % (os.path.dirname(module.__file__))
-        print path
         runner = Runner(path, verbosity=options.get('verbosity'),
                         enable_xunit=options.get('enable_xunit'),)
         runner.run()
