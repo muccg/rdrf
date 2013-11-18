@@ -77,7 +77,7 @@ class FormView(View):
         sections = []
         for s in section_parts:
             try:
-                Section.objects.get(code=s)
+                Section.objects.get(code=s.strip())
                 sections.append(s)
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
