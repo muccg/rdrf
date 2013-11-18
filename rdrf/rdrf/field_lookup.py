@@ -259,9 +259,9 @@ class ValidatorFactory(object):
 
         if self._is_string():
             if self.cde.pattern:
-                import regex
+                import re
                 try:
-                    re_pattern = regex.compile(self.cde.pattern)
+                    re_pattern = re.compile(self.cde.pattern)
                     def validate_pattern(value):
                         if not re_pattern.match(value):
                             raise ValidationError("Value of %s for %s does not match pattern '%s'" % (value, self.cde.code, self.cde.pattern))
