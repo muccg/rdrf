@@ -6,7 +6,7 @@ set -e
 
 ACTION="$1"
 
-PROJECT_NAME='disease_registry'
+PROJECT_NAME='rdrf'
 AWS_BUILD_INSTANCE='aws_rpmbuild_centos6'
 AWS_STAGING_INSTANCE='aws-syd-registry-staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
