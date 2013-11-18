@@ -48,7 +48,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['__unicode__', 'progress_graph', 'moleculardata_entered', 'freshness', 'working_group', 'diagnosis_last_update']
+    list_display = ['__unicode__', 'progress_graph', 'moleculardata_entered', 'freshness', 'working_group']
 
     def create_fieldset(self, superuser=False):
         """Function to dynamically create the fieldset, adding 'active' field if user is a superuser"""
