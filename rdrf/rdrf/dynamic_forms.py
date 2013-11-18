@@ -24,6 +24,7 @@ def create_form_class(owner_class_name):
                        'Media': Media}
 
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
+    return form_class
 
 def create_form_class_for_section(section):
     from models import CommonDataElement
