@@ -1,4 +1,6 @@
 from pymongo import MongoClient
+import logging
+logger = logging.getLogger("registry_log")
 
 class DynamicDataWrapper(object):
     """
@@ -14,6 +16,9 @@ class DynamicDataWrapper(object):
     def __init__(self, obj):
         self.obj = obj
         self.client = MongoClient()
+
+    def __unicode__(self):
+        return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
 
     def _get_record(self):
         django_model = self.obj.__class__.__name__
@@ -32,20 +37,28 @@ class DynamicDataWrapper(object):
         :param collection_name: e.g. cde or hpo
         :return:
         """
+        logger.debug("%s: loading data for %s %s" % (self, registry, collection_name))
         record = self._get_record()
         collection = self._get_collection(registry, collection_name)
-        return collection.find_one(record)
+        data = collection.find_one(record)
+        logger.debug("%s: dynamic data = %s" % (self, data))
+        return data
 
     def save_dynamic_data(self, registry, collection_name, data):
+        logger.debug("%s: save dyanmic data - registry = %s collection_name = %s data = %s" % (self, registry, collection_name, data))
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)
         if record:
+            logger.debug("%s: updating existing mongo data record %s" % (self,record))
             mongo_id = record['_id']
             collection.update({'_id': mongo_id}, {"$set": data}, upsert=False)
+            logger.debug("%s: updated record %s OK" % (self,record))
         else:
+            logger.debug("adding new mongo record")
             record = self._get_record()
             for code, value in data.items():
                 record[code] = value
 
             collection = self._get_collection(registry, collection_name)
             collection.insert(record)
+            logger.debug("%s: inserted record %s OK" % (self,record))
