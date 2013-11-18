@@ -63,8 +63,9 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         if name in data:
             return data[name]
         else:
-            option_selected = data[name + "_0"]
-            text_entered = data[name + "_1"]
+            option_selected = data.get(name + "_0", self.unset_value)
+            text_entered = data.get(name + "_1","")
+
             if option_selected == self.other_please_specify_value:
                 return text_entered
             else:
