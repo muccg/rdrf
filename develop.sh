@@ -8,7 +8,7 @@ ACTION="$1"
 
 PROJECT_NAME='rdrf'
 AWS_BUILD_INSTANCE='aws_rpmbuild_centos6'
-AWS_STAGING_INSTANCE='aws-syd-registry-staging'
+AWS_STAGING_INSTANCE='aws-syd-rdrf-staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium"
@@ -117,7 +117,6 @@ function lint() {
 
 # lint js, assumes closure compiler
 function jslint() {
-    registry_needed
     JSFILES="rdrf/rdrf/rdrf/static/js/*.js"
     for JS in $JSFILES
     do
