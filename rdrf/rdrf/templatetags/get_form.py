@@ -4,4 +4,4 @@ register = template.Library()
 
 @register.filter()
 def get_form(dictionary, key):
-    return dictionary.get(key)()
+    return dictionary.get(key)

@@ -27,7 +27,7 @@ class FormView(View):
         
         form_section = {}
         for s in sections:
-            form_section[s] =   create_form_class_for_section(s)
+            form_section[s] =   create_form_class_for_section(s)(dynamic_data)
         
         context = {
             'registry': registry_code,
@@ -55,11 +55,10 @@ class FormView(View):
                 dynamic_data = form.cleaned_data
                 dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
             else:
+                for e in form.errors:
+                    logger.debug("Validation error on form: %s" % e)
 
-
-            form_section[s] = form
-
-
+            form_section[s] = form_class(request.POST)
 
         context = {
             'registry': registry_code,
@@ -71,7 +70,8 @@ class FormView(View):
 
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/form.html', context)
-    
+
+
     def _get_sections(self, form):
         section_parts = form.sections.split(",")        
         sections = []
