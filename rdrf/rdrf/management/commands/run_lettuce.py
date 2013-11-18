@@ -10,11 +10,6 @@ class Command(BaseCommand):
     help = 'Runs lettuce features'
 
     option_list = BaseCommand.option_list[1:] + (
-        make_option('--app-name',
-                    action='store',
-                    dest='app_name',
-                    help='Application name'),
-
         make_option('-v', '--verbosity',
                     action='store',
                     dest='verbosity',
@@ -37,12 +32,10 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        app_name = options.get('app_name')
-        if app_name:
-            module = __import__(app_name)
-            path = '%s/%s/features/' % (os.path.dirname(module.__file__), app_name)
-            runner = Runner(path, verbosity=options.get('verbosity'),
-                            enable_xunit=options.get('enable_xunit'),)
-            runner.run()
-        else:
-            raise CommandError('Application name not provided')
+        app_name = 'rdrf'
+        module = __import__(app_name)
+        path = '%s/features/' % (os.path.dirname(module.__file__))
+        print path
+        runner = Runner(path, verbosity=options.get('verbosity'),
+                        enable_xunit=options.get('enable_xunit'),)
+        runner.run()
