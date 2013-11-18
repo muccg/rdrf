@@ -2,7 +2,6 @@ from django.db import models
 import logging
 logger = logging.getLogger("registry")
 
-
 class Registry(models.Model):
     name = models.CharField(max_length=80)
     code = models.CharField(max_length=10)
@@ -41,30 +40,17 @@ class CDEPermittedValue(models.Model):
 
 class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
-    name = models.CharField(max_length=250, blank=False)
-    desc = models.TextField()
-    datatype = models.CharField(max_length=50)
-    instructions = models.TextField()
-    references = models.TextField()
-    population = models.CharField(max_length=250)
-    classification = models.CharField(max_length=250)
-    version = models.CharField(max_length=50)
-    version_date = models.DateField()
-    variable_name = models.CharField(max_length=250)
-    aliases_for_variable_name = models.CharField(max_length=250)
-    crf_module = models.CharField(max_length=250)
-    subdomain = models.CharField(max_length=250)
-    domain = models.CharField(max_length=250)
-    pv_group = models.ForeignKey(CDEPermittedValueGroup, null=True, blank=True)
+    name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
+    desc = models.TextField(blank=True, help_text="origin of field")
+    datatype = models.CharField(max_length=50, help_text="type of field")
+    instructions = models.TextField(blank=True, help_text="Used to indicate help text for field")
+    pv_group = models.ForeignKey(CDEPermittedValueGroup, null=True, blank=True, help_text="If a range, indicate the Permissible Value Group")
 
-    max_value= models.CharField(max_length=80)
-    min_value= models.CharField(max_length=80)
-    is_required = models.BooleanField(default=False)
-
-
-    OWNER_CHOICES = get_owner_choices()
-
-    owner = models.CharField(max_length=50, choices=OWNER_CHOICES, default="UNUSED")
+    max_length = models.IntegerField(blank=True,null=True, help_text="Length of field - only used for character fields")
+    max_value= models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
+    min_value= models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
+    is_required = models.BooleanField(default=False, help_text="Indicate whether field is non-optional")
+    pattern = models.CharField(max_length=50, blank=True, help_text="Regular expression to validate string fields (optional)")
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -78,6 +64,9 @@ class RegistryForm(models.Model):
     name = models.CharField(max_length=80)
     sections = models.TextField(help_text="Comma-separated list of sections")
 
+    def __unicode__(self):
+        return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
+
 
 class Section(models.Model):
     """
@@ -85,6 +74,9 @@ class Section(models.Model):
     """
     code = models.CharField(max_length=50)
     elements = models.TextField()
+
+    def __unicode__(self):
+        return "Section %s comprising %s" % (self.code, self.elements)
 
 
 class Wizard(models.Model):
