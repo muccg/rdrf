@@ -179,6 +179,9 @@ class FieldFactory(object):
                         widget = widget_class(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
                     except:
                         widget = widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                else:
+                    widget = widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+
                 return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
                 return django.forms.ChoiceField(**options)
