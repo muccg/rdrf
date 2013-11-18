@@ -117,7 +117,6 @@ function lint() {
 
 # lint js, assumes closure compiler
 function jslint() {
-    registry_needed
     JSFILES="rdrf/rdrf/rdrf/static/js/*.js"
     for JS in $JSFILES
     do
