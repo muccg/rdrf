@@ -2,6 +2,7 @@ import django.forms
 import fields
 import widgets
 import logging
+from django.core.exceptions import ValidationError
 logger = logging.getLogger('registry_log')
 
 
@@ -36,6 +37,7 @@ class FieldFactory(object):
         :param cde: Common Data Element model instance
         """
         self.cde = cde
+        self.validator_factory = ValidatorFactory(self.cde)
 
     def _customisation_module_exists(self):
         try:
@@ -72,9 +74,17 @@ class FieldFactory(object):
         return self.cde.datatype
 
     def _get_field_options(self):
-        return {"label": self._get_field_name(),
+
+        options_dict =  {"label": self._get_field_name(),
                 "help_text": self._get_help_text(),
-                "required": self._get_required()}
+                "required": self._get_required(),
+        }
+
+        validators = self.validator_factory.create_validators()
+        if validators:
+            options_dict['validators'] = validators
+
+        return options_dict
 
     def _get_help_text(self):
         return self.cde.instructions
@@ -155,7 +165,6 @@ class FieldFactory(object):
 
         """
         options = self._get_field_options()
-
         if self._is_dropdown():
             choices = self._get_permitted_value_choices()
             options['choices'] = choices
@@ -164,11 +173,19 @@ class FieldFactory(object):
                 #TODO make this more robust
                 other_please_specify_index = ["specify" in pair[1].lower() for pair in choices].index(True)
                 other_please_specify_value = choices[other_please_specify_index][0]
-                return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE))
+                if self.cde.widget_name:
+                    try:
+                        widget_class = getattr(widgets, self.cde.widget_name)
+                        widget = widget_class(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                    except:
+                        widget = widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
                 return django.forms.ChoiceField(**options)
         else:
+            # Not a drop down
             widget = None
+
             if self._has_field_override():
                 field = self._get_field_override()
             elif self._has_field_for_dataype():
@@ -176,6 +193,7 @@ class FieldFactory(object):
             else:
                 # we return a plain Django Field defaulting to a character field
                 field_or_tuple = self.DATATYPE_DICTIONARY.get(self.cde.datatype.lower(), django.forms.CharField)
+
                 if isinstance(field_or_tuple, tuple):
                     field = field_or_tuple[0]
                     extra_options = field_or_tuple[1]
@@ -183,6 +201,12 @@ class FieldFactory(object):
                 else:
                     field = field_or_tuple
 
+            if self.cde.widget_name:
+                try:
+                    widget = getattr(widgets, self.cde.widget_name)
+                except Exception, ex:
+                    logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
+                    widget = None
 
             if self._has_widget_override():
                 widget = self._get_widget_override()
@@ -202,5 +226,53 @@ class ValidatorFactory(object):
     def __init__(self, cde):
         self.cde = cde
 
-    def create_validator(self):
-        pass
+    def _is_numeric(self):
+        return self.cde.datatype.lower() in ["integer", "decimal", "number", "numeric"]
+
+    def _is_string(self):
+        return self.cde.datatype.lower() in ["string", "alphanumeric", "text"]
+
+    def _is_range(self):
+        return self.cde.pv_group is not None
+
+
+
+    def create_validators(self):
+        validators = []
+
+        if self._is_numeric():
+            if self.cde.max_value:
+                def validate_max(value):
+                    if value > self.cde.max_value:
+                        raise ValidationError("Value of %s for %s is more than maximum value %s" % (value, self.cde.code, self.cde.max_value))
+                validators.append(validate_max)
+
+            if self.cde.min_value:
+                def validate_min(value):
+                    if value < self.cde.min_value:
+                        raise ValidationError("Value of %s for %s is less than minimum value %s" % (value, self.cde.code, self.cde.min_value))
+
+                validators.append(validate_min)
+
+        if self._is_string():
+            if self.cde.pattern:
+                import regex
+                try:
+                    re_pattern = regex.compile(self.cde.pattern)
+                    def validate_pattern(value):
+                        if not re_pattern.match(value):
+                            raise ValidationError("Value of %s for %s does not match pattern '%s'" % (value, self.cde.code, self.cde.pattern))
+                    validators.append(validate_pattern)
+                except Exception,ex:
+                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" % (self.cde.code, self.cde.pattern, ex))
+
+            if self.cde.max_length:
+                def validate_length(value):
+                    if len(value) > self.cde.length:
+                        raise ValidationError("Value of '%s' for %s is longer than max length of %s" % (value, self.cde.code, self.cde.max_length))
+                validators.append(validate_length)
+
+
+        return validators
+
+
