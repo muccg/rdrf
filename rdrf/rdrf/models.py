@@ -3,6 +3,12 @@ import logging
 logger = logging.getLogger("registry")
 
 
+class Registry(models.Model):
+    name = models.CharField(max_length=80)
+    code = models.CharField(max_length=10)
+    desc = models.TextField()
+
+
 def get_owner_choices():
     """
     Get choices for CDE owner drop down.
@@ -50,6 +56,11 @@ class CommonDataElement(models.Model):
     subdomain = models.CharField(max_length=250)
     domain = models.CharField(max_length=250)
     pv_group = models.ForeignKey(CDEPermittedValueGroup, null=True, blank=True)
+
+    max_value= models.CharField(max_length=80)
+    min_value= models.CharField(max_length=80)
+    is_required = models.BooleanField(default=False)
+
 
     OWNER_CHOICES = get_owner_choices()
 
@@ -100,6 +111,10 @@ class CalculatedField(models.Model):
     registry = models.CharField(max_length=50)
     form_name = models.CharField(max_length=50)
     calculation = models.TextField()
+
+
+
+
 
 
 
