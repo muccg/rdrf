@@ -12,7 +12,7 @@ urlpatterns = patterns("",
     (r'^admin/', include(admin.site.urls)),
     (r'', include(common_urls, namespace="registry")),
     url(r"^patient/(\d+)$", views.patient_cdes),
-    url(r"^forms/(?P<form_name>\w+)/(?P<patient_id>\d+)$", form_view.FormView.as_view()),
+    url(r"^(?P<registry_code>\w+)/forms/(?P<form_name>\w+)/(?P<patient_id>\d+)$", form_view.FormView.as_view()),
 )
 
 

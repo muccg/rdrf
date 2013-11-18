@@ -15,10 +15,11 @@ logger = logging.getLogger("dmd")
 
 class FormView(View):
 
-    def get(self, request, form_name, patient_id):
+    def get(self, request, registry_code, form_name, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
-        dynamic_data = dyn_patient.load_dynamic_data("dmd","cdes")
+
+        dynamic_data = dyn_patient.load_dynamic_data(registry_code,"cdes")
 
         form_obj = RegistryForm.objects.get(name=form_name)
         
