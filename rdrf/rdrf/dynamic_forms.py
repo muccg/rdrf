@@ -38,6 +38,6 @@ def create_form_class_for_section(section):
         cde_field = FieldFactory(cde).create_field()
         base_fields[cde.code] = cde_field
 
-    form_class_dict = {"base_fields": base_fields}
+    form_class_dict = {"base_fields": base_fields, "auto_id" : True}
     
     return type(form_class_name, (BaseForm,), form_class_dict)
