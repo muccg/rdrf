@@ -6,14 +6,20 @@ import logging
 
 from models import RegistryForm
 from models import Section
+from registry.patients.models import Patient
 
 from dynamic_forms import create_form_class_for_section
+from dynamic_data import DynamicDataWrapper
 
 logger = logging.getLogger("dmd")
 
 class FormView(View):
 
     def get(self, request, form_name, patient_id):
+        patient = Patient.objects.get(pk=patient_id)
+        dyn_patient = DynamicDataWrapper(patient)
+        dynamic_data = dyn_patient.load_dynamic_data("dmd","cdes")
+
         form_obj = RegistryForm.objects.get(name=form_name)
         
         sections = self._get_sections(form_obj)
@@ -36,6 +42,9 @@ class FormView(View):
         return render_to_response('rdrf_cdes/form.html', context)
 
     def post(self, request, form_name, patient_id):
+        patient = Patient.objects.get(pk=patient_id)
+        dyn_patient = DynamicDataWrapper(patient)
+
         return render_to_response('rdrf_cdes/form.html')
     
     def _get_sections(self, form):

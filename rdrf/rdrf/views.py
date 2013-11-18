@@ -4,6 +4,7 @@ from django.http import Http404
 from django.conf import settings
 from django.core.context_processors import csrf
 from dynamic_forms import create_form_class
+from dynamic_data import DynamicDataWrapper
 
 
 def patient_cdes(request, patient_id):
@@ -11,7 +12,9 @@ def patient_cdes(request, patient_id):
     owner_model = owner_model_func()  # a Model _class_
 
     try:
-        owner_instance = owner_model.objects.get(pk=patient_id)
+        patient = owner_model.objects.get(pk=patient_id)
+        dyn_patient = DynamicDataWrapper(patient)
+
     except owner_model.DoesNotExist:
         raise Http404("Patient does not exist")
 
@@ -20,14 +23,14 @@ def patient_cdes(request, patient_id):
     if request.method == "POST":
         form = form_class(request.POST)
         if form.is_valid():
-            owner_instance.save_dynamic_data("dmd", "cdes", form.cleaned_data)
+            dyn_patient.save_dynamic_data("dmd", "cdes", form.cleaned_data)
             return HttpResponseRedirect('/cdes/patient/%s' % patient_id)
     else:
-        form = form_class(owner_instance.load_dynamic_data("dmd", "cdes"))
+        form = form_class(dyn_patient.load_dynamic_data("dmd", "cdes"))
 
     context = {'form': form, 'owner':  'patient',
                                         'owner_id': patient_id,
-                                        'name': owner_instance.given_names + " " + owner_instance.family_name,
+                                        'name': patient.given_names + " " + patient.family_name,
                 }
 
     context.update(csrf(request))
