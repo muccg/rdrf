@@ -36,5 +36,6 @@ class Command(BaseCommand):
         module = __import__(app_name)
         path = '%s/features/' % (os.path.dirname(module.__file__))
         runner = Runner(path, verbosity=options.get('verbosity'),
-                        enable_xunit=options.get('enable_xunit'),)
+                        enable_xunit=options.get('enable_xunit'),
+                        xunit_filename=options.get('xunit_file'),)
         runner.run()
