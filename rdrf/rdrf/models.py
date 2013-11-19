@@ -6,6 +6,7 @@ class Registry(models.Model):
     name = models.CharField(max_length=80)
     code = models.CharField(max_length=10)
     desc = models.TextField()
+    splash_screen = models.TextField()
 
 
 def get_owner_choices():
