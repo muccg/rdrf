@@ -22,7 +22,7 @@ def set_browser():
 
 @before.all
 def set_site_url():
-    world.site_url = steps.get_site_url("dd", default_url="http://localhost:8004")
+    world.site_url = steps.get_site_url("rdrf", default_url="http://localhost")
 
 @before.all
 def set_wait_seconds():
