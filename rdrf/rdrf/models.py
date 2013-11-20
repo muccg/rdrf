@@ -52,6 +52,7 @@ class CommonDataElement(models.Model):
     is_required = models.BooleanField(default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(max_length=50, blank=True, help_text="Regular expression to validate string fields (optional)")
     widget_name = models.CharField(max_length=80, blank=True, help_text="If a special widget required indicate here - leave blank otherwise")
+    calculation = models.TextField(blank=True, help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -97,15 +98,6 @@ class Wizard(models.Model):
     #  else present form6
     #
     rules = models.TextField(help_text="Rules")
-
-
-class CalculatedField(models.Model):
-    code = models.CharField(max_length=50)
-    registry = models.CharField(max_length=50)
-    form_name = models.CharField(max_length=50)
-    calculation = models.TextField()
-
-
 
 
 
