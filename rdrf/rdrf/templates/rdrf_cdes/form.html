@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load get_form %}
+{% load get_display_name %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -42,7 +43,7 @@
                 <form action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
                     {% for s in sections %}
                         <div class="inline-group">
-                            <h2>{{s}}</h2>
+                            <h2>{{display_names|get_display_name:s}}</h2>
                             <table>
                             {{forms|get_form:s}}
                             </table>
