@@ -2,12 +2,12 @@ Feature: Login
 
     Scenario: You are on login page
         Given I go to "/admin"
-        Then I should see "Django"
+        Then I should see "Rare Desease Registry Framework"
     
     Scenario: Login successful as admin
         Given I go to "/admin"
         Then I log in as "admin" with "admin" password
-        Then I should see "Site administration"
+        Then I should see "Rare Desease Registry Framework"
         And I click "Log out"
 
     Scenario: Login failed as random user
