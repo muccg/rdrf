@@ -28,6 +28,7 @@ class FieldFactory(object):
        "integer": django.forms.IntegerField,
        "date": django.forms.DateField,
        "boolean": django.forms.BooleanField,
+       "float" : django.forms.FloatField,
     }
 
     UNSET_CHOICE = "UNSET"
@@ -262,6 +263,7 @@ class ValidatorFactory(object):
         if self._is_numeric():
             if self.cde.max_value:
                 def validate_max(value):
+                    logger.debug("%s validaton: value = %s max value = %s" % (self.cde, value, self.cde.max_value))
                     if value > self.cde.max_value:
                         raise ValidationError("Value of %s for %s is more than maximum value %s" % (value, self.cde.code, self.cde.max_value))
                 validators.append(validate_max)
