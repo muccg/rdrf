@@ -13,7 +13,6 @@ rdrf.egg-info*
 rdrf/logs
 rdrf/log
 rdrf/media
-rdrf/static
 build-number.txt
 tests*.xml
 *komodo*
