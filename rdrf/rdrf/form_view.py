@@ -23,8 +23,8 @@ class FormView(View):
 
         form_obj = RegistryForm.objects.get(name=form_name, registry=registry_code)
         
-        sections = self._get_sections(form_obj)
-        
+        sections, display_names = self._get_sections(form_obj)
+
         form_section = {}
         for s in sections:
             form_section[s] =   create_form_class_for_section(s)(dynamic_data)
@@ -33,7 +33,9 @@ class FormView(View):
             'registry': registry_code,
             'form_name': form_name,
             'patient_id': patient_id,
+            'patient_name': '%s %s' % (patient.given_names, patient.family_name),
             'sections': sections,
+            'display_names': display_names,
             'forms': form_section
         }
         context.update(csrf(request))
@@ -75,10 +77,12 @@ class FormView(View):
     def _get_sections(self, form):
         section_parts = form.sections.split(",")        
         sections = []
+        display_names = {}
         for s in section_parts:
             try:
-                Section.objects.get(code=s.strip())
+                sec = Section.objects.get(code=s.strip())
+                display_names[s] = sec.display_name
                 sections.append(s)
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
-        return sections
+        return sections, display_names
