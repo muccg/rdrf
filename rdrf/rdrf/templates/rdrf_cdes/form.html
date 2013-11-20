@@ -37,7 +37,7 @@
 
     <div id="content" class="colM">
         <h1>Form name: {{ form_name }}</h1>
-        <h2>Patient name: </h2>
+        <h2>Patient name: {{ patient_name }}</h2>
             
             <div id="content-main">
                 <form action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}

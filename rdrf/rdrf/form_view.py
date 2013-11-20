@@ -33,6 +33,7 @@ class FormView(View):
             'registry': registry_code,
             'form_name': form_name,
             'patient_id': patient_id,
+            'patient_name': '%s %s' % (patient.given_names, patient.family_name),
             'sections': sections,
             'display_names': display_names,
             'forms': form_section
