@@ -76,6 +76,7 @@ class Section(models.Model):
     A group of fields that appear on a form as a unit
     """
     code = models.CharField(max_length=50)
+    display_name = models.CharField(max_length=100)
     elements = models.TextField()
 
     def __unicode__(self):
