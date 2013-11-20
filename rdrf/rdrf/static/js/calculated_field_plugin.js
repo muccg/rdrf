@@ -10,7 +10,7 @@
 
         var subject_codes_string  = _.map(settings.subjects.split(","), function(code){return "#id_" + code;}).join()
 
-        $(subject_codes_string).on("input",function () {
+        $(subject_codes_string).on("input, change",function () {
             var context = {};
             var subject_codes = settings.subjects.split(",");
             // replace
