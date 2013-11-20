@@ -45,7 +45,7 @@ class FormView(View):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = RegistryForm.objects.get(name=form_name, registry=registry_code)
-        sections = self._get_sections(form_obj)
+        sections, display_names = self._get_sections(form_obj)
         form_section = {}
         for s in sections:
             form_class = create_form_class_for_section(s)
@@ -67,7 +67,8 @@ class FormView(View):
             'form_name': form_name,
             'patient_id': patient_id,
             'sections': sections,
-            'forms': form_section
+            'forms': form_section,
+            'display_names': display_names,
         }
 
         context.update(csrf(request))
