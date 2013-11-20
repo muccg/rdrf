@@ -43,7 +43,9 @@
                     {% for s in sections %}
                         <div class="inline-group">
                             <h2>{{s}}</h2>
+                            <table>
                             {{forms|get_form:s}}
+                            </table>
                         </div>
                         <!--<fieldset><legend>{{s}}</legend>
                         </fieldset>-->
