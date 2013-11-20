@@ -92,3 +92,15 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         """ % (select_id, self.other_please_specify_value, specified_value_textbox_id, specified_value_textbox_id, select_id)
 
         return super(OtherPleaseSpecifyWidget, self).render(name, value, attrs) + script
+
+
+class CalculatedFieldWidget(widgets.TextInput):
+    def __init__(self, script, attrs={}):
+        attrs['readonly'] = 'readonly'
+        self.script = script
+        super(CalculatedFieldWidget, self).__init__(attrs=attrs)
+
+    def render(self, name, value, attrs):
+        #attrs['readonly'] = 'readonly'
+        return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
+
