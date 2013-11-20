@@ -247,10 +247,10 @@ class ValidatorFactory(object):
         self.cde = cde
 
     def _is_numeric(self):
-        return self.cde.datatype.lower() in ["integer", "decimal", "number", "numeric"]
+        return self.cde.datatype.lower() in ["integer", "float"]
 
     def _is_string(self):
-        return self.cde.datatype.lower() in ["string", "alphanumeric", "text"]
+        return self.cde.datatype.lower() in ["string", "alphanumeric" ]
 
     def _is_range(self):
         return self.cde.pv_group is not None
