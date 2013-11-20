@@ -23,7 +23,7 @@
   <!-- Header -->
     <div id="header">
         <div id="branding">
-            <h1 id="site-name">{{registry}} Registry</h1>
+            <h1 id="site-name">{{registry|upper}} Registry</h1>
         </div>
 
         <div id="user-tools">
@@ -36,8 +36,7 @@
     <!-- END Header -->
 
     <div id="content" class="colM">
-        <h1>Form name: {{ form_name }}</h1>
-        <h2>Patient name: {{ patient_name }}</h2>
+        <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
             
             <div id="content-main">
                 <form action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
