@@ -3,9 +3,9 @@
         var settings = $.extend({
             // These are the defaults.
             calculation: function (context) { context.result = "???"; },
-            subjects: '', // E.g. "#CDE01 #CDE02" the inputs to the calculation
+            subjects: '', // E.g. "CDE01,CDE02" comma separated list of inputs to the calculation
             target: "value",
-            observer: ''  // the calculated field id
+            observer: ''  // the cde code of the output e,g, CDE03
         }, options );
 
         var subject_codes_string  = _.map(settings.subjects.split(","), function(code){return "#id_" + code;}).join()
