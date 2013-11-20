@@ -1,4 +1,5 @@
 from django.forms import BaseForm
+from django.utils.datastructures import SortedDict
 from field_lookup import FieldFactory
 
 
@@ -33,11 +34,13 @@ def create_form_class_for_section(section):
     form_class_name = "SectionForm"
     
     section = Section.objects.get(code=section)
-    base_fields = {}
+    base_fields = SortedDict()
+
     for s in section.elements.split(","):
         cde = CommonDataElement.objects.get(code=s.strip())
         cde_field = FieldFactory(cde).create_field()
         base_fields[cde.code] = cde_field
+
 
     form_class_dict = {"base_fields": base_fields, "auto_id" : True}
     
