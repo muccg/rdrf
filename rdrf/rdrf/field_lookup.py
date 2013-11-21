@@ -31,7 +31,7 @@ class FieldFactory(object):
        "float" : django.forms.FloatField,
     }
 
-    UNSET_CHOICE = "UNSET"
+    UNSET_CHOICE = ""
 
     def __init__(self, cde):
         """
@@ -142,6 +142,24 @@ class FieldFactory(object):
                 choices.append(choice_tuple)
         return choices
 
+    def _widget_search(self, widget_class_name):
+        """
+
+        :param widget_class_name: E.g. "RadioSelect" Allow us to override
+        :return:
+        """
+        import django.forms as django_forms
+
+        if hasattr(widgets, widget_class_name):
+            widget_class = getattr(widgets, widget_class_name)
+            return widget_class
+
+        if hasattr(django_forms, widget_class_name):
+            widget_class = getattr(django_forms, widget_class_name)
+            return widget_class
+
+        return None
+
     def create_field(self):
         """
         :param cde: Common Data Element instance
@@ -191,6 +209,7 @@ class FieldFactory(object):
 
                 return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
+                logger.debug("cde %s field ChoiceField options %s" % (self.cde, options))
                 return django.forms.ChoiceField(**options)
         else:
             # Not a drop down
@@ -223,7 +242,7 @@ class FieldFactory(object):
 
             if self.cde.widget_name:
                 try:
-                    widget = getattr(widgets, self.cde.widget_name)
+                    widget = self._widget_search(self.cde.widget_name)
                 except Exception, ex:
                     logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
                     widget = None
