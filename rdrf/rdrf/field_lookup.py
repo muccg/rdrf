@@ -188,6 +188,8 @@ class FieldFactory(object):
         Finally a Django field is returned based the DATATYPE_DICTIONARY
         ( if no field mapping is found a TextArea field is returned.)
 
+        TODO Refactor this!
+
         """
         options = self._get_field_options()
         if self._is_dropdown():
@@ -246,6 +248,10 @@ class FieldFactory(object):
                 except Exception, ex:
                     logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
                     widget = None
+            else:
+                if self.cde.datatype.lower() == 'date':
+                    from django.forms.extras.widgets import SelectDateWidget
+                    widget = SelectDateWidget
 
             if self._has_widget_override():
                 widget = self._get_widget_override()

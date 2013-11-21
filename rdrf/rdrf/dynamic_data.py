@@ -45,13 +45,14 @@ class DynamicDataWrapper(object):
         return data
 
     def save_dynamic_data(self, registry, collection_name, data):
+        self._convert_date_to_datetime(data)
         logger.debug("%s: save dyanmic data - registry = %s collection_name = %s data = %s" % (self, registry, collection_name, data))
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)
         if record:
             logger.debug("%s: updating existing mongo data record %s" % (self,record))
             mongo_id = record['_id']
-            collection.update({'_id': mongo_id}, {"$set": data}, upsert=False)
+            collection.update({'_id': mongo_id}, {"$set": data }, upsert=False)
             logger.debug("%s: updated record %s OK" % (self,record))
         else:
             logger.debug("adding new mongo record")
@@ -62,3 +63,19 @@ class DynamicDataWrapper(object):
             collection = self._get_collection(registry, collection_name)
             collection.insert(record)
             logger.debug("%s: inserted record %s OK" % (self,record))
+
+    def _convert_date_to_datetime(self, data):
+                """
+                pymongo doesn't allow saving datetime.Date
+
+                :param data: dictionary of CDE codes --> values
+                :return:
+                """
+                import types
+                from datetime import date
+                from datetime import datetime
+
+                for k in data:
+                    value = data[k]
+                    if type(value) is date:
+                        data[k] = datetime(value.year, value.month, value.day)
