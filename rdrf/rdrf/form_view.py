@@ -2,6 +2,8 @@ from django.shortcuts import render_to_response
 from django.views.generic.base import View
 from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib import messages
+from django.template import RequestContext
 import logging
 
 from models import RegistryForm
@@ -27,7 +29,7 @@ class FormView(View):
 
         form_section = {}
         for s in sections:
-            form_section[s] =   create_form_class_for_section(s)(dynamic_data)
+            form_section[s] = create_form_class_for_section(s)(dynamic_data)
         
         context = {
             'registry': registry_code,
@@ -62,18 +64,21 @@ class FormView(View):
 
             form_section[s] = form_class(request.POST)
 
+        patient_name = '%s %s' % (patient.given_names, patient.family_name)
+
         context = {
             'registry': registry_code,
             'form_name': form_name,
             'patient_id': patient_id,
-            'patient_name': '%s %s' % (patient.given_names, patient.family_name),
+            'patient_name': patient_name,
             'sections': sections,
             'forms': form_section,
-            'display_names': display_names,
+            'display_names': display_names
         }
 
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/form.html', context)
+        messages.add_message(request, messages.INFO, 'Patient %s saved successfully' % patient_name)
+        return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
 
     def _get_sections(self, form):
