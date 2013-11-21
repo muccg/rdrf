@@ -4,9 +4,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>Common Data Elements for {{ name }}</title>
+<title>{{registry|upper}} Registry</title>
 <link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'css/dmd_admin.css' %}" />
 <link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
 <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
@@ -36,6 +35,13 @@
     <!-- END Header -->
 
     <div id="content" class="colM">
+    {% if messages %}
+    <ul class="messagelist">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
         <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
             
             <div id="content-main">
