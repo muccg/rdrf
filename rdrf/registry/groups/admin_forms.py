@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.models import Group
 from models import User, WorkingGroup
 
+from rdrf.models import Registry
+
 
 class ChangePasswordForm(forms.Form):
     password = forms.CharField(max_length=100, widget=forms.PasswordInput)
@@ -25,6 +27,7 @@ class UserChangeForm(forms.Form):
     title = forms.CharField(max_length=50, label="Position")
     groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all())
     working_group = forms.ModelMultipleChoiceField(queryset=WorkingGroup.objects.all())
+    registry = forms.ModelMultipleChoiceField(queryset=Registry.objects.all())
 
     def __init__(self, user, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
@@ -61,6 +64,7 @@ class UserNewForm(UserChangeForm):
             "title",
             "groups",
             "working_group",
+            "registry"
         ]
 
     def clean(self):
