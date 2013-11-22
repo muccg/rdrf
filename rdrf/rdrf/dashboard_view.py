@@ -7,11 +7,18 @@ from django.utils.decorators import method_decorator
 
 import logging
 
+from registry.groups.models import User
+
 logger = logging.getLogger("registry_log")
 
 class DashboardView(View):
 
     @method_decorator(login_required)
     def get(self, request):
-        print request.user
-        return render_to_response('rdrf_cdes/dashboard.html', context_instance=RequestContext(request))
+        user = User.objects.get(user__username=request.user)
+        
+        context = {
+            'user_obj': user,
+        }
+        
+        return render_to_response('rdrf_cdes/dashboard.html', context, context_instance=RequestContext(request))

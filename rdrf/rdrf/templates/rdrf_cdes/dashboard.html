@@ -42,6 +42,17 @@
             {% endfor %}
         </ul>
         {% endif %}
+        
+        <h1>Welcome to RDRF {{user_obj}}!</h1>
+        <hr>
+        {% for reg in user_obj.registry.all %}
+            <div class="inline-group">
+                <h2>{{reg.name}}</h2>
+                <table>
+                    {{reg.code}}
+                </table>
+            </div>
+        {% endfor %}            
     </div>
 </body>
 </html>
