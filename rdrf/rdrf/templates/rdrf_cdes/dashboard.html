@@ -1,0 +1,58 @@
+{% load staticfiles %}
+{% load get_form %}
+{% load get_display_name %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Rare Disease Registry Framework</title>
+<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+<script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+<![endif]-->
+</head>
+<body>
+  <!-- Header -->
+    <div id="header">
+        <div id="branding">
+            <h1 id="site-name">Rare Disease Registry Framework</h1>
+        </div>
+
+        <div id="user-tools">
+            Welcome,
+            <strong>{{user}}</strong>.
+                <a href="/admin/password_change/">Change password</a> /
+                <a href="/admin/logout/">Log out</a>
+        </div>
+    </div>
+    <!-- END Header -->
+
+    <div id="content" class="colM">
+        {% if messages %}
+        <ul class="messagelist">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <h1>Welcome to RDRF {{user_obj}}!</h1>
+        <hr>
+        {% for reg in user_obj.registry.all %}
+            <div class="inline-group">
+                <h2>{{reg.name}}</h2>
+                <table>
+                    {{reg.code}}
+                </table>
+            </div>
+        {% endfor %}            
+    </div>
+</body>
+</html>
