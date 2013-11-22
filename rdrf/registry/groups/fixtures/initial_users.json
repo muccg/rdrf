@@ -1,111 +1,234 @@
 [
-    {
-        "pk": 3, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "Clinical Staff", 
-            "permissions": [
-            ]
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "Genetic Staff", 
-            "permissions": [
-            ]
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "auth.group", 
-        "fields": {
-            "name": "Working Group Curators", 
-            "permissions": [
-            ]
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "auth.user", 
-        "fields": {
-            "username": "admin", 
-            "first_name": "admin", 
-            "last_name": "admin", 
-            "is_active": true, 
-            "is_superuser": true, 
-            "is_staff": true, 
-            "last_login": "2010-08-18 16:28:46", 
-            "groups": [
-				1,
-				2,
-				3
-			], 
-            "user_permissions": [], 
-            "password": "sha1$c19b2$7c05e8387f71774ca5b7a0f5d2c7ba96f0957498", 
-            "email": "admin@example.com", 
-            "date_joined": "2010-08-18 16:28:19"
-        }
-    }, 
-    {
-        "pk": 6, 
-        "model": "auth.user", 
-        "fields": {
-            "username": "clinical", 
-            "first_name": "clinical", 
-            "last_name": "clinical", 
-            "is_active": true, 
-            "is_superuser": false, 
-            "is_staff": true, 
-            "last_login": "2010-08-18 17:05:31", 
-            "groups": [
-                3
-            ], 
-            "user_permissions": [], 
-            "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
-            "email": "clinical@example.com", 
-            "date_joined": "2010-08-18 16:33:38"
-        }
-    }, 
-    {
-        "pk": 5, 
-        "model": "auth.user", 
-        "fields": {
-            "username": "genetic", 
-            "first_name": "genetic", 
-            "last_name": "genetic", 
-            "is_active": true, 
-            "is_superuser": false, 
-            "is_staff": true, 
-            "last_login": "2010-08-18 17:06:00", 
-            "groups": [
-                2
-            ], 
-            "user_permissions": [], 
-            "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e", 
-            "email": "genetic@example.com", 
-            "date_joined": "2010-08-18 16:33:13"
-        }
-    }, 
-    {
-        "pk": 4, 
-        "model": "auth.user", 
-        "fields": {
-            "username": "curator", 
-            "first_name": "curator", 
-            "last_name": "curator", 
-            "is_active": true, 
-            "is_superuser": false, 
-            "is_staff": true, 
-            "last_login": "2010-08-18 17:06:15", 
-            "groups": [
-                1
-            ], 
-            "user_permissions": [], 
-            "password": "sha1$005da$3579413835a39b5013b56dc964692b27314e89a2", 
-            "email": "curator@example.com", 
-            "date_joined": "2010-08-18 16:32:32"
-        }
+{
+    "pk": 1, 
+    "model": "rdrf.registry", 
+    "fields": {
+        "splash_screen": "<div id=\"header-container\" style=\"position: absolute; background-color: #194c9d; color: white; height: 4em; top: 0px; left: 0px; right: 0px; font-family: sans-serif; font-size: medium;\">\r\n<h1 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; margin: 0px auto; padding: 0px 8px; min-width: 760px; max-width: 980px; line-height: 2.5em; vertical-align: middle;\">Australian National Duchenne Muscular Dystrophy Registry</h1>\r\n</div>\r\n<div id=\"container\" style=\"margin: 4em auto 0px; padding: 0px 8px; min-width: 760px; max-width: 980px; color: #444444; font-family: sans-serif; font-size: medium;\">\r\n<div id=\"container\" style=\"margin: 4em auto 0px; padding: 0px 8px; min-width: 760px; max-width: 980px;\">\r\n<div id=\"introduction\" style=\"float: left; width: 626.59375px;\">\r\n<div id=\"background\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Background</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">Recent scientific and medical advances have led to substantial changes in the treatment of many neuromuscular diseases (NMD). New therapeutic strategies are being developed and, for some of these treatments, plans for large studies involving patients from more than one country are already in place.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The Australian National Duchenne Muscular Dystrophy (DMD) Registry has been developed to collate a patient's DMD gene sequence and clinical information about their disease. The Registry provides an important enabling tool for clinicians and clinical trial sponsors to quickly identify patients suitable for each study, particularly those therapeutic strategies that target specific genetic defects. Potentially eligible patients will be informed about new trials and studies through the Registry's clinical network.</p>\r\n</div>\r\n<div id=\"purpose\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Purpose</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To provide Australian Duchenne Muscular Dystrophy families with an opportunity to improve the outcomes of individuals affected by DMD.</p>\r\n</div>\r\n<div id=\"objectives\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Objectives</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To improve care of DMD patients through the coordination of diagnosis and therapy and by ensuring new intervention strategies are available on an equitable and consistent manner across Australia; and</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To improve opportunities for international collaboration by facilitating and accelerating recruitment process of Australian DMD patients into new clinical trials and for participating in studies for the benefit of the world DMD community and the advancement of medical science.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The Australian National DMD Registry adheres to the&nbsp;<a style=\"color: #194c9d;\" href=\"http://www.nhmrc.gov.au/publications/ethics/2007_humans/contents.htm\">National Health and Medical Research Council's National Statement</a>, forms part of an international effort led by<a style=\"color: #194c9d;\" href=\"http://www.treat-nmd.eu/home.php\">TREAT-NMD</a>, which brings together patients and specialists working on treatments for neuromuscular (NMD) disorders, and has received approval reference #2010/23 from the<a style=\"color: #194c9d;\" href=\"http://www.health.wa.gov.au/healthdata/HREC/index.cfm\">Department of Health WA Human Research Ethics Committee</a>.</p>\r\n</div>\r\n<div id=\"contact\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Contact</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">For more information on the Australian National Duchenne Muscular Dystrophy Registry, please&nbsp;<a style=\"color: #194c9d;\" href=\"http://www.genomics.health.wa.gov.au/contact/index.cfm\">contact the Office of Population Health Genomics</a>.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The consent form for patients wishing to participate in the registry can be&nbsp;<a style=\"color: #194c9d;\" href=\"https://nmdregistry.com.au/dmd/static/Australian_National_DMD_Registry_consent_form_100930.pdf\">downloaded here</a>.</p>\r\n</div>\r\n</div>\r\n<div id=\"stakeholders\" style=\"float: right; width: 289.1875px; padding-bottom: 2em;\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 0px; padding: 1.2ex 0.27ex 0px;\">Stakeholders</h2>\r\n<h3 style=\"font-size: 16px; margin: 0px; padding: 1.6ex 0.36ex;\">Muscular Dystrophy Associations</h3>\r\n<ul style=\"list-style: none; margin: 0px; padding: 0px; font-size: 14px;\">\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; border-top-style: solid; border-top-width: 1px; border-top-color: #eeeeee;\" href=\"http://www.duchennefoundation.org.au/\">Duchenne Foundation</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdaustralia.org.au/\">Muscular Dystrophy Foundation Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mda.org.au/\">Muscular Dystrophy Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdnsw.org.au/\">Muscular Dystrophy New South Wales</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdqld.org.au/\">Muscular Dystrophy Queensland</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdasa.org.au/\">Muscular Dystrophy South Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdtasmania.org.au/\">Muscular Dystrophy Tasmania</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.mdawa.asn.au/\">Muscular Dystrophy Western Australia</a></li>\r\n</ul>\r\n<h3 style=\"font-size: 16px; margin: 0px; padding: 1.6ex 0.36ex;\">Government Bodies</h3>\r\n<ul style=\"list-style: none; margin: 0px; padding: 0px; font-size: 14px;\">\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; border-top-style: solid; border-top-width: 1px; border-top-color: #eeeeee;\" href=\"http://www.chw.edu.au/\">The Children's Hospital at Westmead</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.sch.edu.au/\">Sydney Children's Hospital</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.nt.gov.au/\">Department of Health and Families (NT)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.qld.gov.au/\">Queensland Health</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.sa.gov.au/\">Department of Health (SA)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.dhhs.tas.gov.au/\">Department of Health and Human Services (Tasmania)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.vic.gov.au/\">Department of Health (Victoria)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.wa.gov.au/\">Department of Health (WA)</a></li>\r\n</ul>\r\n</div>\r\n<div style=\"clear: both;\">&nbsp;</div>\r\n</div>\r\n</div>\r\n<div id=\"footer-container\" style=\"clear: both; background-color: #194c9d; color: #eeeeee; left: 0px; right: 0px; bottom: 0px; padding: 0px; margin: 0px; font-family: sans-serif; font-size: medium;\">\r\n<div id=\"footer\" style=\"font-size: 13px; margin: 0px auto; padding: 0.6em 8px; min-width: 760px; max-width: 980px;\">Authorised by Hugh Dawkins for the&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>.&nbsp;<br />All content &copy; 2011&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>&nbsp;on behalf of the Australian Facioscapulohumeral Muscular Dystrophy Registry.&nbsp;<br />Supported by&nbsp;<a style=\"color: white;\" href=\"http://www.ivec.org/\">iVEC</a>&nbsp;and the&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>.&nbsp;<br />Developed and hosted by the&nbsp;<a style=\"color: white;\" href=\"http://ccg.murdoch.edu.au/\">Centre for Comparative Genomics</a>,&nbsp;<a style=\"color: white;\" href=\"http://www.murdoch.edu.au/\">Murdoch University</a>.&nbsp;<br /><a style=\"color: white;\" href=\"https://nmdregistry.com.au/dmd/admin/\">Administration</a></div>\r\n</div>", 
+        "code": "fh", 
+        "name": "FH Registry", 
+        "desc": "FH Registry"
     }
+},
+{
+    "pk": 3, 
+    "model": "rdrf.registry", 
+    "fields": {
+        "splash_screen": "<h1>Welcome to DMD</h1>", 
+        "code": "dmd", 
+        "name": "dmd", 
+        "desc": "DMD"
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Working Group Curators", 
+        "permissions": []
+    }
+},
+{
+    "pk": 2, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Genetic Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 3, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Clinical Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "admin", 
+        "first_name": "admin", 
+        "last_name": "admin", 
+        "is_active": true, 
+        "is_superuser": true, 
+        "is_staff": true, 
+        "last_login": "2013-11-22T15:33:50.035", 
+        "groups": [
+            3, 
+            2, 
+            1
+        ], 
+        "user_permissions": [], 
+        "password": "pbkdf2_sha256$10000$XYL5XfyV0L3q$A7HPBE1/Z1KKrF6oLbFYRq1Hv3/9kQxege8lIw9JABA=", 
+        "email": "admin@example.com", 
+        "date_joined": "2010-08-18T16:28:19"
+    }
+},
+{
+    "pk": 4, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "curator", 
+        "first_name": "curator", 
+        "last_name": "curator", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:06:15", 
+        "groups": [
+            1
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$005da$3579413835a39b5013b56dc964692b27314e89a2", 
+        "email": "curator@example.com", 
+        "date_joined": "2010-08-18T16:32:32"
+    }
+},
+{
+    "pk": 5, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "genetic", 
+        "first_name": "genetic", 
+        "last_name": "genetic", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:06:00", 
+        "groups": [
+            2
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e", 
+        "email": "genetic@example.com", 
+        "date_joined": "2010-08-18T16:33:13"
+    }
+},
+{
+    "pk": 6, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "clinical", 
+        "first_name": "clinical", 
+        "last_name": "clinical", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:05:31", 
+        "groups": [
+            3
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
+        "email": "clinical@example.com", 
+        "date_joined": "2010-08-18T16:33:38"
+    }
+},
+{
+    "pk": 7, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "mradochonski", 
+        "first_name": "Maciej", 
+        "last_name": "Radochonski", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2013-11-22T15:14:09.008", 
+        "groups": [
+            1
+        ], 
+        "user_permissions": [], 
+        "password": "pbkdf2_sha256$10000$5tVDbWlQTAsf$Hfo2Gxz+EkkU64Qe8myAEObdtsPmB2h3RarjphqMUjI=", 
+        "email": "mradochonski@gmail.com", 
+        "date_joined": "2013-11-22T11:25:50.856"
+    }
+},
+{
+    "pk": 1, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "Western Australia"
+    }
+},
+{
+    "pk": 2, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "New Zealand"
+    }
+},
+{
+    "pk": 3, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "Unallocated"
+    }
+},
+{
+    "pk": 1, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [
+            1, 
+            3
+        ], 
+        "title": "admin"
+    }
+},
+{
+    "pk": 4, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+},
+{
+    "pk": 5, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            2, 
+            1
+        ], 
+        "registry": [
+            1, 
+            3
+        ], 
+        "title": "Developer"
+    }
+},
+{
+    "pk": 6, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+},
+{
+    "pk": 7, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            1
+        ], 
+        "registry": [
+            1, 
+            3
+        ], 
+        "title": "Developer"
+    }
+}
 ]
