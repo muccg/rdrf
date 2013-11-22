@@ -57,6 +57,9 @@ class UserAdmin(admin.ModelAdmin):
                 for working_group in form.cleaned_data["working_group"]:
                     user.working_groups.add(working_group)
 
+                for registry in form.cleaned_data["registry"]:
+                    user.registry.add(registry)
+
                 user.save()
                 return HttpResponseRedirect("../")
         else:
@@ -151,6 +154,10 @@ class UserAdmin(admin.ModelAdmin):
                 for working_group in form.cleaned_data["working_group"]:
                     user.working_groups.add(working_group)
                     
+                user.registry.clear()
+                for registry in form.cleaned_data["registry"]:
+                    user.registry.add(registry)
+                    
                 user.save()
 
                 return HttpResponseRedirect("../")
@@ -162,6 +169,7 @@ class UserAdmin(admin.ModelAdmin):
                 "groups": [group.id for group in user.user.groups.all()],
                 "title": user.title,
                 "working_group": [working_group.id for working_group in user.working_groups.all()],
+                "registry": [registry.id for registry in user.registry.all()]
             })
 
         media = self.media + form.media

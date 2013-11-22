@@ -7,6 +7,9 @@ class Registry(models.Model):
     code = models.CharField(max_length=10)
     desc = models.TextField()
     splash_screen = models.TextField()
+    
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, self.code)
 
 
 def get_owner_choices():

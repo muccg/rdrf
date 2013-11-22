@@ -1,7 +1,6 @@
 from django.db import models, transaction
-
 from django.contrib.auth.models import User as AuthUser
-
+from rdrf.models import Registry
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=40)
@@ -17,6 +16,7 @@ class User(models.Model):
     user = models.OneToOneField(AuthUser, primary_key=True)
     title = models.CharField(max_length=50, verbose_name="position")
     working_groups = models.ManyToManyField(WorkingGroup, null=True, related_name = 'working_group')
+    registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
 
     class Meta:
         ordering = ["user__username"]
