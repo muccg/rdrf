@@ -1,6 +1,9 @@
 from django.forms import BaseForm
+
 from django.utils.datastructures import SortedDict
 from field_lookup import FieldFactory
+
+import re
 
 
 def create_form_class(owner_class_name):
@@ -45,3 +48,18 @@ def create_form_class_for_section(section):
     form_class_dict = {"base_fields": base_fields, "auto_id" : True}
     
     return type(form_class_name, (BaseForm,), form_class_dict)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

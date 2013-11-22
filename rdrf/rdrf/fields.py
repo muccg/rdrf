@@ -13,3 +13,4 @@ class CustomFieldC18587(CharField):
     def to_python(self, value):
         return value + "haha"
 
+

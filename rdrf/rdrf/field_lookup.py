@@ -1,8 +1,15 @@
+import re
 import django.forms
+from django.forms import MultiValueField, MultiWidget
+from django.utils.datastructures import SortedDict
+from django.core.exceptions import ValidationError
 import fields
 import widgets
 import logging
-from django.core.exceptions import ValidationError
+from calculated_fields import CalculatedFieldParser
+from validation import ValidatorFactory
+from models import CommonDataElement
+
 logger = logging.getLogger('registry_log')
 
 
@@ -39,6 +46,7 @@ class FieldFactory(object):
         """
         self.cde = cde
         self.validator_factory = ValidatorFactory(self.cde)
+        self.complex_field_factory = ComplexFieldFactory(self.cde)
 
     def _customisation_module_exists(self):
         try:
@@ -110,6 +118,9 @@ class FieldFactory(object):
         else:
             return False
 
+    def _is_complex(self):
+        return self.complex_field_factory._is_complex()
+
     def _has_field_override(self):
         return hasattr(fields, self.FIELD_OVERRIDE_TEMPLATE % self.cde.code)
 
@@ -133,6 +144,7 @@ class FieldFactory(object):
 
     def _get_field_for_datatype(self):
         return getattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
+
 
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
@@ -222,6 +234,9 @@ class FieldFactory(object):
             elif self._has_field_for_dataype():
                 field = self._get_field_for_datatype()
             else:
+                if self._is_complex():
+                    return self.complex_field_factory.create(options)
+
                 if self._is_calculated_field():
                     try:
                         parser = CalculatedFieldParser(self.cde)
@@ -267,124 +282,104 @@ class FieldFactory(object):
                 logger.debug("field = %s options = %s" % (field, options))
                 return field(**options)
 
-class ValidatorFactory(object):
-    def __init__(self, cde):
-        self.cde = cde
-
-    def _is_numeric(self):
-        return self.cde.datatype.lower() in ["integer", "float"]
-
-    def _is_string(self):
-        return self.cde.datatype.lower() in ["string", "alphanumeric" ]
-
-    def _is_range(self):
-        return self.cde.pv_group is not None
 
 
-
-    def create_validators(self):
-        validators = []
-
-        if self._is_numeric():
-            if self.cde.max_value:
-                def validate_max(value):
-                    logger.debug("%s validaton: value = %s max value = %s" % (self.cde, value, self.cde.max_value))
-                    if value > self.cde.max_value:
-                        raise ValidationError("Value of %s for %s is more than maximum value %s" % (value, self.cde.code, self.cde.max_value))
-                validators.append(validate_max)
-
-            if self.cde.min_value:
-                def validate_min(value):
-                    if value < self.cde.min_value:
-                        raise ValidationError("Value of %s for %s is less than minimum value %s" % (value, self.cde.code, self.cde.min_value))
-
-                validators.append(validate_min)
-
-        if self._is_string():
-            if self.cde.pattern:
-                import re
-                try:
-                    re_pattern = re.compile(self.cde.pattern)
-                    def validate_pattern(value):
-                        if not re_pattern.match(value):
-                            raise ValidationError("Value of %s for %s does not match pattern '%s'" % (value, self.cde.code, self.cde.pattern))
-                    validators.append(validate_pattern)
-                except Exception,ex:
-                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" % (self.cde.code, self.cde.pattern, ex))
-
-            if self.cde.max_length:
-                def validate_length(value):
-                    if len(value) > self.cde.length:
-                        raise ValidationError("Value of '%s' for %s is longer than max length of %s" % (value, self.cde.code, self.cde.max_length))
-                validators.append(validate_length)
-
-
-        return validators
-
-class CalculatedFieldParseError(Exception):
+class ComplexFieldParseError(Exception):
     pass
 
-class CalculatedFieldParser(object):
-
+class ComplexFieldFactory(object):
+    DATATYPE_PATTERN = "^ComplexField\((.*)\)$"
     def __init__(self, cde):
-        """
-        A calculation is valid javascript like:
-
-        var score = 23;
-        if (context.CDE01 > 5) {
-            score += 100;
-        }
-
-        score += context.CDE02;
-
-        context.result = score;
-
-
-        :param cde:
-        :return:
-        """
-        self.context_indicator = "context"
-        self.pattern =  r"\b%s\.(.+?)\b" % self.context_indicator
-        self.result_name = "result"
         self.cde = cde
-        self.subjects = []
-        self.calculation = self.cde.calculation.strip()
-        self.observer = self.cde.code
-        self.script = None
-        self._parse_calculation()
+
+    def _load_components(self):
+        self.component_cdes = self._get_component_cdes()
+        self.component_fields = []
+        self.component_widgets = []
+
+        for component_cde in self.component_cdes:
+            component_field = self._get_field(component_cde)
+            self.component_fields.append(component_field)
+            component_widget = component_field.widget
+            self.component_widgets.append(component_widget)
+
+    def _is_complex(self):
+        return re.match(self.DATATYPE_PATTERN, self.cde.datatype)
+
+    def __unicode__(self):
+        return "ComplexField for CDE %s with datatype %s" % (self, self.cde.datatype)
+
+    def _get_field(self, cde):
+        field_factory = FieldFactory(cde)
+        component_field = field_factory.create_field()
+        return component_field
+
+    def _get_component_cdes(self):
+        # We assume the cde.datatype field looks like ComplexField(CDE01,CDE02,...)
+        m = self._is_complex()
+        if not m:
+            raise ComplexFieldParseError("%s couldn't be created - didn't match pattern" % self)
+        else:
+            cde_code_csv = m.groups(0)[0]
+            cde_codes = [ code.strip() for code in cde_code_csv.split(",") ]
+            cdes = []
+            for cde_code in cde_codes:
+                try:
+                    cde = CommonDataElement.objects.get(code=cde_code)
+                    cdes.append(cde)
+                except Exception, ex:
+                    logger.error("Couldn't get CDEs for %s - errored on code %s: %s" % (self, self.cde.code, ex))
+                    raise ComplexFieldParseError("%s couldn't be created: %s" % (self, ex))
+
+            return cdes
 
 
-    def _parse_calculation(self):
-        if self.calculation:
-            self.subjects = self._parse_subjects(self.calculation)
+    def _create_multi_widget(self):
+        class_dict = {}
+        complex_widget_class_name = "ComplexMultiWidgetFrom%s" % "".join([cde.code for cde in self.component_cdes])
 
-        calculation_result = self.context_indicator + "." + self.result_name
-        if not calculation_result in self.calculation:
-            raise CalculatedFieldParseError("Calculation does not contain %s" % calculation_result)
-        if not self.subjects:
-            raise CalculatedFieldParseError("Calculation does not depend on any fields")
+        def decompress_method(itself, value):
+            """
+            :param itself:
+            :param value: a sorted dictionary of cde codes to values
+            :return:
+            """
+            if value:
+                return value.values()
+            else:
+                return [None] * len(self.component_cdes)
 
-    def _parse_subjects(self, calculation):
-        import re
-        return filter(lambda code: code != self.result_name, re.findall(self.pattern, calculation))
+        def format_output_method(itself, rendered_widgets):
+           "&nbsp;&nbsp;&nbsp;&nbsp;".join(rendered_widgets)
 
-    def get_script(self):
-        observer_code = self.cde.code # e.g. #CDE01
-        subject_codes_string = ",".join(self.subjects)  # e.g. CDE02,CDE05
-        calculation_body = self.calculation  # E.g. context.result = parseInt(context.CDE05) + parseInt(context.CDE02)
-        javascript = """
-            <script>
-            $(document).ready(function(){
-                 $("#id_%s").add_calculation({
-                    subjects: "%s",
-                    calculation: function (context) { %s },
-                    observer: "%s"
-                    });
-                });
-
-            </script>""" % (observer_code, subject_codes_string, calculation_body, observer_code)
-
-        logger.debug("calculated field js: %s" % javascript)
-        return javascript
+        class_dict['decompress'] = decompress_method
+        #class_dict['format_output'] = format_output_method
+        multi_widget_class = type(str(complex_widget_class_name), (MultiWidget,), class_dict)
+        multi_widget_instance = multi_widget_class(self.component_widgets,attrs=None)
+        return multi_widget_instance
 
 
+    def create(self, options_dict):
+        self._load_components()
+
+        options_dict["fields"] = self.component_fields
+        complex_field_class_name = "MultiValueFieldFrom%s" % "".join([cde.code for cde in self.component_cdes ])
+        class_dict = {}
+
+        def compress_method(itself, data_list):
+            """
+            :param itself:
+            :param data_list: values for each component from the corresponding widget
+            :return: a sorted dictionary of cde code : value
+            """
+            d = SortedDict()
+            for pair in zip(self.component_cdes, data_list):
+                d[pair[0].code] = pair[1]
+
+            return d
+
+        class_dict["widget"] = self._create_multi_widget()
+        class_dict['compress'] = compress_method
+        complex_field_class = type(str(complex_field_class_name),(MultiValueField,), class_dict)
+
+        return complex_field_class(**options_dict)
