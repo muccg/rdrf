@@ -8,7 +8,6 @@ import views
 import form_view
 import registry_view
 import dashboard_view
-import login_view
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
 urlpatterns = patterns("",
