@@ -234,7 +234,7 @@ ALLOWED_HOSTS = [
 INSTALL_NAME = 'rdrf'
 
 QBE_ACCESS_FOR = lambda user: user.is_superuser
-LOGIN_URL = '{0}/admin'.format(os.environ.get("SCRIPT_NAME", ""))
+LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
 
 try:
     print "Attempting to import default settings as appsettings.rdrf"
