@@ -104,3 +104,33 @@ class CalculatedFieldWidget(widgets.TextInput):
         #attrs['readonly'] = 'readonly'
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
+class ExtensibleListWidget(MultiWidget):
+    def __init__(self, prototype_widget, attrs={}):
+        self.widget_count = 1
+        self.prototype_widget = prototype_widget
+        super(ExtensibleListWidget, self).__init__([prototype_widget], attrs)
+
+    def _buttons_html(self):
+        return """<button type="button" onclick="alert('todo')">Click Me!</button>"""
+
+    def decompress(self, data):
+        """
+
+        :param data: dictionary contains items key with a list of row data for each widget
+        We create as many widgets on the fly so that render method can iterate
+        data  must not be a list else render won't call decompress ...
+        :return: a list of data for the widgets to render
+        """
+        from copy import copy
+        if not data:
+            self.widgets = [ copy(self.prototype_widget) ]
+            return [None]
+        else:
+            items = data["items"]
+            num_widgets = len(items)
+            self.widgets = [ copy(self.prototype_widget) for i in range(num_widgets) ]
+            return data
+
+    def render(self, name, value):
+        html = super(ExtensibleListWidget, self).render(name, value)
+        return html + self._buttons_html()
