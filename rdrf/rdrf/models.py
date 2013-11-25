@@ -66,7 +66,7 @@ class RegistryForm(models.Model):
     """
     A representation of a form ( a bunch of sections)
     """
-    registry = models.CharField(max_length=50)
+    registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
     sections = models.TextField(help_text="Comma-separated list of sections")
 
