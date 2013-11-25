@@ -5,6 +5,8 @@ from django.core.files.storage import FileSystemStorage
 
 import registry.groups.models
 
+from rdrf.models import Registry
+
 import logging
 logger = logging.getLogger('patient')
 
@@ -78,6 +80,7 @@ class Patient(models.Model):
     else:
         SEX_CHOICES = ( ("M", "Male"), ("F", "Female"), ("X", "Other/Intersex") )
 
+    rdrf_registry = models.ForeignKey(Registry, null=False, blank=False, verbose_name="Registry")
     working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False)
     consent = models.BooleanField(null=False, blank=False, help_text="Consent must be given for the patient to be entered on the registry", verbose_name="consent given")
     family_name = models.CharField(max_length=100, db_index=True)

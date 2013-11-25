@@ -1,5 +1,6 @@
 from django.contrib import admin
 from models import *
+from registry.groups.models import User
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
@@ -7,10 +8,19 @@ class SectionAdmin(admin.ModelAdmin):
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'sections')
 
+class RegistryAdmin(admin.ModelAdmin):
+    
+    def queryset(self, request):
+        if not request.user.is_superuser:
+            user = User.objects.get(user=request.user)
+            return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
+        return Registry.objects.all()
+
+
 admin.site.register(CDEPermittedValue)
 admin.site.register(CDEPermittedValueGroup)
 admin.site.register(CommonDataElement)
 admin.site.register(Wizard)
 admin.site.register(RegistryForm, RegistryFormAdmin)
 admin.site.register(Section, SectionAdmin)
-admin.site.register(Registry)
+admin.site.register(Registry, RegistryAdmin)
