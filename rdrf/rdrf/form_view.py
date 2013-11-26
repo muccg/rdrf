@@ -23,7 +23,7 @@ class FormView(View):
 
         dynamic_data = dyn_patient.load_dynamic_data(registry_code,"cdes")
 
-        form_obj = RegistryForm.objects.get(name=form_name, registry=registry_code)
+        form_obj = RegistryForm.objects.get(name=form_name, registry__code=registry_code)
         
         sections, display_names = self._get_sections(form_obj)
 
