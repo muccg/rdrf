@@ -8,6 +8,8 @@ from admin_views.admin import AdminViews
 import os
 import json, datetime
 
+from rdrf.models import Registry
+
 from registry.utils import get_static_url, get_working_groups
 from admin_forms import *
 from models import *
@@ -61,7 +63,8 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
         personal_details = ("Personal Details", {})
 
-        personal_details_fields = ["working_group",
+        personal_details_fields = ["rdrf_registry",
+                                   "working_group",
                                    "family_name",
                                    "given_names",
                                    "umrn",
@@ -124,6 +127,10 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             user = User.objects.get(user=user) # get the user's associated objects
             #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             kwargs["queryset"] = WorkingGroup.objects
+
+        if dbfield.name == "rdrf_registry" and not user.is_superuser:
+                user = User.objects.get(user=user)
+                kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
