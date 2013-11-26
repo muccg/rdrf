@@ -81,9 +81,15 @@ class Section(models.Model):
     code = models.CharField(max_length=50)
     display_name = models.CharField(max_length=100)
     elements = models.TextField()
+    allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
+    extra = models.IntegerField(blank=True,null=True, help_text="Extra rows to show if allow_multiple checked")
 
     def __unicode__(self):
         return "Section %s comprising %s" % (self.code, self.elements)
+
+    def get_elements(self):
+        import string
+        return map(string.strip,self.elements.split(","))
 
 
 class Wizard(models.Model):
