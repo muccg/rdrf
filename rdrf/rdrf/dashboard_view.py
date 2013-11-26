@@ -21,7 +21,7 @@ class DashboardView(View):
 
         context = {
             'user_obj': user,
-            'patients': Patient.objects.get_by_registry(get_registries(user))
+            'patients': Patient.objects.get_filtered(user)
         }
 
         return render_to_response('rdrf_cdes/dashboard.html', context, context_instance=RequestContext(request))

@@ -56,6 +56,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
          from registry.groups.models import User
          form.user = User.objects.get(user=request.user)
+         form.is_superuser = request.user.is_superuser
          return form
 
     def create_fieldset(self, superuser=False):
@@ -152,7 +153,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
         if request.user.is_superuser:
             return Patient.objects.all()
-        print 'AAAAAAAAAAAAAAAAAA'
+
         user = registry.groups.models.User.objects.get(user=request.user)
         return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(rdrf_registry__in=get_registries(user)).filter(active=True)
 

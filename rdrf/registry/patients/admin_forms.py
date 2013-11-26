@@ -33,7 +33,7 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(PatientForm, self).__init__(*args, **kwargs)
         regs = self.user.registry.all()
-        if regs.count() == 1:
+        if regs.count() == 1 and not self.is_superuser:
             self.fields["rdrf_registry"] = forms.ModelChoiceField(Registry.objects.all(), widget=TextWidget(text=regs[0].id, label=regs[0].name))
 
     ADDRESS_ATTRS = {
