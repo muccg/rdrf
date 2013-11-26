@@ -10,7 +10,7 @@ import json, datetime
 
 from rdrf.models import Registry
 
-from registry.utils import get_static_url, get_working_groups
+from registry.utils import get_static_url, get_working_groups, get_registries
 from admin_forms import *
 from models import *
 
@@ -148,7 +148,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             return Patient.objects.all()
 
         user = registry.groups.models.User.objects.get(user=request.user)
-        return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(active=True)
+        return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(rdrf_registry__in=get_registries(user)).filter(active=True)
 
     def search(self, request, term):
         # We have to do this against the result of self.queryset() to avoid
