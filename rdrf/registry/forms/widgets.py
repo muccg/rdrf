@@ -141,3 +141,17 @@ class NoDotsRadioFieldRenderer(RadioFieldRenderer):
 
 class NoDotsRadioSelect(RadioSelect):
     renderer = NoDotsRadioFieldRenderer
+    
+
+class TextWidget(forms.HiddenInput):
+    def __init__(self, attrs=None, text=None, label=None):
+        self.text = text
+        self.label = label
+        super(TextWidget, self).__init__(attrs)
+
+    def render(self, name, value, attrs=None):
+        value = self.text
+        return mark_safe(super(TextWidget, self).render(name, value, attrs) + escape(unicode(self.label)))
+
+    def _has_changed(self, initial, data):
+        return False
