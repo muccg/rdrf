@@ -49,7 +49,18 @@
             <div class="inline-group">
                 <h2>{{reg.name}}</h2>
                 <table>
-                    {{reg.code}}
+                    <tr>
+                    {% for patient in patients.all %}
+                        <td>Patients</td><td>
+                        <select name="patients{{reg.id}}">
+                            <option id="-1">Select one...</option>
+                        {% if patient.rdrf_registry.id == reg.id %}
+                            <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
+                        {% endif %}
+                        </select>
+                        </td>
+                    {% endfor %}
+                    </tr>
                 </table>
             </div>
         {% endfor %}            
