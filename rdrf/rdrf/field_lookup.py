@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 import fields
 import widgets
 import logging
-from calculated_fields import CalculatedFieldParser
+from calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from validation import ValidatorFactory
 from models import CommonDataElement
 

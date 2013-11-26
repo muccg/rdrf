@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger('registry_log')
+
 class CalculatedFieldParseError(Exception):
     pass
 
