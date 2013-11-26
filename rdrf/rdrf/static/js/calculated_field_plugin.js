@@ -18,7 +18,13 @@
                 context[subject_codes[i]] = $("#id_" + subject_codes[i]).val();
             }
 
-            settings.calculation(context);
+            try {
+                settings.calculation(context);
+            }
+            catch(err) {
+                context.result = "#ERROR";
+            }
+
             $("#id_" + settings.observer).val(context.result);
         });
     };
