@@ -14,6 +14,7 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
 <!--[if IE 6]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
 <![endif]-->
@@ -53,10 +54,20 @@
                         <div class="inline-group">
                             <h2>{{display_names|get_display_name:s}} </h2>
                             {% if forms|is_formset:s %}
-                                {% autoescape off %}
-                                <div class="actionbutton" onclick="add_form(this,{{section_element_map|get_elements:s}});">Add</div> <div class="actionbutton" onclick="remove_form(this, {{section_element_map|get_elements:s}});">Remove</div>
-                                {% endautoescape %}
-                                <table>
+                                <div id="add_button_for_section_{{s}}" class="actionbutton">Add</div> <div id="remove_button_for_section_{{s}}" class="actionbutton">Remove</div>
+                                <table id="section_table_{{s}}">
+                                <script>
+                                    $(document).ready(function() {
+                                        $("#section_table_{{s}}").allow_dynamic_formsets({
+                                            cde_codes: '{{section_element_map|get_elements:s}}',
+                                            add_button_id: "add_button_for_section_{{s}}",
+                                            remove_button_id: "remove_button_for_section_{{s}}",
+                                            table_id: "section_table_{{s}}"
+                                        });
+                                    });
+
+                                </script>
+
                                 {% for f in forms|get_forms:s %}
                                     {{f.as_table}}
                                 {% endfor %}
