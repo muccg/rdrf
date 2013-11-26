@@ -62,6 +62,10 @@ class CommonDataElement(models.Model):
         return "CDE %s:%s" % (self.code, self.name)
 
 
+class RegistryFormManager(models.Manager):
+    def get_by_registry(self, registry):
+        return self.model.objects.filter(registry__id__in = registry)
+
 class RegistryForm(models.Model):
     """
     A representation of a form ( a bunch of sections)
@@ -69,6 +73,7 @@ class RegistryForm(models.Model):
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
     sections = models.TextField(help_text="Comma-separated list of sections")
+    objects = RegistryFormManager()
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)

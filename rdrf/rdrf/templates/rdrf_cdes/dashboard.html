@@ -50,15 +50,28 @@
                 <h2>{{reg.name}}</h2>
                 <table>
                     <tr>
-                        <td>Patients</td><td>
+                        <td>
                         <select name="patients{{reg.id}}">
-                            <option id="-1">Select one...</option>
+                            <option id="-1">--- Patient ---</option>
                             {% for patient in patients.all %}
                                 {% if patient.rdrf_registry.id == reg.id %}
                                 <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
+                        </td>
+                        <td>
+                        <select name="forms{{reg.id}}">
+                            <option id="-1">--- Form ---</option>
+                            {% for form in rdrf_forms.all %}
+                                {% if form.registry.id == reg.id %}
+                                <option id="{{form.id}}">{{form.name}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>    
+                        </td>
+                        <td>
+                            <input type="button" value="Load" disabled=true>
                         </td>
                     </tr>
                 </table>
