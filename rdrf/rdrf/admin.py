@@ -16,6 +16,11 @@ class RegistryAdmin(admin.ModelAdmin):
             return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
         return Registry.objects.all()
 
+    def has_add_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
 
 admin.site.register(CDEPermittedValue)
 admin.site.register(CDEPermittedValueGroup)

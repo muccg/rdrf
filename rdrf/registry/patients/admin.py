@@ -50,7 +50,14 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['__unicode__', 'progress_graph', 'moleculardata_entered', 'freshness', 'working_group']
+    list_display = ['__unicode__', 'rdrf_registry', 'working_group', 'progress_graph', 'moleculardata_entered', 'freshness']
+
+    def get_form(self, request, obj=None, **kwargs):
+         form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
+         from registry.groups.models import User
+         form.user = User.objects.get(user=request.user)
+         form.is_superuser = request.user.is_superuser
+         return form
 
     def create_fieldset(self, superuser=False):
         """Function to dynamically create the fieldset, adding 'active' field if user is a superuser"""
@@ -128,9 +135,9 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             kwargs["queryset"] = WorkingGroup.objects
 
-        if dbfield.name == "rdrf_registry" and not user.is_superuser:
-                user = User.objects.get(user=user)
-                kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
+#        if dbfield.name == "rdrf_registry" and not user.is_superuser:
+#               user = User.objects.get(user=user)
+#                kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 

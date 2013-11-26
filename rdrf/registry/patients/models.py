@@ -4,6 +4,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.core.files.storage import FileSystemStorage
 
 import registry.groups.models
+from registry.utils import get_working_groups
 
 from rdrf.models import Registry
 
@@ -78,6 +79,12 @@ class Parent(models.Model):
 class PatientManager(models.Manager):
     def get_by_registry(self, registry):
         return self.model.objects.filter(rdrf_registry__id__in=registry)
+
+    def get_by_working_group(self, user):
+        return self.model.objects.filter(working_group__in=get_working_groups(user))
+
+    def get_filtered(self, user):
+        return self.model.objects.filter(rdrf_registry__id__in=user.registry.all()).filter(working_group__in=get_working_groups(user))
 
 
 class Patient(models.Model):
