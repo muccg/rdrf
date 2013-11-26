@@ -49,7 +49,7 @@ class CommonDataElement(models.Model):
     datatype = models.CharField(max_length=50, help_text="type of field")
     instructions = models.TextField(blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(CDEPermittedValueGroup, null=True, blank=True, help_text="If a range, indicate the Permissible Value Group")
-
+    allow_multiple = models.BooleanField(default=False, help_text="If a range, indicate whether multiple selections allowed")
     max_length = models.IntegerField(blank=True,null=True, help_text="Length of field - only used for character fields")
     max_value= models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
     min_value= models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
