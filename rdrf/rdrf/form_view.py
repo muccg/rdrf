@@ -4,6 +4,8 @@ from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.template import RequestContext
+from django.forms.formsets import formset_factory
+
 import logging
 
 from models import RegistryForm
@@ -28,8 +30,24 @@ class FormView(View):
         sections, display_names = self._get_sections(form_obj)
 
         form_section = {}
+        section_element_map = {}
         for s in sections:
-            form_section[s] = create_form_class_for_section(s)(dynamic_data)
+            form_class = create_form_class_for_section(s)
+            section_model = Section.objects.get(code=s)
+            section_elements = section_model.get_elements()
+            section_element_map[s] = section_elements
+            if not section_model.allow_multiple:
+                # return a normal form
+                form_section[s] = form_class(dynamic_data)
+            else:
+                # return a formset
+                if section_model.extra:
+                    extra = section_model.extra
+                else:
+                    extra = 1
+                form_set_class = formset_factory(form_class, extra=extra)
+                initial_data = [dynamic_data]
+                form_section[s]  = form_set_class(initial=initial_data)
         
         context = {
             'registry': registry_code,
@@ -38,7 +56,8 @@ class FormView(View):
             'patient_name': '%s %s' % (patient.given_names, patient.family_name),
             'sections': sections,
             'display_names': display_names,
-            'forms': form_section
+            'forms': form_section,
+            'section_element_map': section_element_map,
         }
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/form.html', context)

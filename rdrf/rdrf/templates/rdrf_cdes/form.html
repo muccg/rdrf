@@ -1,5 +1,8 @@
 {% load staticfiles %}
 {% load get_form %}
+{% load get_forms %}
+{% load is_formset %}
+{% load get_elements %}
 {% load get_display_name %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -48,10 +51,22 @@
                 <form action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
                     {% for s in sections %}
                         <div class="inline-group">
-                            <h2>{{display_names|get_display_name:s}}</h2>
-                            <table>
-                            {{forms|get_form:s}}
-                            </table>
+                            <h2>{{display_names|get_display_name:s}} </h2>
+                            {% if forms|is_formset:s %}
+                                {% autoescape off %}
+                                <div class="actionbutton" onclick="add_form(this,{{section_element_map|get_elements:s}});">Add</div> <div class="actionbutton" onclick="remove_form(this, {{section_element_map|get_elements:s}});">Remove</div>
+                                {% endautoescape %}
+                                <table>
+                                {% for f in forms|get_forms:s %}
+                                    {{f.as_table}}
+                                {% endfor %}
+
+                                </table>
+                            {% else %}
+                                <table>
+                                {{forms|get_form:s}}
+                                </table>
+                            {% endif %}
                         </div>
                         <!--<fieldset><legend>{{s}}</legend>
                         </fieldset>-->
