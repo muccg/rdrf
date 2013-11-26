@@ -1,6 +1,7 @@
 import re
 import django.forms
-from django.forms import MultiValueField, MultiWidget, BaseForm
+from django.forms import MultiValueField, MultiWidget, BaseForm, MultipleChoiceField
+from django.forms.widgets import CheckboxSelectMultiple
 from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
 from django.core.exceptions import ValidationError
@@ -226,7 +227,23 @@ class FieldFactory(object):
                 return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
                 logger.debug("cde %s field ChoiceField options %s" % (self.cde, options))
-                return django.forms.ChoiceField(**options)
+                if self.cde.widget_name:
+                    widget = self._widget_search(self.cde.widget_name)
+                else:
+                    widget = None
+
+                if self.cde.allow_multiple:
+                    widget = widget or CheckboxSelectMultiple
+                    if widget:
+                        options['widget'] = widget
+
+                    options['choices'] = [ choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
+                    return MultipleChoiceField(**options)
+                else:
+                    if widget:
+                        options['widget'] = widget
+
+                    return django.forms.ChoiceField(**options)
         else:
             # Not a drop down
             widget = None
