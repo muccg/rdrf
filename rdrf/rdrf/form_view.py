@@ -92,6 +92,7 @@ class FormView(View):
         section_element_map = {}
         total_forms_ids = {}
         formset_prefixes = {}
+        error_count = 0
 
         for s in sections:
             logger.debug("handling post data for section %s" % s)
@@ -111,6 +112,7 @@ class FormView(View):
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                 else:
                     for e in form.errors:
+                        error_count += 1
                         logger.debug("Validation error on form: %s" % e)
 
                 form_section[s] = form_class(request.POST)
@@ -136,6 +138,7 @@ class FormView(View):
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
                 else:
                     for e in formset.errors:
+                        error_count += 1
                         logger.debug("Validation error on form: %s" % e)
 
                 form_section[s] = form_set_class(request.POST, prefix=prefix)
@@ -156,7 +159,11 @@ class FormView(View):
         }
 
         context.update(csrf(request))
-        messages.add_message(request, messages.INFO, 'Patient %s saved successfully' % patient_name)
+        if error_count == 0:
+            messages.add_message(request, messages.INFO, 'Patient %s saved successfully' % patient_name)
+        else:
+            messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
+
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
 
