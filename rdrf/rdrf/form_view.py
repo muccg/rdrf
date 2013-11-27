@@ -19,13 +19,13 @@ logger = logging.getLogger("registry_log")
 
 class FormView(View):
 
-    def get(self, request, registry_code, form_name, patient_id):
+    def get(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
 
         dynamic_data = dyn_patient.load_dynamic_data(registry_code,"cdes")
 
-        form_obj = self.get_registry_form(form_name, registry_code)
+        form_obj = self.get_registry_form(form_id)
         
         sections, display_names = self._get_sections(form_obj)
 
@@ -54,7 +54,7 @@ class FormView(View):
         
         context = {
             'registry': registry_code,
-            'form_name': form_name,
+            'form_name': form_id,
             'patient_id': patient_id,
             'patient_name': '%s %s' % (patient.given_names, patient.family_name),
             'sections': sections,
@@ -65,12 +65,11 @@ class FormView(View):
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/form.html', context)
 
-    def post(self, request, registry_code, form_name, patient_id):
-        #import pdb
-        #pdb.set_trace()
+
+    def post(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
-        form_obj = self.get_registry_form(form_name, registry_code)
+        form_obj = self.get_registry_form(form_id)
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
@@ -120,7 +119,7 @@ class FormView(View):
 
         context = {
             'registry': registry_code,
-            'form_name': form_name,
+            'form_name': form_id,
             'patient_id': patient_id,
             'patient_name': patient_name,
             'sections': sections,
@@ -147,5 +146,5 @@ class FormView(View):
                 logger.error("Section %s does not exist" % s)
         return sections, display_names
     
-    def get_registry_form(self, form_name, registry_code):
-        return RegistryForm.objects.get(name=form_name, registry__code=registry_code)
+    def get_registry_form(self, form_id):
+        return RegistryForm.objects.get(id=form_id)
