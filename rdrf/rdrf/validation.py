@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger("registry_log")
+
 from django.core.exceptions import ValidationError
 
 class ValidatorFactory(object):
