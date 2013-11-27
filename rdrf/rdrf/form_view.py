@@ -44,7 +44,7 @@ class FormView(View):
                 if section_model.extra:
                     extra = section_model.extra
                 else:
-                    extra = 2
+                    extra = 0
                 form_set_class = formset_factory(form_class, extra=extra)
                 initial_data = [dynamic_data]
                 form_section[s]  = form_set_class(initial=initial_data)
