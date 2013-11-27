@@ -5,6 +5,7 @@
 {% load get_elements %}
 {% load get_management_form %}
 {% load get_display_name %}
+{% load lookup %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -66,7 +67,9 @@
                                             cde_codes: '{{section_element_map|get_elements:s}}',
                                             add_button_id: "add_button_for_section_{{s}}",
                                             remove_button_id: "remove_button_for_section_{{s}}",
-                                            table_id: "section_table_{{s}}"
+                                            table_id: "section_table_{{s}}",
+                                            total_forms_id: "{{total_forms_ids|lookup:s}}",
+                                            formset_prefix: "{{formset_prefixes|lookup:s}}"
                                         });
                                     });
 

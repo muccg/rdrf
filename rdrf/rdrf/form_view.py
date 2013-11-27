@@ -31,15 +31,24 @@ class FormView(View):
 
         form_section = {}
         section_element_map = {}
+        total_forms_ids = {}
+        formset_prefixes = {}
+
         for s in sections:
             form_class = create_form_class_for_section(s)
             section_model = Section.objects.get(code=s)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
+
             if not section_model.allow_multiple:
                 # return a normal form
                 form_section[s] = form_class(dynamic_data)
             else:
+                # Ensure that we can have multiple formsets on the one page
+                prefix="formset_%s" % s
+                formset_prefixes[s] = prefix
+                total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
+
                 # return a formset
                 if section_model.extra:
                     extra = section_model.extra
@@ -47,10 +56,16 @@ class FormView(View):
                     extra = 0
                 form_set_class = formset_factory(form_class, extra=extra)
                 if dynamic_data:
-                    initial_data = dynamic_data[s]  # we grab the list of data items by section code not cde code
+                    try:
+                        initial_data = dynamic_data[s]  # we grab the list of data items by section code not cde code
+                    except KeyError, ke:
+                        logger.error("patient %s section %s data could not be retrieved: %s" % (patient_id, s, ke))
+                        initial_data = [""] * len(section_elements)
                 else:
                     initial_data = [""] * len(section_elements)
-                form_section[s]  = form_set_class(initial=initial_data)
+
+
+                form_section[s]  = form_set_class(initial=initial_data, prefix=prefix)
         
         context = {
             'registry': registry_code,
@@ -61,6 +76,8 @@ class FormView(View):
             'display_names': display_names,
             'forms': form_section,
             'section_element_map': section_element_map,
+            "total_forms_ids" : total_forms_ids,
+            "formset_prefixes" : formset_prefixes,
         }
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/form.html', context)
@@ -74,6 +91,9 @@ class FormView(View):
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
+        total_forms_ids = {}
+        formset_prefixes = {}
+
         for s in sections:
             logger.debug("handling post data for section %s" % s)
             form_class = create_form_class_for_section(s)
@@ -101,8 +121,13 @@ class FormView(View):
                     extra = section_model.extra
                 else:
                     extra = 0
+
+                prefix="formset_%s" % s
+                formset_prefixes[s] = prefix
+                total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 form_set_class = formset_factory(form_class, extra=extra)
-                formset  = form_set_class(request.POST)
+                formset  = form_set_class(request.POST,  prefix=prefix)
+                assert formset.prefix == prefix
 
                 if formset.is_valid():
                     logger.debug("formset %s is valid" % formset)
@@ -114,7 +139,7 @@ class FormView(View):
                     for e in formset.errors:
                         logger.debug("Validation error on form: %s" % e)
 
-                form_section[s] = form_set_class(request.POST)
+                form_section[s] = form_set_class(request.POST, prefix=prefix)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -127,6 +152,8 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
+            "total_forms_ids" : total_forms_ids,
+            "formset_prefixes" : formset_prefixes,
         }
 
         context.update(csrf(request))

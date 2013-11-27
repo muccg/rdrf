@@ -8,7 +8,8 @@
            cde_codes: '', // csv codes of fields that comprise one form in the formset
            add_button_id: 'add',
            remove_button_id: 'remove',
-           total_forms_id: 'id_form-TOTAL_FORMS'
+           total_forms_id: 'id_form-TOTAL_FORMS',
+           formset_prefix: 'form'
         }, options );
 
        function new_specifier(num_cdes, old_value, new_row_index) {
@@ -42,7 +43,7 @@
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
-                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_form-0-" + cde_code + "'])";
+                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + cde_code + "'])";
                 $(row_selector)
                     .clone()            // create a copy
                     .find("label")      // update the clone's for attr to the new value
@@ -68,9 +69,9 @@
             }
             update_form_total(1);
         });
-
        // bind the remove button
         $("#"+settings.remove_button_id).on("click", function (){
+
             var num_rows = get_row_count();
             if (num_rows > cdes.length) {
                 neg_index = -cdes.length - 1;
