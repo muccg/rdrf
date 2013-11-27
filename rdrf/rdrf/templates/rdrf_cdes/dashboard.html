@@ -98,7 +98,7 @@
                                             var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
                                             var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
                                             //MOCKUP ONLY
-                                            window.open('/1/forms/'+ form_id +'/'+patient_id);
+                                            window.open('/{{reg.code}}/forms/'+ form_id +'/'+patient_id);
                                        });
                                     });
                             </script>
