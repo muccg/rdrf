@@ -25,7 +25,7 @@ class FormView(View):
 
         dynamic_data = dyn_patient.load_dynamic_data(registry_code,"cdes")
 
-        form_obj = RegistryForm.objects.get(name=form_name, registry__code=registry_code)
+        form_obj = self.get_registry_form(form_name, registry_code)
         
         sections, display_names = self._get_sections(form_obj)
 
@@ -65,7 +65,7 @@ class FormView(View):
     def post(self, request, registry_code, form_name, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
-        form_obj = RegistryForm.objects.get(name=form_name, registry=registry_code)
+        form_obj = self.get_registry_form(form_name, registry_code)
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
         for s in sections:
@@ -112,3 +112,6 @@ class FormView(View):
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
         return sections, display_names
+    
+    def get_registry_form(self, form_name, registry_code):
+        return RegistryForm.objects.get(name=form_name, registry__code=registry_code)

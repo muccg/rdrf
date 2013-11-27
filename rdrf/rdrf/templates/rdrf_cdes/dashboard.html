@@ -51,7 +51,7 @@
                 <table>
                     <tr>
                         <td>
-                        <select name="patients{{reg.id}}">
+                        <select name="p_{{reg.id}}">
                             <option id="-1">--- Patient ---</option>
                             {% for patient in patients.all %}
                                 {% if patient.rdrf_registry.id == reg.id %}
@@ -61,7 +61,7 @@
                         </select>
                         </td>
                         <td>
-                        <select name="forms{{reg.id}}">
+                        <select name="f_{{reg.id}}">
                             <option id="-1">--- Form ---</option>
                             {% for form in rdrf_forms.all %}
                                 {% if form.registry.id == reg.id %}
