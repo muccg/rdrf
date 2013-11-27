@@ -11,6 +11,8 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
 <!--[if IE 6]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
 <![endif]-->
@@ -51,27 +53,55 @@
                 <table>
                     <tr>
                         <td>
-                        <select name="p_{{reg.id}}">
+                        <select id="p_{{reg.id}}">
                             <option id="-1">--- Patient ---</option>
                             {% for patient in patients.all %}
                                 {% if patient.rdrf_registry.id == reg.id %}
                                 <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
                                 {% endif %}
                             {% endfor %}
+                            <script>
+                                $(document).ready(function() {
+                                    $('#p_{{reg.id}}').on('change', function() {
+                                        var id = $(this).children(":selected").attr("id");
+                                        var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
+                                        check_for_btn(id, form_id, '#b_{{reg.id}}')
+                                    });
+                                });
+                            </script>
                         </select>
                         </td>
                         <td>
-                        <select name="f_{{reg.id}}">
-                            <option id="-1">--- Form ---</option>
+                        <select id="f_{{reg.id}}">
+                            <option id="-1" value="">--- Form ---</option>
                             {% for form in rdrf_forms.all %}
                                 {% if form.registry.id == reg.id %}
                                 <option id="{{form.id}}">{{form.name}}</option>
                                 {% endif %}
                             {% endfor %}
+                            <script>
+                                $(document).ready(function() {
+                                    $('#f_{{reg.id}}').on('change', function() {
+                                        var id = $(this).children(":selected").attr("id");
+                                        var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
+                                        check_for_btn(id, patient_id, '#b_{{reg.id}}')
+                                    });
+                                });
+                            </script>
                         </select>    
                         </td>
                         <td>
-                            <input type="button" value="Load" disabled=true id="{{reg.id}}">
+                            <input type="button" value="Load" disabled=true id="b_{{reg.id}}">
+                            <script>
+                                    $(document).ready(function() {
+                                       $('#b_{{reg.id}}').on('click', function() {
+                                            var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
+                                            var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
+                                            //MOCKUP ONLY
+                                            window.open('/1/forms/'+ form_id +'/'+patient_id);
+                                       });
+                                    });
+                            </script>
                         </td>
                     </tr>
                 </table>
