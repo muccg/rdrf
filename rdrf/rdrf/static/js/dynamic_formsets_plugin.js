@@ -7,7 +7,8 @@
            table_id: '',
            cde_codes: '', // csv codes of fields that comprise one form in the formset
            add_button_id: 'add',
-           remove_button_id: 'remove'
+           remove_button_id: 'remove',
+           total_forms_id: 'id_form-TOTAL_FORMS'
         }, options );
 
        function new_specifier(num_cdes, old_value, new_row_index) {
@@ -20,6 +21,11 @@
            var s = old_value.replace(/-\d+-/, new_form_string);
            return s;
 
+       }
+
+       function update_form_total(value) {
+           var old_value = parseInt($("#" + settings.total_forms_id).val());
+           $("#" + settings.total_forms_id).val(old_value + value);
        }
 
        var cdes = [];
@@ -60,6 +66,7 @@
 
 
             }
+            update_form_total(1);
         });
 
        // bind the remove button
@@ -69,6 +76,8 @@
                 neg_index = -cdes.length - 1;
 
                 $("#"+ settings.table_id + " > tbody > tr").slice(neg_index,-1).remove();
+                update_form_total(-1)
+
             }
         });
 

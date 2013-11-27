@@ -46,7 +46,10 @@ class FormView(View):
                 else:
                     extra = 0
                 form_set_class = formset_factory(form_class, extra=extra)
-                initial_data = [dynamic_data]
+                if dynamic_data:
+                    initial_data = dynamic_data[s]  # we grab the list of data items by section code not cde code
+                else:
+                    initial_data = [""] * len(section_elements)
                 form_section[s]  = form_set_class(initial=initial_data)
         
         context = {
@@ -63,25 +66,55 @@ class FormView(View):
         return render_to_response('rdrf_cdes/form.html', context)
 
     def post(self, request, registry_code, form_name, patient_id):
+        #import pdb
+        #pdb.set_trace()
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = self.get_registry_form(form_name, registry_code)
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
+        section_element_map = {}
         for s in sections:
+            logger.debug("handling post data for section %s" % s)
             form_class = create_form_class_for_section(s)
+            section_model = Section.objects.get(code=s)
+            section_elements = section_model.get_elements()
+            section_element_map[s] = section_elements
+
             logger.debug("created form class for section %s: %s" % (s, form_class))
             logger.debug("POST data = %s" % request.POST)
-            form = form_class(request.POST)
-            if form.is_valid():
-                logger.debug("form is valid")
-                dynamic_data = form.cleaned_data
-                dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
-            else:
-                for e in form.errors:
-                    logger.debug("Validation error on form: %s" % e)
 
-            form_section[s] = form_class(request.POST)
+            if not section_model.allow_multiple:
+                form = form_class(request.POST)
+                if form.is_valid():
+                    logger.debug("form is valid")
+                    dynamic_data = form.cleaned_data
+                    dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+                else:
+                    for e in form.errors:
+                        logger.debug("Validation error on form: %s" % e)
+
+                form_section[s] = form_class(request.POST)
+
+            else:
+                if section_model.extra:
+                    extra = section_model.extra
+                else:
+                    extra = 0
+                form_set_class = formset_factory(form_class, extra=extra)
+                formset  = form_set_class(request.POST)
+
+                if formset.is_valid():
+                    logger.debug("formset %s is valid" % formset)
+                    dynamic_data = formset.cleaned_data # a list of values
+                    section_dict = {}
+                    section_dict[s] = dynamic_data
+                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+                else:
+                    for e in formset.errors:
+                        logger.debug("Validation error on form: %s" % e)
+
+                form_section[s] = form_set_class(request.POST)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -92,7 +125,8 @@ class FormView(View):
             'patient_name': patient_name,
             'sections': sections,
             'forms': form_section,
-            'display_names': display_names
+            'display_names': display_names,
+            'section_element_map': section_element_map,
         }
 
         context.update(csrf(request))

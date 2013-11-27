@@ -3,6 +3,7 @@
 {% load get_forms %}
 {% load is_formset %}
 {% load get_elements %}
+{% load get_management_form %}
 {% load get_display_name %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -54,6 +55,9 @@
                         <div class="inline-group">
                             <h2>{{display_names|get_display_name:s}} </h2>
                             {% if forms|is_formset:s %}
+                                <!-- start management form for {{s}}-->
+                                {{ forms|get_management_form:s }}
+                                <!-- end management form for {{s}} -->
                                 <div id="add_button_for_section_{{s}}" class="actionbutton">Add</div> <div id="remove_button_for_section_{{s}}" class="actionbutton">Remove</div>
                                 <table id="section_table_{{s}}">
                                 <script>
@@ -71,6 +75,7 @@
                                 {% for f in forms|get_forms:s %}
                                     {{f.as_table}}
                                 {% endfor %}
+
 
                                 </table>
                             {% else %}
