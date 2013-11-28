@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --index-url=https://restricted.crate.io'
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -69,6 +69,10 @@ function ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
 }
 
+#Preload fixtures from JSON file
+function ci_staging_fixture() {
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
+}
 
 # staging seleinium test
 function ci_staging_selenium() {
@@ -267,6 +271,10 @@ ci_staging)
 ci_staging_selenium)
     ci_ssh_agent
     ci_staging_selenium
+    ;;
+ci_staging_fixture)
+    ci_ssh_agent
+    ci_staging_fixture
     ;;
 ci_staging_tests)
     ci_ssh_agent
