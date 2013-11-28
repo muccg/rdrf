@@ -1,0 +1,1090 @@
+[
+{
+    "pk": 1, 
+    "model": "rdrf.registry", 
+    "fields": {
+        "splash_screen": "<div id=\"header-container\" style=\"position: absolute; background-color: #194c9d; color: white; height: 4em; top: 0px; left: 0px; right: 0px; font-family: sans-serif; font-size: medium;\">\r\n<h1 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; margin: 0px auto; padding: 0px 8px; min-width: 760px; max-width: 980px; line-height: 2.5em; vertical-align: middle;\">Australian National Duchenne Muscular Dystrophy Registry</h1>\r\n</div>\r\n<div id=\"container\" style=\"margin: 4em auto 0px; padding: 0px 8px; min-width: 760px; max-width: 980px; color: #444444; font-family: sans-serif; font-size: medium;\">\r\n<div id=\"container\" style=\"margin: 4em auto 0px; padding: 0px 8px; min-width: 760px; max-width: 980px;\">\r\n<div id=\"introduction\" style=\"float: left; width: 626.59375px;\">\r\n<div id=\"background\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Background</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">Recent scientific and medical advances have led to substantial changes in the treatment of many neuromuscular diseases (NMD). New therapeutic strategies are being developed and, for some of these treatments, plans for large studies involving patients from more than one country are already in place.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The Australian National Duchenne Muscular Dystrophy (DMD) Registry has been developed to collate a patient's DMD gene sequence and clinical information about their disease. The Registry provides an important enabling tool for clinicians and clinical trial sponsors to quickly identify patients suitable for each study, particularly those therapeutic strategies that target specific genetic defects. Potentially eligible patients will be informed about new trials and studies through the Registry's clinical network.</p>\r\n</div>\r\n<div id=\"purpose\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Purpose</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To provide Australian Duchenne Muscular Dystrophy families with an opportunity to improve the outcomes of individuals affected by DMD.</p>\r\n</div>\r\n<div id=\"objectives\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Objectives</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To improve care of DMD patients through the coordination of diagnosis and therapy and by ensuring new intervention strategies are available on an equitable and consistent manner across Australia; and</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">To improve opportunities for international collaboration by facilitating and accelerating recruitment process of Australian DMD patients into new clinical trials and for participating in studies for the benefit of the world DMD community and the advancement of medical science.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The Australian National DMD Registry adheres to the&nbsp;<a style=\"color: #194c9d;\" href=\"http://www.nhmrc.gov.au/publications/ethics/2007_humans/contents.htm\">National Health and Medical Research Council's National Statement</a>, forms part of an international effort led by<a style=\"color: #194c9d;\" href=\"http://www.treat-nmd.eu/home.php\">TREAT-NMD</a>, which brings together patients and specialists working on treatments for neuromuscular (NMD) disorders, and has received approval reference #2010/23 from the<a style=\"color: #194c9d;\" href=\"http://www.health.wa.gov.au/healthdata/HREC/index.cfm\">Department of Health WA Human Research Ethics Committee</a>.</p>\r\n</div>\r\n<div id=\"contact\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 1.2ex 0px; padding: 0px;\">Contact</h2>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">For more information on the Australian National Duchenne Muscular Dystrophy Registry, please&nbsp;<a style=\"color: #194c9d;\" href=\"http://www.genomics.health.wa.gov.au/contact/index.cfm\">contact the Office of Population Health Genomics</a>.</p>\r\n<p style=\"margin: 0px 0px 1em; padding: 0px;\">The consent form for patients wishing to participate in the registry can be&nbsp;<a style=\"color: #194c9d;\" href=\"https://nmdregistry.com.au/dmd/static/Australian_National_DMD_Registry_consent_form_100930.pdf\">downloaded here</a>.</p>\r\n</div>\r\n</div>\r\n<div id=\"stakeholders\" style=\"float: right; width: 289.1875px; padding-bottom: 2em;\">\r\n<h2 style=\"font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #333333; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; margin: 0px; padding: 1.2ex 0.27ex 0px;\">Stakeholders</h2>\r\n<h3 style=\"font-size: 16px; margin: 0px; padding: 1.6ex 0.36ex;\">Muscular Dystrophy Associations</h3>\r\n<ul style=\"list-style: none; margin: 0px; padding: 0px; font-size: 14px;\">\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; border-top-style: solid; border-top-width: 1px; border-top-color: #eeeeee;\" href=\"http://www.duchennefoundation.org.au/\">Duchenne Foundation</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdaustralia.org.au/\">Muscular Dystrophy Foundation Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mda.org.au/\">Muscular Dystrophy Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdnsw.org.au/\">Muscular Dystrophy New South Wales</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdqld.org.au/\">Muscular Dystrophy Queensland</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdasa.org.au/\">Muscular Dystrophy South Australia</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://mdtasmania.org.au/\">Muscular Dystrophy Tasmania</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.mdawa.asn.au/\">Muscular Dystrophy Western Australia</a></li>\r\n</ul>\r\n<h3 style=\"font-size: 16px; margin: 0px; padding: 1.6ex 0.36ex;\">Government Bodies</h3>\r\n<ul style=\"list-style: none; margin: 0px; padding: 0px; font-size: 14px;\">\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee; border-top-style: solid; border-top-width: 1px; border-top-color: #eeeeee;\" href=\"http://www.chw.edu.au/\">The Children's Hospital at Westmead</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.sch.edu.au/\">Sydney Children's Hospital</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.nt.gov.au/\">Department of Health and Families (NT)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.qld.gov.au/\">Queensland Health</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.sa.gov.au/\">Department of Health (SA)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.dhhs.tas.gov.au/\">Department of Health and Human Services (Tasmania)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.vic.gov.au/\">Department of Health (Victoria)</a></li>\r\n<li style=\"list-style: none; margin: 0px; padding: 0px; font-size: 13px;\"><a style=\"color: #444444; display: block; text-decoration: none; margin: 0px; padding: 0.4ex; border-bottom-style: solid; border-bottom-width: 1px; border-bottom-color: #eeeeee;\" href=\"http://www.health.wa.gov.au/\">Department of Health (WA)</a></li>\r\n</ul>\r\n</div>\r\n<div style=\"clear: both;\">&nbsp;</div>\r\n</div>\r\n</div>\r\n<div id=\"footer-container\" style=\"clear: both; background-color: #194c9d; color: #eeeeee; left: 0px; right: 0px; bottom: 0px; padding: 0px; margin: 0px; font-family: sans-serif; font-size: medium;\">\r\n<div id=\"footer\" style=\"font-size: 13px; margin: 0px auto; padding: 0.6em 8px; min-width: 760px; max-width: 980px;\">Authorised by Hugh Dawkins for the&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>.&nbsp;<br />All content &copy; 2011&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>&nbsp;on behalf of the Australian Facioscapulohumeral Muscular Dystrophy Registry.&nbsp;<br />Supported by&nbsp;<a style=\"color: white;\" href=\"http://www.ivec.org/\">iVEC</a>&nbsp;and the&nbsp;<a style=\"color: white;\" href=\"http://www.genomics.health.wa.gov.au/\">Office of Population Health Genomics</a>.&nbsp;<br />Developed and hosted by the&nbsp;<a style=\"color: white;\" href=\"http://ccg.murdoch.edu.au/\">Centre for Comparative Genomics</a>,&nbsp;<a style=\"color: white;\" href=\"http://www.murdoch.edu.au/\">Murdoch University</a>.&nbsp;<br /><a style=\"color: white;\" href=\"https://nmdregistry.com.au/dmd/admin/\">Administration</a></div>\r\n</div>", 
+        "code": "fh", 
+        "name": "FH Registry", 
+        "desc": "FH Registry"
+    }
+},
+{
+    "pk": 2, 
+    "model": "rdrf.registry", 
+    "fields": {
+        "splash_screen": "<h1>SMA Registry</h2>", 
+        "code": "sma", 
+        "name": "SMA", 
+        "desc": "sma"
+    }
+},
+{
+    "pk": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "PVG-FH_GENETIC_VARIANT", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "PVG-FH_ON_MEDICATION", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "PVG-YES_NO_UNKNOWN", 
+    "model": "rdrf.cdepermittedvaluegroup", 
+    "fields": {}
+},
+{
+    "pk": "gen_no", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_GENETIC_VARIANT", 
+        "value": "No", 
+        "desc": "No"
+    }
+},
+{
+    "pk": "gen_not_tested", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_GENETIC_VARIANT", 
+        "value": "Not tested", 
+        "desc": "Not tested"
+    }
+},
+{
+    "pk": "gen_yes", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_GENETIC_VARIANT", 
+        "value": "Yes - Exact Mutation", 
+        "desc": "Yes - Exact Mutation"
+    }
+},
+{
+    "pk": "med_no", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "value": "No", 
+        "desc": "No"
+    }
+},
+{
+    "pk": "med_other", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "value": "Other", 
+        "desc": "Other"
+    }
+},
+{
+    "pk": "med_yes_ezetimibe", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "value": "Yes - Ezetimibe", 
+        "desc": "Yes - Ezetimibe"
+    }
+},
+{
+    "pk": "med_yes_other", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "value": "Yes - Other", 
+        "desc": "Yes - Other"
+    }
+},
+{
+    "pk": "med_yes_statin", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "value": "Yes - Statin", 
+        "desc": "Yes - Statin"
+    }
+},
+{
+    "pk": "n", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "No", 
+        "desc": "No"
+    }
+},
+{
+    "pk": "n_", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "value": "No", 
+        "desc": "No"
+    }
+},
+{
+    "pk": "n_p", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+        "value": "No", 
+        "desc": "No"
+    }
+},
+{
+    "pk": "u", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "Unknown", 
+        "desc": "Unknown"
+    }
+},
+{
+    "pk": "u_", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "value": "Unknown", 
+        "desc": "Unknown"
+    }
+},
+{
+    "pk": "y", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "value": "Yes", 
+        "desc": "Yes"
+    }
+},
+{
+    "pk": "y_c", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "Yes - Child", 
+        "desc": "Yes - Child"
+    }
+},
+{
+    "pk": "y_clinical", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+        "value": "Yes - Clinical Event", 
+        "desc": "Yes - Clinical Event"
+    }
+},
+{
+    "pk": "y_f", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "Yes - Father", 
+        "desc": "Yes - Father"
+    }
+},
+{
+    "pk": "y_m", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "Yes - Mother", 
+        "desc": "Yes - Mother"
+    }
+},
+{
+    "pk": "y_s", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "value": "Yes - Sibling", 
+        "desc": "Yes - Sibling"
+    }
+},
+{
+    "pk": "y_subclinical", 
+    "model": "rdrf.cdepermittedvalue", 
+    "fields": {
+        "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+        "value": "Yes - Subclinical Event", 
+        "desc": "Yes - Subclinical Event"
+    }
+},
+{
+    "pk": "CDE00001", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Tendinous xanthomata", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00002", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Arcus cornealis prior to age 45 years", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00003", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Family History of Hypercholesterolaemia", 
+        "datatype": "string", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00004", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Family History of Premature CVD (Men <55, Women <60)", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00005", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Smoking", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00006", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Hypertension", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00007", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Diabetes", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00008", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": true, 
+        "name": "Systolic Blood Pressure", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00009", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Diastolic Blood Pressure", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00010", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Blood glucose concentration (mmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00011", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN", 
+        "is_required": true, 
+        "name": "Personal History of Premature CVD (Men <55, Women <60)", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00012", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": true, 
+        "name": "Cholesterol concentration (mmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00013", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": true, 
+        "name": "LDL-cholesterol concentration (mmol/L)", 
+        "datatype": "Number", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00014", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Triglyceride concentration (mmol/L)", 
+        "datatype": "Number", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00015", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "HDL-cholesterol concentration (mmol/L)", 
+        "datatype": "Number", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00016", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Lp(a) concentration (nmol/L)", 
+        "datatype": "Number", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00017", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-FH_ON_MEDICATION", 
+        "is_required": true, 
+        "name": "Is patient on medication now?", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00018", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": true, 
+        "name": "Cholesterol concentration (mmol/L)", 
+        "datatype": "Ineger", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00019", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": true, 
+        "name": "LDL-cholesterol concentration (mmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00020", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Triglyceride concentration (mmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00021", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "HDL-cholesterol concentration (mmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00022", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Lp(a) concentration (nmol/L)", 
+        "datatype": "Integer", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00023", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "Dutch Lipid Clinic Network Criteria Score", 
+        "datatype": "calculated", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00024", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": null, 
+        "is_required": false, 
+        "name": "FH Diagnostic Categories", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "var score = 0;\r\n\r\nif(context.CDE00003.indexOf(\"y\") !== -1){\r\n  score += 1;\r\n}\r\n\r\nif(context.CDE00004.indexOf(\"y\") !== -1){\r\n  score += 1;\r\n}\r\n\r\nif(context.CDE00001.indexOf(\"y\") !== -1){\r\n  score += 6;\r\n}\r\n\r\nif(context.CDE00002.indexOf(\"y\") !== -1){\r\n  score += 4;\r\n}\r\n\r\nif(context.CDE00011.indexOf(\"y\") !== -1){\r\n  score += 2;\r\n}\r\n\r\nif(context.CDE00025.indexOf(\"y\") !== -1){\r\n  score += 8;\r\n}\r\n\r\nif(context.CDE00013 < 4.0) {\r\n   score += 0;\r\n} else if(context.CDE00013 >= 4.0 && context.CDE00013 <= 4.9) {\r\n   score += 1;\r\n} else if(context.CDE00013 >= 5.0 && context.CDE00013 <= 6.4) {\r\n   score += 3;\r\n} else if(context.CDE00013 >= 6.5 && context.CDE00013 <= 8.4) {\r\n   score += 5;\r\n} else if(context.CDE00013 >= 8.5) {\r\n   score += 8;\r\n}\r\n\r\nif( score >= 0 && score <=2) {\r\n  context.result = 'Unlikely';\r\n} else if(score >= 3 && score <=5)  {\r\n  context.result = 'Possible';\r\n} else if(score >= 6 && score <8)  {\r\n  context.result = 'Probable';\r\n} else if(score >= 8)  {\r\n  context.result = 'Definite';\r\n}\r\n\r\ncontext.result += ' (' + score + ')'", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": "CDE00025", 
+    "model": "rdrf.commondataelement", 
+    "fields": {
+        "pv_group": "PVG-FH_GENETIC_VARIANT", 
+        "is_required": true, 
+        "name": "Has this patient had a genetic variant for FH detected?", 
+        "datatype": "String", 
+        "max_value": null, 
+        "min_value": null, 
+        "widget_name": "", 
+        "calculation": "", 
+        "max_length": null, 
+        "pattern": "", 
+        "desc": "", 
+        "instructions": ""
+    }
+},
+{
+    "pk": 1, 
+    "model": "rdrf.registryform", 
+    "fields": {
+        "sections": "SEC0002,SEC0004,SEC0001,SEC0005,SEC0006,SEC0003,SEC0008,SEC0007", 
+        "registry": 1, 
+        "name": "fh"
+    }
+},
+{
+    "pk": 1, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0001", 
+        "display_name": "Physical Examination", 
+        "elements": "CDE00001,CDE00002"
+    }
+},
+{
+    "pk": 2, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0002", 
+        "display_name": "Family History", 
+        "elements": "CDE00003,CDE00004"
+    }
+},
+{
+    "pk": 3, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0003", 
+        "display_name": "Other CVD Risk Factors", 
+        "elements": "CDE00005,CDE00006,CDE00008,CDE00009,CDE00007,CDE00010"
+    }
+},
+{
+    "pk": 4, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0004", 
+        "display_name": "Clinical History", 
+        "elements": "CDE00011"
+    }
+},
+{
+    "pk": 5, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0005", 
+        "display_name": "Plasma Lipids - Highest pre-treatment", 
+        "elements": "CDE00012,CDE00013,CDE00014,CDE00015,CDE00016,CDE00017"
+    }
+},
+{
+    "pk": 6, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0006", 
+        "display_name": "Plasma Lipids - On treatment", 
+        "elements": "CDE00018,CDE00019,CDE00020,CDE00021,CDE00022"
+    }
+},
+{
+    "pk": 7, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0007", 
+        "display_name": "Summary", 
+        "elements": "CDE00024"
+    }
+},
+{
+    "pk": 8, 
+    "model": "rdrf.section", 
+    "fields": {
+        "code": "SEC0008", 
+        "display_name": "DNA Analysis", 
+        "elements": "CDE00025"
+    }
+},
+{
+    "pk": "Australia", 
+    "model": "patients.country", 
+    "fields": {}
+},
+{
+    "pk": "WA", 
+    "model": "patients.state", 
+    "fields": {
+        "country": "Australia", 
+        "name": "Western Australia"
+    }
+},
+{
+    "pk": 1, 
+    "model": "patients.doctor", 
+    "fields": {
+        "family_name": "Example", 
+        "speciality": "General Practitioner", 
+        "surgery_name": "Example", 
+        "phone": "", 
+        "suburb": "Perth", 
+        "state": "WA", 
+        "address": "1 Smith St", 
+        "email": "", 
+        "given_names": "John"
+    }
+},
+{
+    "pk": 1, 
+    "model": "patients.patient", 
+    "fields": {
+        "next_of_kin_relationship": null, 
+        "given_names": "John", 
+        "umrn": "", 
+        "consent": true, 
+        "date_of_migration": null, 
+        "next_of_kin_state": null, 
+        "sex": "F", 
+        "postcode": 6000, 
+        "next_of_kin_given_names": "", 
+        "next_of_kin_work_phone": "", 
+        "working_group": 1, 
+        "next_of_kin_parent_place_of_birth": "", 
+        "work_phone": "", 
+        "next_of_kin_email": "", 
+        "rdrf_registry": 1, 
+        "state": "WA", 
+        "date_of_birth": "1983-01-01", 
+        "home_phone": "", 
+        "email": "", 
+        "next_of_kin_family_name": "", 
+        "mobile_phone": "", 
+        "next_of_kin_address": "", 
+        "suburb": "Suburb", 
+        "address": "Address", 
+        "active": true, 
+        "next_of_kin_home_phone": "", 
+        "family_name": "DOE", 
+        "inactive_reason": "", 
+        "next_of_kin_mobile_phone": "", 
+        "place_of_birth": "", 
+        "next_of_kin_postcode": null, 
+        "next_of_kin_suburb": ""
+    }
+},
+{
+    "pk": 2, 
+    "model": "patients.patient", 
+    "fields": {
+        "next_of_kin_relationship": null, 
+        "given_names": "Sample", 
+        "umrn": "", 
+        "consent": true, 
+        "date_of_migration": null, 
+        "next_of_kin_state": null, 
+        "sex": "M", 
+        "postcode": 4444, 
+        "next_of_kin_given_names": "", 
+        "next_of_kin_work_phone": "", 
+        "working_group": 1, 
+        "next_of_kin_parent_place_of_birth": "", 
+        "work_phone": "", 
+        "next_of_kin_email": "", 
+        "rdrf_registry": 2, 
+        "state": "WA", 
+        "date_of_birth": "1983-01-01", 
+        "home_phone": "", 
+        "email": "", 
+        "next_of_kin_family_name": "", 
+        "mobile_phone": "", 
+        "next_of_kin_address": "", 
+        "suburb": "Suburb", 
+        "address": "Address", 
+        "active": true, 
+        "next_of_kin_home_phone": "", 
+        "family_name": "Name", 
+        "inactive_reason": "", 
+        "next_of_kin_mobile_phone": "", 
+        "place_of_birth": "", 
+        "next_of_kin_postcode": null, 
+        "next_of_kin_suburb": ""
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Working Group Curators", 
+        "permissions": [
+            85, 
+            86, 
+            87, 
+            101, 
+            102, 
+            103, 
+            88, 
+            89, 
+            90, 
+            91, 
+            92, 
+            93, 
+            94, 
+            97, 
+            95, 
+            96, 
+            98, 
+            99, 
+            100, 
+            58, 
+            59, 
+            60, 
+            64, 
+            65, 
+            66, 
+            67, 
+            68, 
+            69, 
+            70, 
+            71, 
+            72, 
+            73, 
+            74, 
+            75, 
+            76, 
+            77, 
+            78, 
+            82, 
+            83, 
+            84, 
+            79, 
+            80, 
+            81, 
+            61, 
+            62, 
+            63, 
+            28, 
+            29, 
+            30, 
+            25, 
+            26, 
+            27, 
+            31, 
+            32, 
+            33, 
+            22, 
+            23, 
+            24, 
+            34, 
+            35, 
+            36, 
+            37, 
+            38, 
+            39, 
+            40, 
+            41, 
+            42
+        ]
+    }
+},
+{
+    "pk": 2, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Genetic Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 3, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Clinical Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 1, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [
+            1
+        ], 
+        "title": "admin"
+    }
+},
+{
+    "pk": 4, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            1
+        ], 
+        "registry": [
+            1, 
+            2
+        ], 
+        "title": "curator"
+    }
+},
+{
+    "pk": 5, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+},
+{
+    "pk": 6, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "admin", 
+        "first_name": "admin", 
+        "last_name": "admin", 
+        "is_active": true, 
+        "is_superuser": true, 
+        "is_staff": true, 
+        "last_login": "2010-08-18 16:28:46", 
+        "groups": [
+                            1,
+                            2,
+                            3
+                    ], 
+        "user_permissions": [], 
+        "password": "sha1$c19b2$7c05e8387f71774ca5b7a0f5d2c7ba96f0957498", 
+        "email": "admin@example.com", 
+        "date_joined": "2010-08-18 16:28:19"
+    }
+}, 
+{
+    "pk": 6, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "clinical", 
+        "first_name": "clinical", 
+        "last_name": "clinical", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18 17:05:31", 
+        "groups": [
+            3
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
+        "email": "clinical@example.com", 
+        "date_joined": "2010-08-18 16:33:38"
+    }
+}, 
+{
+    "pk": 5, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "genetic", 
+        "first_name": "genetic", 
+        "last_name": "genetic", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18 17:06:00", 
+        "groups": [
+            2
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e", 
+        "email": "genetic@example.com", 
+        "date_joined": "2010-08-18 16:33:13"
+    }
+}, 
+{
+    "pk": 4, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "curator", 
+        "first_name": "curator", 
+        "last_name": "curator", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18 17:06:15", 
+        "groups": [
+            1
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$005da$3579413835a39b5013b56dc964692b27314e89a2", 
+        "email": "curator@example.com", 
+        "date_joined": "2010-08-18 16:32:32"
+    }
+}
+]
