@@ -26,7 +26,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         app_name = 'rdrf'
         module = __import__(app_name)
-        path = '%s' % (os.path.dirname(module.__file__))
+        path = '%s/fixtures' % (os.path.dirname(module.__file__))
         file_path = '%s/%s' % (path, options.get('json_file'))
         from django.core.management import call_command
         print file_path
