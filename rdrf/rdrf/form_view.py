@@ -26,7 +26,8 @@ class FormView(View):
         dynamic_data = dyn_patient.load_dynamic_data(registry_code,"cdes")
 
         form_obj = self.get_registry_form(form_id)
-        
+        form_display_name = form_obj.name
+
         sections, display_names = self._get_sections(form_obj)
 
         form_section = {}
@@ -70,6 +71,7 @@ class FormView(View):
         context = {
             'registry': registry_code,
             'form_name': form_id,
+            'form_display_name': form_display_name,
             'patient_id': patient_id,
             'patient_name': '%s %s' % (patient.given_names, patient.family_name),
             'sections': sections,
@@ -87,6 +89,7 @@ class FormView(View):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = self.get_registry_form(form_id)
+        form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
@@ -148,6 +151,7 @@ class FormView(View):
         context = {
             'registry': registry_code,
             'form_name': form_id,
+            'form_display_name': form_display_name,
             'patient_id': patient_id,
             'patient_name': patient_name,
             'sections': sections,
