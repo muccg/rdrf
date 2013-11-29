@@ -141,7 +141,6 @@ class Patient(models.Model):
             return "%s %s (Archived)" % (self.family_name, self.given_names)
 
     def save(self, *args, **kwargs):
-        # store the field in uppercase in the DB
         if hasattr(self, 'family_name'):
             self.family_name = stripspaces(self.family_name).upper()
 
