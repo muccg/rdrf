@@ -56,9 +56,14 @@
                         <select id="p_{{reg.id}}">
                             <option id="-1">--- Patient ---</option>
                             {% for patient in patients.all %}
-                                {% if patient.rdrf_registry.id == reg.id %}
-                                <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
-                                {% endif %}
+                                {% for r in patient.rdrf_registry.all %}
+                                    {% if r.id == reg.id %}
+                                        <script>
+                                        console.log({{r.id}} + " " + {{reg.id}});
+                                        </script>
+                                        <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
+                                    {% endif %}
+                                {% endfor %}
                             {% endfor %}
                             <script>
                                 $(document).ready(function() {
@@ -93,14 +98,13 @@
                         <td>
                             <input type="button" value="Load" disabled=true id="b_{{reg.id}}">
                             <script>
-                                    $(document).ready(function() {
-                                       $('#b_{{reg.id}}').on('click', function() {
-                                            var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
-                                            var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
-                                            //MOCKUP ONLY
-                                            window.open('/{{reg.code}}/forms/'+ form_id +'/'+patient_id);
-                                       });
-                                    });
+                                $(document).ready(function() {
+                                   $('#b_{{reg.id}}').on('click', function() {
+                                        var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
+                                        var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
+                                        window.open('/{{reg.code}}/forms/'+ form_id +'/'+patient_id);
+                                   });
+                                });
                             </script>
                         </td>
                     </tr>

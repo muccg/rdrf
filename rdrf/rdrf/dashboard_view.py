@@ -26,5 +26,4 @@ class DashboardView(View):
             'patients': Patient.objects.get_filtered(user),
             'rdrf_forms': RegistryForm.objects.get_by_registry(get_registries(user))
         }
-
         return render_to_response('rdrf_cdes/dashboard.html', context, context_instance=RequestContext(request))

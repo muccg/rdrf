@@ -50,7 +50,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['__unicode__', 'rdrf_registry', 'working_group', 'progress_graph', 'moleculardata_entered', 'freshness']
+    list_display = ['__unicode__', 'get_reg_list', 'working_group', 'progress_graph', 'moleculardata_entered', 'freshness']
 
     def get_form(self, request, obj=None, **kwargs):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
@@ -135,9 +135,9 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             kwargs["queryset"] = WorkingGroup.objects
 
-#        if dbfield.name == "rdrf_registry" and not user.is_superuser:
-#               user = User.objects.get(user=user)
-#                kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
+        if dbfield.name == "rdrf_registry" and not user.is_superuser:
+            user = User.objects.get(user=user)
+            kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
@@ -155,7 +155,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             return Patient.objects.all()
 
         user = registry.groups.models.User.objects.get(user=request.user)
-        return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(rdrf_registry__in=get_registries(user)).filter(active=True)
+        return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(rdrf_registry__in=get_registries(user)).filter(active=True).distinct()
 
     def search(self, request, term):
         # We have to do this against the result of self.queryset() to avoid

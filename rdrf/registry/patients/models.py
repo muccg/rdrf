@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.core.files.storage import FileSystemStorage
 
 import registry.groups.models
-from registry.utils import get_working_groups
+from registry.utils import get_working_groups, get_registries
 
 from rdrf.models import Registry
 
@@ -78,13 +78,13 @@ class Parent(models.Model):
 
 class PatientManager(models.Manager):
     def get_by_registry(self, registry):
-        return self.model.objects.filter(rdrf_registry__id__in=registry)
+        return self.model.objects.filter(rdrf_registry__in=registry)
 
     def get_by_working_group(self, user):
         return self.model.objects.filter(working_group__in=get_working_groups(user))
 
     def get_filtered(self, user):
-        return self.model.objects.filter(rdrf_registry__id__in=user.registry.all()).filter(working_group__in=get_working_groups(user))
+        return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_group__in=get_working_groups(user)).distinct()
 
 
 class Patient(models.Model):
@@ -164,6 +164,10 @@ class Patient(models.Model):
         else:
             logger.debug("Deleting patient record.")
             super(Patient, self).delete(*args, **kwargs)
+            
+    def get_reg_list(self):
+        return ', '.join([r.name for r in self.rdrf_registry.all()])
+    get_reg_list.short_description = 'Registry'
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
