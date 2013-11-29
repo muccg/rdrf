@@ -58,9 +58,6 @@
                             {% for patient in patients.all %}
                                 {% for r in patient.rdrf_registry.all %}
                                     {% if r.id == reg.id %}
-                                        <script>
-                                        console.log({{r.id}} + " " + {{reg.id}});
-                                        </script>
                                         <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
                                     {% endif %}
                                 {% endfor %}
