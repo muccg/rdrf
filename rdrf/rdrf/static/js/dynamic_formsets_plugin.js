@@ -29,6 +29,10 @@
            $("#" + settings.total_forms_id).val(old_value + value);
        }
 
+       function get_form_total() {
+           return parseInt($("#" + settings.total_forms_id).val());
+       }
+
        var cdes = [];
        var added_cdes = [];
 
@@ -38,8 +42,17 @@
        function get_row_count() {
            return $("#" + settings.table_id + " > tbody > tr").length;
        }
+
+       function dump_state(msg) {
+           console.log("****************************************************");
+           console.log("state " + msg);
+           console.log("row count = " + get_row_count());
+           console.log("django form total = " + get_form_total().toString());
+           console.log("****************************************************");
+       }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
+            dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
@@ -63,15 +76,16 @@
                         $(this).val("");
                     })
                     .end()
-                    .insertAfter("#" + settings.table_id + " tr:last")
+                    .insertAfter("#" + settings.table_id + " tr:last");
 
 
             }
             update_form_total(1);
+            dump_state("after add");
         });
        // bind the remove button
         $("#"+settings.remove_button_id).on("click", function (){
-
+            dump_state("before remove");
             var num_rows = get_row_count();
             if (num_rows > cdes.length) {
                 neg_index = -cdes.length - 1;
@@ -80,6 +94,7 @@
                 update_form_total(-1)
 
             }
+            dump_state("after remove");
         });
 
     }
