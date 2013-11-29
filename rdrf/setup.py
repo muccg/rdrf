@@ -67,7 +67,8 @@ setup(name='django-rdrf',
         'django-reversion',
         'sure==1.2.1',
         'django-templatetag-handlebars==1.2.0',
-        'django-iprestrict==0.1'
+        'django-iprestrict==0.1',
+        'django-suit',
     ],
     dependency_links = [
         "http://repo.ccgapps.com.au",

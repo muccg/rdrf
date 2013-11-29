@@ -1,5 +1,6 @@
 # Django settings for rdrf project.
 import os
+from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -71,8 +72,14 @@ INSTALLED_APPS = [
     'admin_views',
     'reversion',
     'iprestrict',
+    'suit',
 ]
 
+
+
+TEMPLATE_CONTEXT_PROCESSORS = TCP + (
+    'django.core.context_processors.request',
+)
 
 # these determine which authentication method to use
 # apps use modelbackend by default, but can be overridden here
