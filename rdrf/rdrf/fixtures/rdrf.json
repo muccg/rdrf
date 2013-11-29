@@ -806,7 +806,6 @@
         "next_of_kin_parent_place_of_birth": "", 
         "work_phone": "", 
         "next_of_kin_email": "", 
-        "rdrf_registry": 1, 
         "state": "WA", 
         "date_of_birth": "1983-01-01", 
         "home_phone": "", 
@@ -844,7 +843,6 @@
         "next_of_kin_parent_place_of_birth": "", 
         "work_phone": "", 
         "next_of_kin_email": "", 
-        "rdrf_registry": 2, 
         "state": "WA", 
         "date_of_birth": "1983-01-01", 
         "home_phone": "", 
@@ -862,6 +860,30 @@
         "place_of_birth": "", 
         "next_of_kin_postcode": null, 
         "next_of_kin_suburb": ""
+    }
+},
+{
+    "pk": 2, 
+    "model": "patients.patientregistry", 
+    "fields": {
+        "rdrf_registry": 2, 
+        "patient": 1
+    }
+},
+{
+    "pk": 3, 
+    "model": "patients.patientregistry", 
+    "fields": {
+        "rdrf_registry": 1, 
+        "patient": 2
+    }
+},
+{
+    "pk": 4, 
+    "model": "patients.patientregistry", 
+    "fields": {
+        "rdrf_registry": 1, 
+        "patient": 1
     }
 },
 {

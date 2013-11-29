@@ -57,7 +57,6 @@ class Migration(SchemaMigration):
         # Adding model 'Patient'
         db.create_table(u'patients_patient', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('rdrf_registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
             ('working_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['groups.WorkingGroup'])),
             ('consent', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('family_name', self.gf('django.db.models.fields.CharField')(max_length=100, db_index=True)),
@@ -94,6 +93,14 @@ class Migration(SchemaMigration):
 
         # Adding unique constraint on 'Patient', fields ['family_name', 'given_names', 'working_group']
         db.create_unique(u'patients_patient', ['family_name', 'given_names', 'working_group_id'])
+
+        # Adding model 'PatientRegistry'
+        db.create_table(u'patients_patientregistry', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('patient', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['patients.Patient'])),
+            ('rdrf_registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
+        ))
+        db.send_create_signal(u'patients', ['PatientRegistry'])
 
         # Adding model 'PatientConsent'
         db.create_table(u'patients_patientconsent', (
@@ -143,6 +150,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Patient'
         db.delete_table(u'patients_patient')
+
+        # Deleting model 'PatientRegistry'
+        db.delete_table(u'patients_patientregistry')
 
         # Deleting model 'PatientConsent'
         db.delete_table(u'patients_patientconsent')
@@ -220,7 +230,7 @@ class Migration(SchemaMigration):
             'parents': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['patients.Parent']", 'through': u"orm['patients.PatientParent']", 'symmetrical': 'False'}),
             'place_of_birth': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'postcode': ('django.db.models.fields.IntegerField', [], {}),
-            'rdrf_registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"}),
+            'rdrf_registry': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['rdrf.Registry']", 'through': u"orm['patients.PatientRegistry']", 'symmetrical': 'False'}),
             'sex': ('django.db.models.fields.CharField', [], {'max_length': '1'}),
             'state': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'patient_set'", 'to': u"orm['patients.State']"}),
             'suburb': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
@@ -247,6 +257,12 @@ class Migration(SchemaMigration):
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Parent']"}),
             'patient': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Patient']"}),
             'relationship': ('django.db.models.fields.CharField', [], {'max_length': '20'})
+        },
+        u'patients.patientregistry': {
+            'Meta': {'object_name': 'PatientRegistry'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'patient': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Patient']"}),
+            'rdrf_registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"})
         },
         u'patients.state': {
             'Meta': {'ordering': "['country__name', 'name']", 'object_name': 'State'},
