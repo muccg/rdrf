@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
+    'suit',
     'south',
     'messages_ui',
     'userlog',
@@ -72,7 +73,7 @@ INSTALLED_APPS = [
     'admin_views',
     'reversion',
     'iprestrict',
-    'suit',
+
 ]
 
 
