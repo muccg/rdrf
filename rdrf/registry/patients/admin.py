@@ -249,10 +249,15 @@ class StateAdmin(admin.ModelAdmin):
 class NextOfKinRelationshipAdmin(admin.ModelAdmin):
     model = NextOfKinRelationship
 
+class PatientRegistryAdmin(admin.ModelAdmin):
+    list_display = ['patient', 'rdrf_registry']    
+
+
 admin.site.register(Country, CountryAdmin)
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(Parent, ParentAdmin)
+admin.site.register(PatientRegistry, PatientRegistryAdmin)
 admin.site.disable_action('delete_selected')
