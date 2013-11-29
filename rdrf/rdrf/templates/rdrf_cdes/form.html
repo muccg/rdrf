@@ -23,8 +23,18 @@
 <!--[if IE 7]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
 <![endif]-->
+
 </head>
 <body>
+<script>
+        function do_remove(id, total_forms_id) {
+            var sel = "#" + id;
+            $(sel).remove();
+            var old_value = parseInt($('#' + total_forms_id).val());
+            var new_value = old_value - 1;
+            $('#' + total_forms_id).val(new_value.toString());
+        }
+    </script>
   <!-- Header -->
     <div id="header">
         <div id="branding">
@@ -60,7 +70,7 @@
                                 <!-- start management form for {{s}}-->
                                 {{ forms|get_management_form:s }}
                                 <!-- end management form for {{s}} -->
-                                <div id="add_button_for_section_{{s}}" class="actionbutton">Add</div> <div id="remove_button_for_section_{{s}}" class="actionbutton">Remove</div>
+                                <div id="add_button_for_section_{{s}}" class="actionbutton">Add</div>
                                 <table id="section_table_{{s}}">
                                 <script>
                                     $(document).ready(function() {
@@ -77,7 +87,12 @@
                                 </script>
 
                                 {% for f in forms|get_forms:s %}
-                                    {{f.as_table}}
+                                    <div id="formset_{{s}}_{{forloop.counter0}}">
+                                    {{ f.as_table }}
+
+                                    <div id="remove_formset_{{s}}_{{forloop.counter0}}" onclick="do_remove('formset_{{s}}_{{forloop.counter0}}','id_formset_{{s}}-TOTAL_FORMS');" class="actionbutton">Remove</div>
+                                    </div>
+
                                 {% endfor %}
 
 
