@@ -70,7 +70,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
         personal_details = ("Personal Details", {})
 
-        personal_details_fields = ["rdrf_registry",
+        personal_details_fields = [
                                    "working_group",
                                    "family_name",
                                    "given_names",
