@@ -259,7 +259,7 @@ class PatientRegistryAdmin(admin.ModelAdmin):
         if not user.user.is_superuser:
             form.base_fields['patient'].queryset = Patient.objects.filter(rdrf_registry__in=user.registry.all())
             form.base_fields['rdrf_registry'].queryset = Registry.objects.filter(id__in=user.registry.all())
-            return form
+        return form
     
     def queryset(self, request):
         if not request.user.is_superuser:
