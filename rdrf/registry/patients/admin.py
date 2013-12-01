@@ -155,7 +155,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
             return Patient.objects.all()
 
         user = registry.groups.models.User.objects.get(user=request.user)
-        return Patient.objects.filter(working_group__in=get_working_groups(user)).filter(rdrf_registry__in=get_registries(user)).filter(active=True).distinct()
+        return Patient.objects.get_filtered(user)
 
     def search(self, request, term):
         # We have to do this against the result of self.queryset() to avoid
@@ -250,7 +250,24 @@ class NextOfKinRelationshipAdmin(admin.ModelAdmin):
     model = NextOfKinRelationship
 
 class PatientRegistryAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'rdrf_registry']    
+    list_display = ['patient', 'rdrf_registry']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(PatientRegistryAdmin,self).get_form(request, obj=None, **kwargs)
+        from registry.groups.models import User
+        user = User.objects.get(user=request.user)
+        if not user.user.is_superuser:
+            form.base_fields['patient'].queryset = Patient.objects.filter(rdrf_registry__in=user.registry.all())
+            form.base_fields['rdrf_registry'].queryset = Registry.objects.filter(id__in=user.registry.all())
+            return form
+    
+    def queryset(self, request):
+        if not request.user.is_superuser:
+            from registry.groups.models import User
+            user = User.objects.get(user=request.user)
+            return PatientRegistry.objects.filter(rdrf_registry__in=user.registry.all())
+        
+        return self.model.objects.all()
 
 
 admin.site.register(Country, CountryAdmin)
