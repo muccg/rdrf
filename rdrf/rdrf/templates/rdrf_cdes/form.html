@@ -10,9 +10,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <title>{{registry|upper}} Registry</title>
-<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+
 <link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
-<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+
+
+
+
  <link rel="stylesheet" type="text/css" href="/static/suit/bootstrap/css/bootstrap.min.css" media="all"/>
   <link rel="stylesheet" type="text/css" href="/static/suit/css/suit.css" media="all">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
@@ -24,6 +27,15 @@
 <![endif]-->
 <!--[if IE 7]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+
+ <script src="/static/suit/js/jquery-1.8.3.min.js"></script>
+  <script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
+  <script src="/static/suit/bootstrap/js/bootstrap.min.js"></script>
+
+  <style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
+
+
+
 <![endif]-->
 
 </head>
@@ -38,13 +50,16 @@
         }
     </script>
   <!-- Header -->
-    <div id="header">
-        <div id="branding">
-            <h1 id="site-name">{{registry|upper}} Registry</h1>
+    <div id="header" class="header">
+        <div id="branding" class="branding">
+            <h1 id="site-name">{{registry|upper}} Rare Disease Registry</h1>
+        </div>
+        <div class="header-content header-content-first">
             <h2>{{form_display_name|upper}}</h2>
         </div>
 
-        <div id="user-tools">
+
+        <div id="user-tools" class="user-tools">
             Welcome,
             <strong>admin</strong>.
                 <a href="/admin/password_change/">Change password</a> /
