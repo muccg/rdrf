@@ -33,6 +33,7 @@ class FormView(View):
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
+        initial_forms_ids = {}
         formset_prefixes = {}
 
         for s in sections:
@@ -49,6 +50,7 @@ class FormView(View):
                 prefix="formset_%s" % s
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
+                initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
 
                 # return a formset
                 if section_model.extra:
@@ -59,13 +61,14 @@ class FormView(View):
                 if dynamic_data:
                     try:
                         initial_data = dynamic_data[s]  # we grab the list of data items by section code not cde code
+                        logger.debug("retrieved data for section %s OK" % s)
                     except KeyError, ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (patient_id, s, ke))
                         initial_data = [""] * len(section_elements)
                 else:
                     initial_data = [""] * len(section_elements)
 
-
+                logger.debug("initial data for section %s = %s" % (s, initial_data))
                 form_section[s]  = form_set_class(initial=initial_data, prefix=prefix)
         
         context = {
@@ -79,6 +82,7 @@ class FormView(View):
             'forms': form_section,
             'section_element_map': section_element_map,
             "total_forms_ids" : total_forms_ids,
+            "initial_forms_ids" : initial_forms_ids,
             "formset_prefixes" : formset_prefixes,
         }
         context.update(csrf(request))
@@ -94,6 +98,7 @@ class FormView(View):
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
+        initial_forms_ids = {}
         formset_prefixes = {}
         error_count = 0
 
@@ -129,16 +134,19 @@ class FormView(View):
                 prefix="formset_%s" % s
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
+                initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
                 form_set_class = formset_factory(form_class, extra=extra)
                 formset  = form_set_class(request.POST,  prefix=prefix)
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
                     logger.debug("formset %s is valid" % formset)
+                    logger.debug("POST data = %s" % request.POST)
                     dynamic_data = formset.cleaned_data # a list of values
                     section_dict = {}
                     section_dict[s] = dynamic_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+                    logger.debug("updated data for section %s to %s OK" % (s, dynamic_data) )
                 else:
                     for e in formset.errors:
                         error_count += 1
@@ -159,6 +167,7 @@ class FormView(View):
             'display_names': display_names,
             'section_element_map': section_element_map,
             "total_forms_ids" : total_forms_ids,
+            "initial_forms_ids" : initial_forms_ids,
             "formset_prefixes" : formset_prefixes,
         }
 

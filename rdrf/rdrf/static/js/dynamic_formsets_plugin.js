@@ -7,8 +7,8 @@
            table_id: '',
            cde_codes: '', // csv codes of fields that comprise one form in the formset
            add_button_id: 'add',
-           remove_button_id: 'remove',
            total_forms_id: 'id_form-TOTAL_FORMS',
+           initial_forms_id: 'id_form_INITIAL_FORMS',
            formset_prefix: 'form'
         }, options );
 
@@ -25,8 +25,13 @@
        }
 
        function update_form_total(value) {
+           // total forms
            var old_value = parseInt($("#" + settings.total_forms_id).val());
            $("#" + settings.total_forms_id).val(old_value + value);
+           // initial forms
+           var old_initial_value = parseInt($("#" + settings.initial_forms_id).val());
+           $("#" + settings.initial_forms_id).val(old_initial_value + value);
+
        }
 
        function get_form_total() {
@@ -40,7 +45,8 @@
 
        // bind the add button
        function get_row_count() {
-           return $("#" + settings.table_id + " > tbody > tr").length;
+           // return the number of input rows
+           return $("#" + settings.table_id + " > tbody > tr:has(:input)").length;
        }
 
        function dump_state(msg) {
@@ -52,7 +58,7 @@
        }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
-            dump_state("before add");
+            //dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
@@ -80,21 +86,31 @@
 
 
             }
+            // copy the last remove button row and modify it
+            // this row should look like:
+            //<tr id="remove_formset_STest_0" class="actionbutton"><td onclick="do_remove(this,'section_table_STest',2,'id_formset_STest-TOTAL_FORMS');">Remove</td></tr>
+
+            var remove_button_selector = "#" + settings.table_id + " > tbody > tr[id^='remove_" + settings.formset_prefix + "']";
+            $(remove_button_selector + ":last")
+                .clone()
+                .attr({
+                        'id' : function (_,old_id) {
+                                var parts = old_id.split("_");
+                                var last_el = parts[parts.length - 1];
+                                var new_num = parseInt(last_el) + 1;
+                                return "remove_button_"+ settings.formset_prefix + "_" + new_num.toString();
+                        }
+                    })
+                .find("td")
+                .each(function () {
+                    $(this).attr({
+                        "onclick" : function(_, old_onclick) { return old_onclick;}
+                    })
+                })
+                .end()
+                .insertAfter("#" + settings.table_id + " tr:last");
             update_form_total(1);
-            dump_state("after add");
-        });
-       // bind the remove button
-        $("#"+settings.remove_button_id).on("click", function (){
-            dump_state("before remove");
-            var num_rows = get_row_count();
-            if (num_rows > cdes.length) {
-                neg_index = -cdes.length - 1;
-
-                $("#"+ settings.table_id + " > tbody > tr").slice(neg_index,-1).remove();
-                update_form_total(-1)
-
-            }
-            dump_state("after remove");
+            //dump_state("after add");
         });
 
     }
