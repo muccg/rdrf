@@ -170,7 +170,7 @@
             <div id="content-main">
                 <form  class="form-horizontal"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
                     {% for s in sections %}
-                        <div class="well form-inline">
+                        <div class="well  form-inline">
                             <h2>{{display_names|get_display_name:s}} </h2>
                             {% if forms|is_formset:s %}
                                 <!-- start management form for {{s}}-->
@@ -231,5 +231,12 @@
         </div>
     {% endfor %}
 {% endif %}
+<script>
+    $(document).ready(function ()
+    {
+        $("label:not(li label)").addClass("col-sm-2 control-label");
+        $(":input").addClass("form-control");
+    })
+</script>
 </body>
 </html>
