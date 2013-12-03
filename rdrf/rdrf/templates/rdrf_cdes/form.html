@@ -160,9 +160,9 @@
         <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
             
             <div id="content-main">
-                <form action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
+                <form  width="80%"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
                     {% for s in sections %}
-                        <div class="inline-group">
+                        <div class="well form-inline">
                             <h2>{{display_names|get_display_name:s}} </h2>
                             {% if forms|is_formset:s %}
                                 <!-- start management form for {{s}}-->
