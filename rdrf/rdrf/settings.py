@@ -1,6 +1,8 @@
 # Django settings for rdrf project.
 import os
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
+# import message constants so we can use bootstrap style classes
+from django.contrib.messages import constants as message_constants
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -36,6 +38,11 @@ DATABASES = {
 TEMPLATE_LOADERS = [
     'django.template.loaders.app_directories.Loader',
 ]
+
+
+MESSAGE_TAGS = {message_constants.ERROR: 'alert alert-error',
+                message_constants.SUCCESS:  'alert alert-success',
+                message_constants.INFO:  'alert alert-info'}
 
 
 MIDDLEWARE_CLASSES = (
