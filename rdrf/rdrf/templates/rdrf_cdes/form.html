@@ -131,14 +131,22 @@
         <div id="branding" class="branding">
             <h1 id="site-name">{{registry|upper}} Rare Disease Registry</h1>
         </div>
-        <div class="header-content header-content-first">
+
+        <div class="header-content header-content-third">
             <h2>{{form_display_name|upper}}</h2>
         </div>
 
+        <div class="header-content header-content-third">
+            <a href="/dashboard/">Dashboard</a>
+        </div>
+
+        <div class="header-content header-content-third">
+            <a href="/admin/">Admin</a>
+        </div>
 
         <div id="user-tools" class="user-tools">
-            Welcome,
-            <strong>admin</strong>.
+
+            <strong>{{user.username}}</strong>
                 <a href="/admin/password_change/">Change password</a> /
                 <a href="/admin/logout/">Log out</a>
         </div>
@@ -160,7 +168,7 @@
         <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
             
             <div id="content-main">
-                <form  width="80%"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
+                <form  class="form-horizontal"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
                     {% for s in sections %}
                         <div class="well form-inline">
                             <h2>{{display_names|get_display_name:s}} </h2>
@@ -186,9 +194,11 @@
                                 </script>
 
                                 {% for f in forms|get_forms:s %}
+
                                     {{ f.as_table }}
                                     <tr id="remove_formset_{{s}}_{{forloop.counter0}}"  class="actionbutton"><td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a></td></tr>
-                                {% endfor %}
+
+                                        {% endfor %}
 
 
                                 </table>
