@@ -251,6 +251,10 @@ INSTALL_NAME = 'rdrf'
 QBE_ACCESS_FOR = lambda user: user.is_superuser
 LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
 
+# Django Suit Config
+SUIT_CONFIG = {
+    'ADMIN_NAME': 'Rare Disease Registry Framework'
+}
 try:
     print "Attempting to import default settings as appsettings.rdrf"
     from appsettings.rdrf import *
