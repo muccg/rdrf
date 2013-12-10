@@ -30,7 +30,7 @@ def create_form_class(owner_class_name):
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
     return form_class
 
-def create_form_class_for_section(section):
+def create_form_class_for_section(section, for_questionnaire=False):
     from models import CommonDataElement
     from models import Section
     form_class_name = "SectionForm"
@@ -40,10 +40,11 @@ def create_form_class_for_section(section):
 
     for s in section.elements.split(","):
         cde = CommonDataElement.objects.get(code=s.strip())
-        cde_field = FieldFactory(cde).create_field()
+        cde_field = FieldFactory(cde, for_questionnaire).create_field()
         base_fields[cde.code] = cde_field
 
 
     form_class_dict = {"base_fields": base_fields, "auto_id" : True}
     
     return type(form_class_name, (BaseForm,), form_class_dict)
+

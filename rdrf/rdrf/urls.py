@@ -17,7 +17,8 @@ urlpatterns = patterns("",
     url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$", form_view.FormView.as_view()),
     url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view()),
     url(r'^dashboard/?$', dashboard_view.DashboardView.as_view()),
-    url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'})
+    url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}),
+    url(r'^(?P<registry_code>\w+)/questionnaire/?$',form_view.QuestionnaireView.as_view() )
 )
 
 

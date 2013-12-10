@@ -14,6 +14,13 @@ from models import CommonDataElement
 
 logger = logging.getLogger('registry_log')
 
+class FieldContext:
+    """
+    Where a field can appear - on a form or in a questionnaire
+    On the questionnaire we use a different label text
+    """
+    CLINICAL_FORM = "Form"
+    QUESTIONNAIRE = "Questionnaire"
 
 class FieldFactory(object):
     # registry overrides
@@ -42,11 +49,16 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, cde):
+    def __init__(self, cde, questionnaire=False):
         """
         :param cde: Common Data Element model instance
         """
         self.cde = cde
+        if questionnaire:
+            self.context = FieldContext.QUESTIONNAIRE
+        else:
+            self.context = FieldContext.CLINICAL_FORM
+
         self.validator_factory = ValidatorFactory(self.cde)
         self.complex_field_factory = ComplexFieldFactory(self.cde)
         self.list_field_factory = ListFieldFactory(self.cde)
@@ -77,7 +89,10 @@ class FieldFactory(object):
             return custom_field_function(self.cde)
 
     def _get_field_name(self):
-        return self.cde.name
+        if self.context == FieldContext.CLINICAL_FORM:
+            return self.cde.name
+        else:
+            return self.cde.questionnaire_text
 
     def _get_code(self):
         return self.cde.code
@@ -86,6 +101,7 @@ class FieldFactory(object):
         return self.cde.datatype
 
     def _get_field_options(self):
+
 
         options_dict =  {"label": self._get_field_name(),
                 "help_text": self._get_help_text(),
