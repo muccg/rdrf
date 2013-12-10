@@ -1,5 +1,8 @@
 from django.db import models
 import logging
+
+
+
 logger = logging.getLogger("registry")
 
 class Registry(models.Model):
@@ -7,6 +10,10 @@ class Registry(models.Model):
     code = models.CharField(max_length=10)
     desc = models.TextField()
     splash_screen = models.TextField()
+
+    @property
+    def questionnaire(self):
+        return RegistryForm.objects.get(registry=self, is_questionnaire=True)
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
@@ -57,6 +64,7 @@ class CommonDataElement(models.Model):
     pattern = models.CharField(max_length=50, blank=True, help_text="Regular expression to validate string fields (optional)")
     widget_name = models.CharField(max_length=80, blank=True, help_text="If a special widget required indicate here - leave blank otherwise")
     calculation = models.TextField(blank=True, help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
+    questionnaire_text = models.TextField(blank=True, help_text="The text to use in any public facing questionnaires/registration forms")
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -74,6 +82,7 @@ class RegistryForm(models.Model):
     name = models.CharField(max_length=80)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
+    is_questionnaire = models.BooleanField(default=False,help_text="Check if this form is questionnaire form for it's registry")
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
@@ -114,6 +123,14 @@ class Wizard(models.Model):
     #  else present form6
     #
     rules = models.TextField(help_text="Rules")
+
+
+class QuestionnaireResponse(models.Model):
+    registry = models.ForeignKey(Registry)
+    date_submitted = models.DateTimeField(auto_now_add=True)
+    processed = models.BooleanField(default=False)
+    patient_id = models.IntegerField(blank=True,null=True,help_text="The id of the patient created from this response, if any")
+
 
 
 
