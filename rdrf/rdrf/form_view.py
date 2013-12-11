@@ -363,25 +363,39 @@ class QuestionnaireResponseView(FormView):
         self.dynamic_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
         self.registry_form = self.registry.questionnaire
         context = self._build_context()
+        context['working_groups'] = self._get_working_groups(request.user)
         return self._render_context(request, context)
 
+    def _get_working_groups(self, auth_user):
+        class WorkingGroupOption:
+            def __init__(self, working_group_model):
+                self.code = working_group_model.pk
+                self.desc = working_group_model.name
+
+        from registry.groups.models import User
+        user = User.objects.get(user=auth_user)
+
+        return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
+
+
+
     def post(self, request, registry_code, questionnaire_response_id):
+        self.registry = Registry.objects.get(code=registry_code)
+        qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
         if request.POST.has_key('reject'):
-            self.template = "rdrf/rejected.html"
-            # delete from Mongo first
-            qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+            self.template = "rdrf_cdes/rejected.html"
+            # delete from Mongo first todo !
+
             qr.delete()
+            logger.debug("deleted rejected questionnaire response %s" % questionnaire_response_id)
 
         else:
-            try:
-                patient_creator = PatientCreator()
-                patient_creator.create_patient(request.POST)
-                self.template =  "rdrf_cdes/approved.html"
-            except Exception,ex:
-                pass
-
+            logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
+            patient_creator = PatientCreator(self.registry, request.user)
+            patient_creator.create_patient(request.POST, qr)
+            self.template =  "rdrf_cdes/approved.html"
 
 
         context = {}
-
+        context.update(csrf(request))
         return render_to_response(self.template,context)

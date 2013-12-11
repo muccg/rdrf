@@ -17,6 +17,12 @@ Review Questionnaire Response
 {% endblock %}
 
 {% block specialisation %}
+<label for="working_group" class="col-sm-2 control-label">Assign to working group</label>
+<select name="working_group" id="working_group">
+    {% for working_group in working_groups %}
+    <option value="{{working_group.code}}">{{working_group.desc}}</option>
+    {% endfor %}
+</select>
 <script>
      $(document).ready(function ()
     {
@@ -37,6 +43,11 @@ Review Questionnaire Response
             }).appendTo('form');
             $('form').submit();
         })
+
+        $("#working_group").appendTo('form');
+
+
+
     })
 </script>
 {% endblock %}
