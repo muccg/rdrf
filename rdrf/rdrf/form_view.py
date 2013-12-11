@@ -14,6 +14,7 @@ from registry.patients.models import Patient
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
+from registration import PatientCreator
 
 logger = logging.getLogger("registry_log")
 
@@ -38,16 +39,20 @@ class FormView(View):
 
 
     def _get_dynamic_data(self, **kwargs):
-        patient = Patient.objects.get(pk=kwargs['patient_id'])
-        dyn_patient = DynamicDataWrapper(patient)
-        dynamic_data = dyn_patient.load_dynamic_data(kwargs['registry_code'],"cdes")
+        if kwargs.has_key('model_class'):
+            model_class = kwargs['model_class']
+        else:
+            model_class = Patient
+        obj = model_class.objects.get(pk=kwargs['id'])
+        dyn_obj = DynamicDataWrapper(obj)
+        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'],"cdes")
         return dynamic_data
 
     def get(self, request, registry_code, form_id, patient_id):
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
-        self.dynamic_data = self._get_dynamic_data(patient_id=patient_id, registry_code=registry_code)
+        self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
         return self._render_context(request, context)
@@ -343,7 +348,40 @@ class QuestionnaireView(FormView):
         return create_form_class_for_section(section_code, for_questionnaire=True)
 
 
+class QuestionnaireResponseView(FormView):
+
+    def __init__(self, *args, **kwargs):
+        super(QuestionnaireResponseView, self).__init__(*args, **kwargs)
+        self.template = 'rdrf_cdes/approval.html'
+
+    def _get_patient_name(self):
+        return "Questionnaire Response for %s" % self.registry.name
+
+    def get(self, request, registry_code, questionnaire_response_id):
+        self.patient_id = questionnaire_response_id
+        self.registry = self._get_registry(registry_code)
+        self.dynamic_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+        self.registry_form = self.registry.questionnaire
+        context = self._build_context()
+        return self._render_context(request, context)
+
+    def post(self, request, registry_code, questionnaire_response_id):
+        if request.POST.has_key('reject'):
+            self.template = "rdrf/rejected.html"
+            # delete from Mongo first
+            qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+            qr.delete()
+
+        else:
+            try:
+                patient_creator = PatientCreator()
+                patient_creator.create_patient(request.POST)
+                self.template =  "rdrf_cdes/approved.html"
+            except Exception,ex:
+                pass
 
 
 
+        context = {}
 
+        return render_to_response(self.template,context)
