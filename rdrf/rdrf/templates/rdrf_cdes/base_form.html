@@ -191,7 +191,7 @@
                         <!--<fieldset><legend>{{s}}</legend>
                         </fieldset>-->
                     {% endfor %}
-                    <input type="submit" class="btn btn-primary btn-small" value="Save"/>
+                    <input id="submit_button" type="submit" class="btn btn-primary btn-small" value="Save"/>
                 </form>
             </div>
     </div>
@@ -218,5 +218,8 @@
         $(":input").addClass("form-control");
     })
 </script>
+{% block specialisation %}
+<!-- reserved for child templates to insert specialisiations/touch up scripts etc. -->
+{% endblock %}
 </body>
 </html>

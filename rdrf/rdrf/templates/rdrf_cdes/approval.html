@@ -1,0 +1,42 @@
+{% extends "rdrf_cdes/base_form.html" %}
+{% block title %}{{registry|upper}} Approval{% endblock %}
+{% block header %}
+<div id="branding" class="branding">
+    <h1 id="site-name">{{registry|upper}} Registry</h1>
+</div>
+
+<div class="header-content header-content-third">
+    <h2>{{form_display_name|upper}}</h2>
+</div>
+{% endblock %}
+{% block content_header %}
+Review Questionnaire Response
+{% endblock %}
+{% block form_action %}
+/{{registry}}/approval/{{patient_id}}
+{% endblock %}
+
+{% block specialisation %}
+<script>
+     $(document).ready(function ()
+    {
+
+        $("#submit_button").val("Approve");
+
+        var reject_button = $("#submit_button").clone();
+
+        reject_button.val("Reject").insertAfter($("#submit_button"));
+
+        reject_button.on("click",function (){
+            $('<input>').attr({
+                type: 'hidden',
+                id: 'reject',
+                name: 'reject',
+                value: 'reject',
+
+            }).appendTo('form');
+            $('form').submit();
+        })
+    })
+</script>
+{% endblock %}
