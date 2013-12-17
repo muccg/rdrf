@@ -45,6 +45,7 @@ class PatientCreator(object):
         patient.save()
         logger.debug("created patient %s" % patient.pk)
         questionnaire_response.patient_id = patient.pk
+        questionnaire_response.processed = True
         questionnaire_response.save()
 
 
