@@ -119,25 +119,55 @@ class DynamicDataWrapper(object):
         fs = self._get_filestore(registry)
         for key, value in data.items():
             if self._is_uploaded_file(key):
+                DELETE_EXISTING = True
                 logger.debug("uploaded file: %s" % key)
-                if not value:
-                    # we need to delete the file
+                if value is False:
+                    logger.debug("User cleared %s - file will be deleted" % key)
+                    # Django uses a "clear" checkbox value of False to indicate file should be removed
+                    # we need to delete the file but not here
                     continue
 
+                if value is None:
+                    logger.debug("User did change file %s - record will not be updated" % key)
+                    # If no file is chosen, value is None
+                    # We don't want to update anything
+                    logger.debug("record = %s\ndata = %s" % (record, data))
+                    DELETE_EXISTING = False
+
                 file_wrapper = record[key]
+                logger.debug("File wrapper = %s" % file_wrapper)
 
                 if not file_wrapper:
-                    self._store_file(registry, record, key, value, data)
-                else:
-                    gridfs_file_dict = file_wrapper.gridfs_dict
-
-                    if gridfs_file_dict is None:
+                    if value is not None:
+                        logger.debug("storing file for %s data = %s" % (key, data))
                         self._store_file(registry, record, key, value, data)
                     else:
+                        logger.debug("did not update file as value is None")
+                else:
+                    gridfs_file_dict = file_wrapper.gridfs_dict
+                    logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
+
+                    if gridfs_file_dict is None:
+                        if value is not None:
+                            logger.debug("storing file with value %s" % value)
+                            self._store_file(registry, record, key, value, data)
+                    else:
+                        logger.debug("checking file id on existing gridfs dict")
                         gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
-                        if fs.exists(gridfs_file_id):
-                            fs.delete(gridfs_file_id)
-                        self._store_file(registry, record, key, value, data)
+                        logger.debug("existing file id = %s" % gridfs_file_id)
+                        if DELETE_EXISTING:
+                            logger.debug("updated value is not None so we delete existing upload and update:")
+                            if fs.exists(gridfs_file_id):
+                                fs.delete(gridfs_file_id)
+                                logger.debug("deleted existing file with id %s" % gridfs_file_id )
+                            else:
+                                logger.debug("file id %s in record didn't exist?" % gridfs_file_id)
+                            if value is not None:
+                                logger.debug("updating %s -> %s" % (key, value))
+                                self._store_file(registry, record, key, value, data)
+                        else:
+                            # don't change anything on update ...
+                            data[key] = gridfs_file_dict
 
 
     def save_dynamic_data(self, registry, collection_name, data):
@@ -160,6 +190,7 @@ class DynamicDataWrapper(object):
             record = self._get_record()
             for code, value in data.items():
                 if self._is_uploaded_file(code):
+                    assert False
                     if isinstance(value, bool):
                         if not value:
                             # this is how django signals the file should be disassociated
@@ -168,6 +199,9 @@ class DynamicDataWrapper(object):
                             file_id = record[code]["gridfs_file_id"]
                             file_store.delete(ObjectId(file_id))
                             del record[code]
+                    elif value is None:
+                        # The file hasn't changed
+                        pass
                     else:
                         gridfs_file_id = self._store_file(registry, record, code, value, data)
                         record[code] = {"gridfs_file_id": gridfs_file_id, "file_name": value.name }
