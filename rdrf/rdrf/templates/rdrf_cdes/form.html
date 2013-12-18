@@ -168,7 +168,7 @@
         <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
             
             <div id="content-main">
-                <form  class="form-horizontal"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" method="post">{% csrf_token %}
+                <form  class="form-horizontal"     action="/{{registry}}/forms/{{form_name}}/{{patient_id}}" enctype="multipart/form-data" method="post">{% csrf_token %}
                     {% for s in sections %}
                         <div class="well  form-inline">
                             <h2>{{display_names|get_display_name:s}} </h2>

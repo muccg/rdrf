@@ -4,6 +4,7 @@ from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.template import RequestContext
+from django.http import HttpResponse
 from django.forms.formsets import formset_factory
 
 import logging
@@ -15,8 +16,32 @@ from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from registration import PatientCreator
+from file_upload import munge_uploaded_file_data
 
 logger = logging.getLogger("registry_log")
+
+def log_context(when, context):
+    logger.debug("dumping page context: %s" % when)
+    logger.debug("context = %s" % context)
+    for section in context["forms"]:
+        logger.debug("section %s" % section)
+        form = context["forms"][section]
+        for attr in form.__dict__:
+            value = getattr(form, attr)
+            if not callable(value):
+                if hasattr(value, "url"):
+                    logger.debug("file upload url = %s" % value.url)
+                    logger.debug("text value = %s" % value.__unicode__())
+
+                logger.debug("%s form %s = %s" % (section, attr, value))
+
+        for field_name, field_object in form.fields.items():
+            field_object = form.fields[field_name]
+            for attr in field_object.__dict__:
+                logger.debug("field %s.%s = %s" % (field_name, attr, getattr(field_object, attr)))
+
+
+
 
 class FormView(View):
 
@@ -55,6 +80,7 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
+        log_context("after get", context)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -62,6 +88,7 @@ class FormView(View):
         return render_to_response(self.template, context)
 
     def post(self, request, registry_code, form_id, patient_id):
+        logger.debug("request.FILES = %s" % request.FILES)
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = self.get_registry_form(form_id)
@@ -83,19 +110,24 @@ class FormView(View):
 
             logger.debug("created form class for section %s: %s" % (s, form_class))
             logger.debug("POST data = %s" % request.POST)
+            logger.debug("FILES data = %s" % str(request.FILES))
+
 
             if not section_model.allow_multiple:
-                form = form_class(request.POST)
+                form = form_class(request.POST, files=request.FILES)
                 if form.is_valid():
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+                    from copy import deepcopy
+                    form2 = form_class(dynamic_data,initial=munge_uploaded_file_data(registry_code, deepcopy(dynamic_data)))
+                    form_section[s] = form2
                 else:
                     for e in form.errors:
+                        logger.debug("error validating form: %s" % e)
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
-
-                form_section[s] = form_class(request.POST)
+                    form_section[s] = form_class(request.POST, request.FILES)
 
             else:
                 if section_model.extra:
@@ -108,7 +140,7 @@ class FormView(View):
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
                 form_set_class = formset_factory(form_class, extra=extra)
-                formset  = form_set_class(request.POST,  prefix=prefix)
+                formset  = form_set_class(request.POST, files=request.FILES, prefix=prefix)
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
@@ -124,7 +156,7 @@ class FormView(View):
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
 
-                form_section[s] = form_set_class(request.POST, prefix=prefix)
+                form_section[s] = form_set_class(request.POST, files=request.FILES, prefix=prefix)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -150,6 +182,9 @@ class FormView(View):
             #class="alert alert-error"
             messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
 
+
+
+        log_context("after post", context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
 
@@ -189,7 +224,11 @@ class FormView(View):
 
             if not section_model.allow_multiple:
                 # return a normal form
-                form_section[s] = form_class(self.dynamic_data)
+
+                logger.debug("creating form instance for section %s" % s)
+                from copy import deepcopy
+                initial_data = munge_uploaded_file_data(self.registry, self.dynamic_data)
+                form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
                 # Ensure that we can have multiple formsets on the one page
                 prefix="formset_%s" % s
@@ -275,7 +314,7 @@ class QuestionnaireView(FormView):
             section_element_map[section] = section_elements
             form_class = create_form_class_for_section(section)
             if not section_model.allow_multiple:
-                form = form_class(request.POST)
+                form = form_class(request.POST, request.FILES)
                 form_section[section] = form
                 if form.is_valid():
                     dynamic_data = form.cleaned_data
@@ -291,7 +330,7 @@ class QuestionnaireView(FormView):
 
                 prefix="formset_%s" % section
                 form_set_class = formset_factory(form_class, extra=extra)
-                form_section[section] = form_set_class(request.POST, prefix=prefix)
+                form_section[section] = form_set_class(request.POST,request.FILES, prefix=prefix)
                 formset_prefixes[section] = prefix
                 total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[section] = "id_%s-INITIAL_FORMS" % prefix
@@ -399,3 +438,18 @@ class QuestionnaireResponseView(FormView):
         context = {}
         context.update(csrf(request))
         return render_to_response(self.template,context)
+
+
+class FileUploadView(View):
+    def get(self, request, registry_code, gridfs_file_id):
+        from pymongo import MongoClient
+        from bson.objectid import ObjectId
+        import gridfs
+        client = MongoClient()
+        db =client[registry_code]
+        fs = gridfs.GridFS(db, collection=registry_code + ".files")
+        obj_id = ObjectId(gridfs_file_id)
+        data = fs.get(obj_id)
+        response = HttpResponse(data , mimetype='application/octet-stream')
+        return response
+

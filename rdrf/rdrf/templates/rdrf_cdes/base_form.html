@@ -148,7 +148,7 @@
 
 
             <div id="content-main">
-                <form  class="form-horizontal" action="{% block form_action %}/{{registry}}/forms/{{form_name}}/{{patient_id}}%}{% endblock %}" method="post">{% csrf_token %}
+                <form  class="form-horizontal" action="{% block form_action %}/{{registry}}/forms/{{form_name}}/{{patient_id}}%}{% endblock %}" enctype="multipart/form-data" method="post">{% csrf_token %}
                     {% for s in sections %}
                         <div class="well  form-inline">
                             <h2>{{display_names|get_display_name:s}} </h2>

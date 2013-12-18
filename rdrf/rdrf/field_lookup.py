@@ -1,10 +1,12 @@
 import re
 import django.forms
-from django.forms import MultiValueField, MultiWidget, BaseForm, MultipleChoiceField
+from django.forms import MultiValueField, MultiWidget, BaseForm, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
 from django.core.exceptions import ValidationError
+from django.contrib.admin.widgets import AdminFileWidget
+
 import fields
 import widgets
 import logging
@@ -275,6 +277,10 @@ class FieldFactory(object):
                 if self.list_field_factory.is_list():
                     return self.list_field_factory.create(options)
 
+                # File Field
+                if self._get_datatype() == 'file':
+                    return self._create_file_field(options)
+
                 if self._is_calculated_field():
                     try:
                         parser = CalculatedFieldParser(self.cde)
@@ -321,6 +327,12 @@ class FieldFactory(object):
                 logger.debug("field = %s options = %s" % (field, options))
                 return field(**options)
 
+    def _create_file_field(self, options):
+        #options['widget'] = AdminFileWidget
+        field = FileField(**options)
+        logger.debug("file field = %s" % field)
+        logger.debug("options = %s" % options)
+        return field
 
 
 class ComplexFieldParseError(Exception):
