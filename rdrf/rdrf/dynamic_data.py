@@ -110,10 +110,13 @@ class DynamicDataWrapper(object):
 
     def  _is_uploaded_file(self, code):
         from models import CommonDataElement
-        cde = CommonDataElement.objects.get(code=code)
-        if cde.datatype == 'file':
-            return True
-        #isinstance(value, InMemoryUploadedFile)
+        try:
+            cde = CommonDataElement.objects.get(code=code)
+            if cde.datatype == 'file':
+                return True
+        except:
+            # section forms have codes which are not CDEs
+            return False
 
     def _update_any_files(self, record, registry, data):
         fs = self._get_filestore(registry)
