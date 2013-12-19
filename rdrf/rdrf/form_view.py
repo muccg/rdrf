@@ -80,7 +80,6 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
-        log_context("after get", context)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -184,7 +183,6 @@ class FormView(View):
 
 
 
-        log_context("after post", context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
 
