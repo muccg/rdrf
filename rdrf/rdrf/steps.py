@@ -55,7 +55,7 @@ def our_goto(step, relative_url):
 
 @step('Then I should see "(.*)"')
 def eventually(step, expectation):
-    number_of_seconds_to_wait = getattr(world,"wait_seconds", 10)
+    number_of_seconds_to_wait = getattr(world,"wait_seconds", 30)
     lettuce_webdriver.webdriver.should_see_in_seconds(step, expectation, number_of_seconds_to_wait)
 
 
