@@ -72,6 +72,7 @@ function ci_staging() {
 #Preload fixtures from JSON file
 function ci_staging_fixture() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
 }
 
 # staging seleinium test
