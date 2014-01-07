@@ -87,6 +87,11 @@ class RegistryForm(models.Model):
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
+    def get_sections(self):
+        import string
+        return map(string.strip,self.sections.split(","))
+
+
 
 class Section(models.Model):
     """
