@@ -8,10 +8,50 @@ class ExportFormat:
     YAML = "YAML"
 
 class Exporter(object):
+    """
+    Export a registry definition to yaml or json
+    """
     def __init__(self, registry_model):
         self.registry = registry_model
 
     def export_yaml(self):
+        """
+        Example output:
+        ----------------------------------------------------------------------
+        code: FH
+        desc: This is a description that might take a few lines.
+        forms:
+        - is_questionnaire: false
+          name: Foobar
+          sections:
+          - allow_multiple: false
+            code: SEC001
+            display_name: Physical Characteristics
+            elements: [CDE01, CDE03, CDE05]
+            extra: 0
+          - allow_multiple: true
+            code: SEC002
+            display_name: Disease
+            elements: [CDE88, CDE67]
+            extra: 1
+        - is_questionnaire: false
+          name: Glug
+          sections:
+          - allow_multiple: false
+            code: SEC89
+            display_name: Test Section
+            elements: [CDE99, CDE67]
+            extra: 0
+        name: FascioH.. Registry
+        splash_screen: todo
+        version: 1.0
+        ----------------------------------------------------------------------
+
+
+
+
+        :return: a yaml file containing the definition of a registry ( i
+        """
         return self._export(ExportFormat.YAML)
 
     def export_json(self):
