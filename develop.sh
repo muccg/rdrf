@@ -116,6 +116,7 @@ function ci_staging_tests() {
 
 # lint using flake8
 function lint() {
+    pip install flake8
     virt_rdrf/bin/flake8 rdrf --ignore=E501 --count 
 }
 
