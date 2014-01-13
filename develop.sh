@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --index-url=https://pypi.python.org/simp
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_lint|ci_remote_jslint|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -25,6 +25,12 @@ function settings() {
     export DJANGO_SETTINGS_MODULE="rdrf.settings"
 }
 
+# local lint using flake8
+function local_lint() {
+    source /usr/local/src/virt_rdrf/bin/activate
+    pip install flake8
+    cd ${TARGET_DIR} && flake8 rdrf --ignore=E501 --count
+}
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 function ci_ssh_agent() {
@@ -33,13 +39,18 @@ function ci_ssh_agent() {
     ssh-add ~/.ssh/ccg-syd-staging.pem
 }
 
-# lint using flake8 on build
+# lint using flake8 on build instance
 function ci_remote_lint() {
     time ccg ${AWS_BUILD_INSTANCE} puppet
     time ccg ${AWS_BUILD_INSTANCE} shutdown:50
     ccg ${AWS_BUILD_INSTANCE} dsudo:"source ${TARGET_DIR}/virt_rdf/bin/activate"
     ccg ${AWS_BUILD_INSTANCE} dsudo:"pip install flake8"
     ccg ${AWS_BUILD_INSTANCE} dsudo:"cd ${TARGET_DIR} && flake8 rdrf --ignore=E501 --count"
+}
+
+# lint javascript on build instance
+function ci_remote_jslint() {
+    ccg ${AWS_BUILD_INSTANCE} dsudo:"cd ${TARGET_DIR} && ../develop.sh jslint"
 }
 
 # build RPMs on a remote host from ci environment
@@ -236,7 +247,7 @@ test)
     runtest
     ;;
 lint)
-    lint
+    local_lint
     ;;
 jslint)
     jslint
@@ -252,6 +263,14 @@ start)
 install)
     settings
     installapp
+    ;;
+ci_remote_lint)
+    ci_ssh_agent
+    ci_remote_lint
+    ;;
+ci_remote_jslint)
+    ci_ssh_agent
+    ci_remote_jslint
     ;;
 ci_remote_build)
     ci_ssh_agent
