@@ -33,12 +33,17 @@ function ci_ssh_agent() {
     ssh-add ~/.ssh/ccg-syd-staging.pem
 }
 
+# lint using flake8 on build
+function ci_remote_lint() {
+    time ccg ${AWS_BUILD_INSTANCE} puppet
+    time ccg ${AWS_BUILD_INSTANCE} shutdown:50
+    ccg ${AWS_BUILD_INSTANCE} dsudo:"source ${TARGET_DIR}/virt_rdf/bin/activate"
+    ccg ${AWS_BUILD_INSTANCE} dsudo:"pip install flake8"
+    ccg ${AWS_BUILD_INSTANCE} dsudo:"cd ${TARGET_DIR} && flake8 rdrf --ignore=E501 --count"
+}
 
 # build RPMs on a remote host from ci environment
 function ci_remote_build() {
-    time ccg ${AWS_BUILD_INSTANCE} puppet
-    time ccg ${AWS_BUILD_INSTANCE} shutdown:50
-
     EXCLUDES="('bootstrap'\, '.hg*'\, 'virt*'\, '*.log'\, '*.rpm'\, 'build'\, 'dist'\, '*/build'\, '*/dist')"
     SSH_OPTS="-o StrictHostKeyChecking\=no"
     RSYNC_OPTS="-l"
@@ -113,12 +118,6 @@ function ci_staging_tests() {
     ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
 }
 
-
-# lint using flake8
-function lint() {
-    ccg ${AWS_BUILD_INSTANCE} dsudo:"pip install flake8"
-    virt_rdrf/bin/flake8 rdrf --ignore=E501 --count 
-}
 
 
 # lint js, assumes closure compiler
