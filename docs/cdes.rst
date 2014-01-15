@@ -25,6 +25,13 @@ Name
 A non blank "name" must also be entered , which will be used as the label of the component when it appears
 on the form.
 
+.. _cdedesc:
+Desc
+----
+
+Origin of the field if externally loaded
+
+
 .. _cdedatatype:
 Datatype
 --------
@@ -34,8 +41,9 @@ Each cde must have a data type specified by a text descriptor. Currently this de
 
 The allowed datatypes are as follows ( NB. These are the literal words to type into the datatype field, *except* for ComplexField ) 
 
+
 * :ref:`string <datatypestring>`
-* :ref:`integer <datatypeinteger>`
+* :ref:`integer <datatypeinteger>`   
 * :ref:`alphanumeric <datatypealphanumeric>`
 * :ref:`boolean <datatypeboolean>`
 * :ref:`float <datatypeboolean>`
@@ -46,8 +54,67 @@ The allowed datatypes are as follows ( NB. These are the literal words to type i
 * :ref:`ComplexField <datatypecomplexfield>`
 
 
+.. _cdepvgroup:
+
+Pv group
+--------
+*IF* a range, select the desired :ref:`permitted value group <permittedvaluegroup>` here.
+
+.. _cdeallowmultiple:
+Allow multple
+-------------
+*IF* a range, checking this box will allow multple selections to be chosen from the range.
+
+Example
+^^^^^^^
+
+* Brands of cars owned.
+* Medications taken.
+
+.. _cdemaxlength:
+Max length
+----------
+*IF* a string value, the maximum number of characters allowed.
+
+.. _cdemaxvalue:
+Max value
+---------
+*IF* an integer or a float value, the maximum magnitude allowed.
+
+.. _cdeminvalue:
+Min value
+---------
+*IF* an integer or a float value, the minimum magnitude allowed.
+
+.. _cdeisrequired:
+Is required
+-----------
+A check box indicating whether this field is mandatory ( any datatype)
+
+.. _cdepattern:
+Pattern
+-------
+*IF* a string value, a regular expression used to indicate admissible values.
+( note these are always case sensitive in the current version.)
+
+.. _cdewidget:
+Widget name
+-----------
+The name of a custom widget to visually present the data, or an an alternative widget 
+from the default. *IMPORTANT!* The custom widget must already be provided in the codebase otherwise an error
+will occur. If this field is left blank ( the default ), the default widget for the specified datatype
+will be used, which should be good enough in 99% per cent of cases.
+
+
+.. _cdecalculation:
+Calculation
+-----------
+
+*IF* a calculated field, a fragment of javascript outlined in :ref:`calculated fields <calculatedfields>`.
+Leave blank if not a calculated field.
 
 
 
 
-  
+
+

@@ -1,13 +1,21 @@
+Datatypes
+=========
+
+
 .. _datatypestring:
 String Datatype
-===============
+---------------
 
 Definition
-----------
+^^^^^^^^^^
 A text value.
 
+The maximum length of the string can be indicated.
+
+Optionally a regular expression *pattern* can be entered in the :ref:`pattern` field of the cde definition
+
 Examples
---------
+^^^^^^^^
 
 * hello world ( a string containing a space)
 * Mary ( a word)
@@ -15,34 +23,94 @@ Examples
 * The string 123 
 * ^^%%$^%$ff  ( non alphanumeric characters )
 
-.. _datatyperange:
-Range Datatype
-==============
+.. _datatypeinteger:
+Integer Dataype
+---------------
+
+A whole number. Integer cdes can have a max or min value entered.
+
+Examples
+^^^^^^^^
+
+12, -1,0 etc.
+
+
+.. _datatypefloat:
+Float Datatype
+--------------
 
 Definition
-----------
+^^^^^^^^^^
+
+Real/Decimal numbers
+
+Examples
+^^^^^^^^
+
+* 3.1415
+* 4.00
+* -1.5
+* 0.0
+
+
+.. _datatypealphanumeric:
+Alphanumeric Datatype
+---------------------
+
+Definition
+^^^^^^^^^^
+
+[A-Za-z0-9]* 
+
+Examples
+^^^^^^^^
+* THX1138
+* fred
+* 234
+* h4x0r
+
+.. _datatypeboolean:
+Boolean Datatype
+----------------
+
+Definition
+^^^^^^^^^^
+Truth values
+
+Examples
+^^^^^^^^
+
+* True
+* False
+
+.. _datatyperange:
+Range Datatype
+--------------
+
+Definition
+^^^^^^^^^^
 A set of allowed values ( usually represented as drop down list)
 
 Ranges in RDRF are specified by the datatype keyword "range" and then selecting the appropriate :ref:`Permitted Value Group <permittedvaluegroup>` This entails that permitted value groups be created first.
 
 Examples
---------
+^^^^^^^^
 * shoe size : big, medium, small
 * colour:  red, blue , green
 
 
 .. _datatypecalculated:
 Calculated Datatype
-===================
+-------------------
 
 Definition
-----------
+^^^^^^^^^^
 A value which is computed *client-side* from other values on the form.
 
 To created a calculated CDE enter "calculated" as the datatype and then fill in the calculation field of the CDE.
 
 Examples
---------
+^^^^^^^^
 A calculation( for BMI ) could be coded as::
    
    var height = parseFloat(context.CDEHeight);
@@ -54,13 +122,50 @@ The "context" here is an abstraction representing the *other* cdes on the contai
 ( Hence these other CDEs must be present in some section of same form as the form containing
 the calculated field, else an error will result.)
 
- 
+.. _datatypefile:
+File Datatype
+-------------
 
+Definition
+^^^^^^^^^^
 
+A file cde presents a file chooser widget to the user, allowing upload ( and download ) of a file from the user's 
+local file system. NB. Only the uploaded file name is displayed - not the content.
 
+Examples
+^^^^^^^^
 
+A consent form field.
 
+.. _datatypedate:
+Date Datatype
+-------------
 
+Definition
+^^^^^^^^^^
 
+A day , month , year combination
 
+Examples
+^^^^^^^^
 
+* 4th Jan 2008
+* 8 Dec 2078
+
+.. _datatypecomplexfield:
+ComplexField Datatype
+---------------------
+
+Definition
+^^^^^^^^^^
+
+A CDE used to aggregate other cdes horizontally on the page.
+
+The intent is mainly stylistic
+
+Example
+^^^^^^^
+
+*  ComplexField(CDEName,CDEAge)
+
+NB. This feature is experimental
