@@ -1,6 +1,6 @@
-.. _sections:
+.. _exporting:
 
-Sections
+Export
 --------
-A section is a named group of fields that can be inserted into a form.
+Exporting of a defined registry to a yaml file. ( This functionality is coming soon)
  

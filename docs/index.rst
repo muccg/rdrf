@@ -16,6 +16,8 @@ Contents:
    forms
    sections
    cdes
+   permittedvaluegroups
+   permittedvalues
    datatypes
    export
    import

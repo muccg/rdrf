@@ -8,17 +8,19 @@ Modelling
 Do this first on pen and paper! 
 
 
-* Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required
-  - For each data field required , decide its :ref:`datatype <cdedatatype>`
-  - If a field is logically a :ref:`range <permittedvaluegroup>` , work out the allowed :ref:`values <permittedvalue>`.
-  - Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules for a
-    numeric ( :ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>` ) field max and/or min, for a :ref:`string <datatypestring>` field, the maximum length or pattern. 
-    Decide if any :ref:`calculated fields <datatypecalculated>` are required.
+* Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required:
+
+  * For each data field required , decide its :ref:`datatype <cdedatatype>`
+  * If a field is logically a :ref:`range <permittedvaluegroup>` , work out the allowed :ref:`values <permittedvalue>`.
+  * Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules for a
+    numeric ( :ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>` ) field max and/or min, 
+    for a :ref:`string <datatypestring>` field, the maximum length or pattern. 
+  * Decide if any :ref:`calculated fields <datatypecalculated>` are required.
 
 * Split them into logical groups ( :ref:`sections` ). Decide whether a section might be multiple.
 
 * Portion related sections into :ref:`forms`
-  - If a questionnaire is required for the registry, nominate a single form as a questionnaire.
+  * If a questionnaire is required for the registry, nominate a single form as a questionnaire.
 
 
 Creation

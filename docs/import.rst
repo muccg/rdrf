@@ -1,6 +1,6 @@
-.. _sections:
+.. _importing:
 
-Sections
---------
-A section is a named group of fields that can be inserted into a form.
+Importing
+---------
+Importing a registry definition saved a yaml file. ( Functionality is coming soon)
  
