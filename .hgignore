@@ -1,6 +1,8 @@
 syntax: glob
 
 *.pyc
+*.swp
+
 bootstrap
 build
 dist
@@ -14,6 +16,10 @@ rdrf/logs
 rdrf/log
 rdrf/media
 rdrf/static
+^docs/_static
+^docs/_build
+^docs/_templates
+
 build-number.txt
 tests*.xml
 *komodo*
