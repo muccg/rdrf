@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --index-url=https://pypi.python.org/simp
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_puppet|ci_remote_rsync|ci_remote_lint|ci_remote_jslint|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -25,12 +25,6 @@ function settings() {
     export DJANGO_SETTINGS_MODULE="rdrf.settings"
 }
 
-# local lint using flake8
-function local_lint() {
-    source /usr/local/src/virt_rdrf/bin/activate
-    pip install flake8
-    cd ${TARGET_DIR} && flake8 rdrf --ignore=E501 --count
-}
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 function ci_ssh_agent() {
@@ -39,34 +33,16 @@ function ci_ssh_agent() {
     ssh-add ~/.ssh/ccg-syd-staging.pem
 }
 
-# puppet up build instance
-function ci_remote_puppet {
+
+# build RPMs on a remote host from ci environment
+function ci_remote_build() {
     time ccg ${AWS_BUILD_INSTANCE} puppet
     time ccg ${AWS_BUILD_INSTANCE} shutdown:50
-}
 
-# rsync code on build instance
-function ci_remote_rsync {
     EXCLUDES="('bootstrap'\, '.hg*'\, 'virt*'\, '*.log'\, '*.rpm'\, 'build'\, 'dist'\, '*/build'\, '*/dist')"
     SSH_OPTS="-o StrictHostKeyChecking\=no"
     RSYNC_OPTS="-l"
     time ccg ${AWS_BUILD_INSTANCE} rsync_project:local_dir=./,remote_dir=${TARGET_DIR}/,ssh_opts="${SSH_OPTS}",extra_opts="${RSYNC_OPTS}",exclude="${EXCLUDES}",delete=True
-}
-
-# lint using flake8 on build instance
-function ci_remote_lint() {
-    ccg ${AWS_BUILD_INSTANCE} dsudo:"pip install flake8"
-    ccg ${AWS_BUILD_INSTANCE} dsudo:'flake8 '${TARGET_DIR}/rdrf/rdrf' --ignore\=E501 --count'
-}
-
-# lint javascript on build instance
-function ci_remote_jslint() {
-    ccg ${AWS_BUILD_INSTANCE} dsudo:"cd ${TARGET_DIR} && ../develop.sh jslint"
-}
-
-# build RPMs on a remote host from ci environment
-function ci_remote_build() {
-
     time ccg ${AWS_BUILD_INSTANCE} build_rpm:centos/rdrf/rdrf.spec,src=${TARGET_DIR}
 
     mkdir -p build
@@ -137,6 +113,11 @@ function ci_staging_tests() {
     ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
 }
 
+
+# lint using flake8
+function lint() {
+    virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
+}
 
 
 # lint js, assumes closure compiler
@@ -255,7 +236,7 @@ test)
     runtest
     ;;
 lint)
-    local_lint
+    lint
     ;;
 jslint)
     jslint
@@ -271,22 +252,6 @@ start)
 install)
     settings
     installapp
-    ;;
-ci_remote_puppet)
-    ci_ssh_agent
-    ci_remote_puppet
-    ;;
-ci_remote_rsync)
-    ci_ssh_agent
-    ci_remote_rsync
-    ;;
-ci_remote_lint)
-    ci_ssh_agent
-    ci_remote_lint
-    ;;
-ci_remote_jslint)
-    ci_ssh_agent
-    ci_remote_jslint
     ;;
 ci_remote_build)
     ci_ssh_agent
