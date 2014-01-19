@@ -58,6 +58,7 @@
        }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
+            console.debug();
             //dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];

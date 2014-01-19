@@ -181,7 +181,7 @@
                                 <script>
                                     $(document).ready(function() {
                                         $("#section_table_{{s}}").allow_dynamic_formsets({
-                                            cde_codes: '{{section_element_map|get_elements:s}}',
+                                            cde_codes: '{{section_field_ids_map|lookup:s}}',
                                             add_button_id: "add_button_for_section_{{s}}",
                                             remove_button_id: "remove_button_for_section_{{s}}",
                                             table_id: "section_table_{{s}}",

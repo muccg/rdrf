@@ -80,11 +80,19 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
+        logger.debug("form context = %s" % context)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
         context.update(csrf(request))
         return render_to_response(self.template, context)
+
+    def _get_field_ids(self, form_class):
+        # the ids of each cde on the form
+        dummy = form_class()
+        ids = [ field  for field in dummy.fields.keys() ]
+        logger.debug("ids = %s" % ids)
+        return ",".join(ids)
 
     def post(self, request, registry_code, form_id, patient_id):
         logger.debug("request.FILES = %s" % request.FILES)
@@ -99,6 +107,8 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         error_count = 0
+        # this is used by formset plugin:
+        section_field_ids_map = {} # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for s in sections:
             logger.debug("handling post data for section %s" % s)
@@ -106,6 +116,7 @@ class FormView(View):
             section_model = Section.objects.get(code=s)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
+            section_field_ids_map[s] = self._get_field_ids(form_class)
 
             logger.debug("created form class for section %s: %s" % (s, form_class))
             logger.debug("POST data = %s" % request.POST)
@@ -166,6 +177,7 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_name': patient_name,
             'sections': sections,
+            'section_field_ids_map' : section_field_ids_map,
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
@@ -182,7 +194,7 @@ class FormView(View):
             messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
 
 
-
+        logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
 
@@ -213,6 +225,7 @@ class FormView(View):
         total_forms_ids = {}
         initial_forms_ids = {}
         formset_prefixes = {}
+        section_field_ids_map = {}
 
         for s in sections:
             logger.debug("creating cdes for section %s" % s)
@@ -220,6 +233,7 @@ class FormView(View):
             section_model = Section.objects.get(code=s)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
+            section_field_ids_map[s] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
                 # return a normal form
@@ -266,6 +280,7 @@ class FormView(View):
             'display_names': display_names,
             'section_element_map': section_element_map,
             "total_forms_ids" : total_forms_ids,
+            'section_field_ids_map' : section_field_ids_map,
             "initial_forms_ids" : initial_forms_ids,
             "formset_prefixes" : formset_prefixes,
         }
