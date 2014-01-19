@@ -1,10 +1,11 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
 
-{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+/rdrf/rdrf/templates/admin/base_site.html:2{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
 
 {% block branding %}
 <h1 id="site-name">{% trans 'Rare Disease Registry Framework' %}</h1>
+<h2><a href="dashboard">Dashboard</a></h2>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
