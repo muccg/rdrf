@@ -102,7 +102,7 @@ class FormView(View):
 
         for s in sections:
             logger.debug("handling post data for section %s" % s)
-            form_class = create_form_class_for_section(s)
+            form_class = create_form_class_for_section(form_obj.name,s)
             section_model = Section.objects.get(code=s)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
@@ -203,7 +203,8 @@ class FormView(View):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, section_code):
-        return create_form_class_for_section(section_code)
+        form_obj = self.get_registry_form(self.form_id)
+        return create_form_class_for_section(form_obj.name,section_code)
 
     def _build_context(self):
         sections, display_names = self._get_sections(self.registry_form)
