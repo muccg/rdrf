@@ -51,10 +51,13 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, cde, questionnaire=False):
+    def __init__(self, registry, registry_form, section, cde, questionnaire=False):
         """
         :param cde: Common Data Element model instance
         """
+        self.registry = registry
+        self.registry_form = registry_form
+        self.section = section
         self.cde = cde
         if questionnaire:
             self.context = FieldContext.QUESTIONNAIRE
@@ -283,7 +286,7 @@ class FieldFactory(object):
 
                 if self._is_calculated_field():
                     try:
-                        parser = CalculatedFieldParser(self.cde)
+                        parser = CalculatedFieldParser(self.registry, self.registry_form, self.section, self.cde)
                         script = parser.get_script()
                         from widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)

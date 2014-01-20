@@ -99,6 +99,7 @@ class FormView(View):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = self.get_registry_form(form_id)
+        registry = Registry.objects.get(code=registry_code)
         form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
@@ -112,8 +113,8 @@ class FormView(View):
 
         for s in sections:
             logger.debug("handling post data for section %s" % s)
-            form_class = create_form_class_for_section(form_obj.name,s)
             section_model = Section.objects.get(code=s)
+            form_class = create_form_class_for_section(registry,form_obj, section_model)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -214,9 +215,8 @@ class FormView(View):
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
-    def _get_form_class_for_section(self, section_code):
-        form_obj = self.get_registry_form(self.form_id)
-        return create_form_class_for_section(form_obj.name,section_code)
+    def _get_form_class_for_section(self, registry, registry_form, section):
+        return create_form_class_for_section(registry, registry_form, section)
 
     def _build_context(self):
         sections, display_names = self._get_sections(self.registry_form)
@@ -229,8 +229,8 @@ class FormView(View):
 
         for s in sections:
             logger.debug("creating cdes for section %s" % s)
-            form_class = self._get_form_class_for_section(s)
             section_model = Section.objects.get(code=s)
+            form_class = self._get_form_class_for_section(self.registry, self.registry_form,section_model)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)

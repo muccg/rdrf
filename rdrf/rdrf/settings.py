@@ -13,6 +13,8 @@ SITE_ID = 1
 APPEND_SLASH = True
 SSL_ENABLED = False
 
+FORM_SECTION_DELIMITER = "____"
+
 ROOT_URLCONF = 'rdrf.urls'
 
 SECRET_KEY = 'qj#tl@9@7((%^)$i#iyw0gcfzf&#a*pobgb8yr#1%65+*6!@g$'
