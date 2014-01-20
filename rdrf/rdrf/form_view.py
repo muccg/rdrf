@@ -234,6 +234,7 @@ class FormView(View):
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
+            logger.debug("section field ids map for section %s = %s" % (s,section_field_ids_map[s]))
 
             if not section_model.allow_multiple:
                 # return a normal form
@@ -285,6 +286,7 @@ class FormView(View):
             "formset_prefixes" : formset_prefixes,
         }
 
+        logger.debug("questionnaire context = %s" % context)
         return context
 
     def _get_patient_id(self):
@@ -314,6 +316,7 @@ class QuestionnaireView(FormView):
     def post(self, request, registry_code):
         error_count  = 0
         registry = self._get_registry(registry_code)
+        questionnaire_form = RegistryForm.objects.get(registry=registry,is_questionnaire=True)
         sections, display_names = self._get_sections(registry.questionnaire)
         data_map = {}           # section --> dynamic data for questionnaire response object if no errors
         form_section = {}       # section --> form instances if there are errors and form needs to be redisplayed
@@ -321,12 +324,16 @@ class QuestionnaireView(FormView):
         total_forms_ids = {}
         initial_forms_ids = {}
         section_element_map = {}
+        # this is used by formset plugin:
+        section_field_ids_map = {} # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section in sections:
             section_model = Section.objects.get(code=section)
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
-            form_class = create_form_class_for_section(section)
+            form_class = create_form_class_for_section(registry, questionnaire_form, section_model)
+            section_field_ids_map[section] = self._get_field_ids(form_class)
+
             if not section_model.allow_multiple:
                 form = form_class(request.POST, request.FILES)
                 form_section[section] = form
@@ -382,6 +389,7 @@ class QuestionnaireView(FormView):
                 'forms': form_section,
                 'display_names': display_names,
                 'section_element_map': section_element_map,
+                'section_field_ids_map' : section_field_ids_map,
                 "total_forms_ids" : total_forms_ids,
                 "initial_forms_ids" : initial_forms_ids,
                 "formset_prefixes" : formset_prefixes,
@@ -397,8 +405,8 @@ class QuestionnaireView(FormView):
     def _get_patient_name(self):
         return "questionnaire"
 
-    def _get_form_class_for_section(self, section_code):
-        return create_form_class_for_section(section_code, for_questionnaire=True)
+    def _get_form_class_for_section(self, registry, registry_form, section):
+        return create_form_class_for_section(registry, registry_form, section, for_questionnaire=True)
 
 
 class QuestionnaireResponseView(FormView):
