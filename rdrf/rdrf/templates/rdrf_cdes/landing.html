@@ -1,0 +1,44 @@
+{% load staticfiles %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Rare Disease Registry Framework</title>
+<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
+<link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+<script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
+<script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
+<script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
+<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+<![endif]-->
+</head>
+<body>
+  <!-- Header -->
+    <div id="header" class="header">
+        <div id="branding" class="branding">
+            <h1 id="site-name">Rare Disease Registry Framework Landing Page</h1>
+        </div>
+
+
+    </div>
+    <!-- END Header -->
+
+  <div id="content" class="colM">
+
+      <h3><a href="admin/">Admin Interface</a></h3>
+      <h3><a href="dashboard/">Curator Dashboard</a></h3>
+  </div>
+
+</body>

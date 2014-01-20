@@ -8,6 +8,7 @@ import views
 import form_view
 import registry_view
 import dashboard_view
+import landing_view
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
 urlpatterns = patterns("",
@@ -21,6 +22,7 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/questionnaire/?$',form_view.QuestionnaireView.as_view() ),
     url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$',form_view.QuestionnaireResponseView.as_view() ),
     url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',form_view.FileUploadView.as_view()),
+    url(r'',landing_view.LandingView.as_view()),
 )
 
 
