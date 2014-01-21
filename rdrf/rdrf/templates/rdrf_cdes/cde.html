@@ -30,9 +30,9 @@
 
 
 
-                <a href="/admin/password_change/">Change password</a> /
+                <a href="admin/password_change/">Change password</a> /
 
-                <a href="/admin/logout/">Log out</a>
+                <a href="admin/logout/">Log out</a>
 
         </div>
 
@@ -43,7 +43,7 @@
 <div id="content" class="colM">
 <h1>CDES for {{ name }}</h1>
 <div id="content-main">
-<form action="/cdes/{{owner}}/{{owner_id}}" method="post">{% csrf_token %}
+<form action="cdes/{{owner}}/{{owner_id}}" method="post">{% csrf_token %}
 {{ form.as_p }}
 <input type="submit" value="Submit" />
 </form>
