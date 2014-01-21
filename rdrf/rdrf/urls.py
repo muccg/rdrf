@@ -9,9 +9,23 @@ import form_view
 import registry_view
 import dashboard_view
 import landing_view
+from django.shortcuts import render_to_response
+
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
+def handler404(request):
+    return render_to_response("error/404.html")
+
+def handler500(request):
+    return render_to_response("error/500.html")
+
+def handlerApplicationError(request):
+    return render_to_response("rdrf_cdes/application_error.html",{"application_error": "Example config Error"})
+
 urlpatterns = patterns("",
+    url(r'^test404',handler404),
+    url(r'^test500',handler500),
+    url(r'^testAppError',handlerApplicationError),
     (r'^admin/', include(admin.site.urls)),
     (r'', include(common_urls, namespace="registry")),
     url(r"^patient/(\d+)$", views.patient_cdes),
@@ -23,11 +37,8 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$',form_view.QuestionnaireResponseView.as_view() ),
     url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',form_view.FileUploadView.as_view()),
     url(r'',landing_view.LandingView.as_view()),
+
+
 )
 
 
-def handler404(request):
-    return render_to_response("error/404.html")
-
-def handler500(request):
-    return render_to_response("error/500.html")
