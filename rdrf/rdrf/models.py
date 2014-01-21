@@ -1,7 +1,6 @@
 from django.db import models
 import logging
-
-
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger("registry")
 
@@ -92,7 +91,6 @@ class RegistryForm(models.Model):
         return map(string.strip,self.sections.split(","))
 
 
-
 class Section(models.Model):
     """
     A group of fields that appear on a form as a unit
@@ -109,6 +107,16 @@ class Section(models.Model):
     def get_elements(self):
         import string
         return map(string.strip,self.elements.split(","))
+
+    def clean(self):
+        for element in self.get_elements():
+            try:
+                cde = CommonDataElement.objects.get(code=element)
+            except CommonDataElement.DoesNotExist:
+                raise ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, element))
+
+        if self.code.count(" ") > 0:
+            raise  ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
 
 class Wizard(models.Model):
