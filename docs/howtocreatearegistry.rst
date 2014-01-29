@@ -50,3 +50,13 @@ Registry Use
 
 Patients can be assigned to a registry by using the :ref:`patient registry admin object <patientregistrys>`.
 
+Demo Site
+---------
+
+* A demo site is up and running at: https://ccgapps.com.au/demo-rdrf/
+* Logins Provided ( username/password):
+    * admin/admin ( for definition of new registries.)
+    * curator/curator ( for data entry.)
+* Demo registries for Myotonic Dystrophy and Familial Hypercholesterolaemia are provided.
+
+
