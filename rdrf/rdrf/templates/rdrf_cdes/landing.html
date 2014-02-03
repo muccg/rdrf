@@ -31,15 +31,34 @@
             <h1 id="site-name">Rare Disease Registry Framework Landing Page</h1>
         </div>
 
+ <div id="user-tools">
 
+                <a href="/login?next=/dashboard">Log in</a>
+        </div>
     </div>
     <!-- END Header -->
 
-  <div id="content" class="colM">
+ <div id="content" class="colM">
+        <h1>Welcome to RDRF</h1>
+        <hr>
+        {% for reg in registrys %}
+            <div class="inline-group">
+                <h2><a href="/registry/{{reg.code}}">{{reg.name|upper}}</a></h2>
+                <table>
+                    <tr>
+                        <td>
+                        {{ reg.desc }}
+                        </td>
+                        <td>
+                        {% if reg.splash_screen %}
+                        <a href="/registry/{{reg.code}}">More information</a>
+                        {% endif %}
+                        </td>
 
-      <h3><a href="admin/">Admin Interface</a></h3>
-      <h3><a href="dashboard/">Curator Dashboard</a></h3>
-  </div>
-
+                    </tr>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
 </body>
 </html>
