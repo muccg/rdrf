@@ -105,10 +105,10 @@
                                    $('#b_{{reg.id}}').on('click', function() {
                                         var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
                                         var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
-                                        var loc = window.location;
+                                        var loc = window.location.toString();
                                         var s = '{{reg.code}}/forms/' + form_id +'/'+ patient_id;
-                                        var form_url = loc.replace('dashboard', s);
-                                        window.open(form_url);
+                                        var f = loc.replace("dashboard", s);
+                                        window.open(f);
                                    });
                                 });
                             </script>
