@@ -50,7 +50,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['__unicode__', 'get_reg_list', 'working_group', 'progress_graph', 'moleculardata_entered', 'freshness']
+    list_display = ['__unicode__', 'get_reg_list', 'working_group', 'moleculardata_entered']
 
     def get_form(self, request, obj=None, **kwargs):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
