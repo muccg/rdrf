@@ -34,6 +34,10 @@
             <h1 id="site-name">Rare Disease Registry Framework</h1>
         </div>
 
+         <div class="header-content header-content-third">
+            <a href="{% url 'admin:index' %}">Admin</a>
+        </div>
+
         <div id="user-tools">
             Welcome,
             <strong>{{user}}</strong>.
@@ -52,7 +56,7 @@
         </ul>
         {% endif %}
         
-        <h1>Welcome to RDRF {{user_obj}}!</h1>
+        <h1>Welcome to the RDRF Dashboard {{user_obj}}</h1>
         <hr>
         {% for reg in user_obj.registry.all %}
             <div class="inline-group">
