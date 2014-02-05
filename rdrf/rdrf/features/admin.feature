@@ -16,3 +16,15 @@ Feature: Admin
         And I click "Admin"
         Then I should see "Rdrf"
         And I click "Log out"
+
+
+    Scenario: Admin interface has working link back to dashboard
+        Given I go to "/"
+        And I click "Log in"
+        Then I log in as "curator" with "curator" password
+        And I click "Admin"
+        And I click "Dashboard"
+        Then I should see "Welcome to the RDRF Dashboard curator"
+
+
+
