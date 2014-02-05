@@ -1,11 +1,21 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
 
-/rdrf/rdrf/templates/admin/base_site.html:2{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+{% load admin_static %}
 
-{% block branding %}
-<h1 id="site-name">{% trans 'Rare Disease Registry Framework' %}</h1>
-<h2><a href="dashboard">Dashboard</a></h2>
-{% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% block userlinks %}
+                  {% url 'django-admindocs-docroot' as docsroot %}
+                  {% if docsroot %}
+                    <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
+                   <span class="separator">|</span>
+                  {% endif %}
+                  <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
+                  <span class="separator">|</span>
+                  <a href="{% url 'admin:logout' %}?next=/">{% trans 'Log out' %}</a>
+                  </span>
+                {% endblock %}
+
+
+
+ {% block nav-global %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endblock %}

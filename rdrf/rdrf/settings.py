@@ -38,9 +38,13 @@ DATABASES = {
 
 # Django Core stuff
 TEMPLATE_LOADERS = [
+    'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 ]
 
+TEMPLATE_DIRS = (
+    os.path.join(WEBAPP_ROOT,'rdrf', 'templates'),
+)
 
 MESSAGE_TAGS = {message_constants.ERROR: 'alert alert-error',
                 message_constants.SUCCESS:  'alert alert-success',
@@ -255,7 +259,8 @@ LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
 
 # Django Suit Config
 SUIT_CONFIG = {
-    'ADMIN_NAME': 'Rare Disease Registry Framework'
+    'ADMIN_NAME': 'Rare Disease Registry Framework',
+
 }
 try:
     print "Attempting to import default settings as appsettings.rdrf"

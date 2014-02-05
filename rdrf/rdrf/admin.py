@@ -1,6 +1,10 @@
 from django.contrib import admin
 from models import *
 from registry.groups.models import User
+import logging
+
+logger = logging.getLogger("registry_log")
+
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
@@ -97,3 +101,14 @@ admin.site.register(QuestionnaireResponse)
 admin.site.register(Section, SectionAdmin)
 
 admin.site.register(Registry, RegistryAdmin)
+
+logger.debug("%s" % dir(admin.site))
+
+for attr in dir(admin.site):
+    try:
+        value = getattr(admin.site, attr)
+        if not callable(value):
+            logger.debug("site %s = %s" % (attr, value))
+    except:
+        pass
+
