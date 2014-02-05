@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load admin_urls %}
 {% load get_form %}
 {% load get_forms %}
 {% load is_formset %}
@@ -137,18 +138,19 @@
         </div>
 
         <div class="header-content header-content-third">
-            <a href="dashboard/">Dashboard</a>
+
+            <a href="{% url 'dashboard' %}">Dashboard</a>
         </div>
 
         <div class="header-content header-content-third">
-            <a href="admin/">Admin</a>
+            <a href="{% url 'admin:index' %}">Admin</a>
         </div>
 
         <div id="user-tools" class="user-tools">
 
             <strong>{{user.username}}</strong>
-                <a href="admin/password_change/">Change password</a> /
-                <a href="admin/logout/">Log out</a>
+                <a href="{% url 'admin:password_change' %}">Change password</a> /
+                <a href="{% url 'django.contrib.auth.views.logout' %}?next=/">Log out</a>
         </div>
     </div>
     <!-- END Header -->
@@ -237,6 +239,8 @@
         $("label:not(li label)").addClass("col-sm-2 control-label");
         $(":input").addClass("form-control");
         $("label[for*='-clear']").removeClass();
+
+
     })
 </script>
 </body>
