@@ -28,3 +28,4 @@ Feature: Dashboard
         Then I log in as "curator" with "curator" password
         And I click "Admin"
         Then I should see "Next of Kin Relationships" # heuristic to tell if we're on the admin page
+        And I click "Log out"

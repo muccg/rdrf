@@ -6,6 +6,7 @@ Feature: Admin
         Then I log in as "curator" with "curator" password
         And I click "Admin"
         Then I should not see "Rdrf"
+        And I click "Log out"
 
 
     Scenario: Admin DOES see Rdrf admin objects in admin interface
@@ -14,3 +15,4 @@ Feature: Admin
         Then I log in as "admin" with "admin" password
         And I click "Admin"
         Then I should see "Rdrf"
+        And I click "Log out"
