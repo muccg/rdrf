@@ -46,7 +46,7 @@
 
         <div id="user-tools">
 
-                <a href="{% url 'django.contrib.auth.views.login' %}?next=/dashboard">Log in</a>
+                <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'dashboard' %}">Log in</a>
         </div>
     </div> <!-- END Header -->
 
@@ -64,7 +64,9 @@
                             </td>
                             <td>
                             {% if reg.splash_screen %}
-                            <a href="/registry/{{reg.code}}">More information</a>
+                            <a href="{% url 'registry' reg.code %}">More information</a>
+                            {% else %}
+                             No further information is available
                             {% endif %}
                             </td>
 

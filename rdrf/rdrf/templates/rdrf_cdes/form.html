@@ -150,7 +150,7 @@
 
             <strong>{{user.username}}</strong>
                 <a href="{% url 'admin:password_change' %}">Change password</a> /
-                <a href="{% url 'django.contrib.auth.views.logout' %}?next=/">Log out</a>
+                <a href="{% url 'django.contrib.auth.views.logout' %}?next={% url 'landing' %}">Log out</a>
         </div>
     </div>
     <!-- END Header -->
