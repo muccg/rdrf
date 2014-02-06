@@ -3,11 +3,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <title>Rare Disease Registry Framework</title>
-<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
 
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/sticky.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
 <link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
+
+
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
@@ -25,40 +28,57 @@
 <![endif]-->
 </head>
 <body>
-  <!-- Header -->
+
+
+<div id="wrap">
+ <!-- Header -->
     <div id="header" class="header">
         <div id="branding" class="branding">
             <h1 id="site-name">Rare Disease Registry Framework Landing Page</h1>
         </div>
 
- <div id="user-tools">
+        <div id="user-tools">
 
                 <a href="{% url 'django.contrib.auth.views.login' %}?next=/dashboard">Log in</a>
         </div>
-    </div>
-    <!-- END Header -->
+    </div> <!-- END Header -->
 
- <div id="content" class="colM">
-        <h1>Welcome to RDRF</h1>
-        <hr>
-        {% for reg in registrys %}
-            <div class="inline-group">
-                <h2>{{reg.name|upper}}</h2>
-                <table>
-                    <tr>
-                        <td>
-                        {{ reg.desc }}
-                        </td>
-                        <td>
-                        {% if reg.splash_screen %}
-                        <a href="/registry/{{reg.code}}">More information</a>
-                        {% endif %}
-                        </td>
+        <div id="content" class="colM">
+            <h1>Welcome to RDRF</h1>
+            <hr>
+            {% for reg in registrys %}
+                <div class="inline-group">
+                    <h2>{{reg.name|upper}}</h2>
+                    <table>
+                        <tr>
+                            <td>
+                            {{ reg.desc }}
+                            </td>
+                            <td>
+                            {% if reg.splash_screen %}
+                            <a href="/registry/{{reg.code}}">More information</a>
+                            {% endif %}
+                            </td>
 
-                    </tr>
-                </table>
-            </div>
-        {% endfor %}
-    </div>
+                        </tr>
+                    </table>
+                </div>
+            {% endfor %}
+        </div> <!-- content -->
+
+</div>
+<div id="footer">
+            <footer class="footer" style="width:100%;" >
+                <p>
+                    <center>
+                    Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof Matthew Bellgard</a>; Director,<br>
+                    <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a><br>
+                    <a href="http://www.murdoch.edu.au/copy/copy.html" >Disclaimer &amp; Copyright Notice</a> &copy; 2013 2014&nbsp;
+                    <a href="http://www.murdoch.edu.au/about/murdoch.html">Murdoch University</a>&nbsp;
+                    <a href="https://groups.google.com/forum/#!forum/rdrf">RDRF Google Group</a>
+                </center>
+                </p>
+            </footer>
+</div>
 </body>
 </html>
