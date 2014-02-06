@@ -5,7 +5,7 @@
 <title>Rare Disease Registry Framework</title>
 
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/sticky.css' %}">
+
 <link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
 <link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
 
@@ -26,6 +26,13 @@
 <!--[if IE 7]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
 <![endif]-->
+
+<!--[if !IE 7]>
+	<style type="text/css">
+		#wrap {display:table;height:100%}
+	</style>
+<![endif]-->
+
 </head>
 <body>
 
@@ -44,7 +51,8 @@
     </div> <!-- END Header -->
 
         <div id="content" class="colM">
-            <h1>Welcome to RDRF</h1>
+            <h1>Welcome to RDRF!</h1>
+            <h3>The following registries are defined on this site:</h3>
             <hr>
             {% for reg in registrys %}
                 <div class="inline-group">
@@ -68,7 +76,7 @@
 
 </div>
 <div id="footer">
-            <footer class="footer" style="width:100%;" >
+            <footer class="footer">
                 <p>
                     <center>
                     Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof Matthew Bellgard</a>; Director,<br>
