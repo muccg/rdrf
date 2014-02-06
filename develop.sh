@@ -79,16 +79,13 @@ function ci_staging_fixture() {
 function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
-
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum --enablerepo\=ccg-testing clean all'
-
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum install rdrf -y'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
-    
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
 }
 

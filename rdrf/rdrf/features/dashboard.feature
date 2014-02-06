@@ -5,7 +5,6 @@ Feature: Dashboard
         And I click "Log in"
         Then I log in as "curator" with "curator" password
         Then I should see "Welcome to the RDRF Dashboard curator"
-        And I click "Log out"
 
     Scenario: Login failed as random user
         Given I go to "/"

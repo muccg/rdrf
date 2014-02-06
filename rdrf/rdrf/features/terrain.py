@@ -7,7 +7,7 @@ from lettuce import *
 from selenium import webdriver
 import lettuce_webdriver.webdriver
 
-from registry import steps
+from rdrf import steps
 
 if "DISPLAY" not in os.environ:
     from pyvirtualdisplay import Display
