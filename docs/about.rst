@@ -26,6 +26,19 @@ For the Impatient
 
 Start creating a registry :ref:`here! <howtocreatearegistry>`
 
+Links
+=====
+
+`Demo Site <https://ccgapps.com.au/demo-rdrf>`_
+
+`Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
+
+`RDRF Google Group <mailto:rdrf@googlegroups.com>`_
+
+`Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
+
+
+
 
  
 
