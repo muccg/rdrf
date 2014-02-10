@@ -24,6 +24,7 @@ TIME_ZONE = 'Australia/Perth'
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 
+VERSION = "0.4" # Used by exporter - todo mod version.py to update
 
 DATABASES = {
     'default': {
