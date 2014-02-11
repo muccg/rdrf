@@ -87,7 +87,7 @@ class CalculatedFieldParser(object):
         javascript = """
             <script>
             $(document).ready(function(){
-                 $("#id_%s").add_calculation({
+                 $("#id_%s%s").add_calculation({
                     subjects: "%s",
                     prefix: "%s",
                     calculation: function (context) { %s },
@@ -95,7 +95,7 @@ class CalculatedFieldParser(object):
                     });
                 });
 
-            </script>""" % (observer_code, subject_codes_string, prefix, calculation_body, observer_code)
+            </script>""" % (prefix, observer_code, subject_codes_string, prefix, calculation_body, observer_code)
 
         logger.debug("calculated field js: %s" % javascript)
         return javascript
