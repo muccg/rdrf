@@ -2,6 +2,9 @@ from django.contrib import admin
 from models import *
 from registry.groups.models import User
 import logging
+from django.http import HttpResponse
+from django.core.servers.basehttp import FileWrapper
+import cStringIO as StringIO
 
 logger = logging.getLogger("registry_log")
 
@@ -44,8 +47,44 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 
 
+def export_registry_action(modeladmin, request, registry_models_selected):
+    from rdrf.exporter import Exporter
+    for registry in registry_models_selected:
+        try:
+            yaml_export_filename = registry.name + '.yaml'
+            exporter = Exporter(registry)
+            logger.info("Exporting Registry %s" % registry.name)
+            try:
+                yaml_data = exporter.export_yaml()
+                logger.debug("Exported YAML Data for %s:" % registry.name)
+                logger.debug(yaml_data)
+            except Exception, ex:
+                logger.error("Failed to export registry %s: %s" % (registry.name, ex))
+                return
+
+            myfile = StringIO.StringIO()
+            myfile.write(yaml_data)
+            myfile.flush()
+            myfile.seek(0)
+            response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
+            response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
+            return response
+
+        except:
+            pass
+
+
+
+
+
+
+
+
+export_registry_action.short_description = "Export"
+
 class RegistryAdmin(admin.ModelAdmin):
-    
+    actions = [export_registry_action]
+
     def queryset(self, request):
         if not request.user.is_superuser:
             user = User.objects.get(user=request.user)
