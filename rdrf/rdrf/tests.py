@@ -1,11 +1,14 @@
 from django.test import TestCase
 from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
+from rdrf.importer import Importer, ImportState, RegistryImportError
 from rdrf.models import *
+import os
 
-
-class ExporterTestCase(TestCase):
+class RDRFTestCase(TestCase):
     fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
+
+class ExporterTestCase(RDRFTestCase):
 
     def test_export_registry_only(self):
 
@@ -37,6 +40,38 @@ class ExporterTestCase(TestCase):
             test_keys(['is_questionnaire', 'name', 'sections'], form_map)
             for section_map in form_map['sections']:
                 test_keys(['code','display_name','elements','allow_multiple','extra'], section_map)
+
+
+
+class ImporterTestCase(RDRFTestCase):
+
+    def _get_yaml_file(self):
+        return os.path.join(os.path.dirname(__file__),'fixtures','exported_fh_registry.yaml')
+
+    def test_importer(self):
+        # first delete the FH registry
+        fh_reg = Registry.objects.get(code='fh')
+        fh_reg.delete()
+        importer = Importer()
+        yaml_file = self._get_yaml_file()
+
+        importer.load_yaml(yaml_file)
+        importer.create_registry()
+        assert importer.state == ImportState.IMPORTED
+
+    def test_soundness(self):
+        # delete CDEHeight whis used in FH and soundness check fails
+
+        cde_height = CommonDataElement.objects.get(code='CDEHeight')
+        cde_height.delete()
+
+        importer = Importer()
+        importer.check_soundness = True
+
+        importer.load_yaml(self._get_yaml_file())
+
+        self.assertRaises(RegistryImportError,importer.create_registry)
+
 
 
 

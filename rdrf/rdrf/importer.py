@@ -4,23 +4,11 @@ import yaml
 from django.core.exceptions import MultipleObjectsReturned
 
 
-logger = logging.getLogger("registry")
+logger = logging.getLogger("registry_log")
 
 class RegistryImportError(Exception):
     pass
 
-def get_or_create(klass,**kwargs):
-    try:
-        instance, created = klass.objects.get_or_create(**kwargs)
-        if created:
-            verb = "created"
-        else:
-            verb = "updated"
-        logger.debug("%s %s with %s" % (verb, klass.__name__, kwargs))
-
-    except MultipleObjectsReturned:
-        logger.error("Multiple objects retrieved: %s %s" % (klass.__name__, kwargs))
-        raise RegistryImportError("Multiple objects retrieved: %s %s" % (klass.__name__, kwargs))
 
 
 class ImportState:
@@ -43,15 +31,18 @@ class Importer(object):
         self.check_validity = True
         self.check_soundness = True
 
-    def load_yaml(self, yaml_data):
+    def load_yaml(self, yaml_data_file):
         try:
-            self.yaml_data = yaml_data
+            self.yaml_data_file = yaml_data_file
+            yaml_data = open(yaml_data_file)
             self.data = yaml.load(yaml_data)
+            yaml_data.close()
+            logger.debug("importer.data = %s" % self.data)
             self.state = ImportState.LOADED
         except Exception, ex:
             self.state = ImportState.MALFORMED
-            logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data, ex))
-            self.errors.append(ex)
+            logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex))
+            raise RegistryImportError(str(ex))
 
     def create_registry(self):
         if self.state == ImportState.MALFORMED:
@@ -60,20 +51,24 @@ class Importer(object):
 
         if self.check_validity:
             self._validate()
+            if self.state == ImportState.INVALID:
+                raise RegistryImportError("Import file %s is invalid: %s" % (self.yaml_data_file, self.errors))
         else:
             self.state = ImportState.VALID
 
-        if not self.state == ImportState.VALID:
-            logger.error("yaml file invalid: %s" % self.errors)
-            return
         # start transaction ..
 
         if self.delete_existing_registry:
             self._delete_existing_registry()
 
         self._create_registry_objects()
+
         if self.check_soundness:
             self._check_soundness()
+            if self.state == ImportState.UNSOUND:
+                # rollback ...
+                raise RegistryImportError("Import file %s is unsound: %s" % (self.yaml_data_file, self.errors))
+
         else:
             self.state = ImportState.SOUND
 
@@ -103,10 +98,9 @@ class Importer(object):
             self.state = ImportState.INVALID
             self.errors.extend(ve)
         else:
-            self.state = ImportState.VALID #TODO validate the syntactic structure of the yaml
+            self.state = ImportState.VALID
 
     def _check_soundness(self):
-        # TODO does the created registry have dangling references to CDEs that don't exist
         def exists(cde_code):
             try:
                 cde = CommonDataElement.objects.get(code=cde_code)
@@ -132,31 +126,34 @@ class Importer(object):
 
 
     def _create_registry_objects(self):
-        r = get_or_create(Registry,code=self.data["code"])
+        r, created = Registry.objects.get_or_create(code=self.data["code"])
+
+        if created:
+            logger.debug("creating registry with code %s from import of %s" % (self.data["code"], self.yaml_data_file))
 
         r.code = self.data["code"]
-        r.desc = self.data["desc"]
         r.name = self.data["name"]
+
         r.splash_screen = self.data["splash_screen"]
 
         r.save()
 
         for frm_map in self.data["forms"]:
-            f = get_or_create(RegistryForm,registry=r, name=frm_map["name"])
+            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
             f.name = frm_map["name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
             f.registry = r
             f.sections = ",".join([ section_map["code"] for section_map in frm_map["sections"]])
             f.save()
 
-        for section_map in frm_map["sections"]:
-            s = get_or_create(Section,code=section_map["code"])
-            s.code = section_map["code"]
-            s.display_name = section_map["display_name"]
-            s.elements = ",".join(section_map["elements"])
-            s.allow_multiple = section_map["allow_multiple"]
-            s.extra = section_map["extra"]
-            s.save()
+            for section_map in frm_map["sections"]:
+                s, created = Section.objects.get_or_create(code=section_map["code"])
+                s.code = section_map["code"]
+                s.display_name = section_map["display_name"]
+                s.elements = ",".join(section_map["elements"])
+                s.allow_multiple = section_map["allow_multiple"]
+                s.extra = section_map["extra"]
+                s.save()
 
 
 
