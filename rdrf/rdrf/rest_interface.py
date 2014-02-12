@@ -9,6 +9,7 @@ import yaml
 from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
 from django.http import Http404
+from functools import wraps
 
 
 
@@ -102,8 +103,7 @@ class REST(object):
             try:
                 self.cde = CommonDataElement.objects.get(code=self.cde_code)
                 if not appears_in(self.cde, self.registry, self.registry_form, self.section ):
-                    raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % self.cde_code,
-                                             self.registry_code, self.form_name, self.section_code)
+                    raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (self.cde_code, self.registry_code, self.form_name, self.section_code))
             except CommonDataElement.DoesNotExist:
                 raise RESTInterfaceError("Data Elemement with code %s doesn't exist" % self.cde_code)
 
@@ -191,43 +191,105 @@ class REST(object):
         elif level == 'section':
             section_cde_map = {}
             for delimited_key in data:
-                assert False
-                form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                logger.debug("checking key %s" % delimited_key)
+                try:
+                    form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                except ValueError,ex:
+                    # this means there's bad data in there - saved with diff delimiter
+                    continue
+
                 if section_code == self.section_code:
-                    section_model = Section.objects.get(name=self.section_code)
+                    section_model = Section.objects.get(code=self.section_code)
                     defined_cde_codes  = section_model.get_elements()
                     if cde_code in defined_cde_codes:
                         section_cde_map[cde_code] = data[delimited_key]
                     else:
                         raise CDECodeNotDefined(cde_code)
             return section_cde_map
+
         elif level == 'form':
             form_map = {}
-            registry_form = RegistryForm.objects().get(code=self.registry_code)
+            defined_section_codes  = self.registry_form.get_sections()
+            for defined_section_code in defined_section_codes:
+                defined_section = Section.objects.get(code=defined_section_code)
+                section_map = {}
+                for delimited_key in data:
+                    try:
+                        form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                    except ValueError,ex:
+                    # this means there's bad data in there - saved with diff delimiter
+                        continue
+                    if self.registry_form.name == form_name and  defined_section_code == section_code:
+                        section_map[cde_code] = data[delimited_key]
+
+                form_map[defined_section_code] = section_map
+            return form_map
+
+        elif level == 'registry':
+            registry_map = {}
+            for delimited_key in data:
+                try:
+                    form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                except ValueError, verr:
+                    continue
+
+                if not form_name in registry_map:
+                    registry_map[form_name] = {}
+                if not section_code in registry_map[form_name]:
+                    registry_map[form_name][section_code] = {}
+
+                if not cde_code in registry_map[form_name][section_code]:
+                    registry_map[form_name][section_code][cde_code] = data[delimited_key]
+
+            return registry_map
+
+
+
+
+
+
+
+
+
+
 
     def _response_data(self, data):
         formatted_data = ResourceFormat.get(self.format, data)
         return HttpResponse(formatted_data, content_type=ResourceFormat.mime_type(self.format))
 
 
+def rest_call(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except RESTInterfaceError, rierr:
+            return HttpResponse(str(rierr), status=400)
+    return wrapper
+
 class RDRFEndpointView(View):
 
+    @rest_call
     def get(self, request, *args, **kwargs):
         resource_request = REST("GET",request,args,kwargs)
         return resource_request.response
 
+    @rest_call
     def post(self, request, *args, **kwargs):
         resource_request = REST("POST",request,args,kwargs)
         return resource_request.response
 
+    @rest_call
     def put(self, request, *args, **kwargs):
         resource_request = REST("PUT",request,args,kwargs)
         return resource_request.response
 
+    @rest_call
     def delete(self, request, *args, **kwargs):
         resource_request = REST("DELETE",request,args,kwargs)
         return resource_request.response
 
+    @rest_call
     def patch(self, request, *args, **kwargs):
         resource_request = REST("PATCH",request,args,kwargs)
         return resource_request.response
