@@ -145,8 +145,13 @@ class QuestionnaireResponse(models.Model):
     patient_id = models.IntegerField(blank=True,null=True,help_text="The id of the patient created from this response, if any")
 
 
-
-
+def appears_in(cde,registry,registry_form,section):
+    if section.code not in registry_form.get_sections():
+        return False
+    elif registry_form.name not in [ f.name for f in RegistryForm.objects.filter(registry=registry)]:
+        return False
+    else:
+        return cde.code in section.get_elements()
 
 
 
