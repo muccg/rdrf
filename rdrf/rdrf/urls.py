@@ -9,6 +9,7 @@ import form_view
 import registry_view
 import dashboard_view
 import landing_view
+import rest_interface
 from django.shortcuts import render_to_response
 
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
@@ -39,4 +40,11 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$',form_view.QuestionnaireResponseView.as_view(),
         name='questionnaire_response'),
     url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',form_view.FileUploadView.as_view(), name='file_upload'),
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_name>.+?)/(?P<cde_code>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_cde_interface'),
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_section_interface'),
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
+
+
+
 )
