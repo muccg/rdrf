@@ -2,6 +2,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from pymongo import MongoClient
 import gridfs
 import logging
+from rdrf.utils import get_code
+
 logger = logging.getLogger("registry_log")
 
 class FileStore(object):
@@ -113,15 +115,19 @@ class DynamicDataWrapper(object):
         try:
             cde = CommonDataElement.objects.get(code=code)
             if cde.datatype == 'file':
+                logger.debug("CDE %s is a file!" % cde.code)
                 return True
-        except:
+            else:
+                logger.debug("CDE %s is not a file" % cde.code)
+        except Exception, ex:
             # section forms have codes which are not CDEs
+            logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
 
     def _update_any_files(self, record, registry, data):
         fs = self._get_filestore(registry)
         for key, value in data.items():
-            if self._is_uploaded_file(key):
+            if self._is_uploaded_file(get_code(key)):
                 DELETE_EXISTING = True
                 logger.debug("uploaded file: %s" % key)
                 if value is False:
@@ -137,7 +143,11 @@ class DynamicDataWrapper(object):
                     logger.debug("record = %s\ndata = %s" % (record, data))
                     DELETE_EXISTING = False
 
-                file_wrapper = record[key]
+                if key in record:
+                    file_wrapper = record[key]
+                else:
+                    file_wrapper = None
+
                 logger.debug("File wrapper = %s" % file_wrapper)
 
                 if not file_wrapper:
@@ -191,25 +201,24 @@ class DynamicDataWrapper(object):
         else:
             logger.debug("adding new mongo record")
             record = self._get_record()
-            for code, value in data.items():
-                if self._is_uploaded_file(code):
-                    assert False
+            for delimited_key, value in data.items():
+                if self._is_uploaded_file(get_code(delimited_key)):
                     if isinstance(value, bool):
                         if not value:
                             # this is how django signals the file should be disassociated
                             # in our case we delete the file in mongo
                             from bson.objectid import ObjectId
-                            file_id = record[code]["gridfs_file_id"]
+                            file_id = record[delimited_key]["gridfs_file_id"]
                             file_store.delete(ObjectId(file_id))
-                            del record[code]
+                            del record[delimited_key]
                     elif value is None:
                         # The file hasn't changed
                         pass
                     else:
-                        gridfs_file_id = self._store_file(registry, record, code, value, data)
-                        record[code] = {"gridfs_file_id": gridfs_file_id, "file_name": value.name }
+                        gridfs_file_id = self._store_file(registry, record, delimited_key, value, data)
+                        record[delimited_key] = {"gridfs_file_id": gridfs_file_id, "file_name": value.name }
                 else:
-                    record[code] = value
+                    record[delimited_key] = value
 
             collection = self._get_collection(registry, collection_name)
             collection.insert(record)

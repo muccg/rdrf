@@ -5,6 +5,9 @@ from django.core.exceptions import ValidationError
 logger = logging.getLogger("registry")
 
 class Registry(models.Model):
+    class Meta:
+        verbose_name_plural = "registries"
+
     name = models.CharField(max_length=80)
     code = models.CharField(max_length=10)
     desc = models.TextField()

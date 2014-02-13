@@ -177,7 +177,7 @@ class REST(object):
 
 
     def do_POST(self):
-        # PUT didn't work
+        # PUT didn't work so uating with POST
         #existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
 
         if self.cde_code:
@@ -206,14 +206,22 @@ class REST(object):
 
     def _get_value(self):
         if self.cde_code:
-            request_format = self._get_request_format()
+            is_file = self.request.META["CONTENT_TYPE"].startswith("multipart")
+            if is_file:
+                logger.debug("file received")
+                return self.request.FILES["value"]
+
+            else:
+                source = self.request.body
+                request_format = self._get_request_format()
+
             if request_format == ResourceFormat.JSON:
                 import json
-                data = json.loads(self.request.body)
+                data = json.loads(source)
 
             elif request_format == ResourceFormat.YAML:
                 import yaml
-                data = yaml.loads(self.request.body)
+                data = yaml.loads(source)
             else:
                 raise RESTInterfaceError("Unknown request format")
 
@@ -332,7 +340,6 @@ class RDRFEndpointView(View):
 
     @rest_call
     def get(self, request, *args, **kwargs):
-        assert False
         resource_request = REST("GET",request,args,kwargs)
         return resource_request.response
 
