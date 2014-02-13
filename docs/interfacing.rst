@@ -1,3 +1,5 @@
+.. _interfacing:
+
 REST Interface
 ==============
 
