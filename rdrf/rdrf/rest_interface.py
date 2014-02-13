@@ -10,7 +10,8 @@ from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
 from django.http import Http404
 from functools import wraps
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 logger = logging.getLogger("registry_log")
@@ -174,13 +175,75 @@ class REST(object):
 
         return self._response_data(retrieved_data)
 
+
+    def do_POST(self):
+        # PUT didn't work
+        #existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
+
+        if self.cde_code:
+            # update the value of cde code and save back
+            key = self._create_delimited_key()
+            new_value = self._get_value()
+            logger.debug("Updating %s to %s" % (key, new_value))
+            updated_data = { key : new_value }
+            self.dyn_data_wrapper.save_dynamic_data(self.registry.code, "cdes", updated_data)
+            return HttpResponse('OK', status=200)
+
+
+        elif self.section_code:
+            # update entire section
+            #todo - REST interface update section
+            pass
+
+        elif self.form_name:
+            #update entire form
+            #todo - REST interface update form
+            pass
+        elif self.registry_code:
+            #update all form data
+            #todo - REST interface update forms
+            pass
+
+    def _get_value(self):
+        if self.cde_code:
+            request_format = self._get_request_format()
+            if request_format == ResourceFormat.JSON:
+                import json
+                data = json.loads(self.request.body)
+
+            elif request_format == ResourceFormat.YAML:
+                import yaml
+                data = yaml.loads(self.request.body)
+            else:
+                raise RESTInterfaceError("Unknown request format")
+
+
+            logger.debug("decoded request data = %s" % data)
+            return data
+        else:
+            raise NotImplementedError()
+
+    def _get_request_format(self):
+        # application/json etc
+        accept_header = self.request.META["HTTP_ACCEPT"].lower()
+        if "json" in accept_header:
+            return ResourceFormat.JSON
+        elif "yaml" in accept_header:
+            return ResourceFormat.YAML
+        else:
+            raise RESTInterfaceError("Unknown HTTP_ACCEPT Header: %s" % self.request.META["HTTP_ACCEPT"] )
+
+    def _create_delimited_key(self):
+        from django.conf import settings
+        return settings.FORM_SECTION_DELIMITER.join([self.form_name, self.section_code, self.cde_code])
+
+
     def _retrieve(self, level, data):
         from operator import add
         logger.debug("dynamic data = %s" % data)
-        from django.conf import settings
 
         if level == 'cde':
-            delimited_key = settings.FORM_SECTION_DELIMITER.join([self.form_name, self.section_code, self.cde_code])
+            delimited_key = self._create_delimited_key()
             logger.debug("delimited key = %s" % delimited_key)
             if delimited_key in data:
                 retrieved_data = data[delimited_key]
@@ -243,15 +306,8 @@ class REST(object):
 
             return registry_map
 
-
-
-
-
-
-
-
-
-
+        else:
+            raise RESTInterfaceError("Unknown level: %s" % level)
 
     def _response_data(self, data):
         formatted_data = ResourceFormat.get(self.format, data)
@@ -267,10 +323,16 @@ def rest_call(func):
             return HttpResponse(str(rierr), status=400)
     return wrapper
 
+
 class RDRFEndpointView(View):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(RDRFEndpointView, self).dispatch(*args, **kwargs)
 
     @rest_call
     def get(self, request, *args, **kwargs):
+        assert False
         resource_request = REST("GET",request,args,kwargs)
         return resource_request.response
 
@@ -289,7 +351,8 @@ class RDRFEndpointView(View):
         resource_request = REST("DELETE",request,args,kwargs)
         return resource_request.response
 
-    @rest_call
-    def patch(self, request, *args, **kwargs):
-        resource_request = REST("PATCH",request,args,kwargs)
-        return resource_request.response
+    # @rest_call
+    # @csrf_exempt
+    # def patch(self, request, *args, **kwargs):
+    #     resource_request = REST("PATCH",request,args,kwargs)
+    #     return resource_request.response

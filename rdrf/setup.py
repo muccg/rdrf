@@ -49,6 +49,7 @@ setup(name='django-rdrf',
     install_requires=[
         'Django==1.5.4',
 	    'pymongo',
+        'pyyaml',
 	    'South==0.8.2',
         'django-extensions>=0.7.1',
         'django-picklefield==0.1.9',
