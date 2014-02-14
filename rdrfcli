@@ -1,0 +1,44 @@
+#!/bin/bash
+function usage {
+ echo "Usage: rdrfcli sendfile http://somerdrfsite.com <reg code> <form_name> <section code> <cde code> <patient id> <filenametosend>"
+ echo "OR:    rdrfcli senddata http://somerdrfsite.com <reg code> <form name> <section code> <cde code> <patient id> <data>"
+}
+
+
+if [ $# -ne 8 ] ; then
+    usage
+    exit 0
+fi
+
+cmd="$1"
+rdrf_url="$2"
+reg_code="$3"
+form_name="$4"
+section_code="$5"
+cde_code="$6"
+
+patient_id="$7"
+
+data="$8"
+
+URL="$rdrf_url/$reg_code/patients/$patient_id/$form_name/$section_code/$cde_code"
+case "$cmd" in
+
+sendfile)
+    echo "Sending file $data for Patient $patient_id in Registry $reg_code Form $form_name Section $section_code DE $cde_code .." 
+    echo "url = $URL"
+    curl -i   -F "value=@$data"   "$rdrf_url/$reg_code/patients/$patient_id/$form_name/$section_code/$cde_code"
+    ;;
+
+senddata)
+    echo "Sending value $cde_code=$data for Patient $patient_id in Registry $reg_code Form $form_name Section $section_code .." 
+    echo "url = $URL"
+    curl -i -H "Accept: application/json"  -X POST -d $data  "$rdrf_url/$reg_code/patients/$patient_id/$form_name/$section_code/$cde_code"
+    ;;
+*)
+    usage
+esac
+
+exit 0
+
+
