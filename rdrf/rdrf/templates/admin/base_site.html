@@ -22,6 +22,9 @@
 
 
 
- {% block nav-global %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endblock %}
+ {% block nav-global %}<a href="{% url 'dashboard' %}">Dashboard</a>
+         <span class="separator">|</span>
+<a href="{% url 'import_registry' %}">Import Registry Definition</a>
+{% endblock %}
 
 

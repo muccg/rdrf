@@ -9,6 +9,7 @@ import form_view
 import registry_view
 import dashboard_view
 import landing_view
+import import_registry_view
 import rest_interface
 from django.shortcuts import render_to_response
 
@@ -35,6 +36,7 @@ urlpatterns = patterns("",
     url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
     url(r'^/?$',landing_view.LandingView.as_view(), name='landing'),
     url(r'^dashboard/?$', dashboard_view.DashboardView.as_view(), name='dashboard'),
+    url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry' ),
     url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}, name='login'),
     url(r'^(?P<registry_code>\w+)/questionnaire/?$',form_view.QuestionnaireView.as_view(), name='questionnaire'),
     url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$',form_view.QuestionnaireResponseView.as_view(),

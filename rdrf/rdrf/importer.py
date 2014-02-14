@@ -9,7 +9,14 @@ logger = logging.getLogger("registry_log")
 class RegistryImportError(Exception):
     pass
 
+class BadDefinitionFile(RegistryImportError):
+    pass
 
+class DefinitionFileUnsound(RegistryImportError):
+    pass
+
+class DefinitionFileInvalid(RegistryImportError):
+    pass
 
 class ImportState:
     INITIAL = "INITIAL"
@@ -31,6 +38,11 @@ class Importer(object):
         self.check_validity = True
         self.check_soundness = True
 
+    def load_yaml_from_string(self, yaml_string):
+        self.yaml_data_file = "yaml string"
+        self.data = yaml.load(yaml_string)
+        self.state = ImportState.LOADED
+
     def load_yaml(self, yaml_data_file):
         try:
             self.yaml_data_file = yaml_data_file
@@ -42,17 +54,17 @@ class Importer(object):
         except Exception, ex:
             self.state = ImportState.MALFORMED
             logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex))
-            raise RegistryImportError(str(ex))
+            raise BadDefinitionFile("YAML file is malformed: %s" % ex)
 
     def create_registry(self):
         if self.state == ImportState.MALFORMED:
-            logger.error("Cannot create registry as yaml is not well formed")
+            logger.error("Cannot create registry as yaml is not well formed: %s" % self.errors)
             return
 
         if self.check_validity:
             self._validate()
             if self.state == ImportState.INVALID:
-                raise RegistryImportError("Import file %s is invalid: %s" % (self.yaml_data_file, self.errors))
+                raise DefinitionFileInvalid("Definition File does not have correct structure: %s" % self.errors)
         else:
             self.state = ImportState.VALID
 
@@ -67,7 +79,7 @@ class Importer(object):
             self._check_soundness()
             if self.state == ImportState.UNSOUND:
                 # rollback ...
-                raise RegistryImportError("Import file %s is unsound: %s" % (self.yaml_data_file, self.errors))
+                raise DefinitionFileUnsound("Definition File refers to CDEs that don't exist: %s" % self.errors)
 
         else:
             self.state = ImportState.SOUND
