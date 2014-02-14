@@ -106,7 +106,7 @@ function ci_staging_tests() {
     # Run tests, collect results
     TEST_LIST="rdrf.rdrf.tests"
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb \:0"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost\:8082\,8090-8100\,9000\-9200\,7041 ${TEST_LIST} || true"
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost ${TEST_LIST} || true"
     ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
 }
 
