@@ -12,6 +12,7 @@ from django.http import Http404
 from functools import wraps
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.conf import settings
 
 
 logger = logging.getLogger("registry_log")
