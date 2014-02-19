@@ -79,7 +79,9 @@ class DynamicDataWrapper(object):
                         def __init__(self, registry, cde_code, gridfs_dict):
                             self.cde_code = cde_code
                             self.gridfs_dict = gridfs_dict
-                            self.url = "/%s/uploads/%s" % (registry, str(self.gridfs_dict['gridfs_file_id']))
+                            from django.core.urlresolvers import reverse
+                            self.url = reverse("file_upload", args=[registry, str(self.gridfs_dict['gridfs_file_id'])])
+                            #self.url = "/%s/uploads/%s" % (registry, str(self.gridfs_dict['gridfs_file_id']))
 
                         def __unicode__(self):
                             """

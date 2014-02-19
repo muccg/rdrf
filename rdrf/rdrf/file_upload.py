@@ -17,7 +17,9 @@ class FileUpload(object):
 
     @property
     def url(self):
-        return "/%s/uploads/%s" % (self.registry, str(self.gridfs_dict['gridfs_file_id']))
+        from django.core.urlresolvers import reverse
+        return reverse("file_upload", args=[self.registry, str(self.gridfs_dict['gridfs_file_id'])])
+        #return "/%s/uploads/%s" % (self.registry, str(self.gridfs_dict['gridfs_file_id']))
 
     def __unicode__(self):
         """
