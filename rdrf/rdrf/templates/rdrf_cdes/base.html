@@ -1,0 +1,93 @@
+{% load staticfiles %}
+{% load admin_urls %}
+{% load get_form %}
+{% load get_forms %}
+{% load get_elements %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+      <title>Rare Disease Registry Framework</title>
+      
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+      <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+      <link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
+      <link rel="stylesheet" type="text/css" href="{% static 'css/suit_ccg.css' %}" media="all">
+      
+      <style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
+      
+      <!--[if IE 6]>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+      <![endif]-->
+      
+      <!--[if IE 7]>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+      <![endif]-->
+      
+      <!--[if !IE 7]>
+      <style type="text/css">#wrap {display:table;height:100%}</style>
+      <![endif]-->
+      
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+      <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+      <script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
+      <script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
+      <script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
+      
+      {% block extrastyle %}
+      {% endblock %}
+  
+  </head>
+<body>
+
+
+<div id="wrap">
+
+    <div id="header" class="header">
+        {% block header%}
+        {% endblock%}
+    </div>
+
+    <div class="container">
+	{% if messages %}
+	    <ul class="messagelist">
+		{% for message in messages %}
+		    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+		{% endfor %}
+	    </ul>
+	{% endif %}
+
+        {% block content%}
+        {% endblock%}
+    </div>
+
+</div>
+
+<div id="footer" class="footer">
+  <div class="content">
+
+    <div class="tools">
+	<a href="mailto:rdrf@googlegroups.com" target="_blank" class="icon"><i class="icon-question-sign"></i>Support</a>
+	<a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
+    </div>
+
+    <div class="copyright">
+	<a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">Disclaimer &amp; Copyright Notice</a> &copy; 2013 2014 
+        <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a><br>
+        <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Documentation</a> | 
+        <a href="https://bitbucket.org/ccgmurdoch/rdrf" target="_blank">Source Code on BitBucket</a> |
+        <a href="mailto:rdrf@googlegroups.com" target="_blank">Email RDRF</a>
+    </div>
+
+    <div class="branding">
+	Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a><br>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

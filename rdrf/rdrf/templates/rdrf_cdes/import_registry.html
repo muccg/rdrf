@@ -1,34 +1,11 @@
+{% extends "rdrf_cdes/base.html" %}
+
 {% load staticfiles %}
 {% load admin_urls %}
 {% load get_form %}
 {% load get_display_name %}
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Rare Disease Registry Framework - Import Registry</title>
-<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
 
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
-<link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-<script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
-<script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
-<script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
-<script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
-<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
-<!--[if IE 6]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
-<![endif]-->
-<!--[if IE 7]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
-<![endif]-->
-</head>
-<body>
-  <!-- Header -->
-    <div id="header" class="header">
+{% block header %}
         <div id="branding" class="branding">
             <h1 id="site-name">Rare Disease Registry Framework</h1>
         </div>
@@ -43,45 +20,28 @@
                 <a href="{% url 'admin:password_change' %}">Change password</a> /
                 <a href="{% url 'django.contrib.auth.views.logout' %}?next={% url 'landing' %}">Log out</a>
         </div>
-    </div>
-    <!-- END Header -->
+{% endblock %}
 
-    <div id="container" >
-        {% if messages %}
-        <ul class="messagelist">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
+{% block content %}
+    <br>
+    <div class="panel panel-default">
+    <div class="panel-heading">Import Registry File</div>
+    <div class="panel-body">
+        {% if state == "ready" %}
+           <form enctype="multipart/form-data" method="post">{% csrf_token %}
+               <p><label for="id_registry_yaml">Registry YAML:</label> <textarea class="form-control" cols="50" id="id_registry_yaml" name="registry_yaml" rows="20">
+               </textarea></p>
+               <input type="submit" class="btn btn-primary pull-right" value="Submit" />
+           </form>
         {% endif %}
-
-        <h1>Import Registry File</h1>
-
-        <div class="panel panel-default">
-  <div class="panel-body">
-     {% if state == "ready" %}
-    <form enctype="multipart/form-data" method="post">{% csrf_token %}
-        <p><label for="id_registry_yaml">Registry YAML:</label> <textarea cols="300" id="id_registry_yaml" name="registry_yaml" rows="20">
-        </textarea></p>
-    <input type="submit" value="Submit" />
-    </form>
-      {% endif %}
-
-    {% if state == "fail" %}
-      <h2>Import Failed</h2>
-    {% endif %}
-    {% if state == "success" %}
-      <h2>Import Succeeded</h2>
-     {% endif %}
-
-  </div>
-
-</div>
-
-
-
-
-
+    
+        {% if state == "fail" %}
+          <h2>Import Failed</h2>
+        {% endif %}
+        {% if state == "success" %}
+          <h2>Import Succeeded</h2>
+        {% endif %}
     </div>
-</body>
-</html>
+    </div>
+        
+{% endblock %}
