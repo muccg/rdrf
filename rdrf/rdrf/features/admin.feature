@@ -24,7 +24,7 @@ Feature: Admin
         Then I log in as "curator" with "curator" password
         And I click "Admin"
         And I click "Dashboard"
-        Then I should see "Welcome to the RDRF Dashboard curator"
+        Then I should see "RDRF Dashboard"
 
 
 

@@ -4,7 +4,7 @@ Feature: Dashboard
         Given I go to "/"
         And I click "Log in"
         Then I log in as "curator" with "curator" password
-        Then I should see "Welcome to the RDRF Dashboard curator"
+        Then I should see "RDRF Dashboard"
 
     Scenario: Login failed as random user
         Given I go to "/"
@@ -18,7 +18,7 @@ Feature: Dashboard
         Then I log in as "curator" with "curator" password
         Then I should see "Welcome to the RDRF Dashboard curator"
         And I click "Log out"
-        Then I should see "Rare Disease Registry Framework Landing Page"
+        Then I should see "Rare Disease Registry Framework"
 
 
     Scenario: Curator can go to admin from dashboard
