@@ -4,12 +4,25 @@
 <head>
 <title>Rare Disease Registry Framework</title>
 
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-
-<link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
 <link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
+<link rel="stylesheet" type="text/css" href="{% static 'css/suit_ccg.css' %}" media="all">
 
+<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
 
+<!--[if IE 6]>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
+<![endif]-->
+
+<!--[if IE 7]>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
+<![endif]-->
+
+<!--[if !IE 7]>
+<style type="text/css">#wrap {display:table;height:100%}</style>
+<![endif]-->
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
@@ -19,78 +32,74 @@
 <script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
 <script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
 <script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
-<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
-<!--[if IE 6]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
-<![endif]-->
-<!--[if IE 7]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
-<![endif]-->
-
-<!--[if !IE 7]>
-	<style type="text/css">
-		#wrap {display:table;height:100%}
-	</style>
-<![endif]-->
 
 </head>
 <body>
 
 
 <div id="wrap">
- <!-- Header -->
+
     <div id="header" class="header">
         <div id="branding" class="branding">
-            <h1 id="site-name">Rare Disease Registry Framework Landing Page</h1>
+            <h1 id="site-name">Rare Disease Registry Framework</h1>
         </div>
 
         <div id="user-tools">
-
-                <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'dashboard' %}">Log in</a>
+            <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'dashboard' %}">Log in</a>
         </div>
-    </div> <!-- END Header -->
+    </div>
 
-        <div id="content" class="colM">
-            <h1>Welcome to RDRF!</h1>
-            <h3>The following registries are defined on this site:</h3>
-            <hr>
-            {% for reg in registrys %}
-                <div class="inline-group">
-                    <h2>{{reg.name|upper}}</h2>
-                    <table>
-                        <tr>
-                            <td>
-                            {{ reg.desc }}
-                            </td>
-                            <td>
-                            {% if reg.splash_screen %}
-                            <a href="{% url 'registry' reg.code %}">More information</a>
-                            {% else %}
-                             No further information is available
-                            {% endif %}
-                            </td>
 
-                        </tr>
-                    </table>
-                </div>
-            {% endfor %}
-        </div> <!-- content -->
+    <div class="container">
+	<div class="page-header">
+	  <h1><i>Welcome to Rare Disease Registry Framework!</i></h1>
+	</div>
+	<p class="text-justify">
+	  RDRF ( Rare Disease Registry Framework ) is a tool for the creation of web-based data entry forms and questionnaires based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system at runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics
+	</p>
+	<div class="panel panel-info">
+	    <div class="panel-heading"><h3>The following registries are defined on this site</h3></div>
+	    <table class="table table-hover">
+	    {% for reg in registrys %}
+	        <tr>
+		    <td>{{reg.name|upper}}</td>
+		    <td>{{ reg.desc }}</td>
+		    <td>
+			{% if reg.splash_screen %}
+			    <a href="{% url 'registry' reg.code %}" target="_blank"><span class="glyphicon glyphicon-hand-right"></span> Go to the registry</a>
+			{% else %}
+			    No further information is available
+			{% endif %}
+		    </td>
+		</tr>
+	    {% endfor %}
+	    </table>
+	</div>
+    </div> <!-- content -->
 
 </div>
-<div id="footer">
-            <footer class="footer">
-                <p>
-                    <center>
-                    Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof Matthew Bellgard</a>; Director,<br>
-                    <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a><br>
-                    <a href="http://www.murdoch.edu.au/copy/copy.html" >Disclaimer &amp; Copyright Notice</a> &copy; 2013 2014&nbsp;
-                    <a href="http://www.murdoch.edu.au">Murdoch University</a>&nbsp;
-                    <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>&nbsp;
-                    <a href="https://bitbucket.org/ccgmurdoch/rdrf">Source Code on BitBucket</a>&nbsp;
-                    <a href="mailto:rdrf@googlegroups.com">Email RDRF Google Group</a>
-                </center>
-                </p>
-            </footer>
+
+<div id="footer" class="footer">
+  <div class="content">
+
+    <div class="tools">
+	<a href="mailto:rdrf@googlegroups.com" target="_blank" class="icon"><i class="icon-question-sign"></i>Support</a>
+	<a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
+    </div>
+
+    <div class="copyright">
+	<a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">Disclaimer &amp; Copyright Notice</a> &copy; 2013 2014 
+        <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a><br>
+        <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Documentation</a> | 
+        <a href="https://bitbucket.org/ccgmurdoch/rdrf" target="_blank">Source Code on BitBucket</a> |
+        <a href="mailto:rdrf@googlegroups.com" target="_blank">Email RDRF Google Group</a>
+    </div>
+
+    <div class="branding">
+	Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a><br>
+    </div>
+  </div>
 </div>
+
 </body>
 </html>
