@@ -16,7 +16,7 @@ Feature: Dashboard
         Given I go to "/"
         And I click "Log in"
         Then I log in as "curator" with "curator" password
-        Then I should see "Welcome to the RDRF Dashboard curator"
+        Then I should see "RDRF Dashboard"
         And I click "Log out"
         Then I should see "Rare Disease Registry Framework"
 
