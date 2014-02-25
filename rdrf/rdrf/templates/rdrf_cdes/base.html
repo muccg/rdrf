@@ -48,6 +48,13 @@
 
     <div id="header" class="header">
         {% block header%}
+	  <div id="branding" class="branding">
+	      <h1 id="site-name">Rare Disease Registry Framework</h1>
+	  </div>
+	  
+	  <div id="user-tools">
+	      <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'dashboard' %}">Log in</a>
+	  </div>
         {% endblock%}
     </div>
 
