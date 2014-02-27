@@ -1,90 +1,83 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "admin/base_site.html" %}
+{% load static %}
 
-{% block header %}
-    <div id="branding" class="branding">
-    <h1 id="site-name">Rare Disease Registry Framework</h1>
-    </div>
-    
-    <div class="header-content">
-    <a href="{% url 'admin:index' %}">Admin</a>
-    </div>
-    
-    <div id="user-tools">
-    Welcome,
-    <strong>{{user}}</strong>.
-        <a href="{% url 'admin:password_change' %}">Change password</a> /
-        <a href="{% url 'django.contrib.auth.views.logout' %}?next={% url 'landing' %}">Log out</a>
-    </div>
+{% block extrastyle %}
+  {{ block.super }}
+  <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-    <div class="page-header">
-      <h1><i>RDRF Dashboard</i></h1>
-    </div>
     {% for reg in user_obj.registry.all %}
-      <div class="panel panel-info">
-        <div class="panel-heading">{{reg.name}}</div>
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-md-5">
-                    <select class="form-control" id="p_{{reg.id}}">
-                        <option id="-1">--- Patient ---</option>
-                        {% for patient in patients.all %}
-                            {% for r in patient.rdrf_registry.all %}
-                                {% if r.id == reg.id %}
-                                    <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
+    
+    <h3>{{reg.name}}</h3>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+            <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Form</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        <select id="p_{{reg.id}}">
+                            <option id="-1">--- Patient ---</option>
+                            {% for patient in patients.all %}
+                                {% for r in patient.rdrf_registry.all %}
+                                    {% if r.id == reg.id %}
+                                        <option id="{{patient.id}}">{{patient.family_name}} {{patient.given_names}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            <script>
+                                $(document).ready(function() {
+                                    $('#p_{{reg.id}}').on('change', function() {
+                                        var id = $(this).children(":selected").attr("id");
+                                        var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
+                                        check_for_btn(id, form_id, '#b_{{reg.id}}')
+                                    });
+                                });
+                            </script>
+                        </select>
+                    </th>
+                    <th>
+                        <select id="f_{{reg.id}}">
+                            <option id="-1" value="">--- Form ---</option>
+                            {% for form in rdrf_forms.all %}
+                                {% if form.registry.id == reg.id %}
+                                <option id="{{form.id}}">{{form.name}}</option>
                                 {% endif %}
                             {% endfor %}
-                        {% endfor %}
-                        <script>
-                            $(document).ready(function() {
-                                $('#p_{{reg.id}}').on('change', function() {
-                                    var id = $(this).children(":selected").attr("id");
-                                    var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
-                                    check_for_btn(id, form_id, '#b_{{reg.id}}')
+                            <script>
+                                $(document).ready(function() {
+                                    $('#f_{{reg.id}}').on('change', function() {
+                                        var id = $(this).children(":selected").attr("id");
+                                        var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
+                                        check_for_btn(id, patient_id, '#b_{{reg.id}}')
+                                    });
                                 });
-                            });
-                        </script>
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <select class="form-control" id="f_{{reg.id}}">
-                        <option id="-1" value="">--- Form ---</option>
-                        {% for form in rdrf_forms.all %}
-                            {% if form.registry.id == reg.id %}
-                            <option id="{{form.id}}">{{form.name}}</option>
-                            {% endif %}
-                        {% endfor %}
-                        <script>
-                            $(document).ready(function() {
-                                $('#f_{{reg.id}}').on('change', function() {
-                                    var id = $(this).children(":selected").attr("id");
-                                    var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
-                                    check_for_btn(id, patient_id, '#b_{{reg.id}}')
-                                });
-                            });
-                        </script>
-                    </select>    
-                </div>
-                <div class="col-md-2">
-                    <p align="right">
+                            </script>
+                        </select>                        
+                    </th>
+                    <th>
                         <input type="button" class="btn btn-success" disabled=true value="Load" id="b_{{reg.id}}" />
-                    </p>
-                    <script>
-                        $(document).ready(function() {
-                           $('#b_{{reg.id}}').on('click', function() {
-                                var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
-                                var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
-                                var loc = window.location.toString();
-                                var s = '{{reg.code}}/forms/' + form_id +'/'+ patient_id;
-                                var f = loc.replace("dashboard", s);
-                                window.open(f);
-                           });
-                        });
-                    </script>
-                </div>
-            </div>
-        </div>
-      </div>
+                    </th>
+                </tr>
+            </tbody>
+    </table>
+    
+    <script>
+        $(document).ready(function() {
+           $('#b_{{reg.id}}').on('click', function() {
+                var form_id = $('#f_{{reg.id}}').children(":selected").attr("id");
+                var patient_id = $('#p_{{reg.id}}').children(":selected").attr("id");
+                var loc = window.location.toString();
+                var s = '{{reg.code}}/forms/' + form_id +'/'+ patient_id;
+                var f = loc.replace("dashboard", s);
+                window.open(f);
+           });
+        });
+    </script>
     {% endfor %}
 {% endblock %}

@@ -3,6 +3,10 @@
 
 {% load admin_static %}
 
+{% block extrastyle %}
+  {{ block.super }}
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+{% endblock %}
 
 {% block userlinks %}
     {% url 'django-admindocs-docroot' as docsroot %}
