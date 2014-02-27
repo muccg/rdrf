@@ -5,16 +5,16 @@
 
 
 {% block userlinks %}
-                  {% url 'django-admindocs-docroot' as docsroot %}
-                  {% if docsroot %}
-                    <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
-                   <span class="separator">|</span>
-                  {% endif %}
-                  <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
-                  <span class="separator">|</span>
-                  <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
-                  </span>
-                {% endblock %}
+    {% url 'django-admindocs-docroot' as docsroot %}
+    {% if docsroot %}
+        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
+        <span class="separator">|</span>
+    {% endif %}
+    <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
+    <span class="separator">|</span>
+        <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
+    </span>
+{% endblock %}
 
 
 {% block nav-global %}
@@ -26,5 +26,3 @@
         {% endif %}
     </p>
 {% endblock %}
-
-

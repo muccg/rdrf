@@ -141,6 +141,12 @@ class RegistryAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return False
+    
+    def get_urls(self):
+        original_urls = super(RegistryAdmin, self).get_urls()
+        added_urls = []
+        
+        return original_urls
 
 
 def create_restricted_model_admin_class(model_class):

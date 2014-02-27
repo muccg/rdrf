@@ -264,6 +264,15 @@ SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
 
 }
+'''
+One can add custom menu items to the left hand manu in Django Suit
+
+CUSTOM_MENU_ITEMS = [
+    { 'name': 'Patient form', 'url':'/admin/patient/form/something'},
+    { 'name': 'Another menu', 'url':'/admin/another/menu'},
+]
+'''
+
 try:
     print "Attempting to import default settings as appsettings.rdrf"
     from appsettings.rdrf import *
