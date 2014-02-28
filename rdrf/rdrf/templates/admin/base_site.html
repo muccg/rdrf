@@ -19,12 +19,3 @@
         <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
     </span>
 {% endblock %}
-
-
-{% block nav-global %}
-    <p style="padding-top: 11px;">
-        {% if request.user.is_superuser %}
-            <a href="{% url 'import_registry' %}">Import Registry Definition</a>
-        {% endif %}
-    </p>
-{% endblock %}
