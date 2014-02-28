@@ -34,14 +34,14 @@
         {% endif %}
       {% endfor %}
     {% endif %}
-    {% get_custom_menu as custom_menu %}
+    {% get_custom_menu request as custom_menu %}
     {% for item in custom_menu %}
         {% if item.superuser %}
             {% if request.user.is_superuser %}
-                <li><a href="{{item.url}}"><i class="icon-chevron-right"></i>{{item.name}}</a></li>
+                <li {{ item.is_active|yesno:' class=active,' }}><a href="{{item.url}}"><i class="icon-chevron-right"></i>{{item.name}}</a></li>
             {% endif %}
         {% else %}
-            <li><a href="{{item.url}}"><i class="icon-chevron-right"></i>{{item.name}}</a></li>
+            <li {{ item.is_active|yesno:' class=active,' }}><a href="{{item.url}}"><i class="icon-chevron-right"></i>{{item.name}}</a></li>
         {% endif %}
     {% endfor %}
   </ul>
