@@ -8,5 +8,5 @@ Feature: Landing
         Given I go to "/"
         And I click "Log in"
         Then I log in as "admin" with "admin" password
-        Then I should see "RDRF Dashboard"
+        Then I should see "Rare Disease Registry Framework"
         And I click "Log out"
