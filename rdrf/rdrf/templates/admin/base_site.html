@@ -23,9 +23,7 @@
 
 {% block nav-global %}
     <p style="padding-top: 11px;">
-        <a href="{% url 'dashboard' %}">Dashboard</a>
         {% if request.user.is_superuser %}
-            <span class="separator">|</span>
             <a href="{% url 'import_registry' %}">Import Registry Definition</a>
         {% endif %}
     </p>
