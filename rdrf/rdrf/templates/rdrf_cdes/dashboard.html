@@ -75,7 +75,7 @@
                 var loc = window.location.toString();
                 var s = '{{reg.code}}/forms/' + form_id +'/'+ patient_id;
                 var f = loc.replace("dashboard", s);
-                window.open(f);
+                window.open(f, '_self');
            });
         });
     </script>

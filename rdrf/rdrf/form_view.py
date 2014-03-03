@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
 from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
@@ -85,7 +85,7 @@ class FormView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(self.template, context)
+        return render_to_response(self.template, context, context_instance=RequestContext(request))
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
