@@ -1,13 +1,11 @@
-{% extends "rdrf_cdes/base_form.html" %}
-{% block title %}{{registry|upper}} Questionnaire{% endblock %}
-{% block header %}
-<div id="branding" class="branding">
-    <h1 id="site-name">{{registry|upper}} Registry</h1>
-</div>
+{% extends "rdrf_cdes/base_questionnaire.html" %}
 
-<div class="header-content header-content-third">
-    <h2>{{form_display_name|upper}}</h2>
-</div>
+{% block title %}
+    {{registry|upper}} Questionnaire
 {% endblock %}
-{% block content_header %}
+
+{% block header %}
+    <div id="branding" class="branding">
+        {{registry|upper}} Registry
+    </div>
 {% endblock %}
