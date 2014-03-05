@@ -304,14 +304,17 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
 
     def get(self, request, registry_code):
-        self.registry = self._get_registry(registry_code)
-        form = self.registry.questionnaire
-        if form is None:
+        try:
+            self.registry = self._get_registry(registry_code)
+            form = self.registry.questionnaire
+        except RegistryForm.DoesNotExist:
             raise Http404("No questionnaire exists for %s" % registry_code)
-        else:
-            self.registry_form = form
-            context = self._build_context()
-            return self._render_context(request, context)
+        except RegistryForm.MultipleObjectsReturned:
+            raise Http404("Multiple questionnaire exists for %s" % registry_code)
+
+        self.registry_form = form
+        context = self._build_context()
+        return self._render_context(request, context)
 
     def post(self, request, registry_code):
         error_count  = 0
