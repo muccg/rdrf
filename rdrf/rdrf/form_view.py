@@ -264,7 +264,8 @@ class FormView(View):
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
                         initial_data = [""] * len(section_elements)
                 else:
-                    initial_data = [""] * len(section_elements)
+                    #initial_data = [""] * len(section_elements)
+                    initial_data =  [""]  # this appears to forms
 
                 logger.debug("initial data for section %s = %s" % (s, initial_data))
                 form_section[s]  = form_set_class(initial=initial_data, prefix=prefix)
