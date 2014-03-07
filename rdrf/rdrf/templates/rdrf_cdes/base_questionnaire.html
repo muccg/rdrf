@@ -10,6 +10,7 @@
 {% load get_management_form %}
 {% load get_display_name %}
 {% load lookup %}
+{% load add_attr %}
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
@@ -21,15 +22,15 @@
     
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
-        
+
         <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-        
+
     </head>
 
-    <body style="background-color: #edeff1;">
-        <div class="navbar navbar-inverse">
+    <body style="background-color: #edeff1; padding-top: 80px;">
+        <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
                     <div class="navbar-brand">{% block header %}header{% endblock %}</div>
@@ -49,13 +50,13 @@
             <div class="alert alert-danger">Red fields are required</div>
         </div>
         
-        <div class="container">
-            <form enctype="multipart/form-data" method="post" class="form-horizontal">{% csrf_token %}
+        <div class="container" style="padding-bottom: 20px;">
+            <form enctype="multipart/form-data" class="form" method="post">{% csrf_token %}
             
                 {% for s in sections %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            {{display_names|get_display_name:s}}
+                            <b>{{display_names|get_display_name:s}}</b>
                         </div>
                         <div class="panel-body">
                             {% if forms|is_formset:s %}
@@ -88,17 +89,15 @@
                                 </table>
                             {% else %}
                                 <table class="table table-bordered table-hover table-condensed">
-                                    <tbody>
-                                        {% autoescape off %}
-                                            {% get_form_var forms s as form %}
-                                            {% for field in form %}
-                                                <tr class="{{ field.field.required|yesno:"danger," }}">
-                                                    <th style="width: 20%">{{ field.label_tag }}</th>
-                                                    <th>{{ field }}</th>
-                                                </tr>
-                                            {% endfor %}
-                                        {% endautoescape %}
-                                    </tbody>
+                                    {% autoescape off %}
+                                        {% get_form_var forms s as form %}
+                                        {% for field in form %}
+                                            <tr class="{{ field.field.required|yesno:"danger," }}">
+                                                <td style="width: 40%; vertical-align: middle;">{{ field.label }}</td>
+                                                <td>{{ field|add_attr:"class,form-control" }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endautoescape %}
                                 </table>
                             {% endif %}
                         </div>
@@ -108,31 +107,6 @@
                 <input id="submit_button" type="submit" class="btn btn-primary btn-small pull-right" value="Save"/>
             </form>
         </div>
-
-
-        {% if form.errors %}
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <div class="alert alert-error">
-                        <strong>{{ error|escape }}</strong>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <div class="alert alert-error">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <script>
-            $(document).ready(function ()
-            {
-                $("label:not(li label)").addClass("col-sm-2 control-label");
-                $(":input").addClass("form-control");
-                $("label[for*='-clear']").removeClass();
-            })
-        </script>
 
     </body>
 </html>
