@@ -4,6 +4,7 @@
 {% load admin_urls %}
 {% load get_form %}
 {% load get_forms %}
+{% load get_form_var %}
 {% load is_formset %}
 {% load get_elements %}
 {% load get_management_form %}
@@ -44,10 +45,12 @@
                     </div>
                 {% endfor %}
             {% endif %}
+            
+            <div class="alert alert-danger">Red fields are required</div>
         </div>
         
         <div class="container">
-            <form enctype="multipart/form-data" method="post">{% csrf_token %}
+            <form enctype="multipart/form-data" method="post" class="form-horizontal">{% csrf_token %}
             
                 {% for s in sections %}
                     <div class="panel panel-default">
@@ -84,8 +87,18 @@
                                     {% endfor %}
                                 </table>
                             {% else %}
-                                <table>
-                                    {{forms|get_form:s}}
+                                <table class="table table-bordered table-hover table-condensed">
+                                    <tbody>
+                                        {% autoescape off %}
+                                            {% get_form_var forms s as form %}
+                                            {% for field in form %}
+                                                <tr class="{{ field.field.required|yesno:"danger," }}">
+                                                    <th style="width: 20%">{{ field.label_tag }}</th>
+                                                    <th>{{ field }}</th>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endautoescape %}
+                                    </tbody>
                                 </table>
                             {% endif %}
                         </div>
