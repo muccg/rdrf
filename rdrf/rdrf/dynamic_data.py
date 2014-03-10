@@ -23,9 +23,10 @@ class DynamicDataWrapper(object):
 
     """
 
-    def __init__(self, obj):
+    def __init__(self, obj, client=MongoClient(), filestore_class=gridfs.GridFS):
         self.obj = obj
-        self.client = MongoClient()
+        self.client = client
+        self.file_store_class = filestore_class
 
     def __unicode__(self):
         return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
@@ -43,7 +44,7 @@ class DynamicDataWrapper(object):
 
     def _get_filestore(self, registry):
         db = self.client[registry]
-        return gridfs.GridFS(db,collection=registry + ".files")
+        return self.file_store_class(db, collection=registry + ".files")
 
 
     def load_dynamic_data(self, registry, collection_name):
@@ -81,7 +82,6 @@ class DynamicDataWrapper(object):
                             self.gridfs_dict = gridfs_dict
                             from django.core.urlresolvers import reverse
                             self.url = reverse("file_upload", args=[registry, str(self.gridfs_dict['gridfs_file_id'])])
-                            #self.url = "/%s/uploads/%s" % (registry, str(self.gridfs_dict['gridfs_file_id']))
 
                         def __unicode__(self):
                             """
