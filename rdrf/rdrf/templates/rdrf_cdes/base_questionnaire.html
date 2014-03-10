@@ -2,14 +2,6 @@
 
 {% load staticfiles %}
 {% load admin_urls %}
-{% load get_form %}
-{% load get_forms %}
-{% load get_form_var %}
-{% load is_formset %}
-{% load get_elements %}
-{% load get_management_form %}
-{% load get_display_name %}
-{% load lookup %}
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
@@ -21,15 +13,15 @@
     
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
-        
+
         <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-        
+
     </head>
 
-    <body style="background-color: #edeff1;">
-        <div class="navbar navbar-inverse">
+    <body style="background-color: #edeff1; padding-top: 80px;">
+        <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
                     <div class="navbar-brand">{% block header %}header{% endblock %}</div>
@@ -38,101 +30,9 @@
         </div>
 
         <div class="container">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-danger">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-            
-            <div class="alert alert-danger">Red fields are required</div>
+        {% block content %}
+        {% endblock %}
         </div>
-        
-        <div class="container">
-            <form enctype="multipart/form-data" method="post" class="form-horizontal">{% csrf_token %}
-            
-                {% for s in sections %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            {{display_names|get_display_name:s}}
-                        </div>
-                        <div class="panel-body">
-                            {% if forms|is_formset:s %}
-                                <!-- start management form for {{s}}-->
-                                {{ forms|get_management_form:s }}
-                                <!-- end management form for {{s}} -->
-                                <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
-                                <table class="table" id="section_table_{{s}}">
-                                    <script>
-                                        $(document).ready(function() {
-                                            $("#section_table_{{s}}").allow_dynamic_formsets({
-                                                cde_codes: '{{section_field_ids_map|lookup:s}}',
-                                                add_button_id: "add_button_for_section_{{s}}",
-                                                remove_button_id: "remove_button_for_section_{{s}}",
-                                                table_id: "section_table_{{s}}",
-                                                total_forms_id: "{{total_forms_ids|lookup:s}}",
-                                                initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                                                formset_prefix: "{{formset_prefixes|lookup:s}}"
-                                            });
-                                        });
-                                    </script>
-                                    {% for f in forms|get_forms:s %}
-                                        {{ f.as_table }}
-                                        <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                                            <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small">
-                                                <i class="icon-white icon-minus"></i> Remove</a>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </table>
-                            {% else %}
-                                <table class="table table-bordered table-hover table-condensed">
-                                    <tbody>
-                                        {% autoescape off %}
-                                            {% get_form_var forms s as form %}
-                                            {% for field in form %}
-                                                <tr class="{{ field.field.required|yesno:"danger," }}">
-                                                    <th style="width: 20%">{{ field.label_tag }}</th>
-                                                    <th>{{ field }}</th>
-                                                </tr>
-                                            {% endfor %}
-                                        {% endautoescape %}
-                                    </tbody>
-                                </table>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <input id="submit_button" type="submit" class="btn btn-primary btn-small pull-right" value="Save"/>
-            </form>
-        </div>
-
-
-        {% if form.errors %}
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <div class="alert alert-error">
-                        <strong>{{ error|escape }}</strong>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <div class="alert alert-error">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <script>
-            $(document).ready(function ()
-            {
-                $("label:not(li label)").addClass("col-sm-2 control-label");
-                $(":input").addClass("form-control");
-                $("label[for*='-clear']").removeClass();
-            })
-        </script>
 
     </body>
 </html>
