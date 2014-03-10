@@ -148,6 +148,10 @@ class RegistryAdmin(admin.ModelAdmin):
         
         return original_urls
 
+class QuestionnaireResponseAdmin(admin.ModelAdmin):
+    list_display = ('registry', 'date_submitted', 'processed')
+    list_filter = ('registry', 'date_submitted')
+
 
 def create_restricted_model_admin_class(model_class):
 
@@ -177,7 +181,7 @@ admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPe
 admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup))
 admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement))
 admin.site.register(RegistryForm, RegistryFormAdmin)
-admin.site.register(QuestionnaireResponse)
+admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(Section, SectionAdmin)
 
 admin.site.register(Registry, RegistryAdmin)
