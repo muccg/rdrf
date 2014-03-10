@@ -24,7 +24,11 @@
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <div class="navbar-brand">{% block header %}header{% endblock %}</div>
+                    <div class="navbar-brand">
+                        <div id="branding" class="branding">
+                            {{registry|upper}} Registry
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

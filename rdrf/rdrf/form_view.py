@@ -311,9 +311,16 @@ class QuestionnaireView(FormView):
             context = self._build_context()
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
-            raise Http404("No questionnaire exists for %s" % registry_code)
+            context = {
+                'registry': self.registry,
+                'error_msg': 'No questionnaire for registry %s' % registry_code
+            }
         except RegistryForm.MultipleObjectsReturned:
-            raise Http404("Multiple questionnaire exists for %s" % registry_code)
+            context = {
+                'registry': self.registry,
+                'error_msg': "Multiple questionnaire exists for %s" % registry_code
+            }
+        return render_to_response('rdrf_cdes/questionnaire_error.html', context)
 
     def post(self, request, registry_code):
         error_count  = 0
