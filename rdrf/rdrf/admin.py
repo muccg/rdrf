@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.core.urlresolvers import reverse
 from models import *
 from registry.groups.models import User
 import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
+
 
 logger = logging.getLogger("registry_log")
 
@@ -149,8 +151,19 @@ class RegistryAdmin(admin.ModelAdmin):
         return original_urls
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'date_submitted', 'processed')
+    list_display = ('registry', 'date_submitted', 'processed', 'process_link')
     list_filter = ('registry', 'date_submitted')
+    
+    
+    def process_link(self, obj):
+        link = "-"
+        if not obj.processed:
+            url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
+            link = "<a href='%s'>Go</a>" % url
+        return link
+    
+    process_link.allow_tags = True
+    process_link.short_description = 'Process questionnaire'
 
 
 def create_restricted_model_admin_class(model_class):

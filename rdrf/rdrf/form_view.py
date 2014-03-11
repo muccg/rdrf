@@ -6,6 +6,9 @@ from django.contrib import messages
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.forms.formsets import formset_factory
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 import logging
 
@@ -453,22 +456,19 @@ class QuestionnaireResponseView(FormView):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
         if request.POST.has_key('reject'):
-            self.template = "rdrf_cdes/rejected.html"
             # delete from Mongo first todo !
-
             qr.delete()
             logger.debug("deleted rejected questionnaire response %s" % questionnaire_response_id)
-
+            messages.error(request, "Questionnaire rejected")
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
             patient_creator.create_patient(request.POST, qr)
-            self.template =  "rdrf_cdes/approved.html"
-
+            messages.info(request, "Questionnaire approved")
 
         context = {}
         context.update(csrf(request))
-        return render_to_response(self.template,context)
+        return HttpResponseRedirect(reverse("admin:rdrf_questionnaireresponse_changelist"))
 
 
 class FileUploadView(View):
