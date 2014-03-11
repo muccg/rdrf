@@ -18,13 +18,20 @@
         <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
 
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        
     </head>
 
-    <body style="background-color: #edeff1; padding-top: 80px;">
+    <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
+
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <div class="navbar-brand">{% block header %}header{% endblock %}</div>
+                    <div class="navbar-brand">
+                        <div id="branding" class="branding">
+                            {{registry|upper}} Registry
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -35,4 +42,5 @@
         </div>
 
     </body>
+
 </html>
