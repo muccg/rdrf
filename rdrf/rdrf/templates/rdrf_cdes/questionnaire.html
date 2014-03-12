@@ -23,9 +23,9 @@
         {% endfor %}
     {% endif %}
     
-    <div class="alert alert-danger">Red fields are required</div>
+    <div class="alert alert-danger" id="msg-box">Red fields are required</div>
 
-    <form enctype="multipart/form-data" class="form" method="post">{% csrf_token %}
+    <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
     
         {% for s in sections %}
             <div class="panel panel-default">
