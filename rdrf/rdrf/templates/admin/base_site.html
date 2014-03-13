@@ -4,8 +4,22 @@
 {% load admin_static %}
 
 {% block extrastyle %}
-  {{ block.super }}
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    {{ block.super }}
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#phenotype-btn').popover({
+                'html': true,
+                'title': 'Available forms',
+                'trigger': 'click',
+                'placement': 'bottom'
+            });
+        })
+    </script>
 {% endblock %}
 
 {% block userlinks %}

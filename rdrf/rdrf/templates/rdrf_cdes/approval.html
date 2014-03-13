@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "rdrf_cdes/questionnaire.html" %}
 {% block title %}{{registry|upper}} Approval{% endblock %}
 
 {% block content_header %}
@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block extrastyle %}
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    {{ block.super }}
     <script>
         $(document).ready(function() {
             $('#reject-btn').click(function() {
@@ -17,20 +17,25 @@
                     value: 'reject',
                 }).appendTo('#approval-form');
                 $('#approval-form').submit();
-            })
+            });
+            
+            $('#admin-btn').click(function() {
+                self.location="{% url 'admin:rdrf_questionnaireresponse_changelist' %}";
+            });
+
+            $('#msg-box').hide();
+            $("#questionnaire-form :input").prop("disabled", true);
+            $('#submit_button').hide();
         })
     </script>
-    
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
 {% endblock %}
 
 
-{% block content %}
-
+{% block approval %}
 <form id="approval-form" method="post">{% csrf_token %}
     <div class="panel panel-default">
         <div class="panel-heading">
-            <h3>{{registry|upper}} Approval</h3>
+            <b>{{registry|upper}} Approval</b>
         </div>
     
         <div class="panel-body">
@@ -41,12 +46,11 @@
                 {% endfor %}
             </select>
         </div>
-    
-        <div class="panel-footer pull-right">
-            <button type="submit" class="btn btn-success">Approve</button>
-            <button type="button" class="btn btn-danger" id="reject-btn">Reject</button>
-        </div>
     </div>
-</form>
 
+    <button type="button" class="btn btn-info" id="admin-btn">Back to admin</button>
+    
+    <button type="button" class="btn btn-danger pull-right" id="reject-btn">Reject</button>
+    <button type="submit" class="btn btn-success pull-right" style="">Approve</button>
+</form>
 {% endblock %}

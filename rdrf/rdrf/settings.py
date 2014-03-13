@@ -269,7 +269,6 @@ SUIT_CONFIG = {
 One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
-    { 'name': 'Patient Forms', 'url': '{0}/dashboard'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': False },
     { 'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True },
 ]
 
