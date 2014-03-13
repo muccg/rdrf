@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState, RegistryImportError
@@ -71,6 +71,60 @@ class ImporterTestCase(RDRFTestCase):
         importer.load_yaml(self._get_yaml_file())
 
         self.assertRaises(RegistryImportError,importer.create_registry)
+
+
+class FormTestCase(RDRFTestCase):
+    def setUp(self):
+        super(FormTestCase, self).setUp()
+        self.registry = Registry.objects.get(code='fh')
+        self.create_test_sections()
+        self.create_test_forms()
+
+    def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
+        section, created = Section.objects.get_or_create(code=code)
+        section.display_name = display_name
+        section.elements = ",".join(elements)
+        section.allow_multiple = allow_multiple
+        section.extra = extra
+        section.save()
+        return section
+
+    def create_form(self, name, sections, is_questionnnaire=False):
+        form, created = RegistryForm.get_or_create(name=name,registry=self.registry)
+        form.name = name
+        form.registry = self.registry
+        form.sections = ",".join([ section.code for section in sections])
+        form.is_questionnaire = is_questionnnaire
+        form.save()
+        return form
+
+    def create_forms(self):
+        self.simple_form = self.create_form("simple", [self.sectionA, self.sectionB])
+        self.multi_form = self.create_form("multi", [self.sectionC])
+        # TODO file forms, questionnaire forms
+
+    def simulate_filling_in_form(self, form, form_data):
+        # return a dictionary representing what
+        pass
+
+    def create_sections(self):
+        # "simple" sections ( no files or multi-allowed sections
+        self.sectionA = self.create_section("sectionA","Simple Section A",["CDEName","CDEAge"])
+        self.sectionB = self.create_section("sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
+        # A multi allowed section with no file cdes
+        self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"],True)
+        # A multi allowed section with a file CDE
+        #self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
+
+
+
+
+
+
+
+
+
+
 
 
 
