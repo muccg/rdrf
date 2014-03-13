@@ -207,6 +207,9 @@ class DynamicDataWrapper(object):
                 # value is a list of section field data dictionaries
                 if key not in existing_record:
                     existing_record[key] = [{}] * len(value)
+                elif len(existing_record[key]) < len(value):
+                    num_extra_dicts = len(value) - len(existing_record[key])
+                    existing_record[key].extend([{}] * num_extra_dicts)
 
                 for i, section_data_dict in enumerate(value):
                     existing_section_dict = existing_record[key][i]
