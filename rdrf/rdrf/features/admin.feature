@@ -4,10 +4,8 @@ Feature: Admin
         Given I go to "/"
         And I click "Log in"
         Then I log in as "curator" with "curator" password
-        And I click "Patient Forms"
-        Then I should see "Patient"
-        Then I should see "Form"
-        Then I should see "Action"
+        And I click "Patients"
+        Then I should see "Patients"
 
 
     Scenario: Curator DOES NOT see Import Registry link
