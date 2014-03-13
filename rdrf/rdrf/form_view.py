@@ -19,7 +19,7 @@ from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from registration import PatientCreator
-from file_upload import munge_uploaded_file_data
+from file_upload import wrap_gridfs_data_for_form
 
 logger = logging.getLogger("registry_log")
 
@@ -98,7 +98,6 @@ class FormView(View):
         return ",".join(ids)
 
     def post(self, request, registry_code, form_id, patient_id):
-        logger.debug("request.FILES = %s" % request.FILES)
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
         form_obj = self.get_registry_form(form_id)
@@ -114,7 +113,7 @@ class FormView(View):
         # this is used by formset plugin:
         section_field_ids_map = {} # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
-        for s in sections:
+        for section_index, s in enumerate(sections):
             logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
             form_class = create_form_class_for_section(registry,form_obj, section_model)
@@ -134,7 +133,7 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                     from copy import deepcopy
-                    form2 = form_class(dynamic_data,initial=munge_uploaded_file_data(registry_code, deepcopy(dynamic_data)))
+                    form2 = form_class(dynamic_data,initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
                     for e in form.errors:
@@ -162,7 +161,7 @@ class FormView(View):
                     logger.debug("POST data = %s" % request.POST)
                     dynamic_data = formset.cleaned_data # a list of values
                     section_dict = {}
-                    section_dict[s] = dynamic_data
+                    section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data) )
                 else:
@@ -170,7 +169,9 @@ class FormView(View):
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
 
-                form_section[s] = form_set_class(request.POST, files=request.FILES, prefix=prefix)
+                #form_section[s] = form_set_class(request.POST, files=request.FILES, prefix=prefix)
+
+                form_section[s] = form_set_class(initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -244,7 +245,7 @@ class FormView(View):
 
                 logger.debug("creating form instance for section %s" % s)
                 from copy import deepcopy
-                initial_data = munge_uploaded_file_data(self.registry, self.dynamic_data)
+                initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
                 # Ensure that we can have multiple formsets on the one page
@@ -261,7 +262,7 @@ class FormView(View):
                 form_set_class = formset_factory(form_class, extra=extra)
                 if self.dynamic_data:
                     try:
-                        initial_data = self.dynamic_data[s]  # we grab the list of data items by section code not cde code
+                        initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])  # we grab the list of data items by section code not cde code
                         logger.debug("retrieved data for section %s OK" % s)
                     except KeyError, ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
