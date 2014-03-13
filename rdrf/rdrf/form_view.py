@@ -193,11 +193,15 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+            try:
+                messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+            except:
+                pass
         else:
-            #class="alert alert-error"
-            messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
-
+            try:
+                messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
+            except:
+                pass
 
         logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))

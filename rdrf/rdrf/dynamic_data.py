@@ -21,12 +21,15 @@ class DynamicDataWrapper(object):
     wrapper.save_dynamic_data("sma","cdes", new_data)
 
     """
+    class WrapperContext(object):
+        TESTING = "_testing"
+        NORMAL = ""
 
     def __init__(self, obj, client=MongoClient(), filestore_class=gridfs.GridFS):
         self.obj = obj
         self.django_id = obj.pk
         self.django_model = obj.__class__
-
+        self.context = DynamicDataWrapper.WrapperContext.NORMAL
         # We inject these to allow unit testing
         self.client = client
         self.file_store_class = filestore_class
@@ -43,7 +46,7 @@ class DynamicDataWrapper(object):
                 "django_id": django_id}
 
     def _get_collection(self, registry, collection_name):
-        db = self.client[registry]
+        db = self.client[registry + self.context]
         collection = db[collection_name]
         return collection
 
