@@ -3,12 +3,13 @@ from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.core import urlresolvers
+from django.core.urlresolvers import reverse
 from django.conf import settings
 from admin_views.admin import AdminViews
 import os
 import json, datetime
 
-from rdrf.models import Registry
+from rdrf.models import Registry, RegistryForm
 
 from registry.utils import get_static_url, get_working_groups, get_registries
 from admin_forms import *
@@ -41,16 +42,58 @@ class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
     extra = 1
 
-class PatientAdmin(AdminViews, admin.ModelAdmin):
+class PatientAdmin(admin.ModelAdmin):
+    def __init__(self, *args, **kwargs):
+        super(PatientAdmin, self).__init__(*args, **kwargs)
+        self.list_display_links = (None, )
+    
     app_url = os.environ.get("SCRIPT_NAME", "")
     form = PatientForm
-    admin_views = (
-        ('Patient Report (SuperUser only)', '%s/%s' % (app_url, 'reports/patient/')),
-    )
+    request = None
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['__unicode__', 'get_reg_list', 'working_group', 'moleculardata_entered']
+    list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'phenotype_btn']
+    list_filter = ['rdrf_registry']
+    
+    def full_name(self, obj):
+        return "%s %s" % (obj.given_names, obj.family_name)
+    full_name.short_description = 'Name'
+
+    def demographic_btn(self, obj):
+        return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % reverse('admin:patients_patient_change', args=(obj.id,))
+    
+    demographic_btn.allow_tags = True
+    demographic_btn.short_description = 'Demographics'
+
+
+    def phenotype_btn(self, obj):
+        rdrf_id = self.request.GET.get('rdrf_registry__id__exact')
+        
+        if not rdrf_id:
+            return "Please filter registry"
+        
+        rdrf = Registry.objects.get(pk=rdrf_id)
+        forms = RegistryForm.objects.filter(registry=rdrf)
+
+        content = ''
+        
+        if not forms:
+            content = "No forms available"
+
+        if forms.count() == 1:
+            url = reverse('registry_form', args=(rdrf.code, forms[0].id, obj.id))
+            return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % url
+
+        for form in forms:
+            url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
+            content += "<a href=%s>%s</a><br/>" % (url, form.name)
+        
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='phenotype-btn'>Details</button>" % content
+    
+    phenotype_btn.allow_tags = True
+    phenotype_btn.short_description = 'Phenotype'
+
 
     def get_form(self, request, obj=None, **kwargs):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
@@ -149,6 +192,7 @@ class PatientAdmin(AdminViews, admin.ModelAdmin):
         return local_urls + urls
 
     def queryset(self, request):
+        self.request = request
         import registry.groups.models
 
         if request.user.is_superuser:
