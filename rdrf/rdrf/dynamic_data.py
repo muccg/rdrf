@@ -21,15 +21,11 @@ class DynamicDataWrapper(object):
     wrapper.save_dynamic_data("sma","cdes", new_data)
 
     """
-    class WrapperContext(object):
-        TESTING = "_testing"
-        NORMAL = ""
-
     def __init__(self, obj, client=MongoClient(), filestore_class=gridfs.GridFS):
+        self.testing = False # When set to True by integration tests, uses testing mongo database
         self.obj = obj
         self.django_id = obj.pk
         self.django_model = obj.__class__
-        self.context = DynamicDataWrapper.WrapperContext.NORMAL
         # We inject these to allow unit testing
         self.client = client
         self.file_store_class = filestore_class
@@ -46,12 +42,21 @@ class DynamicDataWrapper(object):
                 "django_id": django_id}
 
     def _get_collection(self, registry, collection_name):
-        db = self.client[registry + self.context]
+        if not self.testing:
+            db = self.client[registry]
+        else:
+            logger.debug("getting test db..")
+            db = self.client["testing_" + registry]
+
         collection = db[collection_name]
         return collection
 
     def _get_filestore(self, registry):
-        db = self.client[registry]
+        if not self.testing:
+            db = self.client[registry]
+        else:
+            db = self.client["testing_" + registry]
+
         return self.file_store_class(db, collection=registry + ".files")
 
 

@@ -49,6 +49,7 @@ def log_context(when, context):
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
+        self.testing = False # when set to True in integration testing, switches off unsupported messaging middleware
         self.template = 'rdrf_cdes/form.html'
         self.registry = None
         self.dynamic_data = {}
@@ -73,6 +74,8 @@ class FormView(View):
             model_class = Patient
         obj = model_class.objects.get(pk=kwargs['id'])
         dyn_obj = DynamicDataWrapper(obj)
+        if self.testing:
+            dyn_obj.testing = True
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'],"cdes")
         return dynamic_data
 
@@ -100,6 +103,8 @@ class FormView(View):
     def post(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
+        if self.testing:
+            dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
         registry = Registry.objects.get(code=registry_code)
         form_display_name = form_obj.name
@@ -193,15 +198,12 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            try:
+            if not self.testing:
                 messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
-            except:
-                pass
+
         else:
-            try:
+            if not self.testing:
                 messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
-            except:
-                pass
 
         logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
@@ -392,6 +394,8 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
+            if self.testing:
+                questionnaire_response_wrapper.testing = True
             for section in sections:
                 questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
             return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html')
