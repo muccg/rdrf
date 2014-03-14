@@ -1,6 +1,6 @@
 %define name rdrf
-%define version 0.5
-%define unmangled_version 0.5
+%define version 0.6.0
+%define unmangled_version 0.6.0
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
