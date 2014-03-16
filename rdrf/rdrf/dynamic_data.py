@@ -83,6 +83,8 @@ class DynamicDataWrapper(object):
         """
         if data is None:
             return
+        if isinstance(data, unicode):
+            return
         from django.conf import settings
         replacements = {}
         for key, value in data.items():
@@ -260,6 +262,16 @@ class DynamicDataWrapper(object):
         import types
         from datetime import date
         from datetime import datetime
+
+        if isinstance(data, unicode):
+            return
+
+
+        if isinstance(data, list):
+            for x in data:
+                self._convert_date_to_datetime(x)
+
+
 
         for k, value in data.items():
             if type(value) is date:
