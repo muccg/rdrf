@@ -1,9 +1,51 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
+from django.contrib.auth.models import User
 from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState, RegistryImportError
 from rdrf.models import *
+from rdrf.form_view import FormView
+from registry.patients.models import Patient, PatientRegistry
+from registry.groups.models import WorkingGroup
+from registry.patients.models import State, Country
+from datetime import datetime
+from pymongo import MongoClient
+
+from django.conf import settings
 import os
+
+class SectionFiller(object):
+    def __init__(self, form_filler, section):
+        self.__dict__["form_filler"] = form_filler
+        self.__dict__["section"] = section
+
+
+    def __setattr__(self, key, value):
+        if key in self.section.get_elements():
+            self.form_filler.add_data(self.section, key, value)
+
+
+class FormFiller(object):
+    def __init__(self, registry_form):
+        self.form = registry_form
+        self.section_codes = self.form.get_sections()
+        self.data = {}
+
+    def add_data(self, section, cde_code, value):
+        key = settings.FORM_SECTION_DELIMITER.join([self.form.name, section.code, cde_code])
+        self.data.update({key: value})
+
+
+    def __getattr__(self, item):
+        if item in self.section_codes:
+            section = Section.objects.get(code=item)
+            section_filler = SectionFiller(self, section)
+            return section_filler
+
+
+
+
+
 
 class RDRFTestCase(TestCase):
     fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
@@ -71,6 +113,148 @@ class ImporterTestCase(RDRFTestCase):
         importer.load_yaml(self._get_yaml_file())
 
         self.assertRaises(RegistryImportError,importer.create_registry)
+
+
+class FormTestCase(RDRFTestCase):
+    def setUp(self):
+        super(FormTestCase, self).setUp()
+        self._reset_mongo()
+        self.registry = Registry.objects.get(code='fh')
+        self.country, created = Country.objects.get_or_create(name="Australia")
+        self.country.save()
+        self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia",
+                                                          country=self.country)
+
+        self.state.save()
+        self.create_sections()
+        self.create_forms()
+        self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
+        self.working_group.save()
+        self.patient = self.create_patient()
+        self.request_factory = RequestFactory()
+
+    def _reset_mongo(self):
+        self.client = MongoClient()
+        # delete any testing databases
+        for db in self.client.database_names():
+            if db.startswith("testing_"):
+                print "deleting %s" % db
+                self.client.drop_database(db)
+
+        print "Testing Mongo Reset OK"
+
+    def create_patient(self):
+        p = Patient()
+        p.name = "Harry"
+        p.date_of_birth = datetime(1978, 6, 15)
+        p.working_group = self.working_group
+        p.state = self.state
+        p.postcode = "6112" # Le Armadale
+        p.save()
+        patient_registry, created = PatientRegistry.objects.get_or_create(patient=p, rdrf_registry=self.registry)
+
+        patient_registry.save()
+        return p
+
+
+
+    def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
+        section, created = Section.objects.get_or_create(code=code)
+        section.display_name = display_name
+        section.elements = ",".join(elements)
+        section.allow_multiple = allow_multiple
+        section.extra = extra
+        section.save()
+        return section
+
+    def create_form(self, name, sections, is_questionnnaire=False):
+        form, created = RegistryForm.objects.get_or_create(name=name,registry=self.registry)
+        form.name = name
+        form.registry = self.registry
+        form.sections = ",".join([ section.code for section in sections])
+        form.is_questionnaire = is_questionnnaire
+        form.save()
+        return form
+
+    def create_forms(self):
+        self.simple_form = self.create_form("simple", [self.sectionA, self.sectionB])
+        self.multi_form = self.create_form("multi", [self.sectionC])
+        # TODO file forms, questionnaire forms
+
+    def _create_request(self, form_obj, form_data):
+        # return a dictionary representing what is sent from filled in form
+        # form data looks like:
+        # { "
+        url = "/%s/forms/%s/%s" % (form_obj.registry.code, form_obj.pk, self.patient.pk)
+
+        request = self.request_factory.post(url, form_data)
+        request.user = User.objects.get(username="curator")
+        return request
+
+
+
+    def create_sections(self):
+        # "simple" sections ( no files or multi-allowed sections
+        self.sectionA = self.create_section("sectionA","Simple Section A",["CDEName","CDEAge"])
+        self.sectionB = self.create_section("sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
+        # A multi allowed section with no file cdes
+        self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"],True)
+        # A multi allowed section with a file CDE
+        #self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
+
+
+    def _create_form_key(self,form, section, cde_code):
+        return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
+
+    def test_simple_form(self):
+        ff = FormFiller(self.simple_form)
+
+
+        ff.sectionA.CDEName = "Fred"
+        ff.sectionA.CDEAge = 20
+        ff.sectionB.CDEHeight = 1.73
+        ff.sectionB.CDEWeight = 88.23
+
+        form_data = ff.data
+        print str(form_data)
+        request = self._create_request(self.simple_form, form_data)
+        view = FormView()
+        view.testing = True # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
+        view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk )
+
+
+        mongo_query = {"django_id" : self.patient.pk , "django_model": self.patient.__class__.__name__ }
+
+        mongo_db = self.client["testing_" + self.registry.code]
+
+        collection_name = "cdes"
+        collection = mongo_db[collection_name]
+        mongo_record = collection.find_one(mongo_query)
+
+        print "*** MONGO RECORD = %s ***" % mongo_record
+
+        assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEName")] == "Fred"
+        assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
+        assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
+        assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

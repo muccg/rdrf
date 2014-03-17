@@ -264,6 +264,14 @@ SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
 
 }
+
+'''
+One can add custom menu items to the left hand manu in Django Suit
+'''
+CUSTOM_MENU_ITEMS = [
+    { 'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True },
+]
+
 try:
     print "Attempting to import default settings as appsettings.rdrf"
     from appsettings.rdrf import *

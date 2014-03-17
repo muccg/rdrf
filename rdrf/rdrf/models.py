@@ -147,6 +147,9 @@ class QuestionnaireResponse(models.Model):
     processed = models.BooleanField(default=False)
     patient_id = models.IntegerField(blank=True,null=True,help_text="The id of the patient created from this response, if any")
 
+    def __str__(self):
+        return "%s (%s)" % (self.registry, self.processed)
+
 
 def appears_in(cde,registry,registry_form,section):
     if section.code not in registry_form.get_sections():
@@ -155,11 +158,3 @@ def appears_in(cde,registry,registry_form,section):
         return False
     else:
         return cde.code in section.get_elements()
-
-
-
-
-
-
-
-

@@ -1,11 +1,11 @@
 {% extends "rdrf_cdes/base_questionnaire.html" %}
 
 {% block title %}
-    {{registry|upper}} Questionnaire Completed
+    {{registry|upper}} Questionnaire Problem
 {% endblock %}
 
 {% block content %}
-    <div class="alert alert-success">
-    Thank you for completing questionnaire
+    <div class="alert alert-danger">
+    {{error_msg}}
     </div>
 {% endblock %}

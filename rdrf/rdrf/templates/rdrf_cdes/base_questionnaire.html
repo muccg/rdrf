@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+{% load staticfiles %}
+{% load admin_urls %}
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+
+        <title>{% block title %}Registry Title{% endblock %}</title>
+    
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
+
+        <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        
+        {% block extrastyle %}
+        {% endblock %}
+        
+    </head>
+
+    <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
+
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <div class="navbar-brand">
+                        <div id="branding" class="branding">
+                            {{registry|upper}} Registry
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+            
+            {% block approval %}
+            {% endblock %}
+        </div>
+
+    </body>
+
+</html>

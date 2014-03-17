@@ -1,247 +1,104 @@
-{% load staticfiles %}
-{% load admin_urls %}
-{% load get_form %}
-{% load get_forms %}
-{% load is_formset %}
-{% load get_elements %}
-{% load get_management_form %}
+{% extends "admin/base_site.html" %}
 {% load get_display_name %}
+{% load is_formset %}
+{% load get_management_form %}
 {% load lookup %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>{{registry|upper}} Registry</title>
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
-<link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-<script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
-<script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
-<script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
-<script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
-<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
+{% load get_forms %}
+{% load get_form %}
+{% load static %}
 
-<!--[if IE 6]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
-<![endif]-->
-<!--[if IE 7]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
-<![endif]-->
+{% block extrastyle %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 
-</head>
-<body>
-<script>
-        function renumber_section_table(table_id, fields_per_form) {
-            // we need to ensure sequential order of form ids in case of removal from inside formset ...
-            // re-number the ids of the form ...
+    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
 
-            function form_index_generator(fields_per_form) {
-                // e,g if there are three fields per form
-                // we return 0,0,0,1,1,1,2,2,2,3,3,3,...  for successive calls
-                var i = 0;
-                var form_num = 0;
-                return function () {
-                    if (i > (fields_per_form - 1) ){
-                        i = 0;
-                        form_num += 1;
-                    }
-                    else {
-                        i = i + 1;
-                    }
+{% endblock %}
 
-                    return form_num.toString();
-                }
-            }
+{% block content %}
+<h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
 
-            var label_gen = form_index_generator(fields_per_form);
-            var input_id_gen = form_index_generator(fields_per_form);
-            var input_name_gen = form_index_generator(fields_per_form);
+<form enctype="multipart/form-data" method="post">{% csrf_token %}
+{% for s in sections %}
 
-            $("#" + table_id + " > tbody > tr ").each(function () {
-                $(this)
-                        // update labels
-                        .find("label")
-                        .each(function () {
-                            $(this).attr({
-                                // <label for="id_formset_STest-1-CDEName">
-                                'for': function (_, old_for) {
-                                    var new_index_string = label_gen();
-                                    var new_for = old_for.replace(/-\d+-/, "-" + new_index_string + "-");
-                                    return new_for;
-                                   }
-                    })
-                });
+<table class="table table-striped table-bordered table-hover table-condensed">
+        
+    <thead>
+        <tr>
+            <th>{{display_names|get_display_name:s}}</th>
+        </tr>
+    </thead>
 
-                $(this)
-                        // update ids for inputs
-                        .find(":input").each(function () {
-                            $(this).attr({
-                                'id': function (_, old_id){
-                                    var new_index_string = input_id_gen();
-                                    var new_id = old_id.replace(/-\d+-/, "-" + new_index_string + "-");
-                                    return new_id;
-                                },
-                                'name': function (_, old_name) {
-                                    var new_index_string = input_name_gen();
-                                    var new_name = old_name.replace(/-\d+-/, "-" + new_index_string + "-");
-                                    return new_name;
-                                }
-                            })
+    <tbody>
+        <tr>
+            <th>
+                {% if forms|is_formset:s %}
+                <!-- start management form for {{s}}-->
+                {{ forms|get_management_form:s }}
+                <!-- end management form for {{s}} -->
+                <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
+                <table id="section_table_{{s}}">
+                <script>
+                    $(document).ready(function() {
+                        $("#section_table_{{s}}").allow_dynamic_formsets({
+                            cde_codes: '{{section_field_ids_map|lookup:s}}',
+                            add_button_id: "add_button_for_section_{{s}}",
+                            remove_button_id: "remove_button_for_section_{{s}}",
+                            table_id: "section_table_{{s}}",
+                            total_forms_id: "{{total_forms_ids|lookup:s}}",
+                            initial_forms_id: "{{initial_forms_ids|lookup:s}}",
+                            formset_prefix: "{{formset_prefixes|lookup:s}}"
                         });
-
-            })
-        }
-        function do_remove(el,table_id, num_rows, total_forms_id, initial_forms_id) {
-            var num_rows_left = $("#" + table_id + " > tbody > tr").length;
-            var min_rows_to_keep = 1 + num_rows;
-            if (num_rows_left <= min_rows_to_keep) {
-                // do nothing
-
-                return;
-            }
-            var tr = $(el).parent();
-            var current_row = tr;
-            var rows_to_remove = [];
-            for (var i=0;i<=num_rows;i++) {
-                rows_to_remove.push(current_row);
-                current_row = current_row.prev();
-            }
-            _.map(rows_to_remove, function (row) {row.remove();});
-
-            // decrement total forms counter on management form
-            var old_value = parseInt($('#' + total_forms_id).val());
-            var new_value = old_value - 1;
-            $('#' + total_forms_id).val(new_value.toString());
-
-            // decrement initial forms counter on management form
-            var old_initial_forms_value = parseInt($('#' + initial_forms_id).val());
-            var new_initial_forms_value = old_initial_forms_value - 1;
-            $('#' + initial_forms_id).val(new_initial_forms_value.toString());
-
-            // renumber all the fields ( labels + inputs ) in case
-            // we have removed a field set from inside the formset and have
-            // destroyed the sequential ordering
-
-            renumber_section_table(table_id, num_rows);
-        }
-    </script>
-  <!-- Header -->
-    <div id="header" class="header">
-        <div id="branding" class="branding">
-            <h1 id="site-name">{{registry|upper}} Rare Disease Registry</h1>
-        </div>
-
-        <div class="header-content header-content-third">
-            <h2>{{form_display_name|upper}}</h2>
-        </div>
-
-        <div class="header-content header-content-third">
-
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-        </div>
-
-        <div class="header-content header-content-third">
-            <a href="{% url 'admin:index' %}">Admin</a>
-        </div>
-
-        <div id="user-tools" class="user-tools">
-
-            <strong>{{user.username}}</strong>
-                <a href="{% url 'admin:password_change' %}">Change password</a> /
-                <a href="{% url 'django.contrib.auth.views.logout' %}?next={% url 'landing' %}">Log out</a>
-        </div>
-    </div>
-    <!-- END Header -->
-
-    <div id="content" class="colM">
-    {% if messages %}
-    <!-- <ul class="messagelist"> -->
-        {% for message in messages %}
-            <div {% if message.tags %} class="{{message.tags}}" {% endif %}>
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ message }}
-            </div>
-
-        {% endfor %}
-    <!-- </ul> -->
-    {% endif %}
-        <h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
+                    });
+                </script>
             
-            <div id="content-main">
-                <form  class="form-horizontal"  enctype="multipart/form-data" method="post">{% csrf_token %}
-                    {% for s in sections %}
-                        <div class="well  form-inline">
-                            <h2>{{display_names|get_display_name:s}} </h2>
-                            {% if forms|is_formset:s %}
-                                <!-- start management form for {{s}}-->
-                                {{ forms|get_management_form:s }}
-                                <!-- end management form for {{s}} -->
-                                <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
-                                <table id="section_table_{{s}}">
-                                <script>
-                                    $(document).ready(function() {
-                                        $("#section_table_{{s}}").allow_dynamic_formsets({
-                                            cde_codes: '{{section_field_ids_map|lookup:s}}',
-                                            add_button_id: "add_button_for_section_{{s}}",
-                                            remove_button_id: "remove_button_for_section_{{s}}",
-                                            table_id: "section_table_{{s}}",
-                                            total_forms_id: "{{total_forms_ids|lookup:s}}",
-                                            initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                                            formset_prefix: "{{formset_prefixes|lookup:s}}"
-                                        });
-                                    });
+                {% for f in forms|get_forms:s %}
+                  {{ f.as_table }}
+                  <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
+                    <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+            
+                </table>
+              {% else %}
+                <table class="table table-condensed table-hover">
+                  {{forms|get_form:s}}
+                </table>
+              {% endif %}
+            </th>
+        </tr>
+    </tbody>
+</table>
 
-                                </script>
+{% endfor %}
+<input type="submit" class="btn btn-primary pull-right" value="Save"/>
+</form>
 
-                                {% for f in forms|get_forms:s %}
+{% endblock %}
 
-                                    {{ f.as_table }}
-                                    <tr id="remove_formset_{{s}}_{{forloop.counter0}}"  class="actionbutton"><td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a></td></tr>
-
-                                        {% endfor %}
-
-
-                                </table>
-                            {% else %}
-                                <table>
-                                {{forms|get_form:s}}
-                                </table>
-                            {% endif %}
-                        </div>
-                        <!--<fieldset><legend>{{s}}</legend>
-                        </fieldset>-->
-                    {% endfor %}
-                    <input type="submit" class="btn btn-primary btn-small" value="Save"/>
-                </form>
-            </div>
+{% if form.errors %}
+  {% for field in form %}
+    {% for error in field.errors %}
+      <div class="alert alert-error">
+        <strong>{{ error|escape }}</strong>
+      </div>
+    {% endfor %}
+  {% endfor %}
+  {% for error in form.non_field_errors %}
+    <div class="alert alert-error">
+      <strong>{{ error|escape }}</strong>
     </div>
-
-
-    {% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert alert-error">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert alert-error">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
+  {% endfor %}
 {% endif %}
+
 <script>
-    $(document).ready(function ()
-    {
-        $("label:not(li label)").addClass("col-sm-2 control-label");
-        $(":input").addClass("form-control");
-        $("label[for*='-clear']").removeClass();
-
-
-    })
+  $(document).ready(function () {
+    $("label:not(li label)").addClass("col-sm-2 control-label");
+    $(":input").addClass("form-control");
+    $("label[for*='-clear']").removeClass();
+  })
 </script>
-</body>
-</html>

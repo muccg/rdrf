@@ -7,7 +7,6 @@ from registry.common import views
 import views
 import form_view
 import registry_view
-import dashboard_view
 import landing_view
 import import_registry_view
 import rest_interface
@@ -35,7 +34,6 @@ urlpatterns = patterns("",
     url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$", form_view.FormView.as_view(), name='registry_form'),
     url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
     url(r'^/?$',landing_view.LandingView.as_view(), name='landing'),
-    url(r'^dashboard/?$', dashboard_view.DashboardView.as_view(), name='dashboard'),
     url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry' ),
     url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}, name='login'),
     url(r'^(?P<registry_code>\w+)/questionnaire/?$',form_view.QuestionnaireView.as_view(), name='questionnaire'),
@@ -45,8 +43,5 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/(?P<cde_code>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_cde_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_section_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
-    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
-
-
-
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface')
 )

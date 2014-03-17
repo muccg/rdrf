@@ -97,7 +97,10 @@ class FieldFactory(object):
         if self.context == FieldContext.CLINICAL_FORM:
             return self.cde.name
         else:
-            return self.cde.questionnaire_text
+            q_field_text = self.cde.questionnaire_text
+            if not q_field_text:
+                q_field_text = self.cde.name
+            return q_field_text
 
     def _get_code(self):
         return self.cde.code

@@ -1,51 +1,56 @@
-{% extends "rdrf_cdes/base_form.html" %}
+{% extends "rdrf_cdes/questionnaire.html" %}
 {% block title %}{{registry|upper}} Approval{% endblock %}
-{% block header %}
-<div id="branding" class="branding">
-    <h1 id="site-name">{{registry|upper}} Registry</h1>
-</div>
 
-<div class="header-content header-content-third">
-    <h2>{{form_display_name|upper}}</h2>
-</div>
-{% endblock %}
 {% block content_header %}
-Review Questionnaire Response
+    Review Questionnaire Response
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function() {
+            $('#reject-btn').click(function() {
+                $('<input>').attr({
+                    type: 'hidden',
+                    id: 'reject',
+                    name: 'reject',
+                    value: 'reject',
+                }).appendTo('#approval-form');
+                $('#approval-form').submit();
+            });
+            
+            $('#admin-btn').click(function() {
+                self.location="{% url 'admin:rdrf_questionnaireresponse_changelist' %}";
+            });
+
+            $('#msg-box').hide();
+            $("#questionnaire-form :input").prop("disabled", true);
+            $('#submit_button').hide();
+        })
+    </script>
 {% endblock %}
 
 
-{% block specialisation %}
-<label for="working_group" class="col-sm-2 control-label">Assign to working group</label>
-<select name="working_group" id="working_group">
-    {% for working_group in working_groups %}
-    <option value="{{working_group.code}}">{{working_group.desc}}</option>
-    {% endfor %}
-</select>
-<script>
-     $(document).ready(function ()
-    {
+{% block approval %}
+<form id="approval-form" method="post">{% csrf_token %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <b>{{registry|upper}} Approval</b>
+        </div>
+    
+        <div class="panel-body">
+            <label for="working_group">Assign to working group</label>
+            <select name="working_group" id="working_group">
+                {% for working_group in working_groups %}
+                <option value="{{working_group.code}}">{{working_group.desc}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
-        $("#submit_button").val("Approve");
-
-        var reject_button = $("#submit_button").clone();
-
-        reject_button.val("Reject").insertAfter($("#submit_button"));
-
-        reject_button.on("click",function (){
-            $('<input>').attr({
-                type: 'hidden',
-                id: 'reject',
-                name: 'reject',
-                value: 'reject',
-
-            }).appendTo('form');
-            $('form').submit();
-        })
-
-        $("#working_group").appendTo('form');
-
-
-
-    })
-</script>
+    <button type="button" class="btn btn-info" id="admin-btn">Back to admin</button>
+    
+    <button type="button" class="btn btn-danger pull-right" id="reject-btn">Reject</button>
+    <button type="submit" class="btn btn-success pull-right" style="">Approve</button>
+</form>
 {% endblock %}

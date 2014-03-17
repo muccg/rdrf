@@ -1,30 +1,35 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_ccg.html" %}
 {% load i18n %}
 
 {% load admin_static %}
 
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
-{% block userlinks %}
-                  {% url 'django-admindocs-docroot' as docsroot %}
-                  {% if docsroot %}
-                    <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
-                   <span class="separator">|</span>
-                  {% endif %}
-                  <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
-                  <span class="separator">|</span>
-                  <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
-                  </span>
-                {% endblock %}
-
-
-
-
-
-
-
- {% block nav-global %}<a href="{% url 'dashboard' %}">Dashboard</a>
-         <span class="separator">|</span>
-<a href="{% url 'import_registry' %}">Import Registry Definition</a>
+    <script>
+        $(document).ready(function() {
+            $('#phenotype-btn').popover({
+                'html': true,
+                'title': 'Available forms',
+                'trigger': 'click',
+                'placement': 'bottom'
+            });
+        })
+    </script>
 {% endblock %}
 
-
+{% block userlinks %}
+    {% url 'django-admindocs-docroot' as docsroot %}
+    {% if docsroot %}
+        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
+        <span class="separator">|</span>
+    {% endif %}
+    <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
+    <span class="separator">|</span>
+        <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
+    </span>
+{% endblock %}
