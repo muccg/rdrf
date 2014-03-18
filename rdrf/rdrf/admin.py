@@ -6,6 +6,8 @@ import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 
 logger = logging.getLogger("registry_log")
@@ -53,19 +55,24 @@ def export_registry_action(modeladmin, request, registry_models_selected):
     from datetime import datetime
     export_time = str(datetime.now())
 
-    def export_registry(registry):
+    def export_registry(registry, request):
         from rdrf.exporter import Exporter
-
-
         exporter = Exporter(registry)
         logger.info("Exporting Registry %s" % registry.name)
         try:
-            yaml_data = exporter.export_yaml()
-            logger.debug("Exported YAML Data for %s:" % registry.name)
-            logger.debug(yaml_data)
+            yaml_data, errors = exporter.export_yaml()
+            if errors:
+                logger.error("Error(s) exporting %s:" % registry.name)
+                for error in errors:
+                    logger.error("Export Error: %s" % error)
+                    messages.error(request, "Error in export of %s: %s" % (registry.name, error))
+                return None
+            else:
+                logger.info("Exported YAML Data for %s OK" % registry.name)
             return yaml_data
         except Exception, ex:
-            logger.error("Failed to export registry %s: %s" % (registry.name, ex))
+            logger.error("export registry action for %s error: %s" % (registry.name, ex))
+            messages.error(request,"Custom Action Failed: %s" % ex)
             return None
 
     registrys = [ r for r in registry_models_selected ]
@@ -73,7 +80,9 @@ def export_registry_action(modeladmin, request, registry_models_selected):
     if len(registrys) == 1:
             registry = registrys[0]
             yaml_export_filename = registry.name + '.yaml'
-            yaml_data = export_registry(registry)
+            yaml_data = export_registry(registry, request)
+            if yaml_data is None:
+                return HttpResponseRedirect("")
 
             myfile = StringIO.StringIO()
             myfile.write(yaml_data)
@@ -87,14 +96,14 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             return response
     else:
         import zipfile
-        yamls = [ export_registry(r) for f in registrys]
         zippedfile = StringIO.StringIO()
         zf = zipfile.ZipFile(zippedfile, mode='w', compression=zipfile.ZIP_DEFLATED)
 
         for registry in registrys:
-            yaml_data = export_registry(registry)
+            yaml_data = export_registry(registry, request)
             if yaml_data is None:
-                yaml_data = "There was an error!"
+                return HttpResponseRedirect("")
+
             zf.writestr(registry.code + '.yaml',yaml_data )
 
         zf.close()
@@ -106,16 +115,6 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         response['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         return response
-
-
-
-
-
-
-
-
-
-
 
 export_registry_action.short_description = "Export"
 

@@ -210,7 +210,7 @@ class FormView(View):
 
 
     def _get_sections(self, form):
-        section_parts = form.sections.split(",")        
+        section_parts = form.get_sections()
         sections = []
         display_names = {}
         for s in section_parts:

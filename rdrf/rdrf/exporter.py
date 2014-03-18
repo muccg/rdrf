@@ -3,10 +3,16 @@ import logging
 import yaml
 import json
 from django.conf import settings
+from django.forms.models import model_to_dict
+
 import datetime
 
 
+
 logger = logging.getLogger("registry_log")
+
+class ExportException(Exception):
+    pass
 
 class ExportFormat:
     JSON = "JSON"
@@ -26,7 +32,7 @@ class Exporter(object):
     def __init__(self, registry_model):
         self.registry = registry_model
 
-    def export_yaml(self, export_type=ExportType.REGISTRY_ONLY):
+    def export_yaml(self, export_type=ExportType.REGISTRY_PLUS_CDES):
         """
         Example output:
         ----------------------------------------------------------------------
@@ -62,10 +68,47 @@ class Exporter(object):
 
         :return: a yaml file containing the definition of a registry
         """
-        return self._export(ExportFormat.YAML, export_type)
+        try:
+            export = self._export(ExportFormat.YAML, export_type)
+            return export, []
+        except Exception, ex:
+            return None, [ex]
+
+
 
     def export_json(self):
         return self._export(ExportFormat.JSON)
+
+    def _get_cdes(self, export_type):
+        if export_type == ExportType.REGISTRY_ONLY:
+            cdes = set([])
+        elif export_type in [ ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+            cdes = set([ cde for cde in self._get_cdes_in_registry(self.registry) ])
+        elif export_type in [ ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
+            cdes = set([ cde for cde in CommonDataElement.objects.all() ])
+        else:
+            raise ExportException("Unknown export type")
+        return cdes
+
+
+    def _get_pvgs_in_registry(self, registry):
+        pvgs = set([])
+
+        for cde in self._get_cdes_in_registry(registry):
+            if cde.pv_group:
+                pvgs.add(cde.pv_group)
+        return pvgs
+
+    def _get_pvgs(self, export_type):
+        if export_type == ExportType.REGISTRY_ONLY:
+            pvgs = set([])
+        elif export_type in [ ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+            pvgs = set([ pvg for pvg in  self._get_pvgs_in_registry(self.registry) ])
+        elif export_type in [ ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
+            pvgs = set([ pvg for pvg  in CDEPermittedValueGroup.objects.all() ])
+        else:
+            raise ExportException("Unknown export type")
+        return pvgs
 
     def _export(self,format, export_type):
         data = {}
@@ -73,9 +116,9 @@ class Exporter(object):
         data["RDRF_VERSION"] = settings.VERSION  # TODO modify version.py to update this too
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
+        data["cdes"] = [ model_to_dict(cde) for cde in self._get_cdes(export_type) ]
+        data["pvgs"] = [ pvg.as_dict() for pvg in self._get_pvgs(export_type) ]
 
-        if export_type != ExportType.REGISTRY_ONLY:
-            data["cdes"] = self._get_cdes_in_registry(self.registry)
 
         if export_type in [ ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
@@ -100,7 +143,14 @@ class Exporter(object):
                 data["forms"].append(frm_map)
 
         if format == ExportFormat.YAML:
-            export_data = yaml.dump(data)
+            logger.debug("About to yaml dump the export: data = %s" % data)
+            try:
+                export_data = yaml.dump(data)
+            except Exception,ex:
+                import pdb
+                pdb.set_trace()
+                logger.error("Error yaml dumping: %s" % ex)
+                export_data = None
         elif format == ExportFormat.JSON:
             export_data = json.dumps(data)
         elif format is None:
@@ -112,7 +162,6 @@ class Exporter(object):
         logger.debug("Format = %s" % format)
         logger.debug("Export Data:")
         logger.debug("%s" % export_data)
-
         return export_data
 
     def export_cdes_yaml(self, all_cdes=False):
