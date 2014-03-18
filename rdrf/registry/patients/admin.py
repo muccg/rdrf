@@ -68,10 +68,15 @@ class PatientAdmin(admin.ModelAdmin):
 
 
     def phenotype_btn(self, obj):
+        if obj.rdrf_registry.count() == 0:
+            return "No registry assigned"
+        
         rdrf_id = self.request.GET.get('rdrf_registry__id__exact')
         
-        if not rdrf_id:
+        if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
+        else:
+            rdrf_id = Registry.objects.all()[0].id
         
         rdrf = Registry.objects.get(pk=rdrf_id)
         forms = RegistryForm.objects.filter(registry=rdrf)
