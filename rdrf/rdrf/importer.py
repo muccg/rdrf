@@ -175,9 +175,73 @@ class Importer(object):
             self.state = ImportState.UNSOUND
             self.errors.append("Unsound: The following cde codes do not exist: %s" % missing_codes)
         else:
+            registry = Registry.objects.get(code=self.data["code"])
+            # Perform some double checking on the imported registry's structure
+            self._check_forms(registry)
+            self._check_sections(registry)
+            self._check_cdes(registry)
+
             self.state = ImportState.SOUND
 
+    def _check_forms(self, imported_registry):
+        # double check the import_registry model instance we've created against the original yaml data
+        form_codes_in_db = set([ frm.name for frm in RegistryForm.objects.filter(registry=imported_registry)])
+        form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
+        if form_codes_in_db != form_codes_in_yaml:
+            msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
+            raise RegistryImportError("Imported registry has different forms to yaml file: %s" % msg)
 
+    def _check_sections(self, imported_registry):
+        for form in RegistryForm.objects.filter(registry=imported_registry):
+            sections_in_db = set(form.get_sections())
+            for section_code in sections_in_db:
+                try:
+                    section = Section.objects.get(code=section_code)
+                except Section.DoesNotExist:
+                    raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
+
+            yaml_sections = set([])
+            for yaml_form_map in self.data["forms"]:
+                if yaml_form_map["name"] == form.name:
+                    for section_map in yaml_form_map["sections"]:
+                        yaml_sections.add(section_map["code"])
+
+            if sections_in_db != yaml_sections:
+                msg = "sections in imported reg: %s\nsections in yaml: %s" % (sections_in_db, yaml_sections)
+                raise RegistryImportError("Imported registry has different sections for form %s: %s" % (form.name, msg))
+
+
+    def _check_cdes(self, imported_registry):
+        for form in RegistryForm.objects.filter(registry=imported_registry):
+            for section_code in form.get_sections():
+                try:
+                    section = Section.objects.get(code=section_code)
+                    section_cdes = section.get_elements()
+                    imported_section_cdes = set([])
+                    for section_cde_code in section_cdes:
+                        try:
+                            cde_model = CommonDataElement.objects.get(code=section_cde_code)
+                            imported_section_cdes.add(cde_model.code)
+                        except CommonDataElement.DoesNotExist:
+                            raise RegistryImportError("CDE %s.%s does not exist" % (form.name, section_code, section_cde_code))
+
+                    yaml_section_cdes = set([])
+                    for form_map in self.data["forms"]:
+                        if form_map["name"] == form.name:
+                            for section_map in form_map["sections"]:
+                                if section_map["code"] == section.code:
+                                    elements = section_map["elements"]
+                                    for cde_code in elements:
+                                        yaml_section_cdes.add(cde_code)
+                    if yaml_section_cdes != imported_section_cdes:
+                        db_msg = "in DB %s.%s has cdes %s" % (form.name, section.code, imported_section_cdes)
+                        yaml_msg = "in YAML %s.%s has cdes %s" % (form.name, section.code, yaml_section_cdes)
+                        msg = "%s\n%s" % (db_msg, yaml_msg)
+
+                        raise RegistryImportError("CDE codes on imported registry do not match those specified in data file: %s" % msg)
+
+                except Section.DoesNotExist:
+                    raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
 
     def _create_groups(self, permissible_value_group_maps):
         for pvg_map in permissible_value_group_maps:
@@ -266,6 +330,8 @@ class Importer(object):
         if created:
             logger.debug("creating registry with code %s from import of %s" % (self.data["code"], self.yaml_data_file))
 
+        original_forms = set([ f.name for f in RegistryForm.objects.filter(registry=r)])
+        imported_forms = set([])
         r.code = self.data["code"]
         r.name = self.data["name"]
 
@@ -280,6 +346,7 @@ class Importer(object):
             f.registry = r
             f.sections = ",".join([ section_map["code"] for section_map in frm_map["sections"]])
             f.save()
+            imported_forms.add(f.name)
 
             for section_map in frm_map["sections"]:
                 s, created = Section.objects.get_or_create(code=section_map["code"])
@@ -289,6 +356,20 @@ class Importer(object):
                 s.allow_multiple = section_map["allow_multiple"]
                 s.extra = section_map["extra"]
                 s.save()
+
+        extra_forms = original_forms - imported_forms
+        # if there are extra forms in the original set, we delete them
+        for form_name in extra_forms:
+            try:
+                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
+                assert form_name not in imported_forms
+                logger.info("deleting extra form not present in import file: %s" % form_name)
+                extra_form.delete()
+            except RegistryForm.DoesNotExist:
+                # shouldn't happen but if so just continue
+                pass
+
+
 
 
 
