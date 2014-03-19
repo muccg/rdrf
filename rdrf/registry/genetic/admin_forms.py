@@ -71,17 +71,6 @@ class MolecularDataForm(forms.ModelForm):
         model = MolecularData
 
 
-class MolecularDataSmaForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(MolecularDataSmaForm, self).__init__(*args, **kwargs)
-        # make the patient field static if not a new molecular data record
-        if "instance" in kwargs:
-            self.fields["patient"] = forms.ModelChoiceField(Patient.objects.all(), widget=StaticWidget(text=unicode(kwargs["instance"])))
-
-    class Meta:
-        model = MolecularDataSma
-
-
 class VariationForm(forms.ModelForm):
     gene = GeneChoiceField(queryset=Gene.objects.all(), label="Gene", widget=LiveComboWidget(backend=reverse_lazy("admin:gene_search", args=("",))))
     exon = forms.CharField(label="Exon", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_exon"), attrs={"minchars": "0"}))
