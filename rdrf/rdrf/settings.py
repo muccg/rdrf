@@ -47,10 +47,11 @@ TEMPLATE_DIRS = (
     os.path.join(WEBAPP_ROOT,'rdrf', 'templates'),
 )
 
-MESSAGE_TAGS = {message_constants.ERROR: 'alert alert-error',
-                message_constants.SUCCESS:  'alert alert-success',
-                message_constants.INFO:  'alert alert-info'}
-
+MESSAGE_TAGS = {
+    message_constants.ERROR: 'alert alert-danger',
+    message_constants.SUCCESS: 'alert alert-success',
+    message_constants.INFO: 'alert alert-info'
+}
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
