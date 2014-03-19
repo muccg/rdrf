@@ -48,7 +48,7 @@ class CDEPermittedValueGroup(models.Model):
             value_dict["code"] = value.code
             value_dict["value"] = value.value
             value_dict["desc"] = value.desc
-        d["values"].append(value_dict)
+            d["values"].append(value_dict)
         return d
 
     def __unicode__(self):
