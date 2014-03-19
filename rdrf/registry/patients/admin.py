@@ -75,8 +75,7 @@ class PatientAdmin(admin.ModelAdmin):
         
         if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
-        else:
-            rdrf_id = Registry.objects.all()[0].id
+
         
         rdrf = Registry.objects.get(pk=rdrf_id)
         forms = RegistryForm.objects.filter(registry=rdrf)
