@@ -10,6 +10,8 @@ from registry.groups.models import WorkingGroup
 from registry.patients.models import State, Country
 from datetime import datetime
 from pymongo import MongoClient
+from django.forms.models import model_to_dict
+import yaml
 
 from django.conf import settings
 import os
@@ -52,7 +54,22 @@ class RDRFTestCase(TestCase):
 
 class ExporterTestCase(RDRFTestCase):
 
-    def test_export_registry_only(self):
+    def _get_cde_codes_from_registry_export_data(self, data):
+        cde_codes = set([])
+        for form_map in data["forms"]:
+            for section_map in form_map["sections"]:
+                for cde_code in section_map["elements"]:
+                    cde_codes.add(cde_code)
+        return cde_codes
+
+    def _report_cde_diff(self, cde_set, cdeform_set):
+        in_cdes_not_forms = cde_set - cdeform_set
+        in_forms_not_cdes = cdeform_set - cde_set
+        a = "cdes in cde list but not in registry: %s" % in_cdes_not_forms
+        b = "cdes in forms but not in cde list: %s" % in_forms_not_cdes
+        return "%s\n%s" % (a, b)
+
+    def test_export_registry(self):
 
         def test_key(key, data):
             assert key in data, "%s not in yaml export" % key
@@ -63,8 +80,10 @@ class ExporterTestCase(RDRFTestCase):
 
         self.registry = Registry.objects.get(code='fh')
         self.exporter = Exporter(self.registry)
-        yaml_data = self.exporter.export_yaml()
-        import yaml
+        yaml_data, errors = self.exporter.export_yaml()
+        assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
+        assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
+        assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
         with open("/tmp/test.yaml","w") as f:
             f.write(yaml_data)
 
@@ -74,8 +93,9 @@ class ExporterTestCase(RDRFTestCase):
 
         test_key('EXPORT_TYPE', data)
         test_key('RDRF_VERSION',data)
-        assert data["EXPORT_TYPE"] == ExportType.REGISTRY_ONLY
-        assert 'cdes' not  in data, "Registry only export shouldn't have cdes key"
+        assert data["EXPORT_TYPE"] == ExportType.REGISTRY_PLUS_CDES
+        assert 'cdes' in data, "Registry export should have cdes key"
+        assert 'pvgs' in data, "Registry export should have groups key"
         assert data['code'] == 'fh',"Reg code fh not in export"
         test_key('forms', data)
         for form_map in data['forms']:
@@ -83,6 +103,27 @@ class ExporterTestCase(RDRFTestCase):
             for section_map in form_map['sections']:
                 test_keys(['code','display_name','elements','allow_multiple','extra'], section_map)
 
+        from rdrf.models import CommonDataElement
+        dummy_cde = CommonDataElement.objects.create()
+        cde_fields = model_to_dict(dummy_cde).keys()
+        for cde_map in data['cdes']:
+            assert isinstance(cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
+            for cde_field in cde_fields:
+                assert cde_map.has_key(cde_field), "Expected export of cde to contain field %s - it doesn't" % cde_field
+
+        for pvg_map in data["pvgs"]:
+            assert pvg_map.has_key("code"), "Expected group has code key: %s" % pvg_map
+            assert pvg_map.has_key("values"), "Expected group has values key: %s" % pvg_map
+            for value_map in pvg_map["values"]:
+                assert value_map.has_key("code"), "Expected value map to have code key %s" % value_map
+                assert value_map.has_key("value"), "Expected value map to have value key %s" % value_map
+                assert value_map.has_key("desc"), "Expected value map to have desc key %s" % value_map
+
+        # consistency check
+
+        set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
+        set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
+        assert set__of_cdes_in_forms == set_of_cde_codes_in_cdes, "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
 
 
 class ImporterTestCase(RDRFTestCase):
@@ -94,6 +135,7 @@ class ImporterTestCase(RDRFTestCase):
         # first delete the FH registry
         fh_reg = Registry.objects.get(code='fh')
         fh_reg.delete()
+
         importer = Importer()
         yaml_file = self._get_yaml_file()
 
