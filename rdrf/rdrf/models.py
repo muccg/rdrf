@@ -170,3 +170,4 @@ def appears_in(cde,registry,registry_form,section):
         return False
     else:
         return cde.code in section.get_elements()
+

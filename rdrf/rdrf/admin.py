@@ -195,16 +195,5 @@ admin.site.register(CommonDataElement, create_restricted_model_admin_class(Commo
 admin.site.register(RegistryForm, RegistryFormAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(Section, SectionAdmin)
-
 admin.site.register(Registry, RegistryAdmin)
-
-logger.debug("%s" % dir(admin.site))
-
-for attr in dir(admin.site):
-    try:
-        value = getattr(admin.site, attr)
-        if not callable(value):
-            logger.debug("site %s = %s" % (attr, value))
-    except:
-        pass
 

@@ -1,10 +1,27 @@
 import logging
 from models import *
+from registry.patients.models import Patient, PatientRegistry
 import yaml
 from django.core.exceptions import MultipleObjectsReturned
 
 
 logger = logging.getLogger("registry_log")
+
+def _registries_using_cde(cde_code):
+    registries = set([])
+    for r in Registry.objects.all():
+        for form in RegistryForm.objects.filter(registry=r):
+            for section_code in form.get_sections():
+                try:
+                    section = Section.objects.get(code=section_code)
+                except Section.DoesNotExist:
+                    pass
+
+                for cde_code_in_section in section.get_elements():
+                    if cde_code == cde_code_in_section:
+                        registries.add(r.code)
+
+    return [ code for code in registries]
 
 class RegistryImportError(Exception):
     pass
@@ -16,6 +33,9 @@ class DefinitionFileUnsound(RegistryImportError):
     pass
 
 class DefinitionFileInvalid(RegistryImportError):
+    pass
+
+class ConsistencyError(RegistryImportError):
     pass
 
 class ImportState:
@@ -37,6 +57,8 @@ class Importer(object):
         self.delete_existing_registry = False
         self.check_validity = True
         self.check_soundness = True
+        self.patients = [] # if patients are assigned to the registry we're importing over
+                           # we maintain them even if we delete the old registry
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
@@ -68,7 +90,7 @@ class Importer(object):
         else:
             self.state = ImportState.VALID
 
-        # start transaction ..
+        self._get_patients()
 
         if self.delete_existing_registry:
             self._delete_existing_registry()
@@ -78,15 +100,16 @@ class Importer(object):
         if self.check_soundness:
             self._check_soundness()
             if self.state == ImportState.UNSOUND:
-                # rollback ...
                 raise DefinitionFileUnsound("Definition File refers to CDEs that don't exist: %s" % self.errors)
 
         else:
             self.state = ImportState.SOUND
 
+
         if self.state == ImportState.SOUND:
-            #commit
-            pass
+            for patient in self.patients:
+                pr, created = PatientRegistry.objects.get_or_create(rdrf_registry=Registry.objects.get(code=self.data["code"]),patient=patient)
+                pr.save()
 
             self.state = ImportState.IMPORTED
 
@@ -94,6 +117,18 @@ class Importer(object):
             logger.error("Imported Registry is not sound and will be rolled back: %s" % self.errors)
             #rollback
             pass
+
+    def _get_patients(self):
+        try:
+            registry = Registry.objects.get(code=self.data["code"])
+            for patient_registry in PatientRegistry.objects.filter(rdrf_registry=registry):
+                logger.debug("adding patient %s to internal list" % patient_registry.patient)
+                self.patients.append(patient_registry.patient)
+        except Registry.DoesNotExist:
+            self.patients = []
+
+
+
 
     def _validate(self):
         ve = []
@@ -105,6 +140,12 @@ class Importer(object):
 
         if "forms" not in self.data:
             ve.append("invalid: 'forms' list missing")
+
+        if "cdes" not in self.data:
+            ve.append("invalid: 'cdes' list missing")
+
+        if "pvgs" not in self.data:
+            ve.append("invalid: 'pvgs' list missing")
 
         if ve:
             self.state = ImportState.INVALID
@@ -137,7 +178,89 @@ class Importer(object):
             self.state = ImportState.SOUND
 
 
+
+    def _create_groups(self, permissible_value_group_maps):
+        for pvg_map in permissible_value_group_maps:
+            pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
+            pvg.save()
+            logger.info("imported permissible value group %s" % pvg)
+            if not created:
+                logger.warning("Import is updating an existing group %s" % pvg.code)
+                existing_values = [ pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg) ]
+                existing_value_codes = set([ pv.code for pv in existing_values])
+                import_value_codes = set([v["code"] for v in pvg_map["values"]])
+                import_extra = import_value_codes - existing_value_codes
+                import_missing = existing_value_codes - import_value_codes
+                # ensure applied import "wins" - this potentially could affect other
+                # registries though
+                # but if value sets are inconsistent we can't help it
+
+                for value_code in import_missing:
+                    value = CDEPermittedValue.objects.get(code=value_code)
+                    logger.warning("deleting value %s.%s as it is not in import!" % (pvg.code, value.code))
+                    value.delete()
+
+            for value_map in pvg_map["values"]:
+                    value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"],pv_group=pvg)
+                    if not created:
+                        if value.value != value_map["value"]:
+                            logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code,value.code, value.value))
+                            logger.warning("Import value code %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["value"]))
+
+                        if value.desc != value_map["desc"]:
+                            logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code,value.code, value.desc))
+                            logger.warning("Import value desc %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["desc"]))
+
+                    # update the value ...
+                    value.value = value_map["value"]
+                    value.desc = value_map["desc"]
+                    value.save()
+                    logger.info("imported value %s" % value)
+
+    def _create_cdes(self, cde_maps):
+        for cde_map in cde_maps:
+            logger.debug("importing cde_map %s" % cde_map)
+            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
+
+            logger.debug("max_value = %s" % cde_model.max_value)
+            if not created:
+                logger.warning("Import is modifying existing CDE %s" % cde_model)
+                logger.warning("This cde is used by the following registries: %s" % _registries_using_cde(cde_model))
+
+            for field in cde_map:
+                if field not in ["code", "pv_group"]:
+                    import_value = cde_map[field]
+                    if not created:
+                        old_value = getattr(cde_model, field)
+                        if old_value != import_value:
+                            logger.warning("import will change cde %s: import value = %s new value = %s" % (cde_model.code, old_value, import_value))
+
+
+                    setattr(cde_model, field, cde_map[field])
+                    logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
+
+            #Assign value group - pv_group will be empty string is not a range
+
+            if cde_map["pv_group"]:
+                try:
+                    pvg = CDEPermittedValueGroup.objects.get(code=cde_map["pv_group"])
+                    if not created:
+                        if cde_model.pv_group != pvg:
+                             logger.warning("import will change cde %s: old group = %s new group = %s" % (cde_model.code,cde_model.pv_group, pvg ))
+
+                    cde_model.pv_group = pvg
+                except CDEPermittedValueGroup.DoesNotExist,ex:
+                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" % (cde_map["pv_group"], cde_model.code, ex))
+
+            cde_model.save()
+            logger.info("updated cde %s" % cde_model)
+
+
     def _create_registry_objects(self):
+
+        self._create_groups(self.data["pvgs"])
+        self._create_cdes(self.data["cdes"])
+
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
         if created:

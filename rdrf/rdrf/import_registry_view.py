@@ -48,7 +48,7 @@ class ImportRegistryView(View):
                 importer.create_registry()
 
         except Exception, ex:
-             return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
+            return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
 
         return HttpResponseRedirect(reverse('import_registry') + "?state=success")
 

@@ -136,25 +136,24 @@ class ImporterTestCase(RDRFTestCase):
         fh_reg = Registry.objects.get(code='fh')
         fh_reg.delete()
 
+        # delete cdes
+        for cde in CommonDataElement.objects.all():
+            cde.delete()
+        # delete permissible value groups
+        for pvg in CDEPermittedValueGroup.objects.all():
+            pvg.delete()
+
+        # delete permissible values
+        for value in CDEPermittedValue.objects.all():
+            value.delete()
+
+
         importer = Importer()
         yaml_file = self._get_yaml_file()
 
         importer.load_yaml(yaml_file)
         importer.create_registry()
         assert importer.state == ImportState.IMPORTED
-
-    def test_soundness(self):
-        # delete CDEHeight whis used in FH and soundness check fails
-
-        cde_height = CommonDataElement.objects.get(code='CDEHeight')
-        cde_height.delete()
-
-        importer = Importer()
-        importer.check_soundness = True
-
-        importer.load_yaml(self._get_yaml_file())
-
-        self.assertRaises(RegistryImportError,importer.create_registry)
 
 
 class FormTestCase(RDRFTestCase):

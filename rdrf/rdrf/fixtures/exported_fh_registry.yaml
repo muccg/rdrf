@@ -1,6 +1,271 @@
-EXPORT_TIME: '2014-02-11 14:16:53.754732'
-EXPORT_TYPE: REGISTRY_ONLY
+EXPORT_TIME: '2014-03-19 10:52:27.790720'
+EXPORT_TYPE: REGISTRY_PLUS_CDES
 RDRF_VERSION: '0.4'
+cdes:
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhOtherIntolerantDrug',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode 'If
+    other, enter drug/s name/s here.', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: !!python/unicode 'Other (free text)', pattern: !!python/unicode '',
+  pv_group: null, questionnaire_text: !!python/unicode '', widget_name: !!python/unicode 'Textarea'}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEIndexOrRelative',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Index
+    or Relative', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-FH-IndexOrRelative',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: true, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhApplicableStatins',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'If
+    yes please choose the statin/s applicable', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVGfhStatinDrugs',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEWeight',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode 'Weight
+    in kilograms', is_required: false, max_length: null, max_value: null, min_value: 0,
+  name: !!python/unicode 'Weight', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00027',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Relationship
+    to Index', pattern: !!python/unicode '', pv_group: !!python/unicode 'fh_relatives',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhHistoryDrugIntolerance',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'History
+    of Drug Intolerance', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEHospitalRecordNumber',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Hospital
+    Record Number', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEHeight',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode 'Height
+    in meters', is_required: false, max_length: null, max_value: null, min_value: 0,
+  name: !!python/unicode 'Height', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode 'Please
+    enter height in meters', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode "var height = context.CDEHeight;\r\
+    \nvar weight = context.CDEWeight;\r\n\r\ncontext.result = weight / (height * height);",
+  code: !!python/unicode 'CDEBMI', datatype: !!python/unicode 'calculated', desc: !!python/unicode '',
+  instructions: !!python/unicode '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: !!python/unicode 'BMI', pattern: !!python/unicode '', pv_group: null,
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEAgeDiagnosisFH',
+  datatype: !!python/unicode 'integer', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Age
+    at Diagnosis of FH', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00028',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode 'Enter
+    degree of relation', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: !!python/unicode 'Degree of relation', pattern: !!python/unicode '', pv_group: !!python/unicode 'fh_degree_of_relation',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00029',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'FH
+    Phenotype', pattern: !!python/unicode '', pv_group: !!python/unicode 'fh_yes_no',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00008',
+  datatype: !!python/unicode 'Integer', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Systolic
+    Blood Pressure', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00009',
+  datatype: !!python/unicode 'Integer', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Diastolic
+    Blood Pressure', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00020',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Triglyceride
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00021',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'HDL-cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00004',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Family
+    History of Premature CVD (Men <55, Women <60)', pattern: !!python/unicode '',
+  pv_group: !!python/unicode 'PVG-FH_FAMILY_YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00005',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Smoking',
+  pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00002',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Arcus
+    cornealis prior to age 45 years', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00003',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Family
+    History of Hypercholesterolaemia', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-FH_FAMILY_YES_NO_UNKNOWN',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00026',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode 'Index
+    or relative', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: !!python/unicode 'Index or Relative', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-FH-IndexOrRelative',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00001',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Tendinous
+    xanthomata', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhOtherApplicableStatin',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Other
+    statin(s)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode 'Textarea'}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhDrugsOtherDrug',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Other
+    (free text)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode 'Textarea'}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'FHMutationDescription',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Mutation
+    Description', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode 'Textarea'}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00006',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Hypertension',
+  pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDETodaysDate',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode 'DD/MM/YYYY',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Today''s
+    Date', pattern: !!python/unicode '^\d\d\/\d\d\/\d\d\d\d$', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00007',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Diabetes',
+  pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: true, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhDrugs',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode 'Choose
+    from list or select Other and enter text', is_required: false, max_length: null,
+  max_value: null, min_value: null, name: !!python/unicode 'If yes please choose drug/s
+    applicable', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVGfhDrugs',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00022',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Lp(a)
+    concentration (nmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEMutationType',
+  datatype: !!python/unicode 'range', desc: !!python/unicode 'OPHG', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Mutation
+    Type', pattern: !!python/unicode '', pv_group: !!python/unicode 'MutationType',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'FHMutation',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Mutation',
+  pattern: !!python/unicode '', pv_group: !!python/unicode 'FHMutation', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode "var score = 0;\r\n\r\nif(context.CDE00003.indexOf(\"\
+    y\") !== -1){\r\n  score += 1;\r\n}\r\n\r\nif(context.CDE00004.indexOf(\"y\")\
+    \ !== -1){\r\n  score += 1;\r\n}\r\n\r\nif(context.CDE00001.indexOf(\"y\") !==\
+    \ -1){\r\n  score += 6;\r\n}\r\n\r\nif(context.CDE00002.indexOf(\"y\") !== -1){\r\
+    \n  score += 4;\r\n}\r\n\r\nif(context.CDE00011.indexOf(\"y\") !== -1){\r\n  score\
+    \ += 2;\r\n}\r\n\r\nif(context.CDE00025.indexOf(\"y\") !== -1){\r\n  score +=\
+    \ 8;\r\n}\r\n\r\nif(context.CDE00013 < 4.0) {\r\n   score += 0;\r\n} else if(context.CDE00013\
+    \ >= 4.0 && context.CDE00013 <= 4.9) {\r\n   score += 1;\r\n} else if(context.CDE00013\
+    \ >= 5.0 && context.CDE00013 <= 6.4) {\r\n   score += 3;\r\n} else if(context.CDE00013\
+    \ >= 6.5 && context.CDE00013 <= 8.4) {\r\n   score += 5;\r\n} else if(context.CDE00013\
+    \ >= 8.5) {\r\n   score += 8;\r\n}\r\n\r\nif( score >= 0 && score <=2) {\r\n \
+    \ context.result = 'Unlikely';\r\n} else if(score >= 3 && score <=5)  {\r\n  context.result\
+    \ = 'Possible';\r\n} else if(score >= 6 && score <8)  {\r\n  context.result =\
+    \ 'Probable';\r\n} else if(score >= 8)  {\r\n  context.result = 'Definite';\r\n\
+    }\r\n\r\ncontext.result += ' (' + score + ')'", code: !!python/unicode 'CDE00024',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'FH
+    Diagnostic Categories', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: true, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhIntolerantDrugs',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'If
+    yes please choose drug/s applicable', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVGfhDrugs',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEfhHistoryStatinMyopathy',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'History
+    of Statin Myopathy', pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00025',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Has
+    this patient had a genetic variant for FH detected?', pattern: !!python/unicode '',
+  pv_group: !!python/unicode 'PVG-FH_GENETIC_VARIANT', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00011',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Personal
+    History of Premature CVD (Men <55, Women <60)', pattern: !!python/unicode '',
+  pv_group: !!python/unicode 'PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00010',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Blood
+    glucose concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null,
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00013',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'LDL-cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00012',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00015',
+  datatype: !!python/unicode 'Number', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'HDL-cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00014',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Triglyceride
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00017',
+  datatype: !!python/unicode 'String', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Is
+    patient on medication now?', pattern: !!python/unicode '', pv_group: !!python/unicode 'fh_yes_no',
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00016',
+  datatype: !!python/unicode 'Number', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Lp(a)
+    concentration (nmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDEPathogenicity',
+  datatype: !!python/unicode 'range', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Pathogenicity',
+  pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00018',
+  datatype: !!python/unicode 'Ineger', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'FHGeneticTestDate',
+  datatype: !!python/unicode 'date', desc: !!python/unicode '', instructions: !!python/unicode 'Indicate
+    when test performed', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: !!python/unicode 'Genetic Test Date', pattern: !!python/unicode '', pv_group: null,
+  questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00030',
+  datatype: !!python/unicode 'string', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Country
+    of Origin', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
+- {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00019',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
+  is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'LDL-cholesterol
+    concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
+  widget_name: !!python/unicode ''}
 code: !!python/unicode 'fh'
 forms:
 - is_questionnaire: false
@@ -76,14 +341,61 @@ forms:
 - is_questionnaire: false
   name: !!python/unicode 'Genetic Typing Form'
   sections:
+  - allow_multiple: false
+    code: !!python/unicode 'FHMutationOverview'
+    display_name: !!python/unicode 'Mutation Overview'
+    elements: [!!python/unicode 'FHGeneticTestDate', !!python/unicode 'CDEMutationType']
+    extra: null
   - allow_multiple: true
-    code: !!python/unicode 'SEC0010'
+    code: !!python/unicode 'FHMutationDetails'
     display_name: !!python/unicode 'Mutations'
-    elements: [!!python/unicode 'CDE00031', !!python/unicode 'CDE00032', !!python/unicode 'CDE00033',
-      !!python/unicode 'CDE00034', !!python/unicode 'CDE00035', !!python/unicode 'CDE00036',
-      !!python/unicode 'CDE00037']
-    extra: 0
+    elements: [!!python/unicode 'FHMutation', !!python/unicode 'FHMutationDescription',
+      !!python/unicode 'CDEPathogenicity']
+    extra: 1
 name: !!python/unicode 'FH Registry'
+pvgs:
+- code: !!python/unicode 'PVG-FH_GENETIC_VARIANT'
+  values:
+  - {code: !!python/unicode 'gen_yes', desc: !!python/unicode 'Yes - Exact Mutation',
+    value: !!python/unicode 'Yes - Exact Mutation'}
+- code: !!python/unicode 'fh_relatives'
+  values:
+  - {code: !!python/unicode 'fh_relative_unknown', desc: !!python/unicode 'Unknown',
+    value: !!python/unicode 'Unknown'}
+- code: !!python/unicode 'FHMutation'
+  values:
+  - {code: !!python/unicode 'FHMutationPCSK9', desc: !!python/unicode 'PCSK9', value: !!python/unicode 'PCSK9'}
+- code: !!python/unicode 'fh_yes_no'
+  values:
+  - {code: !!python/unicode 'fh_yes_no_yes', desc: !!python/unicode 'Yes', value: !!python/unicode 'Yes'}
+- code: !!python/unicode 'PVG-YES_NO_UNKNOWN'
+  values:
+  - {code: !!python/unicode 'y', desc: !!python/unicode 'Yes', value: !!python/unicode 'Yes'}
+- code: !!python/unicode 'PVG-FH_FAMILY_YES_NO_UNKNOWN'
+  values:
+  - {code: !!python/unicode 'y_s', desc: !!python/unicode 'Yes - Sibling', value: !!python/unicode 'Yes
+      - Sibling'}
+- code: !!python/unicode 'PVGfhDrugs'
+  values:
+  - {code: !!python/unicode 'PVfhDrugsStatin', desc: !!python/unicode 'Statin', value: !!python/unicode 'Statin'}
+- code: !!python/unicode 'PVGfhStatinDrugs'
+  values:
+  - {code: !!python/unicode 'PVfhSimvastatin', desc: !!python/unicode 'Simvastatin',
+    value: !!python/unicode 'Simvastatin'}
+- code: !!python/unicode 'MutationType'
+  values:
+  - {code: !!python/unicode 'MTCompoundHeterozygous', desc: !!python/unicode 'Compound
+      Heterozygous', value: !!python/unicode 'Compound Heterozygous'}
+- code: !!python/unicode 'PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN'
+  values:
+  - {code: !!python/unicode 'y_subclinical', desc: !!python/unicode 'Yes - Subclinical
+      Event', value: !!python/unicode 'Yes - Subclinical Event'}
+- code: !!python/unicode 'PVG-FH-IndexOrRelative'
+  values:
+  - {code: !!python/unicode 'fh_is_relative', desc: !!python/unicode 'relative', value: !!python/unicode 'relative'}
+- code: !!python/unicode 'fh_degree_of_relation'
+  values:
+  - {code: !!python/unicode 'fh_deg_rel_third', desc: !!python/unicode 'Third', value: !!python/unicode 'Third'}
 splash_screen: !!python/unicode "<div id=\"header-container\" style=\"position: absolute;\
   \ background-color: #194c9d; color: white; height: 4em; top: 0px; left: 0px; right:\
   \ 0px; font-family: sans-serif; font-size: medium;\">\r\n<h1 style=\"font-family:\
