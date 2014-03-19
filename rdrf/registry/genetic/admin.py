@@ -31,11 +31,11 @@ class GeneAdmin(admin.ModelAdmin):
         return HttpResponse(json.dumps(response), mimetype="application/json")
 
 
-class VariationInline(admin.TabularInline):
+class VariationInline(admin.StackedInline):
     model = Variation
     form = VariationForm
     raw_id_fields = ("gene",)
-    extra = 1
+    extra = 0
     max_num = 100
     exclude = (
         "exon_validation_override",
@@ -46,24 +46,6 @@ class VariationInline(admin.TabularInline):
     formfield_overrides = {
         models.TextField: {"widget": django.forms.TextInput},
     }
-
-
-class VariationSmaInline(admin.TabularInline):
-    model = VariationSma
-    form = VariationSmaForm
-    raw_id_fields = ("gene",)
-    extra = 1
-    max_num = 100
-    formfield_overrides = {
-        models.TextField: {"widget": django.forms.TextInput},
-    }
-
-
-class MolecularDataSmaAdmin(admin.ModelAdmin):
-    form = MolecularDataSmaForm
-    inlines = [
-        VariationSmaInline,
-    ]
 
 
 class MolecularDataAdmin(admin.ModelAdmin):
@@ -210,18 +192,7 @@ class LaboratoryAdmin(admin.ModelAdmin):
 
         return HttpResponse(json.dumps(response), mimetype="application/json")
 
-if settings.INSTALL_NAME == "dm1":
-    # TODO remove this from the core registry
-    from dm1.dm1.admin import VariationDm1Admin
 
-    MolecularDataAdmin.inlines = [
-        VariationDm1Admin
-    ]
-
-
-if settings.INSTALL_NAME == 'sma':
-    admin.site.register(MolecularDataSma, MolecularDataSmaAdmin)
-else:
-    admin.site.register(MolecularData, MolecularDataAdmin)
+admin.site.register(MolecularData, MolecularDataAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Laboratory, LaboratoryAdmin)
