@@ -45,10 +45,6 @@ class FormFiller(object):
             return section_filler
 
 
-
-
-
-
 class RDRFTestCase(TestCase):
     fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
 
@@ -119,11 +115,31 @@ class ExporterTestCase(RDRFTestCase):
                 assert value_map.has_key("value"), "Expected value map to have value key %s" % value_map
                 assert value_map.has_key("desc"), "Expected value map to have desc key %s" % value_map
 
+
+
         # consistency check
 
         set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
         set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
         assert set__of_cdes_in_forms == set_of_cde_codes_in_cdes, "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+
+        # consistency of values in groups - whats exported is whats there
+
+        for pvg_map in data["pvgs"]:
+            values_in_export = set([])
+            for value_map in pvg_map["values"]:
+                values_in_export.add(value_map["code"])
+
+            values_in_db = self._get_values_for_group(pvg_map["code"])
+            msg = "%s:export %s\ndb: %s" % (pvg_map["code"], values_in_export, values_in_db)
+            assert values_in_export == values_in_db, "Values in export for group %s don't match what's in db: %s" % msg
+
+    def _get_values_for_group(self, group_code):
+        values = set([])
+        group = CDEPermittedValueGroup.objects.get(code=group_code)
+        for value in CDEPermittedValue.objects.filter(pv_group=group):
+            values.add(value.code)
+        return values
 
 
 class ImporterTestCase(RDRFTestCase):
