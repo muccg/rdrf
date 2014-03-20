@@ -77,13 +77,7 @@ class VariationForm(forms.ModelForm):
     protein_variation = forms.CharField(label="Protein variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_protein")))
     dna_variation = forms.CharField(label="DNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence"), popup=get_script_prefix()+'genetic/variation/'))
     rna_variation = forms.CharField(label="RNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence"), popup=get_script_prefix()+'genetic/variation/'))
-    technique = forms.CharField(label="Technique", widget=ComboWidget(options=["MLPA", "Genomic DNA sequencing", "cDNA sequencing", "Array"]))
+    technique = forms.CharField(label="Technique")
 
     class Meta:
         model = Variation
-
-class VariationSmaForm(forms.ModelForm):
-    technique = forms.CharField(label="Technique", widget=ComboWidget(options=["MLPA", "Genomic DNA sequencing", "cDNA sequencing", "Array"]))
-
-    class Meta:
-        model = VariationSma
