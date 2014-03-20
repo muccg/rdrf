@@ -51,8 +51,12 @@ class CDEPermittedValueGroup(models.Model):
             d["values"].append(value_dict)
         return d
 
+    def members(self):
+        return sorted([v.code for v in CDEPermittedValue.objects.filter(pv_group=self)])
+
     def __unicode__(self):
-        return "PVG %s" % (self.code)
+        members = self.members()
+        return "PVG %s containing %s" % (self.code, self.members())
 
 class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
