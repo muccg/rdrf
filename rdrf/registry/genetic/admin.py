@@ -33,7 +33,7 @@ class GeneAdmin(admin.ModelAdmin):
 
 class VariationInline(admin.StackedInline):
     model = Variation
-    form = VariationForm
+#    form = VariationForm
     raw_id_fields = ("gene",)
     extra = 0
     max_num = 100
@@ -196,3 +196,4 @@ class LaboratoryAdmin(admin.ModelAdmin):
 admin.site.register(MolecularData, MolecularDataAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Laboratory, LaboratoryAdmin)
+admin.site.register(Technique)
