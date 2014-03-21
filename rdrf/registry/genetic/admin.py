@@ -30,10 +30,12 @@ class GeneAdmin(admin.ModelAdmin):
 
         return HttpResponse(json.dumps(response), mimetype="application/json")
 
+from ajax_select import make_ajax_form
+from ajax_select.admin import AjaxSelectAdmin
 
 class VariationInline(admin.StackedInline):
     model = Variation
-#    form = VariationForm
+    form = make_ajax_form(Variation,{'gene':'gene'})
     raw_id_fields = ("gene",)
     extra = 0
     max_num = 100
