@@ -24,8 +24,6 @@ TIME_ZONE = 'Australia/Perth'
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 
-VERSION = "0.4" # Used by exporter - todo mod version.py to update
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

@@ -4,6 +4,7 @@ import yaml
 import json
 from django.conf import settings
 from django.forms.models import model_to_dict
+from rdrf import VERSION
 
 import datetime
 
@@ -113,7 +114,7 @@ class Exporter(object):
     def _export(self,format, export_type):
         data = {}
 
-        data["RDRF_VERSION"] = settings.VERSION  # TODO modify version.py to update this too
+        data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
         data["cdes"] = [ model_to_dict(cde) for cde in self._get_cdes(export_type) ]
