@@ -11,6 +11,7 @@ import landing_view
 import import_registry_view
 import rest_interface
 from django.shortcuts import render_to_response
+from ajax_select import urls as ajax_select_urls
 
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -43,5 +44,6 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/(?P<cde_code>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_cde_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_section_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
-    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface')
+    url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
+    (r'^admin/lookups/', include(ajax_select_urls)),
 )

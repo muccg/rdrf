@@ -89,7 +89,7 @@ INSTALLED_APPS = [
     'admin_views',
     'reversion',
     'iprestrict',
-
+    'ajax_select'
 ]
 
 
@@ -272,6 +272,10 @@ One can add custom menu items to the left hand manu in Django Suit
 CUSTOM_MENU_ITEMS = [
     { 'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True },
 ]
+
+AJAX_LOOKUP_CHANNELS = {
+    'gene'  : {'model': 'genetic.Gene', 'search_field': 'symbol'},
+}
 
 try:
     print "Attempting to import default settings as appsettings.rdrf"
