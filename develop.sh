@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_test|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -49,20 +49,6 @@ function ci_remote_build() {
     ccg ${AWS_BUILD_INSTANCE} getfile:rpmbuild/RPMS/x86_64/rdrf*.rpm,build/
 }
 
-function ci_remote_test() {
-    time ccg ${AWS_BUILD_INSTANCE} puppet
-    time ccg ${AWS_BUILD_INSTANCE} shutdown:50
-
-    EXCLUDES="('bootstrap'\, '.hg*'\, 'virt*'\, '*.log'\, '*.rpm'\, 'build'\, 'dist'\, '*/build'\, '*/dist')"
-    SSH_OPTS="-o StrictHostKeyChecking\=no"
-    RSYNC_OPTS="-l"
-    time ccg ${AWS_BUILD_INSTANCE} rsync_project:local_dir=./,remote_dir=${TARGET_DIR}/,ssh_opts="${SSH_OPTS}",extra_opts="${RSYNC_OPTS}",exclude="${EXCLUDES}",delete=True
-    time ccg ${AWS_BUILD_INSTANCE} dsudo:"cd ${TARGET_DIR} && ./develop.sh install"
-    time ccg ${AWS_BUILD_INSTANCE} dsudo:"source ${TARGET_DIR}/virt_rdrf/bin/activate && export DJANGO_SETTINGS_MODULE=rdrf.settings && django-admin.py test rdrf"
-
-}
-
-
 
 # publish rpms 
 function ci_rpm_publish() {
@@ -89,7 +75,7 @@ function ci_staging_fixture() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
 }
 
-# staging seleinium test
+# staging selenium test
 function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
@@ -120,7 +106,7 @@ function ci_staging_tests() {
     # Run tests, collect results
     TEST_LIST="rdrf.rdrf.tests"
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb \:0"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost ${TEST_LIST} || true"
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test rdrf --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost ${TEST_LIST} || true"
     ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
 }
 
@@ -265,10 +251,6 @@ start)
 install)
     settings
     installapp
-    ;;
-ci_remote_test)
-    ci_ssh_agent
-    ci_remote_test
     ;;
 ci_remote_build)
     ci_ssh_agent
