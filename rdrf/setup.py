@@ -59,8 +59,8 @@ setup(name='django-rdrf',
         'python-memcached==1.48',
         'django-extensions>=0.7.1',
         'django-messages-ui==0.2.6',
-        'ccg-auth==0.3.2',
-        'ccg-extras==0.1.6',
+        'ccg-auth==0.3.3',
+        'ccg-extras==0.1.7',
         'django-userlog==0.2.1',
         'django_qbe',
         'django-nose',
@@ -74,7 +74,9 @@ setup(name='django-rdrf',
     dependency_links = [
         "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",
         "https://bitbucket.org/ccgmurdoch/django-userlog/downloads/django_userlog-0.2.1.tar.gz",
-        "https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/django-iprestrict-0.1.tar.gz"
+        "https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/django-iprestrict-0.1.tar.gz",
+        'https://ccg-django-extras.googlecode.com/files/ccg-auth-0.3.3.tar.gz',
+        'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
     ],
 )
 
