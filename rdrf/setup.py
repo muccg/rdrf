@@ -21,8 +21,8 @@ for package in ['rdrf', 'registry.common', 'registry.configuration','registry.fo
         os.chdir(os.path.join(start_dir, base_dir))
 
     for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'templatetags', 'management'):
-	    data_files[package].extend(
-	        [ add_file_for_package(package, subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
+        data_files[package].extend(
+            [ add_file_for_package(package, subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
 
     os.chdir(start_dir)
 
@@ -31,7 +31,7 @@ for package in ['rdrf', 'registry.common', 'registry.configuration','registry.fo
 setup(name='django-rdrf',
     version=VERSION,
     packages=[  'rdrf',
-		'registry',
+        'registry',
                 'registry.common',
                 'registry.patients',
                 'registry.genetic',
@@ -48,9 +48,9 @@ setup(name='django-rdrf',
     zip_safe=False,
     install_requires=[
         'Django==1.5.4',
-	    'pymongo',
+        'pymongo',
         'pyyaml',
-	    'South==0.8.2',
+        'South==0.8.2',
         'django-extensions>=0.7.1',
         'django-picklefield==0.1.9',
         'django-templatetag-sugar==0.1',
