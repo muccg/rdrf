@@ -37,7 +37,7 @@ class VariationInline(admin.StackedInline):
     model = Variation
     form = make_ajax_form(Variation,{'gene':'gene'})
     raw_id_fields = ("gene",)
-    extra = 0
+    extra = 1
     max_num = 100
     exclude = (
         "exon_validation_override",
@@ -59,9 +59,11 @@ class MolecularDataAdmin(admin.ModelAdmin):
         VariationInline,
     ]
     search_fields = ["patient__family_name", "patient__given_names"]
-    #FJ added 'working group' field
-    # Trac #32 added moleculardata_entered
-    list_display = ['patient_name', 'patient_working_group', 'moleculardata_entered']
+
+    list_display = ['patient_name', 'patient_working_group', 'get_laboratory', 'moleculardata_entered']
+
+    def get_laboratory(self, obj):
+        return "%s" % obj.variation_set.get(pk=obj.pk).laboratory
 
     def patient_name(self, obj):
         return ("%s") % (obj.patient, )
@@ -69,6 +71,7 @@ class MolecularDataAdmin(admin.ModelAdmin):
     def patient_working_group(self, obj):
         return ("%s") % (obj.patient.working_group, )
 
+    get_laboratory.short_description = 'Laboratory'
     patient_name.short_description = 'Name'
     patient_working_group.short_description = 'Working Group'
 
