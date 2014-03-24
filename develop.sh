@@ -91,11 +91,7 @@ function ci_staging_selenium() {
 
 # run tests on staging
 function ci_staging_tests() {
-    # /tmp is used for test results because the apache user has
-    # permission to write there.
     REMOTE_TEST_DIR=/tmp
-    REMOTE_TEST_RESULTS=${REMOTE_TEST_DIR}/tests.xml
-
     # Grant permission to create a test database.
     DATABASE_USER=rdrf
     ccg ${AWS_STAGING_INSTANCE} dsudo:"su postgres -c \"psql -c 'ALTER ROLE ${DATABASE_USER} CREATEDB;'\""
@@ -103,19 +99,14 @@ function ci_staging_tests() {
     # This is the command which runs manage.py with the correct environment
     DJANGO_ADMIN="rdrf"
 
-    # Run tests, collect results
-    TEST_LIST="rdrf.rdrf.tests"
-    ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb \:0"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test rdrf --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost ${TEST_LIST} || true"
-    ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
+    # Run tests
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && ${DJANGO_ADMIN} test rdrf"
 }
-
 
 # lint using flake8
 function lint() {
     virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
 }
-
 
 # lint js, assumes closure compiler
 function jslint() {
