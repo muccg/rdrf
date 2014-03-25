@@ -39,6 +39,31 @@ class Technique(models.Model):
     def __unicode__(self):
         return str(self.name)
 
+
+class Laboratory(models.Model):
+    """
+    Laboratory is a model for preset values of "laboratory site"
+    fields.
+    """
+    name = models.CharField(max_length=256)
+    address = models.TextField(max_length=200, blank=True)
+    contact_name = models.CharField(max_length=200, blank=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        verbose_name_plural = "laboratories"
+
+    def __unicode__(self):
+        val = self.name
+#        contacts = filter(bool, [self.contact_name, self.contact_email, self.contact_phone])
+#        if self.address:
+#            val = "%s, %s" % (val, self.address)
+#        if contacts:
+#            val = "%s; Contact: %s" % (val, ", ".join(contacts))
+        return val
+
+
 class Variation(models.Model):
     molecular_data = models.ForeignKey(MolecularData)
     gene = models.ForeignKey(Gene)
@@ -56,6 +81,7 @@ class Variation(models.Model):
     exon_boundaries_known = models.NullBooleanField(default=True, verbose_name="Exon Boundaries Known")
     point_mutation_all_exons_sequenced = models.NullBooleanField(default=True, verbose_name="All Exons Sequenced (Point Mutations)")
     all_exons_in_male_relative = models.NullBooleanField(verbose_name="All Exons Tested In Male Relative")
+    laboratory = models.ForeignKey(Laboratory, null=True, blank=True)
 
     VALIDATION_FIELDS = {
         "exon": "exon_validation_override",
@@ -83,29 +109,6 @@ class Variation(models.Model):
     def set_validation_override(self, type):
         setattr(self, self.VALIDATION_FIELDS[type], True)
 
-
-class Laboratory(models.Model):
-    """
-    Laboratory is a model for preset values of "laboratory site"
-    fields.
-    """
-    name = models.CharField(max_length=256)
-    address = models.TextField(max_length=200, blank=True)
-    contact_name = models.CharField(max_length=200, blank=True)
-    contact_email = models.EmailField(blank=True)
-    contact_phone = models.CharField(max_length=50, blank=True)
-
-    class Meta:
-        verbose_name_plural = "laboratories"
-
-    def __unicode__(self):
-        val = self.name
-#        contacts = filter(bool, [self.contact_name, self.contact_email, self.contact_phone])
-#        if self.address:
-#            val = "%s, %s" % (val, self.address)
-#        if contacts:
-#            val = "%s; Contact: %s" % (val, ", ".join(contacts))
-        return val
 
 def signal_patient_post_save(sender, **kwargs):
     logger.debug("patient post_save signal")
