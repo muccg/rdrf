@@ -35,7 +35,7 @@ from ajax_select.admin import AjaxSelectAdmin
 
 class VariationInline(admin.StackedInline):
     model = Variation
-    form = make_ajax_form(Variation,{'gene':'gene'})
+    form = make_ajax_form(Variation,{'gene':'gene'}, VariationForm)
     raw_id_fields = ("gene",)
     extra = 1
     max_num = 100
