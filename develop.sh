@@ -149,10 +149,10 @@ function nose_collect() {
 # install virt for project
 function installapp() {
     # check requirements
-    which virtualenv >/dev/null
+    which virtualenv-2.7 >/dev/null
 
     echo "Install rdrf"
-    virtualenv --system-site-packages virt_rdrf
+    virtualenv-2.7 virt_rdrf
     ./virt_rdrf/bin/pip install 'pip>=1.5,<1.6' --upgrade
     ./virt_rdrf/bin/pip --version
     pushd rdrf
