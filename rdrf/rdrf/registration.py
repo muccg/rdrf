@@ -17,7 +17,7 @@ class PatientCreator(object):
 
         return "CDEPatient%s" % string.capwords(model_field_name.replace("_"," ")).replace(" ","")
 
-    def create_patient(self, questionnaire_data, questionnaire_response):
+    def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True
         logger.debug("questionnaire data = %s" % questionnaire_data)
@@ -33,7 +33,7 @@ class PatientCreator(object):
                 logger.debug("set patient.%s to %s from %s" % (field_name, cde_value , cde_name))
                 model_cdes.append(cde_name)
 
-        working_group_id = int(questionnaire_data['working_group'])
+        working_group_id = int(approval_form_data['working_group'])
 
         self._set_patient_working_group(patient, working_group_id)
         self._set_patient_dob(patient,questionnaire_data)
