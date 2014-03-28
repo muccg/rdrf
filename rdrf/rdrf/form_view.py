@@ -18,7 +18,7 @@ from registry.patients.models import Patient
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from registration import PatientCreator
+from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 
 logger = logging.getLogger("registry_log")
@@ -473,7 +473,16 @@ class QuestionnaireResponseView(FormView):
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
-            messages.info(request, "Questionnaire approved")
+            if patient_creator.state == PatientCreatorState.CREATED_OK:
+                messages.info(request, "Questionnaire approved")
+            elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
+                error = patient_creator.error
+                messages.error(request, "Patient failed to be created due to validation errors: %s" % error)
+            elif patient_creator.state == PatientCreatorState.FAILED:
+                error = patient_creator.error
+                messages.error(request, "Patient failed to be created: %s" % error)
+            else:
+                messages.error(request, "Patient failed to be created")
 
         context = {}
         context.update(csrf(request))

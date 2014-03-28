@@ -7,11 +7,18 @@ import string
 
 logger = logging.getLogger("registry_log")
 
+class PatientCreatorState:
+    READY = "READY"
+    CREATED_OK = "PATIENT CREATED OK"
+    FAILED_VALIDATION = "PATIENT NOT CREATED DUE TO VALIDATION ERRORS"
+    FAILED = "PATIENT NOT CREATED"
 
 class PatientCreator(object):
     def __init__(self, registry, user):
         self.registry = registry
         self.user = user
+        self.state = PatientCreatorState.READY
+        self.error = None
 
     def _create_cde_name(self, model_field_name):
         # Patient model
@@ -40,8 +47,9 @@ class PatientCreator(object):
         try:
             state_model = State.objects.get(short_name=cde_value)
             patient.state = state_model
-        except State.DoesNoteExist:
-            logger.error("Cannot set patient state: %s" % cde_value)
+        except State.DoesNotExist, ex:
+            logger.error("Cannot set patient state to %s: %s" % (cde_value, ex))
+            raise Exception("State %s doesn't exist" % cde_value)
 
 
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
@@ -62,16 +70,30 @@ class PatientCreator(object):
 
                 except Exception,ex:
                     logger.error("error setting patient field: %s to %s from %s: %s" % (field_name, cde_value , cde_name, ex))
+                    self.state = PatientCreatorState.FAILED
+                    self.error = ex
+                    return
 
                 model_cdes.append(cde_name)
             else:
                 logger.debug("%s not in questionnaire data")
 
-        working_group_id = int(approval_form_data['working_group'])
+        try:
+            working_group_id = int(approval_form_data['working_group'])
+            self._set_patient_working_group(patient, working_group_id)
+            patient.full_clean()
+            patient.save()
+        except ValidationError, verr:
+            self.state = PatientCreatorState.FAILED_VALIDATION
+            logger.error("Could not save patient %s " % (patient, verr))
+            self.error = verr
+            return
+        except Exception, ex:
+            self.error = ex
+            self.state = PatientCreatorState.FAILED
+            return
 
-        self._set_patient_working_group(patient, working_group_id)
 
-        patient.save()
         logger.info("created patient %s" % patient.pk)
         self._create_patient_registry(patient)
         questionnaire_response.patient_id = patient.pk
@@ -82,6 +104,7 @@ class PatientCreator(object):
         logger.info("other cdes = %s" % other_cdes)
 
         self._create_patient_cdes(patient,other_cdes)
+        self.state = PatientCreatorState.CREATED_OK
 
     def _set_patient_dob(self, patient, data):
         day = data.get("CDEPatientDateOfBirth_day",None)
@@ -99,11 +122,9 @@ class PatientCreator(object):
         else:
             logger.warning("Patient %s already in registry %s" % (patient, self.registry))
 
-
     def _set_patient_working_group(self, patient,id):
         from registry.groups.models import WorkingGroup
         patient.working_group = WorkingGroup.objects.get(pk=id)
-
 
     def _create_dynamic_data_dictionary(self, cde_pair_values):
         d = {}
