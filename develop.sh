@@ -77,6 +77,7 @@ function ci_staging_fixture() {
 
 # staging selenium test
 function ci_staging_selenium() {
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum --enablerepo\=ccg-testing clean all'

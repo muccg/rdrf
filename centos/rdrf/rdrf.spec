@@ -29,7 +29,7 @@ Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
 BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel
-Requires: python%{pyver} httpd python%{pyver}-mod_wsgi MySQL-python%{pyver} 
+Requires: python%{pyver} httpd python%{pyver}-mod_wsgi python%{pyver}-psycopg2
 
 %description
 Registry rdrf
