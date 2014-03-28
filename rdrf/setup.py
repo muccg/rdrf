@@ -46,6 +46,7 @@ setup(name='django-rdrf',
     author_email='web@ccg.murdoch.edu.au',
     package_data= data_files,
     zip_safe=False,
+    scripts=["rdrf-manage.py"],
     install_requires=[
         'Django==1.5.4',
         'pymongo',
