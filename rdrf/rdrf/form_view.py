@@ -460,8 +460,6 @@ class QuestionnaireResponseView(FormView):
 
         return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
 
-
-
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
@@ -473,7 +471,8 @@ class QuestionnaireResponseView(FormView):
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
-            patient_creator.create_patient(request.POST, qr)
+            questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+            patient_creator.create_patient(request.POST, qr, questionnaire_data)
             messages.info(request, "Questionnaire approved")
 
         context = {}
