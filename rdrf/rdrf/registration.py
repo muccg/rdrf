@@ -85,7 +85,7 @@ class PatientCreator(object):
             patient.save()
         except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
-            logger.error("Could not save patient %s " % (patient, verr))
+            logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             return
         except Exception, ex:
