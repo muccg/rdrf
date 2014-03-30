@@ -77,6 +77,7 @@ function ci_staging_fixture() {
 
 # staging selenium test
 function ci_staging_selenium() {
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum --enablerepo\=ccg-testing clean all'
@@ -84,7 +85,9 @@ function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true'
+    ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
 }
@@ -149,10 +152,10 @@ function nose_collect() {
 # install virt for project
 function installapp() {
     # check requirements
-    which virtualenv >/dev/null
+    which virtualenv-2.7 >/dev/null
 
     echo "Install rdrf"
-    virtualenv --system-site-packages virt_rdrf
+    virtualenv-2.7 virt_rdrf
     ./virt_rdrf/bin/pip install 'pip>=1.5,<1.6' --upgrade
     ./virt_rdrf/bin/pip --version
     pushd rdrf
