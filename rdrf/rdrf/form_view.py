@@ -18,7 +18,7 @@ from registry.patients.models import Patient
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from registration import PatientCreator
+from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 
 logger = logging.getLogger("registry_log")
@@ -210,7 +210,7 @@ class FormView(View):
 
 
     def _get_sections(self, form):
-        section_parts = form.sections.split(",")        
+        section_parts = form.get_sections()
         sections = []
         display_names = {}
         for s in section_parts:
@@ -460,8 +460,6 @@ class QuestionnaireResponseView(FormView):
 
         return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
 
-
-
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
@@ -473,8 +471,18 @@ class QuestionnaireResponseView(FormView):
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
-            patient_creator.create_patient(request.POST, qr)
-            messages.info(request, "Questionnaire approved")
+            questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+            patient_creator.create_patient(request.POST, qr, questionnaire_data)
+            if patient_creator.state == PatientCreatorState.CREATED_OK:
+                messages.info(request, "Questionnaire approved")
+            elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
+                error = patient_creator.error
+                messages.error(request, "Patient failed to be created due to validation errors: %s" % error)
+            elif patient_creator.state == PatientCreatorState.FAILED:
+                error = patient_creator.error
+                messages.error(request, "Patient failed to be created: %s" % error)
+            else:
+                messages.error(request, "Patient failed to be created")
 
         context = {}
         context.update(csrf(request))

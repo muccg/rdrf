@@ -24,8 +24,6 @@ TIME_ZONE = 'Australia/Perth'
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 
-VERSION = "0.4" # Used by exporter - todo mod version.py to update
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -47,10 +45,11 @@ TEMPLATE_DIRS = (
     os.path.join(WEBAPP_ROOT,'rdrf', 'templates'),
 )
 
-MESSAGE_TAGS = {message_constants.ERROR: 'alert alert-error',
-                message_constants.SUCCESS:  'alert alert-success',
-                message_constants.INFO:  'alert alert-info'}
-
+MESSAGE_TAGS = {
+    message_constants.ERROR: 'alert alert-danger',
+    message_constants.SUCCESS: 'alert alert-success',
+    message_constants.INFO: 'alert alert-info'
+}
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -88,7 +87,7 @@ INSTALLED_APPS = [
     'admin_views',
     'reversion',
     'iprestrict',
-
+    'ajax_select'
 ]
 
 
@@ -271,6 +270,10 @@ One can add custom menu items to the left hand manu in Django Suit
 CUSTOM_MENU_ITEMS = [
     { 'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True },
 ]
+
+AJAX_LOOKUP_CHANNELS = {
+    'gene'  : {'model': 'genetic.Gene', 'search_field': 'symbol'},
+}
 
 try:
     print "Attempting to import default settings as appsettings.rdrf"

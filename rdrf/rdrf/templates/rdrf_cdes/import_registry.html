@@ -5,6 +5,18 @@
 {% load get_form %}
 {% load get_display_name %}
 
+{% block extrastyle %}
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#import-msg').hide();
+        $('#submit-form-btn').click(function() {
+            $('#import-msg').show();
+            $('#import-form').submit();
+        });
+    });
+</script>
+{% endblock %}
 
 {% block content %}
     {% if state == "fail" %}
@@ -14,7 +26,12 @@
         <div class="alert alert-success">Import Succeeded</div>
     {% endif %}    
     
-    <form enctype="multipart/form-data" method="post">{% csrf_token %}
+    <div class="alert alert-info alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        Please load from file OR paste in the text area
+    </div>
+    
+    <form enctype="multipart/form-data" method="post" id="import-form">{% csrf_token %}
         <table class="table table-striped table-bordered table-hover table-condensed">
             <thead>
             <tr>
@@ -24,11 +41,18 @@
             <tbody>
                 <tr>
                     <th>
+                        <input type="file" id="id_registry_yaml_file" name="registry_yaml_file" accept=".yaml"></input>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
                         <textarea cols="100" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>
                     </th>
                 </tr>
             </tbody>
         </table>
-        <input type="submit" class="btn btn-primary pull-right" value="Submit" />
+        <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="Submit" />
     </form>
+    
+    <h2 class="muted" id="import-msg">Importing, please wait...</h2>
 {% endblock %}

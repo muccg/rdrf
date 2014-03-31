@@ -32,15 +32,37 @@ class MolecularData(models.Model):
     def __unicode__(self):
         return str(self.patient)
 
-class MolecularDataSma(models.Model):
-    patient = models.OneToOneField(Patient, primary_key=True)
 
-    class Meta:
-        ordering = ["patient"]
-        verbose_name_plural = "molecular data"
+class Technique(models.Model):
+    name = models.CharField(max_length=50, primary_key=True)
 
     def __unicode__(self):
-        return str(self.patient)
+        return str(self.name)
+
+
+class Laboratory(models.Model):
+    """
+    Laboratory is a model for preset values of "laboratory site"
+    fields.
+    """
+    name = models.CharField(max_length=256)
+    address = models.TextField(max_length=200, blank=True)
+    contact_name = models.CharField(max_length=200, blank=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        verbose_name_plural = "laboratories"
+
+    def __unicode__(self):
+        val = self.name
+#        contacts = filter(bool, [self.contact_name, self.contact_email, self.contact_phone])
+#        if self.address:
+#            val = "%s, %s" % (val, self.address)
+#        if contacts:
+#            val = "%s; Contact: %s" % (val, ", ".join(contacts))
+        return val
+
 
 class Variation(models.Model):
     molecular_data = models.ForeignKey(MolecularData)
@@ -53,12 +75,13 @@ class Variation(models.Model):
     rna_variation_validation_override = models.BooleanField(default=False)
     protein_variation = models.TextField(verbose_name="protein variation", help_text="Variation in standard HGVS sequence variation nomenclature", blank=True)
     protein_variation_validation_override = models.BooleanField(default=False)
-    technique = models.TextField()
+    technique = models.ForeignKey(Technique)
     deletion_all_exons_tested = models.NullBooleanField(default=True, verbose_name="All Exons Tested (Deletions)")
     duplication_all_exons_tested = models.NullBooleanField(default=True, verbose_name="All Exons Tested (Duplications)")
     exon_boundaries_known = models.NullBooleanField(default=True, verbose_name="Exon Boundaries Known")
     point_mutation_all_exons_sequenced = models.NullBooleanField(default=True, verbose_name="All Exons Sequenced (Point Mutations)")
     all_exons_in_male_relative = models.NullBooleanField(verbose_name="All Exons Tested In Male Relative")
+    laboratory = models.ForeignKey(Laboratory, null=True, blank=True)
 
     VALIDATION_FIELDS = {
         "exon": "exon_validation_override",
@@ -86,49 +109,6 @@ class Variation(models.Model):
     def set_validation_override(self, type):
         setattr(self, self.VALIDATION_FIELDS[type], True)
 
-class VariationSma(models.Model):
-    SMN1_CHOICES = (
-        (1, 'Homozygous'),
-        (2, 'Heterozygous'),
-        (3, 'No')
-    )
-    
-    molecular_data = models.ForeignKey(MolecularDataSma)
-    gene = models.ForeignKey(Gene)
-    technique = models.TextField()
-    exon_7_smn1_deletion = models.IntegerField(choices=SMN1_CHOICES, verbose_name = "Deletion of Exon 7 SMN1 gene")
-    exon_7_sequencing = models.BooleanField(verbose_name="Exon 7 Sequencing")
-    dna_variation = models.CharField(max_length=200, verbose_name="DNA variation")
-
-    def __unicode__(self):
-        return str(self.molecular_data)
-    
-    class Meta:
-        verbose_name = "Molecular Data"
-        verbose_name_plural = "Molecular Data Records"
-
-class Laboratory(models.Model):
-    """
-    Laboratory is a model for preset values of "laboratory site"
-    fields.
-    """
-    name = models.CharField(max_length=256)
-    address = models.TextField(max_length=200, blank=True)
-    contact_name = models.CharField(max_length=200, blank=True)
-    contact_email = models.EmailField(blank=True)
-    contact_phone = models.CharField(max_length=50, blank=True)
-
-    class Meta:
-        verbose_name_plural = "laboratories"
-
-    def __unicode__(self):
-        val = self.name
-#        contacts = filter(bool, [self.contact_name, self.contact_email, self.contact_phone])
-#        if self.address:
-#            val = "%s, %s" % (val, self.address)
-#        if contacts:
-#            val = "%s; Contact: %s" % (val, ", ".join(contacts))
-        return val
 
 def signal_patient_post_save(sender, **kwargs):
     logger.debug("patient post_save signal")

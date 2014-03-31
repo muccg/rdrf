@@ -13,7 +13,7 @@ TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
 MODULES="psycopg2==2.4.6 Werkzeug flake8 ${TESTING_MODULES}"
-PIP_OPTS='--download-cache ~/.pip/cache --index-url=https://pypi.python.org/simple'
+PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 function usage() {
@@ -75,8 +75,9 @@ function ci_staging_fixture() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
 }
 
-# staging seleinium test
+# staging selenium test
 function ci_staging_selenium() {
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum --enablerepo\=ccg-testing clean all'
@@ -84,18 +85,16 @@ function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true'
+    ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
 }
 
 # run tests on staging
 function ci_staging_tests() {
-    # /tmp is used for test results because the apache user has
-    # permission to write there.
     REMOTE_TEST_DIR=/tmp
-    REMOTE_TEST_RESULTS=${REMOTE_TEST_DIR}/tests.xml
-
     # Grant permission to create a test database.
     DATABASE_USER=rdrf
     ccg ${AWS_STAGING_INSTANCE} dsudo:"su postgres -c \"psql -c 'ALTER ROLE ${DATABASE_USER} CREATEDB;'\""
@@ -103,19 +102,14 @@ function ci_staging_tests() {
     # This is the command which runs manage.py with the correct environment
     DJANGO_ADMIN="rdrf"
 
-    # Run tests, collect results
-    TEST_LIST="rdrf.rdrf.tests"
-    ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb \:0"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && env DISPLAY\=\:0 dbus-launch ${DJANGO_ADMIN} test --noinput --with-xunit --xunit-file\=${REMOTE_TEST_RESULTS} --liveserver\=localhost ${TEST_LIST} || true"
-    ccg ${AWS_STAGING_INSTANCE} getfile:${REMOTE_TEST_RESULTS},./
+    # Run tests
+    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && ${DJANGO_ADMIN} test rdrf"
 }
-
 
 # lint using flake8
 function lint() {
     virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
 }
-
 
 # lint js, assumes closure compiler
 function jslint() {
@@ -158,10 +152,12 @@ function nose_collect() {
 # install virt for project
 function installapp() {
     # check requirements
-    which virtualenv >/dev/null
+    which virtualenv-2.7 >/dev/null
 
     echo "Install rdrf"
-    virtualenv --system-site-packages virt_rdrf
+    virtualenv-2.7 virt_rdrf
+    ./virt_rdrf/bin/pip install 'pip>=1.5,<1.6' --upgrade
+    ./virt_rdrf/bin/pip --version
     pushd rdrf
     ../virt_rdrf/bin/pip install ${PIP_OPTS} -e .
     popd

@@ -39,8 +39,24 @@ def get_owner_choices():
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
+    def as_dict(self):
+        d = {}
+        d["code"] = self.code
+        d["values"] = []
+        for value in CDEPermittedValue.objects.filter(pv_group=self):
+            value_dict = {}
+            value_dict["code"] = value.code
+            value_dict["value"] = value.value
+            value_dict["desc"] = value.desc
+            d["values"].append(value_dict)
+        return d
+
+    def members(self):
+        return sorted([v.code for v in CDEPermittedValue.objects.filter(pv_group=self)])
+
     def __unicode__(self):
-        return "PVG %s" % (self.code)
+        members = self.members()
+        return "PVG %s containing %s" % (self.code, self.members())
 
 class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
@@ -158,3 +174,4 @@ def appears_in(cde,registry,registry_form,section):
         return False
     else:
         return cde.code in section.get_elements()
+

@@ -30,10 +30,12 @@ class GeneAdmin(admin.ModelAdmin):
 
         return HttpResponse(json.dumps(response), mimetype="application/json")
 
+from ajax_select import make_ajax_form
+from ajax_select.admin import AjaxSelectAdmin
 
-class VariationInline(admin.TabularInline):
+class VariationInline(admin.StackedInline):
     model = Variation
-    form = VariationForm
+    form = make_ajax_form(Variation,{'gene':'gene'}, VariationForm)
     raw_id_fields = ("gene",)
     extra = 1
     max_num = 100
@@ -48,24 +50,6 @@ class VariationInline(admin.TabularInline):
     }
 
 
-class VariationSmaInline(admin.TabularInline):
-    model = VariationSma
-    form = VariationSmaForm
-    raw_id_fields = ("gene",)
-    extra = 1
-    max_num = 100
-    formfield_overrides = {
-        models.TextField: {"widget": django.forms.TextInput},
-    }
-
-
-class MolecularDataSmaAdmin(admin.ModelAdmin):
-    form = MolecularDataSmaForm
-    inlines = [
-        VariationSmaInline,
-    ]
-
-
 class MolecularDataAdmin(admin.ModelAdmin):
     actions = None
     add_form_template = "admin/genetic/change_form.html"
@@ -75,9 +59,11 @@ class MolecularDataAdmin(admin.ModelAdmin):
         VariationInline,
     ]
     search_fields = ["patient__family_name", "patient__given_names"]
-    #FJ added 'working group' field
-    # Trac #32 added moleculardata_entered
-    list_display = ['patient_name', 'patient_working_group', 'moleculardata_entered']
+
+    list_display = ['patient_name', 'patient_working_group', 'get_laboratory', 'moleculardata_entered']
+
+    def get_laboratory(self, obj):
+        return "%s" % obj.variation_set.get(pk=obj.pk).laboratory
 
     def patient_name(self, obj):
         return ("%s") % (obj.patient, )
@@ -85,6 +71,7 @@ class MolecularDataAdmin(admin.ModelAdmin):
     def patient_working_group(self, obj):
         return ("%s") % (obj.patient.working_group, )
 
+    get_laboratory.short_description = 'Laboratory'
     patient_name.short_description = 'Name'
     patient_working_group.short_description = 'Working Group'
 
@@ -210,18 +197,8 @@ class LaboratoryAdmin(admin.ModelAdmin):
 
         return HttpResponse(json.dumps(response), mimetype="application/json")
 
-if settings.INSTALL_NAME == "dm1":
-    # TODO remove this from the core registry
-    from dm1.dm1.admin import VariationDm1Admin
 
-    MolecularDataAdmin.inlines = [
-        VariationDm1Admin
-    ]
-
-
-if settings.INSTALL_NAME == 'sma':
-    admin.site.register(MolecularDataSma, MolecularDataSmaAdmin)
-else:
-    admin.site.register(MolecularData, MolecularDataAdmin)
+admin.site.register(MolecularData, MolecularDataAdmin)
 admin.site.register(Gene, GeneAdmin)
 admin.site.register(Laboratory, LaboratoryAdmin)
+admin.site.register(Technique)

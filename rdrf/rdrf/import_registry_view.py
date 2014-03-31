@@ -37,8 +37,11 @@ class ImportRegistryView(View):
     def post(self, request, *args, **kwargs):
         import yaml
         registry_yaml = request.POST["registry_yaml"]
+
         from rdrf.importer import Importer
 
+        if request.FILES:
+            registry_yaml = request.FILES['registry_yaml_file'].read()
 
         try:
             importer = Importer()
@@ -48,7 +51,7 @@ class ImportRegistryView(View):
                 importer.create_registry()
 
         except Exception, ex:
-             return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
+            return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
 
         return HttpResponseRedirect(reverse('import_registry') + "?state=success")
 

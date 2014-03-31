@@ -31,11 +31,12 @@ class GeneChoiceField(forms.ModelChoiceField):
 
 class VariationWidget(forms.TextInput):
     class Media:
-        css = {"all": [get_static_url("css/variation.css")]}
-        js = [get_static_url("js/json2.js"),
-              get_static_url("js/xhr.js"),
-              get_static_url("variation/variation.js")
-              ]
+        css = {"all": [get_static_url("variation/variation.css")]}
+        js = [
+            get_static_url("js/json2.js"),
+            get_static_url("js/xhr.js"),
+            get_static_url("variation/variation.js")
+        ]
 
     def __init__(self, attrs={}, backend=None, popup=None):
         """
@@ -71,30 +72,11 @@ class MolecularDataForm(forms.ModelForm):
         model = MolecularData
 
 
-class MolecularDataSmaForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(MolecularDataSmaForm, self).__init__(*args, **kwargs)
-        # make the patient field static if not a new molecular data record
-        if "instance" in kwargs:
-            self.fields["patient"] = forms.ModelChoiceField(Patient.objects.all(), widget=StaticWidget(text=unicode(kwargs["instance"])))
-
-    class Meta:
-        model = MolecularDataSma
-
-
 class VariationForm(forms.ModelForm):
-    gene = GeneChoiceField(queryset=Gene.objects.all(), label="Gene", widget=LiveComboWidget(backend=reverse_lazy("admin:gene_search", args=("",))))
     exon = forms.CharField(label="Exon", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_exon"), attrs={"minchars": "0"}))
     protein_variation = forms.CharField(label="Protein variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_protein")))
-    dna_variation = forms.CharField(label="DNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence"), popup=get_script_prefix()+'genetic/variation/'))
-    rna_variation = forms.CharField(label="RNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence"), popup=get_script_prefix()+'genetic/variation/'))
-    technique = forms.CharField(label="Technique", widget=ComboWidget(options=["MLPA", "Genomic DNA sequencing", "cDNA sequencing", "Array"]))
+    dna_variation = forms.CharField(label="DNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence")))
+    rna_variation = forms.CharField(label="RNA variation", required=False, widget=VariationWidget(backend=reverse_lazy("admin:validate_sequence")))
 
     class Meta:
         model = Variation
-
-class VariationSmaForm(forms.ModelForm):
-    technique = forms.CharField(label="Technique", widget=ComboWidget(options=["MLPA", "Genomic DNA sequencing", "cDNA sequencing", "Array"]))
-
-    class Meta:
-        model = VariationSma
