@@ -15,6 +15,8 @@ from registry.utils import get_static_url, get_working_groups, get_registries
 from admin_forms import *
 from models import *
 
+from registry.groups.models import User
+
 
 class CountryAdmin(admin.ModelAdmin):
     search_fields = ["name"]
@@ -42,6 +44,34 @@ class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
     extra = 1
 
+
+class RegistryFilter(admin.SimpleListFilter):
+    title = "Registry"
+    parameter_name = 'registry'
+    
+    def lookups(self, request, model_admin):
+        
+        if request.user.is_superuser:
+            reg_list = Registry.objects.all()
+        else:
+            user_regs = User.objects.get(user__username=request.user).registry
+            reg_codes = [r.code for r in user_regs.all()]
+            reg_list = Registry.objects.filter(code__in = reg_codes)
+
+        regs = []
+        for reg in reg_list:
+            regs.append((reg.id, reg.name))
+            
+        return regs
+
+    def queryset(self, request, queryset):
+        if request.GET.__contains__('registry'):
+            reg = request.GET.__getitem__('registry')
+            return queryset.filter(rdrf_registry__id__exact=reg)
+        
+        return queryset
+
+
 class PatientAdmin(admin.ModelAdmin):
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
@@ -54,7 +84,7 @@ class PatientAdmin(admin.ModelAdmin):
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'phenotype_btn']
-    list_filter = ['rdrf_registry']
+    list_filter = [RegistryFilter,]
     
     def full_name(self, obj):
         return "%s %s" % (obj.given_names, obj.family_name)
@@ -71,7 +101,7 @@ class PatientAdmin(admin.ModelAdmin):
         if obj.rdrf_registry.count() == 0:
             return "No registry assigned"
         
-        rdrf_id = self.request.GET.get('rdrf_registry__id__exact')
+        rdrf_id = self.request.GET.get('registry')
         
         if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
