@@ -55,8 +55,7 @@ class RegistryFilter(admin.SimpleListFilter):
             reg_list = Registry.objects.all()
         else:
             user_regs = User.objects.get(user__username=request.user).registry
-            reg_codes = [r.code for r in user_regs.all()]
-            reg_list = Registry.objects.filter(code__in = reg_codes)
+            reg_list = Registry.objects.filter(code__in = user_regs)
 
         regs = []
         for reg in reg_list:
