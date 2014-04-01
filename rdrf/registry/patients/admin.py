@@ -54,8 +54,7 @@ class RegistryFilter(admin.SimpleListFilter):
         if request.user.is_superuser:
             reg_list = Registry.objects.all()
         else:
-            user_regs = User.objects.get(user__username=request.user).registry
-            reg_list = Registry.objects.filter(code__in = user_regs)
+            reg_list = User.objects.get(user__username=request.user).registry
 
         regs = []
         for reg in reg_list:
