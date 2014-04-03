@@ -81,10 +81,23 @@ Adding a Patient to a Registry
 ------------------------------
 Coming Soon
 
-Entering Registry Data for a Patient
----------------------------
+Entering ( and viewing existing ) Registry Data for a Patient
+------------------------------------
 
-1. login as a clinician
+1. Login as a clinician
+2. Navigate to >Patients/Patients
+3. Select the required registry ( if more than one appears ) in the Registry drop down and click Search
+4. Click on the Show Forms button of the required patient
+5. Launch the required Registry form from the pop up
+6 Enter in any required data and click save
+
+
+
+
+Approving a questionnaire response
+----------------------------------
+
+Coming Soon
 
 
 
