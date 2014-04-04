@@ -1,6 +1,9 @@
  # Custom widgets / Complex controls required
 from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
+from registry.utils import get_static_url
+from django.utils.safestring import mark_safe
+
 import logging
 logger = logging.getLogger("registry_log")
 
@@ -92,6 +95,21 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         """ % (select_id, self.other_please_specify_value, specified_value_textbox_id, specified_value_textbox_id, select_id)
 
         return super(OtherPleaseSpecifyWidget, self).render(name, value, attrs) + script
+
+
+class HgvsValidation(widgets.TextInput):
+    
+    def __init__(self, attrs={}):
+        self.attrs = attrs
+        super(HgvsValidation, self).__init__(attrs=attrs)
+    
+    def render(self, name, value, attrs):
+        return mark_safe(u"""<input type="text" id="%s">
+                         <script type="text/javascript">
+                            $("#%s").keyup(function() {
+                                console.log('test');
+                            });
+                         </script>""" % (name, name))
 
 
 class CalculatedFieldWidget(widgets.TextInput):
