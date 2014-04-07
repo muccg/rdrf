@@ -104,12 +104,14 @@ class HgvsValidation(widgets.TextInput):
         super(HgvsValidation, self).__init__(attrs=attrs)
     
     def render(self, name, value, attrs):
-        return mark_safe(u"""<input type="text" id="%s">
+        return mark_safe(u'''<input type="text" name="%s" id="id_%s" value="%s"><div id="result_id_%s"></div>
                          <script type="text/javascript">
-                            $("#%s").keyup(function() {
-                                console.log('test');
+                            $("#id_%s").keyup(function() {
+                                hgvsValidation($(this));
+                            }).ready(function() {
+                                hgvsValidation($("#id_%s"));
                             });
-                         </script>""" % (name, name))
+                         </script>''' % (name, name, value, name, name, name))
 
 
 class CalculatedFieldWidget(widgets.TextInput):
