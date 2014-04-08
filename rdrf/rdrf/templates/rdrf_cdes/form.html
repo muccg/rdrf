@@ -17,6 +17,10 @@
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
 
+    <script type="text/javascript">
+        window.STATIC_URL = '{{STATIC_URL}}';
+    </script>
+
 {% endblock %}
 
 {% block content %}
