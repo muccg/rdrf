@@ -28,8 +28,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
-BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql93-devel
-Requires: python%{pyver} httpd python%{pyver}-mod_wsgi python%{pyver}-psycopg2 postgresql93-libs
+BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql93-devel zlib-devel
+Requires: python%{pyver} httpd python%{pyver}-mod_wsgi python%{pyver}-psycopg2 postgresql93-libs zlib
 
 %description
 Registry rdrf
