@@ -76,7 +76,7 @@ INSTALLED_APPS = [
     'userlog',
     'registry.groups',
     'registry.patients',
-    'registry.genetic',
+#    'registry.genetic',
     'registry.common',
     'registry.configuration',
 
