@@ -189,11 +189,13 @@ def create_restricted_model_admin_class(model_class):
     }
     return type(model_class.__name__ + "Admin" , (admin.ModelAdmin,), overrides)
 
+admin.site.register(Registry, RegistryAdmin)
+admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue))
 admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup))
 admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement))
 admin.site.register(RegistryForm, RegistryFormAdmin)
-admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
+
 admin.site.register(Section, SectionAdmin)
-admin.site.register(Registry, RegistryAdmin)
+
 
