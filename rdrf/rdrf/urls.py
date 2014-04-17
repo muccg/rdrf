@@ -10,6 +10,7 @@ import registry_view
 import landing_view
 import import_registry_view
 import rest_interface
+import hgvs_view
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
@@ -46,4 +47,6 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
     (r'^admin/lookups/', include(ajax_select_urls)),
+    
+    url(r'^hgvs/(?P<hgvs_code>.+)/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
 )
