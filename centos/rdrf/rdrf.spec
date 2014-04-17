@@ -81,6 +81,7 @@ export PATH=$PATH:/usr/pgsql-9.3/bin
 
 # Install package into the prefix
 pip install --process-dependency-links .
+pip uninstall -y Cython
 
 # Fix up paths in virtualenv, enable use of global site-packages
 virtualenv-%{pybasever} --relocatable %{buildinstalldir}
