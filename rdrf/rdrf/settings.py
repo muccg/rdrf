@@ -264,6 +264,8 @@ SUIT_CONFIG = {
 
 }
 
+SCRIPT_NAME = os.environ.get("SCRIPT_NAME", "")
+
 '''
 One can add custom menu items to the left hand manu in Django Suit
 '''

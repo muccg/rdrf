@@ -1,6 +1,5 @@
 function hgvsValidation(element) {
     if (element.val().length > 2) {
-        console.log(window.STATIC_URL);
         $('#result_' + element.attr('id')).html('<i>Please wait...</i>');
         $.get(window.BASE_URL + '/hgvs/' + element.val(), function(data) {
             result = data['parse_result'];
