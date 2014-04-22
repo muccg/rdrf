@@ -155,6 +155,10 @@ function installapp() {
     which virtualenv-2.7 >/dev/null
 
     echo "Install rdrf"
+    if test -e /usr/pgsql-9.3/bin; then
+        export PATH=/usr/pgsql-9.3/bin:$PATH
+        echo $PATH
+    fi
     virtualenv-2.7 virt_rdrf
     ./virt_rdrf/bin/pip install 'pip>=1.5,<1.6' --upgrade
     ./virt_rdrf/bin/pip --version
