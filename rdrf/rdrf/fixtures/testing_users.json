@@ -1,1 +1,72 @@
-[{"pk": 1, "model": "groups.workinggroup", "fields": {"name": "Western Australia"}}, {"pk": 2, "model": "groups.workinggroup", "fields": {"name": "New Zealand"}}, {"pk": 3, "model": "groups.workinggroup", "fields": {"name": "Unallocated"}}, {"pk": 1, "model": "groups.user", "fields": {"working_groups": [3], "registry": [1], "title": "admin"}}, {"pk": 4, "model": "groups.user", "fields": {"working_groups": [1], "registry": [2, 1], "title": "curator"}}, {"pk": 5, "model": "groups.user", "fields": {"working_groups": [3], "registry": [], "title": ""}}, {"pk": 6, "model": "groups.user", "fields": {"working_groups": [3], "registry": [], "title": ""}}]
+[
+{
+    "pk": 1, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "Western Australia"
+    }
+},
+{
+    "pk": 2, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "New Zealand"
+    }
+},
+{
+    "pk": 3, 
+    "model": "groups.workinggroup", 
+    "fields": {
+        "name": "Unallocated"
+    }
+},
+{
+    "pk": 1, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [
+            1
+        ], 
+        "title": "admin"
+    }
+},
+{
+    "pk": 4, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            1
+        ], 
+        "registry": [
+            1, 
+            2
+        ], 
+        "title": "curator"
+    }
+},
+{
+    "pk": 5, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+},
+{
+    "pk": 6, 
+    "model": "groups.user", 
+    "fields": {
+        "working_groups": [
+            3
+        ], 
+        "registry": [], 
+        "title": ""
+    }
+}
+]

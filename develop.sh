@@ -12,7 +12,7 @@ AWS_STAGING_INSTANCE='aws-syd-rdrf-staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
-MODULES="psycopg2==2.4.6 Werkzeug flake8 ${TESTING_MODULES}"
+MODULES="psycopg2==2.5.2 Werkzeug flake8 ${TESTING_MODULES}"
 PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 

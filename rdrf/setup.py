@@ -71,7 +71,8 @@ setup(name='django-rdrf',
         'django-templatetag-handlebars==1.2.0',
         'django-iprestrict==0.1',
         'django-suit',
-        'django-ajax-selects'
+        'django-ajax-selects',
+		'hgvs'
     ],
     dependency_links = [
         "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",
