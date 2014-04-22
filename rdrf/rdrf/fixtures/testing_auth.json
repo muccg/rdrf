@@ -1078,5 +1078,179 @@
         "name": "Can delete reload rules request", 
         "content_type": 40
     }
+},
+{
+    "pk": 1, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Working Group Curators", 
+        "permissions": [
+            97, 
+            98, 
+            99, 
+            94, 
+            95, 
+            96, 
+            91, 
+            92, 
+            93, 
+            58, 
+            59, 
+            60, 
+            61, 
+            62, 
+            63, 
+            67, 
+            68, 
+            69, 
+            70, 
+            71, 
+            72, 
+            73, 
+            74, 
+            75, 
+            76, 
+            77, 
+            78, 
+            82, 
+            83, 
+            84, 
+            88, 
+            89, 
+            90, 
+            85, 
+            86, 
+            87, 
+            79, 
+            80, 
+            81, 
+            64, 
+            65, 
+            66, 
+            28, 
+            29, 
+            30, 
+            25, 
+            26, 
+            27, 
+            31, 
+            32, 
+            33, 
+            22, 
+            23, 
+            24, 
+            34, 
+            35, 
+            36, 
+            37, 
+            38, 
+            39, 
+            40, 
+            41, 
+            42, 
+            103, 
+            100, 
+            101, 
+            102
+        ]
+    }
+},
+{
+    "pk": 2, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Genetic Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 3, 
+    "model": "auth.group", 
+    "fields": {
+        "name": "Clinical Staff", 
+        "permissions": []
+    }
+},
+{
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "admin", 
+        "first_name": "admin", 
+        "last_name": "admin", 
+        "is_active": true, 
+        "is_superuser": true, 
+        "is_staff": true, 
+        "last_login": "2014-04-22T09:04:45.273", 
+        "groups": [
+            1, 
+            2, 
+            3
+        ], 
+        "user_permissions": [], 
+        "password": "pbkdf2_sha256$10000$dguKleorImnj$vvii9EvuqArfpvNXRqHf0yMExhdWTIHBAGy4ZFchOJ4=", 
+        "email": "admin@example.com", 
+        "date_joined": "2010-08-18T16:28:19"
+    }
+},
+{
+    "pk": 4, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "curator", 
+        "first_name": "curator", 
+        "last_name": "curator", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:06:15", 
+        "groups": [
+            1
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$005da$3579413835a39b5013b56dc964692b27314e89a2", 
+        "email": "curator@example.com", 
+        "date_joined": "2010-08-18T16:32:32"
+    }
+},
+{
+    "pk": 5, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "genetic", 
+        "first_name": "genetic", 
+        "last_name": "genetic", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:06:00", 
+        "groups": [
+            2
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e", 
+        "email": "genetic@example.com", 
+        "date_joined": "2010-08-18T16:33:13"
+    }
+},
+{
+    "pk": 6, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "clinical", 
+        "first_name": "clinical", 
+        "last_name": "clinical", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2010-08-18T17:05:31", 
+        "groups": [
+            3
+        ], 
+        "user_permissions": [], 
+        "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
+        "email": "clinical@example.com", 
+        "date_joined": "2010-08-18T16:33:38"
+    }
 }
 ]
