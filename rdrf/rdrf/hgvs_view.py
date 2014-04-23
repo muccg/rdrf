@@ -16,7 +16,8 @@ class HGVSView(View):
         self._hgvsparser = self.get_instance()
     
 
-    def get(self, request, hgvs_code):
+    def get(self, request):
+        hgvs_code = request.GET.get('code', None)
 
         try:
             self._hgvsparser.parse_hgvs_variant(hgvs_code)

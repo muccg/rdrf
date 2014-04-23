@@ -48,5 +48,5 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
     (r'^admin/lookups/', include(ajax_select_urls)),
     
-    url(r'^hgvs/(?P<hgvs_code>.+)/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
+    url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
 )

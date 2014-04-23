@@ -111,7 +111,7 @@ class HgvsValidation(widgets.TextInput):
                             }).ready(function() {
                                 hgvsValidation($("#id_%s"));
                             });
-                         </script>''' % (name, name, value, name, name, name))
+                         </script>''' % (name, name, value or '', name, name, name))
 
 
 class CalculatedFieldWidget(widgets.TextInput):
