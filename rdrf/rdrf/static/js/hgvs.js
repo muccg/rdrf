@@ -6,7 +6,7 @@ function hgvsValidation(element) {
             if (result == true) {
                 result_text = "<img src='"+ window.STATIC_URL +"images/tick.png'>";
             } else {
-                result_text = "<img src='/static/images/cross.png'>";
+                result_text = "<img src='"+ window.STATIC_URL +"images/cross.png'>";
             }
             $('#result_' + element.attr('id')).html(result_text);
         });
