@@ -76,9 +76,7 @@ INSTALLED_APPS = [
     'userlog',
     'registry.groups',
     'registry.patients',
-#    'registry.genetic',
     'registry.common',
-    'registry.configuration',
 
     'rdrf',
     'django_qbe',
