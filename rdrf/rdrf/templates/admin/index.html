@@ -1,0 +1,97 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load version_number %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  
+  <script>
+  $(document).ready(function() {
+    if ({{ app_list|length }} > 1) {
+      $('#full-menu').hide();
+    }
+    $('#full-menu-alert').click(function() {
+      $('#full-menu').toggle('fast');
+    });
+  });
+  </script>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    <div class="well">
+      {% if app_list|length > 1 %}
+        
+      <div class="alert alert-info"><h4>Quick access links</h4></div>
+      
+      <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
+        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:patients_patient_changelist' %}">Patients</a></th></tr>
+        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registry_changelist' %}">Registries</a></th></tr>
+        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registryform_changelist' %}">Registry Forms</a></th></tr>
+        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_questionnaireresponse_changelist' %}">Questionnaire Responses</a></th></tr>
+        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_commondataelement_changelist' %}">Common Data Elements (CDE)</a></th></tr>
+      </table>
+      <div class="btn btn-success btn-block" id="full-menu-alert"><h4>Show full list of links</h4></div>
+      <br>
+
+      {% endif %}
+
+    <div id="full-menu">
+    {% if app_list %}
+      {% for app in app_list %}
+        <div class="module">
+          <table class="table-overview applist" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
+            <caption><a href="{{ app.app_url }}" class="section">{% trans app.name %}</a></caption>
+            {% for model in app.models %}
+              <tr>
+                <th scope="row">{{ model.name }}</th>
+                {% if model.admin_url %}
+                  <td>
+                    <a href="{{ model.admin_url }}" class="changelink icon">{% trans 'Change' %}</a>
+                  </td>
+                {% else %}
+                  <td>&nbsp;</td>
+                {% endif %}
+                {% if model.add_url %}
+                  <td><a href="{{ model.add_url }}" class="addlink icon"><i
+                          class="icon-plus-sign icon-alpha75"></i>{% trans 'Add' %}
+                  </a></td>
+                {% else %}
+                  <td>&nbsp;</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>{% trans "You don't have permission to edit anything." %}</p>
+    {% endif %}
+    </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block sidebar %}
+  <div id="content-related">
+    <div class="well">
+      <p style="text-align: center;">
+        <img src="{% static 'images/ccg-logo.png' %}" width="35%">
+        <img src="{% static 'images/doh-logo.png' %}">
+      </p>
+      <br>
+      <h5 style="text-align: justify;">
+        <strong>RDRF v{% version_number %} ( Rare Disease Registry Framework )</strong> is a tool for the creation of web-based data entry forms and questionnaires <br>
+        based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system<br>
+        at runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics.
+      </h5>
+      <i class="icon-book"></i> <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Rare Disease Registry Framework Documentation</a>
+    </div>
+  </div>
+{% endblock %}

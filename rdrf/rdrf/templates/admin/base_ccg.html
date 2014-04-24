@@ -1,4 +1,5 @@
 {% extends 'admin/base.html' %}
+{% load version_number %}
 
 {% block footer %}
   {% if not is_popup %}
@@ -8,6 +9,7 @@
         <div class="tools">
             <a href="mailto:rdrf@googlegroups.com" class="icon"><i class="icon-question-sign"></i>Support</a>
             <a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
+            <i class="icon-wrench"></i> Version {% version_number %}
         </div>
     
         <div class="copyright">
