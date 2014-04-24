@@ -81,7 +81,6 @@ INSTALLED_APPS = [
     'rdrf',
     'django.contrib.admin',
     'admin_views',
-    'reversion',
     'iprestrict',
     'ajax_select'
 ]
