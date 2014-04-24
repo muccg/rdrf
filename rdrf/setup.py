@@ -10,7 +10,7 @@ def add_file_for_package(package, subdir, f):
     #print "%s: %s" % (package, full_path)
     return full_path
 
-for package in ['rdrf', 'registry.common', 'registry.configuration','registry.forms',
+for package in ['rdrf', 'registry.common','registry.forms',
             'registry.groups', 'registry.humangenome', 'registry.patients']:
     data_files[package] = []
     if "." in package:
@@ -37,8 +37,7 @@ setup(name='django-rdrf',
         'registry.patients',
         'registry.groups',
         'registry.forms',
-        'registry.humangenome',
-        'registry.configuration'
+        'registry.humangenome'
     ],
     description='RDRF',
     long_description='Rare Disease Registry Framework',
