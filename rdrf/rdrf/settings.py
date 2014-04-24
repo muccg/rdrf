@@ -79,8 +79,6 @@ INSTALLED_APPS = [
     'registry.common',
 
     'rdrf',
-    'django_qbe',
-    'django_qbe.savedqueries',
     'django.contrib.admin',
     'admin_views',
     'reversion',
