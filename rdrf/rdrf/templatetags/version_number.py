@@ -1,5 +1,5 @@
 from django import template
-from ... import VERSION
+from rdrf import VERSION
 
 register = template.Library()
 
