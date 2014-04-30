@@ -15,6 +15,8 @@ logger = logging.getLogger("registry_log")
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
+    ordering = ['code']
+    search_fields = ['code', 'display_name']
 
     def has_add_permission(self, request,*args, **kwargs):
         if request.user.is_superuser:
@@ -33,6 +35,9 @@ class SectionAdmin(admin.ModelAdmin):
 
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'sections')
+    ordering = ['registry', 'name']
+
+    list_filter = ['registry']
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
