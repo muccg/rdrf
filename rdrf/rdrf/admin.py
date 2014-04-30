@@ -165,7 +165,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
     process_link.short_description = 'Process questionnaire'
 
 
-def create_restricted_model_admin_class(model_class):
+def create_restricted_model_admin_class(model_class, search_fields=None, ordering=None):
 
     def query_set_func(model_class):
         def queryset(myself, request):
@@ -187,13 +187,19 @@ def create_restricted_model_admin_class(model_class):
         "has_delete_permission": make_perm_func(),
         "queryset" : query_set_func(model_class),
     }
+
+    if search_fields:
+        overrides["search_fields"] = search_fields
+    if ordering:
+        overrides["ordering"] = ordering
+
     return type(model_class.__name__ + "Admin" , (admin.ModelAdmin,), overrides)
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue))
-admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement))
+admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value']))
+admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
+admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)
