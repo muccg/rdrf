@@ -85,6 +85,9 @@ class PatientManager(models.Manager):
 
     def get_filtered(self, user):
         return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_group__in=get_working_groups(user)).distinct()
+    
+    def get_filtered_unallocated(self, user):
+        return self.model.objects.filter(working_group__in=get_working_groups(user)).exclude(rdrf_registry__isnull=False)
 
 
 class Patient(models.Model):
@@ -167,6 +170,15 @@ class Patient(models.Model):
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
+    
+    def as_json(self):
+        return dict(
+            obj_id=self.id,
+            given_names=self.given_names,
+            family_name=self.family_name,
+            working_group=self.working_group.name,
+            date_of_birth=str(self.date_of_birth)
+            )
 
 class PatientRegistry(models.Model):
     patient = models.ForeignKey(Patient)
