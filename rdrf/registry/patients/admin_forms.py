@@ -19,8 +19,8 @@ class PatientDoctorForm(forms.ModelForm):
 
 class PatientParentForm(forms.ModelForm):
     OPTIONS = (
-        (1, "Mother"),
-        (2, "Father")
+        ("Mother", "Mother"),
+        ("Father", "Father")
     )
     relationship = forms.ChoiceField(choices=OPTIONS)
 

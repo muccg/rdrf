@@ -30,6 +30,7 @@ class PatientDoctorAdmin(admin.TabularInline):
     fields = ["relationship", "doctor"]
     form = PatientDoctorForm
     model = PatientDoctor
+    extra = 0
 
 class ParentAdmin(admin.ModelAdmin):
     model = Parent
@@ -38,7 +39,7 @@ class PatientParentAdmin(admin.TabularInline):
     fields = ["relationship", "parent"]
     form = PatientParentForm
     model = PatientParent
-    extra = 1
+    extra = 0
 
 class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
