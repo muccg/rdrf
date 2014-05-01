@@ -14,6 +14,8 @@ import hgvs_view
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
+from registry.patients.views import UnallocatedPatients
+
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
 def handler404(request):
@@ -49,4 +51,5 @@ urlpatterns = patterns("",
     (r'^admin/lookups/', include(ajax_select_urls)),
     
     url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
+    url(r'^unallocated/?$', UnallocatedPatients.as_view(), name='unallocated_patients'),
 )
