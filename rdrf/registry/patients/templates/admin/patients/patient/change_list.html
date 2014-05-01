@@ -42,7 +42,8 @@
             var tr = $('<tr>').append(
                                       $('<td>').text(item.given_names + ' ' + item.family_name),
                                       $('<td>').text(item.working_group),
-                                      $('<td>').text(item.date_of_birth)
+                                      $('<td>').text(item.date_of_birth),
+                                      $('<td>').html("<a class='btn btn-info btn-small' href='{% url 'admin:patients_patientregistry_add' %}' >Allocate</a>")
                                       );
             $('#unallocated-content').append(tr);
           });
