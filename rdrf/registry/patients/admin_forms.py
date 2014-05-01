@@ -1,30 +1,28 @@
 from django import forms
-from registry.forms.widgets import ComboWidget, TextWidget
-from registry.forms.date import DateWidget
 from registry.utils import get_static_url
 
 from models import *
 
 
 class PatientDoctorForm(forms.ModelForm):
-    OPTIONS = [
-        "Primary Care",
-        "Paediatric Neurologist",
-        "Neurologist",
-        "Geneticist",
-        "Specialist - Other",
-    ]
-    relationship = forms.CharField(label="Type of Medical Professional", widget=ComboWidget(options=OPTIONS))
+    OPTIONS = (
+        (1, "Primary Care"),
+        (2, "Paediatric Neurologist"),
+        (3, "Neurologist"),
+        (4, "Geneticist"),
+        (5, "Specialist - Other"),
+    )
+    relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
         model = PatientDoctor
 
 class PatientParentForm(forms.ModelForm):
-    OPTIONS = [
-        "Mother",
-        "Father"
-    ]
-    relationship = forms.CharField(label="Relationship", widget=ComboWidget(options=OPTIONS))
+    OPTIONS = (
+        (1, "Mother"),
+        (2, "Father")
+    )
+    relationship = forms.ChoiceField(choices=OPTIONS)
 
     class Meta:
         model = PatientParent
@@ -37,19 +35,9 @@ class PatientForm(forms.ModelForm):
     }
 
     consent = forms.BooleanField(required=True, help_text="Consent must be given for the patient to be entered on the registry", label="Consent given")
-    date_of_birth = forms.DateField(widget=DateWidget(format="%d %B %Y", popup=True, years=-30))
-    date_of_migration = forms.DateField(widget=DateWidget(format="%d %B %Y", popup=True, years=-30), required=False, help_text="Date of migration", label="Migration")
+    date_of_birth = forms.DateField()
+    date_of_migration = forms.DateField(required=False, help_text="Date of migration", label="Migration")
     address = forms.CharField(widget=forms.Textarea(attrs=ADDRESS_ATTRS))
-
-    class Media:
-        js = (
-            "https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js",
-            'js/handlebars.runtime.js',
-            'js/jquery.ba-dotimeout.min.js',
-            'messages_ui/jquery.messages-ui.js',
-            'messages_ui/message.js',
-            "js/patient.js",
-        )
 
     class Meta:
         model = Patient
