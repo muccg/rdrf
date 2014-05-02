@@ -18,10 +18,6 @@ from models import *
 from registry.groups.models import User
 
 
-class CountryAdmin(admin.ModelAdmin):
-    search_fields = ["name"]
-
-
 class DoctorAdmin(admin.ModelAdmin):
     search_fields = ["family_name", "given_names"]
 
@@ -347,7 +343,6 @@ class PatientRegistryAdmin(admin.ModelAdmin):
         return self.model.objects.all()
 
 
-admin.site.register(Country, CountryAdmin)
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)

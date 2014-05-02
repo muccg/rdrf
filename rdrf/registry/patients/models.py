@@ -16,24 +16,17 @@ from django.conf import settings # for APP_NAME
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
-class Country(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)
-
-    class Meta:
-        ordering = ["name"]
-        verbose_name_plural = "countries"
-
-    def __unicode__(self):
-        return self.name
+from django_countries.fields import CountryField
+from django_countries import countries
 
 
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
-    country = models.ForeignKey(Country)
+    country = models.CharField(max_length=50, choices=countries)
 
     class Meta:
-        ordering = ["country__name", "name"]
+        ordering = ["name"]
 
     def __unicode__(self):
         return self.name
