@@ -5,18 +5,18 @@
     "fields": {
         "name": "Working Group Curators", 
         "permissions": [
-            97, 
-            98, 
-            99, 
-            94, 
-            95, 
-            96, 
-            91, 
-            92, 
-            93, 
             58, 
             59, 
             60, 
+            91, 
+            92, 
+            93, 
+            94, 
+            95, 
+            96, 
+            97, 
+            98, 
+            99, 
             61, 
             62, 
             63, 
@@ -67,10 +67,7 @@
             39, 
             40, 
             41, 
-            42, 
-            100, 
-            101, 
-            102
+            42
         ]
     }
 },
@@ -100,7 +97,7 @@
         "is_active": true, 
         "is_superuser": true, 
         "is_staff": true, 
-        "last_login": "2014-04-22T09:04:45.273", 
+        "last_login": "2014-05-02T12:40:27.772", 
         "groups": [
             1, 
             2, 
@@ -170,55 +167,6 @@
         "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
         "email": "clinical@example.com", 
         "date_joined": "2010-08-18T16:33:38"
-    }
-},
-{
-    "pk": 1, 
-    "model": "groups.user", 
-    "fields": {
-        "working_groups": [
-            3
-        ], 
-        "registry": [
-            1
-        ], 
-        "title": "admin"
-    }
-},
-{
-    "pk": 4, 
-    "model": "groups.user", 
-    "fields": {
-        "working_groups": [
-            1
-        ], 
-        "registry": [
-            1, 
-            2
-        ], 
-        "title": "curator"
-    }
-},
-{
-    "pk": 5, 
-    "model": "groups.user", 
-    "fields": {
-        "working_groups": [
-            3
-        ], 
-        "registry": [], 
-        "title": ""
-    }
-},
-{
-    "pk": 6, 
-    "model": "groups.user", 
-    "fields": {
-        "working_groups": [
-            3
-        ], 
-        "registry": [], 
-        "title": ""
     }
 }
 ]

@@ -543,8 +543,8 @@
     "pk": 61, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_country", 
-        "name": "Can add country", 
+        "codename": "add_state", 
+        "name": "Can add state", 
         "content_type": 21
     }
 },
@@ -552,8 +552,8 @@
     "pk": 62, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_country", 
-        "name": "Can change country", 
+        "codename": "change_state", 
+        "name": "Can change state", 
         "content_type": 21
     }
 },
@@ -561,8 +561,8 @@
     "pk": 63, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_country", 
-        "name": "Can delete country", 
+        "codename": "delete_state", 
+        "name": "Can delete state", 
         "content_type": 21
     }
 },
@@ -570,8 +570,8 @@
     "pk": 64, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_state", 
-        "name": "Can add state", 
+        "codename": "add_doctor", 
+        "name": "Can add doctor", 
         "content_type": 22
     }
 },
@@ -579,8 +579,8 @@
     "pk": 65, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_state", 
-        "name": "Can change state", 
+        "codename": "change_doctor", 
+        "name": "Can change doctor", 
         "content_type": 22
     }
 },
@@ -588,8 +588,8 @@
     "pk": 66, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_state", 
-        "name": "Can delete state", 
+        "codename": "delete_doctor", 
+        "name": "Can delete doctor", 
         "content_type": 22
     }
 },
@@ -597,8 +597,8 @@
     "pk": 67, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_doctor", 
-        "name": "Can add doctor", 
+        "codename": "add_nextofkinrelationship", 
+        "name": "Can add Next of Kin Relationship", 
         "content_type": 23
     }
 },
@@ -606,8 +606,8 @@
     "pk": 68, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_doctor", 
-        "name": "Can change doctor", 
+        "codename": "change_nextofkinrelationship", 
+        "name": "Can change Next of Kin Relationship", 
         "content_type": 23
     }
 },
@@ -615,8 +615,8 @@
     "pk": 69, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_doctor", 
-        "name": "Can delete doctor", 
+        "codename": "delete_nextofkinrelationship", 
+        "name": "Can delete Next of Kin Relationship", 
         "content_type": 23
     }
 },
@@ -624,8 +624,8 @@
     "pk": 70, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_nextofkinrelationship", 
-        "name": "Can add Next of Kin Relationship", 
+        "codename": "add_parent", 
+        "name": "Can add parent", 
         "content_type": 24
     }
 },
@@ -633,8 +633,8 @@
     "pk": 71, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_nextofkinrelationship", 
-        "name": "Can change Next of Kin Relationship", 
+        "codename": "change_parent", 
+        "name": "Can change parent", 
         "content_type": 24
     }
 },
@@ -642,8 +642,8 @@
     "pk": 72, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_nextofkinrelationship", 
-        "name": "Can delete Next of Kin Relationship", 
+        "codename": "delete_parent", 
+        "name": "Can delete parent", 
         "content_type": 24
     }
 },
@@ -651,8 +651,8 @@
     "pk": 73, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_parent", 
-        "name": "Can add parent", 
+        "codename": "add_patient", 
+        "name": "Can add patient", 
         "content_type": 25
     }
 },
@@ -660,8 +660,8 @@
     "pk": 74, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_parent", 
-        "name": "Can change parent", 
+        "codename": "change_patient", 
+        "name": "Can change patient", 
         "content_type": 25
     }
 },
@@ -669,8 +669,8 @@
     "pk": 75, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_parent", 
-        "name": "Can delete parent", 
+        "codename": "delete_patient", 
+        "name": "Can delete patient", 
         "content_type": 25
     }
 },
@@ -678,8 +678,8 @@
     "pk": 76, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_patient", 
-        "name": "Can add patient", 
+        "codename": "add_patientregistry", 
+        "name": "Can add patient registry", 
         "content_type": 26
     }
 },
@@ -687,8 +687,8 @@
     "pk": 77, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_patient", 
-        "name": "Can change patient", 
+        "codename": "change_patientregistry", 
+        "name": "Can change patient registry", 
         "content_type": 26
     }
 },
@@ -696,8 +696,8 @@
     "pk": 78, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_patient", 
-        "name": "Can delete patient", 
+        "codename": "delete_patientregistry", 
+        "name": "Can delete patient registry", 
         "content_type": 26
     }
 },
@@ -705,8 +705,8 @@
     "pk": 79, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_patientregistry", 
-        "name": "Can add patient registry", 
+        "codename": "add_patientconsent", 
+        "name": "Can add patient consent", 
         "content_type": 27
     }
 },
@@ -714,8 +714,8 @@
     "pk": 80, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_patientregistry", 
-        "name": "Can change patient registry", 
+        "codename": "change_patientconsent", 
+        "name": "Can change patient consent", 
         "content_type": 27
     }
 },
@@ -723,8 +723,8 @@
     "pk": 81, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_patientregistry", 
-        "name": "Can delete patient registry", 
+        "codename": "delete_patientconsent", 
+        "name": "Can delete patient consent", 
         "content_type": 27
     }
 },
@@ -732,8 +732,8 @@
     "pk": 82, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_patientconsent", 
-        "name": "Can add patient consent", 
+        "codename": "add_patientparent", 
+        "name": "Can add Parent", 
         "content_type": 28
     }
 },
@@ -741,8 +741,8 @@
     "pk": 83, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_patientconsent", 
-        "name": "Can change patient consent", 
+        "codename": "change_patientparent", 
+        "name": "Can change Parent", 
         "content_type": 28
     }
 },
@@ -750,8 +750,8 @@
     "pk": 84, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_patientconsent", 
-        "name": "Can delete patient consent", 
+        "codename": "delete_patientparent", 
+        "name": "Can delete Parent", 
         "content_type": 28
     }
 },
@@ -759,8 +759,8 @@
     "pk": 85, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_patientparent", 
-        "name": "Can add Parent", 
+        "codename": "add_patientdoctor", 
+        "name": "Can add medical professionals for patient", 
         "content_type": 29
     }
 },
@@ -768,8 +768,8 @@
     "pk": 86, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_patientparent", 
-        "name": "Can change Parent", 
+        "codename": "change_patientdoctor", 
+        "name": "Can change medical professionals for patient", 
         "content_type": 29
     }
 },
@@ -777,8 +777,8 @@
     "pk": 87, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_patientparent", 
-        "name": "Can delete Parent", 
+        "codename": "delete_patientdoctor", 
+        "name": "Can delete medical professionals for patient", 
         "content_type": 29
     }
 },
@@ -786,8 +786,8 @@
     "pk": 88, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_patientdoctor", 
-        "name": "Can add medical professionals for patient", 
+        "codename": "add_ipgroup", 
+        "name": "Can add IP Group", 
         "content_type": 30
     }
 },
@@ -795,8 +795,8 @@
     "pk": 89, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_patientdoctor", 
-        "name": "Can change medical professionals for patient", 
+        "codename": "change_ipgroup", 
+        "name": "Can change IP Group", 
         "content_type": 30
     }
 },
@@ -804,8 +804,8 @@
     "pk": 90, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_patientdoctor", 
-        "name": "Can delete medical professionals for patient", 
+        "codename": "delete_ipgroup", 
+        "name": "Can delete IP Group", 
         "content_type": 30
     }
 },
@@ -813,8 +813,8 @@
     "pk": 91, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_ipgroup", 
-        "name": "Can add IP Group", 
+        "codename": "add_iprange", 
+        "name": "Can add IP Range", 
         "content_type": 31
     }
 },
@@ -822,8 +822,8 @@
     "pk": 92, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_ipgroup", 
-        "name": "Can change IP Group", 
+        "codename": "change_iprange", 
+        "name": "Can change IP Range", 
         "content_type": 31
     }
 },
@@ -831,8 +831,8 @@
     "pk": 93, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_ipgroup", 
-        "name": "Can delete IP Group", 
+        "codename": "delete_iprange", 
+        "name": "Can delete IP Range", 
         "content_type": 31
     }
 },
@@ -840,8 +840,8 @@
     "pk": 94, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_iprange", 
-        "name": "Can add IP Range", 
+        "codename": "add_rule", 
+        "name": "Can add rule", 
         "content_type": 32
     }
 },
@@ -849,8 +849,8 @@
     "pk": 95, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_iprange", 
-        "name": "Can change IP Range", 
+        "codename": "change_rule", 
+        "name": "Can change rule", 
         "content_type": 32
     }
 },
@@ -858,8 +858,8 @@
     "pk": 96, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_iprange", 
-        "name": "Can delete IP Range", 
+        "codename": "delete_rule", 
+        "name": "Can delete rule", 
         "content_type": 32
     }
 },
@@ -867,8 +867,8 @@
     "pk": 97, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "add_rule", 
-        "name": "Can add rule", 
+        "codename": "add_reloadrulesrequest", 
+        "name": "Can add reload rules request", 
         "content_type": 33
     }
 },
@@ -876,8 +876,8 @@
     "pk": 98, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "change_rule", 
-        "name": "Can change rule", 
+        "codename": "change_reloadrulesrequest", 
+        "name": "Can change reload rules request", 
         "content_type": 33
     }
 },
@@ -885,36 +885,9 @@
     "pk": 99, 
     "model": "auth.permission", 
     "fields": {
-        "codename": "delete_rule", 
-        "name": "Can delete rule", 
-        "content_type": 33
-    }
-},
-{
-    "pk": 100, 
-    "model": "auth.permission", 
-    "fields": {
-        "codename": "add_reloadrulesrequest", 
-        "name": "Can add reload rules request", 
-        "content_type": 34
-    }
-},
-{
-    "pk": 101, 
-    "model": "auth.permission", 
-    "fields": {
-        "codename": "change_reloadrulesrequest", 
-        "name": "Can change reload rules request", 
-        "content_type": 34
-    }
-},
-{
-    "pk": 102, 
-    "model": "auth.permission", 
-    "fields": {
         "codename": "delete_reloadrulesrequest", 
         "name": "Can delete reload rules request", 
-        "content_type": 34
+        "content_type": 33
     }
 },
 {
@@ -926,21 +899,21 @@
             58, 
             59, 
             60, 
+            88, 
+            89, 
+            90, 
             91, 
             92, 
             93, 
-            94, 
-            95, 
-            96, 
-            100, 
-            101, 
-            102, 
             97, 
             98, 
             99, 
-            61, 
-            62, 
-            63, 
+            94, 
+            95, 
+            96, 
+            64, 
+            65, 
+            66, 
             67, 
             68, 
             69, 
@@ -950,24 +923,21 @@
             73, 
             74, 
             75, 
-            76, 
-            77, 
-            78, 
-            82, 
-            83, 
-            84, 
-            88, 
-            89, 
-            90, 
-            85, 
-            86, 
-            87, 
             79, 
             80, 
             81, 
-            64, 
-            65, 
-            66, 
+            85, 
+            86, 
+            87, 
+            82, 
+            83, 
+            84, 
+            76, 
+            77, 
+            78, 
+            61, 
+            62, 
+            63, 
             28, 
             29, 
             30, 
@@ -1018,7 +988,7 @@
         "is_active": true, 
         "is_superuser": true, 
         "is_staff": true, 
-        "last_login": "2014-04-22T09:04:45.273", 
+        "last_login": "2014-05-02T12:40:27.772", 
         "groups": [
             1, 
             2, 

@@ -7,11 +7,12 @@ from rdrf.models import *
 from rdrf.form_view import FormView
 from registry.patients.models import Patient, PatientRegistry
 from registry.groups.models import WorkingGroup
-from registry.patients.models import State, Country
+from registry.patients.models import State
 from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
+from django_countries import countries
 
 from django.conf import settings
 import os
@@ -177,8 +178,7 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
-        self.country, created = Country.objects.get_or_create(name="Australia")
-        self.country.save()
+        self.country = "Australia"
         self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia",
                                                           country=self.country)
 
