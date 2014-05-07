@@ -242,6 +242,8 @@ LOGGING = {
 ## Customize settings for each registry below
 ################################################################################
 
+AUTH_USER_MODEL = 'groups.CustomUser'
+
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
 ALLOWED_HOSTS = [

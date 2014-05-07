@@ -15,7 +15,9 @@ from registry.utils import get_static_url, get_working_groups, get_registries
 from admin_forms import *
 from models import *
 
-from registry.groups.models import User
+from django.contrib.auth import get_user_model
+
+#from registry.groups.models import User
 
 
 class DoctorAdmin(admin.ModelAdmin):
@@ -51,7 +53,7 @@ class RegistryFilter(admin.SimpleListFilter):
         if request.user.is_superuser:
             reg_list = Registry.objects.all()
         else:
-            reg_list = User.objects.get(user__username=request.user).registry.all()
+            reg_list = get_user_model().objects.get(username=request.user).registry.all()
 
         regs = []
         for reg in reg_list:
@@ -126,8 +128,8 @@ class PatientAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
-         from registry.groups.models import User
-         form.user = User.objects.get(user=request.user)
+         #from registry.groups.models import User
+         form.user = get_user_model().get(user=request.user)
          form.is_superuser = request.user.is_superuser
          return form
 
@@ -197,18 +199,18 @@ class PatientAdmin(admin.ModelAdmin):
             return []
 
     def formfield_for_dbfield(self, dbfield, *args, **kwargs):
-        from registry.groups.models import User, WorkingGroup
+        from registry.groups.models import WorkingGroup
 
         request = kwargs.get('request')
         user = request.user
         # Restrict normal users to their own working group.
         if dbfield.name == "working_group" and not user.is_superuser:
-            user = User.objects.get(user=user) # get the user's associated objects
+            user = get_user_model().get(user=user) # get the user's associated objects
             #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
-            user = User.objects.get(user=user)
+            user = get_user_model().get(user=user)
             kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
@@ -227,7 +229,7 @@ class PatientAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return Patient.objects.all()
 
-        user = registry.groups.models.User.objects.get(user=request.user)
+        user = get_user_model().objects.get(username=request.user)
         return Patient.objects.get_filtered(user)
 
     def search(self, request, term):
@@ -327,17 +329,17 @@ class PatientRegistryAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(PatientRegistryAdmin,self).get_form(request, obj=None, **kwargs)
-        from registry.groups.models import User
-        user = User.objects.get(user=request.user)
-        if not user.user.is_superuser:
+        #from registry.groups.models import User
+        user = get_user_model().objects.get(username=request.user)
+        if not user.is_superuser:
             form.base_fields['patient'].queryset = Patient.objects.filter(rdrf_registry__in=user.registry.all())
             form.base_fields['rdrf_registry'].queryset = Registry.objects.filter(id__in=user.registry.all())
         return form
     
     def queryset(self, request):
         if not request.user.is_superuser:
-            from registry.groups.models import User
-            user = User.objects.get(user=request.user)
+            #from registry.groups.models import User
+            user = get_user_model().objects.get(username=request.user)
             return PatientRegistry.objects.filter(rdrf_registry__in=user.registry.all())
         
         return self.model.objects.all()

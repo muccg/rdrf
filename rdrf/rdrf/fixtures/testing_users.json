@@ -21,52 +21,92 @@
     }
 },
 {
-    "pk": 1, 
-    "model": "groups.user", 
+    "pk": 5, 
+    "model": "groups.customuser", 
     "fields": {
-        "working_groups": [
-            3
-        ], 
-        "registry": [
-            1
-        ], 
-        "title": "admin"
-    }
-},
-{
-    "pk": 4, 
-    "model": "groups.user", 
-    "fields": {
-        "working_groups": [
-            1
-        ], 
+        "username": "admin", 
+        "first_name": "admin", 
+        "last_name": "admin", 
+        "title": "CHANGE ME", 
+        "is_active": true, 
+        "is_superuser": true, 
+        "is_staff": true, 
+        "last_login": "2014-05-07T09:14:34.850", 
         "registry": [
             1, 
             2
         ], 
-        "title": "curator"
-    }
-},
-{
-    "pk": 5, 
-    "model": "groups.user", 
-    "fields": {
+        "groups": [], 
+        "user_permissions": [], 
         "working_groups": [
-            3
+            1
         ], 
-        "registry": [], 
-        "title": ""
+        "password": "pbkdf2_sha256$10000$dguKleorImnj$vvii9EvuqArfpvNXRqHf0yMExhdWTIHBAGy4ZFchOJ4=", 
+        "email": "admin@example.com", 
+        "date_joined": "2010-08-18T16:28:19"
     }
 },
 {
     "pk": 6, 
-    "model": "groups.user", 
+    "model": "groups.customuser", 
     "fields": {
-        "working_groups": [
-            3
-        ], 
+        "username": "curator", 
+        "first_name": "curator", 
+        "last_name": "curator", 
+        "title": "CHANGE ME", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2014-05-06T15:13:59.170", 
         "registry": [], 
-        "title": ""
+        "groups": [], 
+        "user_permissions": [], 
+        "working_groups": [], 
+        "password": "sha1$005da$3579413835a39b5013b56dc964692b27314e89a2", 
+        "email": "curator@example.com", 
+        "date_joined": "2010-08-18T16:32:32"
+    }
+},
+{
+    "pk": 7, 
+    "model": "groups.customuser", 
+    "fields": {
+        "username": "genetic", 
+        "first_name": "genetic", 
+        "last_name": "genetic", 
+        "title": "CHANGE ME", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2014-05-06T15:13:59.173", 
+        "registry": [], 
+        "groups": [], 
+        "user_permissions": [], 
+        "working_groups": [], 
+        "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e", 
+        "email": "genetic@example.com", 
+        "date_joined": "2010-08-18T16:33:13"
+    }
+},
+{
+    "pk": 8, 
+    "model": "groups.customuser", 
+    "fields": {
+        "username": "clinical", 
+        "first_name": "clinical", 
+        "last_name": "clinical", 
+        "title": "CHANGE ME", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2014-05-06T15:13:59.178", 
+        "registry": [], 
+        "groups": [], 
+        "user_permissions": [], 
+        "working_groups": [], 
+        "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305", 
+        "email": "clinical@example.com", 
+        "date_joined": "2010-08-18T16:33:38"
     }
 }
 ]

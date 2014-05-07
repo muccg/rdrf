@@ -10,7 +10,8 @@ from django.db import transaction
 from django.contrib.admin.views.decorators import staff_member_required
 
 import logging
-from registry.groups.models import User
+#from registry.groups.models import User
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger("registry_log")
 
@@ -22,7 +23,7 @@ class ImportRegistryView(View):
     def get(self, request):
 
         state = request.GET.get("state","ready")
-        user = User.objects.get(user__username=request.user)
+        user = get_user_model().objects.get(username=request.user)
 
         context = {
             'user_obj': user,

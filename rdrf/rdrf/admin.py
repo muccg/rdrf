@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from models import *
-from registry.groups.models import User
+#from registry.groups.models import User
 import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -9,6 +9,7 @@ import cStringIO as StringIO
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger("registry_log")
 
@@ -128,7 +129,7 @@ class RegistryAdmin(admin.ModelAdmin):
 
     def queryset(self, request):
         if not request.user.is_superuser:
-            user = User.objects.get(user=request.user)
+            user = get_user_model().objects.get(username=request.user)
             return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
 
         return Registry.objects.all()
