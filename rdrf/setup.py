@@ -46,7 +46,7 @@ setup(name='django-rdrf',
     zip_safe=False,
     scripts=["rdrf-manage.py"],
     install_requires=[
-        'Django==1.5.4',
+        'Django==1.6.4',
         'pymongo',
         'pyyaml',
         'South==0.8.2',
