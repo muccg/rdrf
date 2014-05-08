@@ -5,7 +5,6 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.core import urlresolvers
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from admin_views.admin import AdminViews
 import os
 import json, datetime
 

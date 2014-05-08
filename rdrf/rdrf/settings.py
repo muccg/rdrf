@@ -80,7 +80,6 @@ INSTALLED_APPS = [
 
     'rdrf',
     'django.contrib.admin',
-    'admin_views',
     'iprestrict',
     'ajax_select'
 ]
