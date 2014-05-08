@@ -202,6 +202,7 @@ class FormTestCase(RDRFTestCase):
 
     def create_patient(self):
         p = Patient()
+        p.consent = True
         p.name = "Harry"
         p.date_of_birth = datetime(1978, 6, 15)
         p.working_group = self.working_group
