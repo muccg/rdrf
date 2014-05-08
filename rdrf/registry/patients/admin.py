@@ -128,7 +128,7 @@ class PatientAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
          form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
          #from registry.groups.models import User
-         form.user = get_user_model().get(user=request.user)
+         form.user = get_user_model().objects.get(username=request.user)
          form.is_superuser = request.user.is_superuser
          return form
 
