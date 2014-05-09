@@ -162,13 +162,13 @@ class LookupWidget(widgets.TextInput):
     
     def render(self, name, value, attrs):
         return """
-            <input type="text" name="%s" id="id_%s" value="%s"><div id="result_id_%s"></div>
+            <input type="text" name="%s" id="id_%s" value="%s">
             <script type="text/javascript">
                 $("#id_%s").keyup(function() {
                     lookup($(this), '%s');
                 });
             </script>
-        """ % (name, name, value or '', name, name, self.SOURCE_URL)
+        """ % (name, name, value or '', name, self.SOURCE_URL)
 
 
 class GeneLookupWidget(LookupWidget):
