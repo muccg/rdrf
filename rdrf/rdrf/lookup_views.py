@@ -22,8 +22,6 @@ class LookupView(View):
             json_['value'] = getattr(r, self.ATTRS['value'])
             json_['label'] = getattr(r, self.ATTRS['label'])
             json_results.append(json_)
-        
-        print json_results
 
         return HttpResponse(json.dumps(json_results))
 
