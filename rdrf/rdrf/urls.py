@@ -11,6 +11,7 @@ import landing_view
 import import_registry_view
 import rest_interface
 import hgvs_view
+from lookup_views import GeneView, LaboratoryView
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
@@ -27,7 +28,7 @@ def handler500(request):
 def handlerApplicationError(request):
     return render_to_response("rdrf_cdes/application_error.html",{"application_error": "Example config Error"})
 
-urlpatterns = patterns("",
+urlpatterns = patterns('',
     url(r'^test404',handler404),
     url(r'^test500',handler500),
     url(r'^testAppError',handlerApplicationError),
@@ -49,6 +50,9 @@ urlpatterns = patterns("",
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
     url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$', rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
     (r'^admin/lookups/', include(ajax_select_urls)),
+    
+    url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
+    url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
     
     url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
     url(r'^unallocated/?$', UnallocatedPatients.as_view(), name='unallocated_patients'),

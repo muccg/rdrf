@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'registry.groups',
     'registry.patients',
     'registry.common',
+    'registry.genetic',
 
     'rdrf',
     'django.contrib.admin',
