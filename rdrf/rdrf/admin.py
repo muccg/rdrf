@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from models import *
-from registry.groups.models import User
+#from registry.groups.models import User
 import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -9,12 +9,15 @@ import cStringIO as StringIO
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger("registry_log")
 
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
+    ordering = ['code']
+    search_fields = ['code', 'display_name']
 
     def has_add_permission(self, request,*args, **kwargs):
         if request.user.is_superuser:
@@ -33,6 +36,9 @@ class SectionAdmin(admin.ModelAdmin):
 
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'sections')
+    ordering = ['registry', 'name']
+
+    list_filter = ['registry']
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
@@ -123,7 +129,7 @@ class RegistryAdmin(admin.ModelAdmin):
 
     def queryset(self, request):
         if not request.user.is_superuser:
-            user = User.objects.get(user=request.user)
+            user = get_user_model().objects.get(username=request.user)
             return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
 
         return Registry.objects.all()
@@ -165,7 +171,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
     process_link.short_description = 'Process questionnaire'
 
 
-def create_restricted_model_admin_class(model_class):
+def create_restricted_model_admin_class(model_class, search_fields=None, ordering=None):
 
     def query_set_func(model_class):
         def queryset(myself, request):
@@ -187,13 +193,19 @@ def create_restricted_model_admin_class(model_class):
         "has_delete_permission": make_perm_func(),
         "queryset" : query_set_func(model_class),
     }
+
+    if search_fields:
+        overrides["search_fields"] = search_fields
+    if ordering:
+        overrides["ordering"] = ordering
+
     return type(model_class.__name__ + "Admin" , (admin.ModelAdmin,), overrides)
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue))
-admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement))
+admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value']))
+admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
+admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)

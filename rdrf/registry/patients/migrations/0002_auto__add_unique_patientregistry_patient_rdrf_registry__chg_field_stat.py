@@ -8,67 +8,32 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Variation.laboratory'
-        db.add_column(u'genetic_variation', 'laboratory',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['genetic.Laboratory'], null=True),
-                      keep_default=False)
+        # Adding unique constraint on 'PatientRegistry', fields ['patient', 'rdrf_registry']
+        db.create_unique(u'patients_patientregistry', ['patient_id', 'rdrf_registry_id'])
+
+
+        # Renaming column for 'State.country' to match new field type.
+        db.rename_column(u'patients_state', 'country_id', 'country')
+        # Changing field 'State.country'
+        db.alter_column(u'patients_state', 'country', self.gf('django.db.models.fields.CharField')(max_length=50))
+        # Removing index on 'State', fields ['country']
+        db.delete_index(u'patients_state', ['country_id'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Variation.laboratory'
-        db.delete_column(u'genetic_variation', 'laboratory_id')
+        # Adding index on 'State', fields ['country']
+        db.create_index(u'patients_state', ['country_id'])
 
+        # Removing unique constraint on 'PatientRegistry', fields ['patient', 'rdrf_registry']
+        db.delete_unique(u'patients_patientregistry', ['patient_id', 'rdrf_registry_id'])
+
+
+        # Renaming column for 'State.country' to match new field type.
+        db.rename_column(u'patients_state', 'country', 'country_id')
+        # Changing field 'State.country'
+        db.alter_column(u'patients_state', 'country_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['patients.Country']))
 
     models = {
-        u'genetic.gene': {
-            'Meta': {'ordering': "['symbol']", 'object_name': 'Gene'},
-            'accession_numbers': ('django.db.models.fields.TextField', [], {}),
-            'chromosome': ('django.db.models.fields.TextField', [], {}),
-            'hgnc_id': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {}),
-            'refseq_id': ('django.db.models.fields.TextField', [], {}),
-            'status': ('django.db.models.fields.TextField', [], {}),
-            'symbol': ('django.db.models.fields.TextField', [], {})
-        },
-        u'genetic.laboratory': {
-            'Meta': {'object_name': 'Laboratory'},
-            'address': ('django.db.models.fields.TextField', [], {'max_length': '200', 'blank': 'True'}),
-            'contact_email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'contact_name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
-            'contact_phone': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'})
-        },
-        u'genetic.moleculardata': {
-            'Meta': {'ordering': "['patient']", 'object_name': 'MolecularData'},
-            'patient': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['patients.Patient']", 'unique': 'True', 'primary_key': 'True'})
-        },
-        u'genetic.technique': {
-            'Meta': {'object_name': 'Technique'},
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'primary_key': 'True'})
-        },
-        u'genetic.variation': {
-            'Meta': {'object_name': 'Variation'},
-            'all_exons_in_male_relative': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'deletion_all_exons_tested': ('django.db.models.fields.NullBooleanField', [], {'default': 'True', 'null': 'True', 'blank': 'True'}),
-            'dna_variation': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'dna_variation_validation_override': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'duplication_all_exons_tested': ('django.db.models.fields.NullBooleanField', [], {'default': 'True', 'null': 'True', 'blank': 'True'}),
-            'exon': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'exon_boundaries_known': ('django.db.models.fields.NullBooleanField', [], {'default': 'True', 'null': 'True', 'blank': 'True'}),
-            'exon_validation_override': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'gene': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['genetic.Gene']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'laboratory': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['genetic.Laboratory']", 'null': 'True'}),
-            'molecular_data': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['genetic.MolecularData']"}),
-            'point_mutation_all_exons_sequenced': ('django.db.models.fields.NullBooleanField', [], {'default': 'True', 'null': 'True', 'blank': 'True'}),
-            'protein_variation': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'protein_variation_validation_override': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'rna_variation': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'rna_variation_validation_override': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'technique': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['genetic.Technique']"})
-        },
         u'groups.workinggroup': {
             'Meta': {'ordering': "['name']", 'object_name': 'WorkingGroup'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -142,6 +107,12 @@ class Migration(SchemaMigration):
             'work_phone': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'working_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['groups.WorkingGroup']"})
         },
+        u'patients.patientconsent': {
+            'Meta': {'object_name': 'PatientConsent'},
+            'form': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'patient': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Patient']"})
+        },
         u'patients.patientdoctor': {
             'Meta': {'object_name': 'PatientDoctor'},
             'doctor': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Doctor']"}),
@@ -163,8 +134,8 @@ class Migration(SchemaMigration):
             'rdrf_registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"})
         },
         u'patients.state': {
-            'Meta': {'ordering': "['country__name', 'name']", 'object_name': 'State'},
-            'country': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['patients.Country']"}),
+            'Meta': {'ordering': "['name']", 'object_name': 'State'},
+            'country': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'short_name': ('django.db.models.fields.CharField', [], {'max_length': '3', 'primary_key': 'True'})
         },
@@ -178,4 +149,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['genetic']
+    complete_apps = ['patients']

@@ -3,6 +3,7 @@ from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
 from registry.utils import get_static_url
 from django.utils.safestring import mark_safe
+from django.core.urlresolvers import reverse_lazy
 
 import logging
 logger = logging.getLogger("registry_log")
@@ -154,3 +155,25 @@ class ExtensibleListWidget(MultiWidget):
     def render(self, name, value):
         html = super(ExtensibleListWidget, self).render(name, value)
         return html + self._buttons_html()
+
+
+class LookupWidget(widgets.TextInput):
+    SOURCE_URL = ""
+    
+    def render(self, name, value, attrs):
+        return """
+            <input type="text" name="%s" id="id_%s" value="%s">
+            <script type="text/javascript">
+                $("#id_%s").keyup(function() {
+                    lookup($(this), '%s');
+                });
+            </script>
+        """ % (name, name, value or '', name, self.SOURCE_URL)
+
+
+class GeneLookupWidget(LookupWidget):
+    SOURCE_URL = reverse_lazy('gene_source')
+
+    
+class LaboratoryLookupWidget(LookupWidget):
+    SOURCE_URL = reverse_lazy('laboratory_source')

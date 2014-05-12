@@ -1,78 +1,39 @@
 from django import forms
-from django.contrib.auth.models import Group
-from models import User, WorkingGroup
-
-from rdrf.models import Registry
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 
-class ChangePasswordForm(forms.Form):
-    password = forms.CharField(max_length=100, widget=forms.PasswordInput)
-    confirm_password = forms.CharField(max_length=100, widget=forms.PasswordInput)
+class UserCreationForm(forms.ModelForm):
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        password = cleaned_data.get("password")
-        confirm = cleaned_data.get("confirm_password")
+    class Meta:
+        model = get_user_model()
+        fields = ('email',)
 
-        if password != confirm:
-            raise forms.ValidationError("Passwords do not match.")
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
 
-        return cleaned_data
-
-
-class UserChangeForm(forms.Form):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email_address = forms.EmailField(label="E-mail address")
-    title = forms.CharField(max_length=50, label="Position")
-    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all())
-    working_group = forms.ModelMultipleChoiceField(queryset=WorkingGroup.objects.all())
-    registry = forms.ModelMultipleChoiceField(queryset=Registry.objects.all())
-
-    def __init__(self, user, *args, **kwargs):
-        super(UserChangeForm, self).__init__(*args, **kwargs)
-        self.user = user
-        if not self.user.is_superuser:
-            working_group = User.objects.get(user=self.user).working_groups.all()
-            if working_group:
-                self.fields["working_group"] = forms.ModelMultipleChoiceField(queryset=User.objects.get(user=self.user).working_groups.all())
-
-    def clean_working_group(self):
-        if not self.user.is_superuser:
-            user = User.objects.get(user=self.user)
-
-#            if self.cleaned_data["working_group"] != user.working_group:
-#                raise forms.ValidationError("Cannot add a user to another working group.")
-
-        return self.cleaned_data["working_group"]
+    def save(self, commit=True):
+        user = super(UserCreationForm, self).save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
 
 
-class UserNewForm(UserChangeForm):
-    username = forms.CharField(max_length=100)
-    password = forms.CharField(max_length=100, widget=forms.PasswordInput)
-    confirm_password = forms.CharField(max_length=100, widget=forms.PasswordInput)
+class UserChangeForm(forms.ModelForm):
+    password = ReadOnlyPasswordHashField(help_text=("Raw passwords are not stored, so there is no way to see "
+                    "this user's password, but you can change the password "
+                    "using <a href=\"password/\">this form</a>."))
 
-    def __init__(self, user, *args, **kwargs):
-        super(UserNewForm, self).__init__(user, *args, **kwargs)
-        self.fields.keyOrder = [
-            "username",
-            "password",
-            "confirm_password",
-            "first_name",
-            "last_name",
-            "email_address",
-            "title",
-            "groups",
-            "working_group",
-            "registry"
-        ]
+    class Meta:
+        model = get_user_model()
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        password = cleaned_data.get("password")
-        confirm = cleaned_data.get("confirm_password")
 
-        if password != confirm:
-            raise forms.ValidationError("Passwords do not match.")
-
-        return cleaned_data
+    def clean_password(self):
+        return self.initial["password"]

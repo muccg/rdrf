@@ -15,44 +15,78 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'groups', ['WorkingGroup'])
 
-        # Adding model 'User'
-        db.create_table(u'groups_user', (
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True, primary_key=True)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=50)),
+        # Adding model 'CustomUser'
+        db.create_table(u'groups_customuser', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
+            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
+            ('is_staff', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('date_joined', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=50, null=True)),
         ))
-        db.send_create_signal(u'groups', ['User'])
+        db.send_create_signal(u'groups', ['CustomUser'])
 
-        # Adding M2M table for field working_groups on 'User'
-        m2m_table_name = db.shorten_name(u'groups_user_working_groups')
+        # Adding M2M table for field groups on 'CustomUser'
+        m2m_table_name = db.shorten_name(u'groups_customuser_groups')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'groups.user'], null=False)),
+            ('customuser', models.ForeignKey(orm[u'groups.customuser'], null=False)),
+            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['customuser_id', 'group_id'])
+
+        # Adding M2M table for field user_permissions on 'CustomUser'
+        m2m_table_name = db.shorten_name(u'groups_customuser_user_permissions')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('customuser', models.ForeignKey(orm[u'groups.customuser'], null=False)),
+            ('permission', models.ForeignKey(orm[u'auth.permission'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['customuser_id', 'permission_id'])
+
+        # Adding M2M table for field working_groups on 'CustomUser'
+        m2m_table_name = db.shorten_name(u'groups_customuser_working_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('customuser', models.ForeignKey(orm[u'groups.customuser'], null=False)),
             ('workinggroup', models.ForeignKey(orm[u'groups.workinggroup'], null=False))
         ))
-        db.create_unique(m2m_table_name, ['user_id', 'workinggroup_id'])
+        db.create_unique(m2m_table_name, ['customuser_id', 'workinggroup_id'])
 
-        # Adding M2M table for field registry on 'User'
-        m2m_table_name = db.shorten_name(u'groups_user_registry')
+        # Adding M2M table for field registry on 'CustomUser'
+        m2m_table_name = db.shorten_name(u'groups_customuser_registry')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'groups.user'], null=False)),
+            ('customuser', models.ForeignKey(orm[u'groups.customuser'], null=False)),
             ('registry', models.ForeignKey(orm[u'rdrf.registry'], null=False))
         ))
-        db.create_unique(m2m_table_name, ['user_id', 'registry_id'])
+        db.create_unique(m2m_table_name, ['customuser_id', 'registry_id'])
 
 
     def backwards(self, orm):
         # Deleting model 'WorkingGroup'
         db.delete_table(u'groups_workinggroup')
 
-        # Deleting model 'User'
-        db.delete_table(u'groups_user')
+        # Deleting model 'CustomUser'
+        db.delete_table(u'groups_customuser')
 
-        # Removing M2M table for field working_groups on 'User'
-        db.delete_table(db.shorten_name(u'groups_user_working_groups'))
+        # Removing M2M table for field groups on 'CustomUser'
+        db.delete_table(db.shorten_name(u'groups_customuser_groups'))
 
-        # Removing M2M table for field registry on 'User'
-        db.delete_table(db.shorten_name(u'groups_user_registry'))
+        # Removing M2M table for field user_permissions on 'CustomUser'
+        db.delete_table(db.shorten_name(u'groups_customuser_user_permissions'))
+
+        # Removing M2M table for field working_groups on 'CustomUser'
+        db.delete_table(db.shorten_name(u'groups_customuser_working_groups'))
+
+        # Removing M2M table for field registry on 'CustomUser'
+        db.delete_table(db.shorten_name(u'groups_customuser_registry'))
 
 
     models = {
@@ -69,8 +103,15 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         },
-        u'auth.user': {
-            'Meta': {'object_name': 'User'},
+        u'contenttypes.contenttype': {
+            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
+            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        u'groups.customuser': {
+            'Meta': {'object_name': 'CustomUser'},
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
@@ -82,22 +123,11 @@ class Migration(SchemaMigration):
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        u'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'groups.user': {
-            'Meta': {'ordering': "['user__username']", 'object_name': 'User'},
             'registry': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'registry'", 'symmetrical': 'False', 'to': u"orm['rdrf.Registry']"}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True', 'primary_key': 'True'}),
-            'working_groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'working_group'", 'null': 'True', 'to': u"orm['groups.WorkingGroup']"})
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
+            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'}),
+            'working_groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'working_groups'", 'null': 'True', 'to': u"orm['groups.WorkingGroup']"})
         },
         u'groups.workinggroup': {
             'Meta': {'ordering': "['name']", 'object_name': 'WorkingGroup'},

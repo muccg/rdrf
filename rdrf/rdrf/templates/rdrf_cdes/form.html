@@ -8,6 +8,8 @@
 {% load static %}
 
 {% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 
@@ -16,12 +18,29 @@
     <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
     <script type="text/javascript">
         window.IMAGES_URL = "{% static 'images/' %}";
         window.HGVS_URL = "{% url 'hgvs_validator' %}";
     </script>
 
+    <style>
+        .ui-autocomplete {
+            max-height: 100px;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+        }
+          /* IE 6 doesn't support max-height
+           * we use height instead, but this forces the menu to always be this tall
+           */
+          * html .ui-autocomplete {
+            height: 100px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}

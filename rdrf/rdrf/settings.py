@@ -77,10 +77,10 @@ INSTALLED_APPS = [
     'registry.groups',
     'registry.patients',
     'registry.common',
+    'registry.genetic',
 
     'rdrf',
     'django.contrib.admin',
-    'admin_views',
     'iprestrict',
     'ajax_select'
 ]
@@ -241,6 +241,8 @@ LOGGING = {
 ################################################################################
 ## Customize settings for each registry below
 ################################################################################
+
+AUTH_USER_MODEL = 'groups.CustomUser'
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
