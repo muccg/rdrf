@@ -43,10 +43,13 @@
                                       $('<td>').text(item.given_names + ' ' + item.family_name),
                                       $('<td>').text(item.working_group),
                                       $('<td>').text(new Date(item.date_of_birth).toDateString()),
-                                      $('<td>').html("<a class='btn btn-info btn-small' href='{% url 'admin:patients_patientregistry_add' %}' >Allocate</a>")
+                                      $("<td id='allocate_btn'>").html("<a class='btn btn-info btn-small' href='{% url 'admin:patients_patientregistry_add' %}' >Allocate</a>")
                                       );
             $('#unallocated-content').append(tr);
           });
+          {% if not request.user.is_superuser %}
+            $('#allocate_btn').hide();
+          {% endif %}
           $('#unallocated').toggle();
         }
       });
