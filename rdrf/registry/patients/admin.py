@@ -204,12 +204,12 @@ class PatientAdmin(admin.ModelAdmin):
         user = request.user
         # Restrict normal users to their own working group.
         if dbfield.name == "working_group" and not user.is_superuser:
-            user = get_user_model().get(user=user) # get the user's associated objects
+            user = get_user_model().objects.get(username=user) # get the user's associated objects
             #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
-            user = get_user_model().get(user=user)
+            user = get_user_model().objects.get(username=user)
             kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
