@@ -86,6 +86,10 @@ class CommonDataElement(models.Model):
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
+    
+    class Meta:
+        verbose_name = 'Data Element'
+        verbose_name_plural = 'Date Elements'
 
 
 class RegistryFormManager(models.Manager):
