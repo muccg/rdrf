@@ -258,7 +258,19 @@ LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
 SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
     'MENU_OPEN_FIRST_CHILD': False,
-    'MENU_EXCLUDE': ('sites'),
+    'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
+        
+    'MENU': (
+        'auth',
+        'genetic',
+        'groups',
+        'iprestrict',
+        'patients',
+        {'app': 'rdrf', 'label': 'Registry'},
+        {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
+                {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}
+        ]}
+    )
 }
 
 '''
