@@ -89,7 +89,7 @@ class CommonDataElement(models.Model):
     
     class Meta:
         verbose_name = 'Data Element'
-        verbose_name_plural = 'Date Elements'
+        verbose_name_plural = 'Data Elements'
 
 
 class RegistryFormManager(models.Manager):
