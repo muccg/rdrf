@@ -119,7 +119,7 @@ class PatientAdmin(admin.ModelAdmin):
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
             content += "<a href=%s>%s</a><br/>" % (url, form.name)
         
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='phenotype-btn'>Show Forms</button>" % content
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Forms</button>" % content
     
     data_modules_btn.allow_tags = True
     data_modules_btn.short_description = 'Data Modules'
