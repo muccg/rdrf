@@ -104,7 +104,7 @@ class PatientAdmin(admin.ModelAdmin):
 
         
         rdrf = Registry.objects.get(pk=rdrf_id)
-        forms = RegistryForm.objects.filter(registry=rdrf)
+        forms = RegistryForm.objects.filter(registry=rdrf).order_by('position')
 
         content = ''
         
