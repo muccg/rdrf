@@ -79,7 +79,7 @@ class PatientAdmin(admin.ModelAdmin):
 
     inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'phenotype_btn']
+    list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter,]
     
     def full_name(self, obj):
@@ -93,7 +93,7 @@ class PatientAdmin(admin.ModelAdmin):
     demographic_btn.short_description = 'Demographics'
 
 
-    def phenotype_btn(self, obj):
+    def data_modules_btn(self, obj):
         if obj.rdrf_registry.count() == 0:
             return "No registry assigned"
         
@@ -121,8 +121,8 @@ class PatientAdmin(admin.ModelAdmin):
         
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='phenotype-btn'>Show Forms</button>" % content
     
-    phenotype_btn.allow_tags = True
-    phenotype_btn.short_description = 'Phenotype'
+    data_modules_btn.allow_tags = True
+    data_modules_btn.short_description = 'Data Modules'
 
 
     def get_form(self, request, obj=None, **kwargs):
