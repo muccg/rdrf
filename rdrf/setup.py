@@ -68,7 +68,8 @@ setup(name='django-rdrf',
         'django-suit',
         'django-ajax-selects',
 		'hgvs',
-		'django-countries'
+		'django-countries',
+		'django-positions'
     ],
     dependency_links = [
         "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",
