@@ -74,12 +74,11 @@ INSTALLED_APPS = [
     'south',
     'messages_ui',
     'userlog',
+    'rdrf',
     'registry.groups',
     'registry.patients',
     'registry.common',
     'registry.genetic',
-
-    'rdrf',
     'django.contrib.admin',
     'iprestrict',
     'ajax_select'
