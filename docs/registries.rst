@@ -1,6 +1,6 @@
-.. _registrys:
+.. _registries:
 
-Registrys
+Registries
 ----------
 
 In RDRF, a "registry" is just a named collection of :ref:`forms`. A Registry is created
