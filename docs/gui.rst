@@ -83,7 +83,7 @@ Parents
 Under review
 
 .. _patientregistrys:
-Patient registrys
+Patient registries
 -----------------
 
 Used to assign ( or remove ) a patient to a registry. Patients can be assigned to more than 
@@ -104,7 +104,7 @@ Editing of states or territories in a country.
 
 Rdrf
 ----
-The main admin interface for RDRF. Add or edit objects here to create new :ref:`registrys` and define the :ref:`forms`, :ref:`sections` and :ref:`Common Data Elements <cdes>` they use.
+The main admin interface for RDRF. Add or edit objects here to create new :ref:`registries` and define the :ref:`forms`, :ref:`sections` and :ref:`Common Data Elements <cdes>` they use.
 
 .. _savedqueries:
 
