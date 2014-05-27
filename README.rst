@@ -21,7 +21,7 @@ Links
 
 
 Citation
-
+========
 Bellgard, M.I., et al., A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat, 2012. 33(10): p. E2356-66.
 Other related citations
 
