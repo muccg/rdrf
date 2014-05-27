@@ -9,6 +9,7 @@ from django.forms.formsets import formset_factory
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 
 import logging
 
@@ -455,8 +456,7 @@ class QuestionnaireResponseView(FormView):
                 self.code = working_group_model.pk
                 self.desc = working_group_model.name
 
-        from registry.groups.models import User
-        user = User.objects.get(user=auth_user)
+        user = get_user_model().objects.get(username=auth_user)
 
         return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
 

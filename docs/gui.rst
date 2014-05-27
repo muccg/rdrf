@@ -124,32 +124,6 @@ Userlog
 -------
 Under review
 
-.. _dashboard:
-
-Dashboard
-=========
-
-The "launchpad" for end users to access the forms of any accessible registries loaded into the site.
-The dashboard is currently accessed via  "/dashboard" ( no link has been provided yet from the admin interface
-this will change shortly! )
-
-The dashboard shows two (linked) drop downs for each registry that the user has access to:
-
-.. _dashboardpatientselector:
-Patient Dropdown
-----------------
-Shows all :ref:`patients` entered into the registry.
-
-.. _dashboardformselector:
-Form Dropdown
--------------
-Shows all the defined :ref:`forms` in the registry.
-
-.. _dashboardloadbutton:
-Load Button
------------
-After selecting the patient and the form, click to load the form to edit ( or add )  the selected patients data.
-
 
 
 

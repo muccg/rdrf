@@ -1,6 +1,7 @@
 from django.db import models
 import logging
 from django.core.exceptions import ValidationError
+from positions.fields import PositionField
 
 logger = logging.getLogger("registry")
 
@@ -86,11 +87,16 @@ class CommonDataElement(models.Model):
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
+    
+    class Meta:
+        verbose_name = 'Data Element'
+        verbose_name_plural = 'Data Elements'
 
 
 class RegistryFormManager(models.Manager):
     def get_by_registry(self, registry):
         return self.model.objects.filter(registry__id__in = registry)
+
 
 class RegistryForm(models.Model):
     """
@@ -101,6 +107,7 @@ class RegistryForm(models.Model):
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(default=False,help_text="Check if this form is questionnaire form for it's registry")
+    position = PositionField(collection='registry')
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)

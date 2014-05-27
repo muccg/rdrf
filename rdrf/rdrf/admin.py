@@ -35,7 +35,7 @@ class SectionAdmin(admin.ModelAdmin):
         return False
 
 class RegistryFormAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'name', 'sections')
+    list_display = ('registry', 'name', 'sections', 'position')
     ordering = ['registry', 'name']
 
     list_filter = ['registry']

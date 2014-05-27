@@ -46,7 +46,7 @@ setup(name='django-rdrf',
     zip_safe=False,
     scripts=["rdrf-manage.py"],
     install_requires=[
-        'Django==1.6.4',
+        'Django==1.6.5',
         'pymongo',
         'pyyaml',
         'South==0.8.2',
@@ -68,7 +68,8 @@ setup(name='django-rdrf',
         'django-suit',
         'django-ajax-selects',
 		'hgvs',
-		'django-countries'
+		'django-countries',
+		'django-positions'
     ],
     dependency_links = [
         "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",

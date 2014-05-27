@@ -13,7 +13,7 @@ Contents:
 
    about
    gui
-   registrys
+   registries
    howtocreatearegistry
    forms
    sections
