@@ -19,8 +19,13 @@ RDRF's main features are:
   - Dynamic creation of :ref:`registries` ( :ref:`forms` , :ref:`sections`, :ref:`fields` ) at *runtime*.
   - Reusable Components ( :ref:`cdes` )
   - Standard Django Admin Interface ( :ref:`gui` )
-  - Demo Site `<https://ccgapps.com.au/demo-rdrf>`_
+  - Demo Site (`<https://ccgapps.com.au/demo-rdrf>`_)
 
+Screencast
+==========
+
+    List of traning videos: (`<https://www.youtube.com/playlist?list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_)
+        - Add patient as a curator (`<https://www.youtube.com/watch?v=dWAg4F_QX2s&index=2&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_)
 
 For the Impatient
 =================
