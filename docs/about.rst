@@ -28,6 +28,7 @@ Screencast
     
     Single videos:
         - `Add patient as a curator <https://www.youtube.com/watch?v=dWAg4F_QX2s&index=2&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_
+        - `Assign a patient to a registry <https://www.youtube.com/watch?v=ZzKRQF9Zbcs&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK&index=3>_`
 
 For the Impatient
 =================
