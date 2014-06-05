@@ -60,7 +60,7 @@
       <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:patients_patient_changelist' %}">Patients</a></th></tr>
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_questionnaireresponse_changelist' %}">Questionnaire Responses</a></th></tr>
-        {% if request.is_superuser %}
+        {% if request.user.is_superuser %}
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registry_changelist' %}">Registries</a></th></tr>
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registryform_changelist' %}">Registry Forms</a></th></tr>
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_commondataelement_changelist' %}">Data Elements</a></th></tr>
