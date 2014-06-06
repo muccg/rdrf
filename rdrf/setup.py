@@ -10,8 +10,8 @@ def add_file_for_package(package, subdir, f):
     #print "%s: %s" % (package, full_path)
     return full_path
 
-for package in ['rdrf', 'registry.common', 'registry.configuration','registry.forms',
-            'registry.genetic', 'registry.groups', 'registry.humangenome', 'registry.patients']:
+for package in ['rdrf', 'registry.common', 'registry.genetic',
+            'registry.groups', 'registry.patients']:
     data_files[package] = []
     if "." in package:
         base_dir,package_dir = package.split(".")
@@ -30,15 +30,13 @@ for package in ['rdrf', 'registry.common', 'registry.configuration','registry.fo
 
 setup(name='django-rdrf',
     version=VERSION,
-    packages=[  'rdrf',
+    packages=[
+        'rdrf',
         'registry',
-                'registry.common',
-                'registry.patients',
-                'registry.genetic',
-                'registry.groups',
-                'registry.forms',
-                'registry.humangenome',
-                'registry.configuration'
+        'registry.common',
+        'registry.patients',
+        'registry.groups',
+		'registry.genetic',
     ],
     description='RDRF',
     long_description='Rare Disease Registry Framework',
@@ -48,7 +46,7 @@ setup(name='django-rdrf',
     zip_safe=False,
     scripts=["rdrf-manage.py"],
     install_requires=[
-        'Django==1.5.4',
+        'Django==1.6.5',
         'pymongo',
         'pyyaml',
         'South==0.8.2',
@@ -63,16 +61,15 @@ setup(name='django-rdrf',
         'ccg-auth==0.3.3',
         'ccg-extras==0.1.7',
         'django-userlog==0.2.1',
-        'django_qbe',
         'django-nose',
-        'django-admin-views',
-        'django-reversion',
         'sure==1.2.1',
         'django-templatetag-handlebars==1.2.0',
         'django-iprestrict==0.1',
         'django-suit',
         'django-ajax-selects',
-		'hgvs'
+		'hgvs',
+		'django-countries',
+		'django-positions'
     ],
     dependency_links = [
         "https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",

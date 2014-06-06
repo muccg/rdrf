@@ -74,18 +74,12 @@ INSTALLED_APPS = [
     'south',
     'messages_ui',
     'userlog',
+    'rdrf',
     'registry.groups',
     'registry.patients',
-#    'registry.genetic',
     'registry.common',
-    'registry.configuration',
-
-    'rdrf',
-    'django_qbe',
-    'django_qbe.savedqueries',
+    'registry.genetic',
     'django.contrib.admin',
-    'admin_views',
-    'reversion',
     'iprestrict',
     'ajax_select'
 ]
@@ -247,6 +241,8 @@ LOGGING = {
 ## Customize settings for each registry below
 ################################################################################
 
+AUTH_USER_MODEL = 'groups.CustomUser'
+
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
 ALLOWED_HOSTS = [
@@ -255,13 +251,25 @@ ALLOWED_HOSTS = [
 
 INSTALL_NAME = 'rdrf'
 
-QBE_ACCESS_FOR = lambda user: user.is_superuser
 LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
 
 # Django Suit Config
 SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
-
+    'MENU_OPEN_FIRST_CHILD': False,
+    'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
+        
+    'MENU': (
+        'auth',
+        'genetic',
+        'groups',
+        'iprestrict',
+        'patients',
+        {'app': 'rdrf', 'label': 'Registry'},
+        {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
+                {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}
+        ]}
+    )
 }
 
 '''

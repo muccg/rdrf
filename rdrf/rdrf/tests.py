@@ -1,5 +1,4 @@
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import User
 from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState, RegistryImportError
@@ -7,11 +6,13 @@ from rdrf.models import *
 from rdrf.form_view import FormView
 from registry.patients.models import Patient, PatientRegistry
 from registry.groups.models import WorkingGroup
-from registry.patients.models import State, Country
+from registry.patients.models import State
 from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
+from django_countries import countries
+from django.contrib.auth import get_user_model
 
 from django.conf import settings
 import os
@@ -177,8 +178,7 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
-        self.country, created = Country.objects.get_or_create(name="Australia")
-        self.country.save()
+        self.country = "Australia"
         self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia",
                                                           country=self.country)
 
@@ -202,6 +202,7 @@ class FormTestCase(RDRFTestCase):
 
     def create_patient(self):
         p = Patient()
+        p.consent = True
         p.name = "Harry"
         p.date_of_birth = datetime(1978, 6, 15)
         p.working_group = self.working_group
@@ -245,7 +246,7 @@ class FormTestCase(RDRFTestCase):
         url = "/%s/forms/%s/%s" % (form_obj.registry.code, form_obj.pk, self.patient.pk)
 
         request = self.request_factory.post(url, form_data)
-        request.user = User.objects.get(username="curator")
+        request.user = get_user_model().objects.get(username="curator")
         return request
 
 

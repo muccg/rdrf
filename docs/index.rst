@@ -12,16 +12,22 @@ Contents:
    :maxdepth: 3
 
    about
-   registrys
+   gui
+   registries
+   howtocreatearegistry
    forms
    sections
    cdes
+
    permittedvaluegroups
-   permittedvalues
+   permittedvalue
    datatypes
    export
    import
-   
+   workflow
+   questionnaires
+   interfacing
+
 
 Indices and tables
 ==================

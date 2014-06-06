@@ -247,7 +247,7 @@ class Importer(object):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
-            logger.info("imported permissible value group %s" % pvg)
+            #logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [ pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg) ]
@@ -279,7 +279,7 @@ class Importer(object):
                     value.value = value_map["value"]
                     value.desc = value_map["desc"]
                     value.save()
-                    logger.info("imported value %s" % value)
+                    #logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
@@ -301,7 +301,7 @@ class Importer(object):
 
 
                     setattr(cde_model, field, cde_map[field])
-                    logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
+                    #logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
             #Assign value group - pv_group will be empty string is not a range
 
@@ -317,7 +317,7 @@ class Importer(object):
                     raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" % (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
-            logger.info("updated cde %s" % cde_model)
+            #logger.info("updated cde %s" % cde_model)
 
 
     def _create_registry_objects(self):

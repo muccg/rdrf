@@ -16,10 +16,19 @@ Key Features
 
 RDRF's main features are:
 
-  - Dynamic creation of :ref:`registrys` ( :ref:`forms` , :ref:`sections`, :ref:`fields` ) at *runtime*.
+  - Dynamic creation of :ref:`registries` ( :ref:`forms` , :ref:`sections`, :ref:`fields` ) at *runtime*.
   - Reusable Components ( :ref:`cdes` )
   - Standard Django Admin Interface ( :ref:`gui` )
+  - Demo Site (`<https://ccgapps.com.au/demo-rdrf>`_)
 
+Screencast
+==========
+
+    Traning videos `full playlist <https://www.youtube.com/playlist?list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_
+    
+    Single videos:
+        - `Add patient as a curator <https://www.youtube.com/watch?v=dWAg4F_QX2s&index=2&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_
+        - `Assign a patient to a registry <https://www.youtube.com/watch?v=ZzKRQF9Zbcs&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK&index=3>`_
 
 For the Impatient
 =================
@@ -37,6 +46,15 @@ Links
 
 `Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
 
+
+Citation
+========
+
+Bellgard, M.I., et al., A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat, 2012. 33(10): p. E2356-66.
+Other related citations
+
+Rodrigues, M., et al., The New Zealand Neuromuscular Disease Registry. J Clin Neurosci, 2012. 19(12): p. 1749-50.
+Bellgard, M., et al., Dispelling myths about rare disease registry system development. Source Code for Biology and Medicine, 2013. 8(1): p. 21.
 
 
 

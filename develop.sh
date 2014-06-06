@@ -12,7 +12,7 @@ AWS_STAGING_INSTANCE='aws-syd-rdrf-staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
-MODULES="psycopg2==2.4.6 Werkzeug flake8 ${TESTING_MODULES}"
+MODULES="psycopg2==2.5.2 Werkzeug flake8 ${TESTING_MODULES}"
 PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
@@ -155,6 +155,10 @@ function installapp() {
     which virtualenv-2.7 >/dev/null
 
     echo "Install rdrf"
+    if test -e /usr/pgsql-9.3/bin; then
+        export PATH=/usr/pgsql-9.3/bin:$PATH
+        echo $PATH
+    fi
     virtualenv-2.7 virt_rdrf
     ./virt_rdrf/bin/pip install 'pip>=1.5,<1.6' --upgrade
     ./virt_rdrf/bin/pip --version

@@ -83,7 +83,7 @@ Parents
 Under review
 
 .. _patientregistrys:
-Patient registrys
+Patient registries
 -----------------
 
 Used to assign ( or remove ) a patient to a registry. Patients can be assigned to more than 
@@ -104,7 +104,7 @@ Editing of states or territories in a country.
 
 Rdrf
 ----
-The main admin interface for RDRF. Add or edit objects here to create new :ref:`registrys` and define the :ref:`forms`, :ref:`sections` and :ref:`Common Data Elements <cdes>` they use.
+The main admin interface for RDRF. Add or edit objects here to create new :ref:`registries` and define the :ref:`forms`, :ref:`sections` and :ref:`Common Data Elements <cdes>` they use.
 
 .. _savedqueries:
 
@@ -123,32 +123,6 @@ Under review
 Userlog
 -------
 Under review
-
-.. _dashboard:
-
-Dashboard
-=========
-
-The "launchpad" for end users to access the forms of any accessible registries loaded into the site.
-The dashboard is currently accessed via  "/dashboard" ( no link has been provided yet from the admin interface
-this will change shortly! )
-
-The dashboard shows two (linked) drop downs for each registry that the user has access to:
-
-.. _dashboardpatientselector:
-Patient Dropdown
-----------------
-Shows all :ref:`patients` entered into the registry.
-
-.. _dashboardformselector:
-Form Dropdown
--------------
-Shows all the defined :ref:`forms` in the registry.
-
-.. _dashboardloadbutton:
-Load Button
------------
-After selecting the patient and the form, click to load the form to edit ( or add )  the selected patients data.
 
 
 
