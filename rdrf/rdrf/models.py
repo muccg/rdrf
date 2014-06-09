@@ -21,6 +21,12 @@ class Registry(models.Model):
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
 
+    def as_json(self):
+        return dict(
+            obj_id=self.id,
+            name=self.name,
+            code=self.code
+            )
 
 def get_owner_choices():
     """
