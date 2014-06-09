@@ -5,7 +5,30 @@ from django.conf import settings
 from django.core.context_processors import csrf
 from dynamic_forms import create_form_class
 from dynamic_data import DynamicDataWrapper
+from django.views.generic import View
+from django.http import HttpResponse
 
+from models import Registry
+import json
+
+from django.contrib.auth import get_user_model
+
+class AllocateView(View):
+    def get(self, request):
+        user = get_user_model().objects.get(username=request.user)
+        regs = Registry.objects.all()
+        print regs
+        results = [obj.as_json() for obj in regs]
+        return HttpResponse(json.dumps(results), mimetype='application/json')
+
+
+class RegistryList(View):
+    def get(self, request):
+        user = get_user_model().objects.get(username=request.user)
+        regs = Registry.objects.all()
+        print regs
+        results = [obj.as_json() for obj in regs]
+        return HttpResponse(json.dumps(results), mimetype='application/json')
 
 def patient_cdes(request, patient_id):
     owner_model_func = settings.CDE_MODEL_MAP["Patient"]

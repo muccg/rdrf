@@ -14,4 +14,5 @@ class UnallocatedPatients(View):
         user = get_user_model().objects.get(username=request.user)
         patients = Patient.objects.get_filtered_unallocated(user)
         results = [obj.as_json() for obj in patients]
+        print results
         return HttpResponse(json.dumps(results), mimetype='application/json')
