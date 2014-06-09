@@ -87,7 +87,8 @@
         $.get('{% url 'registry_list' %}', function(data, status) {
           $.each(data, function(i, item){
             var url = '{% url 'allocate' 'patient' 'registry' %}'.replace('registry', item.obj_id)
-            regs.append($("<li>").html("<a href="+ url +">" + item.name + " (" + item.code + ")" + "<a>"));
+            regs.append($("<li>").html("<a href='{% url 'admin:patients_patientregistry_add' %}'>" + item.name + " (" + item.code + ")" + "<a>"));
+            /*regs.append($("<li>").html("<a href="+ url +">" + item.name + " (" + item.code + ")" + "<a>"));*/
           });
         });
         return regs;
