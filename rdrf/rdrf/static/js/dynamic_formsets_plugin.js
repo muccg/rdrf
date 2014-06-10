@@ -38,6 +38,10 @@
            return parseInt($("#" + settings.total_forms_id).val());
        }
 
+       function get_initial_count() {
+           return $("#" + settings.initial_forms_id).val();
+       }
+
        var cdes = [];
        var added_cdes = [];
 
@@ -54,16 +58,16 @@
            console.log("state " + msg);
            console.log("row count = " + get_row_count());
            console.log("django form total = " + get_form_total().toString());
+           console.log("initial form count = " + get_initial_count());
            console.log("****************************************************");
        }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
-            console.debug();
             //dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
-                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + cde_code + "'])";
+                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for*='id_" + settings.formset_prefix + "-0-" + cde_code + "'])";
                 $(row_selector)
                     .clone()            // create a copy
                     .find("label")      // update the clone's for attr to the new value
