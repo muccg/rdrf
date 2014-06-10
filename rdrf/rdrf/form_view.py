@@ -170,14 +170,15 @@ class FormView(View):
                     section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data) )
+                    form_section[s] = form_set_class(initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
                 else:
                     for e in formset.errors:
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
+                    form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
                 #form_section[s] = form_set_class(request.POST, files=request.FILES, prefix=prefix)
 
-                form_section[s] = form_set_class(initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
