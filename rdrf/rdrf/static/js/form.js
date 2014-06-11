@@ -1,6 +1,16 @@
-function renumber_section_table(table_id, fields_per_form) {
+
+function get_fields_per_form(table_id) {
+    var num_inputs = 0;
+    $("#" + table_id).find(":input[id*='-0-").each(function () {
+        num_inputs += 1;
+    });
+    return num_inputs;
+}
+
+function renumber_section_table(table_id) {
     // we need to ensure sequential order of form ids in case of removal from inside formset ...
     // re-number the ids of the form ...
+    var fields_per_form = get_fields_per_form(table_id);
 
     function form_index_generator(fields_per_form) {
         // e,g if there are three fields per form
@@ -89,5 +99,5 @@ function do_remove(el,table_id, num_rows, total_forms_id, initial_forms_id) {
     // we have removed a field set from inside the formset and have
     // destroyed the sequential ordering
 
-    renumber_section_table(table_id, num_rows);
+    renumber_section_table(table_id);
 }
