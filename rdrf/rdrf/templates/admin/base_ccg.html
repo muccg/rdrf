@@ -5,3 +5,10 @@
     {% include 'rdrf_cdes/footer.html' %}
   {% endif %}
 {% endblock %}
+
+{% block content-left %}
+{% if request.user.is_superuser %}
+{{ block.super }}
+{% else %}
+{% endif %}
+{% endblock %}
