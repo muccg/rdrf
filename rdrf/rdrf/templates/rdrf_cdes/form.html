@@ -75,7 +75,8 @@
                             table_id: "section_table_{{s}}",
                             total_forms_id: "{{total_forms_ids|lookup:s}}",
                             initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                            formset_prefix: "{{formset_prefixes|lookup:s}}"
+                            formset_prefix: "{{formset_prefixes|lookup:s}}",
+                            metadata_json: '{{metadata_json_for_sections|lookup:s|safe}}'
                         });
                     });
                 </script>

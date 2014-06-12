@@ -14,13 +14,14 @@ from django.contrib.auth import get_user_model
 import logging
 
 from models import RegistryForm, Registry, QuestionnaireResponse
-from models import Section
+from models import Section, CommonDataElement
 from registry.patients.models import Patient
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
+import json
 
 logger = logging.getLogger("registry_log")
 
@@ -107,6 +108,7 @@ class FormView(View):
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
+        self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
         form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
@@ -196,6 +198,7 @@ class FormView(View):
             "total_forms_ids" : total_forms_ids,
             "initial_forms_ids" : initial_forms_ids,
             "formset_prefixes" : formset_prefixes,
+            "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
         }
 
         context.update(csrf(request))
@@ -297,6 +300,7 @@ class FormView(View):
             'section_field_ids_map' : section_field_ids_map,
             "initial_forms_ids" : initial_forms_ids,
             "formset_prefixes" : formset_prefixes,
+            "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
         }
 
         logger.debug("questionnaire context = %s" % context)
@@ -309,6 +313,32 @@ class FormView(View):
         patient = Patient.objects.get(pk=self.patient_id)
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         return patient_name
+
+    def _get_metadata_json_dict(self, registry_form):
+        """
+        :param registry_form model instance
+        :return: a dictionary of section --> metadata json for cdes in the section
+        Used by the dynamic formset plugin client side to override behaviour
+
+        We only provide overrides here at the moment
+        """
+        json_dict = {}
+        from utils import id_on_page
+        for section in registry_form.get_sections():
+            metadata = {}
+            section_model = Section.objects.get(code=section)
+            for cde_code in section_model.get_elements():
+                cde = CommonDataElement.objects.get(code=cde_code)
+                cde_code_on_page = id_on_page(registry_form, section_model, cde)
+                if cde.datatype.lower() == "date":
+                    # date widgets are complex
+                    metadata[cde_code_on_page] = {}
+                    metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+
+            if metadata:
+                json_dict[section] = json.dumps(metadata)
+
+        return json_dict
 
 
 class QuestionnaireView(FormView):
@@ -339,6 +369,7 @@ class QuestionnaireView(FormView):
         error_count  = 0
         registry = self._get_registry(registry_code)
         questionnaire_form = RegistryForm.objects.get(registry=registry,is_questionnaire=True)
+        self.registry_form = questionnaire_form
         sections, display_names = self._get_sections(registry.questionnaire)
         data_map = {}           # section --> dynamic data for questionnaire response object if no errors
         form_section = {}       # section --> form instances if there are errors and form needs to be redisplayed
@@ -417,6 +448,7 @@ class QuestionnaireView(FormView):
                 "total_forms_ids" : total_forms_ids,
                 "initial_forms_ids" : initial_forms_ids,
                 "formset_prefixes" : formset_prefixes,
+                "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
             }
 
             context.update(csrf(request))
