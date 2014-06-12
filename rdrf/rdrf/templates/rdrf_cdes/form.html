@@ -44,10 +44,11 @@
 {% endblock %}
 
 {% block content %}
-<h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
 
 <form enctype="multipart/form-data" method="post">{% csrf_token %}
-<input type="submit" class="btn btn-primary pull-right" value="Save"/>
+<div><h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
+<input type="submit" class="btn btn-primary pull-right" style="vertical-align: text-top;margin-bottom: 20px" value="Save"/>
+</div>
 
 {% for s in sections %}
 
