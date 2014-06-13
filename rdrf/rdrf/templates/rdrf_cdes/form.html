@@ -41,13 +41,23 @@
             height: 100px;
         }
     </style>
+    
+    <script>
+        function goBack() {
+            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            if (warning == true) {
+                window.history.back();
+            }
+        }
+    </script>
 {% endblock %}
 
 {% block content %}
 
 <form enctype="multipart/form-data" method="post">{% csrf_token %}
 <div><h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
-<input type="submit" class="btn btn-primary pull-right" style="vertical-align: text-top;margin-bottom: 20px" value="Save"/>
+<input type="button" onclick="goBack();" class="btn btn-danger pull-right" style="vertical-align: text-top;margin-bottom: 20px; margin-left: 50px;" value="Cancel"/>
+<input type="submit" class="btn btn-success pull-right" style="vertical-align: text-top;margin-bottom: 20px" value="Save"/>
 </div>
 
 {% for s in sections %}
@@ -104,7 +114,8 @@
 </table>
 
 {% endfor %}
-<input type="submit" class="btn btn-primary pull-right" value="Save"/>
+<input type="button" onclick="goBack();" class="btn btn-danger pull-right" style="vertical-align: text-top;margin-bottom: 20px; margin-left: 50px;" value="Cancel"/>
+<input type="submit" class="btn btn-success pull-right" style="vertical-align: text-top;margin-bottom: 20px" value="Save"/>
 </form>
 
 {% endblock %}
