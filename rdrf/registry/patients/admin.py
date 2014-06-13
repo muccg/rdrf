@@ -29,14 +29,6 @@ class PatientDoctorAdmin(admin.TabularInline):
     model = PatientDoctor
     extra = 0
 
-class ParentAdmin(admin.ModelAdmin):
-    model = Parent
-
-class PatientParentAdmin(admin.TabularInline):
-    fields = ["relationship", "parent"]
-    form = PatientParentForm
-    model = PatientParent
-    extra = 0
 
 class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
@@ -77,7 +69,7 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
+    inlines = [PatientConsentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter,]
@@ -348,6 +340,5 @@ admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
-admin.site.register(Parent, ParentAdmin)
 admin.site.register(PatientRegistry, PatientRegistryAdmin)
 admin.site.disable_action('delete_selected')

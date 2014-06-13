@@ -59,15 +59,6 @@ class NextOfKinRelationship(models.Model):
     def __unicode__(self):
         return self.relationship
 
-class Parent(models.Model):
-    parent_given_names = models.CharField(max_length=100, verbose_name="Given names")
-    parent_family_name = models.CharField(max_length=100, verbose_name="Family name")
-    parent_place_of_birth = models.CharField(max_length=100, verbose_name="Place of birth")
-    parent_date_of_migration = models.DateField(null=True, blank=True, verbose_name="Migration")
-
-    def __unicode__(self):
-        return '%s %s of %s' % (self.parent_given_names, self.parent_family_name, self.parent_place_of_birth)
-
 
 class PatientManager(models.Manager):
     def get_by_registry(self, registry):
@@ -123,7 +114,6 @@ class Patient(models.Model):
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
-    parents = models.ManyToManyField(Parent, through="PatientParent")
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -181,21 +171,10 @@ class PatientRegistry(models.Model):
         unique_together = ('patient', 'rdrf_registry')
     
 
-
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(upload_to='consents', storage=file_system, verbose_name="Consent form", blank=True, null=True)
 
-class PatientParent(models.Model):
-    PARENT_TYPE = ( ("M", "Mother"), ("F", "Father") )
-
-    patient = models.ForeignKey(Patient)
-    parent = models.ForeignKey(Parent)
-    relationship = models.CharField(max_length=20, choices=PARENT_TYPE)
-
-    class Meta:
-        verbose_name = "Parent"
-        verbose_name_plural = "Parents"
 
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient)
