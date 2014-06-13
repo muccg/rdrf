@@ -1,5 +1,14 @@
 {% extends 'admin/base.html' %}
 
+{% block extrahead %}
+    {% if not request.user.is_superuser %}
+    <style>
+        .suit-columns{padding-left:10px;padding-right:40px;}
+        #wrap{background:url() top left repeat-y}
+    </style>
+    {% endif %}
+{% endblock %}
+
 {% block footer %}
   {% if not is_popup %}
     {% include 'rdrf_cdes/footer.html' %}
