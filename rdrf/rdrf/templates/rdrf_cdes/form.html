@@ -47,7 +47,7 @@
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
             if (warning == true) {
-                window.history.back();
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
             }
         }
     </script>
@@ -63,8 +63,8 @@
     <div class="inner-right-column">
         <div class="box save-box">
             <div class="submit-row clearfix">
-                <input type="submit" class="btn btn-high btn-info" value="Save"/>
-                <input type="button" onclick="goBack();" class="btn btn-high btn-danger" value="Cancel"/>
+                <input type="submit" class="btn btn-info" value="Save"/>
+                <input type="button" onclick="goBack();" class="btn btn-danger" value="Cancel"/>
             </div>
         </div>
     </div>
