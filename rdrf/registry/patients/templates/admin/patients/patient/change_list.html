@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static admin_list admin_urls suit_list suit_tags %}
 {% load url from future %}
+{% load sticky_registry from stickiness %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -94,10 +95,25 @@
         });
         return regs;
       }
-      
+
   });
   </script>
   {% endif %}
+
+<script>
+    function select_registry(registry) {
+        // this doesn't work yet ...
+        if(registry) {
+           $("select").find("[data-name=registry] option").each(function() {
+                $(this).selected = ($(this).text() == registry);
+           });
+        }
+      }
+
+    $(document).ready(function() {
+        select_registry('{% sticky_registry request %}');
+    })
+</script>
 
 {% endblock %}
 
