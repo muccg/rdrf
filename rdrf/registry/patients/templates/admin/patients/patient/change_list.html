@@ -33,6 +33,7 @@
     </script>
   {% endif %}{% endif %}
 
+  {% if request.user.is_superuser %}
   <script>
     $(document).ready(function() {
       $('#unallocated').hide();
@@ -96,6 +97,7 @@
       
   });
   </script>
+  {% endif %}
 
 {% endblock %}
 
@@ -200,6 +202,7 @@
     </div>
   </div>
 
+  {% if request.user.is_superuser %}
   <div id="unallocated">
     <div class="alert alert-warning">Patients unassigned to any registry - <strong>Please contact administrator regarding patient allocation</strong></div>
     
@@ -221,5 +224,6 @@
           </tbody>
       </table>
   </div>
+  {% endif %}
 
 {% endblock %}
