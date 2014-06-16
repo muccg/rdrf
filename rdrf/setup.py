@@ -67,7 +67,7 @@ setup(name='django-rdrf',
         'django-iprestrict==0.1',
         'django-suit',
         'django-ajax-selects',
-		'hgvs',
+		'hgvs==0.2.1',
 		'django-countries',
 		'django-positions'
     ],
