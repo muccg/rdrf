@@ -103,7 +103,7 @@
 <script>
     function select_registry(registry_pk) {
 
-        if(registry_pk) {
+        if(registry_pk && !isNaN(registry_pk)) {
            var selected_registry = $(".search-filter").find(":selected").val();
            if (selected_registry != registry_pk) {
                $(".search-filter  option").each(function() {
