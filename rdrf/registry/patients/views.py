@@ -1,6 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.views.generic import View
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
+from django.views.decorators.csrf import ensure_csrf_cookie
+
 
 from models import Patient
 #from registry.groups.models import User
@@ -16,3 +18,15 @@ class UnallocatedPatients(View):
         results = [obj.as_json() for obj in patients]
         print results
         return HttpResponse(json.dumps(results), mimetype='application/json')
+
+
+
+def update_session(request):
+    #if not request.is_ajax() or not request.method=='POST':
+    #    return HttpResponseNotAllowed(['POST'])
+
+    key = request.POST["key"]
+    value = request.POST["value"]
+
+    request.session[key] = value
+    return HttpResponse('ok')

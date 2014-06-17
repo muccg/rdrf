@@ -101,16 +101,72 @@
   {% endif %}
 
 <script>
-    function select_registry(registry) {
-        // this doesn't work yet ...
-        if(registry) {
-           $("select").find("[data-name=registry] option").each(function() {
-                $(this).selected = ($(this).text() == registry);
-           });
+    function select_registry(registry_pk) {
+
+        if(registry_pk) {
+           var selected_registry = $(".search-filter").find(":selected").val();
+           if (selected_registry != registry_pk) {
+               $(".search-filter  option").each(function() {
+                    var option_value = $(this).val();
+                    if(option_value == registry_pk) {
+                        $(this).prop("selected","selected");
+                        $(".search-filter").val(registry_pk);
+                    }
+               });
+               var url_string = "{% url 'admin:patients_patient_changelist' %}" + "?q=&registry=";
+               var new_url = url_string + registry_pk.toString();
+               window.location = new_url;
+           }
         }
-      }
+    }
+
+    function hide_registry_dropdown() {
+        $(".search-filter").hide();
+    }
+
+    function bind_registry_dropdown() {
+        $(".search-filter").change(function () {
+            var selected_registry = $(".search-filter").find(":selected").val();
+            var session_update_data = {};
+            session_update_data.key = "sticky_registry";
+            session_update_data.csrfmiddlewaretoken = '{{csrf_token}}';
+            try {
+                    session_update_data.value = parseInt(selected_registry);
+                    var update_url = "{% url 'updatesession' %}";
+                    $.post(update_url, session_update_data, function(data_back) {
+                    });
+            }
+            catch(err) {
+                alert(err.message);
+            }
+        });
+    }
 
     $(document).ready(function() {
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        {% if request.user.num_registries == 1 %}
+        hide_registry_dropdown();
+        {% endif %}
+
+        bind_registry_dropdown();
+
         select_registry('{% sticky_registry request %}');
     })
 </script>

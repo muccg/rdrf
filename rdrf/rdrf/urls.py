@@ -17,6 +17,7 @@ from ajax_select import urls as ajax_select_urls
 
 from registry.patients.views import UnallocatedPatients
 from views import RegistryList, AllocateView
+from registry.patients.views import update_session
 
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -59,4 +60,5 @@ urlpatterns = patterns('',
     url(r'^unallocated/?$', UnallocatedPatients.as_view(), name='unallocated_patients'),
     url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
     url(r'^allocate/(?P<patient_id>\w+)/(?P<registry_id>\w+)/?$', AllocateView.as_view(), name='allocate'),
+    url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
 )

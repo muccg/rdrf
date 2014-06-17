@@ -4,4 +4,5 @@ register = template.Library()
 
 @register.simple_tag
 def sticky_registry(request):
-   return request.session.get("sticky_registry","FH Registry")
+    # return primary key of registry
+    return request.session.get("sticky_registry",3)
