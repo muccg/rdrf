@@ -102,7 +102,6 @@
 
 <script>
     function select_registry(registry_pk) {
-
         if(registry_pk && !isNaN(registry_pk)) {
            var selected_registry = $(".search-filter").find(":selected").val();
            if (selected_registry != registry_pk) {
@@ -143,7 +142,6 @@
     }
 
     $(document).ready(function() {
-
         // using jQuery
         function getCookie(name) {
             var cookieValue = null;
@@ -161,14 +159,15 @@
             return cookieValue;
         }
 
-        {% if request.user.num_registries == 1 %}
-        hide_registry_dropdown();
-        {% endif %}
-
         bind_registry_dropdown();
 
-        select_registry('{% sticky_registry request %}');
-    })
+        {% if request.user.num_registries == 1 %}
+            select_registry('{{ request.user.registry.all.0.pk }}');
+            hide_registry_dropdown();
+        {% else %}
+            select_registry('{% sticky_registry request %}');
+        {% endif %}
+    });
 </script>
 
 {% endblock %}
