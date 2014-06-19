@@ -321,30 +321,9 @@ class StateAdmin(admin.ModelAdmin):
 class NextOfKinRelationshipAdmin(admin.ModelAdmin):
     model = NextOfKinRelationship
 
-class PatientRegistryAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'rdrf_registry']
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(PatientRegistryAdmin,self).get_form(request, obj=None, **kwargs)
-        #from registry.groups.models import User
-        user = get_user_model().objects.get(username=request.user)
-        if not user.is_superuser:
-            form.base_fields['patient'].queryset = Patient.objects.filter(rdrf_registry__in=user.registry.all())
-            form.base_fields['rdrf_registry'].queryset = Registry.objects.filter(id__in=user.registry.all())
-        return form
-    
-    def queryset(self, request):
-        if not request.user.is_superuser:
-            #from registry.groups.models import User
-            user = get_user_model().objects.get(username=request.user)
-            return PatientRegistry.objects.filter(rdrf_registry__in=user.registry.all())
-        
-        return self.model.objects.all()
-
 
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
-admin.site.register(PatientRegistry, PatientRegistryAdmin)
 admin.site.disable_action('delete_selected')

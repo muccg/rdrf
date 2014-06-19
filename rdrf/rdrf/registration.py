@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from registry.patients.models import Patient, PatientRegistry
+from registry.patients.models import Patient
 from dynamic_data import DynamicDataWrapper
 from rdrf.utils import get_code, get_form_section_code
 import logging
@@ -83,6 +83,7 @@ class PatientCreator(object):
             self._set_patient_working_group(patient, working_group_id)
             patient.full_clean()
             patient.save()
+            patient.rdrf_registry = [self.registry,]
         except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
@@ -95,7 +96,6 @@ class PatientCreator(object):
 
 
         logger.info("created patient %s" % patient.pk)
-        self._create_patient_registry(patient)
         questionnaire_response.patient_id = patient.pk
         questionnaire_response.processed = True
         questionnaire_response.save()
@@ -113,14 +113,6 @@ class PatientCreator(object):
         if all([day,month,year]):
             from datetime import datetime
             patient.date_of_birth = datetime(int(year),int(month), int(day))
-
-    def _create_patient_registry(self, patient):
-        pr, created = PatientRegistry.objects.get_or_create(patient=patient, rdrf_registry=self.registry)
-        if created:
-            pr.save()
-            logger.info("Added patient %s to registry %s" % (patient, self.registry))
-        else:
-            logger.warning("Patient %s already in registry %s" % (patient, self.registry))
 
     def _set_patient_working_group(self, patient,id):
         from registry.groups.models import WorkingGroup

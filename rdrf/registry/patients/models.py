@@ -163,13 +163,6 @@ class Patient(models.Model):
             date_of_birth=str(self.date_of_birth)
             )
 
-class PatientRegistry(models.Model):
-    patient = models.ForeignKey(Patient)
-    rdrf_registry = models.ForeignKey(Registry)
-    
-    class Meta:
-        unique_together = ('patient', 'rdrf_registry')
-    
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
