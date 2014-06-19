@@ -124,9 +124,7 @@
         "registry": [
             1
         ], 
-        "groups": [
-            1
-        ], 
+        "groups": [], 
         "user_permissions": [], 
         "working_groups": [
             1
