@@ -126,11 +126,17 @@ class PatientAdmin(admin.ModelAdmin):
 
     def create_fieldset(self, superuser=False):
         """Function to dynamically create the fieldset, adding 'active' field if user is a superuser"""
-
+        
         consent = ("Consent", {
             "fields":(
                 "consent",
              )
+        })
+        
+        rdrf_registry = ("Registry", {
+            "fields":(
+                "rdrf_registry",
+            )
         })
 
         personal_details = ("Personal Details", {})
@@ -176,7 +182,7 @@ class PatientAdmin(admin.ModelAdmin):
              "next_of_kin_parent_place_of_birth"
              )})
 
-        fieldset = (consent, personal_details, next_of_kin,)
+        fieldset = (consent, rdrf_registry, personal_details, next_of_kin,)
         return fieldset
 
     def get_fieldsets(self, request, obj=None):

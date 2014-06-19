@@ -81,7 +81,7 @@ class Patient(models.Model):
         SEX_CHOICES = ( ("M", "Male"), ("F", "Female"), ("X", "Other/Intersex") )
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry, through="PatientRegistry")
+    rdrf_registry = models.ManyToManyField(Registry)
     working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False)
     consent = models.BooleanField(null=False, blank=False, help_text="Consent must be given for the patient to be entered on the registry", verbose_name="consent given")
     family_name = models.CharField(max_length=100, db_index=True)

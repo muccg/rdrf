@@ -1,10 +1,22 @@
 {% extends "admin/change_form.html" %}
 {% load staticfiles %}
+{% load stickiness %}
 
 {% block extrastyle %}
     {{block.super}}
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            selected_registry = '{% sticky_registry request %}';
+            if (selected_registry) {
+                $('#id_rdrf_registry').find('option[value="' + selected_registry + '"]').attr("selected",true);
+            } else {
+                $('#id_rdrf_registry').find('option:first').attr("selected",true); 
+            }
+        });
+    </script>
 {% endblock %}
 
 {% block extrahead %}
