@@ -4,7 +4,7 @@ from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState, RegistryImportError
 from rdrf.models import *
 from rdrf.form_view import FormView
-from registry.patients.models import Patient, PatientRegistry
+from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 from registry.patients.models import State
 from datetime import datetime
@@ -170,7 +170,7 @@ class ImporterTestCase(RDRFTestCase):
 
         importer.load_yaml(yaml_file)
         importer.create_registry()
-        assert importer.state == ImportState.IMPORTED
+        assert importer.state == ImportState.SOUND
 
 
 class FormTestCase(RDRFTestCase):
@@ -209,9 +209,7 @@ class FormTestCase(RDRFTestCase):
         p.state = self.state
         p.postcode = "6112" # Le Armadale
         p.save()
-        patient_registry, created = PatientRegistry.objects.get_or_create(patient=p, rdrf_registry=self.registry)
-
-        patient_registry.save()
+        p.rdrf_registry = [self.registry,]
         return p
 
 
