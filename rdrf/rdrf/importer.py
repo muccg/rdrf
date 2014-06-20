@@ -1,6 +1,6 @@
 import logging
 from models import *
-from registry.patients.models import Patient, PatientRegistry
+from registry.patients.models import Patient
 import yaml
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -106,28 +106,14 @@ class Importer(object):
             self.state = ImportState.SOUND
 
 
-        if self.state == ImportState.SOUND:
-            for patient in self.patients:
-                pr, created = PatientRegistry.objects.get_or_create(rdrf_registry=Registry.objects.get(code=self.data["code"]),patient=patient)
-                pr.save()
-
-            self.state = ImportState.IMPORTED
-
-        else:
-            logger.error("Imported Registry is not sound and will be rolled back: %s" % self.errors)
-            #rollback
-            pass
-
     def _get_patients(self):
         try:
             registry = Registry.objects.get(code=self.data["code"])
-            for patient_registry in PatientRegistry.objects.filter(rdrf_registry=registry):
+            for patient_registry in Patient.objects.filter(rdrf_registry__in=registry):
                 logger.debug("adding patient %s to internal list" % patient_registry.patient)
                 self.patients.append(patient_registry.patient)
         except Registry.DoesNotExist:
             self.patients = []
-
-
 
 
     def _validate(self):

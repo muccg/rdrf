@@ -17,15 +17,6 @@ class PatientDoctorForm(forms.ModelForm):
     class Meta:
         model = PatientDoctor
 
-class PatientParentForm(forms.ModelForm):
-    OPTIONS = (
-        ("Mother", "Mother"),
-        ("Father", "Father")
-    )
-    relationship = forms.ChoiceField(choices=OPTIONS)
-
-    class Meta:
-        model = PatientParent
 
 class PatientForm(forms.ModelForm):
 

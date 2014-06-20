@@ -21,6 +21,7 @@
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
     <script type="text/javascript">
         window.IMAGES_URL = "{% static 'images/' %}";
@@ -41,67 +42,94 @@
             height: 100px;
         }
     </style>
+    
+    <script>
+        function goBack() {
+            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            if (warning == true) {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            }
+        }
+    </script>
 {% endblock %}
 
 {% block content %}
-<h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
+<h2><p>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></p></h2>
 
-<form enctype="multipart/form-data" method="post">{% csrf_token %}
-{% for s in sections %}
+<div id="content-main" class="inner-two-columns">
 
-<table class="table table-striped table-bordered table-hover table-condensed">
-        
-    <thead>
-        <tr>
-            <th>{{display_names|get_display_name:s}}</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        <tr>
-            <th>
-                {% if forms|is_formset:s %}
-                <!-- start management form for {{s}}-->
-                {{ forms|get_management_form:s }}
-                <!-- end management form for {{s}} -->
-                <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
-                <table id="section_table_{{s}}">
-                <script>
-                    $(document).ready(function() {
-                        $("#section_table_{{s}}").allow_dynamic_formsets({
-                            cde_codes: '{{section_field_ids_map|lookup:s}}',
-                            add_button_id: "add_button_for_section_{{s}}",
-                            remove_button_id: "remove_button_for_section_{{s}}",
-                            table_id: "section_table_{{s}}",
-                            total_forms_id: "{{total_forms_ids|lookup:s}}",
-                            initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                            formset_prefix: "{{formset_prefixes|lookup:s}}"
+    <form enctype="multipart/form-data" method="post">{% csrf_token %}
+    
+    <div class="inner-right-column">
+        <div class="box save-box">
+            <div class="submit-row clearfix">
+                <input type="submit" class="btn btn-info" value="Save"/>
+                <input type="button" onclick="goBack();" class="btn btn-danger" value="Cancel"/>
+            </div>
+        </div>
+    </div>
+    
+    <div class="inner-center-column">
+    
+    {% for s in sections %}
+    
+    <table class="table table-striped table-bordered table-hover table-condensed">
+            
+        <thead>
+            <tr>
+                <th>{{display_names|get_display_name:s}}</th>
+            </tr>
+        </thead>
+    
+        <tbody>
+            <tr>
+                <th>
+                    {% if forms|is_formset:s %}
+                    <!-- start management form for {{s}}-->
+                    {{ forms|get_management_form:s }}
+                    <!-- end management form for {{s}} -->
+                    <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
+                    <table id="section_table_{{s}}">
+                    <script>
+                        $(document).ready(function() {
+                            $("#section_table_{{s}}").allow_dynamic_formsets({
+                                cde_codes: '{{section_field_ids_map|lookup:s}}',
+                                add_button_id: "add_button_for_section_{{s}}",
+                                remove_button_id: "remove_button_for_section_{{s}}",
+                                table_id: "section_table_{{s}}",
+                                total_forms_id: "{{total_forms_ids|lookup:s}}",
+                                initial_forms_id: "{{initial_forms_ids|lookup:s}}",
+                                formset_prefix: "{{formset_prefixes|lookup:s}}",
+                                metadata_json: '{{metadata_json_for_sections|lookup:s|safe}}'
+                            });
                         });
-                    });
-                </script>
-            
-                {% for f in forms|get_forms:s %}
-                  {{ f.as_table }}
-                  <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                    <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a>
-                    </td>
-                  </tr>
-                {% endfor %}
-            
-                </table>
-              {% else %}
-                <table class="table table-condensed table-hover">
-                  {{forms|get_form:s}}
-                </table>
-              {% endif %}
-            </th>
-        </tr>
-    </tbody>
-</table>
-
-{% endfor %}
-<input type="submit" class="btn btn-primary pull-right" value="Save"/>
-</form>
+                    </script>
+                
+                    {% for f in forms|get_forms:s %}
+                      {{ f.as_table }}
+                      <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
+                        <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                
+                    </table>
+                  {% else %}
+                    <table class="table table-condensed table-hover">
+                      {{forms|get_form:s}}
+                    </table>
+                  {% endif %}
+                </th>
+            </tr>
+        </tbody>
+    </table>
+    
+    {% endfor %}
+    </form>
+    
+    </div>
+    
+</div>
 
 {% endblock %}
 

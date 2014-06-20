@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static admin_list admin_urls suit_list suit_tags %}
 {% load url from future %}
+{% load sticky_registry from stickiness %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -33,69 +34,75 @@
     </script>
   {% endif %}{% endif %}
 
-  <script>
-    $(document).ready(function() {
-      $('#unallocated').hide();
-      
-      var regs = get_content();
-      
-      $.get('{% url 'unallocated_patients' %}', function(data, status) {
-        if(data.length > 0) {
-          $.each(data, function(i, item) {
-
-            var a_link = get_allocate_link(regs.html());
-            url = regs.find('a').attr('href')
-            regs.find('a').attr('href', url.replace('patient', item.obj_id));
-            add_popover(a_link);
-
-            var tr = $('<tr>').append(
-                                      $('<td>').text(item.given_names + ' ' + item.family_name),
-                                      $('<td>').text(item.working_group),
-                                      $('<td>').text(new Date(item.date_of_birth).toDateString()),
-                                      $("<td id='allocate_btn'>").html(a_link)
-                                      );
-            $('#unallocated-content').append(tr);
-          });
-          {% if not request.user.is_superuser %}
-            $("td[id$='allocate_btn']").hide();
-          {% endif %}
-          $('#unallocated').toggle();
+<script>
+    function select_registry(registry_pk) {
+        if(registry_pk && !isNaN(registry_pk)) {
+           var selected_registry = $(".search-filter").find(":selected").val();
+           if (selected_registry != registry_pk) {
+               $(".search-filter  option").each(function() {
+                    var option_value = $(this).val();
+                    if(option_value == registry_pk) {
+                        $(this).prop("selected","selected");
+                        $(".search-filter").val(registry_pk);
+                    }
+               });
+               var url_string = "{% url 'admin:patients_patient_changelist' %}" + "?q=&registry=";
+               var new_url = url_string + registry_pk.toString();
+               window.location = new_url;
+           }
         }
-      });
-      
-      function get_allocate_link(content_html) {
-        var allocate_link = $('<a>');
-        allocate_link.attr('class', 'btn btn-info btn-small');
-        allocate_link.attr('data-toggle', 'popover');
-        allocate_link.attr('data-content', content_html);
-        allocate_link.text('Allocate');
-        
-        return allocate_link;
-      }
+    }
 
-      function add_popover(link) {
-        $(link).popover({
-            'html': true,
-            'title': 'Available registries',
-            'trigger': 'click',
-            'placement': 'bottom'
+    function hide_registry_dropdown() {
+        $(".search-filter").hide();
+    }
+
+    function bind_registry_dropdown() {
+        $(".search-filter").change(function () {
+            var selected_registry = $(".search-filter").find(":selected").val();
+            var session_update_data = {};
+            session_update_data.key = "sticky_registry";
+            session_update_data.csrfmiddlewaretoken = '{{csrf_token}}';
+            try {
+                    session_update_data.value = parseInt(selected_registry);
+                    var update_url = "{% url 'updatesession' %}";
+                    $.post(update_url, session_update_data, function(data_back) {
+                    });
+            }
+            catch(err) {
+                alert(err.message);
+            }
         });
-      }
-      
-      function get_content() {
-        var regs = $('<ul>');
-        $.get('{% url 'registry_list' %}', function(data, status) {
-          $.each(data, function(i, item){
-            /*var url = '{% url 'allocate' 'patient' 'registry' %}'.replace('registry', item.obj_id);*/
-            var url = '{% url 'admin:patients_patientregistry_add' %}';
-            regs.append($("<li>").html("<a href='"+ url +"'>" + item.name + " (" + item.code + ")" + "<a>"));
-          });
-        });
-        return regs;
-      }
-      
-  });
-  </script>
+    }
+
+    $(document).ready(function() {
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        bind_registry_dropdown();
+
+        {% if request.user.num_registries == 1 %}
+            select_registry('{{ request.user.registry.all.0.pk }}');
+            hide_registry_dropdown();
+        {% else %}
+            select_registry('{% sticky_registry request %}');
+        {% endif %}
+    });
+</script>
 
 {% endblock %}
 
@@ -198,28 +205,6 @@
         </form>
       </div>
     </div>
-  </div>
-
-  <div id="unallocated">
-    <div class="alert alert-warning">Patients unassigned to any registry - <strong>Please contact administrator regarding patient allocation</strong></div>
-    
-      <table class="table table-striped table-bordered table-hover table-condensed">
-          <thead>
-              <tr>
-                  <th scope="col">
-                      <div class="text"><span>Name</span></div>
-                  </th>
-                  <th scope="col">
-                      <div class="text">Working group</div>
-                  </th>
-                  <th scope="col">
-                      <div class="text">Date of birth</a></div>
-                  </th>
-              </tr>
-          </thead>
-          <tbody id="unallocated-content">
-          </tbody>
-      </table>
   </div>
 
 {% endblock %}

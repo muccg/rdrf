@@ -1,6 +1,38 @@
-function renumber_section_table(table_id, fields_per_form) {
+
+function get_fields_per_form(table_id) {
+    var num_inputs = 0;
+    // find the first input field, record _it's_ sequence number ( 0, 1, 2, ..) , call it N
+    // and then count the number of inputs with id containing -N-
+    // counting -0- naively ( as originally) , breaks when the removed section is the 0th one itself,
+    // hence this strategy.
+
+    var first_input = $("#" + table_id).find(":input").first();
+    var N = $(first_input).attr("id").match(/-(\d+)-/)[1];
+    var pattern = "-" + N + "-";
+
+    $("#" + table_id).find(':input').each(function () {
+        var input = $(this);
+        if (input.attr('id').match(new RegExp(pattern))) {
+            num_inputs += 1;
+        }
+    });
+    return num_inputs;
+}
+
+function get_number_cdes_in_section(table_id) {
+    // the number of unique label texts
+    var texts = [];
+    var result = $("#" + table_id).find("label").each(function (){
+        texts.push($(this).text());
+    })
+    var unique_texts = jQuery.unique(texts);
+    return unique_texts.length
+}
+
+function renumber_section_table(table_id) {
     // we need to ensure sequential order of form ids in case of removal from inside formset ...
     // re-number the ids of the form ...
+    var fields_per_form = get_fields_per_form(table_id);
 
     function form_index_generator(fields_per_form) {
         // e,g if there are three fields per form
@@ -20,13 +52,14 @@ function renumber_section_table(table_id, fields_per_form) {
         }
     }
 
-    var label_gen = form_index_generator(fields_per_form);
+    var num_cdes_in_section = get_number_cdes_in_section(table_id);
+    var label_gen = form_index_generator(num_cdes_in_section);
     var input_id_gen = form_index_generator(fields_per_form);
     var input_name_gen = form_index_generator(fields_per_form);
 
-    $("#" + table_id + " > tbody > tr ").each(function () {
-        $(this)
-                // update labels
+    $("#" + table_id + " > tbody > tr ").each(function (row_index) {
+         $(this)
+             // update labels ..  ( there will only be N labels in section where N is the number of CDEs ( not inputs ) in the section
                 .find("label")
                 .each(function () {
                     $(this).attr({
@@ -89,5 +122,5 @@ function do_remove(el,table_id, num_rows, total_forms_id, initial_forms_id) {
     // we have removed a field set from inside the formset and have
     // destroyed the sequential ordering
 
-    renumber_section_table(table_id, num_rows);
+    renumber_section_table(table_id);
 }
