@@ -26,8 +26,8 @@ class PatientForm(forms.ModelForm):
     }
 
     consent = forms.BooleanField(required=True, help_text="Consent must be given for the patient to be entered on the registry", label="Consent given")
-    date_of_birth = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}))
-    date_of_migration = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}), required=False, help_text="Date of migration", label="Migration")
+    date_of_birth = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}), help_text="YYYY-MM-DD")
+    date_of_migration = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}), required=False, help_text="Date of migration (YYYY-MM-DD)", label="Migration")
     address = forms.CharField(widget=forms.Textarea(attrs=ADDRESS_ATTRS))
 
     class Meta:
