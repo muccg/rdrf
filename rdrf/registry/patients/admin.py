@@ -130,6 +130,8 @@ class PatientAdmin(admin.ModelAdmin):
         consent = ("Consent", {
             "fields":(
                 "consent",
+                "consent_clinical_trials",
+                "consent_sent_information",
              )
         })
         

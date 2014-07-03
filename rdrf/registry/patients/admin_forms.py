@@ -25,7 +25,9 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    consent = forms.BooleanField(required=True, help_text="Consent must be given for the patient to be entered on the registry", label="Consent given")
+    consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
+    consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
+    consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
     date_of_birth = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}), help_text="YYYY-MM-DD")
     date_of_migration = forms.DateField(widget=forms.TextInput(attrs={'class':'datepicker'}), required=False, help_text="Date of migration (YYYY-MM-DD)", label="Migration")
     address = forms.CharField(widget=forms.Textarea(attrs=ADDRESS_ATTRS))
