@@ -57,8 +57,6 @@ class Importer(object):
         self.delete_existing_registry = False
         self.check_validity = True
         self.check_soundness = True
-        self.patients = [] # if patients are assigned to the registry we're importing over
-                           # we maintain them even if we delete the old registry
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
@@ -90,11 +88,6 @@ class Importer(object):
         else:
             self.state = ImportState.VALID
 
-        self._get_patients()
-
-        if self.delete_existing_registry:
-            self._delete_existing_registry()
-
         self._create_registry_objects()
 
         if self.check_soundness:
@@ -104,16 +97,6 @@ class Importer(object):
 
         else:
             self.state = ImportState.SOUND
-
-
-    def _get_patients(self):
-        try:
-            registry = Registry.objects.get(code=self.data["code"])
-            for patient_registry in Patient.objects.filter(rdrf_registry__in=registry):
-                logger.debug("adding patient %s to internal list" % patient_registry.patient)
-                self.patients.append(patient_registry.patient)
-        except Registry.DoesNotExist:
-            self.patients = []
 
 
     def _validate(self):
@@ -307,7 +290,8 @@ class Importer(object):
 
 
     def _create_registry_objects(self):
-
+        import pdb
+        pdb.set_trace()
         self._create_groups(self.data["pvgs"])
         self._create_cdes(self.data["cdes"])
 
