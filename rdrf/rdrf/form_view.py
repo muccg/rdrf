@@ -21,6 +21,7 @@ from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
+from utils import de_camelcase
 import json
 
 logger = logging.getLogger("registry_log")
@@ -185,6 +186,8 @@ class FormView(View):
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
         context = {
+            'current_registry_name' : registry.name,
+            'current_form_name': de_camelcase(form_obj.name),
             'registry': registry_code,
             'form_name': form_id,
             'form_display_name': form_display_name,
@@ -287,6 +290,8 @@ class FormView(View):
 
 
         context = {
+            'current_registry_name' : self.registry.name,
+            'current_form_name': de_camelcase(self.registry_form.name),
             'registry': self.registry.code,
             'form_name': self.form_id,
             'form_display_name': self.registry_form.name,

@@ -11,22 +11,22 @@ Contents:
 .. toctree::
    :maxdepth: 3
 
-   about
+   workflow
+   designmode
    gui
    registries
    howtocreatearegistry
    forms
    sections
    cdes
-
    permittedvaluegroups
    permittedvalue
    datatypes
    export
    import
-   workflow
    questionnaires
    interfacing
+   about
 
 
 Indices and tables

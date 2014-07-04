@@ -130,6 +130,8 @@ class PatientAdmin(admin.ModelAdmin):
         consent = ("Consent", {
             "fields":(
                 "consent",
+                "consent_clinical_trials",
+                "consent_sent_information",
              )
         })
         
@@ -203,8 +205,8 @@ class PatientAdmin(admin.ModelAdmin):
         # Restrict normal users to their own working group.
         if dbfield.name == "working_group" and not user.is_superuser:
             user = get_user_model().objects.get(username=user) # get the user's associated objects
-            #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
-            kwargs["queryset"] = WorkingGroup.objects
+            kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
+            #kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
