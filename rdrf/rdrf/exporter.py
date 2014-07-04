@@ -148,8 +148,6 @@ class Exporter(object):
             try:
                 export_data = yaml.dump(data)
             except Exception,ex:
-                import pdb
-                pdb.set_trace()
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
         elif format == ExportFormat.JSON:
