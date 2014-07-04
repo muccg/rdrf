@@ -290,8 +290,6 @@ class Importer(object):
 
 
     def _create_registry_objects(self):
-        import pdb
-        pdb.set_trace()
         self._create_groups(self.data["pvgs"])
         self._create_cdes(self.data["cdes"])
 
