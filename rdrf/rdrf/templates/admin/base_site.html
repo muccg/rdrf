@@ -1,5 +1,6 @@
 {% extends "admin/base_ccg.html" %}
 {% load i18n %}
+{% load stickiness %}
 
 {% load admin_static %}
 
@@ -21,6 +22,8 @@
         })
     </script>
 {% endblock %}
+
+{% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
     {% url 'django-admindocs-docroot' as docsroot %}
