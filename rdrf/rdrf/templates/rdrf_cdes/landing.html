@@ -23,9 +23,20 @@
 	<div class="panel panel-info">
 	    <div class="panel-heading"><h3>The following registries are defined on this site</h3></div>
 	    <table class="table table-hover">
+        <thead>
+        <th>Registry</th>
+        <th>Version</th>
+        <th>Description</th>
+        <th>Information Page</th>
+        </thead>
 	    {% for reg in registrys %}
 	        <tr>
 		    <td>{{reg.name|upper}}</td>
+            {% if reg.version %}
+            <td>{{reg.version}}</td>
+            {% else %}
+            <td>No version code</td>
+            {% endif %}
 		    <td>{{ reg.desc }}</td>
 		    <td>
 			{% if reg.splash_screen %}
