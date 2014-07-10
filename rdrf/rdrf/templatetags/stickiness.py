@@ -1,5 +1,8 @@
 from django import template
 from rdrf.models import Registry
+from django.core.urlresolvers import reverse
+
+DEFAULT_NAME = "Rare Disease Registry Framework"
 
 register = template.Library()
 
@@ -10,7 +13,6 @@ def sticky_registry(request):
 
 @register.simple_tag
 def current_registry(request):
-    DEFAULT_NAME = "Rare Disease Registry Framework"
     # If there is only one registry defined, use its name
     if Registry.objects.all().count() == 1:
         return Registry.objects.get().name
@@ -29,3 +31,17 @@ def current_registry(request):
                 current_registry = DEFAULT_NAME
 
     return current_registry
+
+
+@register.simple_tag
+def sticky_logout_url(request):
+    registry_name = current_registry(request)
+    if registry_name != DEFAULT_NAME:
+        try:
+            registry_object = Registry.objects.get(name=registry_name)
+            return reverse("registry", kwargs={"registry_code": registry_object.code})
+        except Registry.DoesNotExist:
+            return reverse("landing")
+    else:
+        return reverse("landing")
+

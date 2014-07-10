@@ -33,6 +33,6 @@
     {% endif %}
     <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
     <span class="separator">|</span>
-        <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
+        <a href="{% url 'admin:logout' %}?next={% sticky_logout_url request %}">{% trans 'Log out' %}</a>
     </span>
 {% endblock %}
