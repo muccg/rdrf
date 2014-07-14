@@ -22,7 +22,11 @@ def current_registry(request):
         current_registry = request.user.registry.get().name
     else:
         # User has access to more than one registry - use sticky value if possible
-        current_registry = request.session.get("sticky_registry", DEFAULT_NAME)
+        try:
+            current_registry = request.session.get("sticky_registry", DEFAULT_NAME)
+        except AttributeError:
+            current_registry = DEFAULT_NAME
+
         if current_registry != DEFAULT_NAME:
             # it is the "sticky" registry key set when selecting a registry to work with
             try:
