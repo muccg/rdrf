@@ -1,5 +1,6 @@
 {% extends "admin/base_ccg.html" %}
 {% load i18n %}
+{% load stickiness %}
 
 {% load admin_static %}
 
@@ -22,6 +23,8 @@
     </script>
 {% endblock %}
 
+{% block branding %}{% current_registry request %}{% endblock %}
+
 {% block userlinks %}
     {% url 'django-admindocs-docroot' as docsroot %}
     {% if docsroot %}
@@ -30,6 +33,6 @@
     {% endif %}
     <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
     <span class="separator">|</span>
-        <a href="{% url 'admin:logout' %}?next={% url 'landing' %}">{% trans 'Log out' %}</a>
+        <a href="{% url 'admin:logout' %}?next={% sticky_logout_url request %}">{% trans 'Log out' %}</a>
     </span>
 {% endblock %}

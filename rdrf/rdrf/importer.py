@@ -303,6 +303,12 @@ class Importer(object):
         r.code = self.data["code"]
         r.name = self.data["name"]
 
+        if self.data.has_key("REGISTRY_VERSION"):
+            r.version = self.data["REGISTRY_VERSION"]
+        else:
+            r.version = "" # old style no version
+
+
         r.splash_screen = self.data["splash_screen"]
 
         r.save()

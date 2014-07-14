@@ -16,6 +16,16 @@
                 $('#id_rdrf_registry').find('option:first').attr("selected",true); 
             }
         });
+
+        $(document).ready(function(){
+            // Add a "cancel button"
+            var add_another_button = $("button[name='_addanother']");
+            var cancel_button = add_another_button.clone().attr("name","cancel_button").attr("type","button").text("Cancel").click(function () {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            });
+            cancel_button.insertAfter(add_another_button);
+        });
+
     </script>
 {% endblock %}
 

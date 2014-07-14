@@ -13,6 +13,7 @@ class Registry(models.Model):
     code = models.CharField(max_length=10)
     desc = models.TextField()
     splash_screen = models.TextField()
+    version = models.CharField(max_length=20, blank=True)
 
     @property
     def questionnaire(self):
