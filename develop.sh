@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|addusers|addregistries|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -25,6 +25,23 @@ function settings() {
     export DJANGO_SETTINGS_MODULE="rdrf.settings"
 }
 
+# add users from json fixture
+function addregistries() {
+    echo "Adding RDRF registries to $HOSTNAME"
+    cd /usr/local/src
+    source virt_rdrf/bin/activate
+    export DJANGO_SETTINGS_MODULE=rdrf.settings
+    python rdrf/manage.py load_fixture --file=rdrf.json
+
+}
+function addusers {
+    echo "Adding RDRF users to $HOSTNAME"
+    cd /usr/local/src
+    source virt_rdrf/bin/activate
+    export DJANGO_SETTINGS_MODULE=rdrf.settings
+    python rdrf/manage.py load_fixture --file=users.json
+
+}
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 function ci_ssh_agent() {
@@ -277,6 +294,12 @@ ci_staging_fixture)
 ci_staging_tests)
     ci_ssh_agent
     ci_staging_tests
+    ;;
+addusers)
+    addusers
+    ;;
+addregistries)
+    addregistries
     ;;
 dropdb)
     dropdb
