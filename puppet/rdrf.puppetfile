@@ -8,10 +8,15 @@ mod "puppetlabs/postgresql", "3.3.3"
 mod "puppetlabs/mysql", "2.2.3"
 mod "puppetlabs/concat", "1.0.2"
 mod "puppetlabs/denyhosts", "0.1.0"
+mod "puppetlabs/mongodb", "0.3.0"
 mod "saz/memcached", "2.4.0"
 mod "saz/timezone", "3.0.1"
 mod "stahnma/epel", "0.0.6"
 mod "rodjek/logrotate", "1.1.1"
+
+mod "capriza/s3cmd",
+  :git => "git://github.com/capriza/capriza-s3cmd.git",
+  :ref => "master"
 
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
