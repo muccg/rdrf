@@ -177,3 +177,11 @@ class GeneLookupWidget(LookupWidget):
     
 class LaboratoryLookupWidget(LookupWidget):
     SOURCE_URL = reverse_lazy('laboratory_source')
+
+
+class DateWidget(widgets.TextInput):
+
+    def render(self, name, value, attrs):
+        return """
+            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker" readonly>
+        """ % (name, name, value or '')

@@ -51,6 +51,20 @@
             }
         }
     </script>
+    
+  <script>
+  $(function() {
+    $( ".datepicker" ).datepicker({
+      showOn: "button",
+      buttonImage: '{% static 'images/calendar.gif' %}',
+      buttonImageOnly: true,
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'dd/mm/yy',
+      yearRange: '-100:+0',
+    });
+  });
+  </script>
 {% endblock %}
 
 {% block content %}
