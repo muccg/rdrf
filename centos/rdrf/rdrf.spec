@@ -146,3 +146,11 @@ rm -rf %{buildroot}
 %attr(-,apache,,apache) %{webapps}/%{name}
 %attr(-,apache,,apache) /var/log/%{name}
 %attr(-,apache,,apache) /var/lib/%{name}
+
+%attr(710,root,apache) /etc/rdrf
+%attr(640,root,apache) /etc/rdrf/settings.py
+%attr(640,root,apache) /etc/rdrf/rdrf.conf
+%config(noreplace) /etc/rdrf/settings.py
+%config(noreplace) /etc/rdrf/rdrf.conf
+
+
