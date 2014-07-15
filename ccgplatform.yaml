@@ -13,7 +13,7 @@ instances:
     puppet_manifest: dev.pp
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     post_puppet: 
       - echo running hooks
@@ -26,7 +26,7 @@ instances:
   staging:
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     extends: centos_65_aws_syd
     puppet_manifest: staging.pp
@@ -37,7 +37,7 @@ instances:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: demo.pp
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
@@ -47,7 +47,7 @@ instances:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: scratch.pp
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
@@ -57,7 +57,7 @@ instances:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: pbcrc.pp
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
@@ -67,7 +67,7 @@ instances:
     extends: centos_64_lxc
     pre_puppet:
       - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.3
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: staging.pp
 
