@@ -5,7 +5,6 @@ import os
 import os.path
 import sys
 
-
 # snippet to enable the virtualenv
 activate_this=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'activate_this.py')
 if os.path.exists(activate_this):
@@ -14,14 +13,9 @@ del activate_this
 
 webapp_root = os.path.dirname(os.path.abspath(__file__))
 
-# Allow appsettings to be imported
-sys.path.insert(0, "/etc/ccgapps")
-
-# setup the settings module for the WSGI app
-os.environ['DJANGO_SETTINGS_MODULE'] = 'defaultsettings.rdrf'
-os.environ['PROJECT_DIRECTORY'] = webapp_root
-os.environ['WEBAPP_ROOT'] = webapp_root
-os.environ['PYTHON_EGG_CACHE'] = '/tmp/.python-eggs'
+# prepare the settings module for the WSGI app
+from ccg_django_utils.conf import setup_prod_env
+setup_prod_env("rdrf")
 
 import django.core.handlers.wsgi
 
