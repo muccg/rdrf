@@ -54,6 +54,7 @@ node default {
 
   django::config { 'rdrf':
     config_hash => $django_config,
+    require => Package['rdrf']
   }
 
   webapp::django::syncdbmigrate{'rdrf': dbsync => true}
