@@ -28,7 +28,7 @@ mod "muccg/role",
 
 mod "muccg/python",
   :git => "git://github.com/muccg/puppet-python.git",
-  :ref => "1.1.0"
+  :ref => "1.1.1"
 
 mod "muccg/ccgcommon",
   :git => "git://github.com/muccg/puppet-ccgcommon.git",
