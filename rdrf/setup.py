@@ -36,7 +36,7 @@ setup(name='django-rdrf',
         'registry.common',
         'registry.patients',
         'registry.groups',
-		'registry.genetic',
+        'registry.genetic',
     ],
     description='RDRF',
     long_description='Rare Disease Registry Framework',
@@ -68,9 +68,9 @@ setup(name='django-rdrf',
         'django-iprestrict==0.1',
         'django-suit',
         'django-ajax-selects',
-		'hgvs==0.2.1',
-		'django-countries',
-		'django-positions'
+        'hgvs==0.2.1',
+        'django-countries',
+        'django-positions'
     ],
     dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
@@ -81,4 +81,3 @@ setup(name='django-rdrf',
         'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
     ],
 )
-
