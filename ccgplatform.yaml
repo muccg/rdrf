@@ -23,7 +23,7 @@ instances:
       - ./develop.sh addusers
       - echo finished running hooks
       
-  staging:
+  aws-syd-rdrf-staging:
     pre_puppet:
       - which git || sudo yum install -y -q git
       - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
@@ -33,7 +33,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
     
-  demo:
+  rdrf-demo:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
@@ -43,7 +43,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
     
-  scratch:
+  rdrf-scratch:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
@@ -53,7 +53,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
   
-  pbcrc:
+  rdrf-pbcrc:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git

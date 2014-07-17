@@ -1,0 +1,39 @@
+# Config for RRDF web application.
+
+# database options
+DBTYPE=pgsql
+DBNAME=rdrf
+DBUSER=rdrf
+DBPASS=rdrf
+# DBSERVER=
+# DBPORT=
+
+# Optional location URL for memcached.
+# https://docs.djangoproject.com/en/1.6/ref/settings.html#location
+# MEMCACHE=
+
+# Make this unique, and don't share it with anybody. Can be generated
+# by http://www.miniwebtool.com/django-secret-key-generator/
+SECRET_KEY=qj#tl@9@7((%^)$i#iyw0gcfzf&#a*pobgb8yr#1%65+*6!@g$
+
+# Set this if running behind a reverse proxy.
+# See: https://docs.djangoproject.com/en/1.6/releases/1.5/#allowed-hosts-required-in-production
+ALLOWED_HOSTS=*
+
+SERVER_EMAIL=apache@localhost
+EMAIL_HOST=127.0.0.1
+EMAIL_PORT=25
+# EMAIL_HOST_USER=
+# EMAIL_HOST_PASSWORD=
+
+# where error messages are sent
+ALERT_EMAIL=root@localhost
+
+# the "From" address on e-mail sent by RDRF
+RETURN_EMAIL=noreply@ccg_rdrf_prod
+
+# Subject-line prefix for e-mail messages from RDRF
+# https://docs.djangoproject.com/en/1.6/ref/settings/#email-subject-prefix
+EMAIL_SUBJECT_PREFIX="PROD: "
+
+WRITABLE_DIRECTORY=/tmp
