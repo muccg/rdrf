@@ -20,7 +20,7 @@ mod "capriza/s3cmd",
 
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
-  :ref => "1.0.0"
+  :ref => "1.0.1"
 
 mod "muccg/role",
   :git => "git://github.com/muccg/puppet-role.git",
@@ -28,7 +28,7 @@ mod "muccg/role",
 
 mod "muccg/python",
   :git => "git://github.com/muccg/puppet-python.git",
-  :ref => "1.0.0"
+  :ref => "1.1.0"
 
 mod "muccg/ccgcommon",
   :git => "git://github.com/muccg/puppet-ccgcommon.git",
