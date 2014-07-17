@@ -119,7 +119,7 @@ install -D ../centos/rdrf/%{name}.ccg %{buildroot}/etc/httpd/conf.d/%{name}.ccg
 install -D ../centos/rdrf/django.wsgi %{buildinstalldir}/django.wsgi
 
 # Install prodsettings conf file to /etc, and replace with symlink
-install --mode=0640 -D ../centos/rdrf.conf.example %{buildroot}/etc/rdrf/rdrf.conf
+install --mode=0640 -D ../centos/rdrf/rdrf.conf.example %{buildroot}/etc/rdrf/rdrf.conf
 install --mode=0640 -D rdrf/prodsettings.py %{buildroot}/etc/rdrf/settings.py
 ln -sfT /etc/rdrf/settings.py %{buildinstalldir}/${APP_PACKAGE_DIR}/prodsettings.py
 

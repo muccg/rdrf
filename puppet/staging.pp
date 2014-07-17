@@ -7,6 +7,7 @@ node default {
   include repo::epel
   include repo::ius
   include repo::pgrpms
+  include repo::ccgcentos
   include globals
   include ccgdatabase::postgresql::devel
 
@@ -44,28 +45,21 @@ node default {
 
   }
 
-  # postgressql databases
-   ccgdatabase::postgresql::db { $django_config['dbname']:
-    user     => $django_config['dbuser'],
-    password => $django_config['dbpass'],
-  }
+  # postgressql database
+  ccgdatabase::postgresql::db { $django_config['dbname']: user => $django_config['dbuser'], password => $django_config['dbpass'] }
 
-  package {'rdrf': ensure => installed, provider => 'yum_nogpgcheck'}
+  package {'rdrf': ensure => installed,
+      provider => 'yum_nogpgcheck',
+  require => Package[$packages] } ->
 
   django::config { 'rdrf':
     config_hash => $django_config,
     require => Package['rdrf']
-  }
-
-  webapp::django::syncdbmigrate{'rdrf': dbsync => true}
+  } ->
 
   django::syncdbmigrate{'rdrf':
     dbsync  => true,
-    notify  => Service[$ccgapache::params::service_name],
-    require => [
-      Ccgdatabase::Postgresql::Db[$django_config['dbname']],
-      Package['rdrf'],
-      Django::Config['rdrf'] ]
+    require => Ccgdatabase::Postgresql::Db[$django_config['dbname']]
   }
 
 }
