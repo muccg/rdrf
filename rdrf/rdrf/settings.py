@@ -55,7 +55,7 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    'iprestrict.middleware.IPRestrictMiddleware',
+    #'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -158,7 +158,12 @@ NOSE_ARGS = [
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
+ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
 
+# This honours the X-Forwarded-Host header set by our nginx frontend when
+# constructing redirect URLS.
+# see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
+USE_X_FORWARDED_HOST = True
 
 # #
 # # LOGGING
