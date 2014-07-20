@@ -45,6 +45,7 @@ node default {
     ensure => installed
   }
 
+
   # tests need firefox and a virtual X server
   $testingpackages = ['firefox', 'xorg-x11-server-Xvfb', 'dbus-x11']
   package {$testingpackages:
@@ -53,4 +54,6 @@ node default {
   
   # postgressql databases
   ccgdatabase::postgresql::db { 'rdrf': user => 'rdrf', password => 'rdrf' }
+
+
 }

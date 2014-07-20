@@ -17,10 +17,8 @@ instances:
       - which puppet || sudo yum install -y -q puppet
     post_puppet: 
       - echo running hooks
-      - ./develop.sh install rdrf
-      - ./develop.sh syncmigrate rdrf
-      - ./develop.sh addregistries
-      - ./develop.sh addusers
+      - ./develop.sh install
+      - ./develop.sh syncmigrate
       - echo finished running hooks
       
   aws-syd-rdrf-staging:

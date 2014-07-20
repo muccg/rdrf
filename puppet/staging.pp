@@ -7,7 +7,7 @@ node default {
   include repo::epel
   include repo::ius
   include repo::pgrpms
-  include repo::ccgcentos
+  include repo::ccgtesting
   include globals
   include ccgdatabase::postgresql::devel
 
@@ -39,6 +39,7 @@ node default {
     dbname      => 'rdrf_staging',
     dbuser      => 'rdrf',
     dbpass      => 'rdrf',
+    allowed_hosts => 'localhost ccgapps.com.au',
     memcache    => $globals::memcache_syd,
     secret_key  => '*&^*&768768YFYTFYHGGHCgcgfcg',
     custom_installroot => '/usr/local/webapps/rdrf/lib/python2.7/site-packages',

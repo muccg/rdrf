@@ -101,6 +101,7 @@ rm %{buildinstalldir}/bin/python*
 
 # Create symlinks under install directory to real persistent data directories
 APP_SETTINGS_FILE=`find %{buildinstalldir} -path "*/%{name}/settings.py" | sed s:^%{buildinstalldir}/::`
+APP_PACKAGE_DIR=`dirname ${APP_SETTINGS_FILE}`
 VENV_LIB_DIR=$(dirname `dirname ${APP_SETTINGS_FILE}`)
 
 # Create settings symlink so we can run collectstatic with the default settings
