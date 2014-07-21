@@ -8,7 +8,7 @@ node default {
   include repo::ius
   include repo::pgrpms
   include globals
-  $release = '0.7.5-1'
+  $release = '0.7.6-1'
 
   $user = $globals::aws_user
 
@@ -60,7 +60,7 @@ node default {
   
   $django_config = {
     deployment          => 'prod',
-    release             => '0.7.5-1',
+    release             => '0.7.6-1',
     dbdriver            => 'django.db.backends.postgresql_psycopg2',
     dbuser              =>  $globals::dbuser_syd_demo,
     dbpass              =>  $globals::dbpass_syd_demo,
