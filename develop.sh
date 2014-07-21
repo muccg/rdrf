@@ -88,8 +88,16 @@ function ci_staging() {
 
 #Preload fixtures from JSON file
 function ci_staging_fixture() {
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
+    local result=`ccg ${AWS_STAGING_INSTANCE} dsudo:'cat /tmp/rdrfsentinel || exit 0' | grep 'out: loaded' | awk  '{print $3;}'`
+    echo "content of sentinel file=[$result]"
+    if [ "$result" != "loaded" ]; then
+        echo "/tmp/rdrfsentinel file does not exist - loading fixtures ..."
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'echo loaded > /tmp/rdrfsentinel'
+    else
+        echo "Fixtures already loaded as sentinel file /tmp/rdrfsentinel exists - No fixtures were loaded"
+    fi
 }
 
 # staging selenium test
