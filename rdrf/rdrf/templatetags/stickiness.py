@@ -1,6 +1,7 @@
 from django import template
 from rdrf.models import Registry
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import AnonymousUser
 
 DEFAULT_NAME = "Rare Disease Registry Framework"
 
@@ -18,7 +19,7 @@ def current_registry(request):
         return Registry.objects.get().name
 
     # User only has one registry - so always return it
-    if request.user.num_registries == 1:
+    if not isinstance(request.user, AnonymousUser) and request.user.num_registries == 1:
         current_registry = request.user.registry.get().name
     else:
         # User has access to more than one registry - use sticky value if possible
