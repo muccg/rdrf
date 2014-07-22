@@ -40,7 +40,7 @@ def delete_cookies(scenario):
     world.browser.delete_all_cookies()
 
 
-@after.each_step
-def take_screenshot(step):
-    filename = str(step) + ".png"
+@after.each_scenario
+def take_screenshot(scenario):
+    filename = str(scenario) + ".png"
     world.browser.get_screenshot_as_file(filename)
