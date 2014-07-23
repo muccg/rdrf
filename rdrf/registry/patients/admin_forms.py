@@ -6,11 +6,8 @@ from models import *
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
-        (1, "Primary Care"),
-        (2, "Paediatric Neurologist"),
-        (3, "Neurologist"),
-        (4, "Geneticist"),
-        (5, "Specialist - Other"),
+        (1, "GP ( Primary Care)"),
+        (2, "Specialist ( Lipid)"),
     )
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
