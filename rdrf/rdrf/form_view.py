@@ -10,6 +10,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 import logging
 
@@ -48,7 +50,6 @@ def log_context(when, context):
 
 
 
-
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
@@ -82,6 +83,8 @@ class FormView(View):
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'],"cdes")
         return dynamic_data
 
+
+    @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id):
         self.form_id = form_id
         self.patient_id = patient_id
@@ -103,6 +106,7 @@ class FormView(View):
         logger.debug("ids = %s" % ids)
         return ",".join(ids)
 
+    @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
@@ -479,6 +483,7 @@ class QuestionnaireResponseView(FormView):
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
 
+    @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
@@ -498,6 +503,7 @@ class QuestionnaireResponseView(FormView):
 
         return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
 
+    @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
@@ -528,6 +534,8 @@ class QuestionnaireResponseView(FormView):
 
 
 class FileUploadView(View):
+
+    @method_decorator(login_required)
     def get(self, request, registry_code, gridfs_file_id):
         from pymongo import MongoClient
         from bson.objectid import ObjectId
