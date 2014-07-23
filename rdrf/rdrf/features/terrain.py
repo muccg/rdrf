@@ -38,9 +38,3 @@ def clean_after_tests(result):
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
-
-
-@after.each_scenario
-def take_screenshot(scenario):
-    filename = str(scenario) + ".png"
-    world.browser.get_screenshot_as_file(filename)
