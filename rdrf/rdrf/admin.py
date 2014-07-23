@@ -85,7 +85,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
 
     if len(registrys) == 1:
             registry = registrys[0]
-            yaml_export_filename = registry.name + '.yaml'
+            yaml_export_filename = registry.name
             yaml_data = export_registry(registry, request)
             if yaml_data is None:
                 return HttpResponseRedirect("")
@@ -96,7 +96,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             myfile.seek(0)
 
             response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
-            yaml_export_filename = "export_%s_%s" % ( export_time, yaml_export_filename)
+            yaml_export_filename = "export_%s_%s%s.yaml" % ( export_time, yaml_export_filename, _get_registry_version(registry.version))
             response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
 
             return response
@@ -123,6 +123,13 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         return response
 
 export_registry_action.short_description = "Export"
+
+def _get_registry_version(version):
+    final_version = ''
+    if version:
+        final_version = "_%s" % version
+    return final_version
+
 
 class RegistryAdmin(admin.ModelAdmin):
     actions = [export_registry_action]
