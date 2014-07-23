@@ -81,6 +81,7 @@ function ci_remote_destroy() {
 
 # puppet up staging which will install the latest rpm for each registry
 function ci_staging() {
+    ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
     ccg ${AWS_STAGING_INSTANCE} boot
     ccg ${AWS_STAGING_INSTANCE} puppet
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
