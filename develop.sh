@@ -147,11 +147,6 @@ function ci_staging_tests() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && ${DJANGO_ADMIN} test rdrf"
 }
 
-
-
-
-}
-
 # lint using flake8
 function lint() {
     virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
