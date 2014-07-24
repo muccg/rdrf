@@ -127,7 +127,6 @@ function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'echo https://staging.ccgapps.com.au/rdrf > /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
-    pushd
     restart_staging_nginx
     sleep 5
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
