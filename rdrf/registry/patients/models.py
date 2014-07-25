@@ -162,8 +162,14 @@ class Patient(models.Model):
 
 
 class PatientAddress(models.Model):
+    ADDRESS_TYPE_CHOICES = [
+        ('Home', 'Home'),
+        ('Postal', 'Postal'),
+        ('Other', 'Other')
+    ]
+
     patient = models.ForeignKey(Patient)
-    address_type = models.CharField(max_length=50)
+    address_type = models.CharField(max_length=50, choices=ADDRESS_TYPE_CHOICES)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
     state = models.ForeignKey(State, verbose_name="State/Province/Territory")
