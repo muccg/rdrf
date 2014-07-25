@@ -6,7 +6,7 @@ from rdrf.models import *
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-from registry.patients.models import State
+from registry.patients.models import State, PatientAddress
 from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
@@ -178,17 +178,28 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
-        self.country = "Australia"
-        self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia",
-                                                          country=self.country)
+        self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia")
 
         self.state.save()
         self.create_sections()
         self.create_forms()
         self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
+        
         self.patient = self.create_patient()
+        
+        self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
+                                                                                address_type='Primary',
+                                                                                suburb='Neverland',
+                                                                                state=self.state,
+                                                                                postcode='1111',
+                                                                                patient=self.patient)
+        self.patient_address.save()
+
+        
         self.request_factory = RequestFactory()
+        
+        
 
     def _reset_mongo(self):
         self.client = MongoClient()
@@ -206,13 +217,9 @@ class FormTestCase(RDRFTestCase):
         p.name = "Harry"
         p.date_of_birth = datetime(1978, 6, 15)
         p.working_group = self.working_group
-        p.state = self.state
-        p.postcode = "6112" # Le Armadale
         p.save()
         p.rdrf_registry = [self.registry,]
         return p
-
-
 
     def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
         section, created = Section.objects.get_or_create(code=code)
@@ -293,32 +300,3 @@ class FormTestCase(RDRFTestCase):
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
