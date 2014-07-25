@@ -169,6 +169,10 @@ class PatientAddress(models.Model):
     state = models.ForeignKey(State, verbose_name="State/Province/Territory")
     postcode = models.IntegerField()
     country = CountryField(default='AU')
+    
+    class Meta:
+        verbose_name_plural = "Patient Addresses"
+    
 
 
 class PatientConsent(models.Model):
