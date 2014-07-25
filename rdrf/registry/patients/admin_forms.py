@@ -15,6 +15,11 @@ class PatientDoctorForm(forms.ModelForm):
         model = PatientDoctor
 
 
+class PatientAddressForm(forms.ModelForm):
+    class Meta:
+        model = PatientAddress
+
+
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {

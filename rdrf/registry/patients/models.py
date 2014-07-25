@@ -23,7 +23,6 @@ from django_countries import countries
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
-    country = models.CharField(max_length=50, choices=countries)
 
     class Meta:
         ordering = ["name"]
@@ -93,10 +92,6 @@ class Patient(models.Model):
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
     date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="patient_set")
-    postcode = models.IntegerField()
     home_phone = models.CharField(max_length=30, blank=True, null=True)
     mobile_phone = models.CharField(max_length=30, blank=True, null=True)
     work_phone = models.CharField(max_length=30, blank=True, null=True)
@@ -164,6 +159,16 @@ class Patient(models.Model):
             working_group=self.working_group.name,
             date_of_birth=str(self.date_of_birth)
             )
+
+
+class PatientAddress(models.Model):
+    patient = models.ForeignKey(Patient)
+    address_type = models.CharField(max_length=50)
+    address = models.TextField()
+    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    postcode = models.IntegerField()
+    country = CountryField(default='AU')
 
 
 class PatientConsent(models.Model):

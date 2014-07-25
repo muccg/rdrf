@@ -35,6 +35,12 @@ class PatientConsentAdmin(admin.TabularInline):
     extra = 1
 
 
+class PatientAddressAdmin(admin.StackedInline):
+    model = PatientAddress
+    form = PatientAddressForm
+    extra = 0
+
+
 class RegistryFilter(admin.SimpleListFilter):
     title = "Registry"
     parameter_name = 'registry'
@@ -69,7 +75,7 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientConsentAdmin, PatientDoctorAdmin]
+    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter,]
@@ -152,10 +158,6 @@ class PatientAdmin(admin.ModelAdmin):
                                    "place_of_birth",
                                    "date_of_migration",
                                    "sex",
-                                   "address",
-                                   "suburb",
-                                   "state",
-                                   "postcode",
                                    "home_phone",
                                    "mobile_phone",
                                    "work_phone",
@@ -317,7 +319,7 @@ class PatientAdmin(admin.ModelAdmin):
     last_updated.short_description = "Last updated"
 
 class StateAdmin(admin.ModelAdmin):
-    list_display = ["name", "country"]
+    list_display = ["name"]
     search_fields = ["name"]
 
 class NextOfKinRelationshipAdmin(admin.ModelAdmin):
