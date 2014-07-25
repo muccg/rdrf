@@ -252,6 +252,21 @@ class DynamicDataWrapper(object):
             collection.insert(record)
             logger.info("%s: inserted record %s OK" % (self,record))
 
+        self._save_longitudinal_snapshot(registry, record)
+
+    def _save_longitudinal_snapshot(self, registry, record):
+        try:
+            from datetime import datetime
+            timestamp = str(datetime.now())
+            patient_id = record['_id']
+            history = self._get_collection(registry, "history")
+            h = history.find_one({"_id": patient_id})
+            if h is None:
+                history.insert({"_id": patient_id, "snapshots": []})
+            history.update({"_id": patient_id}, {"$push": {"snapshots": {"timestamp" : timestamp, "record": record }}})
+        except Exception, ex:
+            logger.error("Couldn't add to history for patient %s: %s" % ( patient_id, ex))
+
     def _convert_date_to_datetime(self, data):
         """
         pymongo doesn't allow saving datetime.Date
