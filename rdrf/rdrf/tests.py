@@ -300,3 +300,26 @@ class FormTestCase(RDRFTestCase):
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
         assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
+
+
+class LongitudinalTestCase(FormTestCase):
+    def test_simple_form(self):
+        NUM_SECTIONS = 2
+        mongo_db = self.client["testing_" + self.registry.code]
+        super(LongitudinalTestCase, self).test_simple_form()
+        # should have one snapshot
+        collection = mongo_db["history"]
+        record = collection.find_one({"_id": self.patient.pk})
+        assert record is not None, "History should be filled in on save"
+        assert record.has_key("snapshots"), "history records should have a snaphots list"
+        assert type(record["snapshots"]) is type([]), "snapshots should be a list"
+        for snapshot_dict in record["snapshots"]:
+            assert type(snapshot_dict) is type({}), "Snapshot should be a dict: %s" % type(snapshot_dict)
+            assert snapshot_dict.has_key("timestamp"), "snapshot dict should have  timestamp key"
+            assert type(snapshot_dict["timestamp"]) is type(u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
+            assert snapshot_dict.has_key("record"), "snapshot dict should have key record"
+        assert len(record["snapshots"]) == NUM_SECTIONS, "Length of snapshots should be 2 got : %s" % len(record["snapshots"])
+
+
+
+
