@@ -258,7 +258,7 @@ class DynamicDataWrapper(object):
         try:
             from datetime import datetime
             timestamp = str(datetime.now())
-            patient_id = record['_id']
+            patient_id = record['django_id']
             history = self._get_collection(registry, "history")
             h = history.find_one({"_id": patient_id})
             if h is None:
