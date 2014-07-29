@@ -23,7 +23,6 @@ from django_countries import countries
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
-    country = models.CharField(max_length=50, choices=countries)
 
     class Meta:
         ordering = ["name"]
@@ -82,21 +81,17 @@ class Patient(models.Model):
 
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
-    working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False)
+    working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False, verbose_name="Center")
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
     consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition.", verbose_name="consent to allow clinical trials given", default=False)
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
-    umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="UMRN")
+    umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
     date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="patient_set")
-    postcode = models.IntegerField()
     home_phone = models.CharField(max_length=30, blank=True, null=True)
     mobile_phone = models.CharField(max_length=30, blank=True, null=True)
     work_phone = models.CharField(max_length=30, blank=True, null=True)
@@ -164,6 +159,26 @@ class Patient(models.Model):
             working_group=self.working_group.name,
             date_of_birth=str(self.date_of_birth)
             )
+
+
+class PatientAddress(models.Model):
+    ADDRESS_TYPE_CHOICES = [
+        ('Home', 'Home'),
+        ('Postal', 'Postal'),
+        ('Other', 'Other')
+    ]
+
+    patient = models.ForeignKey(Patient)
+    address_type = models.CharField(max_length=50, choices=ADDRESS_TYPE_CHOICES)
+    address = models.TextField()
+    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    postcode = models.IntegerField()
+    country = CountryField(default='AU')
+    
+    class Meta:
+        verbose_name_plural = "Patient Addresses"
+    
 
 
 class PatientConsent(models.Model):

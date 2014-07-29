@@ -5,8 +5,8 @@
 %define pybasever 2.7
 
 %define name rdrf
-%define version 0.7.5
-%define unmangled_version 0.7.5
+%define version 0.7.6
+%define unmangled_version 0.7.6
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
@@ -101,6 +101,7 @@ rm %{buildinstalldir}/bin/python*
 
 # Create symlinks under install directory to real persistent data directories
 APP_SETTINGS_FILE=`find %{buildinstalldir} -path "*/%{name}/settings.py" | sed s:^%{buildinstalldir}/::`
+APP_PACKAGE_DIR=`dirname ${APP_SETTINGS_FILE}`
 VENV_LIB_DIR=$(dirname `dirname ${APP_SETTINGS_FILE}`)
 
 # Create settings symlink so we can run collectstatic with the default settings
@@ -117,6 +118,12 @@ ln -fsT /var/lib/%{name}/media %{buildinstalldir}/${VENV_LIB_DIR}/media
 # Install WSGI configuration into httpd/conf.d
 install -D ../centos/rdrf/%{name}.ccg %{buildroot}/etc/httpd/conf.d/%{name}.ccg
 install -D ../centos/rdrf/django.wsgi %{buildinstalldir}/django.wsgi
+
+# Install prodsettings conf file to /etc, and replace with symlink
+install --mode=0640 -D ../centos/rdrf/rdrf.conf.example %{buildroot}/etc/rdrf/rdrf.conf
+install --mode=0640 -D rdrf/prodsettings.py %{buildroot}/etc/rdrf/settings.py
+ln -sfT /etc/rdrf/settings.py %{buildinstalldir}/${APP_PACKAGE_DIR}/prodsettings.py
+
 
 # Symlink django admin script
 mkdir -p %{buildroot}/%{_bindir}
@@ -146,3 +153,11 @@ rm -rf %{buildroot}
 %attr(-,apache,,apache) %{webapps}/%{name}
 %attr(-,apache,,apache) /var/log/%{name}
 %attr(-,apache,,apache) /var/lib/%{name}
+
+%attr(710,root,apache) /etc/rdrf
+%attr(640,root,apache) /etc/rdrf/settings.py
+%attr(640,root,apache) /etc/rdrf/rdrf.conf
+%config(noreplace) /etc/rdrf/settings.py
+%config(noreplace) /etc/rdrf/rdrf.conf
+
+

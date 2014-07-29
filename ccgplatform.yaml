@@ -1,0 +1,73 @@
+project:
+  name: rdrf
+
+ccgplatform:
+  version: "1.10"
+
+ccgpuppet:
+  version: "1.10"
+
+instances:
+  dev:
+    extends: centos_64_lxc
+    puppet_manifest: dev.pp
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    post_puppet: 
+      - echo running hooks
+      - ./develop.sh install
+      - ./develop.sh syncmigrate
+      - echo finished running hooks
+      
+  aws-syd-rdrf-staging:
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    extends: centos_65_aws_syd
+    puppet_manifest: staging.pp
+    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
+    aws_key_name: ccg-syd-staging
+    
+  aws-syd-rdrf-demo:
+    extends: centos_65_aws_syd
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    puppet_manifest: demo.pp
+    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
+    aws_key_name: ccg-syd-staging
+    
+  aws-syd-rdrf-scratch:
+    extends: centos_65_aws_syd
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    puppet_manifest: scratch.pp
+    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
+    aws_key_name: ccg-syd-staging
+  
+  aws-syd-rdrf-pbcrc:
+    extends: centos_65_aws_syd
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    puppet_manifest: pbcrc.pp
+    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
+    aws_key_name: ccg-syd-staging
+    
+  local_staging:
+    extends: centos_64_lxc
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    puppet_manifest: staging.pp
+
+  aws_rpmbuild_centos6:
+    extends: centos_6_rpmbuild

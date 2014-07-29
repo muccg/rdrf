@@ -6,6 +6,8 @@ from lettuce import *
 
 from selenium import webdriver
 import lettuce_webdriver.webdriver
+import time
+
 
 from lettuce_webdriver.webdriver import contains_content
 
@@ -33,6 +35,7 @@ def login_as_user_with_expectations(step, username, password, expectation):
 
 @step('I log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
+    time.sleep(15)
     username_field = world.browser.find_element_by_xpath('.//input[@name="username"]')
     username_field.send_keys(username)
     password_field = world.browser.find_element_by_xpath('.//input[@name="password"]')
@@ -52,6 +55,7 @@ def our_goto(step, relative_url):
     """
     absolute_url = world.site_url + relative_url
     lettuce_webdriver.webdriver.goto(step, absolute_url)
+    time.sleep(15)
 
 @step('Then I should see "(.*)"')
 def eventually(step, expectation):

@@ -1,8 +1,11 @@
 # Django settings for rdrf project.
 import os
+from ccg_django_utils.conf import EnvConfig  # A wrapper around environment which has been populated from /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+
+env = EnvConfig()
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,8 +20,7 @@ FORM_SECTION_DELIMITER = "____"
 
 ROOT_URLCONF = 'rdrf.urls'
 
-SECRET_KEY = 'qj#tl@9@7((%^)$i#iyw0gcfzf&#a*pobgb8yr#1%65+*6!@g$'
-
+SECRET_KEY = env.get("secret_key","changeme")
 # Locale
 TIME_ZONE = 'Australia/Perth'
 LANGUAGE_CODE = 'en-us'
@@ -26,12 +28,12 @@ USE_I18N = True
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'rdrf',                      # Or path to database file if using sqlite3.
-        'USER': 'rdrf',                      # Not used with sqlite3.
-        'PASSWORD': 'rdrf',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': env.get_db_engine("dbtype","pgsql"),         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': env.get("dbname","rdrf"),                      # Or path to database file if using sqlite3.
+        'USER': env.get("dbuser","rdrf"),                      # Not used with sqlite3.
+        'PASSWORD': env.get("dbpass","rdrf"),                  # Not used with sqlite3.
+        'HOST': env.get("dbserver",""),                        # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': env.get("dbport",""),                          # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -53,7 +55,7 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    'iprestrict.middleware.IPRestrictMiddleware',
+    #'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -98,13 +100,18 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # email
-EMAIL_USE_TLS = False
-EMAIL_HOST = '127.0.0.1'
-EMAIL_PORT = 25
+EMAIL_USE_TLS = env.get("email_use_tls", False)
+EMAIL_HOST = env.get("email_host", '127.0.0.1')
+EMAIL_PORT = env.get("email_port", 25)
+EMAIL_HOST_USER = env.get("email_host_user", "")
+EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
+EMAIL_APP_NAME = env.get("email_app_name", "Registry ")
+EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV ")
+SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf_dev")
 
-# default emails
+# default emailsn
 ADMINS = [
-    ('Tech Alerts', 'alerts@ccg.murdoch.edu.au')
+    ('alerts',env.get("alert_email","root@localhost"))
 ]
 MANAGERS = ADMINS
 
@@ -119,7 +126,7 @@ MEDIA_URL = '{0}/static/media/'.format(os.environ.get("SCRIPT_NAME", ""))
 STATIC_SERVER_PATH = os.path.join(WEBAPP_ROOT, "static")
 
 # a directory that will be writable by the webserver, for storing various files...
-WRITABLE_DIRECTORY = "/tmp"
+WRITABLE_DIRECTORY = env.get("writeable_directory", "/tmp")
 TEMPLATE_DEBUG = DEBUG
 
 # session and cookies
@@ -151,7 +158,12 @@ NOSE_ARGS = [
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
-EMAIL_APP_NAME = "Registry "
+ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
+
+# This honours the X-Forwarded-Host header set by our nginx frontend when
+# constructing redirect URLS.
+# see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
+USE_X_FORWARDED_HOST = True
 
 # #
 # # LOGGING
@@ -249,6 +261,8 @@ ALLOWED_HOSTS = [
     'localhost'
 ]
 
+
+
 INSTALL_NAME = 'rdrf'
 
 LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
@@ -282,10 +296,3 @@ CUSTOM_MENU_ITEMS = [
 AJAX_LOOKUP_CHANNELS = {
     'gene'  : {'model': 'genetic.Gene', 'search_field': 'symbol'},
 }
-
-try:
-    print "Attempting to import default settings as appsettings.rdrf"
-    from appsettings.rdrf import *
-    print "Successfully imported appsettings.rdrf"
-except ImportError, e:
-    print "Failed to import appsettings.rdrf"

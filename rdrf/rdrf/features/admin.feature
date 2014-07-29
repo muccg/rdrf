@@ -2,6 +2,7 @@ Feature: Admin
 
     Scenario: Admin interface has working link to Patient Forms
         Given I go to "/"
+        I accept the alert
         And I click "Log in"
         Then I log in as "curator" with "curator" password
         And I click "Patients"
