@@ -39,28 +39,30 @@ node default {
     dbname      => 'rdrf_staging',
     dbuser      => 'rdrf',
     dbpass      => 'rdrf',
-    allowed_hosts => 'localhost ccgapps.com.au',
     memcache    => $globals::memcache_syd,
     secret_key  => '*&^*&768768YFYTFYHGGHCgcgfcg',
-    custom_installroot => '/usr/local/webapps/rdrf/lib/python2.7/site-packages',
-
+    allowed_hosts => 'localhost ccgapps.com.au',
   }
 
   # postgressql database
   ccgdatabase::postgresql::db { $django_config['dbname']: user => $django_config['dbuser'], password => $django_config['dbpass'] }
 
   package {'rdrf': ensure => installed,
-      provider => 'yum_nogpgcheck',
-  require => Package[$packages] } ->
+    provider => 'yum_nogpgcheck',
+    require => Package[$packages]
+  }
 
   django::config { 'rdrf':
     config_hash => $django_config,
     require => Package['rdrf']
-  } ->
+  }
 
   django::syncdbmigrate{'rdrf':
     dbsync  => true,
-    require => Ccgdatabase::Postgresql::Db[$django_config['dbname']]
+    require => [
+      Ccgdatabase::Postgresql::Db[$django_config['dbname']],
+      Package['rdrf'],
+      Django::Config['rdrf'] ]
   }
 
 }
