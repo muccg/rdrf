@@ -1,8 +1,12 @@
 from django import forms
 from registry.utils import get_static_url
+from django_countries import countries
 
 from models import *
 
+from rdrf.widgets import CountryWidget, StateWidget
+
+import pycountry
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -18,7 +22,12 @@ class PatientDoctorForm(forms.ModelForm):
 class PatientAddressForm(forms.ModelForm):
     class Meta:
         model = PatientAddress
+        
+        fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
+    country = forms.ComboField(widget=CountryWidget(attrs={'default':'AU', 'onChange':'select_country(this);'}))
+    state = forms.ComboField(widget=StateWidget(attrs={'default':'AU-WA'}))
+    
 
 class PatientForm(forms.ModelForm):
 
