@@ -158,15 +158,17 @@ class Patient(models.Model):
             )
 
 
-class PatientAddress(models.Model):
-    ADDRESS_TYPE_CHOICES = [
-        ('Home', 'Home'),
-        ('Postal', 'Postal'),
-        ('Other', 'Other')
-    ]
+class AddressType(models.Model):
+    type = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    
+    def __unicode__(self):
+        return "%s" % (self.type)
 
+
+class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
-    address_type = models.CharField(max_length=50, choices=ADDRESS_TYPE_CHOICES)
+    address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
     state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
@@ -176,7 +178,6 @@ class PatientAddress(models.Model):
     class Meta:
         verbose_name_plural = "Patient Addresses"
     
-
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
