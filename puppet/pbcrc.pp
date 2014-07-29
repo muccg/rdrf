@@ -57,6 +57,7 @@ node default {
     memcache            => $globals::memcache_syd,
     secretkey           => $globals::secretkey_rdrf_pbcrc,
     admin_email         => $globals::system_email,
+    allowed_hosts       => 'localhost ccgapps.com.au',
   }
   
   package {'rdrf':

@@ -8,10 +8,8 @@ node default {
   include repo::ius
   include repo::pgrpms
   include globals
-  $release = '0.7.6-1'
 
   $user = $globals::aws_user
-
   
   class {'s3cmd':
     aws_access_key => $globals::aws_s3backup_access_key,
@@ -34,16 +32,6 @@ node default {
      hour  => [ 7 ],
   }
 
-  $dbdriver = 'django.db.backends.postgresql_psycopg2'
-  $dbhost = $globals::dbhost_syd_scratch
-  $dbuser = $globals::dbuser_syd_scratch
-  $dbpass = $globals::dbpass_syd_scratch
-  $dbname = 'rdrf_scratch'
-
-  class { 'monit::packages':
-    packages => ['rsyslog', 'sshd', 'denyhosts', 'httpd'],
-  }
-
   # server
   class { 'mongodb': 
     smallfiles => true,
@@ -62,24 +50,30 @@ node default {
     deployment          => 'prod',
     release             => '0.7.6-1',
     dbdriver            => 'django.db.backends.postgresql_psycopg2',
-    dbuser              =>  $globals::dbuser_syd_scratch,
-    dbpass              =>  $globals::dbpass_syd_scratch,
-    dbname              =>  'rdrf_scratch',
-    memcache            =>  $globals::memcache_syd,
-    secretkey           =>  $globals::secretkey_rdrf_scratch,
-    admin_email         =>  $global::system_email,
-    custom_installroot  => '/usr/local/webapps/rdrf/lib/python2.7/site-packages',
+    dbserver            => $globals::dbhost_rds_syd_postgresql_prod,
+    dbuser              => $globals::dbuser_syd_prod,
+    dbpass              => $globals::dbpass_syd_prod,
+    dbname              => 'rdrf_scratch',
+    memcache            => $globals::memcache_syd,
+    secretkey           => $globals::secretkey_rdrf_scratch,
+    admin_email         => $globals::system_email,
+    allowed_hosts       => 'localhost ccgapps.com.au',
   }
   
-  package {'rdrf': ensure => $release, provider => 'yum_nogpgcheck'} ->
+  package {'rdrf':
+    ensure => $django_config['release'],
+    provider => 'yum_nogpgcheck',
+    require => Package[$packages]
+  }
+
   django::config { 'rdrf':
     config_hash => $django_config,
-  } ->
+    require => Package['rdrf']
+  }
+
   django::syncdbmigrate{'rdrf':
     dbsync  => true,
     require => [
-      Package[$packages],
-      Ccgdatabase::Postgresql[$django_config['dbname']],
       Package['rdrf'],
       Django::Config['rdrf'] ]
   }
