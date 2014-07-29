@@ -9,8 +9,19 @@
            add_button_id: 'add',
            total_forms_id: 'id_form-TOTAL_FORMS',
            initial_forms_id: 'id_form_INITIAL_FORMS',
-           formset_prefix: 'form'
+           formset_prefix: 'form',
+           metadata_json: '' // easier to pass a string in the template
         }, options );
+
+       var metadata = {};
+       try {
+
+           metadata = jQuery.parseJSON(settings.metadata_json)
+       }
+
+       catch (err) {
+           metadata = {};
+       }
 
        function new_specifier(num_cdes, old_value, new_row_index) {
            /*
@@ -38,6 +49,10 @@
            return parseInt($("#" + settings.total_forms_id).val());
        }
 
+       function get_initial_count() {
+           return $("#" + settings.initial_forms_id).val();
+       }
+
        var cdes = [];
        var added_cdes = [];
 
@@ -49,21 +64,35 @@
            return $("#" + settings.table_id + " > tbody > tr:has(:input)").length;
        }
 
+       function get_row_selector(cde_code) {
+           // check settings for any overrides
+           // e.g. for date cdes we use  <cde_code>_month to locate the row not just cde_code
+           if (metadata[cde_code] && metadata[cde_code].row_selector) {
+               return metadata[cde_code].row_selector;
+           }
+           else {
+               return cde_code;
+           }
+       }
+
        function dump_state(msg) {
            console.log("****************************************************");
            console.log("state " + msg);
            console.log("row count = " + get_row_count());
            console.log("django form total = " + get_form_total().toString());
+           console.log("initial form count = " + get_initial_count());
            console.log("****************************************************");
        }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
-            console.debug();
             //dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
-                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + cde_code + "'])";
+
+                // Most cdes use standard input widgets which are locatable with cde code directly
+                // complex fields ( multiwidgets ) will modify the id so we use settings to pass metadata about overrides to the plugin to allow location
+                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + get_row_selector(cde_code) + "'])";
                 $(row_selector)
                     .clone()            // create a copy
                     .find("label")      // update the clone's for attr to the new value

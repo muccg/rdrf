@@ -38,66 +38,120 @@ Clinicians
 Enter and view data on patients in a working group within a registry.
 
 
-
-Design Mode Workflow
---------------------
-
-Modelling
----------
-Coming soon
-
-Creating a Registry
--------------------
-
-Assuming all CDEs have already been created:
-
-1. Admin logs in and navigates to  >Rdrf/Registries
-2. Admin clicks on green "Add registry" button.
-3. Admin fills in Name, code and description of registry ( code must be unique and not contain spaces)
-4. Admin pastes a html splash screen into the Splash screen field ( this will be linked to on the main page)
-
-5. Admin navigates to >Rdrf/Registry Forms and for each desired form in the registry, clicks the green "Add registry form"
-   button.
-6. Admin Selects the registry just created from the drop down list
-7. Admin enters a name into the name field ( this name will appear on the form, eg "Physical Info")
-8. Admin enters a comma-separated list of form section codes ( E.g. "FHPhysicalSection,FHPersonalitySection,FHAmbulatorySection"
-   ( Note: The codes  should be unique and have no spaces - no quotes! - prefixing with registry code is conventional but
-   advised) If the form is intended to be a public questionnaire form , check the questionnaire checkbox.
-9. Save the form definition
-
-
-10. For each section referred to in the comma separated list, add a section object by navigating to >Rdrf/Sections:
-11. Click the green "Add Section" button and enter the section code ( used in the form definition )
-12. Enter a display name for the section ( this will appear on the form above the fields defined for the section.)
-13 Enter the CDE codes of any fields required in the elements list ( as a comma-separated list.) E.g. "CDEName,CDEAge,CDEHeight"
-   Note: The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code
-   cannot be found in the system, the section object will not be created.
-
-
 User Mode Workflows
 ===================
 
+Adding a user ( curator or clinician, or genetic staff)
+-------------------------------------
+
+1. Admin logs in
+2. Clicks on Users in left panel.
+3. Clicks Add User button on right
+4. Enters Username and password
+5. Clicks Next
+6. Enters personal information
+7. Checks "Staff Status"
+8. Control-Clicks Working Group Curators for curator ( or Clinical Staff for clinician, or Genetic Staff for
+   genetic staff.)
+
+9. Control-clicks the required working groups and registries ( if more than one.)
+10. Clicks save.
+
+
+
+
 Adding a Patient to a Registry
 ------------------------------
-Coming Soon
+1. Curator or clinician logs in.
+2. Clicks Quck Links /Patients
+3. Click Add Patient ( or edit patient)
+4. Control-click on each registry that is listed that you would like the patient to be  a member of.
+   ( NB. If a clinician or curator has access to only one registry, it will already be assigned.)
 
-Entering ( and viewing existing ) Registry Data for a Patient
-------------------------------------
+
+Entering ( and viewing existing ) Demographic Data for a Patient
+----------------------------------------------------------------
 
 1. Login as a clinician
-2. Navigate to >Patients/Patients
-3. Select the required registry ( if more than one appears ) in the Registry drop down and click Search
-4. Click on the Show Forms button of the required patient
-5. Launch the required Registry form from the pop up
-6 Enter in any required data and click save
+2. Click Patients in "Quick Links" panel.
+3. Click Details button in Demographics column of patient list.
+4. Edit contact details for the patient.
+5 Click Save button
+
+Changing Working Group for a Patient
+------------------------------------
+1. Login as curator
+2. Click on patients in Quick Links Panel
+3. Click on details button in demographics column.
+4. Select required working group ( NB. workings group in the dropdown will only be those for which the curator has access.)
 
 
 
+Entering / editing existing Clinical Data for a Patient
+-------------------------------------------------------
 
-Approving a questionnaire response
+1. Login in as a clinician
+2. Click Patients in Quick Links panel.
+3. If clinician has access to more than registry a drop down of registries is shown in the search area, otherwise no
+   registry dropdown will appear and all operations will occur in the one registry.
+4. Click the  "Show Modules" button in the patients list for the required patient - a pop up of available forms will
+   appear ( except if there is only one defined clinical data form.)
+5. Click the desired clinical data entry form.
+6 The screen will show the required form.
+7. Edit and click Save
+
+
+Approving/Rejecting a Questionnaire response
 ----------------------------------
 
-Coming Soon
+1. Curator or clinician logs in.
+2. Click Questionnaire Responses in the Quick Links Panel
+3. Click "Go" under "Process Questionnaire" to approve/reject a questionanaire
+4. User reviews information in the submitted form and clicks approve ( or reject):
+   If approve is clicked, a new patient will be created in the registry and working group indicated in the form.
+   If reject is clicked, no patient record will be created
+
+
+Adding a new working group
+--------------------------
+
+1. Admin logs in
+2. Put mouse over Groups /Working Groups in left panel ( and click)
+3. Click green "Add Working Group" button
+4. Enter name and save.
+
+Changing the Working Groups of a Curator
+----------------------------------------
+
+1. As an admin , click on Users link in left panel
+2. Click on the username of the curator required.
+3. Control-click ( command-click for Mac ) on each working group in the combo box required for that user ( a curator in 2 working groups will see patients in both groups)
+4. Click the Save button
+
+Assigning a curator ( or clinician ) to a registry
+--------------------------------------------------
+
+1. As an admin , login and then click on the Users link in the left panel
+2. Click on the username of the user required.
+3. Control-click ( command-click for Mac) on each registry the user is meant to have access to.\
+4. Click the Save button.
+
+Adding Genes
+------------
+
+1. Genetic staff logs in.
+2. Clicks on Genetic / Genes in left panel
+3. Clicks on Add Gene
+4. Clicks Save
+
+Adding Laboratory
+-----------------
+1. Genetic Staff logs in.
+2. Clicks on Genetic / Laboratories in left panel
+3. Adds details
+4. Clicks Save.
+
+
 
 
 

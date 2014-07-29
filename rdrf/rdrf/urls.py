@@ -11,12 +11,12 @@ import landing_view
 import import_registry_view
 import rest_interface
 import hgvs_view
-from lookup_views import GeneView, LaboratoryView
+from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
-from registry.patients.views import UnallocatedPatients
 from views import RegistryList, AllocateView
+from registry.patients.views import update_session
 
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -56,7 +56,8 @@ urlpatterns = patterns('',
     url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
     
     url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
-    url(r'^unallocated/?$', UnallocatedPatients.as_view(), name='unallocated_patients'),
     url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
-    url(r'^allocate/(?P<patient_id>\w+)/(?P<registry_id>\w+)/?$', AllocateView.as_view(), name='allocate'),
+    url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
+    
+    url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
 )

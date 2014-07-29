@@ -111,6 +111,9 @@ class Exporter(object):
             raise ExportException("Unknown export type")
         return pvgs
 
+    def _get_registry_version(self):
+        return self.registry.version.strip()
+
     def _export(self,format, export_type):
         data = {}
 
@@ -119,6 +122,7 @@ class Exporter(object):
         data["EXPORT_TIME"] = str(datetime.datetime.now())
         data["cdes"] = [ model_to_dict(cde) for cde in self._get_cdes(export_type) ]
         data["pvgs"] = [ pvg.as_dict() for pvg in self._get_pvgs(export_type) ]
+        data["REGISTRY_VERSION"] = self._get_registry_version()
 
 
         if export_type in [ ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
@@ -148,8 +152,6 @@ class Exporter(object):
             try:
                 export_data = yaml.dump(data)
             except Exception,ex:
-                import pdb
-                pdb.set_trace()
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
         elif format == ExportFormat.JSON:

@@ -17,7 +17,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|addusers|addregistries|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -25,6 +25,23 @@ function settings() {
     export DJANGO_SETTINGS_MODULE="rdrf.settings"
 }
 
+# add users from json fixture
+function addregistries() {
+    echo "Adding RDRF registries to $HOSTNAME"
+    cd /usr/local/src
+    source virt_rdrf/bin/activate
+    export DJANGO_SETTINGS_MODULE=rdrf.settings
+    python rdrf/manage.py load_fixture --file=rdrf.json
+
+}
+function addusers {
+    echo "Adding RDRF users to $HOSTNAME"
+    cd /usr/local/src
+    source virt_rdrf/bin/activate
+    export DJANGO_SETTINGS_MODULE=rdrf.settings
+    python rdrf/manage.py load_fixture --file=users.json
+
+}
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 function ci_ssh_agent() {
@@ -37,7 +54,7 @@ function ci_ssh_agent() {
 # build RPMs on a remote host from ci environment
 function ci_remote_build() {
     time ccg ${AWS_BUILD_INSTANCE} puppet
-    time ccg ${AWS_BUILD_INSTANCE} shutdown:50
+    time ccg ${AWS_BUILD_INSTANCE} shutdown:240
 
     EXCLUDES="('bootstrap'\, '.hg*'\, 'virt*'\, '*.log'\, '*.rpm'\, 'build'\, 'dist'\, '*/build'\, '*/dist')"
     SSH_OPTS="-o StrictHostKeyChecking\=no"
@@ -64,6 +81,7 @@ function ci_remote_destroy() {
 
 # puppet up staging which will install the latest rpm for each registry
 function ci_staging() {
+    ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
     ccg ${AWS_STAGING_INSTANCE} boot
     ccg ${AWS_STAGING_INSTANCE} puppet
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
@@ -71,9 +89,31 @@ function ci_staging() {
 
 #Preload fixtures from JSON file
 function ci_staging_fixture() {
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
+    local result=`ccg ${AWS_STAGING_INSTANCE} dsudo:'cat /tmp/rdrfsentinel || exit 0' | grep 'out: loaded' | awk  '{print $3;}'`
+    echo "content of sentinel file=[$result]"
+    if [ "$result" != "loaded" ]; then
+        echo "/tmp/rdrfsentinel file does not exist - loading fixtures ..."
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
+        ccg ${AWS_STAGING_INSTANCE} dsudo:'echo loaded > /tmp/rdrfsentinel'
+    else
+        echo "Fixtures already loaded as sentinel file /tmp/rdrfsentinel exists - No fixtures were loaded"
+    fi
 }
+
+# restart nginx
+function restart_staging_nginx() {
+    pushd /tmp
+    if [ ! -d tempnginxdir ]; then
+        mkdir tempnginxdir
+    fi
+    cd tempnginxdir
+    echo nginx > .projectname
+    ccg --nuke-bootstrap
+    ccg ccg_syd_nginx_staging restart_nginx
+    popd
+}
+
 
 # staging selenium test
 function ci_staging_selenium() {
@@ -84,9 +124,11 @@ function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:'yum install rdrf -y'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'echo https://staging.ccgapps.com.au/rdrf > /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
+    restart_staging_nginx
+    sleep 5
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
@@ -277,6 +319,12 @@ ci_staging_fixture)
 ci_staging_tests)
     ci_ssh_agent
     ci_staging_tests
+    ;;
+addusers)
+    addusers
+    ;;
+addregistries)
+    addregistries
     ;;
 dropdb)
     dropdb

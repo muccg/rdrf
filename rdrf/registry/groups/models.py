@@ -18,3 +18,7 @@ class CustomUser(AbstractUser):
     working_groups = models.ManyToManyField(WorkingGroup, null=True, related_name = 'working_groups')
     title = models.CharField(max_length=50, null=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
+
+    @property
+    def num_registries(self):
+        return self.registry.count()

@@ -4,6 +4,9 @@ import json
 
 from registry.genetic.models import Gene, Laboratory
 
+import pycountry
+
+
 class LookupView(View):
     
     MODEL = ""
@@ -36,3 +39,26 @@ class LaboratoryView(LookupView):
     MODEL = Laboratory
     QUERY = "name__icontains"
     ATTRS = {'value': 'id', 'label': 'name' }
+
+
+class StateLookup(View):
+
+    def get(self, request, country_code):
+        state = None
+        try:
+            states = sorted(pycountry.subdivisions.get(country_code=country_code.upper()), key=lambda x: x.name)
+            return HttpResponse(json.dumps(self._to_json(states)))
+        except: KeyError
+        
+        return HttpResponse()
+    
+    def _to_json(self, states):
+        json_result = []
+        for state in states:
+            json_ = {}
+            json_['name'] = state.name
+            json_['code'] = state.code
+            json_['type'] = state.type
+            json_['country_code'] = state.country_code
+            json_result.append(json_)
+        return json_result

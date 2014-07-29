@@ -1,10 +1,32 @@
 {% extends "admin/change_form.html" %}
 {% load staticfiles %}
+{% load stickiness %}
 
 {% block extrastyle %}
     {{block.super}}
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            selected_registry = '{% sticky_registry request %}';
+            if (selected_registry) {
+                $('#id_rdrf_registry').find('option[value="' + selected_registry + '"]').attr("selected",true);
+            } else {
+                $('#id_rdrf_registry').find('option:first').attr("selected",true); 
+            }
+        });
+
+        $(document).ready(function(){
+            // Add a "cancel button"
+            var add_another_button = $("button[name='_addanother']");
+            var cancel_button = add_another_button.clone().attr("name","cancel_button").attr("type","button").text("Cancel").click(function () {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            });
+            cancel_button.insertAfter(add_another_button);
+        });
+
+    </script>
 {% endblock %}
 
 {% block extrahead %}
@@ -18,11 +40,26 @@
       buttonImageOnly: true,
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yy-mm-dd',
+      dateFormat: 'dd-mm-yy',
       minDate: '-100Y',
       maxDate: '+0Y'
     });
   });
+  </script>
+  
+  <script>
+    function select_country(obj) {
+        state_id = obj.id.replace("country", "state");
+        state_select = $('#' + state_id);
+        state_select.find('option').remove();
+        $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
+            if (data) {
+                $.each(JSON.parse(data), function(i, item) {
+                    state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
+                })
+            }
+        });
+    }
   </script>
 {% endblock %}
 

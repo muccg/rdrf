@@ -29,18 +29,16 @@ class PatientDoctorAdmin(admin.TabularInline):
     model = PatientDoctor
     extra = 0
 
-class ParentAdmin(admin.ModelAdmin):
-    model = Parent
-
-class PatientParentAdmin(admin.TabularInline):
-    fields = ["relationship", "parent"]
-    form = PatientParentForm
-    model = PatientParent
-    extra = 0
 
 class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
     extra = 1
+
+
+class PatientAddressAdmin(admin.StackedInline):
+    model = PatientAddress
+    form = PatientAddressForm
+    extra = 0
 
 
 class RegistryFilter(admin.SimpleListFilter):
@@ -77,7 +75,7 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientConsentAdmin, PatientParentAdmin, PatientDoctorAdmin]
+    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter,]
@@ -109,7 +107,7 @@ class PatientAdmin(admin.ModelAdmin):
         content = ''
         
         if not forms:
-            content = "No forms available"
+            content = "No modules available"
 
         if forms.count() == 1:
             url = reverse('registry_form', args=(rdrf.code, forms[0].id, obj.id))
@@ -119,7 +117,7 @@ class PatientAdmin(admin.ModelAdmin):
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
             content += "<a href=%s>%s</a><br/>" % (url, form.name)
         
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Forms</button>" % content
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
     
     data_modules_btn.allow_tags = True
     data_modules_btn.short_description = 'Data Modules'
@@ -134,11 +132,19 @@ class PatientAdmin(admin.ModelAdmin):
 
     def create_fieldset(self, superuser=False):
         """Function to dynamically create the fieldset, adding 'active' field if user is a superuser"""
-
+        
         consent = ("Consent", {
             "fields":(
                 "consent",
+                "consent_clinical_trials",
+                "consent_sent_information",
              )
+        })
+        
+        rdrf_registry = ("Registry", {
+            "fields":(
+                "rdrf_registry",
+            )
         })
 
         personal_details = ("Personal Details", {})
@@ -152,10 +158,6 @@ class PatientAdmin(admin.ModelAdmin):
                                    "place_of_birth",
                                    "date_of_migration",
                                    "sex",
-                                   "address",
-                                   "suburb",
-                                   "state",
-                                   "postcode",
                                    "home_phone",
                                    "mobile_phone",
                                    "work_phone",
@@ -184,7 +186,7 @@ class PatientAdmin(admin.ModelAdmin):
              "next_of_kin_parent_place_of_birth"
              )})
 
-        fieldset = (consent, personal_details, next_of_kin,)
+        fieldset = (consent, rdrf_registry, personal_details, next_of_kin,)
         return fieldset
 
     def get_fieldsets(self, request, obj=None):
@@ -205,8 +207,8 @@ class PatientAdmin(admin.ModelAdmin):
         # Restrict normal users to their own working group.
         if dbfield.name == "working_group" and not user.is_superuser:
             user = get_user_model().objects.get(username=user) # get the user's associated objects
-            #kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
-            kwargs["queryset"] = WorkingGroup.objects
+            kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
+            #kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
@@ -317,37 +319,15 @@ class PatientAdmin(admin.ModelAdmin):
     last_updated.short_description = "Last updated"
 
 class StateAdmin(admin.ModelAdmin):
-    list_display = ["name", "country"]
+    list_display = ["name"]
     search_fields = ["name"]
 
 class NextOfKinRelationshipAdmin(admin.ModelAdmin):
     model = NextOfKinRelationship
-
-class PatientRegistryAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'rdrf_registry']
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(PatientRegistryAdmin,self).get_form(request, obj=None, **kwargs)
-        #from registry.groups.models import User
-        user = get_user_model().objects.get(username=request.user)
-        if not user.is_superuser:
-            form.base_fields['patient'].queryset = Patient.objects.filter(rdrf_registry__in=user.registry.all())
-            form.base_fields['rdrf_registry'].queryset = Registry.objects.filter(id__in=user.registry.all())
-        return form
-    
-    def queryset(self, request):
-        if not request.user.is_superuser:
-            #from registry.groups.models import User
-            user = get_user_model().objects.get(username=request.user)
-            return PatientRegistry.objects.filter(rdrf_registry__in=user.registry.all())
-        
-        return self.model.objects.all()
 
 
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
-admin.site.register(Parent, ParentAdmin)
-admin.site.register(PatientRegistry, PatientRegistryAdmin)
 admin.site.disable_action('delete_selected')

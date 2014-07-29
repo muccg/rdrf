@@ -17,7 +17,7 @@
             return "#" + id;
         }
         var subject_codes_string = _.map(settings.subjects.split(","), function(code) { return locate_code(code);}).join();
-        $(subject_codes_string).on("input, change",function () {
+        var update_function = function () {
             var context = {};
             var subject_codes = settings.subjects.split(",");
 
@@ -36,7 +36,17 @@
             }
 
             $("#id_" + settings.prefix + settings.observer).val(context.result);
-        });
+        }
+
+        $(subject_codes_string).on("input, change",update_function);
+
+        try {
+            // call on initial page load
+            update_function(); // call it to ensure if calculation changes on server , we are always in sync ( RDR-426 )
+        }
+        catch(err) {
+            //alert(err);
+        }
     };
 
 }( jQuery ));

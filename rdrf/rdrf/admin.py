@@ -85,7 +85,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
 
     if len(registrys) == 1:
             registry = registrys[0]
-            yaml_export_filename = registry.name + '.yaml'
+            yaml_export_filename = registry.name + ".yaml"
             yaml_data = export_registry(registry, request)
             if yaml_data is None:
                 return HttpResponseRedirect("")
@@ -123,6 +123,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         return response
 
 export_registry_action.short_description = "Export"
+
 
 class RegistryAdmin(admin.ModelAdmin):
     actions = [export_registry_action]
@@ -207,7 +208,7 @@ admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value'], list_display=['code', 'value', 'pv_group']))
 admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name'], list_display=['code', 'name']))
+admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)

@@ -108,5 +108,30 @@
         "email": "clinical@example.com", 
         "date_joined": "2010-08-18T16:33:38"
     }
+},
+{
+    "pk": 9, 
+    "model": "groups.customuser", 
+    "fields": {
+        "username": "fhcurator", 
+        "first_name": "", 
+        "last_name": "", 
+        "title": "FH Curator", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": true, 
+        "last_login": "2014-06-19T10:31:17.348", 
+        "registry": [
+            1
+        ], 
+        "groups": [], 
+        "user_permissions": [], 
+        "working_groups": [
+            1
+        ], 
+        "password": "pbkdf2_sha256$12000$qKZU82clUflW$D/gGegw45UBecH6YtyNBympHy70OzTFcKWn1oozsRh8=", 
+        "email": "", 
+        "date_joined": "2014-06-18T13:45:05.069"
+    }
 }
 ]

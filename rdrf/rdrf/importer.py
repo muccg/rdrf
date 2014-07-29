@@ -1,6 +1,6 @@
 import logging
 from models import *
-from registry.patients.models import Patient, PatientRegistry
+from registry.patients.models import Patient
 import yaml
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -57,8 +57,6 @@ class Importer(object):
         self.delete_existing_registry = False
         self.check_validity = True
         self.check_soundness = True
-        self.patients = [] # if patients are assigned to the registry we're importing over
-                           # we maintain them even if we delete the old registry
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
@@ -90,11 +88,6 @@ class Importer(object):
         else:
             self.state = ImportState.VALID
 
-        self._get_patients()
-
-        if self.delete_existing_registry:
-            self._delete_existing_registry()
-
         self._create_registry_objects()
 
         if self.check_soundness:
@@ -104,30 +97,6 @@ class Importer(object):
 
         else:
             self.state = ImportState.SOUND
-
-
-        if self.state == ImportState.SOUND:
-            for patient in self.patients:
-                pr, created = PatientRegistry.objects.get_or_create(rdrf_registry=Registry.objects.get(code=self.data["code"]),patient=patient)
-                pr.save()
-
-            self.state = ImportState.IMPORTED
-
-        else:
-            logger.error("Imported Registry is not sound and will be rolled back: %s" % self.errors)
-            #rollback
-            pass
-
-    def _get_patients(self):
-        try:
-            registry = Registry.objects.get(code=self.data["code"])
-            for patient_registry in PatientRegistry.objects.filter(rdrf_registry=registry):
-                logger.debug("adding patient %s to internal list" % patient_registry.patient)
-                self.patients.append(patient_registry.patient)
-        except Registry.DoesNotExist:
-            self.patients = []
-
-
 
 
     def _validate(self):
@@ -321,7 +290,6 @@ class Importer(object):
 
 
     def _create_registry_objects(self):
-
         self._create_groups(self.data["pvgs"])
         self._create_cdes(self.data["cdes"])
 
@@ -334,6 +302,12 @@ class Importer(object):
         imported_forms = set([])
         r.code = self.data["code"]
         r.name = self.data["name"]
+
+        if self.data.has_key("REGISTRY_VERSION"):
+            r.version = self.data["REGISTRY_VERSION"]
+        else:
+            r.version = "" # old style no version
+
 
         r.splash_screen = self.data["splash_screen"]
 
