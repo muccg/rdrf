@@ -25,6 +25,7 @@ class CalculatedFieldParser(object):
         :param cde:
         :return:
         """
+        # test
         self.context_indicator = "context"
         self.pattern =  r"\b%s\.(.+?)\b" % self.context_indicator
         self.result_name = "result"
