@@ -31,7 +31,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
     
-  rdrf-demo:
+  aws-syd-rdrf-demo:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
@@ -41,7 +41,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
     
-  rdrf-scratch:
+  aws-syd-rdrf-scratch:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
@@ -51,7 +51,7 @@ instances:
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
   
-  rdrf-pbcrc:
+  aws-syd-rdrf-pbcrc:
     extends: centos_65_aws_syd
     pre_puppet:
       - which git || sudo yum install -y -q git
