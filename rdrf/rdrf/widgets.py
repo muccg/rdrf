@@ -8,6 +8,8 @@ from django.core.urlresolvers import reverse_lazy
 import logging
 logger = logging.getLogger("registry_log")
 
+import pycountry
+
 
 class BadCustomFieldWidget(Textarea):
     """
@@ -185,3 +187,44 @@ class DateWidget(widgets.TextInput):
         return """
             <input type="text" name="%s" id="id_%s" value="%s" class="datepicker" readonly>
         """ % (name, name, value or '')
+
+
+class CountryWidget(widgets.Select):
+
+    def render(self, name, value, attrs):
+        if not value:
+            value = self.attrs['default']
+
+        countries = pycountry.countries
+
+        output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name),]
+        for country in countries:
+            if value == country.alpha2:
+                output.append("<option value='%s' selected>%s</option>" % (country.alpha2, country.name))
+            else:
+                output.append("<option value='%s'>%s</option>" % (country.alpha2, country.name))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))
+
+
+class StateWidget(widgets.Select):
+    
+    def render(self, name, value, attrs):
+        if not value:
+            value = self.attrs['default']
+
+        try:
+            state = pycountry.subdivisions.get(code=value)
+        except KeyError:
+            state = pycountry.subdivisions.get(code=self.attrs['default'])
+
+        country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
+        
+        output = ["<select id='%s' name='%s'>" % (name, name),]
+        for state in country_states:
+            if value == state.code:
+                output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
+            else:
+                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))

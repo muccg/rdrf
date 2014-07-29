@@ -16,9 +16,6 @@ from django.conf import settings # for APP_NAME
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
-from django_countries.fields import CountryField
-from django_countries import countries
-
 
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
@@ -172,9 +169,9 @@ class PatientAddress(models.Model):
     address_type = models.CharField(max_length=50, choices=ADDRESS_TYPE_CHOICES)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
     postcode = models.IntegerField()
-    country = CountryField(default='AU')
+    country = models.CharField(max_length=20)
     
     class Meta:
         verbose_name_plural = "Patient Addresses"
