@@ -64,7 +64,7 @@ class CDEPermittedValueGroup(models.Model):
 
     def __unicode__(self):
         members = self.members()
-        return "PVG %s containing %s" % (self.code, self.members())
+        return "PVG %s containing %d elements" % (self.code, len(self.members()))
 
 class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
@@ -73,7 +73,7 @@ class CDEPermittedValue(models.Model):
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
 
     def __unicode__(self):
-        return "PV %s:%s of %s" % (self.code,self.value,self.pv_group)
+        return "Memeber of %s" % (self.pv_group.code)
 
 class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
