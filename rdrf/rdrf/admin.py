@@ -210,7 +210,7 @@ class CDEPermittedValueAdmin(admin.StackedInline):
     extra = 0
     
     fieldsets = (
-        (None, {'fields':('code', 'value', 'desc')}),
+        (None, {'fields':('code', 'value', 'desc', 'position')}),
     )
     
 
