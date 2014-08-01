@@ -93,8 +93,6 @@ class CalculatedFieldParser(object):
 
         function_parameter_list = "context"
 
-
-
         if "patient." in calculation_body: # todo generalise exposed models
             function_parameter_list = "context, patient"
             injected_model = self.injected_model
@@ -105,8 +103,6 @@ class CalculatedFieldParser(object):
             injected_model = ""
             injected_model_id = -1
             tastypie_url = ""
-
-
 
         javascript = """
             <script>
