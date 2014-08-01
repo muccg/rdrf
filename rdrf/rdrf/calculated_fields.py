@@ -1,5 +1,6 @@
 import logging
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
 logger = logging.getLogger('registry_log')
 
@@ -8,7 +9,7 @@ class CalculatedFieldParseError(Exception):
 
 class CalculatedFieldParser(object):
 
-    def __init__(self, registry, registry_form, section, cde):
+    def __init__(self, registry, registry_form, section, cde, injected_model=None, injected_model_id=None):
         """
         A calculation is valid javascript like:
 
@@ -25,7 +26,7 @@ class CalculatedFieldParser(object):
         :param cde:
         :return:
         """
-        # test
+
         self.context_indicator = "context"
         self.pattern =  r"\b%s\.(.+?)\b" % self.context_indicator
         self.result_name = "result"
@@ -37,7 +38,12 @@ class CalculatedFieldParser(object):
         self.calculation = self.cde.calculation.strip()
         self.observer = self.cde.code
         self.script = None
+        # The following two instance variables are provided to allow calculations involving parts of the object model that are off-page and loaded via an ajax rpc mechanism
+        # see rpc_view
+        self.injected_model = injected_model
+        self.injected_model_id = injected_model_id
         self._parse_calculation()
+
 
 
     def _parse_calculation(self):
@@ -85,18 +91,38 @@ class CalculatedFieldParser(object):
         # actual dom ids
         prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER
 
+        function_parameter_list = "context"
+
+
+
+        if "patient." in calculation_body: # todo generalise exposed models
+            function_parameter_list = "context, patient"
+            injected_model = self.injected_model
+            injected_model_id = self.injected_model_id
+            tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk" : self.injected_model_id})
+        else:
+            function_parameter_list = "context"
+            injected_model = ""
+            injected_model_id = -1
+            tastypie_url = ""
+
+
+
         javascript = """
             <script>
             $(document).ready(function(){
                  $("#id_%s%s").add_calculation({
                     subjects: "%s",
                     prefix: "%s",
-                    calculation: function (context) { %s },
-                    observer: "%s"
+                    tastypie_url: "%s",
+                    calculation: function (%s) { %s },
+                    observer: "%s",
+                    injected_model: "%s",
+                    injected_model_id: %s
                     });
                 });
 
-            </script>""" % (prefix, observer_code, subject_codes_string, prefix, calculation_body, observer_code)
+            </script>""" % (prefix, observer_code, subject_codes_string, prefix, tastypie_url, function_parameter_list,  calculation_body, observer_code, injected_model, injected_model_id)
 
         logger.debug("calculated field js: %s" % javascript)
         return javascript
