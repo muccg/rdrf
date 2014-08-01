@@ -111,8 +111,6 @@ class Patient(models.Model):
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
-        # 2010-07-26 added uniqueness of family_name, given_names in the same group
-        unique_together = ("family_name", "given_names", "working_group")
 
     def __unicode__(self):
         if self.active:
