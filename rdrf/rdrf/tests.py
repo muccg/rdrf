@@ -6,7 +6,7 @@ from rdrf.models import *
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-from registry.patients.models import State, PatientAddress
+from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
@@ -188,8 +188,10 @@ class FormTestCase(RDRFTestCase):
         
         self.patient = self.create_patient()
         
+        self.address_type, created = AddressType.objects.get_or_create(pk=1)
+        
         self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
-                                                                                address_type='Primary',
+                                                                                address_type=self.address_type,
                                                                                 suburb='Neverland',
                                                                                 state=self.state,
                                                                                 postcode='1111',

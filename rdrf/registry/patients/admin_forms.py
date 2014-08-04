@@ -65,19 +65,4 @@ class PatientForm(forms.ModelForm):
         if not workinggroup:
             raise forms.ValidationError('The working group is required.')
 
-        if self.instance:
-            id = self.instance.pk
-        else:
-            id = None
-        patients = Patient.objects.filter(family_name__iexact=family_name, given_names__iexact=given_names, working_group=workinggroup)
-
-        exists = False
-        if len(patients) > 0:
-            if id == None: # creating a new patient and existing one in the DB already
-                exists = True
-            elif id != patients[0].pk: # modifying an existing patient, check if there is another patient with same names but different pk
-                exists = True
-        if exists:
-            raise forms.ValidationError('There is already a patient with the same family and given names in this working group: "%s %s %s".' % (family_name, given_names, workinggroup))
-
         return super(PatientForm, self).clean()

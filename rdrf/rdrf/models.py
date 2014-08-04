@@ -56,11 +56,12 @@ class CDEPermittedValueGroup(models.Model):
             value_dict["code"] = value.code
             value_dict["value"] = value.value
             value_dict["desc"] = value.desc
+            value_dict["position"] = value.position
             d["values"].append(value_dict)
         return d
 
     def members(self):
-        return sorted([v.code for v in CDEPermittedValue.objects.filter(pv_group=self)])
+        return [v.code for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
 
     def __unicode__(self):
         members = self.members()
@@ -71,9 +72,10 @@ class CDEPermittedValue(models.Model):
     value = models.CharField(max_length=256)
     desc = models.TextField(null=True)
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
+    position = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return "PV %s:%s of %s" % (self.code,self.value,self.pv_group)
+        return "Memeber of %s" % (self.pv_group.code)
 
 class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)

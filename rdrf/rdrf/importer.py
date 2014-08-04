@@ -247,6 +247,10 @@ class Importer(object):
                     # update the value ...
                     value.value = value_map["value"]
                     value.desc = value_map["desc"]
+
+                    if value_map.has_key('position'):
+                        value.position = value_map['position']
+
                     value.save()
                     #logger.info("imported value %s" % value)
 
