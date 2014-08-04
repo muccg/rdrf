@@ -71,7 +71,7 @@ setup(name='django-rdrf',
         'hgvs==0.2.1',
         'django-positions',
         'django-positions',
-        'django-tastypie',        '
+        'django-tastypie',
         'pycountry==1.8',
         'django-countries'
     ],
