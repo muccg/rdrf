@@ -70,6 +70,8 @@ setup(name='django-rdrf',
         'django-ajax-selects',
         'hgvs==0.2.1',
         'django-positions',
+        'django-positions',
+        'django-tastypie',        '
         'pycountry==1.8',
         'django-countries'
     ],
@@ -80,5 +82,7 @@ setup(name='django-rdrf',
         "https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/django-iprestrict-0.1.tar.gz",
         'https://ccg-django-extras.googlecode.com/files/ccg-auth-0.3.3.tar.gz',
         'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
+        'https://pypi.python.org/pypi/django-tastypie/0.11.1',
+        'https://pypi.python.org/packages/source/d/django-tastypie/django-tastypie-0.11.1.tar.gz'
     ],
 )

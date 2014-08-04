@@ -6,7 +6,12 @@
             subjects: '', // E.g. "CDE01,CDE02" comma separated list of inputs to the calculation
             prefix: '',//  formcode^^sectioncode^^
             target: "value",
-            observer: ''  // the cde code of the output e,g, CDE03
+            observer: '',  // the cde code of the output e,g, CDE03
+            // Stuff below added to allow calculations to retrieve remote model properties
+            injected_model: "",  // e.g. Patient  ( model class name)
+            injected_model_id: null,  // the id of the injected model instance to retrieve  ie Patient id for registry
+            tastypie_url: "",  // the url to request model data on - includes resource name eg /api/v1/patient/1
+
         }, options );
 
         //var subject_codes_string  = _.map(settings.subjects.split(","), function(code){return "#id_" + settings.prefix + code;}).join()
@@ -16,7 +21,25 @@
             var id = $('[id*=' + code + ']').attr("id");
             return "#" + id;
         }
+
         var subject_codes_string = _.map(settings.subjects.split(","), function(code) { return locate_code(code);}).join();
+
+        function get_object(model, model_id) {
+            var d = $.Deferred();
+             if ( model_id == -1) {
+                 d.resolve([]);
+                 return;
+            }
+
+            $.get(settings.tastypie_url)
+                .done(function (object){
+                    d.resolve(object);
+                })
+                .fail(d.reject);
+
+            return d.promise();
+        }
+
         var update_function = function () {
             var context = {};
             var subject_codes = settings.subjects.split(",");
@@ -28,14 +51,18 @@
                 context[subject_codes[i]] = $(subject_code_id_on_page).val();
             }
 
-            try {
-                settings.calculation(context);
-            }
-            catch(err) {
-                context.result = "ERROR";
-            }
+            var model_promise = get_object(settings.injected_model.toLowerCase(), settings.injected_model_id); // get injected model
 
-            $("#id_" + settings.prefix + settings.observer).val(context.result);
+            $.when(model_promise)
+             .done(function(injected_models) {
+                        try {
+                            settings.calculation.apply(null,[context].concat(injected_models));
+                        }
+                        catch(err) {
+                            context.result = "ERROR";
+                        }
+                        $("#id_" + settings.prefix + settings.observer).val(context.result);
+             });
         }
 
         $(subject_codes_string).on("input, change",update_function);
