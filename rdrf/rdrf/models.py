@@ -1,6 +1,8 @@
 from django.db import models
 import logging
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
+
 from positions.fields import PositionField
 
 logger = logging.getLogger("registry")
@@ -65,7 +67,8 @@ class CDEPermittedValueGroup(models.Model):
 
     def __unicode__(self):
         members = self.members()
-        return "PVG %s containing %s" % (self.code, self.members())
+        return "PVG %s containing %d items" % (self.code, len(self.members()))
+
 
 class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
@@ -74,8 +77,24 @@ class CDEPermittedValue(models.Model):
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
     position = models.IntegerField(null=True, blank=True)
 
+    def pvg_link(self):
+        url = reverse('admin:rdrf_cdepermittedvaluegroup_change', args=(self.pv_group.code,))
+        return "<a href='%s'>%s</a>" % (url, self.pv_group.code)
+
+    pvg_link.allow_tags = True
+    pvg_link.short_description = 'Permitted Value Group'
+    
+    def position_formated(self):
+        if not self.position:
+            return "<i><font color='red'>Not set</font></i>"
+        return "<font color='green'>%s</font>" % self.position
+
+    position_formated.allow_tags = True
+    position_formated.short_description = 'Order position'
+
     def __unicode__(self):
         return "Memeber of %s" % (self.pv_group.code)
+
 
 class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
