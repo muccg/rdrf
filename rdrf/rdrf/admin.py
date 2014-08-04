@@ -220,7 +220,7 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value'], list_display=['code', 'value', 'pv_group']))
+admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value', 'pv_group__code'], list_display=['code', 'value', 'pvg_link', 'position_formated']))
 admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
 #admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
 admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
