@@ -178,7 +178,7 @@ class FieldFactory(object):
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            for permitted_value in self.cde.pv_group.permitted_value_set.all():
+            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
                 choice_tuple = (permitted_value.code, permitted_value.value)
                 choices.append(choice_tuple)
         return choices

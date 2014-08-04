@@ -8,9 +8,28 @@
 {% load get_form_var %}
 {% load widget_name %}
 {% load add_attr %}
+{% load static %}
 
 {% block title %}
     {{registry|upper}} Questionnaire
+{% endblock %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script>
+        $(document).ready(function() {
+          $( ".datepicker" ).datepicker({
+            showOn: "button",
+            buttonImage: '{% static 'images/calendar.gif' %}',
+            buttonImageOnly: true,
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd',
+            yearRange: '-100:+0',
+          });
+        });
+    </script>
 {% endblock %}
 
 {% block content %}

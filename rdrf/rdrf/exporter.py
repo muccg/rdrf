@@ -232,6 +232,7 @@ class Exporter(object):
                 value_map["code"] = value.code
                 value_map["value"] = value.value
                 value_map["desc"] = value.desc
+                value_map["position"] = value.position
 
                 group_map["values"].append(value_map)
 
