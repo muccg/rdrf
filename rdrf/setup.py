@@ -69,7 +69,7 @@ setup(name='django-rdrf',
         'django-suit',
         'django-ajax-selects',
         'hgvs==0.2.1',
-        'django-positions',
+        'django-positions', 
         'django-tastypie',
         'pycountry==1.8',
         'django-countries'
