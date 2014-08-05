@@ -248,6 +248,9 @@ class Importer(object):
                     value.value = value_map["value"]
                     value.desc = value_map["desc"]
 
+                    if value_map.has_key('questionnaire_value'):
+                        value.questionnaire_value = value_map['questionnaire_value']
+
                     if value_map.has_key('position'):
                         value.position = value_map['position']
 

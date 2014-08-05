@@ -179,10 +179,15 @@ class FieldFactory(object):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
             for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
-                choice_tuple = (permitted_value.code, permitted_value.value)
+                value = permitted_value.value
+                if self.context == FieldContext.QUESTIONNAIRE:
+                    q_value = getattr(permitted_value, 'questionnaire_value')
+                    if q_value:
+                        value = q_value
+                choice_tuple = (permitted_value.code, value)
                 choices.append(choice_tuple)
         return choices
-
+        
     def _widget_search(self, widget_class_name):
         """
 
