@@ -85,21 +85,21 @@ class CDEPermittedValue(models.Model):
     pvg_link.allow_tags = True
     pvg_link.short_description = 'Permitted Value Group'
     
-    def questionnaire_value_formated(self):
+    def questionnaire_value_formatted(self):
         if not self.questionnaire_value:
             return "<i><font color='red'>Not set</font></i>"
         return "<font color='green'>%s</font>" % self.questionnaire_value
 
-    questionnaire_value_formated.allow_tags = True
-    questionnaire_value_formated.short_description = 'Questionnaire Value'
+    questionnaire_value_formatted.allow_tags = True
+    questionnaire_value_formatted.short_description = 'Questionnaire Value'
 
-    def position_formated(self):
+    def position_formatted(self):
         if not self.position:
             return "<i><font color='red'>Not set</font></i>"
         return "<font color='green'>%s</font>" % self.position
 
-    position_formated.allow_tags = True
-    position_formated.short_description = 'Order position'
+    position_formatted.allow_tags = True
+    position_formatted.short_description = 'Order position'
 
     def __unicode__(self):
         return "Memeber of %s" % (self.pv_group.code)
