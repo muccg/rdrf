@@ -11,12 +11,15 @@ import landing_view
 import import_registry_view
 import rest_interface
 import hgvs_view
-from lookup_views import GeneView, LaboratoryView
+from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
 from views import RegistryList, AllocateView
 from registry.patients.views import update_session
+
+from tastypie.api import Api
+from rdrf.api import PatientResource
 
 admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -28,6 +31,14 @@ def handler500(request):
 
 def handlerApplicationError(request):
     return render_to_response("rdrf_cdes/application_error.html",{"application_error": "Example config Error"})
+
+
+# TastyPie API
+v1_api = Api(api_name='v1')
+v1_api.register(PatientResource())
+
+
+
 
 urlpatterns = patterns('',
     url(r'^test404',handler404),
@@ -58,4 +69,6 @@ urlpatterns = patterns('',
     url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
     url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
     url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
+    (r'^api/', include(v1_api.urls)),
+    url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
 )

@@ -11,7 +11,6 @@ import json
 
 from django.contrib.auth import get_user_model
 
-
 def update_session(request):
     #if not request.is_ajax() or not request.method=='POST':
     #    return HttpResponseNotAllowed(['POST'])

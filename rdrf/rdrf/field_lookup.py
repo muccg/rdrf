@@ -51,7 +51,7 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire=False):
+    def __init__(self, registry, registry_form, section, cde, questionnaire=False,injected_model=None, injected_model_id=None):
         """
         :param cde: Common Data Element model instance
         """
@@ -67,6 +67,8 @@ class FieldFactory(object):
         self.validator_factory = ValidatorFactory(self.cde)
         self.complex_field_factory = ComplexFieldFactory(self.cde)
         self.list_field_factory = ListFieldFactory(self.cde)
+        self.primary_model = injected_model
+        self.primary_id = injected_model_id
 
     def _customisation_module_exists(self):
         try:
@@ -176,7 +178,7 @@ class FieldFactory(object):
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            for permitted_value in self.cde.pv_group.permitted_value_set.all():
+            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
                 choice_tuple = (permitted_value.code, permitted_value.value)
                 choices.append(choice_tuple)
         return choices
@@ -289,7 +291,7 @@ class FieldFactory(object):
 
                 if self._is_calculated_field():
                     try:
-                        parser = CalculatedFieldParser(self.registry, self.registry_form, self.section, self.cde)
+                        parser = CalculatedFieldParser(self.registry, self.registry_form, self.section, self.cde, injected_model=self.primary_model, injected_model_id=self.primary_id)
                         script = parser.get_script()
                         from widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
