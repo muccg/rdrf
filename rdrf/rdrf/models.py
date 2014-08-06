@@ -57,6 +57,7 @@ class CDEPermittedValueGroup(models.Model):
             value_dict = {}
             value_dict["code"] = value.code
             value_dict["value"] = value.value
+            value_dict["questionnaire_value"] = value.questionnaire_value
             value_dict["desc"] = value.desc
             value_dict["position"] = value.position
             d["values"].append(value_dict)
@@ -72,6 +73,7 @@ class CDEPermittedValueGroup(models.Model):
 class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
     value = models.CharField(max_length=256)
+    questionnaire_value = models.CharField(max_length=256, null=True, blank=True)
     desc = models.TextField(null=True)
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
     position = models.IntegerField(null=True, blank=True)
@@ -83,13 +85,21 @@ class CDEPermittedValue(models.Model):
     pvg_link.allow_tags = True
     pvg_link.short_description = 'Permitted Value Group'
     
-    def position_formated(self):
+    def questionnaire_value_formatted(self):
+        if not self.questionnaire_value:
+            return "<i><font color='red'>Not set</font></i>"
+        return "<font color='green'>%s</font>" % self.questionnaire_value
+
+    questionnaire_value_formatted.allow_tags = True
+    questionnaire_value_formatted.short_description = 'Questionnaire Value'
+
+    def position_formatted(self):
         if not self.position:
             return "<i><font color='red'>Not set</font></i>"
         return "<font color='green'>%s</font>" % self.position
 
-    position_formated.allow_tags = True
-    position_formated.short_description = 'Order position'
+    position_formatted.allow_tags = True
+    position_formatted.short_description = 'Order position'
 
     def __unicode__(self):
         return "Memeber of %s" % (self.pv_group.code)
