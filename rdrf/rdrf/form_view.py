@@ -184,8 +184,7 @@ class FormView(View):
                         logger.debug("Validation error on form: %s" % e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
-                #form_section[s] = form_set_class(request.POST, files=request.FILES, prefix=prefix)
-
+        dyn_patient.save_snapshot(registry_code, "cdes") # Save one snapshot after all sections have being persisted
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
