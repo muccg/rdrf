@@ -252,8 +252,6 @@ class DynamicDataWrapper(object):
             collection.insert(record)
             logger.info("%s: inserted record %s OK" % (self,record))
 
-        self._save_longitudinal_snapshot(registry, record)
-
     def _save_longitudinal_snapshot(self, registry, record):
         try:
             from datetime import datetime
@@ -266,6 +264,11 @@ class DynamicDataWrapper(object):
             history.update({"_id": patient_id}, {"$push": {"snapshots": {"timestamp" : timestamp, "record": record }}})
         except Exception, ex:
             logger.error("Couldn't add to history for patient %s: %s" % ( patient_id, ex))
+
+    def save_snapshot(self, registry_code, collection_name):
+        record = self.load_dynamic_data(registry_code, collection_name)
+        self._save_longitudinal_snapshot(registry_code, record)
+
 
     def _convert_date_to_datetime(self, data):
         """
