@@ -19,6 +19,16 @@
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+    
+    <!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+    <![endif]-->
     
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
