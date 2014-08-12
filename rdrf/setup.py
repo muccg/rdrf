@@ -69,9 +69,10 @@ setup(name='django-rdrf',
         'django-suit',
         'django-ajax-selects',
         'hgvs==0.2.1',
-        'django-countries',
-        'django-positions',
-        'django-tastypie'
+        'django-positions', 
+        'django-tastypie',
+        'pycountry==1.8',
+        'django-countries'
     ],
     dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",

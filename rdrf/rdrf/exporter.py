@@ -231,7 +231,9 @@ class Exporter(object):
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
+                value_map["questionnaire_value"] = value.questionnaire_value
                 value_map["desc"] = value.desc
+                value_map["position"] = value.position
 
                 group_map["values"].append(value_map)
 

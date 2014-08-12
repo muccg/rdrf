@@ -16,9 +16,6 @@ from django.conf import settings # for APP_NAME
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
-from django_countries.fields import CountryField
-from django_countries import countries
-
 
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
@@ -81,7 +78,7 @@ class Patient(models.Model):
 
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
-    working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False, verbose_name="Center")
+    working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False, verbose_name="Centre")
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
     consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition.", verbose_name="consent to allow clinical trials given", default=False)
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
@@ -114,8 +111,6 @@ class Patient(models.Model):
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
-        # 2010-07-26 added uniqueness of family_name, given_names in the same group
-        unique_together = ("family_name", "given_names", "working_group")
 
     def __unicode__(self):
         if self.active:
@@ -161,25 +156,26 @@ class Patient(models.Model):
             )
 
 
-class PatientAddress(models.Model):
-    ADDRESS_TYPE_CHOICES = [
-        ('Home', 'Home'),
-        ('Postal', 'Postal'),
-        ('Other', 'Other')
-    ]
+class AddressType(models.Model):
+    type = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    
+    def __unicode__(self):
+        return "%s" % (self.type)
 
+
+class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
-    address_type = models.CharField(max_length=50, choices=ADDRESS_TYPE_CHOICES)
+    address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
     postcode = models.IntegerField()
-    country = CountryField(default='AU')
+    country = models.CharField(max_length=20)
     
     class Meta:
         verbose_name_plural = "Patient Addresses"
     
-
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)

@@ -6,7 +6,7 @@ from rdrf.models import *
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-from registry.patients.models import State, PatientAddress
+from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
@@ -188,8 +188,10 @@ class FormTestCase(RDRFTestCase):
         
         self.patient = self.create_patient()
         
+        self.address_type, created = AddressType.objects.get_or_create(pk=1)
+        
         self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
-                                                                                address_type='Primary',
+                                                                                address_type=self.address_type,
                                                                                 suburb='Neverland',
                                                                                 state=self.state,
                                                                                 postcode='1111',
@@ -318,7 +320,7 @@ class LongitudinalTestCase(FormTestCase):
             assert snapshot_dict.has_key("timestamp"), "snapshot dict should have  timestamp key"
             assert type(snapshot_dict["timestamp"]) is type(u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert snapshot_dict.has_key("record"), "snapshot dict should have key record"
-        assert len(record["snapshots"]) == NUM_SECTIONS, "Length of snapshots should be 2 got : %s" % len(record["snapshots"])
+        assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])
 
 
 

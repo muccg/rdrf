@@ -11,7 +11,7 @@ import landing_view
 import import_registry_view
 import rest_interface
 import hgvs_view
-from lookup_views import GeneView, LaboratoryView
+from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
 
@@ -70,4 +70,5 @@ urlpatterns = patterns('',
     url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
     url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
     (r'^api/', include(v1_api.urls)),
+    url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
 )
