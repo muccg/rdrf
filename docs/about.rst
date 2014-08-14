@@ -35,6 +35,11 @@ For the Impatient
 
 Start creating a registry :ref:`here! <howtocreatearegistry>`
 
+Third-party Libraries
+=====================
+
+  - HGVS - Python package to parse, format, and manipulate biological sequence variants according to recommendations of the Human Genome Variation Society. `Project URL <https://bitbucket.org/invitae/hgvs>`_ 
+
 Links
 =====
 
