@@ -134,9 +134,8 @@ class Patient(models.Model):
         if not self.pk:
             self.active = True
             
-
         super(Patient, self).save(*args, **kwargs)
-        regs = self._save_patient_mongo()
+        #regs = self._save_patient_mongo()
 
     def _save_patient_mongo(self):
         client = MongoClient()
