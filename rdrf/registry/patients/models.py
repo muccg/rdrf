@@ -1,4 +1,7 @@
+from django.core import serializers
 import copy
+import json
+from pymongo import MongoClient
 from django.db import models
 from django.db.models.signals import post_save, pre_delete
 from django.core.files.storage import FileSystemStorage
@@ -71,6 +74,9 @@ class PatientManager(models.Manager):
 
 
 class Patient(models.Model):
+    _MONGO_PATIENT_DATABASE = 'patients'
+    _MONGO_PATIENT_COLLECTION = 'patient'
+
     if settings.INSTALL_NAME == 'dm1':   # Trac #16 item 9
         SEX_CHOICES = ( ("M", "Male"), ("F", "Female") )
     else:
@@ -127,7 +133,33 @@ class Patient(models.Model):
 
         if not self.pk:
             self.active = True
+            
         super(Patient, self).save(*args, **kwargs)
+        #regs = self._save_patient_mongo()
+
+    def _save_patient_mongo(self):
+        client = MongoClient()
+        patient_db = client[self._MONGO_PATIENT_DATABASE]
+        patient_coll = patient_db[self._MONGO_PATIENT_COLLECTION]
+        
+        json_str  = serializers.serialize("json", [self,])
+        json_obj = json.loads(json_str)
+        
+        mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
+
+        if(mongo_doc):
+            self._update_mongo_obj(mongo_doc, json_obj[0]['fields'])
+            patient_coll.save(mongo_doc)
+        else:
+            json_obj[0]['fields']['django_id'] = json_obj[0]['pk']
+            patient_coll.save(json_obj[0]['fields'])
+
+
+    def _update_mongo_obj(self, mongo_doc, patient_model):
+        for key, value in mongo_doc.iteritems():
+            if key not in ['django_id', '_id']:
+                mongo_doc[key] = patient_model[key]
+
 
     def delete(self, *args, **kwargs):
         """

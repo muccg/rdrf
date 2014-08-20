@@ -23,7 +23,7 @@
         }
 
         var subject_codes_string = _.map(settings.subjects.split(","), function(code) { return locate_code(code);}).join();
-
+        
         function get_object(model, model_id) {
             var d = $.Deferred();
              if ( model_id == -1) {
@@ -48,7 +48,15 @@
                 // Note how we use the prefix to map from the page to the context variable names
                 // and reverse map to update the output
                 var subject_code_id_on_page = locate_code(subject_codes[i]);
-                context[subject_codes[i]] = $(subject_code_id_on_page).val();
+                
+                if ($(subject_code_id_on_page).is('select')) {
+                    var value = $("option:selected", subject_code_id_on_page).text();
+                    if (jQuery.isNumeric(value)) {
+                        context[subject_codes[i]] = value;
+                    }
+                } else {
+                    context[subject_codes[i]] = $(subject_code_id_on_page).val();
+                }
             }
 
             var model_promise = get_object(settings.injected_model.toLowerCase(), settings.injected_model_id); // get injected model

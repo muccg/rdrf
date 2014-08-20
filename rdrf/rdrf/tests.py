@@ -320,7 +320,7 @@ class LongitudinalTestCase(FormTestCase):
             assert snapshot_dict.has_key("timestamp"), "snapshot dict should have  timestamp key"
             assert type(snapshot_dict["timestamp"]) is type(u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert snapshot_dict.has_key("record"), "snapshot dict should have key record"
-        assert len(record["snapshots"]) == NUM_SECTIONS, "Length of snapshots should be 2 got : %s" % len(record["snapshots"])
+        assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])
 
 
 
