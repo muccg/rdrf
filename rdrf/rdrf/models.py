@@ -7,6 +7,10 @@ from positions.fields import PositionField
 
 logger = logging.getLogger("registry")
 
+class InvalidStructureError(Exception):
+    pass
+
+
 class Registry(models.Model):
     class Meta:
         verbose_name_plural = "registries"
@@ -30,6 +34,127 @@ class Registry(models.Model):
             name=self.name,
             code=self.code
             )
+
+    @property
+    def forms(self):
+        return [ f for f in RegistryForm.objects.filter(registry=self) ]
+
+    @property
+    def structure(self):
+        """
+        Return a dictionary that shows the nested form structure of this registry
+        """
+        s = {}
+        s["name"] = self.name
+        s["code"] = self.code
+        s["desc"] = self.desc
+        s["version"] = self.version
+        s["forms"] = []
+        for form in self.forms:
+            form_dict = {}
+            form_dict["name"] = form.name
+            form_dict["sections"] = []
+            form_dict["is_questionnaire"] = form.is_questionnaire
+            form_dict["position"] = form.position
+            form_dict["questionnaire_questions"] = form.questionnaire_questions
+            qcodes = form.questionnaire_questions.split(",")
+
+            for section in form.section_models:
+                section_dict = {}
+                section_dict["code"] = section.code
+                section_dict["display_name"] = section.display_name
+                section_dict["allow_multiple"] = section.allow_multiple
+                section_dict["extra"] = section.extra
+                elements = []
+                for element_code in section.get_elements():
+                    question_code = section.code + "." + element_code
+                    in_questionnaire = question_code in qcodes
+                    elements.append([element_code, in_questionnaire]) # NB. We capture each cde code in a section and whether it is used in the questionnaire
+
+                section_dict["elements"] = elements # codes + whether in questionnaire
+                form_dict["sections"].append(section_dict)
+            s["forms"].append(form_dict)
+
+        return s
+
+    @structure.setter
+    def structure(self, new_structure):
+        """
+        Update this registry to the new structure
+        """
+        self._check_structure(new_structure)
+
+        original_forms = [ f for f in self.forms ]
+        print "original forms = %s" % original_forms
+        self.name = new_structure["name"]
+        self.code = new_structure["code"]
+        self.desc = new_structure["desc"]
+        self.version = new_structure["version"]
+        self.save()
+
+        new_forms = []
+        for form_dict in new_structure["forms"]:
+            form_name = form_dict["name"]
+            form, created = RegistryForm.objects.get_or_create(name=form_name, registry=self)
+            form.is_questionnaire = form_dict["is_questionnaire"]
+            form.position = form_dict["position"]
+            questionnaire_questions = []
+            form.sections = ",".join([ s["code"] for s in form_dict["sections"]])
+            new_forms.append(form)
+            # update sections
+            for section_dict in form_dict["sections"]:
+                section, created = Section.objects.get_or_create(code=section_dict["code"])
+                section.display_name = section_dict["display_name"]
+                section.allow_multiple = section_dict["allow_multiple"]
+                section.extra = section_dict["extra"]
+                element_pairs = section_dict["elements"]
+                section_elements = []
+                for pair in element_pairs:
+                    element_code = pair[0]
+                    in_questionnaire = pair[1]
+                    section_elements.append(element_code)
+                    if in_questionnaire:
+                        questionnaire_questions.append(section_dict["code"] + "." + element_code)
+                section.elements = ",".join(section_elements)
+                section.save()
+            form.questionnaire_questions = ",".join(questionnaire_questions)
+
+            form.save()
+
+        # delete forms which are in original forms but not in new_forms
+        forms_to_delete = set(original_forms) - set(new_forms)
+        for form in forms_to_delete:
+            print "%s not in new forms - deleting!" % form
+            form.delete()
+
+    def _check_structure(self, structure):
+        # raise error if structure not valid
+
+        for k in [ "name", "code", "version", "forms"]:
+            if not k in structure:
+                raise InvalidStructureError("Missing key: %s" % k)
+        for form_dict in structure["forms"]:
+            for k in ["name", "is_questionnaire", "position","sections"]:
+                if not k in form_dict:
+                    raise InvalidStructureError("Form dict %s missing key %s" % (form_dict, k))
+
+            form_name = form_dict["name"]
+
+            for section_dict in form_dict["sections"]:
+                for k in ["code", "display_name", "allow_multiple", "extra", "elements"]:
+                    if not k in section_dict:
+                        raise InvalidStructureError("Section %s missing key %s" % (section_dict, k))
+
+                for pair in section_dict["elements"]:
+                    element_code = pair[0]
+
+                    print "checking section %s code %s" % (section_dict["code"], element_code)
+                    try:
+                        cde = CommonDataElement.objects.get(code=element_code)
+                    except CommonDataElement.DoesNotExist:
+                        section_code = section_dict["code"]
+                        raise InvalidStructureError("Form %s Section %s refers to data element %s which does not exist" % (form_name, section_code, element_code))
+
 
 def get_owner_choices():
     """
@@ -145,6 +270,7 @@ class RegistryForm(models.Model):
     objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(default=False,help_text="Check if this form is questionnaire form for it's registry")
     position = PositionField(collection='registry')
+    questionnaire_questions = models.TextField(default="",help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
@@ -153,6 +279,22 @@ class RegistryForm(models.Model):
         import string
         return map(string.strip,self.sections.split(","))
 
+    @property
+    def questionnaire_list(self):
+        """
+        returns a list of sectioncode.cde_code strings
+        E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
+        """
+        return map(string.strip, self.questionnaire_questions.split(","))
+
+
+    @property
+    def section_models(self):
+        return [ section_model for section_model in Section.objects.filter(code__in=self.get_sections()) ]
+
+    def in_questionnaire(self, section_code, cde_code):
+        questionnaire_code = "%s.%s" % (section_code, cde_code)
+        return questionnaire_code in self.questionnaire_list
 
 class Section(models.Model):
     """
@@ -170,6 +312,11 @@ class Section(models.Model):
     def get_elements(self):
         import string
         return map(string.strip,self.elements.split(","))
+
+    @property
+    def cde_models(self):
+        #return [ CommonDataElement.objects.get(code=c) for c in self.get_elements() ]
+        return [ cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements()) ]
 
     def clean(self):
         for element in self.get_elements():
