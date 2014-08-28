@@ -657,14 +657,3 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
