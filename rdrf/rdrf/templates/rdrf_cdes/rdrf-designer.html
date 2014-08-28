@@ -71,7 +71,7 @@
 <div id="content">
 
 
-    <table border=1 class="table table-striped">
+    <table border=4 class="table table-striped">
 
       <tr>
          <td>Registry Name:</td><td><input ng-model="registry.name"></td>
@@ -95,46 +95,55 @@
 
     </table>
 
-    <table border=1 class="table table-striped" ng-repeat="form in registry.forms">
+    <table border=3 class="table table-striped" ng-repeat="form in registry.forms">
       <tr>
          <td>Form Name:</td> <td><input ng-model="form.name"></td>
+      </tr>
+       <tr>
+         <td>Form Position:</td> <td><input ng-model="form.position"></td>
       </tr>
       <tr>
           <td colspan="2"><button type="button" ng-click="form.sections.push({elements:[]})">Add Section</button></td>
       </tr>
       <tr ng-repeat="section in form.sections">  <!-- section row -->
       <td colspan="2">
-        <table border=1 class="table table-striped">
-          <tr>
-	        <td>Section Display Name</td><td><input ng-model="section.display_name"/></td>
-          </tr>
+        <table border=2 class="table table-striped">
             <tr>
-            <td>Elements</td>
-            <td>
-                <table border=1 is-drop-target class="table table-striped">
-                    <thead>
-                    <th>
-                        Code
-                    </th>
-                    <th>
-                        Text
-                    </th>
-                    <th>
-                        Questionnaire Text
-                    </th>
-                    <th>
-                        On Questionnaire?
-                    </th>
-                    </thead>
+                <td>Section Code</td><td><input  ng-model="section.code"/></td>
+            </tr>
+            <tr>
+                <td>Section Display Name</td><td><input ng-model="section.display_name"/></td>
+            </tr>
+            <tr>
+                <td>Section Allow Multiple</td><td><input type="checkbox" ng-model="section.allow_mulitple"/></td>
+            </tr>
+            <tr>
+                <td>Elements</td>
+                <td>
+                    <table border=1 is-drop-target class="table table-striped">
+                        <thead>
+                        <th>
+                            Code
+                        </th>
+                        <th>
+                            Text
+                        </th>
+                        <th>
+                            Questionnaire Text
+                        </th>
+                        <th>
+                            On Questionnaire?
+                        </th>
+                        </thead>
 
-                    <tr ng-repeat="element in section.elements">   <!-- element row -->
-                        <td>{[{element[0]}]}</td>
-                        <td>{[{getCDEAttr(element[0],"name")}]}</td>
-                        <td>{[{getCDEAttr(element[0],"questionnaire_text")}]}</td>
-                        <td><input type="checkbox" ng-model="element[1]"/></td>
-                    </tr>    <!-- end of element row -->
-                </table>
-         </td>
+                        <tr ng-repeat="element in section.elements">   <!-- element row -->
+                            <td>{[{element[0]}]}</td>
+                            <td>{[{getCDEAttr(element[0],"name")}]}</td>
+                            <td>{[{getCDEAttr(element[0],"questionnaire_text")}]}</td>
+                            <td><input type="checkbox" ng-model="element[1]"/></td>
+                        </tr>    <!-- end of element row -->
+                    </table>
+                </td>
             </tr>
         </table>
      </td>
