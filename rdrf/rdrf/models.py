@@ -84,8 +84,13 @@ class Registry(models.Model):
         """
         self._check_structure(new_structure)
 
+        logger.info("updating structure for registry %s pk %s" % ( self, self.pk))
+        logger.info("old structure = %s" % self.structure)
+        logger.info("new structure = %s" % new_structure)
+
         original_forms = [ f for f in self.forms ]
-        print "original forms = %s" % original_forms
+        logger.info("original forms = %s" % original_forms)
+
         self.name = new_structure["name"]
         self.code = new_structure["code"]
         self.desc = new_structure["desc"]
@@ -117,14 +122,17 @@ class Registry(models.Model):
                         questionnaire_questions.append(section_dict["code"] + "." + element_code)
                 section.elements = ",".join(section_elements)
                 section.save()
+
             form.questionnaire_questions = ",".join(questionnaire_questions)
+            for qq in questionnaire_questions:
+                logger.info("registry %s form %s is exposing questionnaire question: %s" % (self.code, form_name, qq))
 
             form.save()
 
         # delete forms which are in original forms but not in new_forms
         forms_to_delete = set(original_forms) - set(new_forms)
         for form in forms_to_delete:
-            print "%s not in new forms - deleting!" % form
+            logger.warning("%s not in new forms - deleting!" % form)
             form.delete()
 
     def _check_structure(self, structure):
@@ -148,7 +156,7 @@ class Registry(models.Model):
                 for pair in section_dict["elements"]:
                     element_code = pair[0]
 
-                    print "checking section %s code %s" % (section_dict["code"], element_code)
+                    logger.info("checking section %s code %s" % (section_dict["code"], element_code))
                     try:
                         cde = CommonDataElement.objects.get(code=element_code)
                     except CommonDataElement.DoesNotExist:
