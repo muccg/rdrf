@@ -634,8 +634,10 @@ class RDRFDesignerCDESEndPoint(View):
 
 class RDRFDesigner(View):
 
-    def get(self, request):
-        return render_to_response('rdrf_cdes/rdrf-designer.html',{})
+    def get(self, request, reg_pk=0):
+        context = {"reg_pk" : reg_pk }
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/rdrf-designer.html',context)
 
 
 class RDRFDesignerRegistryStructureEndPoint(View):
@@ -647,6 +649,42 @@ class RDRFDesignerRegistryStructureEndPoint(View):
             data = {}
 
         return HttpResponse(json.dumps(data), content_type="application/json")
+
+     def post(self, request, reg_pk):
+        import pdb
+        pdb.set_trace()
+
+        import json
+        registry_structure_json = request.body
+        try:
+            registry_structure = json.loads(registry_structure_json)
+        except Exception, ex:
+            message = {"message": "Error: Could not load registry structure: %s" % ex, "message_type": "error"}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=400, content_type="application/json")
+
+        try:
+            reg_pk = int(reg_pk)
+            if reg_pk == 0:
+                registry = Registry()
+            else:
+                registry = Registry.objects.get(pk=reg_pk)
+
+            registry.structure = registry_structure
+            registry.save()
+            reg_pk = registry.pk
+
+            message = {"message": "Saved registry %s OK" % registry, "message_type": "info", "reg_pk": reg_pk}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=200, content_type="application/json")
+
+        except Exception, ex:
+            message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=400, content_type="application/json")
+
+
+
 
 
 
