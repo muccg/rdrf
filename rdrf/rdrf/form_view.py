@@ -358,6 +358,9 @@ class QuestionnaireView(FormView):
         try:
             self.registry = self._get_registry(registry_code)
             form = self.registry.questionnaire
+            if form is None:
+                raise RegistryForm.DoesNotExist()
+
             self.registry_form = form
             context = self._build_context()
             return self._render_context(request, context)
@@ -376,7 +379,7 @@ class QuestionnaireView(FormView):
     def post(self, request, registry_code):
         error_count  = 0
         registry = self._get_registry(registry_code)
-        questionnaire_form = RegistryForm.objects.get(registry=registry,is_questionnaire=True)
+        questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
         sections, display_names = self._get_sections(registry.questionnaire)
         data_map = {}           # section --> dynamic data for questionnaire response object if no errors
@@ -682,16 +685,3 @@ class RDRFDesignerRegistryStructureEndPoint(View):
             message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json,status=400, content_type="application/json")
-
-
-
-
-
-
-
-
-
-
-
-
-
