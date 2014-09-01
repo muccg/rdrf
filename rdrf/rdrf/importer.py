@@ -38,6 +38,9 @@ class DefinitionFileInvalid(RegistryImportError):
 class ConsistencyError(RegistryImportError):
     pass
 
+class QuestionnaireGenerationError(RegistryImportError):
+    pass
+
 class ImportState:
     INITIAL = "INITIAL"
     MALFORMED = "MALFORMED"
@@ -57,6 +60,7 @@ class Importer(object):
         self.delete_existing_registry = False
         self.check_validity = True
         self.check_soundness = True
+        self.abort_on_conflict = False
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
@@ -324,6 +328,9 @@ class Importer(object):
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
             f.name = frm_map["name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
+            if frm_map.has_key("questionnaire_questions"):
+                f.questionnaire_questions = frm_map["questionnaire_questions"]
+
             f.registry = r
             f.sections = ",".join([ section_map["code"] for section_map in frm_map["sections"]])
             f.save()
@@ -349,6 +356,13 @@ class Importer(object):
             except RegistryForm.DoesNotExist:
                 # shouldn't happen but if so just continue
                 pass
+
+        # generate the questionnaire for this reqistry
+        try:
+            r.generate_questionnaire()
+        except Exception, ex:
+            raise QuestionnaireGenerationError(str(ex))
+
 
 
 
