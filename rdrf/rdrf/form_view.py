@@ -654,9 +654,6 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         return HttpResponse(json.dumps(data), content_type="application/json")
 
      def post(self, request, reg_pk):
-        import pdb
-        pdb.set_trace()
-
         import json
         registry_structure_json = request.body
         try:
