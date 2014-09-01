@@ -516,8 +516,6 @@ class QuestionnaireResponseView(FormView):
             messages.error(request, "Questionnaire rejected")
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
-            import pdb
-            pdb.set_trace()
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
