@@ -2,11 +2,8 @@ from django.db import models
 import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-
-
 from positions.fields import PositionField
 import string
-
 
 logger = logging.getLogger("registry")
 
@@ -51,8 +48,8 @@ class Registry(models.Model):
     def questionnaire_section_prefix(self):
         return "GenQ" + self.code
 
-    def _generated_section_questionnaire_code(self, section_model):
-        return self.questionnaire_section_prefix + section_model.code
+    def _generated_section_questionnaire_code(self, form_name, section_code):
+        return self.questionnaire_section_prefix + form_name + "." + section_code
 
     def generate_questionnaire(self):
         logger.info("starting to generate questionnaire for %s" % self)
@@ -61,17 +58,20 @@ class Registry(models.Model):
             return
         questions = []
         for form in self.forms:
-            questions.extend(form.questionnaire_list)
+            for sectioncode_dot_cdecode in form.questionnaire_list:
+                section_code, cde_code = sectioncode_dot_cdecode.split(".")
+                questions.append((form.name, section_code, cde_code))
 
         from collections import OrderedDict
         section_map = OrderedDict()
 
-        for sectioncode_dot_cdecode in questions:
-            section_code, cde_code = sectioncode_dot_cdecode.split(".") #  eg sec01.cde02 --> [sec01, cde02]
-            if section_code in section_map:
-                section_map[section_code].append(cde_code)
+        for form_name, section_code, cde_code in questions:
+            section_key = (form_name, section_code)
+
+            if section_key in section_map:
+                section_map[section_key].append(cde_code)
             else:
-                section_map[section_code] = [cde_code]
+                section_map[section_key] = [cde_code]
 
         generated_questionnaire_form_name = self.generated_questionnaire_name
         generated_questionnaire_form, created  = RegistryForm.objects.get_or_create(registry=self, name=generated_questionnaire_form_name)
@@ -88,19 +88,24 @@ class Registry(models.Model):
         logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_section_codes = []
 
-        for section_code in section_map:
+        for (form_name, original_section_code) in section_map:
             # generate sections
             try:
-                original_section = Section.objects.get(code=section_code)
+                original_section = Section.objects.get(code=original_section_code)
             except Section.DoesNotExist:
-                raise InvalidQuestionnaireError("section with code %s doesn't exist!" % section_code)
+                raise InvalidQuestionnaireError("section with code %s doesn't exist!" % original_section_code)
 
             qsection = Section()
-            qsection.code = self._generated_section_questionnaire_code(original_section)
-            qsection.display_name = original_section.display_name
+            qsection.code = self._generated_section_questionnaire_code(form_name, original_section_code)
+            try:
+                original_form = RegistryForm.objects.get(name=form_name)
+            except RegistryForm.DoesNotExist:
+                raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
+
+            qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
             qsection.allow_multiple= False
             qsection.extra  = 0
-            qsection.elements = ",".join([ cde_code for cde_code in section_map[section_code] ])
+            qsection.elements = ",".join([ cde_code for cde_code in section_map[(form_name, original_section_code)] ])
             qsection.save()
             logger.info("created section %s containing cdes %s" % (qsection.code, qsection.elements))
             generated_section_codes.append(qsection.code)
@@ -378,6 +383,11 @@ class RegistryForm(models.Model):
     position = PositionField(collection='registry')
     questionnaire_questions = models.TextField(blank=True,help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
 
+    @property
+    def questionnaire_name(self):
+        from rdrf.utils import de_camelcase
+        return de_camelcase(self.name)
+
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
@@ -421,7 +431,6 @@ class Section(models.Model):
 
     @property
     def cde_models(self):
-        #return [ CommonDataElement.objects.get(code=c) for c in self.get_elements() ]
         return [ cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements()) ]
 
     def clean(self):

@@ -4,6 +4,7 @@ from dynamic_data import DynamicDataWrapper
 from rdrf.utils import get_code, get_form_section_code
 import logging
 import string
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -12,6 +13,17 @@ class PatientCreatorState:
     CREATED_OK = "PATIENT CREATED OK"
     FAILED_VALIDATION = "PATIENT NOT CREATED DUE TO VALIDATION ERRORS"
     FAILED = "PATIENT NOT CREATED"
+
+
+class QuestionnaireReverseMapper(object):
+    def __init__(self, registry, patient , questionnaire_data):
+        self.patient = patient
+        self.registry = registry
+        self.questionnaire_data = quetionnaire_data
+
+    def save(self):
+        self._save_patient_fields()
+        self._save_dynamic_fields()
 
 class PatientCreator(object):
     def __init__(self, registry, user):
@@ -28,7 +40,6 @@ class PatientCreator(object):
         return "CDEPatient%s" % string.capwords(model_field_name.replace("_"," ")).replace(" ","")
 
     def _questionnaire_key(self,questionnaire_data, cde_code):
-        from django.conf import settings
         for delimited_key in questionnaire_data:
             code = get_code(delimited_key)
             if code == cde_code:
@@ -105,6 +116,29 @@ class PatientCreator(object):
 
         self._create_patient_cdes(patient,other_cdes)
         self.state = PatientCreatorState.CREATED_OK
+
+    def _get_field_data(self, questionnaire_data, dynamic=True):
+        for k in questionnaire_data:
+            form_name, section_code, cde_code = self._get_components(k)
+            is_a_dynamic_field = section_code not in [ self.registry._get_consent_section(), self.registry._get_patient_info_section() ]
+
+            if dynamic and is_a_dynamic_field:
+                generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
+
+                yield  self.registry.code, mapped_form_name, mapped_section_code, cde_code,  questionnaire_data[k]
+
+            if not dynamic and not is_a_dynamic_field:
+                yield  cde_code, questionnaire_data[k]
+
+    def _get_dynamic_fields(self, questionnaire_data):
+        for k in questionnaire_data:
+            form_name, section_code, cde_code = self._get_components(k)
+
+
+
+    def _get_key_components(self, delimited_key):
+        return delimited_key.split(settings.FORM_SECTION_DELIMITER)
+
 
     def _set_patient_dob(self, patient, data):
         day = data.get("CDEPatientDateOfBirth_day",None)
