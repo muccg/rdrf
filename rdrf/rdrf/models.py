@@ -105,10 +105,20 @@ class Registry(models.Model):
             logger.info("created section %s containing cdes %s" % (qsection.code, qsection.elements))
             generated_section_codes.append(qsection.code)
 
-        generated_questionnaire_form.sections = ",".join(generated_section_codes)
+
+        consent_section = self._get_consent_section()
+        patient_info_section = self._get_patient_info_section()
+
+        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + ",".join(generated_section_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
+
+    def _get_consent_section(self):
+        return "GenericPatientConsent"
+
+    def _get_patient_info_section(self):
+        return "PatientData"
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
