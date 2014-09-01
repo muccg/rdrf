@@ -73,7 +73,7 @@ class Registry(models.Model):
             else:
                 section_map[section_code] = [cde_code]
 
-        generated_questionnaire_form_name = "GeneratedQuestionnaire%s" % self.code
+        generated_questionnaire_form_name = self.generated_questionnaire_name
         generated_questionnaire_form, created  = RegistryForm.objects.get_or_create(registry=self, name=generated_questionnaire_form_name)
 
         if not created:
@@ -112,8 +112,6 @@ class Registry(models.Model):
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
-
-
 
     def as_json(self):
         return dict(
