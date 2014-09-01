@@ -516,6 +516,8 @@ class QuestionnaireResponseView(FormView):
             messages.error(request, "Questionnaire rejected")
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
+            import pdb
+            pdb.set_trace()
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
@@ -672,6 +674,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 
             registry.structure = registry_structure
             registry.save()
+            registry.generate_questionnaire()
             reg_pk = registry.pk
 
             message = {"message": "Saved registry %s OK" % registry, "message_type": "info", "reg_pk": reg_pk}
