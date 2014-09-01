@@ -132,9 +132,13 @@ class Exporter(object):
             data["forms"] = []
 
             for frm in RegistryForm.objects.all().filter(registry=self.registry):
+                if frm.name == self.registry.generated_questionnaire_name:
+                    # don't export the generated questionnaire
+                    continue
                 frm_map = {}
                 frm_map["name"] = frm.name
                 frm_map["is_questionnaire"] = frm.is_questionnaire
+                frm_map["questionnaire_questions"] = frm.questionnaire_questions
                 frm_map["sections"] = []
                 for section_code in frm.get_sections():
                     section_model = Section.objects.get(code=section_code)
