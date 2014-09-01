@@ -173,9 +173,9 @@
   })
 
 
-  var CDES_ENDPOINT = "http://172.16.2.196:8000/cdes";
+  var CDES_ENDPOINT = "{% url 'rdrf_designer_cdes_endpoint' %}";
   var reg_pk = {{reg_pk}};
-  var REGISTRY_STRUCTURE_ENDPOINT = "http://172.16.2.196:8000/registrystructure/";
+  var REGISTRY_STRUCTURE_ENDPOINT = "{% url 'rdrf_designer_registry_structure_endpoint' reg_pk %}";
   // --- Controllers ---
 
   function RDRFDesignerController($http, $scope) {
@@ -192,7 +192,7 @@
 
     //$scope.registry = {"forms": [{"position": 0, "questionnaire_questions": "SEC0009.CDE00026,SEC0009.CDE00027,SEC0009.CDE00028,SEC0009.CDE00029,SEC0009.CDE00030", "sections": [{"allow_multiple": false, "code": "SEC0009", "display_name": "Cascade Screening", "elements": [["CDE00026", true], ["CDE00027", true], ["CDE00028", true], ["CDE00029", true], ["CDE00030", true]], "extra": null}], "name": "CascadeScreening", "is_questionnaire": false}, {"position": 1, "questionnaire_questions": "FHMutationOverview.FHGeneticTestDate,FHMutationOverview.CDEMutationType,FHMutationDetails.FHMutation,FHMutationDetails.FHMutationDescription,FHMutationDetails.Pathogenicity,LabSection.LaboratoryReport", "sections": [{"allow_multiple": false, "code": "FHMutationOverview", "display_name": "Genotype", "elements": [["FHGeneticTestDate", true], ["CDEMutationType", true]], "extra": null}, {"allow_multiple": true, "code": "FHMutationDetails", "display_name": "Gene Variant", "elements": [["FHMutation", true], ["FHMutationDescription", true], ["Pathogenicity", true]], "extra": 0}, {"allow_multiple": false, "code": "LabSection", "display_name": "Laboratory Data", "elements": [["LaboratoryReport", true]], "extra": null}], "name": "GeneticData", "is_questionnaire": false}, {"position": 2, "questionnaire_questions": "SEC0003.CDE00005,SEC0003.CDE00006,SEC0003.CDE00008,SEC0003.CDE00009,SEC0003.CDE00007,SEC0003.CDE00010,SEC0003.FHObesity,SEC0003.CDEHeight,SEC0003.CDEWeight,SEC0003.CDEBMI,SEC0003.CDEfhHistoryDrugIntolerance,SEC0003.CDEfhIntolerantDrugs,SEC0003.CDEfhOtherIntolerantDrug,SEC0003.CDEfhHistoryStatinMyopathy,SEC0003.CDEfhApplicableStatins,SEC0003.CDEfhOtherApplicableStatin,fhDateSection.CDETodaysDate,fhDateSection.DateOfAssessment,fhDateSection.FHModeOfAssessment,fhDateSection.CDEIndexOrRelative,SEC0002.CDE00003,SEC0002.CDE00004,SEC0002.FHFamHistTendonXanthoma,SEC0002.FHFamHistArcusCornealis,SEC0008.CDE00025,SEC0007.CDEfhDutchLipidClinicNetwork,SEC0007.CDE00024,SEC0004.CDE00011,SEC0004.FHHistoryOfRevascularisation,SEC0001.CDE00001,SEC0001.CDE00002,SEC0005.FHLipidProfileUntreatedDate,SEC0005.CDE00012,SEC0005.CDE00013,SEC0005.CDE00014,SEC0005.CDE00015,SEC0005.CDE00016,SEC0005.FHSecCausesHyperCholExcluded,SEC0006.FHPlasLipidProfileOnTreatDate,SEC0006.CDE00018,SEC0006.CDE00019,SEC0006.CDE00020,SEC0006.CDE00021,SEC0006.CDE00022,SEC0006.PlasmaLipidTreatment,SEC0006.LDLCholesterolAdjTreatment", "sections": [{"allow_multiple": false, "code": "SEC0002", "display_name": "Family History", "elements": [["CDE00003", true], ["CDE00004", true], ["FHFamHistTendonXanthoma", true], ["FHFamHistArcusCornealis", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0008", "display_name": "DNA Analysis", "elements": [["CDE00025", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0007", "display_name": "Summary", "elements": [["CDEfhDutchLipidClinicNetwork", true], ["CDE00024", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0004", "display_name": "Clinical History", "elements": [["CDE00011", true], ["FHHistoryOfRevascularisation", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0003", "display_name": "Other CVD Risk Factors", "elements": [["CDE00005", true], ["CDE00006", true], ["CDE00008", true], ["CDE00009", true], ["CDE00007", true], ["CDE00010", true], ["FHObesity", true], ["CDEHeight", true], ["CDEWeight", true], ["CDEBMI", true], ["CDEfhHistoryDrugIntolerance", true], ["CDEfhIntolerantDrugs", true], ["CDEfhOtherIntolerantDrug", true], ["CDEfhHistoryStatinMyopathy", true], ["CDEfhApplicableStatins", true], ["CDEfhOtherApplicableStatin", true]], "extra": null}, {"allow_multiple": false, "code": "fhDateSection", "display_name": " ", "elements": [["CDETodaysDate", true], ["DateOfAssessment", true], ["FHModeOfAssessment", true], ["CDEIndexOrRelative", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0001", "display_name": "Physical Examination", "elements": [["CDE00001", true], ["CDE00002", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0005", "display_name": "Plasma Lipid Profile - untreated", "elements": [["FHLipidProfileUntreatedDate", true], ["CDE00012", true], ["CDE00013", true], ["CDE00014", true], ["CDE00015", true], ["CDE00016", true], ["FHSecCausesHyperCholExcluded", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0006", "display_name": "Plasma Lipid Profile  - on treatment", "elements": [["FHPlasLipidProfileOnTreatDate", true], ["CDE00018", true], ["CDE00019", true], ["CDE00020", true], ["CDE00021", true], ["CDE00022", true], ["PlasmaLipidTreatment", true], ["LDLCholesterolAdjTreatment", true]], "extra": null}], "name": "ClinicalData", "is_questionnaire": false}, {"position": 3, "questionnaire_questions": "FHApheresisSection.Apheresis,FHApheresisSection.TypeOfApheresis,FHApheresisSection.FrequencyOfApheresis,FHApheresisSection.ApheresisStartDate,FHApheresisSection.ApheresisComplications,FHApheresisSection.PreApheresisLDLCholesterol,FHApheresisSection.AphereresisIntMeanCholReduct", "sections": [{"allow_multiple": false, "code": "FHApheresisSection", "display_name": "Apheresis", "elements": [["Apheresis", true], ["TypeOfApheresis", true], ["FrequencyOfApheresis", true], ["ApheresisStartDate", true], ["ApheresisComplications", true], ["PreApheresisLDLCholesterol", true], ["AphereresisIntMeanCholReduct", true]], "extra": null}], "name": "Apheresis", "is_questionnaire": false}], "code": "boo", "name": "Lee2", "version": "0.1.5", "desc": ""};
     if (reg_pk != 0) {
-        $http.get(REGISTRY_STRUCTURE_ENDPOINT + reg_pk.toString()).success(function (data, status, headers, config ) {
+        $http.get(REGISTRY_STRUCTURE_ENDPOINT).success(function (data, status, headers, config ) {
             $scope.registry = data;
         });
     }
@@ -226,18 +226,17 @@
         $scope.info = { message: "Registry Saved OK", message_type: "info"};
         if ("reg_pk" in data) {
             reg_pk = parseInt(data.reg_pk);
-            alert(reg_pk);
         }
 
 
   }
 
   $scope.saveRegistryErrorCallback = function(data, status, headers, config) {
-       $scope.info = {message: "Registry not saved! - " + data.toString() , message_type: "error"};
+       $scope.info = {message: "Registry not saved! - " + data.message , message_type: "error"};
   }
 
   $scope.saveRegistry = function () {
-      $http.post(REGISTRY_STRUCTURE_ENDPOINT + reg_pk.toString(), $scope.registry).success($scope.saveRegistrySuccessCallback).error($scope.saveRegistryErrorCallback);
+      $http.post(REGISTRY_STRUCTURE_ENDPOINT, $scope.registry).success($scope.saveRegistrySuccessCallback).error($scope.saveRegistryErrorCallback);
 
   }
 
