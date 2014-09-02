@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Questionnaire configuration for {{registry_form.name}}</title>
+</head>
+<body>
+<table border=2>
+    <thead><th>Clinical Form Text</th><th>Questionnaire Text</th><th>Include in Questionnaire?</th></thead>
+    {% for section in sections %}
+        <tr><td colspan="3">{{section.name}}</td></tr>
+
+        {% for question in section.questions %}
+            <tr><td>{{question.clinical}}</td><td>{{question.questionnaire}}</td><td><input type="checkbox" name="{{question.code}}" value="{{question.exposed}}"/></td></tr>
+        {% endfor %}
+
+    {% endfor %}
+</table>
+</body>
+</html>

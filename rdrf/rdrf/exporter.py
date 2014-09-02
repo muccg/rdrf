@@ -89,7 +89,9 @@ class Exporter(object):
             cdes = set([ cde for cde in CommonDataElement.objects.all() ])
         else:
             raise ExportException("Unknown export type")
-        return cdes
+
+        generic_cdes = self._get_generic_cdes()
+        return cdes.union(generic_cdes)
 
 
     def _get_pvgs_in_registry(self, registry):
@@ -114,6 +116,28 @@ class Exporter(object):
     def _get_registry_version(self):
         return self.registry.version.strip()
 
+    def _create_section_map(self, section_code):
+        section_model = Section.objects.get(code=section_code)
+        section_map = {}
+        section_map["display_name"] = section_model.display_name
+        section_map["code"] = section_model.code
+        section_map["extra"] = section_model.extra
+        section_map["allow_multiple"] = section_model.allow_multiple
+        section_map["elements"] = section_model.get_elements()
+        return section_map
+
+    def _create_form_map(self, form_model):
+        frm_map = {}
+        frm_map["name"] = form_model.name
+        frm_map["is_questionnaire"] = form_model.is_questionnaire
+        frm_map["questionnaire_questions"] = form_model.questionnaire_questions
+        frm_map["sections"] = []
+
+        for section_code in form_model.get_sections():
+            frm_map["sections"].append(self._create_section_map(section_code))
+
+        return frm_map
+
     def _export(self,format, export_type):
         data = {}
 
@@ -130,22 +154,15 @@ class Exporter(object):
             data["code"] = self.registry.code
             data["splash_screen"] = self.registry.splash_screen
             data["forms"] = []
+            data["generic_sections"] = []
+            for section_code in self.registry.generic_sections:
+                data["generic_sections"].append(self._create_section_map(section_code))
 
             for frm in RegistryForm.objects.all().filter(registry=self.registry):
-                frm_map = {}
-                frm_map["name"] = frm.name
-                frm_map["is_questionnaire"] = frm.is_questionnaire
-                frm_map["sections"] = []
-                for section_code in frm.get_sections():
-                    section_model = Section.objects.get(code=section_code)
-                    section_map = {}
-                    section_map["display_name"] = section_model.display_name
-                    section_map["code"] = section_model.code
-                    section_map["extra"] = section_model.extra
-                    section_map["allow_multiple"] = section_model.allow_multiple
-                    section_map["elements"] = section_model.get_elements()
-                    frm_map["sections"].append(section_map)
-                data["forms"].append(frm_map)
+                if frm.name == self.registry.generated_questionnaire_name:
+                    # don't export the generated questionnaire
+                    continue
+                data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
             logger.debug("About to yaml dump the export: data = %s" % data)
@@ -253,38 +270,31 @@ class Exporter(object):
         for registry_form in RegistryForm.objects.filter(registry=registry_model):
             logger.debug("getting cdes for form %s" % registry_form)
             section_codes = registry_form.get_sections()
-            for section_code in section_codes:
-                logger.debug("getting cdes in section %s" % section_code)
-                try:
-                    section_model = Section.objects.get(code=section_code)
-                    section_cde_codes = section_model.get_elements()
-                    for cde_code in section_cde_codes:
-                        try:
-                            cde = CommonDataElement.objects.get(code=cde_code)
-                            cdes.add(cde)
-                        except CommonDataElement.DoesNotExist,ex:
-                            logger.error("No CDE with code: %s" % cde_code)
-
-                except Section.DoesNotExist,ex:
-                    logger.error("No Section with code: %s" % section_code)
-
-
+            cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
         return cdes
 
+    def _get_cdes_for_sections(self, section_codes):
+        cdes = set([])
+        for section_code in section_codes:
+            logger.debug("getting cdes in section %s" % section_code)
+            try:
+                section_model = Section.objects.get(code=section_code)
+                section_cde_codes = section_model.get_elements()
+                for cde_code in section_cde_codes:
+                    try:
+                        cde = CommonDataElement.objects.get(code=cde_code)
+                        cdes.add(cde)
+                    except CommonDataElement.DoesNotExist,ex:
+                        logger.error("No CDE with code: %s" % cde_code)
+
+            except Section.DoesNotExist,ex:
+                logger.error("No Section with code: %s" % section_code)
+        return cdes
 
 
-
-
-
-
-
-
-
-
-
-
-
+    def _get_generic_cdes(self):
+        return self._get_cdes_for_sections(self.registry.generic_sections)
 
 
 

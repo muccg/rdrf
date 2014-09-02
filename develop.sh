@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+TOPDIR=$(cd `dirname $0`; pwd)
+VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
+
 
 # break on error
 set -e 
@@ -17,7 +20,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 function usage() {
-    echo 'Usage ./develop.sh (test|lint|jslint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|addusers|addregistries|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|ci_lint|start|install|clean|purge|pipfreeze|pythonversion|dropdb|addusers|addregistries|ci_remote_build|ci_remote_destroy|ci_rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -148,6 +151,14 @@ function ci_staging_tests() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && ${DJANGO_ADMIN} test rdrf"
 }
 
+make_virtualenv() {
+    # check requirements
+    which virtualenv-2.7 > /dev/null
+    virtualenv-2.7 ${VIRTUALENV}
+    ${VIRTUALENV}/bin/pip install ${PIP_OPTS} --upgrade 'pip>=1.5,<1.6'
+}
+
+
 # lint using flake8
 function lint() {
     virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
@@ -158,9 +169,19 @@ function jslint() {
     JSFILES="rdrf/rdrf/rdrf/static/js/*.js"
     for JS in $JSFILES
     do
-        java -jar ${CLOSURE} --js $JS --js_output_file output.js --warning_level DEFAULT --summary_detail_level 3
+        ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
+
 }
+
+# lint both Python and JS on CI server
+ci_lint() {
+    make_virtualenv
+    ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13' 'flake8>=2.0,<2.1'
+    lint
+    jslint
+}
+
 
 
 # some db commands I use
@@ -274,11 +295,8 @@ test)
     settings
     runtest
     ;;
-lint)
-    lint
-    ;;
-jslint)
-    jslint
+ci_lint)
+    ci_lint
     ;;
 syncmigrate)
     settings

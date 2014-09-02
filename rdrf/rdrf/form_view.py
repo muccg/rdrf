@@ -358,6 +358,9 @@ class QuestionnaireView(FormView):
         try:
             self.registry = self._get_registry(registry_code)
             form = self.registry.questionnaire
+            if form is None:
+                raise RegistryForm.DoesNotExist()
+
             self.registry_form = form
             context = self._build_context()
             return self._render_context(request, context)
@@ -376,7 +379,7 @@ class QuestionnaireView(FormView):
     def post(self, request, registry_code):
         error_count  = 0
         registry = self._get_registry(registry_code)
-        questionnaire_form = RegistryForm.objects.get(registry=registry,is_questionnaire=True)
+        questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
         sections, display_names = self._get_sections(registry.questionnaire)
         data_map = {}           # section --> dynamic data for questionnaire response object if no errors
@@ -547,3 +550,136 @@ class FileUploadView(View):
         response = HttpResponse(data , mimetype='application/octet-stream')
         return response
 
+class QuestionnaireConfigurationView(View):
+    """
+    Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
+    """
+    TEMPLATE = "rdrf_cdes/questionnaire_config.html"
+
+    @method_decorator(login_required)
+    def get(self, request, form_pk):
+        registry_form = RegistryForm.objects.get(pk=form_pk)
+
+        class QuestionWrapper(object):
+            def __init__(self, registry_form, section_model, cde_model):
+                self.registry_form =registry_form
+                self.section_model = section_model
+                self.cde_model = cde_model
+
+            @property
+            def clinical(self):
+                return self.cde_model.name # The clinical label
+
+            @property
+            def questionnaire(self):
+                return self.cde_model.questionnaire_text # The text configured at the cde level for the questionnaire
+
+            @property
+            def section(self):
+                return self.section_model.display_name
+
+            @property
+            def code(self):
+                return self.section_model.code + "." + self.cde_model.code
+
+            @property
+            def exposed(self):
+                if self.registry_form.on_questionnaire(self.section_model.code, self.cde_model.code):
+                    return "checked"
+                else:
+                    return ""
+
+        sections = []
+
+        class SectionWrapper(object):
+            def __init__(self, registry_form, section_model):
+                self.registry_form = registry_form
+                self.section_model = section_model
+
+            @property
+            def questions(self):
+                l = []
+                for cde_model in self.section_model.cde_models:
+                    l.append(QuestionWrapper(self.registry_form, self.section_model, cde_model))
+                return l
+
+            @property
+            def name(self):
+                return self.section_model.display_name
+
+        for section_model in registry_form.section_models:
+            sections.append(SectionWrapper(registry_form, section_model))
+
+        context = {"registry_form" : registry_form, "sections": sections}
+        return self._render_context(request, context)
+
+    def _render_context(self, request, context):
+        context.update(csrf(request))
+        return render_to_response(self.TEMPLATE, context, context_instance=RequestContext(request))
+
+
+
+class RDRFDesignerCDESEndPoint(View):
+
+    def get(self, request):
+        cdes = []
+
+        for cde in CommonDataElement.objects.all():
+            cde_dict = {}
+            cde_dict["code"] = cde.code
+            cde_dict["name"] = cde.name
+            cde_dict["questionnaire_text"] = cde.questionnaire_text
+            cdes.append(cde_dict)
+
+        cdes_as_json = json.dumps(cdes)
+        return HttpResponse(cdes_as_json, content_type="application/json")
+
+
+class RDRFDesigner(View):
+
+    def get(self, request, reg_pk=0):
+        context = {"reg_pk" : reg_pk }
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/rdrf-designer.html',context)
+
+
+class RDRFDesignerRegistryStructureEndPoint(View):
+     def get(self, request, reg_pk):
+        try:
+            registry = Registry.objects.get(pk=reg_pk)
+            data = registry.structure
+        except Registry.DoesNotExist:
+            data = {}
+
+        return HttpResponse(json.dumps(data), content_type="application/json")
+
+     def post(self, request, reg_pk):
+        import json
+        registry_structure_json = request.body
+        try:
+            registry_structure = json.loads(registry_structure_json)
+        except Exception, ex:
+            message = {"message": "Error: Could not load registry structure: %s" % ex, "message_type": "error"}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=400, content_type="application/json")
+
+        try:
+            reg_pk = int(reg_pk)
+            if reg_pk == 0:
+                registry = Registry()
+            else:
+                registry = Registry.objects.get(pk=reg_pk)
+
+            registry.structure = registry_structure
+            registry.save()
+            registry.generate_questionnaire()
+            reg_pk = registry.pk
+
+            message = {"message": "Saved registry %s OK" % registry, "message_type": "info", "reg_pk": reg_pk}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=200, content_type="application/json")
+
+        except Exception, ex:
+            message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
+            message_json = json.dumps(message)
+            return HttpResponse(message_json,status=400, content_type="application/json")
