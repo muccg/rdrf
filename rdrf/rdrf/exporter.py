@@ -155,7 +155,7 @@ class Exporter(object):
             data["splash_screen"] = self.registry.splash_screen
             data["forms"] = []
             data["generic_sections"] = []
-            for section_code in [self.registry._get_consent_section(), self.registry._get_patient_info_section()]:
+            for section_code in self.registry.generic_sections:
                 data["generic_sections"].append(self._create_section_map(section_code))
 
             for frm in RegistryForm.objects.all().filter(registry=self.registry):
@@ -294,21 +294,7 @@ class Exporter(object):
 
 
     def _get_generic_cdes(self):
-        return self._get_cdes_for_sections([self.registry._get_consent_section(), self.registry._get_patient_info_section() ])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return self._get_cdes_for_sections(self.registry.generic_sections)
 
 
 

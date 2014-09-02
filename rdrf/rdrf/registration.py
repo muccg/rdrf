@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from registry.patients.models import Patient
+from registry.patients.models import PatientAddress, AddressType
 from dynamic_data import DynamicDataWrapper
 from rdrf.utils import get_code, get_form_section_code
 import logging
@@ -17,6 +18,9 @@ class PatientCreatorState:
 
 
 class QuestionnaireReverseMapper(object):
+    """
+    Save data back into original forms from the Questionnaire Response data
+    """
     def __init__(self, registry, patient , questionnaire_data):
         self.patient = patient
         self.registry = registry
@@ -25,6 +29,54 @@ class QuestionnaireReverseMapper(object):
     def save_patient_fields(self):
         for attr, value in self._get_demographic_data():
             setattr(self.patient, attr, value)
+
+    def save_address_data(self):
+        if "PatientDataAddressSection" in self.questionnaire_data:
+            address_maps = self.questionnaire_data["PatientDataAddressSection"]
+            for address_map in address_maps:
+                address_object = self._create_address(address_map, self.patient)
+                address_object.save()
+
+
+    def _create_address(self, address_map, patient_model):
+        logger.debug("creating address for %s" % address_map)
+        #GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+        def getcde(address_map, code):
+            for k in address_map:
+                if k.endswith("___" + code):
+                    logger.debug("getcde %s = %s" % (code, address_map[k]))
+                    return address_map[k]
+
+        address = PatientAddress()
+        logger.debug("created address object")
+        address.patient = patient_model
+        logger.debug("set patient")
+
+        def get_address_type(address_map):
+            value = getcde(address_map, "AddressType")
+            logger.debug("address type = %s" % value)
+            value = value.replace("AddressType", "") # AddressTypeHome --> Home etc
+            address_type_obj = AddressType.objects.get(type=value)
+            return address_type_obj
+
+
+
+        address.address_type = get_address_type(address_map)
+        logger.debug("set address type")
+
+        address.address = getcde(address_map, "Address")
+        logger.debug("set address")
+        address.suburb = getcde(address_map, "SuburbTown")
+        logger.debug("set suburb")
+        address.state =  getcde(address_map, "State")
+        logger.debug("set state")
+        address.postcode = getcde(address_map, "postcode")
+        logger.debug("set postcode")
+        address.country = getcde(address_map, "Country")
+        logger.debug("set country")
+
+        return address
+
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -39,10 +91,11 @@ class QuestionnaireReverseMapper(object):
     def _get_field_data(self, dynamic=True):
         for k in self.questionnaire_data:
             logger.debug("getting key: %s" % k)
+
             if settings.FORM_SECTION_DELIMITER not in k:
                 continue
             form_name, section_code, cde_code = self._get_key_components(k)
-            is_a_dynamic_field = section_code not in [ self.registry._get_consent_section(), self.registry._get_patient_info_section() ]
+            is_a_dynamic_field = section_code not in self.registry.generic_sections
 
             if dynamic and is_a_dynamic_field:
                 logger.debug("yielding dynamic %s" % k)
@@ -113,42 +166,11 @@ class PatientCreator(object):
         self.state = PatientCreatorState.READY
         self.error = None
 
-    def _create_cde_name(self, model_field_name):
-        # Patient model
-        # model_field_name looks like given_names
-        # given_names --> CDEPatientGivenNames
-
-        return "CDEPatient%s" % string.capwords(model_field_name.replace("_"," ")).replace(" ","")
-
-    def _questionnaire_key(self,questionnaire_data, cde_code):
-        for delimited_key in questionnaire_data:
-            code = get_code(delimited_key)
-            if code == cde_code:
-                return delimited_key
-
-        return None
-
-    def _set_patient_field(self, patient, field_name, cde_value):
-        if field_name == 'state':
-            self._set_patient_state(patient, cde_value)
-        else:
-            setattr(patient, field_name, cde_value)
-
-    def _set_patient_state(self, patient, cde_value):
-        from registry.patients.models import State
-        try:
-            state_model = State.objects.get(short_name=cde_value)
-            patient.state = state_model
-        except State.DoesNotExist, ex:
-            logger.error("Cannot set patient state to %s: %s" % (cde_value, ex))
-            raise Exception("State %s doesn't exist" % cde_value)
-
 
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True
         mapper = QuestionnaireReverseMapper(self.registry, patient, questionnaire_data)
-
 
         try:
             mapper.save_patient_fields()
@@ -159,11 +181,10 @@ class PatientCreator(object):
 
 
         try:
-            working_group_id = int(approval_form_data['working_group'])
-            self._set_patient_working_group(patient, working_group_id)
             patient.full_clean()
             patient.save()
             patient.rdrf_registry = [self.registry,]
+            mapper.save_address_data()
         except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
