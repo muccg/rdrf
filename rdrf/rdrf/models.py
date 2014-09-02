@@ -49,7 +49,7 @@ class Registry(models.Model):
         return "GenQ" + self.code
 
     def _generated_section_questionnaire_code(self, form_name, section_code):
-        return self.questionnaire_section_prefix + form_name + "." + section_code
+        return self.questionnaire_section_prefix + form_name  + section_code
 
     def generate_questionnaire(self):
         logger.info("starting to generate questionnaire for %s" % self)

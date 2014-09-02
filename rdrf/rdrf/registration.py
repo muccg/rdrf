@@ -5,6 +5,7 @@ from rdrf.utils import get_code, get_form_section_code
 import logging
 import string
 from django.conf import settings
+from registry.groups.models import WorkingGroup
 
 logger = logging.getLogger("registry_log")
 
@@ -19,11 +20,91 @@ class QuestionnaireReverseMapper(object):
     def __init__(self, registry, patient , questionnaire_data):
         self.patient = patient
         self.registry = registry
-        self.questionnaire_data = quetionnaire_data
+        self.questionnaire_data = questionnaire_data
 
-    def save(self):
-        self._save_patient_fields()
-        self._save_dynamic_fields()
+    def save_patient_fields(self):
+        for attr, value in self._get_demographic_data():
+            setattr(self.patient, attr, value)
+
+    def save_dynamic_fields(self):
+        wrapper = DynamicDataWrapper(self.patient)
+        dynamic_data_dict = {}
+        for reg_code, form_name, section_code, cde_code, value in self._get_dynamic_data():
+            delimited_key = settings.FORM_SECTION_DELIMITER.join([form_name, section_code, cde_code])
+            dynamic_data_dict[delimited_key] = value
+
+        wrapper.save_dynamic_data(self.registry.code, 'cdes', dynamic_data_dict)
+
+
+    def _get_field_data(self, dynamic=True):
+        for k in self.questionnaire_data:
+            logger.debug("getting key: %s" % k)
+            if settings.FORM_SECTION_DELIMITER not in k:
+                continue
+            form_name, section_code, cde_code = self._get_key_components(k)
+            is_a_dynamic_field = section_code not in [ self.registry._get_consent_section(), self.registry._get_patient_info_section() ]
+
+            if dynamic and is_a_dynamic_field:
+                logger.debug("yielding dynamic %s" % k)
+                generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
+                original_form_name, original_section_code = self._parse_generated_section_code(generated_section_code)
+
+                yield  self.registry.code, original_form_name, original_section_code, cde_code,  self.questionnaire_data[k]
+
+            if not dynamic and not is_a_dynamic_field:
+                logger.debug("yield non-dynamic %s" % k)
+                patient_attribute, converter  = self._get_patient_attribute_and_converter(cde_code)
+                if converter is None:
+                    yield  patient_attribute, self.questionnaire_data[k]
+                else:
+                    yield patient_attribute, converter(self.questionnaire_data[k])
+
+    def _get_patient_attribute_and_converter(self, cde_code):
+
+        def get_working_group(working_group_id):
+            return WorkingGroup.objects.get(pk=working_group_id)
+
+        key_map = {
+            "CDEPatientGivenNames": ("given_names", None),
+            "CDEPatientFamilyName": ("family_name", None),
+            "CDEPatientSex": ("sex", None),
+            "CDEPatientEmail": ("email", None),
+            "PatientConsentPartOfRegistry" : ("consent", None),
+            "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
+            "PatientConsentSentInfo" : ("consent_sent_information", None),
+            "CDEPatientDateOfBirth" : ("date_of_birth", None),
+            "CDEPatientCentre" : ("working_group", get_working_group),
+            "CDEPatientMobilePhone" : ("mobile_phone", None),
+            "CDEPatientHomePhone": ("home_phone", None),
+
+
+        }
+
+        return key_map[cde_code]
+
+
+    def _get_demographic_data(self):
+        return self._get_field_data(dynamic=False)
+
+    def _get_dynamic_data(self):
+        return self._get_field_data()
+
+
+    def _get_key_components(self, delimited_key):
+        return delimited_key.split(settings.FORM_SECTION_DELIMITER)
+
+    def _parse_generated_section_code(self, generated_section_code):
+        """
+        GenQbfrGeneralFormbfrsec01
+        :param generated_section_code:
+        :return:
+        """
+        for form_model in self.registry.forms:
+            for section_model in form_model.section_models:
+                if generated_section_code == self.registry._generated_section_questionnaire_code(form_model.name, section_model.code):
+                    return form_model.name, section_model.code
+        return None, None
+
 
 class PatientCreator(object):
     def __init__(self, registry, user):
@@ -66,28 +147,16 @@ class PatientCreator(object):
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True
-        model_cdes = [] # cdes which describe fields on the patient model
+        mapper = QuestionnaireReverseMapper(self.registry, patient, questionnaire_data)
 
-        for field_name in patient._meta.get_all_field_names():
-            cde_name = self._create_cde_name(field_name)
-            logger.debug("checking field %s on Patient model - cde name = %s" % (field_name, cde_name))
-            questionnaire_cde_key = self._questionnaire_key(questionnaire_data, cde_name)
 
-            if questionnaire_cde_key is not None:
-                cde_value = questionnaire_data[questionnaire_cde_key]
-                try:
-                    self._set_patient_field(patient, field_name, cde_value)
-                    logger.info("creating patient: %s to %s from %s" % (field_name, cde_value , cde_name))
+        try:
+            mapper.save_patient_fields()
+        except Exception, ex:
+            logger.error("Error saving patient fields: %s" % ex)
+            self.state = PatientCreatorState.FAILED
+            return
 
-                except Exception,ex:
-                    logger.error("error setting patient field: %s to %s from %s: %s" % (field_name, cde_value , cde_name, ex))
-                    self.state = PatientCreatorState.FAILED
-                    self.error = ex
-                    return
-
-                model_cdes.append(cde_name)
-            else:
-                logger.debug("%s not in questionnaire data")
 
         try:
             working_group_id = int(approval_form_data['working_group'])
@@ -105,78 +174,26 @@ class PatientCreator(object):
             self.state = PatientCreatorState.FAILED
             return
 
-
         logger.info("created patient %s" % patient.pk)
         questionnaire_response.patient_id = patient.pk
         questionnaire_response.processed = True
         questionnaire_response.save()
 
-        other_cdes = [ (k, questionnaire_data[k]) for k in questionnaire_data if "CDE" in k and k not in model_cdes ]
-        logger.info("other cdes = %s" % other_cdes)
+        try:
+            mapper.save_dynamic_fields()
+        except Exception, ex:
+            self.state = PatientCreatorState.FAILED
+            logger.error("Error saving dynamic data in mongo: %s" % ex)
+            try:
+                self._remove_mongo_data(self.registry, patient)
+                logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
+                return
+            except Exception, ex:
+                logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
+                return
 
-        self._create_patient_cdes(patient,other_cdes)
         self.state = PatientCreatorState.CREATED_OK
 
-    def _get_field_data(self, questionnaire_data, dynamic=True):
-        for k in questionnaire_data:
-            form_name, section_code, cde_code = self._get_components(k)
-            is_a_dynamic_field = section_code not in [ self.registry._get_consent_section(), self.registry._get_patient_info_section() ]
-
-            if dynamic and is_a_dynamic_field:
-                generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
-
-                yield  self.registry.code, mapped_form_name, mapped_section_code, cde_code,  questionnaire_data[k]
-
-            if not dynamic and not is_a_dynamic_field:
-                yield  cde_code, questionnaire_data[k]
-
-    def _get_dynamic_fields(self, questionnaire_data):
-        for k in questionnaire_data:
-            form_name, section_code, cde_code = self._get_components(k)
-
-
-
-    def _get_key_components(self, delimited_key):
-        return delimited_key.split(settings.FORM_SECTION_DELIMITER)
-
-
-    def _set_patient_dob(self, patient, data):
-        day = data.get("CDEPatientDateOfBirth_day",None)
-        month = data.get("CDEPatientDateOfBirth_month", None)
-        year = data.get("CDEPatientDateOfBirth_year", None)
-        if all([day,month,year]):
-            from datetime import datetime
-            patient.date_of_birth = datetime(int(year),int(month), int(day))
-
-    def _set_patient_working_group(self, patient,id):
-        from registry.groups.models import WorkingGroup
-        patient.working_group = WorkingGroup.objects.get(pk=id)
-
-    def _create_dynamic_data_dictionary(self, cde_pair_values):
-        d = {}
-        for k, value in cde_pair_values:
-            d[k] = value
-        return d
-
-    def _create_patient_cdes(self, patient, other_cdes):
+    def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
-        wrapper.save_dynamic_data(self.registry.code,'cdes',self._create_dynamic_data_dictionary(other_cdes))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        wrapper.delete_patient_data(registry, patient)

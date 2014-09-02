@@ -311,3 +311,7 @@ class DynamicDataWrapper(object):
                     self._set_in_memory_uploaded_files_to_none(item)
         for key in keys_to_change:
             data[key] = None
+
+    def delete_patient_data(self, registry_model, patient_model):
+        cdes = self._get_collection(registry_model, "cdes")
+        cdes.remove({"django_id" : patient_model.pk , "django_model": "Patient"})
