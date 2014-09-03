@@ -132,6 +132,15 @@ class Registry(models.Model):
     def generic_sections(self):
         return [ self._get_consent_section(), self._get_patient_info_section(), self._get_patient_address_section() ]
 
+    @property
+    def generic_cdes(self):
+        codes = []
+        for generic_section_code in self.generic_sections:
+            generic_section_model = Section.objects.get(code=generic_section_code)
+            codes.extend(generic_section_model.get_elements())
+        return codes
+
+
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
