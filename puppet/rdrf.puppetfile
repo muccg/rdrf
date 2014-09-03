@@ -48,7 +48,7 @@ mod "muccg/ccgapache",
 
 mod "muccg/django",
   :git => "git://github.com/muccg/puppet-django.git",
-  :ref => "1.0.1"
+  :ref => "1.0.2"
 
 mod "muccg/ccgscript",
   :git => "git://github.com/muccg/puppet-ccgscript.git",
