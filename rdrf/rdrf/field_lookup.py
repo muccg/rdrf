@@ -273,6 +273,9 @@ class FieldFactory(object):
                 else:
                     if widget:
                         options['widget'] = widget
+                        if "RadioSelect" in str(widget):
+                            options["choices"] = options['choices'][1:] # get rid of the unset choice
+                            logger.debug("adjusted options for radio select: cde = %s field options = %s" % (self.cde, options))
 
                     return django.forms.ChoiceField(**options)
         else:

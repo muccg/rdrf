@@ -122,7 +122,9 @@ class ExporterTestCase(RDRFTestCase):
 
         set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
         set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
-        assert set__of_cdes_in_forms == set_of_cde_codes_in_cdes, "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+        generic_cdes = set(self.registry.generic_cdes)
+
+        assert set__of_cdes_in_forms == ( set_of_cde_codes_in_cdes - generic_cdes ), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
 
         # consistency of values in groups - whats exported is whats there
 
