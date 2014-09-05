@@ -159,8 +159,9 @@ class QuestionnaireReverseMapper(object):
 
     def _get_patient_attribute_and_converter(self, cde_code):
 
-        def get_working_group(working_group_id):
-            return WorkingGroup.objects.get(pk=working_group_id)
+        def get_working_group(working_group_name):
+
+            return WorkingGroup.objects.get(name__iexact=working_group_name.strip())
 
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
