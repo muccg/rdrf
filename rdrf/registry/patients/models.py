@@ -219,7 +219,7 @@ def _save_patient_mongo(patient_obj):
     
     mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
 
-    if(mongo_doc):
+    if mongo_doc:
         _update_mongo_obj(mongo_doc, json_obj[0]['fields'])
         patient_coll.save(mongo_doc)
     else:
