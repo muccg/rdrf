@@ -38,6 +38,9 @@ class DefinitionFileInvalid(RegistryImportError):
 class ConsistencyError(RegistryImportError):
     pass
 
+class QuestionnaireGenerationError(RegistryImportError):
+    pass
+
 class ImportState:
     INITIAL = "INITIAL"
     MALFORMED = "MALFORMED"
@@ -57,6 +60,7 @@ class Importer(object):
         self.delete_existing_registry = False
         self.check_validity = True
         self.check_soundness = True
+        self.abort_on_conflict = False
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
@@ -154,7 +158,7 @@ class Importer(object):
 
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against the original yaml data
-        form_codes_in_db = set([ frm.name for frm in RegistryForm.objects.filter(registry=imported_registry)])
+        form_codes_in_db = set([ frm.name for frm in RegistryForm.objects.filter(registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
@@ -162,6 +166,8 @@ class Importer(object):
 
     def _check_sections(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
+            if form.name == imported_registry.generated_questionnaire_name:
+                continue
             sections_in_db = set(form.get_sections())
             for section_code in sections_in_db:
                 try:
@@ -182,6 +188,8 @@ class Importer(object):
 
     def _check_cdes(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
+            if form.name == imported_registry.generated_questionnaire_name:
+                continue
             for section_code in form.get_sections():
                 try:
                     section = Section.objects.get(code=section_code)
@@ -264,8 +272,10 @@ class Importer(object):
 
             logger.debug("max_value = %s" % cde_model.max_value)
             if not created:
-                logger.warning("Import is modifying existing CDE %s" % cde_model)
-                logger.warning("This cde is used by the following registries: %s" % _registries_using_cde(cde_model))
+                registries_already_using = _registries_using_cde(cde_model)
+                if len(registries_already_using) > 0:
+                    logger.warning("Import is modifying existing CDE %s" % cde_model)
+                    logger.warning("This cde is used by the following registries: %s" % registries_already_using)
 
             for field in cde_map:
                 if field not in ["code", "pv_group"]:
@@ -295,10 +305,29 @@ class Importer(object):
             cde_model.save()
             #logger.info("updated cde %s" % cde_model)
 
+    def _create_generic_sections(self, generic_section_maps):
+        logger.info("creating generic sections")
+        for section_map in generic_section_maps:
+            logger.info("importing generic section map %s" % section_map)
+            s, created = Section.objects.get_or_create(code=section_map["code"])
+            s.code = section_map["code"]
+            s.display_name = section_map["display_name"]
+            s.elements = ",".join(section_map["elements"])
+            s.allow_multiple = section_map["allow_multiple"]
+            s.extra = section_map["extra"]
+            s.save()
+            logger.info("saved generic section %s" % s.code)
+
 
     def _create_registry_objects(self):
         self._create_groups(self.data["pvgs"])
+        logger.info("imported pvgs OK")
         self._create_cdes(self.data["cdes"])
+        logger.info("imported cdes OK")
+        if "generic_sections" in self.data:
+            self._create_generic_sections(self.data["generic_sections"])
+
+        logger.info("imported generic sections OK")
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
@@ -319,14 +348,20 @@ class Importer(object):
         r.splash_screen = self.data["splash_screen"]
 
         r.save()
+        logger.info("imported registry object OK")
 
         for frm_map in self.data["forms"]:
+            logger.info("starting import of form map %s" % frm_map)
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
             f.name = frm_map["name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
+            if frm_map.has_key("questionnaire_questions"):
+                f.questionnaire_questions = frm_map["questionnaire_questions"]
+
             f.registry = r
             f.sections = ",".join([ section_map["code"] for section_map in frm_map["sections"]])
             f.save()
+            logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
 
             for section_map in frm_map["sections"]:
@@ -337,6 +372,7 @@ class Importer(object):
                 s.allow_multiple = section_map["allow_multiple"]
                 s.extra = section_map["extra"]
                 s.save()
+                logger.info("imported section %s OK" % s.code)
 
         extra_forms = original_forms - imported_forms
         # if there are extra forms in the original set, we delete them
@@ -349,6 +385,13 @@ class Importer(object):
             except RegistryForm.DoesNotExist:
                 # shouldn't happen but if so just continue
                 pass
+
+        # generate the questionnaire for this reqistry
+        try:
+            r.generate_questionnaire()
+        except Exception, ex:
+            raise QuestionnaireGenerationError(str(ex))
+
 
 
 

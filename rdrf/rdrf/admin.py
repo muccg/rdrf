@@ -125,8 +125,25 @@ def export_registry_action(modeladmin, request, registry_models_selected):
 export_registry_action.short_description = "Export"
 
 
+def design_registry_action(modeladmin, request, registry_models_selected):
+    if len(registry_models_selected) != 1:
+        return
+    else:
+        registry = [ r for r in registry_models_selected][0]
+        return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
+
+design_registry_action.short_description = "Design"
+
+def generate_questionnaire_action(modeladmin, request, registry_models_selected):
+    for registry in registry_models_selected:
+        registry.generate_questionnaire()
+
+generate_questionnaire_action.short_description = "Generate Questionnaire"
+
+
+
 class RegistryAdmin(admin.ModelAdmin):
-    actions = [export_registry_action]
+    actions = [export_registry_action, design_registry_action, generate_questionnaire_action]
 
     def queryset(self, request):
         if not request.user.is_superuser:

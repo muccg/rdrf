@@ -1,0 +1,312 @@
+<html ng-app='RDRFDesignerApp'>
+<head>
+<title>RDRF Designer</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />
+    <style>
+        #sidebar {
+                position: absolute;
+                left: 10px;
+                top: 80px;
+                bottom: 20px;
+                width: 360px;
+                border:solid 1px #CCCCCC;
+                overflow-y: scroll;
+        }
+       #content {
+                position: absolute;
+                top: 80px;
+                bottom: 20px;
+                left:400px;
+                right:20px;
+       }
+    </style>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
+
+</head>
+<body ng-controller='RDRFDesignerController'>
+
+<div id="sidebar">
+
+        <table>
+            <tr ng-repeat="cde in cdes" >
+                <td is-draggable>{[{cde.code}]}</td>
+            </tr>
+        </table>
+  <!--<div ng-app="sortableApp" ng-controller="sortableController" class="container">-->
+
+  <!--<div class="floatleft">-->
+    <!--<ul ui-sortable="sortableOptions" ng-model="list" class="list">-->
+      <!--<li ng-repeat="item in list" class="item">-->
+        <!--{{item.text}}   <a href="#" ng-click="list.splice($index, 1)">x</a>-->
+      <!--</li>-->
+    <!--</ul>-->
+  <!--</div>-->
+
+  <!--<div class="floatleft" style="margin-left: 20px;">-->
+    <!--<ul class="list logList">-->
+      <!--<li ng-repeat="entry in sortingLog track by $index" class="logItem">-->
+        <!--{{entry}}-->
+      <!--</li>-->
+    <!--</ul>-->
+  <!--</div>-->
+
+  <!--<div class="clear"></div>-->
+
+  <!--<script src="http://cdn.jsdelivr.net/g/jquery@1,jquery.ui@1.10%28jquery.ui.core.min.js+jquery.ui.widget.min.js+jquery.ui.mouse.min.js+jquery.ui.sortable.min.js%29,angularjs@1.2,angular.ui-sortable"></script>-->
+</div>
+</div>
+
+<div id="content">
+
+<form>
+  {% csrf_token %}
+
+    <div message data="info"></div>
+
+    <table border=4 class="table table-striped">
+
+      <tr>
+         <td>Registry Name:</td><td><input ng-model="registry.name"></td>
+      </tr>
+
+      <tr>
+         <td>Registry Code:</td><td><input ng-model="registry.code"></td>
+      </tr>
+
+      <tr>
+         <td>Registry Version:</td><td><input ng-model="registry.version"></td>
+      </tr>
+
+      <tr>
+         <td>Registry Description:</td><td><input ng-model="registry.desc"></td>
+      </tr>
+
+      <tr>
+          <td colspan="2"><button type="button" ng-click="registry.forms.push({is_questionnaire: false, sections:[]})">Add Form</button></td>
+      </tr>
+
+        <tr>
+          <td colspan="2"><button type="button" ng-click="saveRegistry()">Save</button></td>
+      </tr>
+
+    </table>
+
+    <table border=3 class="table table-striped" ng-repeat="form in registry.forms">
+      <tr>
+         <td>Form Name:</td> <td><input ng-model="form.name"></td>
+      </tr>
+       <tr>
+         <td>Form Position:</td> <td><input ng-model="form.position"></td>
+      </tr>
+
+        <tr>
+         <td>Is Questionnaire:</td> <td><input type="checkbox" ng-model="form.is_questionnaire"></td>
+      </tr>
+      <tr>
+          <td colspan="2"><button type="button" ng-click="form.sections.push({allow_multiple: false, extra: 0, elements:[]})">Add Section</button></td>
+      </tr>
+      <tr ng-repeat="section in form.sections">  <!-- section row -->
+      <td colspan="2">
+        <table border=2 class="table table-striped">
+            <tr>
+                <td>Section Code</td><td><input  ng-model="section.code"/></td>
+            </tr>
+            <tr>
+                <td>Section Display Name</td><td><input ng-model="section.display_name"/></td>
+            </tr>
+            <tr>
+                <td>Section Allow Multiple</td><td><input type="checkbox" ng-model="section.allow_mulitple"/></td>
+            </tr>
+            <tr>
+                <td>Elements</td>
+                <td>
+                    <table border=1 is-drop-target class="table table-striped">
+                        <thead>
+                        <th>
+                            Code
+                        </th>
+                        <th>
+                            Text
+                        </th>
+                        <th>
+                            Questionnaire Text
+                        </th>
+                        <th>
+                            On Questionnaire?
+                        </th>
+                        </thead>
+
+                        <tr ng-repeat="element in section.elements">   <!-- element row -->
+                            <td>{[{element[0]}]}</td>
+                            <td>{[{getCDEAttr(element[0],"name")}]}</td>
+                            <td>{[{getCDEAttr(element[0],"questionnaire_text")}]}</td>
+                            <td><input type="checkbox" ng-model="element[1]"/></td>
+                        </tr>    <!-- end of element row -->
+                    </table>
+                </td>
+            </tr>
+        </table>
+     </td>
+
+    </tr>  <!-- end of section row -->
+</table>
+    </form>
+
+</div>
+
+
+<script>
+  var rdrfDesignerApp = angular.module('RDRFDesignerApp',[]);
+
+  rdrfDesignerApp.config(function($interpolateProvider) {
+            $interpolateProvider.startSymbol('{[{');
+            $interpolateProvider.endSymbol('}]}');
+  });
+
+  rdrfDesignerApp.config(function($httpProvider){
+      $httpProvider.defaults.headers.post['X-CSRFToken'] = '{{csrf_token}}';
+  })
+
+
+  var CDES_ENDPOINT = "{% url 'rdrf_designer_cdes_endpoint' %}";
+  var reg_pk = {{reg_pk}};
+  var REGISTRY_STRUCTURE_ENDPOINT = "{% url 'rdrf_designer_registry_structure_endpoint' reg_pk %}";
+  // --- Controllers ---
+
+  function RDRFDesignerController($http, $scope) {
+
+    $scope.dragAlert = function(cde_code) {
+        alert("you dragged " + cde_code);
+    }
+
+    $scope.info = {message: "", message_type: "error"};
+
+    $http.get(CDES_ENDPOINT).success(function (data, status, headers, config ) {
+        $scope.cdes = data;
+    });
+
+    //$scope.registry = {"forms": [{"position": 0, "questionnaire_questions": "SEC0009.CDE00026,SEC0009.CDE00027,SEC0009.CDE00028,SEC0009.CDE00029,SEC0009.CDE00030", "sections": [{"allow_multiple": false, "code": "SEC0009", "display_name": "Cascade Screening", "elements": [["CDE00026", true], ["CDE00027", true], ["CDE00028", true], ["CDE00029", true], ["CDE00030", true]], "extra": null}], "name": "CascadeScreening", "is_questionnaire": false}, {"position": 1, "questionnaire_questions": "FHMutationOverview.FHGeneticTestDate,FHMutationOverview.CDEMutationType,FHMutationDetails.FHMutation,FHMutationDetails.FHMutationDescription,FHMutationDetails.Pathogenicity,LabSection.LaboratoryReport", "sections": [{"allow_multiple": false, "code": "FHMutationOverview", "display_name": "Genotype", "elements": [["FHGeneticTestDate", true], ["CDEMutationType", true]], "extra": null}, {"allow_multiple": true, "code": "FHMutationDetails", "display_name": "Gene Variant", "elements": [["FHMutation", true], ["FHMutationDescription", true], ["Pathogenicity", true]], "extra": 0}, {"allow_multiple": false, "code": "LabSection", "display_name": "Laboratory Data", "elements": [["LaboratoryReport", true]], "extra": null}], "name": "GeneticData", "is_questionnaire": false}, {"position": 2, "questionnaire_questions": "SEC0003.CDE00005,SEC0003.CDE00006,SEC0003.CDE00008,SEC0003.CDE00009,SEC0003.CDE00007,SEC0003.CDE00010,SEC0003.FHObesity,SEC0003.CDEHeight,SEC0003.CDEWeight,SEC0003.CDEBMI,SEC0003.CDEfhHistoryDrugIntolerance,SEC0003.CDEfhIntolerantDrugs,SEC0003.CDEfhOtherIntolerantDrug,SEC0003.CDEfhHistoryStatinMyopathy,SEC0003.CDEfhApplicableStatins,SEC0003.CDEfhOtherApplicableStatin,fhDateSection.CDETodaysDate,fhDateSection.DateOfAssessment,fhDateSection.FHModeOfAssessment,fhDateSection.CDEIndexOrRelative,SEC0002.CDE00003,SEC0002.CDE00004,SEC0002.FHFamHistTendonXanthoma,SEC0002.FHFamHistArcusCornealis,SEC0008.CDE00025,SEC0007.CDEfhDutchLipidClinicNetwork,SEC0007.CDE00024,SEC0004.CDE00011,SEC0004.FHHistoryOfRevascularisation,SEC0001.CDE00001,SEC0001.CDE00002,SEC0005.FHLipidProfileUntreatedDate,SEC0005.CDE00012,SEC0005.CDE00013,SEC0005.CDE00014,SEC0005.CDE00015,SEC0005.CDE00016,SEC0005.FHSecCausesHyperCholExcluded,SEC0006.FHPlasLipidProfileOnTreatDate,SEC0006.CDE00018,SEC0006.CDE00019,SEC0006.CDE00020,SEC0006.CDE00021,SEC0006.CDE00022,SEC0006.PlasmaLipidTreatment,SEC0006.LDLCholesterolAdjTreatment", "sections": [{"allow_multiple": false, "code": "SEC0002", "display_name": "Family History", "elements": [["CDE00003", true], ["CDE00004", true], ["FHFamHistTendonXanthoma", true], ["FHFamHistArcusCornealis", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0008", "display_name": "DNA Analysis", "elements": [["CDE00025", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0007", "display_name": "Summary", "elements": [["CDEfhDutchLipidClinicNetwork", true], ["CDE00024", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0004", "display_name": "Clinical History", "elements": [["CDE00011", true], ["FHHistoryOfRevascularisation", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0003", "display_name": "Other CVD Risk Factors", "elements": [["CDE00005", true], ["CDE00006", true], ["CDE00008", true], ["CDE00009", true], ["CDE00007", true], ["CDE00010", true], ["FHObesity", true], ["CDEHeight", true], ["CDEWeight", true], ["CDEBMI", true], ["CDEfhHistoryDrugIntolerance", true], ["CDEfhIntolerantDrugs", true], ["CDEfhOtherIntolerantDrug", true], ["CDEfhHistoryStatinMyopathy", true], ["CDEfhApplicableStatins", true], ["CDEfhOtherApplicableStatin", true]], "extra": null}, {"allow_multiple": false, "code": "fhDateSection", "display_name": " ", "elements": [["CDETodaysDate", true], ["DateOfAssessment", true], ["FHModeOfAssessment", true], ["CDEIndexOrRelative", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0001", "display_name": "Physical Examination", "elements": [["CDE00001", true], ["CDE00002", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0005", "display_name": "Plasma Lipid Profile - untreated", "elements": [["FHLipidProfileUntreatedDate", true], ["CDE00012", true], ["CDE00013", true], ["CDE00014", true], ["CDE00015", true], ["CDE00016", true], ["FHSecCausesHyperCholExcluded", true]], "extra": null}, {"allow_multiple": false, "code": "SEC0006", "display_name": "Plasma Lipid Profile  - on treatment", "elements": [["FHPlasLipidProfileOnTreatDate", true], ["CDE00018", true], ["CDE00019", true], ["CDE00020", true], ["CDE00021", true], ["CDE00022", true], ["PlasmaLipidTreatment", true], ["LDLCholesterolAdjTreatment", true]], "extra": null}], "name": "ClinicalData", "is_questionnaire": false}, {"position": 3, "questionnaire_questions": "FHApheresisSection.Apheresis,FHApheresisSection.TypeOfApheresis,FHApheresisSection.FrequencyOfApheresis,FHApheresisSection.ApheresisStartDate,FHApheresisSection.ApheresisComplications,FHApheresisSection.PreApheresisLDLCholesterol,FHApheresisSection.AphereresisIntMeanCholReduct", "sections": [{"allow_multiple": false, "code": "FHApheresisSection", "display_name": "Apheresis", "elements": [["Apheresis", true], ["TypeOfApheresis", true], ["FrequencyOfApheresis", true], ["ApheresisStartDate", true], ["ApheresisComplications", true], ["PreApheresisLDLCholesterol", true], ["AphereresisIntMeanCholReduct", true]], "extra": null}], "name": "Apheresis", "is_questionnaire": false}], "code": "boo", "name": "Lee2", "version": "0.1.5", "desc": ""};
+    if (reg_pk != 0) {
+        $http.get(REGISTRY_STRUCTURE_ENDPOINT).success(function (data, status, headers, config ) {
+            $scope.registry = data;
+        });
+    }
+    else {
+        $scope.registry = { forms: []};
+    }
+
+
+
+    $scope.getCDE = function (code) {
+            for(var i=0;i<$scope.cdes.length;i++) {
+				var cde = $scope.cdes[i];
+                if (cde.code == code) {
+                  return cde;
+			    }
+            }
+            return null;
+  }
+
+  $scope.getCDEAttr = function(code,attr) {
+     try {
+		 var cde = $scope.getCDE(code);
+		 return cde[attr];
+	}
+	catch(err) {
+        return "ERROR";
+   }
+  }
+
+  $scope.saveRegistrySuccessCallback = function(data, status, headers, config) {
+        $scope.info = { message: "Registry Saved OK", message_type: "info"};
+        if ("reg_pk" in data) {
+            reg_pk = parseInt(data.reg_pk);
+        }
+
+
+  }
+
+  $scope.saveRegistryErrorCallback = function(data, status, headers, config) {
+       $scope.info = {message: "Registry not saved! - " + data.message , message_type: "error"};
+  }
+
+  $scope.saveRegistry = function () {
+      $http.post(REGISTRY_STRUCTURE_ENDPOINT, $scope.registry).success($scope.saveRegistrySuccessCallback).error($scope.saveRegistryErrorCallback);
+
+  }
+
+  $scope.isDraggable = {};
+
+  }
+  // Directives
+
+  rdrfDesignerApp.directive('isDraggable', function() {
+    return {
+        restrict: "A",
+        link: function(scope, elm, attrs) {
+          var options = scope.$eval(attrs.isDraggable) || {}; //allow options to be passed in
+            options.cursor = 'crosshair';
+            options.containment = $("body");
+            options.helper = "clone";
+            elm.draggable(options);
+        }
+    };
+  });
+
+  rdrfDesignerApp.directive('isDropTarget', function() {
+    return {
+        restrict: 'A',
+        link: function(scope, elm, attrs) {
+          var options = scope.$eval(attrs.isdroptarget) || {}; //allow options to be passed in
+          options.drop = function(event, ui) {
+                var draggable = ui.draggable;
+                var cde_code = draggable.context.innerText;
+                scope.section.elements.push([cde_code, false]);
+                scope.$apply();
+           };
+          elm.droppable(options);
+        }
+    }});
+
+    rdrfDesignerApp.directive('message', function() {
+    return {
+        restrict: 'A',
+        scope: {
+            data: '='
+        },
+
+        template: '<div>{[{data.message}]}</div>',
+
+        link: function(scope, elm, attrs) {
+
+            function update() {
+                elm.removeClass();
+                if (scope.data.message != '') {
+                    elm.show();
+                }
+                else {
+                    elm.hide();
+                }
+                if (scope.data.message_type == 'error') {
+                    elm.addClass("alert alert-danger");
+                }
+                else {
+                    elm.addClass("alert alert-success");
+                }
+            }
+              scope.$watch('data', function(){
+               update();
+            }, true);
+
+
+        }
+    }});
+
+</script>
+</body>
+</html>

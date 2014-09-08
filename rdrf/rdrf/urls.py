@@ -71,4 +71,8 @@ urlpatterns = patterns('',
     url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
     (r'^api/', include(v1_api.urls)),
     url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
+    url(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
+    url(r'^designer/(?P<reg_pk>\d+)$', form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
+    url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
+    url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(), name='rdrf_designer_registry_structure_endpoint'),
 )

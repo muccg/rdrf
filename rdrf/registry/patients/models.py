@@ -137,6 +137,7 @@ class Patient(models.Model):
             self.active = True
             
         super(Patient, self).save(*args, **kwargs)
+        #regs = self._save_patient_mongo()
 
     def delete(self, *args, **kwargs):
         """
