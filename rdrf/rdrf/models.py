@@ -76,11 +76,10 @@ class Registry(models.Model):
         generated_questionnaire_form_name = self.generated_questionnaire_name
         generated_questionnaire_form, created  = RegistryForm.objects.get_or_create(registry=self, name=generated_questionnaire_form_name)
 
-        if not created:
-            # get rid of any existing generated sections
-            for section in Section.objects.all():
-                if section.code.startswith(self.questionnaire_section_prefix):
-                    section.delete()
+        # get rid of any existing generated sections
+        for section in Section.objects.all():
+            if section.code.startswith(self.questionnaire_section_prefix):
+                section.delete()
 
         generated_questionnaire_form.registry = self
         generated_questionnaire_form.is_questionnaire = True
