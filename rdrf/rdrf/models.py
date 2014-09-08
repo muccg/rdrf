@@ -98,12 +98,12 @@ class Registry(models.Model):
             qsection = Section()
             qsection.code = self._generated_section_questionnaire_code(form_name, original_section_code)
             try:
-                original_form = RegistryForm.objects.get(name=form_name)
+                original_form = RegistryForm.objects.get(registry=self, name=form_name)
             except RegistryForm.DoesNotExist:
                 raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
 
             qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
-            qsection.allow_multiple= False
+            qsection.allow_multiple = original_section.allow_multiple
             qsection.extra  = 0
             qsection.elements = ",".join([ cde_code for cde_code in section_map[(form_name, original_section_code)] ])
             qsection.save()
