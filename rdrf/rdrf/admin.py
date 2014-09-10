@@ -184,6 +184,13 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
             url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
             link = "<a href='%s'>Go</a>" % url
         return link
+
+    def queryset(self, request):
+        user = request.user
+        if user.is_superuser:
+            return QuestionnaireResponse.objects.all()
+        else:
+            return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all() ])
     
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
