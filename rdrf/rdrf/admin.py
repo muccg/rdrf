@@ -174,7 +174,7 @@ class RegistryAdmin(admin.ModelAdmin):
         return original_urls
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'date_submitted', 'processed', 'process_link')
+    list_display = ('registry', 'date_submitted', 'processed', 'process_link', 'name', 'date_of_birth')
     list_filter = ('registry', 'date_submitted')
     
     

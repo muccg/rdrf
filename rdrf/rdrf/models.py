@@ -459,7 +459,6 @@ class Section(models.Model):
         if self.code.count(" ") > 0:
             raise  ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
-
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
     forms = models.TextField(help_text="A comma-separated list of forms")
@@ -478,7 +477,6 @@ class Wizard(models.Model):
     #
     rules = models.TextField(help_text="Rules")
 
-
 class QuestionnaireResponse(models.Model):
     registry = models.ForeignKey(Registry)
     date_submitted = models.DateTimeField(auto_now_add=True)
@@ -488,6 +486,22 @@ class QuestionnaireResponse(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.registry, self.processed)
 
+    @property
+    def name(self):
+        return self._get_patient_field("CDEPatientGivenNames") + " " + self._get_patient_field("CDEPatientFamilyName")
+
+    @property
+    def date_of_birth(self):
+        dob = self._get_patient_field("CDEPatientDateOfBirth")
+        return dob.date()
+
+    def _get_patient_field(self, patient_field):
+        from dynamic_data import DynamicDataWrapper
+        from django.conf import settings
+        wrapper = DynamicDataWrapper(self)
+        record = wrapper.load_dynamic_data(self.registry.code, "cdes")
+        key = settings.FORM_SECTION_DELIMITER.join([ self.registry.generated_questionnaire_name, "PatientData", patient_field])
+        return record[key]
 
 def appears_in(cde,registry,registry_form,section):
     if section.code not in registry_form.get_sections():
