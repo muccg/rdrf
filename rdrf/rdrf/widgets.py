@@ -184,9 +184,17 @@ class LaboratoryLookupWidget(LookupWidget):
 class DateWidget(widgets.TextInput):
 
     def render(self, name, value, attrs):
+        def just_date(value):
+            if value:
+                if hasattr(value, 'date'):
+                    return value.date()
+                else:
+                    return value
+            else:
+                return value
         return """
             <input type="text" name="%s" id="id_%s" value="%s" class="datepicker" readonly>
-        """ % (name, name, value or '')
+        """ % (name, name, just_date(value) or '')
 
 
 class CountryWidget(widgets.Select):
