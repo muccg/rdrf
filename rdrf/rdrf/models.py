@@ -87,6 +87,8 @@ class Registry(models.Model):
         logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_section_codes = []
 
+        section_ordering_map = {}
+
         for (form_name, original_section_code) in section_map:
             # generate sections
             try:
@@ -109,11 +111,21 @@ class Registry(models.Model):
             logger.info("created section %s containing cdes %s" % (qsection.code, qsection.elements))
             generated_section_codes.append(qsection.code)
 
+            section_ordering_map[form_name + "." + original_section_code] = qsection.code
+
+
+        ordered_codes = []
+
+        for f in self.forms:
+            for s in f.get_sections():
+                k = f.name + "." + s
+                if k in section_ordering_map:
+                    ordered_codes.append(section_ordering_map[k])
 
         consent_section = self._get_consent_section()
         patient_info_section = self._get_patient_info_section()
 
-        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(generated_section_codes)
+        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
@@ -153,7 +165,7 @@ class Registry(models.Model):
 
     @property
     def forms(self):
-        return [ f for f in RegistryForm.objects.filter(registry=self) ]
+        return [ f for f in RegistryForm.objects.filter(registry=self).order_by('position') ]
 
     @property
     def structure(self):
