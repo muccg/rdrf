@@ -124,6 +124,7 @@ class Exporter(object):
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple
         section_map["elements"] = section_model.get_elements()
+        section_map["questionnaire_help"] = section_model.questionnaire_help
         return section_map
 
     def _create_form_map(self, form_model):

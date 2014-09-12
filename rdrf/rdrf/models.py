@@ -98,6 +98,7 @@ class Registry(models.Model):
 
             qsection = Section()
             qsection.code = self._generated_section_questionnaire_code(form_name, original_section_code)
+            qsection.questionnaire_help = original_section.questionnaire_help
             try:
                 original_form = RegistryForm.objects.get(registry=self, name=form_name)
             except RegistryForm.DoesNotExist:
@@ -196,6 +197,7 @@ class Registry(models.Model):
                 section_dict["display_name"] = section.display_name
                 section_dict["allow_multiple"] = section.allow_multiple
                 section_dict["extra"] = section.extra
+                section_dict["questionnaire_help"] = section.questionnaire_help
                 elements = []
                 for element_code in section.get_elements():
                     question_code = section.code + "." + element_code
@@ -243,6 +245,7 @@ class Registry(models.Model):
                 section.display_name = section_dict["display_name"]
                 section.allow_multiple = section_dict["allow_multiple"]
                 section.extra = section_dict["extra"]
+                section.questionnaire_help = section_dict["questionnaire_help"]
                 element_pairs = section_dict["elements"]
                 section_elements = []
                 for pair in element_pairs:
@@ -280,7 +283,7 @@ class Registry(models.Model):
             form_name = form_dict["name"]
 
             for section_dict in form_dict["sections"]:
-                for k in ["code", "display_name", "allow_multiple", "extra", "elements"]:
+                for k in ["code", "display_name", "allow_multiple", "extra", "elements", "questionnaire_help"]:
                     if not k in section_dict:
                         raise InvalidStructureError("Section %s missing key %s" % (section_dict, k))
 
@@ -449,6 +452,7 @@ class Section(models.Model):
     elements = models.TextField()
     allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(blank=True,null=True, help_text="Extra rows to show if allow_multiple checked")
+    questionnaire_help = models.TextField(blank=True)
 
     def __unicode__(self):
         return "Section %s comprising %s" % (self.code, self.elements)
