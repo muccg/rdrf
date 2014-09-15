@@ -47,7 +47,13 @@
             </div>
         {% endfor %}
     {% endif %}
-    
+
+    {% if prelude_file %}
+    {% include prelude_file %}
+    {% endif %}
+
+    <p>
+    </p>
     <div class="alert alert-danger" id="msg-box">Red fields are required</div>
 
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
