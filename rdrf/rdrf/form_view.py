@@ -355,7 +355,7 @@ class QuestionnaireView(FormView):
         super(QuestionnaireView, self).__init__(*args, **kwargs)
         self.template = 'rdrf_cdes/questionnaire.html'
 
-    def get(self, request, registry_code):
+    def get(self, request, registry_code, questionnaire_context=None):
         try:
             self.registry = self._get_registry(registry_code)
             form = self.registry.questionnaire
@@ -365,6 +365,7 @@ class QuestionnaireView(FormView):
             self.registry_form = form
             context = self._build_context()
             context["registry"] = self.registry
+            context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {
@@ -377,6 +378,19 @@ class QuestionnaireView(FormView):
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+
+    def _get_prelude(self, registry_code, questionnaire_context):
+        if questionnaire_context  is None:
+            questionnaire_context = "au"
+
+        prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
+        import os
+        from django.conf import settings
+        file_path = os.path.join(settings.TEMPLATE_DIRS[0],'rdrf_cdes',prelude_file)
+        if os.path.exists(file_path):
+            return os.path.join('rdrf_cdes',prelude_file)
+        else:
+            return None
 
     def post(self, request, registry_code):
         error_count  = 0
