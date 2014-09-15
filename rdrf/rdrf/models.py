@@ -76,17 +76,18 @@ class Registry(models.Model):
         generated_questionnaire_form_name = self.generated_questionnaire_name
         generated_questionnaire_form, created  = RegistryForm.objects.get_or_create(registry=self, name=generated_questionnaire_form_name)
 
-        if not created:
-            # get rid of any existing generated sections
-            for section in Section.objects.all():
-                if section.code.startswith(self.questionnaire_section_prefix):
-                    section.delete()
+        # get rid of any existing generated sections
+        for section in Section.objects.all():
+            if section.code.startswith(self.questionnaire_section_prefix):
+                section.delete()
 
         generated_questionnaire_form.registry = self
         generated_questionnaire_form.is_questionnaire = True
         generated_questionnaire_form.save()
         logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_section_codes = []
+
+        section_ordering_map = {}
 
         for (form_name, original_section_code) in section_map:
             # generate sections
@@ -97,24 +98,35 @@ class Registry(models.Model):
 
             qsection = Section()
             qsection.code = self._generated_section_questionnaire_code(form_name, original_section_code)
+            qsection.questionnaire_help = original_section.questionnaire_help
             try:
-                original_form = RegistryForm.objects.get(name=form_name)
+                original_form = RegistryForm.objects.get(registry=self, name=form_name)
             except RegistryForm.DoesNotExist:
                 raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
 
             qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
-            qsection.allow_multiple= False
+            qsection.allow_multiple = original_section.allow_multiple
             qsection.extra  = 0
             qsection.elements = ",".join([ cde_code for cde_code in section_map[(form_name, original_section_code)] ])
             qsection.save()
             logger.info("created section %s containing cdes %s" % (qsection.code, qsection.elements))
             generated_section_codes.append(qsection.code)
 
+            section_ordering_map[form_name + "." + original_section_code] = qsection.code
+
+
+        ordered_codes = []
+
+        for f in self.forms:
+            for s in f.get_sections():
+                k = f.name + "." + s
+                if k in section_ordering_map:
+                    ordered_codes.append(section_ordering_map[k])
 
         consent_section = self._get_consent_section()
         patient_info_section = self._get_patient_info_section()
 
-        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(generated_section_codes)
+        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
@@ -132,6 +144,15 @@ class Registry(models.Model):
     def generic_sections(self):
         return [ self._get_consent_section(), self._get_patient_info_section(), self._get_patient_address_section() ]
 
+    @property
+    def generic_cdes(self):
+        codes = []
+        for generic_section_code in self.generic_sections:
+            generic_section_model = Section.objects.get(code=generic_section_code)
+            codes.extend(generic_section_model.get_elements())
+        return codes
+
+
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.code)
@@ -145,7 +166,7 @@ class Registry(models.Model):
 
     @property
     def forms(self):
-        return [ f for f in RegistryForm.objects.filter(registry=self) ]
+        return [ f for f in RegistryForm.objects.filter(registry=self).order_by('position') ]
 
     @property
     def structure(self):
@@ -176,6 +197,7 @@ class Registry(models.Model):
                 section_dict["display_name"] = section.display_name
                 section_dict["allow_multiple"] = section.allow_multiple
                 section_dict["extra"] = section.extra
+                section_dict["questionnaire_help"] = section.questionnaire_help
                 elements = []
                 for element_code in section.get_elements():
                     question_code = section.code + "." + element_code
@@ -223,6 +245,7 @@ class Registry(models.Model):
                 section.display_name = section_dict["display_name"]
                 section.allow_multiple = section_dict["allow_multiple"]
                 section.extra = section_dict["extra"]
+                section.questionnaire_help = section_dict["questionnaire_help"]
                 element_pairs = section_dict["elements"]
                 section_elements = []
                 for pair in element_pairs:
@@ -260,7 +283,7 @@ class Registry(models.Model):
             form_name = form_dict["name"]
 
             for section_dict in form_dict["sections"]:
-                for k in ["code", "display_name", "allow_multiple", "extra", "elements"]:
+                for k in ["code", "display_name", "allow_multiple", "extra", "elements", "questionnaire_help"]:
                     if not k in section_dict:
                         raise InvalidStructureError("Section %s missing key %s" % (section_dict, k))
 
@@ -424,11 +447,12 @@ class Section(models.Model):
     """
     A group of fields that appear on a form as a unit
     """
-    code = models.CharField(max_length=50)
+    code = models.CharField(max_length=100)
     display_name = models.CharField(max_length=100)
     elements = models.TextField()
     allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(blank=True,null=True, help_text="Extra rows to show if allow_multiple checked")
+    questionnaire_help = models.TextField(blank=True)
 
     def __unicode__(self):
         return "Section %s comprising %s" % (self.code, self.elements)
@@ -451,7 +475,6 @@ class Section(models.Model):
         if self.code.count(" ") > 0:
             raise  ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
-
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
     forms = models.TextField(help_text="A comma-separated list of forms")
@@ -470,7 +493,6 @@ class Wizard(models.Model):
     #
     rules = models.TextField(help_text="Rules")
 
-
 class QuestionnaireResponse(models.Model):
     registry = models.ForeignKey(Registry)
     date_submitted = models.DateTimeField(auto_now_add=True)
@@ -480,6 +502,22 @@ class QuestionnaireResponse(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.registry, self.processed)
 
+    @property
+    def name(self):
+        return self._get_patient_field("CDEPatientGivenNames") + " " + self._get_patient_field("CDEPatientFamilyName")
+
+    @property
+    def date_of_birth(self):
+        dob = self._get_patient_field("CDEPatientDateOfBirth")
+        return dob.date()
+
+    def _get_patient_field(self, patient_field):
+        from dynamic_data import DynamicDataWrapper
+        from django.conf import settings
+        wrapper = DynamicDataWrapper(self)
+        record = wrapper.load_dynamic_data(self.registry.code, "cdes")
+        key = settings.FORM_SECTION_DELIMITER.join([ self.registry.generated_questionnaire_name, "PatientData", patient_field])
+        return record[key]
 
 def appears_in(cde,registry,registry_form,section):
     if section.code not in registry_form.get_sections():

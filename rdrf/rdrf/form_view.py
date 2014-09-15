@@ -109,6 +109,7 @@ class FormView(View):
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
+        self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
         if self.testing:
             dyn_patient.testing = True
@@ -363,6 +364,7 @@ class QuestionnaireView(FormView):
 
             self.registry_form = form
             context = self._build_context()
+            context["registry"] = self.registry
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {

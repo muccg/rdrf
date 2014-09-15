@@ -85,7 +85,52 @@ class QuestionnaireReverseMapper(object):
             delimited_key = settings.FORM_SECTION_DELIMITER.join([form_name, section_code, cde_code])
             dynamic_data_dict[delimited_key] = value
 
+        for original_multiple_section, element_list in self._get_multiple_sections():
+            logger.debug("updating multisection %s with %s" % (original_multiple_section, element_list))
+            if original_multiple_section in dynamic_data_dict:
+                dynamic_data_dict[original_multiple_section].extend(element_list)
+            else:
+                dynamic_data_dict[original_multiple_section] = element_list
+
+
         wrapper.save_dynamic_data(self.registry.code, 'cdes', dynamic_data_dict)
+
+
+
+    def _get_multiple_sections(self):
+        for k in self.questionnaire_data:
+            if settings.FORM_SECTION_DELIMITER not in k:
+                if k not in self.registry.generic_sections:
+                    data = self.questionnaire_data[k]
+                    if type(data) is type([]):
+                        if len(data) > 0:
+                            yield self._parse_multisection_data(k, data)
+
+
+    def _parse_multisection_data(self, generated_multisectionkey, item_dicts):
+        # sorry !- this is hideous - Todo refactor how storing multisections work
+        # questionnaire response multisection data looks like:
+
+        # "GenQxyfooFoobarSection" : [ 	{ 	"GeneratedQuestionnaireForxy____GenQxyfooFoobarSection____CDEHeight" : 1, ..
+        # to
+        # "FoobarSection" : [ 	{ 	"foo____FoobarSection____CDEHeight" : 1
+        original_form, original_multisection = self._parse_generated_section_code(generated_multisectionkey)
+        new_items = []
+        for item_dict in item_dicts:
+            new_item_dict = {}
+            for k in item_dict:
+                logger.debug("k = %s" % k)
+                if k is None:
+                    continue
+                value = item_dict[k]
+                logger.debug("value = %s" % value)
+                generated_item_form, generated_item_section, cde_code = k.split(settings.FORM_SECTION_DELIMITER)
+                orig_item_form, orig_item_section = self._parse_generated_section_code(generated_item_section)
+                new_item_key = settings.FORM_SECTION_DELIMITER.join([orig_item_form, orig_item_section, cde_code])
+                new_item_dict[new_item_key] = value
+            new_items.append(new_item_dict)
+
+        return original_multisection, new_items
 
 
     def _get_field_data(self, dynamic=True):
@@ -114,8 +159,9 @@ class QuestionnaireReverseMapper(object):
 
     def _get_patient_attribute_and_converter(self, cde_code):
 
-        def get_working_group(working_group_id):
-            return WorkingGroup.objects.get(pk=working_group_id)
+        def get_working_group(working_group_name):
+
+            return WorkingGroup.objects.get(name__iexact=working_group_name.strip())
 
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),

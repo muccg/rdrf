@@ -1,6 +1,7 @@
 {% extends "rdrf_cdes/base_questionnaire.html" %}
 
 {% load get_display_name %}
+{% load get_questionnairesection_help %}
 {% load is_formset %}
 {% load get_management_form %}
 {% load lookup %}
@@ -29,6 +30,11 @@
             yearRange: '-100:+0',
           });
         });
+
+        $(document).ready(function() {
+             $("glyphicon-question-sign").tooltip({placement: 'top'});
+
+        });
     </script>
 {% endblock %}
 
@@ -50,7 +56,11 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <b>{{display_names|get_display_name:s}}</b>
+                    {% if s|get_questionnairesection_help %}
+                        <span  class="glyphicon glyphicon-question-sign pull-right" title="{{ s|get_questionnairesection_help }}" data-toggle='tooltip'  data-placement='left' data-container='body'></span>
+                    {% endif %}
                 </div>
+
                 <div class="panel-body">
                     {% if forms|is_formset:s %}
                         <!-- start management form for {{s}}-->
@@ -102,6 +112,12 @@
                 </div>
             </div>
         {% endfor %}
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                Thank you for completing the {{ registry.name }} questionnaire. The information you have provided wil be reviewed by your clinician and downloaded into the registry.
+            </div>
+        </div>
 
         <input id="submit_button" type="submit" class="btn btn-primary btn-small pull-right" value="Save"/>
     </form>
