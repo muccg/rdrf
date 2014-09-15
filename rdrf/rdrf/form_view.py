@@ -25,6 +25,8 @@ from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 import json
+import os
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -381,11 +383,10 @@ class QuestionnaireView(FormView):
 
     def _get_prelude(self, registry_code, questionnaire_context):
         if questionnaire_context  is None:
-            questionnaire_context = "au"
+             prelude_file = "prelude_%s.html" % registry_code
+        else:
+            prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
 
-        prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
-        import os
-        from django.conf import settings
         file_path = os.path.join(settings.TEMPLATE_DIRS[0],'rdrf_cdes',prelude_file)
         if os.path.exists(file_path):
             return os.path.join('rdrf_cdes',prelude_file)
