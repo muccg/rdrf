@@ -104,20 +104,6 @@ function ci_staging_fixture() {
     fi
 }
 
-# restart nginx
-function restart_staging_nginx() {
-    pushd /tmp
-    if [ ! -d tempnginxdir ]; then
-        mkdir tempnginxdir
-    fi
-    cd tempnginxdir
-    echo nginx > .projectname
-    ccg --nuke-bootstrap
-    ccg ccg_syd_nginx_staging restart_nginx
-    popd
-}
-
-
 # staging selenium test
 function ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
@@ -131,7 +117,6 @@ function ci_staging_selenium() {
     #ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
-    #restart_staging_nginx
     #sleep 5
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
