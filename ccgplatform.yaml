@@ -30,6 +30,13 @@ instances:
     puppet_manifest: staging.pp
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
+    aws_elastic_ip: 54.252.118.168
+    aws_security_groups:
+      - default
+      - ssh
+      - proxied
+      - rdsaccess
+      - web
     
   aws-syd-rdrf-demo:
     extends: centos_65_aws_syd

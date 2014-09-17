@@ -284,12 +284,9 @@ class DynamicDataWrapper(object):
         if isinstance(data, unicode):
             return
 
-
         if isinstance(data, list):
             for x in data:
                 self._convert_date_to_datetime(x)
-
-
 
         for k, value in data.items():
             if type(value) is date:
@@ -299,9 +296,11 @@ class DynamicDataWrapper(object):
                 for e in value:
                     self._convert_date_to_datetime(e)
 
-
     def _set_in_memory_uploaded_files_to_none(self, data):
-
+        if not isinstance(data, dict):
+            # TODO find a better way! this test added to fix RDR-634
+            # The items in a multiple allowed select widget were being passed in here ( values in the list are not dicts so the recursive call failed below)
+            return
         keys_to_change = []
         for key, value in data.items():
             if isinstance(value, InMemoryUploadedFile):

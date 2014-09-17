@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 import os
 import json, datetime
-
+from rdrf.utils import de_camelcase
 from rdrf.models import Registry, RegistryForm
 
 from registry.utils import get_static_url, get_working_groups, get_registries
@@ -100,22 +100,28 @@ class PatientAdmin(admin.ModelAdmin):
         if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
 
+        def nice_name(name):
+            try:
+                return de_camelcase(name)
+            except:
+                return name
         
         rdrf = Registry.objects.get(pk=rdrf_id)
-        forms = RegistryForm.objects.filter(registry=rdrf).order_by('position')
+        not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
+        forms = [ f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) ]
 
         content = ''
         
         if not forms:
             content = "No modules available"
 
-        if forms.count() == 1:
+        if len(forms) == 1:
             url = reverse('registry_form', args=(rdrf.code, forms[0].id, obj.id))
             return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % url
 
         for form in forms:
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
-            content += "<a href=%s>%s</a><br/>" % (url, form.name)
+            content += "<a href=%s>%s</a><br/>" % (url, nice_name(form.name))
         
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
     

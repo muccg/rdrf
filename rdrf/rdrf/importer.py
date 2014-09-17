@@ -314,6 +314,8 @@ class Importer(object):
             s.display_name = section_map["display_name"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
+            if "questionnaire_help" in section_map:
+                s.questionnaire_help = section_map["questionnaire_help"]
             s.extra = section_map["extra"]
             s.save()
             logger.info("saved generic section %s" % s.code)
@@ -371,6 +373,8 @@ class Importer(object):
                 s.elements = ",".join(section_map["elements"])
                 s.allow_multiple = section_map["allow_multiple"]
                 s.extra = section_map["extra"]
+                if "questionnaire_help" in section_map:
+                    s.questionnaire_help = section_map["questionnaire_help"]
                 s.save()
                 logger.info("imported section %s OK" % s.code)
 
