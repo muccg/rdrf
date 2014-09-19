@@ -393,7 +393,7 @@ class QuestionnaireView(FormView):
         else:
             return None
 
-    def post(self, request, registry_code):
+    def post(self, request, registry_code, **kwargs):
         error_count  = 0
         registry = self._get_registry(registry_code)
         questionnaire_form = registry.questionnaire
