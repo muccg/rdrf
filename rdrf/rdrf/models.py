@@ -30,6 +30,7 @@ class Registry(models.Model):
     desc = models.TextField()
     splash_screen = models.TextField()
     version = models.CharField(max_length=20, blank=True)
+    demographics_config = models.TextField(blank=True) # holds JSON for registry specific demographic fields
 
     @property
     def questionnaire(self):
