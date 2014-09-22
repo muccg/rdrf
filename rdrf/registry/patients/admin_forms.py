@@ -12,6 +12,11 @@ class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
         (1, "GP ( Primary Care)"),
         (2, "Specialist ( Lipid)"),
+        (3, "Primary Care"),
+        (4, "Paediatric Neurologist"),
+        (5, "Neurologist"),
+        (6, "Geneticist"),
+        (7, "Specialist - Other"),
     )
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
@@ -27,7 +32,7 @@ class PatientAddressForm(forms.ModelForm):
 
     country = forms.ComboField(widget=CountryWidget(attrs={'default':'AU', 'onChange':'select_country(this);'}))
     state = forms.ComboField(widget=StateWidget(attrs={'default':'AU-WA'}))
-    
+
 
 class PatientForm(forms.ModelForm):
 
