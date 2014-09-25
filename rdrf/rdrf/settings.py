@@ -170,7 +170,7 @@ if env.get("memcache", ""):
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': env.getlist("memcache"),
-            'KEYSPACE': "rdrf-staging"
+            'KEY_PREFIX': env.get("key_prefix","")
         }
     }
     
