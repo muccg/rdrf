@@ -187,7 +187,8 @@ class DateWidget(widgets.TextInput):
         def just_date(value):
             if value:
                 if hasattr(value, 'date'):
-                    return value.date()
+                    d = value.date()
+                    return "%s-%s-%s" % (d.day, d.month, d.year)
                 else:
                     return value
             else:
