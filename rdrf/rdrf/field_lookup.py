@@ -44,7 +44,7 @@ class FieldFactory(object):
        "string": django.forms.CharField,
        "alphanumeric": (django.forms.RegexField, {"regex": r'^[a-zA-Z0-9]*$'}),
        "integer": django.forms.IntegerField,
-       "date": django.forms.DateField,
+       "date": (django.forms.DateField, {"help_text" : "DD-MM-YYYY", "input_formats": ['%d-%m-%Y']}),
        "boolean": django.forms.BooleanField,
        "float" : django.forms.FloatField,
     }
@@ -337,11 +337,8 @@ class FieldFactory(object):
 
             if widget:
                 options['widget'] = widget
-                logger.debug("field = %s options = %s widget = %s" % (field, options, widget))
-                return field(**options)
-            else:
-                logger.debug("field = %s options = %s" % (field, options))
-                return field(**options)
+
+            return field(**options)
 
     def _create_file_field(self, options):
         #options['widget'] = AdminFileWidget
@@ -451,7 +448,6 @@ class ComplexFieldFactory(object):
 
         return complex_field_class(**options_dict)
 
-
 class ListFieldParseError(Exception):
     pass
 
@@ -460,7 +456,6 @@ class ListFieldFactory(object):
     A class to create formsets for CDEs ( Allowing multiple values to added )
 
     """
-
     DATATYPE_PATTERN = "^ListField\((.*)\)$"
 
     def is_list(self):
@@ -477,18 +472,5 @@ class ListFieldFactory(object):
             inner_cde = CommonDataElement.objects.get(code=inner_cde_code)
             field_factory = FieldFactory(inner_cde)
             inner_field = field_factory.create_field()
-
-
-
-
         else:
             raise ListFieldParseError("%s is not a ListField" % self.cde)
-
-
-
-
-
-
-
-
-
