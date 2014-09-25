@@ -25,6 +25,8 @@ from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 import json
+import os
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -109,6 +111,7 @@ class FormView(View):
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
         patient = Patient.objects.get(pk=patient_id)
+        self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
         if self.testing:
             dyn_patient.testing = True
@@ -354,7 +357,7 @@ class QuestionnaireView(FormView):
         super(QuestionnaireView, self).__init__(*args, **kwargs)
         self.template = 'rdrf_cdes/questionnaire.html'
 
-    def get(self, request, registry_code):
+    def get(self, request, registry_code, questionnaire_context=None):
         try:
             self.registry = self._get_registry(registry_code)
             form = self.registry.questionnaire
@@ -363,6 +366,8 @@ class QuestionnaireView(FormView):
 
             self.registry_form = form
             context = self._build_context()
+            context["registry"] = self.registry
+            context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {
@@ -376,7 +381,19 @@ class QuestionnaireView(FormView):
             }
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
 
-    def post(self, request, registry_code):
+    def _get_prelude(self, registry_code, questionnaire_context):
+        if questionnaire_context  is None:
+             prelude_file = "prelude_%s.html" % registry_code
+        else:
+            prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
+
+        file_path = os.path.join(settings.TEMPLATE_DIRS[0],'rdrf_cdes',prelude_file)
+        if os.path.exists(file_path):
+            return os.path.join('rdrf_cdes',prelude_file)
+        else:
+            return None
+
+    def post(self, request, registry_code, **kwargs):
         error_count  = 0
         registry = self._get_registry(registry_code)
         questionnaire_form = registry.questionnaire

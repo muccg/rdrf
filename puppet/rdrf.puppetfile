@@ -3,14 +3,12 @@
 
 forge "https://forge.puppetlabs.com"
 
-mod "puppetlabs/stdlib", "4.1.0"
 mod "puppetlabs/postgresql", "3.3.3"
 mod "puppetlabs/mysql", "2.2.3"
 mod "puppetlabs/concat", "1.0.2"
 mod "puppetlabs/denyhosts", "0.1.0"
 mod "puppetlabs/mongodb", "0.3.0"
 mod "saz/memcached", "2.4.0"
-mod "saz/timezone", "3.0.1"
 mod "stahnma/epel", "0.0.6"
 mod "rodjek/logrotate", "1.1.1"
 
@@ -32,7 +30,7 @@ mod "muccg/python",
 
 mod "muccg/ccgcommon",
   :git => "git://github.com/muccg/puppet-ccgcommon.git",
-  :ref => "1.0.2"
+  :ref => "1.1.0"
 
 mod "muccg/ccgdatabase",
   :git => "git://github.com/muccg/puppet-ccgdatabase.git",
