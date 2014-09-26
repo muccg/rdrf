@@ -165,6 +165,17 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = True
 
+if env.get("memcache", ""):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': env.getlist("memcache"),
+            'KEY_PREFIX': env.get("key_prefix","")
+        }
+    }
+    
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+
 # #
 # # LOGGING
 # #

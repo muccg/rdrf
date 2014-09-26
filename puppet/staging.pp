@@ -42,6 +42,7 @@ node default {
     memcache    => $globals::memcache_syd,
     secret_key  => '*&^*&768768YFYTFYHGGHCgcgfcg',
     allowed_hosts => 'localhost ccgapps.com.au',
+    key_prefix    => 'rdrf_staging_'
   }
 
   # postgressql database
