@@ -117,7 +117,6 @@ class Patient(models.Model):
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
-    registry_specific_data = models.TextField(blank=True) # JSON!
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -166,30 +165,6 @@ class Patient(models.Model):
             working_group=self.working_group.name,
             date_of_birth=str(self.date_of_birth)
             )
-
-    @property
-    def custom_data(self):
-        if self.registry_specific_data:
-            return json.loads(self.registry_specific_data)
-        else:
-            return {}
-
-    @custom_data.setter
-    def custom_data(self, new_data):
-        json_data = json.dumps(new_data)
-        self.registry_specific_data = json_data
-
-    def set_registry_data(self, reg_code, data):
-        custom_data = self.custom_data
-        custom_data[reg_code] = data
-        self.custom_data = custom_data
-
-    def get_registry_data(self, reg_code):
-        if reg_code in self.custom_data:
-            return self.custom_data[reg_code]
-        else:
-            return {}
-
 
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
