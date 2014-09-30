@@ -134,6 +134,7 @@ SESSION_COOKIE_AGE = 60 * 60
 SESSION_COOKIE_PATH = '{0}/'.format(os.environ.get("SCRIPT_NAME", ""))
 SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_NAME = "csrftoken_registry"
+CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or None
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_NAME = "rdrf"
@@ -173,7 +174,7 @@ if env.get("memcache", ""):
             'KEY_PREFIX': env.get("key_prefix","")
         }
     }
-    
+
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 # #
@@ -283,7 +284,7 @@ SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
     'MENU_OPEN_FIRST_CHILD': False,
     'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
-        
+
     'MENU': (
         'auth',
         'genetic',

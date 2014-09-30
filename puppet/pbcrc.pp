@@ -58,6 +58,7 @@ node default {
     secretkey           => $globals::secretkey_rdrf_pbcrc,
     admin_email         => $globals::system_email,
     allowed_hosts       => 'localhost ccgapps.com.au',
+    csrf_cookie_domain  => '.ccgapps.com.au',
     key_prefix          => 'rdrf_pbcrc_'
   }
   
