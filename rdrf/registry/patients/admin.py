@@ -81,7 +81,8 @@ class PatientAdmin(admin.ModelAdmin):
     list_filter = [RegistryFilter,]
     
     def full_name(self, obj):
-        return "%s %s" % (obj.given_names, obj.family_name)
+       return obj.__unicode__()
+
     full_name.short_description = 'Name'
 
     def demographic_btn(self, obj):
