@@ -83,7 +83,8 @@ INSTALLED_APPS = [
     'registry.genetic',
     'django.contrib.admin',
     'iprestrict',
-    'ajax_select'
+    'ajax_select',
+    'viewer'
 ]
 
 

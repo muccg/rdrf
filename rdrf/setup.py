@@ -72,7 +72,8 @@ setup(name='django-rdrf',
         'django-positions', 
         'django-tastypie',
         'pycountry==1.8',
-        'django-countries'
+        'django-countries',
+        'django-mongodb-viewer==0.0.6'
     ],
     dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
@@ -82,6 +83,7 @@ setup(name='django-rdrf',
         'https://ccg-django-extras.googlecode.com/files/ccg-auth-0.3.3.tar.gz',
         'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
         'https://pypi.python.org/pypi/django-tastypie/0.11.1',
-        'https://pypi.python.org/packages/source/d/django-tastypie/django-tastypie-0.11.1.tar.gz'
+        'https://pypi.python.org/packages/source/d/django-tastypie/django-tastypie-0.11.1.tar.gz',
+        'https://bitbucket.org/ccgmurdoch/django-mongodb-viewer/downloads/django-mongodb-viewer-0.0.6.tar.gz'
     ],
 )

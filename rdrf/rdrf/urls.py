@@ -75,4 +75,6 @@ urlpatterns = patterns('',
     url(r'^designer/(?P<reg_pk>\d+)$', form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
     url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(), name='rdrf_designer_registry_structure_endpoint'),
+    
+    url(r'^viewer/', include('viewer.urls'))
 )
