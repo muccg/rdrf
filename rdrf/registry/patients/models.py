@@ -93,6 +93,7 @@ class Patient(models.Model):
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
+    maiden_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Maiden Name")
     umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
