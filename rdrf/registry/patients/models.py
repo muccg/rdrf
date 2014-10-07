@@ -97,6 +97,7 @@ class Patient(models.Model):
     umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
+    country_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Country of Birth")
     date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     home_phone = models.CharField(max_length=30, blank=True, null=True)
