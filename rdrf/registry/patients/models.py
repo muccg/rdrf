@@ -85,6 +85,22 @@ class Patient(models.Model):
     else:
         SEX_CHOICES = ( ("M", "Male"), ("F", "Female"), ("X", "Other/Intersex") )
 
+    ETHNIC_ORIGIN = (
+        ("Aboriginal", "Aboriginal"),
+        ("Person from Torres Strait Islands", "Person from Torres Strait Islands"),
+        ("Black African/African American", "Black African/African American"),
+        ("Caucasian/European", "Caucasian/European"),
+        ("Chinese", "Chinese"),
+        ("Indian", "Indian"),
+        ("Maori", "Maori"),
+        ("Aboriginal", "Aboriginal"),
+        ("Middle eastern", "Middle eastern"),
+        ("Person from the Pacific Islands", "Person from the Pacific Islands"),
+        ("Other Asian", "Other Asian"),
+        ("Other", "Other"),
+        ("Decline to Answer", "Decline to Answer"),
+    )
+
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
     working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False, verbose_name="Centre")
@@ -98,6 +114,7 @@ class Patient(models.Model):
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
     country_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Country of Birth")
+    ethnic_origin = models.CharField(choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
     date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     home_phone = models.CharField(max_length=30, blank=True, null=True)
