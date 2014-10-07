@@ -20,6 +20,37 @@ def new_style_questionnaire(registry):
                 return True
     return False
 
+class Section(models.Model):
+    """
+    A group of fields that appear on a form as a unit
+    """
+    code = models.CharField(max_length=100)
+    display_name = models.CharField(max_length=100)
+    elements = models.TextField()
+    allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
+    extra = models.IntegerField(blank=True,null=True, help_text="Extra rows to show if allow_multiple checked")
+    questionnaire_help = models.TextField(blank=True)
+
+    def __unicode__(self):
+        return "Section %s comprising %s" % (self.code, self.elements)
+
+    def get_elements(self):
+        import string
+        return map(string.strip,self.elements.split(","))
+
+    @property
+    def cde_models(self):
+        return [ cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements()) ]
+
+    def clean(self):
+        for element in self.get_elements():
+            try:
+                cde = CommonDataElement.objects.get(code=element)
+            except CommonDataElement.DoesNotExist:
+                raise ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, element))
+
+        if self.code.count(" ") > 0:
+            raise  ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
 class Registry(models.Model):
     class Meta:
@@ -30,7 +61,7 @@ class Registry(models.Model):
     desc = models.TextField()
     splash_screen = models.TextField()
     version = models.CharField(max_length=20, blank=True)
-    demographics_config = models.TextField(blank=True) # holds JSON for registry specific demographic fields
+    patient_data_section = models.ForeignKey(Section,null=True) # a section which holds registry specific patient information
 
     @property
     def questionnaire(self):
@@ -48,6 +79,21 @@ class Registry(models.Model):
     @property
     def questionnaire_section_prefix(self):
         return "GenQ" + self.code
+
+    @property
+    def patient_fields(self):
+        """
+        Registry specific fields for the demographic form
+        """
+        from rdrf.field_lookup import FieldFactory
+        field_pairs = [] # list of pairs of cde and field object
+        if self.patient_data_section:
+            patient_cde_models = self.patient_data_section.cde_models
+            for cde_model in patient_cde_models:
+                field_factory = FieldFactory(self, None, self.patient_data_section, cde_model)
+                field = field_factory.create_field()
+                field_pairs.append((cde_model, field))
+        return field_pairs
 
     def _generated_section_questionnaire_code(self, form_name, section_code):
         return self.questionnaire_section_prefix + form_name  + section_code
@@ -444,37 +490,7 @@ class RegistryForm(models.Model):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
         return questionnaire_code in self.questionnaire_list
 
-class Section(models.Model):
-    """
-    A group of fields that appear on a form as a unit
-    """
-    code = models.CharField(max_length=100)
-    display_name = models.CharField(max_length=100)
-    elements = models.TextField()
-    allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
-    extra = models.IntegerField(blank=True,null=True, help_text="Extra rows to show if allow_multiple checked")
-    questionnaire_help = models.TextField(blank=True)
 
-    def __unicode__(self):
-        return "Section %s comprising %s" % (self.code, self.elements)
-
-    def get_elements(self):
-        import string
-        return map(string.strip,self.elements.split(","))
-
-    @property
-    def cde_models(self):
-        return [ cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements()) ]
-
-    def clean(self):
-        for element in self.get_elements():
-            try:
-                cde = CommonDataElement.objects.get(code=element)
-            except CommonDataElement.DoesNotExist:
-                raise ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, element))
-
-        if self.code.count(" ") > 0:
-            raise  ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)

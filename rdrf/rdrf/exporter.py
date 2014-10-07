@@ -149,6 +149,10 @@ class Exporter(object):
         data["pvgs"] = [ pvg.as_dict() for pvg in self._get_pvgs(export_type) ]
         data["REGISTRY_VERSION"] = self._get_registry_version()
 
+        if self.registry.patient_data_section:
+            data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
+        else:
+            data["patient_data_section"] = {}
 
         if export_type in [ ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
@@ -273,6 +277,12 @@ class Exporter(object):
             section_codes = registry_form.get_sections()
             cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
+        if registry_model.patient_data_section:
+            patient_data_section_cdes = set(registry_model.patient_data_section.cde_models)
+        else:
+            patient_data_section_cdes = set([])
+
+        cdes = cdes.union(patient_data_section_cdes)
         return cdes
 
     def _get_cdes_for_sections(self, section_codes):

@@ -320,6 +320,22 @@ class Importer(object):
             s.save()
             logger.info("saved generic section %s" % s.code)
 
+    def _create_patient_data_section(self, section_map):
+        if section_map:
+            s, created = Section.objects.get_or_create(code=section_map["code"])
+            s.code = section_map["code"]
+            s.display_name = section_map["display_name"]
+            s.elements = ",".join(section_map["elements"])
+            s.allow_multiple = section_map["allow_multiple"]
+            if "questionnaire_help" in section_map:
+                s.questionnaire_help = section_map["questionnaire_help"]
+            s.extra = section_map["extra"]
+            s.save()
+            logger.info("saved patient data section  %s" % s.code)
+            return s
+        else:
+            return None
+
 
     def _create_registry_objects(self):
         self._create_groups(self.data["pvgs"])
@@ -348,6 +364,12 @@ class Importer(object):
 
 
         r.splash_screen = self.data["splash_screen"]
+
+        if "patient_data_section" in self.data:
+            patient_data_section_map = self.data["patient_data_section"]
+            if patient_data_section_map:
+                patient_data_section = self._create_patient_data_section(patient_data_section_map)
+                r.patient_data_section = patient_data_section
 
         r.save()
         logger.info("imported registry object OK")

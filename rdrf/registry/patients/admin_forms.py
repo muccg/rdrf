@@ -1,12 +1,12 @@
 from django import forms
 from registry.utils import get_static_url
 from django_countries import countries
-
 from models import *
-
 from rdrf.widgets import CountryWidget, StateWidget
-
+from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
+import logging
+logger = logging.getLogger("registry_log")
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -40,6 +40,21 @@ class PatientForm(forms.ModelForm):
         "rows": 3,
         "cols": 30,
     }
+
+    def __init__(self, *args, **kwargs):
+        if 'instance' in kwargs:
+            instance = kwargs['instance']
+            registry_specific_data = self._get_registry_specific_data(instance)
+            initial_data = kwargs.get('initial', {})
+            for reg_code in registry_specific_data:
+                initial_data.update(registry_specific_data[reg_code])
+            kwargs['initial'] = initial_data
+
+        super(PatientForm, self).__init__(*args, **kwargs)
+
+    def _get_registry_specific_data(self, patient_model):
+        mongo_wrapper = DynamicDataWrapper(patient_model)
+        return mongo_wrapper.load_registry_specific_data()
 
     consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
     consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")

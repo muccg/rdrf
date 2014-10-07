@@ -9,15 +9,13 @@ import os
 import json, datetime
 from rdrf.utils import de_camelcase
 from rdrf.models import Registry, RegistryForm
-
 from registry.utils import get_static_url, get_working_groups, get_registries
 from admin_forms import *
 from models import *
-
+from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
-
-#from registry.groups.models import User
-
+import logging
+logger = logging.getLogger("registry_log")
 
 class DoctorAdmin(admin.ModelAdmin):
     search_fields = ["family_name", "given_names"]
@@ -70,7 +68,7 @@ class PatientAdmin(admin.ModelAdmin):
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
-    
+
     app_url = os.environ.get("SCRIPT_NAME", "")
     form = PatientForm
     request = None
@@ -131,15 +129,51 @@ class PatientAdmin(admin.ModelAdmin):
 
 
     def get_form(self, request, obj=None, **kwargs):
-         form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
-         #from registry.groups.models import User
-         form.user = get_user_model().objects.get(username=request.user)
-         form.is_superuser = request.user.is_superuser
-         return form
+        # NB. This method returns a form class
+        user =  get_user_model().objects.get(username=request.user)
+        registry_specific_fields = self._get_registry_specific_patient_fields(user)
+        self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
+        form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
+        form.user = user
+        form.is_superuser = request.user.is_superuser
+        return form
 
-    def create_fieldset(self, superuser=False):
-        """Function to dynamically create the fieldset, adding 'active' field if user is a superuser"""
-        
+    def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
+        additional_fields = {}
+        for reg_code in registry_specific_fields_dict:
+            field_pairs = registry_specific_fields_dict[reg_code]
+            for cde, field_object in field_pairs:
+                additional_fields[cde.code] = field_object
+
+        new_form_class = type(form_class.__name__, (form_class,), additional_fields)
+        return new_form_class
+
+    def _get_registry_specific_patient_fields(self, user):
+        """
+        :param user:
+        :return: a dictionary mapping registry codes to lists of pairs of cde models and field objects
+        """
+        result_dict = {}
+        for registry in user.registry.all():
+            patient_cde_field_pairs = registry.patient_fields
+            if patient_cde_field_pairs:
+                result_dict[registry.code] = patient_cde_field_pairs
+
+        return result_dict
+
+    def _get_registry_specific_fieldsets(self, user):
+        reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
+        fieldsets = []
+        for reg_code in reg_spec_field_defs:
+            cde_field_pairs = reg_spec_field_defs[reg_code]
+            fieldset_title = "%s Specific Fields" % reg_code
+            field_dict = {"fields" : [ pair[0].code for pair in cde_field_pairs ]} # pair up cde name and field object generated from that cde
+            fieldsets.append((fieldset_title, field_dict))
+        return fieldsets
+
+
+    def create_fieldset(self, user):
+
         consent = ("Consent", {
             "fields":(
                 "consent",
@@ -193,11 +227,54 @@ class PatientAdmin(admin.ModelAdmin):
              "next_of_kin_parent_place_of_birth"
              )})
 
-        fieldset = (consent, rdrf_registry, personal_details, next_of_kin,)
+        fieldset = [consent, rdrf_registry, personal_details, next_of_kin]
+        fieldset.extend(self._get_registry_specific_fieldsets(user))
         return fieldset
 
+    def save_form(self, request, form, change):
+        """
+        We override save_form to support saving (some) registry specific data to Mongo
+        The wrinkle is that the instance has not yet been saved, so if the user is adding a patient
+        there will be no primary key ( all mongo data is linked to django via a primary key). We work around tbis, by tagging the data to be saved in Mongo
+        on the instance and overriding save_model ( see below )
+        """
+        mongo_patient_data = {}
+        instance = form.save(commit=False)
+        registry_specific_fields_dict = self._get_registry_specific_patient_fields(request.user)
+
+        for reg_code in registry_specific_fields_dict:
+            mongo_patient_data[reg_code] = {}
+            registry_specific_fields = registry_specific_fields_dict[reg_code]
+            for cde, field_object in registry_specific_fields:
+                field_name = cde.name
+                cde_code = cde.code
+                field_value = request.POST[cde.code]
+                mongo_patient_data[reg_code][cde_code] = field_value
+
+                logger.debug("specific field for %s %s = %s" % (reg_code, field_name, field_value))
+
+        if mongo_patient_data:
+            instance.mongo_patient_data = mongo_patient_data
+
+        return instance
+
+    def save_model(self, request, obj, form, change):
+        """
+        Override ModelAdmin code to allow us to save the registry specific patient to Mongo ...
+        """
+        obj.save()
+
+        if hasattr(obj, 'mongo_patient_data'):
+            patient_id = obj.pk
+            self._save_registry_specific_data_in_mongo(obj)
+
     def get_fieldsets(self, request, obj=None):
-        return self.create_fieldset(request.user.is_superuser)
+        return self.create_fieldset(request.user)
+
+    def _save_registry_specific_data_in_mongo(self, patient):
+        data = patient.mongo_patient_data
+        mongo_wrapper = DynamicDataWrapper(patient)
+        mongo_wrapper.save_registry_specific_data(data)
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.is_superuser:
