@@ -247,12 +247,19 @@ def _save_patient_mongo(patient_obj):
 
 
 def _update_mongo_obj(mongo_doc, patient_model):
+    keys_to_delete = []
     for key, value in mongo_doc.iteritems():
         if key in ['rdrf_registry', ]:
             mongo_doc[key] = _get_registry_for_mongo(patient_model[key])
         if key not in ['django_id', '_id', 'rdrf_registry']:
-            mongo_doc[key] = patient_model[key]
+            if key in patient_model:
+                logger.info("key %s is not present in patient_model and will be deleted from the mongo doc ..." % key)
+                mongo_doc[key] = patient_model[key]
+            else:
+                keys_to_delete.append(key)
 
+    for key in keys_to_delete:
+        del mongo_doc[key]
 
 def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)
