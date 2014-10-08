@@ -60,7 +60,6 @@ class PatientForm(forms.ModelForm):
     consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
     consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
     date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'class':'datepicker'}, format='%d-%m-%Y'), help_text="DD-MM-YYYY", input_formats=['%d-%m-%Y'])
-    date_of_migration = forms.DateField(widget=forms.DateInput(attrs={'class':'datepicker'}, format='%d-%m-%Y'), required=False, help_text="Date of migration (DD-MM-YYYY)", label="Migration", input_formats=['%d-%m-%Y'])
 
     class Meta:
         model = Patient

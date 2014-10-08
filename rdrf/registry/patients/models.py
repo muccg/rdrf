@@ -115,7 +115,6 @@ class Patient(models.Model):
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
     country_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Country of Birth")
     ethnic_origin = models.CharField(choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
-    date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     home_phone = models.CharField(max_length=30, blank=True, null=True)
     mobile_phone = models.CharField(max_length=30, blank=True, null=True)

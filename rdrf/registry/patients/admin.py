@@ -197,7 +197,6 @@ class PatientAdmin(admin.ModelAdmin):
                                    "umrn",
                                    "date_of_birth",
                                    "place_of_birth",
-                                   "date_of_migration",
                                    "sex",
                                    "home_phone",
                                    "mobile_phone",
