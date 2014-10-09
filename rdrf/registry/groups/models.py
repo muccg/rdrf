@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=40)
+    registry = models.ForeignKey(Registry, null=True)
 
     class Meta:
         ordering = ["name"]
