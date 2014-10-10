@@ -5,10 +5,7 @@ import json
 from django.conf import settings
 from django.forms.models import model_to_dict
 from rdrf import VERSION
-
 import datetime
-
-
 
 logger = logging.getLogger("registry_log")
 
@@ -153,6 +150,8 @@ class Exporter(object):
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
         else:
             data["patient_data_section"] = {}
+
+        data["working_groups"] = self._get_working_groups()
 
         if export_type in [ ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
@@ -307,7 +306,6 @@ class Exporter(object):
     def _get_generic_cdes(self):
         return self._get_cdes_for_sections(self.registry.generic_sections)
 
-
-
-
-
+    def _get_working_groups(self):
+        from registry.groups.models import WorkingGroup
+        return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]

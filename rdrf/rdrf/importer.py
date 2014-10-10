@@ -1,5 +1,6 @@
 import logging
 from models import *
+from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
 import yaml
 from django.core.exceptions import MultipleObjectsReturned
@@ -412,15 +413,30 @@ class Importer(object):
                 # shouldn't happen but if so just continue
                 pass
 
+        self._create_working_groups(r)
         # generate the questionnaire for this reqistry
         try:
             r.generate_questionnaire()
         except Exception, ex:
             raise QuestionnaireGenerationError(str(ex))
 
+    def _create_working_groups(self, registry):
+        if "working_groups" in self.data:
+            working_group_names = self.data["working_groups"]
+            logger.debug("working_groups in metadata")
+            existing_groups = set([ wg for wg in WorkingGroup.objects.filter(registry=registry)])
+            new_groups = set([])
+            for working_group_name in working_group_names:
+                working_group, created = WorkingGroup.objects.get_or_create(name=working_group_name, registry=registry)
+                if created:
+                    logger.debug("creating new group %s" % working_group_name)
+                else:
+                    logger.debug("working group %s already exists" % working_group_name)
+                working_group.save()
+                new_groups.add(working_group)
 
-
-
-
-
-
+            groups_to_unlink = existing_groups - new_groups
+            for wg in groups_to_unlink:
+                logger.info("deleting delete()working group %s for %s registry import" % (wg.name, registry.name))
+                wg.registry = None # if we delete the group the patients get deleted .. todo need to confirm behaviour
+                wg.save()
