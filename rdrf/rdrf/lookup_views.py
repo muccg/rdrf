@@ -48,9 +48,8 @@ class StateLookup(View):
         try:
             states = sorted(pycountry.subdivisions.get(country_code=country_code.upper()), key=lambda x: x.name)
             return HttpResponse(json.dumps(self._to_json(states)))
-        except: KeyError
-        
-        return HttpResponse()
+        except KeyError:
+            return HttpResponse()
     
     def _to_json(self, states):
         json_result = []
