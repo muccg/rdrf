@@ -191,7 +191,6 @@ class PatientAdmin(admin.ModelAdmin):
         personal_details = ("Personal Details", {})
 
         personal_details_fields = [
-                                   "working_group",
                                    "working_groups",
                                    "family_name",
                                    "given_names",
@@ -292,7 +291,7 @@ class PatientAdmin(admin.ModelAdmin):
         request = kwargs.get('request')
         user = request.user
         # Restrict normal users to their own working group.
-        if dbfield.name == "working_group" and not user.is_superuser:
+        if dbfield.name == "working_groups" and not user.is_superuser:
             user = get_user_model().objects.get(username=user) # get the user's associated objects
             kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
             #kwargs["queryset"] = WorkingGroup.objects
