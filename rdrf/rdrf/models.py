@@ -416,7 +416,7 @@ class CDEPermittedValue(models.Model):
     position_formatted.short_description = 'Order position'
 
     def __unicode__(self):
-        return "Memeber of %s" % (self.pv_group.code)
+        return "Member of %s" % self.pv_group.code
 
 
 class CommonDataElement(models.Model):
