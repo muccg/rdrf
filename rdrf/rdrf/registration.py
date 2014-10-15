@@ -161,7 +161,7 @@ class QuestionnaireReverseMapper(object):
 
         def get_working_group(working_group_name):
 
-            return WorkingGroup.objects.get(name__iexact=working_group_name.strip())
+            return [ WorkingGroup.objects.get(name__iexact=working_group_name.strip()) ]
 
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
@@ -172,7 +172,7 @@ class QuestionnaireReverseMapper(object):
             "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
             "PatientConsentSentInfo" : ("consent_sent_information", None),
             "CDEPatientDateOfBirth" : ("date_of_birth", None),
-            "CDEPatientCentre" : ("working_group", get_working_group),
+            "CDEPatientCentre" : ("working_groups", get_working_group),
             "CDEPatientMobilePhone" : ("mobile_phone", None),
             "CDEPatientHomePhone": ("home_phone", None),
 

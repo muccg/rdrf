@@ -77,11 +77,26 @@ class PatientForm(forms.ModelForm):
         family_name = stripspaces(cleaneddata.get("family_name", "") or "").upper()
         given_names = stripspaces(cleaneddata.get("given_names", "") or "")
 
-        # working_group can be None, which is annoying for the db query below
-        # so working_group should be required, but how do we make it required in the model?
-        # working_group = models.ForeignKey(groups.models.WorkingGroup)
-        workinggroup = cleaneddata.get("working_group", "") or ""
-        if not workinggroup:
-            raise forms.ValidationError('The working group is required.')
+        if not cleaneddata.workign_groups:
+            raise forms.ValidationError("Patient must be assigned to a working group")
+
+        self._check_working_groups(cleaneddata)
 
         return super(PatientForm, self).clean()
+
+    def _check_working_groups(self, cleaned_data):
+        working_group_data = {}
+        for working_group in cleaned_data.working_groups:
+            if working_group.registry.code not in working_group_data:
+                working_group_data[working_group.registry.code] = [ working_group ]
+            else:
+                working_group_data[working_group.registry.code].append(working_group)
+
+        bad = []
+        for reg_code in working_group_data:
+            if len(working_group_data[reg_code]) > 1:
+                bad.append(reg_code)
+
+        if bad:
+            raise forms.ValidationError("Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad))
+

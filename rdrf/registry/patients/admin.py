@@ -75,7 +75,7 @@ class PatientAdmin(admin.ModelAdmin):
 
     inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['full_name', 'working_group', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
+    list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter,]
     
     def full_name(self, obj):
@@ -192,6 +192,7 @@ class PatientAdmin(admin.ModelAdmin):
 
         personal_details_fields = [
                                    "working_group",
+                                   "working_groups",
                                    "family_name",
                                    "given_names",
                                    "maiden_name",
