@@ -282,6 +282,10 @@ class Exporter(object):
             patient_data_section_cdes = set([])
 
         cdes = cdes.union(patient_data_section_cdes)
+
+        generic_cdes = self._get_generic_cdes()
+        cdes = cdes.union(generic_cdes)
+
         return cdes
 
     def _get_cdes_for_sections(self, section_codes):
