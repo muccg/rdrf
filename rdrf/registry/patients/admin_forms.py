@@ -77,7 +77,7 @@ class PatientForm(forms.ModelForm):
         family_name = stripspaces(cleaneddata.get("family_name", "") or "").upper()
         given_names = stripspaces(cleaneddata.get("given_names", "") or "")
 
-        if not cleaneddata.workign_groups:
+        if not cleaneddata["working_groups"]:
             raise forms.ValidationError("Patient must be assigned to a working group")
 
         self._check_working_groups(cleaneddata)
@@ -86,11 +86,12 @@ class PatientForm(forms.ModelForm):
 
     def _check_working_groups(self, cleaned_data):
         working_group_data = {}
-        for working_group in cleaned_data.working_groups:
-            if working_group.registry.code not in working_group_data:
-                working_group_data[working_group.registry.code] = [ working_group ]
-            else:
-                working_group_data[working_group.registry.code].append(working_group)
+        for working_group in cleaned_data["working_groups"]:
+            if working_group.registry:
+                if working_group.registry.code not in working_group_data:
+                    working_group_data[working_group.registry.code] = [ working_group ]
+                else:
+                    working_group_data[working_group.registry.code].append(working_group)
 
         bad = []
         for reg_code in working_group_data:
