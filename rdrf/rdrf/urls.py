@@ -14,23 +14,24 @@ import hgvs_view
 from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
-
 from views import RegistryList, AllocateView
 from registry.patients.views import update_session
-
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
+admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
+
 
 def handler404(request):
     return render_to_response("error/404.html")
 
+
 def handler500(request):
     return render_to_response("error/500.html")
 
+
 def handlerApplicationError(request):
-    return render_to_response("rdrf_cdes/application_error.html",{"application_error": "Example config Error"})
+    return render_to_response("rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
 
 
 # TastyPie API
