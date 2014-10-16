@@ -4,8 +4,10 @@ from django.core.urlresolvers import reverse
 
 logger = logging.getLogger('registry_log')
 
+
 class CalculatedFieldParseError(Exception):
     pass
+
 
 class CalculatedFieldParser(object):
 
@@ -28,7 +30,7 @@ class CalculatedFieldParser(object):
         """
 
         self.context_indicator = "context"
-        self.pattern =  r"\b%s\.(.+?)\b" % self.context_indicator
+        self.pattern = r"\b%s\.(.+?)\b" % self.context_indicator
         self.result_name = "result"
         self.registry = registry
         self.registry_form = registry_form
@@ -43,8 +45,6 @@ class CalculatedFieldParser(object):
         self.injected_model = injected_model
         self.injected_model_id = injected_model_id
         self._parse_calculation()
-
-
 
     def _parse_calculation(self):
         if self.calculation:
@@ -66,19 +66,18 @@ class CalculatedFieldParser(object):
         :param cde_code:
         :return: in the section of the form this cde is in
         """
-        return self.registry_form.name + FORM_SECTION_DELIMITER + self.section.code + FORM_SECTION_DELIMITER + cde_code
+        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
 
-    def _replace_cde_calc(self,old_code, calc):
+    def _replace_cde_calc(self, old_code, calc):
         s = "context.%s" % old_code
         new_s = """context["%s"]""" % (self._get_id_in_section(old_code))
-        return calc.replace(s,new_s)
-
+        return calc.replace(s, new_s)
 
     def _fix_calc(self, calc):
         # hack to fix the ids to the section
-        c = self._replace_cde_calc(self.cde.code,calc)
+        c = self._replace_cde_calc(self.cde.code, calc)
         for s in self.subjects:
-            c = self._replace_cde_calc(s,c)
+            c = self._replace_cde_calc(s, c)
         return c
 
     def get_script(self):
@@ -93,11 +92,11 @@ class CalculatedFieldParser(object):
 
         function_parameter_list = "context"
 
-        if "patient." in calculation_body: # todo generalise exposed models
+        if "patient." in calculation_body:  # todo generalise exposed models
             function_parameter_list = "context, patient"
             injected_model = self.injected_model
             injected_model_id = self.injected_model_id
-            tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk" : self.injected_model_id})
+            tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk": self.injected_model_id})
         else:
             function_parameter_list = "context"
             injected_model = ""
@@ -118,7 +117,7 @@ class CalculatedFieldParser(object):
                     });
                 });
 
-            </script>""" % (prefix, observer_code, subject_codes_string, prefix, tastypie_url, function_parameter_list,  calculation_body, observer_code, injected_model, injected_model_id)
+            </script>""" % (prefix, observer_code, subject_codes_string, prefix, tastypie_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
 
         logger.debug("calculated field js: %s" % javascript)
         return javascript
