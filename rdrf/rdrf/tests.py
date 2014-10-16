@@ -17,11 +17,11 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 import os
 
+
 class SectionFiller(object):
     def __init__(self, form_filler, section):
         self.__dict__["form_filler"] = form_filler
         self.__dict__["section"] = section
-
 
     def __setattr__(self, key, value):
         if key in self.section.get_elements():
@@ -38,7 +38,6 @@ class FormFiller(object):
         key = settings.FORM_SECTION_DELIMITER.join([self.form.name, section.code, cde_code])
         self.data.update({key: value})
 
-
     def __getattr__(self, item):
         if item in self.section_codes:
             section = Section.objects.get(code=item)
@@ -48,6 +47,7 @@ class FormFiller(object):
 
 class RDRFTestCase(TestCase):
     fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
+
 
 class ExporterTestCase(RDRFTestCase):
 
@@ -81,24 +81,23 @@ class ExporterTestCase(RDRFTestCase):
         assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
         assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
         assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
-        with open("/tmp/test.yaml","w") as f:
+        with open("/tmp/test.yaml", "w") as f:
             f.write(yaml_data)
-
 
         with open("/tmp/test.yaml") as f:
             data = yaml.load(f)
 
         test_key('EXPORT_TYPE', data)
-        test_key('RDRF_VERSION',data)
+        test_key('RDRF_VERSION', data)
         assert data["EXPORT_TYPE"] == ExportType.REGISTRY_PLUS_CDES
         assert 'cdes' in data, "Registry export should have cdes key"
         assert 'pvgs' in data, "Registry export should have groups key"
-        assert data['code'] == 'fh',"Reg code fh not in export"
+        assert data['code'] == 'fh', "Reg code fh not in export"
         test_key('forms', data)
         for form_map in data['forms']:
             test_keys(['is_questionnaire', 'name', 'sections'], form_map)
             for section_map in form_map['sections']:
-                test_keys(['code','display_name','elements','allow_multiple','extra'], section_map)
+                test_keys(['code', 'display_name', 'elements', 'allow_multiple', 'extra'], section_map)
 
         from rdrf.models import CommonDataElement
         dummy_cde = CommonDataElement.objects.create()
@@ -106,25 +105,22 @@ class ExporterTestCase(RDRFTestCase):
         for cde_map in data['cdes']:
             assert isinstance(cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
             for cde_field in cde_fields:
-                assert cde_map.has_key(cde_field), "Expected export of cde to contain field %s - it doesn't" % cde_field
+                assert cde_field in cde_map, "Expected export of cde to contain field %s - it doesn't" % cde_field
 
         for pvg_map in data["pvgs"]:
-            assert pvg_map.has_key("code"), "Expected group has code key: %s" % pvg_map
-            assert pvg_map.has_key("values"), "Expected group has values key: %s" % pvg_map
+            assert "code" in pvg_map, "Expected group has code key: %s" % pvg_map
+            assert "values" in pvg_map, "Expected group has values key: %s" % pvg_map
             for value_map in pvg_map["values"]:
-                assert value_map.has_key("code"), "Expected value map to have code key %s" % value_map
-                assert value_map.has_key("value"), "Expected value map to have value key %s" % value_map
-                assert value_map.has_key("desc"), "Expected value map to have desc key %s" % value_map
-
-
+                assert "code" in value_map, "Expected value map to have code key %s" % value_map
+                assert "value" in value_map, "Expected value map to have value key %s" % value_map
+                assert "desc" in value_map, "Expected value map to have desc key %s" % value_map
 
         # consistency check
-
         set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
         set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
         generic_cdes = set(self.registry.generic_cdes)
 
-        assert set__of_cdes_in_forms == ( set_of_cde_codes_in_cdes - generic_cdes ), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+        assert set__of_cdes_in_forms == (set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
 
         # consistency of values in groups - whats exported is whats there
 
@@ -148,7 +144,7 @@ class ExporterTestCase(RDRFTestCase):
 class ImporterTestCase(RDRFTestCase):
 
     def _get_yaml_file(self):
-        return os.path.join(os.path.dirname(__file__),'fixtures','exported_fh_registry.yaml')
+        return os.path.join(os.path.dirname(__file__), 'fixtures', 'exported_fh_registry.yaml')
 
     def test_importer(self):
         # first delete the FH registry
@@ -166,7 +162,6 @@ class ImporterTestCase(RDRFTestCase):
         for value in CDEPermittedValue.objects.all():
             value.delete()
 
-
         importer = Importer()
         yaml_file = self._get_yaml_file()
 
@@ -180,7 +175,7 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
-        self.state, created = State.objects.get_or_create(short_name="WA",name="Western Australia")
+        self.state, created = State.objects.get_or_create(short_name="WA", name="Western Australia")
 
         self.state.save()
         self.create_sections()
@@ -193,17 +188,14 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
         
         self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
-                                                                                address_type=self.address_type,
-                                                                                suburb='Neverland',
-                                                                                state=self.state,
-                                                                                postcode='1111',
-                                                                                patient=self.patient)
+                                                                             address_type=self.address_type,
+                                                                             suburb='Neverland',
+                                                                             state=self.state,
+                                                                             postcode='1111',
+                                                                             patient=self.patient)
         self.patient_address.save()
 
-        
         self.request_factory = RequestFactory()
-        
-        
 
     def _reset_mongo(self):
         self.client = MongoClient()
@@ -222,7 +214,7 @@ class FormTestCase(RDRFTestCase):
         p.date_of_birth = datetime(1978, 6, 15)
         p.working_group = self.working_group
         p.save()
-        p.rdrf_registry = [self.registry,]
+        p.rdrf_registry = [self.registry]
         return p
 
     def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
@@ -235,10 +227,10 @@ class FormTestCase(RDRFTestCase):
         return section
 
     def create_form(self, name, sections, is_questionnnaire=False):
-        form, created = RegistryForm.objects.get_or_create(name=name,registry=self.registry)
+        form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry)
         form.name = name
         form.registry = self.registry
-        form.sections = ",".join([ section.code for section in sections])
+        form.sections = ",".join([section.code for section in sections])
         form.is_questionnaire = is_questionnnaire
         form.save()
         return form
@@ -258,25 +250,20 @@ class FormTestCase(RDRFTestCase):
         request.user = get_user_model().objects.get(username="curator")
         return request
 
-
-
     def create_sections(self):
         # "simple" sections ( no files or multi-allowed sections
-        self.sectionA = self.create_section("sectionA","Simple Section A",["CDEName","CDEAge"])
+        self.sectionA = self.create_section("sectionA", "Simple Section A", ["CDEName", "CDEAge"])
         self.sectionB = self.create_section("sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
         # A multi allowed section with no file cdes
-        self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"],True)
+        self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
         # A multi allowed section with a file CDE
         #self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
 
-
-    def _create_form_key(self,form, section, cde_code):
+    def _create_form_key(self, form, section, cde_code):
         return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
 
     def test_simple_form(self):
         ff = FormFiller(self.simple_form)
-
-
         ff.sectionA.CDEName = "Fred"
         ff.sectionA.CDEAge = 20
         ff.sectionB.CDEHeight = 1.73
@@ -286,11 +273,10 @@ class FormTestCase(RDRFTestCase):
         print str(form_data)
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
-        view.testing = True # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
-        view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk )
+        view.testing = True  # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
+        view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
 
-
-        mongo_query = {"django_id" : self.patient.pk , "django_model": self.patient.__class__.__name__ }
+        mongo_query = {"django_id": self.patient.pk, "django_model": self.patient.__class__.__name__}
 
         mongo_db = self.client["testing_" + self.registry.code]
 
@@ -308,14 +294,14 @@ class FormTestCase(RDRFTestCase):
 
 class LongitudinalTestCase(FormTestCase):
     def test_simple_form(self):
-        NUM_SECTIONS = 2
+        num_sections = 2
         mongo_db = self.client["testing_" + self.registry.code]
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
         collection = mongo_db["history"]
         record = collection.find_one({"_id": self.patient.pk})
         assert record is not None, "History should be filled in on save"
-        assert record.has_key("snapshots"), "history records should have a snaphots list"
+        assert "snapshots" in record, "history records should have a snaphots list"
         assert type(record["snapshots"]) is type([]), "snapshots should be a list"
         for snapshot_dict in record["snapshots"]:
             assert type(snapshot_dict) is type({}), "Snapshot should be a dict: %s" % type(snapshot_dict)
