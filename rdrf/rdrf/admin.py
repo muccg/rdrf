@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from models import *
-#from registry.groups.models import User
 import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -19,7 +18,7 @@ class SectionAdmin(admin.ModelAdmin):
     ordering = ['code']
     search_fields = ['code', 'display_name']
 
-    def has_add_permission(self, request,*args, **kwargs):
+    def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
             return True
         return False
@@ -29,10 +28,11 @@ class SectionAdmin(admin.ModelAdmin):
             return True
         return False
 
-    def has_delete_permission(self, request,  *args, **kwargs):
+    def has_delete_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
             return True
         return False
+
 
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'sections', 'position')
@@ -45,16 +45,15 @@ class RegistryFormAdmin(admin.ModelAdmin):
             return True
         return False
 
-    def has_change_permission(self, request,  *args, **kwargs):
+    def has_change_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
             return True
         return False
 
-    def has_delete_permission(self, request,  *args, **kwargs):
+    def has_delete_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
             return True
         return False
-
 
 
 def export_registry_action(modeladmin, request, registry_models_selected):
@@ -78,10 +77,10 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             return yaml_data
         except Exception, ex:
             logger.error("export registry action for %s error: %s" % (registry.name, ex))
-            messages.error(request,"Custom Action Failed: %s" % ex)
+            messages.error(request, "Custom Action Failed: %s" % ex)
             return None
 
-    registrys = [ r for r in registry_models_selected ]
+    registrys = [r for r in registry_models_selected]
 
     if len(registrys) == 1:
             registry = registrys[0]
@@ -96,7 +95,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             myfile.seek(0)
 
             response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
-            yaml_export_filename = "export_%s_%s" % ( export_time, yaml_export_filename)
+            yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
             response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
 
             return response
@@ -110,14 +109,14 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             if yaml_data is None:
                 return HttpResponseRedirect("")
 
-            zf.writestr(registry.code + '.yaml',yaml_data )
+            zf.writestr(registry.code + '.yaml', yaml_data)
 
         zf.close()
         zippedfile.flush()
         zippedfile.seek(0)
 
         response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_"  +  reduce(lambda x,y: x + '_and_' + y, [ r.code for r in registrys]) + ".zip"
+        name = "export_" + export_time + "_" + reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
         response['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         return response
@@ -129,17 +128,17 @@ def design_registry_action(modeladmin, request, registry_models_selected):
     if len(registry_models_selected) != 1:
         return
     else:
-        registry = [ r for r in registry_models_selected][0]
+        registry = [r for r in registry_models_selected][0]
         return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
 
 design_registry_action.short_description = "Design"
+
 
 def generate_questionnaire_action(modeladmin, request, registry_models_selected):
     for registry in registry_models_selected:
         registry.generate_questionnaire()
 
 generate_questionnaire_action.short_description = "Generate Questionnaire"
-
 
 
 class RegistryAdmin(admin.ModelAdmin):
@@ -173,11 +172,11 @@ class RegistryAdmin(admin.ModelAdmin):
         
         return original_urls
 
+
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_display = ('registry', 'date_submitted', 'processed', 'process_link', 'name', 'date_of_birth')
     list_filter = ('registry', 'date_submitted')
-    
-    
+
     def process_link(self, obj):
         link = "-"
         if not obj.processed:
@@ -190,7 +189,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
         if user.is_superuser:
             return QuestionnaireResponse.objects.all()
         else:
-            return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all() ])
+            return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all()])
     
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
@@ -216,7 +215,7 @@ def create_restricted_model_admin_class(model_class, search_fields=None, orderin
         "has_add_permission": make_perm_func(),
         "has_change_permission": make_perm_func(),
         "has_delete_permission": make_perm_func(),
-        "queryset" : query_set_func(model_class),
+        "queryset": query_set_func(model_class),
     }
 
     if search_fields:
@@ -226,7 +225,7 @@ def create_restricted_model_admin_class(model_class, search_fields=None, orderin
     if list_display:
         overrides["list_display"] = list_display
 
-    return type(model_class.__name__ + "Admin" , (admin.ModelAdmin,), overrides)
+    return type(model_class.__name__ + "Admin", (admin.ModelAdmin,), overrides)
 
 
 class CDEPermittedValueAdmin(admin.StackedInline):
@@ -234,12 +233,12 @@ class CDEPermittedValueAdmin(admin.StackedInline):
     extra = 0
     
     fieldsets = (
-        (None, {'fields':('code', 'value', 'questionnaire_value', 'desc', 'position')}),
+        (None, {'fields': ('code', 'value', 'questionnaire_value', 'desc', 'position')}),
     )
     
 
 class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
-    inlines = [CDEPermittedValueAdmin,]
+    inlines = [CDEPermittedValueAdmin]
 
 
 admin.site.register(Registry, RegistryAdmin)
@@ -251,5 +250,3 @@ admin.site.register(CommonDataElement, create_restricted_model_admin_class(Commo
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)
-
-
