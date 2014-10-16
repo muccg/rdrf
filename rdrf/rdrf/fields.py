@@ -9,8 +9,7 @@ class DatatypeFieldAlphanumericxxsx(URLField):
 class ChoiceWithOtherPleaseSpecify(ChoiceField):
     pass
 
+
 class CustomFieldC18587(CharField):
     def to_python(self, value):
         return value + "haha"
-
-
