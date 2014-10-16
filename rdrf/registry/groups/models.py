@@ -5,7 +5,8 @@ from rdrf.models import Registry
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 class WorkingGroup(models.Model):
-    name = models.CharField(max_length=40)
+    name = models.CharField(max_length=100)
+    registry = models.ForeignKey(Registry, null=True)
 
     class Meta:
         ordering = ["name"]

@@ -21,6 +21,8 @@ class DynamicDataWrapper(object):
     wrapper.save_dynamic_data("sma","cdes", new_data)
 
     """
+    REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION = "registry_specific_patient_data"
+
     def __init__(self, obj, client=MongoClient(), filestore_class=gridfs.GridFS):
         self.testing = False # When set to True by integration tests, uses testing mongo database
         self.obj = obj
@@ -73,6 +75,55 @@ class DynamicDataWrapper(object):
         self._wrap_gridfs_files_from_mongo(registry, data)
         logger.debug("%s: dynamic data = %s" % (self, data))
         return data
+
+    def load_registry_specific_data(self):
+        data = {}
+        record_query = self._get_record_query()
+        logger.debug("record_query = %s" % record_query)
+        for reg_code in self._get_registry_codes():
+            logger.debug("checking for reg specific fields in registry %s" % reg_code)
+            collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+            registry_data = collection.find_one(record_query)
+            logger.debug("registry_data = %s" % registry_data)
+            if registry_data:
+                for k in [ 'django_id', '_id', 'django_model']:
+                    del registry_data[k]
+                data[reg_code] = registry_data
+
+        logger.debug("registry_specific_data  = %s" % data)
+        return data
+
+    def _get_registry_codes(self):
+        reg_codes = self.client.database_names()
+        logger.debug("reg_codes = %s" % reg_codes)
+        return reg_codes
+
+
+    def save_registry_specific_data(self, data):
+        logger.debug("saving registry specific mongo data: %s" % data)
+        for reg_code in data:
+            logger.debug("saving data into %s db" % reg_code)
+            registry_data = data[reg_code]
+            logger.debug("data to save for %s = %s" % (reg_code, registry_data))
+            collection = self._get_collection(reg_code, "registry_specific_patient_data")
+            logger.debug("collection = %s" % collection)
+            query = self._get_record_query()
+            record = collection.find_one(query)
+            if record:
+                logger.debug("found record: %s" % record)
+                mongo_id = record['_id']
+                logger.debug("mongo id = %s" % mongo_id)
+                collection.update({'_id': mongo_id}, {"$set": registry_data }, upsert=False)
+                logger.debug("updated collection OK")
+            else:
+                logger.debug("record not found - inserting new record ...")
+                record = self._get_record_query()
+                record.update(registry_data)
+                logger.debug("about tpo insert record %s into collection %s for registry %s" % (record, collection, reg_code))
+                collection.insert(record)
+                logger.debug("inserted record OK")
+
+
 
     def _wrap_gridfs_files_from_mongo(self, registry, data):
         """

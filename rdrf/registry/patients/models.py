@@ -7,6 +7,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import json
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
@@ -69,13 +70,13 @@ class PatientManager(models.Manager):
         return self.model.objects.filter(rdrf_registry__in=registry)
 
     def get_by_working_group(self, user):
-        return self.model.objects.filter(working_group__in=get_working_groups(user))
+        return self.model.objects.filter(working_groups__in=get_working_groups(user))
 
     def get_filtered(self, user):
-        return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_group__in=get_working_groups(user)).distinct()
+        return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_groups__in=get_working_groups(user)).distinct()
     
     def get_filtered_unallocated(self, user):
-        return self.model.objects.filter(working_group__in=get_working_groups(user)).exclude(rdrf_registry__isnull=False)
+        return self.model.objects.filter(working_groups__in=get_working_groups(user)).exclude(rdrf_registry__isnull=False)
 
 
 class Patient(models.Model):
@@ -84,18 +85,36 @@ class Patient(models.Model):
     else:
         SEX_CHOICES = ( ("M", "Male"), ("F", "Female"), ("X", "Other/Intersex") )
 
+    ETHNIC_ORIGIN = (
+        ("Aboriginal", "Aboriginal"),
+        ("Person from Torres Strait Islands", "Person from Torres Strait Islands"),
+        ("Black African/African American", "Black African/African American"),
+        ("Caucasian/European", "Caucasian/European"),
+        ("Chinese", "Chinese"),
+        ("Indian", "Indian"),
+        ("Maori", "Maori"),
+        ("Aboriginal", "Aboriginal"),
+        ("Middle eastern", "Middle eastern"),
+        ("Person from the Pacific Islands", "Person from the Pacific Islands"),
+        ("Other Asian", "Other Asian"),
+        ("Other", "Other"),
+        ("Decline to Answer", "Decline to Answer"),
+    )
+
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
-    working_group = models.ForeignKey(registry.groups.models.WorkingGroup, null=False, blank=False, verbose_name="Centre")
+    working_groups = models.ManyToManyField(registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
     consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition.", verbose_name="consent to allow clinical trials given", default=False)
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
+    maiden_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Maiden Name")
     umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
-    date_of_migration = models.DateField(help_text="If migrated", blank=True, null=True)
+    country_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Country of Birth")
+    ethnic_origin = models.CharField(choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     home_phone = models.CharField(max_length=30, blank=True, null=True)
     mobile_phone = models.CharField(max_length=30, blank=True, null=True)
@@ -116,6 +135,16 @@ class Patient(models.Model):
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
+
+    @property
+    def working_groups_display(self):
+        def display_group(working_group):
+            if working_group.registry:
+                return "%s:%s" % (working_group.registry.code.upper(), working_group.name)
+            else:
+                return working_group.name
+
+        return  ",".join([ display_group(wg) for wg in self.working_groups.all() ])
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -165,7 +194,6 @@ class Patient(models.Model):
             date_of_birth=str(self.date_of_birth)
             )
 
-
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
@@ -200,7 +228,7 @@ class PatientDoctor(models.Model):
     class Meta:
         verbose_name = "medical professionals for patient"
         verbose_name_plural = "medical professionals for patient"
-        
+
 
 
 @receiver(post_save, sender=Patient)
@@ -229,12 +257,19 @@ def _save_patient_mongo(patient_obj):
 
 
 def _update_mongo_obj(mongo_doc, patient_model):
+    keys_to_delete = []
     for key, value in mongo_doc.iteritems():
         if key in ['rdrf_registry', ]:
             mongo_doc[key] = _get_registry_for_mongo(patient_model[key])
         if key not in ['django_id', '_id', 'rdrf_registry']:
-            mongo_doc[key] = patient_model[key]
+            if key in patient_model:
+                logger.info("key %s is not present in patient_model and will be deleted from the mongo doc ..." % key)
+                mongo_doc[key] = patient_model[key]
+            else:
+                keys_to_delete.append(key)
 
+    for key in keys_to_delete:
+        del mongo_doc[key]
 
 def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)

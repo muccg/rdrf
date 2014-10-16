@@ -5,26 +5,27 @@ import json
 from django.conf import settings
 from django.forms.models import model_to_dict
 from rdrf import VERSION
-
 import datetime
-
-
 
 logger = logging.getLogger("registry_log")
 
+
 class ExportException(Exception):
     pass
+
 
 class ExportFormat:
     JSON = "JSON"
     YAML = "YAML"
 
+
 class ExportType:
-    REGISTRY_ONLY = "REGISTRY_ONLY"             # Only registry, forms , sections - No CDEs
-    REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"   # As above with cdes used by the registry
-    REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES" # registry + all cdes in the site
-    REGISTRY_CDES = "REGISTRY_CDES" # only the cdes in the supplied registry ( no forms)
-    ALL_CDES = "ALL_CDES" # All CDEs in the site
+    REGISTRY_ONLY = "REGISTRY_ONLY"                     # Only registry, forms , sections - No CDEs
+    REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"           # As above with cdes used by the registry
+    REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES"   # registry + all cdes in the site
+    REGISTRY_CDES = "REGISTRY_CDES"                     # only the cdes in the supplied registry ( no forms)
+    ALL_CDES = "ALL_CDES"                               # All CDEs in the site
+
 
 class Exporter(object):
     """
@@ -75,24 +76,21 @@ class Exporter(object):
         except Exception, ex:
             return None, [ex]
 
-
-
     def export_json(self):
         return self._export(ExportFormat.JSON)
 
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             cdes = set([])
-        elif export_type in [ ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
-            cdes = set([ cde for cde in self._get_cdes_in_registry(self.registry) ])
-        elif export_type in [ ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            cdes = set([ cde for cde in CommonDataElement.objects.all() ])
+        elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+            cdes = set([cde for cde in self._get_cdes_in_registry(self.registry)])
+        elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
+            cdes = set([cde for cde in CommonDataElement.objects.all()])
         else:
             raise ExportException("Unknown export type")
 
         generic_cdes = self._get_generic_cdes()
         return cdes.union(generic_cdes)
-
 
     def _get_pvgs_in_registry(self, registry):
         pvgs = set([])
@@ -105,10 +103,10 @@ class Exporter(object):
     def _get_pvgs(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             pvgs = set([])
-        elif export_type in [ ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
-            pvgs = set([ pvg for pvg in  self._get_pvgs_in_registry(self.registry) ])
-        elif export_type in [ ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            pvgs = set([ pvg for pvg  in CDEPermittedValueGroup.objects.all() ])
+        elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+            pvgs = set([pvg for pvg in self._get_pvgs_in_registry(self.registry)])
+        elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
+            pvgs = set([pvg for pvg in CDEPermittedValueGroup.objects.all()])
         else:
             raise ExportException("Unknown export type")
         return pvgs
@@ -139,18 +137,23 @@ class Exporter(object):
 
         return frm_map
 
-    def _export(self,format, export_type):
+    def _export(self, format, export_type):
         data = {}
-
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
-        data["cdes"] = [ model_to_dict(cde) for cde in self._get_cdes(export_type) ]
-        data["pvgs"] = [ pvg.as_dict() for pvg in self._get_pvgs(export_type) ]
+        data["cdes"] = [model_to_dict(cde) for cde in self._get_cdes(export_type)]
+        data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
 
+        if self.registry.patient_data_section:
+            data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
+        else:
+            data["patient_data_section"] = {}
 
-        if export_type in [ ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
+        data["working_groups"] = self._get_working_groups()
+
+        if export_type in [ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
             data["code"] = self.registry.code
             data["splash_screen"] = self.registry.splash_screen
@@ -169,7 +172,7 @@ class Exporter(object):
             logger.debug("About to yaml dump the export: data = %s" % data)
             try:
                 export_data = yaml.dump(data)
-            except Exception,ex:
+            except Exception, ex:
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
         elif format == ExportFormat.JSON:
@@ -195,7 +198,7 @@ class Exporter(object):
         """
         return self._export_cdes(all_cdes, ExportFormat.YAML)
 
-    def _export_cdes(self,all_cdes):
+    def _export_cdes(self, all_cdes):
         if all_cdes:
             cdes = CommonDataElement.objects.all()
         else:
@@ -238,7 +241,6 @@ class Exporter(object):
 
             data["cdes"].append(cde_map)
 
-
         for group_code in groups_used:
             group_map = {}
 
@@ -273,6 +275,16 @@ class Exporter(object):
             section_codes = registry_form.get_sections()
             cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
+        if registry_model.patient_data_section:
+            patient_data_section_cdes = set(registry_model.patient_data_section.cde_models)
+        else:
+            patient_data_section_cdes = set([])
+
+        cdes = cdes.union(patient_data_section_cdes)
+
+        generic_cdes = self._get_generic_cdes()
+        cdes = cdes.union(generic_cdes)
+
         return cdes
 
     def _get_cdes_for_sections(self, section_codes):
@@ -286,18 +298,16 @@ class Exporter(object):
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist,ex:
+                    except CommonDataElement.DoesNotExist, ex:
                         logger.error("No CDE with code: %s" % cde_code)
 
-            except Section.DoesNotExist,ex:
+            except Section.DoesNotExist, ex:
                 logger.error("No Section with code: %s" % section_code)
         return cdes
-
 
     def _get_generic_cdes(self):
         return self._get_cdes_for_sections(self.registry.generic_sections)
 
-
-
-
-
+    def _get_working_groups(self):
+        from registry.groups.models import WorkingGroup
+        return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
