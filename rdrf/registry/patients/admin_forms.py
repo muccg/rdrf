@@ -102,4 +102,5 @@ class PatientForm(forms.ModelForm):
                 bad.append(reg_code)
 
         if bad:
-            raise forms.ValidationError("Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad))
+            bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
+            raise forms.ValidationError("Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad_regs))
