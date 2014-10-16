@@ -147,7 +147,7 @@ make_virtualenv() {
 
 # lint using flake8
 function lint() {
-    virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
+    virt_rdrf/bin/flake8 rdrf/rdrf --exclude=migrations --ignore=E501 --count
 }
 
 # lint js, assumes closure compiler
@@ -283,6 +283,9 @@ test)
     ;;
 ci_lint)
     ci_lint
+    ;;
+lint)
+    lint
     ;;
 syncmigrate)
     settings
