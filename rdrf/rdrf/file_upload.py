@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
+
 class FileUpload(object):
     """
     A wrapper to send to the django widget which will display the file upload
@@ -25,6 +26,7 @@ class FileUpload(object):
         uses django's force_text function
         """
         return self.gridfs_dict['file_name']
+
 
 def wrap_gridfs_data_for_form(registry, data):
     """
