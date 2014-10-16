@@ -302,14 +302,10 @@ class LongitudinalTestCase(FormTestCase):
         record = collection.find_one({"_id": self.patient.pk})
         assert record is not None, "History should be filled in on save"
         assert "snapshots" in record, "history records should have a snaphots list"
-        assert type(record["snapshots"]) is type([]), "snapshots should be a list"
+        assert isinstance(record["snapshots"], list), "snapshots should be a list"
         for snapshot_dict in record["snapshots"]:
-            assert type(snapshot_dict) is type({}), "Snapshot should be a dict: %s" % type(snapshot_dict)
-            assert snapshot_dict.has_key("timestamp"), "snapshot dict should have  timestamp key"
+            assert isinstance(snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
+            assert "timestamp" in snapshot_dict, "snapshot dict should have  timestamp key"
             assert type(snapshot_dict["timestamp"]) is type(u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
-            assert snapshot_dict.has_key("record"), "snapshot dict should have key record"
+            assert "record" in snapshot_dict, "snapshot dict should have key record"
         assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])
-
-
-
-
