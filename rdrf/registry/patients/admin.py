@@ -6,7 +6,8 @@ from django.core import urlresolvers
 from django.core.urlresolvers import reverse
 from django.conf import settings
 import os
-import json, datetime
+import json
+import datetime
 from rdrf.utils import de_camelcase
 from rdrf.models import Registry, RegistryForm
 from registry.utils import get_static_url, get_working_groups, get_registries
@@ -76,7 +77,7 @@ class PatientAdmin(admin.ModelAdmin):
     inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
-    list_filter = [RegistryFilter,]
+    list_filter = [RegistryFilter]
     
     def full_name(self, obj):
        return obj.__unicode__()
@@ -88,7 +89,6 @@ class PatientAdmin(admin.ModelAdmin):
     
     demographic_btn.allow_tags = True
     demographic_btn.short_description = 'Demographics'
-
 
     def data_modules_btn(self, obj):
         if obj.rdrf_registry.count() == 0:
@@ -107,7 +107,7 @@ class PatientAdmin(admin.ModelAdmin):
         
         rdrf = Registry.objects.get(pk=rdrf_id)
         not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
-        forms = [ f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) ]
+        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) ]
 
         content = ''
         
@@ -127,10 +127,9 @@ class PatientAdmin(admin.ModelAdmin):
     data_modules_btn.allow_tags = True
     data_modules_btn.short_description = 'Data Modules'
 
-
     def get_form(self, request, obj=None, **kwargs):
         # NB. This method returns a form class
-        user =  get_user_model().objects.get(username=request.user)
+        user = get_user_model().objects.get(username=request.user)
         registry_specific_fields = self._get_registry_specific_patient_fields(user)
         self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
         form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
@@ -167,7 +166,7 @@ class PatientAdmin(admin.ModelAdmin):
         for reg_code in reg_spec_field_defs:
             cde_field_pairs = reg_spec_field_defs[reg_code]
             fieldset_title = "%s Specific Fields" % reg_code
-            field_dict = {"fields" : [ pair[0].code for pair in cde_field_pairs ]} # pair up cde name and field object generated from that cde
+            field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}  # pair up cde name and field object generated from that cde
             fieldsets.append((fieldset_title, field_dict))
         return fieldsets
 
