@@ -16,6 +16,7 @@ from models import CommonDataElement
 
 logger = logging.getLogger('registry_log')
 
+
 class FieldContext:
     """
     Where a field can appear - on a form or in a questionnaire
@@ -23,6 +24,7 @@ class FieldContext:
     """
     CLINICAL_FORM = "Form"
     QUESTIONNAIRE = "Questionnaire"
+
 
 class FieldFactory(object):
     # registry overrides
@@ -41,17 +43,17 @@ class FieldFactory(object):
     # NB options can be added as pair as in the alphanumeric case  - don't return _instances here
     # updated before return
     DATATYPE_DICTIONARY = {
-       "string": django.forms.CharField,
-       "alphanumeric": (django.forms.RegexField, {"regex": r'^[a-zA-Z0-9]*$'}),
-       "integer": django.forms.IntegerField,
-       "date": (django.forms.DateField, {"help_text" : "DD-MM-YYYY", "input_formats": ['%d-%m-%Y']}),
-       "boolean": django.forms.BooleanField,
-       "float" : django.forms.FloatField,
+        "string": django.forms.CharField,
+        "alphanumeric": (django.forms.RegexField, {"regex": r'^[a-zA-Z0-9]*$'}),
+        "integer": django.forms.IntegerField,
+        "date": (django.forms.DateField, {"help_text": "DD-MM-YYYY", "input_formats": ['%d-%m-%Y']}),
+        "boolean": django.forms.BooleanField,
+        "float": django.forms.FloatField,
     }
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire=False,injected_model=None, injected_model_id=None):
+    def __init__(self, registry, registry_form, section, cde, questionnaire=False, injected_model=None, injected_model_id=None):
         """
         :param cde: Common Data Element model instance
         """
@@ -111,13 +113,10 @@ class FieldFactory(object):
         return self.cde.datatype
 
     def _get_field_options(self):
-
-
-        options_dict =  {"label": self._get_field_name(),
-                "help_text": self._get_help_text(),
-                "required": self._get_required(),
-        }
-
+        options_dict = {"label": self._get_field_name(),
+                        "help_text": self._get_help_text(),
+                        "required": self._get_required(),
+                        }
         validators = self.validator_factory.create_validators()
         if validators:
             options_dict['validators'] = validators
@@ -169,11 +168,10 @@ class FieldFactory(object):
         return getattr(widgets, self.DATATYPE_WIDGET_TEMPLATE % self.cde.datatype.replace(" ", ""))
 
     def _has_field_for_dataype(self):
-        return hasattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ",""))
+        return hasattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
 
     def _get_field_for_datatype(self):
         return getattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
-
 
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
@@ -268,13 +266,13 @@ class FieldFactory(object):
                     if widget:
                         options['widget'] = widget
 
-                    options['choices'] = [ choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
+                    options['choices'] = [choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
                     return MultipleChoiceField(**options)
                 else:
                     if widget:
                         options['widget'] = widget
                         if "RadioSelect" in str(widget):
-                            options["choices"] = options['choices'][1:] # get rid of the unset choice
+                            options["choices"] = options['choices'][1:]     # get rid of the unset choice
                             logger.debug("adjusted options for radio select: cde = %s field options = %s" % (self.cde, options))
 
                     return django.forms.ChoiceField(**options)
@@ -326,7 +324,7 @@ class FieldFactory(object):
             else:
                 if self.cde.datatype.lower() == 'date':
                     from django.forms.extras.widgets import SelectDateWidget
-                    years = [ yr for yr in range(1920,2012,1)]
+                    years = [yr for yr in range(1920, 2012, 1)]
                     widget = SelectDateWidget(years=years)
 
             if self._has_widget_override():
@@ -351,8 +349,10 @@ class FieldFactory(object):
 class ComplexFieldParseError(Exception):
     pass
 
+
 class ComplexFieldFactory(object):
     DATATYPE_PATTERN = "^ComplexField\((.*)\)$"
+
     def __init__(self, cde):
         self.cde = cde
 
@@ -385,7 +385,7 @@ class ComplexFieldFactory(object):
             raise ComplexFieldParseError("%s couldn't be created - didn't match pattern" % self)
         else:
             cde_code_csv = m.groups(0)[0]
-            cde_codes = [ code.strip() for code in cde_code_csv.split(",") ]
+            cde_codes = [code.strip() for code in cde_code_csv.split(",")]
             cdes = []
             for cde_code in cde_codes:
                 try:
@@ -396,7 +396,6 @@ class ComplexFieldFactory(object):
                     raise ComplexFieldParseError("%s couldn't be created: %s" % (self, ex))
 
             return cdes
-
 
     def _create_multi_widget(self):
         class_dict = {}
@@ -414,20 +413,19 @@ class ComplexFieldFactory(object):
                 return [None] * len(self.component_cdes)
 
         def format_output_method(itself, rendered_widgets):
-           "&nbsp;&nbsp;&nbsp;&nbsp;".join(rendered_widgets)
+            "&nbsp;&nbsp;&nbsp;&nbsp;".join(rendered_widgets)
 
         class_dict['decompress'] = decompress_method
         #class_dict['format_output'] = format_output_method
         multi_widget_class = type(str(complex_widget_class_name), (MultiWidget,), class_dict)
-        multi_widget_instance = multi_widget_class(self.component_widgets,attrs=None)
+        multi_widget_instance = multi_widget_class(self.component_widgets, attrs=None)
         return multi_widget_instance
-
 
     def create(self, options_dict):
         self._load_components()
 
         options_dict["fields"] = self.component_fields
-        complex_field_class_name = "MultiValueFieldFrom%s" % "".join([cde.code for cde in self.component_cdes ])
+        complex_field_class_name = "MultiValueFieldFrom%s" % "".join([cde.code for cde in self.component_cdes])
         class_dict = {}
 
         def compress_method(itself, data_list):
@@ -444,12 +442,14 @@ class ComplexFieldFactory(object):
 
         class_dict["widget"] = self._create_multi_widget()
         class_dict['compress'] = compress_method
-        complex_field_class = type(str(complex_field_class_name),(MultiValueField,), class_dict)
+        complex_field_class = type(str(complex_field_class_name), (MultiValueField,), class_dict)
 
         return complex_field_class(**options_dict)
 
+
 class ListFieldParseError(Exception):
     pass
+
 
 class ListFieldFactory(object):
     """
