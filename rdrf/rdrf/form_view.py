@@ -30,6 +30,7 @@ from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
+
 def log_context(when, context):
     logger.debug("dumping page context: %s" % when)
     logger.debug("context = %s" % context)
@@ -51,11 +52,10 @@ def log_context(when, context):
                 logger.debug("field %s.%s = %s" % (field_name, attr, getattr(field_object, attr)))
 
 
-
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
-        self.testing = False # when set to True in integration testing, switches off unsupported messaging middleware
+        self.testing = False    # when set to True in integration testing, switches off unsupported messaging middleware
         self.template = 'rdrf_cdes/form.html'
         self.registry = None
         self.dynamic_data = {}
@@ -72,9 +72,8 @@ class FormView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry %s does not exist" % registry_code)
 
-
     def _get_dynamic_data(self, **kwargs):
-        if kwargs.has_key('model_class'):
+        if 'model_class' in kwargs:
             model_class = kwargs['model_class']
         else:
             model_class = Patient
@@ -82,9 +81,8 @@ class FormView(View):
         dyn_obj = DynamicDataWrapper(obj)
         if self.testing:
             dyn_obj.testing = True
-        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'],"cdes")
+        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
-
 
     @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id):
@@ -104,7 +102,7 @@ class FormView(View):
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
         dummy = form_class()
-        ids = [ field  for field in dummy.fields.keys() ]
+        ids = [field for field in dummy.fields.keys()]
         logger.debug("ids = %s" % ids)
         return ",".join(ids)
 
