@@ -2,6 +2,7 @@ from rdrf_cdes.models import CDEPermittedValueGroup, CDEPermittedValue, CommonDa
 from lxml import etree
 import sys
 
+
 class NINDSReportParser:
     CDE_CODE = 'textbox12'
     CDE_NAME = 'VariableName'
@@ -75,21 +76,21 @@ class NINDSReportParser:
             references=elem.get(cls.CDE_REFERENCES),
             population=elem.get(cls.CDE_POPULATION),
             classification=elem.get(cls.CDE_CLASSIFICATION),
-            version = elem.get(cls.CDE_VERSION),
-            version_date = (elem.get(cls.CDE_VERSION_DATE).split('T', 1))[0],
+            version=elem.get(cls.CDE_VERSION),
+            version_date=(elem.get(cls.CDE_VERSION_DATE).split('T', 1))[0],
             variable_name = elem.get(cls.CDE_VARIABLE_NAME),
             aliases_for_variable_name = elem.get(cls.CDE_VARIABLE_NAME_ALIASES),
             crf_module = elem.get(cls.CDE_CRF_MODULE),
             subdomain = elem.get(cls.CDE_SUBDOMAIN),
             domain = elem.get(cls.CDE_DOMAIN),
             pv_group = pvg,
-            )
+        )
         print "Created: ", new_obj
         new_obj.save()
 
     @classmethod
     def parse_file(cls, xml_file):
-        print "Parsing: "+xml_file
+        print "Parsing: " + xml_file
         with open(xml_file, 'r') as fd:
             et = etree.parse(fd)
         for table1_group1 in etree.ETXPath('./{rptAllCDE}table1/{rptAllCDE}table1_Group1_Collection/{rptAllCDE}table1_Group1')(et.getroot()):
