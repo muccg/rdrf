@@ -8,6 +8,7 @@ from django.core.exceptions import MultipleObjectsReturned
 
 logger = logging.getLogger("registry_log")
 
+
 def _registries_using_cde(cde_code):
     registries = set([])
     for r in Registry.objects.all():
@@ -22,25 +23,32 @@ def _registries_using_cde(cde_code):
                     if cde_code == cde_code_in_section:
                         registries.add(r.code)
 
-    return [ code for code in registries]
+    return [code for code in registries]
+
 
 class RegistryImportError(Exception):
     pass
 
+
 class BadDefinitionFile(RegistryImportError):
     pass
+
 
 class DefinitionFileUnsound(RegistryImportError):
     pass
 
+
 class DefinitionFileInvalid(RegistryImportError):
     pass
+
 
 class ConsistencyError(RegistryImportError):
     pass
 
+
 class QuestionnaireGenerationError(RegistryImportError):
     pass
+
 
 class ImportState:
     INITIAL = "INITIAL"
@@ -49,8 +57,9 @@ class ImportState:
     VALID = "VALID"
     INVALID = "INVALID"
     SOUND = "SOUND"   # the registry has been created and check to have no dangling cde codes
-    UNSOUND = "UNSOUND" # the spec contains references to cdes which don't exist
+    UNSOUND = "UNSOUND"  # the spec contains references to cdes which don't exist
     IMPORTED = "IMPORTED"
+
 
 class Importer(object):
     def __init__(self):
@@ -102,7 +111,6 @@ class Importer(object):
 
         else:
             self.state = ImportState.SOUND
-
 
     def _validate(self):
         ve = []
@@ -159,7 +167,7 @@ class Importer(object):
 
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against the original yaml data
-        form_codes_in_db = set([ frm.name for frm in RegistryForm.objects.filter(registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
+        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
@@ -185,7 +193,6 @@ class Importer(object):
             if sections_in_db != yaml_sections:
                 msg = "sections in imported reg: %s\nsections in yaml: %s" % (sections_in_db, yaml_sections)
                 raise RegistryImportError("Imported registry has different sections for form %s: %s" % (form.name, msg))
-
 
     def _check_cdes(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
@@ -228,8 +235,8 @@ class Importer(object):
             #logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
-                existing_values = [ pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg) ]
-                existing_value_codes = set([ pv.code for pv in existing_values])
+                existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
+                existing_value_codes = set([pv.code for pv in existing_values])
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
                 import_extra = import_value_codes - existing_value_codes
                 import_missing = existing_value_codes - import_value_codes
@@ -243,24 +250,24 @@ class Importer(object):
                     value.delete()
 
             for value_map in pvg_map["values"]:
-                    value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"],pv_group=pvg)
+                    value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"], pv_group=pvg)
                     if not created:
                         if value.value != value_map["value"]:
-                            logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code,value.code, value.value))
+                            logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code, value.code, value.value))
                             logger.warning("Import value code %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["value"]))
 
                         if value.desc != value_map["desc"]:
-                            logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code,value.code, value.desc))
+                            logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code, value.code, value.desc))
                             logger.warning("Import value desc %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["desc"]))
 
                     # update the value ...
                     value.value = value_map["value"]
                     value.desc = value_map["desc"]
 
-                    if value_map.has_key('questionnaire_value'):
+                    if 'questionnaire_value' in value_map:
                         value.questionnaire_value = value_map['questionnaire_value']
 
-                    if value_map.has_key('position'):
+                    if 'position' in value_map:
                         value.position = value_map['position']
 
                     value.save()
@@ -286,7 +293,6 @@ class Importer(object):
                         if old_value != import_value:
                             logger.warning("import will change cde %s: import value = %s new value = %s" % (cde_model.code, old_value, import_value))
 
-
                     setattr(cde_model, field, cde_map[field])
                     #logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
@@ -297,10 +303,10 @@ class Importer(object):
                     pvg = CDEPermittedValueGroup.objects.get(code=cde_map["pv_group"])
                     if not created:
                         if cde_model.pv_group != pvg:
-                             logger.warning("import will change cde %s: old group = %s new group = %s" % (cde_model.code,cde_model.pv_group, pvg ))
+                            logger.warning("import will change cde %s: old group = %s new group = %s" % (cde_model.code, cde_model.pv_group, pvg))
 
                     cde_model.pv_group = pvg
-                except CDEPermittedValueGroup.DoesNotExist,ex:
+                except CDEPermittedValueGroup.DoesNotExist, ex:
                     raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" % (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
@@ -337,7 +343,6 @@ class Importer(object):
         else:
             return None
 
-
     def _create_registry_objects(self):
         self._create_groups(self.data["pvgs"])
         logger.info("imported pvgs OK")
@@ -353,16 +358,15 @@ class Importer(object):
         if created:
             logger.debug("creating registry with code %s from import of %s" % (self.data["code"], self.yaml_data_file))
 
-        original_forms = set([ f.name for f in RegistryForm.objects.filter(registry=r)])
+        original_forms = set([f.name for f in RegistryForm.objects.filter(registry=r)])
         imported_forms = set([])
         r.code = self.data["code"]
         r.name = self.data["name"]
 
-        if self.data.has_key("REGISTRY_VERSION"):
+        if "REGISTRY_VERSION" in self.data:
             r.version = self.data["REGISTRY_VERSION"]
         else:
-            r.version = "" # old style no version
-
+            r.version = ""  # old style no version
 
         r.splash_screen = self.data["splash_screen"]
 
@@ -380,11 +384,11 @@ class Importer(object):
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
             f.name = frm_map["name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
-            if frm_map.has_key("questionnaire_questions"):
+            if "questionnaire_questions" in frm_map:
                 f.questionnaire_questions = frm_map["questionnaire_questions"]
 
             f.registry = r
-            f.sections = ",".join([ section_map["code"] for section_map in frm_map["sections"]])
+            f.sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
@@ -424,7 +428,7 @@ class Importer(object):
         if "working_groups" in self.data:
             working_group_names = self.data["working_groups"]
             logger.debug("working_groups in metadata")
-            existing_groups = set([ wg for wg in WorkingGroup.objects.filter(registry=registry)])
+            existing_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry)])
             new_groups = set([])
             for working_group_name in working_group_names:
                 working_group, created = WorkingGroup.objects.get_or_create(name=working_group_name, registry=registry)
@@ -438,5 +442,5 @@ class Importer(object):
             groups_to_unlink = existing_groups - new_groups
             for wg in groups_to_unlink:
                 logger.info("deleting delete()working group %s for %s registry import" % (wg.name, registry.name))
-                wg.registry = None # if we delete the group the patients get deleted .. todo need to confirm behaviour
+                wg.registry = None  # if we delete the group the patients get deleted .. todo need to confirm behaviour
                 wg.save()
