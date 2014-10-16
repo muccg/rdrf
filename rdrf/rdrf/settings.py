@@ -20,7 +20,7 @@ FORM_SECTION_DELIMITER = "____"
 
 ROOT_URLCONF = 'rdrf.urls'
 
-SECRET_KEY = env.get("secret_key","changeme")
+SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
 TIME_ZONE = 'Australia/Perth'
 LANGUAGE_CODE = 'en-us'
@@ -28,12 +28,12 @@ USE_I18N = True
 
 DATABASES = {
     'default': {
-        'ENGINE': env.get_db_engine("dbtype","pgsql"),         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': env.get("dbname","rdrf"),                      # Or path to database file if using sqlite3.
-        'USER': env.get("dbuser","rdrf"),                      # Not used with sqlite3.
-        'PASSWORD': env.get("dbpass","rdrf"),                  # Not used with sqlite3.
-        'HOST': env.get("dbserver",""),                        # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': env.get("dbport",""),                          # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': env.get_db_engine("dbtype", "pgsql"),         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': env.get("dbname", "rdrf"),                      # Or path to database file if using sqlite3.
+        'USER': env.get("dbuser", "rdrf"),                      # Not used with sqlite3.
+        'PASSWORD': env.get("dbpass", "rdrf"),                  # Not used with sqlite3.
+        'HOST': env.get("dbserver", ""),                        # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': env.get("dbport", ""),                          # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -44,7 +44,7 @@ TEMPLATE_LOADERS = [
 ]
 
 TEMPLATE_DIRS = (
-    os.path.join(WEBAPP_ROOT,'rdrf', 'templates'),
+    os.path.join(WEBAPP_ROOT, 'rdrf', 'templates'),
 )
 
 MESSAGE_TAGS = {
@@ -87,7 +87,6 @@ INSTALLED_APPS = [
 ]
 
 
-
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
     'django.core.context_processors.request',
 )
@@ -96,7 +95,7 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
- 'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend'
 ]
 
 # email
@@ -111,7 +110,7 @@ SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf_dev")
 
 # default emailsn
 ADMINS = [
-    ('alerts',env.get("alert_email","root@localhost"))
+    ('alerts', env.get("alert_email", "root@localhost"))
 ]
 MANAGERS = ADMINS
 
@@ -171,7 +170,7 @@ if env.get("memcache", ""):
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': env.getlist("memcache"),
-            'KEY_PREFIX': env.get("key_prefix","")
+            'KEY_PREFIX': env.get("key_prefix", "")
         }
     }
 
@@ -206,51 +205,51 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
         },
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'errorfile':{
-            'level':'ERROR',
-            'class':'logging.handlers.TimedRotatingFileHandler',
+        'errorfile': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIRECTORY, 'error.log'),
-            'when':'midnight',
+            'when': 'midnight',
             'formatter': 'verbose'
         },
-        'registryfile':{
-            'class':'logging.handlers.TimedRotatingFileHandler',
+        'registryfile': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIRECTORY, 'registry.log'),
-            'when':'midnight',
+            'when': 'midnight',
             'formatter': 'verbose'
         },
-        'db_logfile':{
-            'level':'DEBUG',
-            'class':'logging.handlers.TimedRotatingFileHandler',
+        'db_logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIRECTORY, 'registry_db.log'),
-            'when':'midnight',
+            'when': 'midnight',
             'formatter': 'db'
         },
         'mail_admins': {
             'level': 'ERROR',
             'filters': [],
             'class': 'django.utils.log.AdminEmailHandler',
-            'formatter':'verbose',
-            'include_html':True
+            'formatter': 'verbose',
+            'include_html': True
         }
     },
     'root': {
-            'handlers':['console', 'errorfile', 'mail_admins'],
-            'level':'ERROR',
+        'handlers': ['console', 'errorfile', 'mail_admins'],
+        'level': 'ERROR',
     },
     'loggers': {
         'django': {
-            'handlers':['null'],
+            'handlers': ['null'],
             'propagate': False,
-            'level':'INFO',
+            'level': 'INFO',
         },
         'registry_log': {
             'handlers': ['registryfile', 'console'],
@@ -272,7 +271,6 @@ INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 ALLOWED_HOSTS = [
     'localhost'
 ]
-
 
 
 INSTALL_NAME = 'rdrf'
@@ -302,9 +300,9 @@ SUIT_CONFIG = {
 One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
-    { 'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True },
+    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True},
 ]
 
 AJAX_LOOKUP_CHANNELS = {
-    'gene'  : {'model': 'genetic.Gene', 'search_field': 'symbol'},
+    'gene': {'model': 'genetic.Gene', 'search_field': 'symbol'},
 }
