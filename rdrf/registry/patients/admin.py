@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 import logging
 logger = logging.getLogger("registry_log")
 
+
 class DoctorAdmin(admin.ModelAdmin):
     search_fields = ["family_name", "given_names"]
 
@@ -80,7 +81,7 @@ class PatientAdmin(admin.ModelAdmin):
     list_filter = [RegistryFilter]
     
     def full_name(self, obj):
-       return obj.__unicode__()
+        return obj.__unicode__()
 
     full_name.short_description = 'Name'
 
@@ -107,7 +108,7 @@ class PatientAdmin(admin.ModelAdmin):
         
         rdrf = Registry.objects.get(pk=rdrf_id)
         not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
-        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) ]
+        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f)]
 
         content = ''
         
@@ -170,19 +171,18 @@ class PatientAdmin(admin.ModelAdmin):
             fieldsets.append((fieldset_title, field_dict))
         return fieldsets
 
-
     def create_fieldset(self, user):
 
         consent = ("Consent", {
-            "fields":(
+            "fields": (
                 "consent",
                 "consent_clinical_trials",
                 "consent_sent_information",
-             )
+            )
         })
         
         rdrf_registry = ("Registry", {
-            "fields":(
+            "fields": (
                 "rdrf_registry",
             )
         })
@@ -190,21 +190,21 @@ class PatientAdmin(admin.ModelAdmin):
         personal_details = ("Personal Details", {})
 
         personal_details_fields = [
-                                   "working_groups",
-                                   "family_name",
-                                   "given_names",
-                                   "maiden_name",
-                                   "umrn",
-                                   "date_of_birth",
-                                   "place_of_birth",
-                                   "country_of_birth",
-                                   "ethnic_origin",
-                                   "sex",
-                                   "home_phone",
-                                   "mobile_phone",
-                                   "work_phone",
-                                   "email"
-                                   ]
+            "working_groups",
+            "family_name",
+            "given_names",
+            "maiden_name",
+            "umrn",
+            "date_of_birth",
+            "place_of_birth",
+            "country_of_birth",
+            "ethnic_origin",
+            "sex",
+            "home_phone",
+            "mobile_phone",
+            "work_phone",
+            "email"
+        ]
 
         # fix for Trac #3, the field is now always displayed, but readonly for not superuser users, see get_readonly_fields below
         personal_details_fields.append("active")
@@ -291,8 +291,8 @@ class PatientAdmin(admin.ModelAdmin):
         user = request.user
         # Restrict normal users to their own working group.
         if dbfield.name == "working_groups" and not user.is_superuser:
-            user = get_user_model().objects.get(username=user) # get the user's associated objects
-            kwargs["queryset"] = WorkingGroup.objects.filter(id__in = get_working_groups(user))
+            user = get_user_model().objects.get(username=user)  # get the user's associated objects
+            kwargs["queryset"] = WorkingGroup.objects.filter(id__in=get_working_groups(user))
             #kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
@@ -368,7 +368,6 @@ class PatientAdmin(admin.ModelAdmin):
     moleculardata_entered.allow_tags = True
     moleculardata_entered.short_description = "Genetic Data"
 
-
     def freshness(self, obj):
         """Used to show how recently the diagnosis was updated"""
         if not hasattr(obj, 'patient_diagnosis'):
@@ -403,12 +402,15 @@ class PatientAdmin(admin.ModelAdmin):
     last_updated.allow_tags = True
     last_updated.short_description = "Last updated"
 
+
 class StateAdmin(admin.ModelAdmin):
     list_display = ["name"]
     search_fields = ["name"]
 
+
 class NextOfKinRelationshipAdmin(admin.ModelAdmin):
     model = NextOfKinRelationship
+
 
 class AddressTypeAdmin(admin.ModelAdmin):
     model = AddressType
