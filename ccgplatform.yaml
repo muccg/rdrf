@@ -57,6 +57,16 @@ instances:
     puppet_manifest: scratch.pp
     key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
     aws_key_name: ccg-syd-staging
+    
+  aws-syd-rdrf-pmrff:
+    extends: centos_65_aws_syd
+    pre_puppet:
+      - which git || sudo yum install -y -q git
+      - which librarian-puppet || sudo gem install librarian-puppet -v 1.0.4
+      - which puppet || sudo yum install -y -q puppet
+    puppet_manifest: pmrff.pp
+    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
+    aws_key_name: ccg-syd-staging
   
   aws-syd-rdrf-pbcrc:
     extends: centos_65_aws_syd
