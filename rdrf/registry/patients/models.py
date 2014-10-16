@@ -3,7 +3,6 @@ import copy
 import json
 from pymongo import MongoClient
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
 from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -18,7 +17,7 @@ import logging
 logger = logging.getLogger('patient')
 
 from registry.utils import stripspaces
-from django.conf import settings # for APP_NAME
+from django.conf import settings  # for APP_NAME
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -55,6 +54,7 @@ class Doctor(models.Model):
     def __unicode__(self):
         return "%s %s" % (self.family_name.upper(), self.given_names)
 
+
 class NextOfKinRelationship(models.Model):
     relationship = models.CharField(max_length=100, verbose_name="Relationship")
 
@@ -81,9 +81,9 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
     if settings.INSTALL_NAME == 'dm1':   # Trac #16 item 9
-        SEX_CHOICES = ( ("M", "Male"), ("F", "Female") )
+        SEX_CHOICES = (("M", "Male"), ("F", "Female"))
     else:
-        SEX_CHOICES = ( ("M", "Male"), ("F", "Female"), ("X", "Other/Intersex") )
+        SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
 
     ETHNIC_ORIGIN = (
         ("Aboriginal", "Aboriginal"),
@@ -144,7 +144,7 @@ class Patient(models.Model):
             else:
                 return working_group.name
 
-        return  ",".join([ display_group(wg) for wg in self.working_groups.all() ])
+        return ",".join([display_group(wg) for wg in self.working_groups.all()])
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -192,7 +192,8 @@ class Patient(models.Model):
             family_name=self.family_name,
             working_group=self.working_group.name,
             date_of_birth=str(self.date_of_birth)
-            )
+        )
+
 
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
@@ -230,7 +231,6 @@ class PatientDoctor(models.Model):
         verbose_name_plural = "medical professionals for patient"
 
 
-
 @receiver(post_save, sender=Patient)
 def save_patient_mongo(sender, instance, **kwargs):
     patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
@@ -242,7 +242,7 @@ def _save_patient_mongo(patient_obj):
     patient_db = client[_MONGO_PATIENT_DATABASE]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
     
-    json_str  = serializers.serialize("json", [patient_obj,])
+    json_str = serializers.serialize("json", [patient_obj])
     json_obj = json.loads(json_str)
     
     mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
@@ -270,6 +270,7 @@ def _update_mongo_obj(mongo_doc, patient_model):
 
     for key in keys_to_delete:
         del mongo_doc[key]
+
 
 def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)

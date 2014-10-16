@@ -32,13 +32,13 @@ class LookupView(View):
 class GeneView(LookupView):
     MODEL = Gene
     QUERY = 'symbol__icontains'
-    ATTRS = {'value': 'symbol', 'label': 'name' }
+    ATTRS = {'value': 'symbol', 'label': 'name'}
     
 
 class LaboratoryView(LookupView):
     MODEL = Laboratory
     QUERY = "name__icontains"
-    ATTRS = {'value': 'id', 'label': 'name' }
+    ATTRS = {'value': 'id', 'label': 'name'}
 
 
 class StateLookup(View):
