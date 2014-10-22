@@ -165,7 +165,7 @@ class PatientAdmin(admin.ModelAdmin):
         reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
         fieldsets = []
         for reg_code in reg_spec_field_defs:
-            cde_field_pairs = reg_spec_field_defs[reg_code]
+            cde_field_pairs =reversed(reg_spec_field_defs[reg_code])
             fieldset_title = "%s Specific Fields" % reg_code.upper()
             field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}  # pair up cde name and field object generated from that cde
             fieldsets.append((fieldset_title, field_dict))
