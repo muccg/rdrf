@@ -12,9 +12,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
-import logging
-
 from models import RegistryForm, Registry, QuestionnaireResponse
 from models import Section, CommonDataElement
 from registry.patients.models import Patient
@@ -27,8 +24,25 @@ from utils import de_camelcase
 import json
 import os
 from django.conf import settings
+import logging
 
 logger = logging.getLogger("registry_log")
+
+
+class FormLink(object):
+    def __init__(self, patient_id, registry, registry_form, selected=False):
+        self.registry = registry
+        self.patient_id = patient_id
+        self.form = registry_form
+        self.selected = selected
+
+    @property
+    def url(self):
+        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
+
+    @property
+    def text(self):
+        return de_camelcase(self.form.name)
 
 
 def log_context(when, context):
@@ -53,7 +67,6 @@ def log_context(when, context):
 
 
 class FormView(View):
-
     def __init__(self, *args, **kwargs):
         self.testing = False    # when set to True in integration testing, switches off unsupported messaging middleware
         self.template = 'rdrf_cdes/form.html'
@@ -116,6 +129,7 @@ class FormView(View):
         form_obj = self.get_registry_form(form_id)
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
+        self.registry = registry
         form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
@@ -204,6 +218,7 @@ class FormView(View):
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
+            "form_links" : self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
@@ -238,6 +253,9 @@ class FormView(View):
     def _get_form_class_for_section(self, registry, registry_form, section):
         return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id)
 
+    def _get_formlinks(self):
+        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms]
+
     def _build_context(self):
         sections, display_names = self._get_sections(self.registry_form)
         form_section = {}
@@ -246,6 +264,7 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         section_field_ids_map = {}
+        form_links = self._get_formlinks()
 
         for s in sections:
             logger.debug("creating cdes for section %s" % s)
@@ -305,6 +324,7 @@ class FormView(View):
             'section_field_ids_map': section_field_ids_map,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
+            "form_links" : form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
