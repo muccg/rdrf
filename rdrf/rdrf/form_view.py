@@ -129,6 +129,7 @@ class FormView(View):
         form_obj = self.get_registry_form(form_id)
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
+        self.registry = registry
         form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
@@ -217,6 +218,7 @@ class FormView(View):
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
+            "form_links" : self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
