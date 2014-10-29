@@ -389,7 +389,8 @@ class CDEPermittedValueGroup(models.Model):
 
 
 class CDEPermittedValue(models.Model):
-    code = models.CharField(max_length=30, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=30)
     value = models.CharField(max_length=256)
     questionnaire_value = models.CharField(max_length=256, null=True, blank=True)
     desc = models.TextField(null=True)
