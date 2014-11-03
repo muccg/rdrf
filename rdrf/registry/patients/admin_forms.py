@@ -7,6 +7,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
 import logging
 logger = logging.getLogger("registry_log")
+from registry.patients.patient_widgets import CreatePatientWidget
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -23,6 +24,14 @@ class PatientDoctorForm(forms.ModelForm):
 
     class Meta:
         model = PatientDoctor
+
+
+class PatientRelativeForm(forms.ModelForm):
+    class Meta:
+        model = PatientRelative
+        widgets = {
+            'relative_patient': CreatePatientWidget
+        }
 
 
 class PatientAddressForm(forms.ModelForm):

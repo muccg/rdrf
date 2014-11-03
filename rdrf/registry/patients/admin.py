@@ -30,6 +30,23 @@ class PatientDoctorAdmin(admin.TabularInline):
     extra = 0
 
 
+class PatientRelativeAdmin(admin.TabularInline):
+    model = PatientRelative
+    form = PatientRelativeForm
+    fk_name = 'patient'
+    extra = 0
+    template = 'patient_relatives_inline.html'
+    
+    def formfield_for_dbfield(self, dbfield, *args, **kwargs):
+        logger.debug(kwargs)
+        request = kwargs['request']
+        patient_id = int(request.path.split('/')[-2])
+        if dbfield.name == 'relative_patient':
+            kwargs['queryset'] = Patient.objects.exclude(id=patient_id)
+            
+        return super(PatientRelativeAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
+
+
 class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
     extra = 1
@@ -75,7 +92,7 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
+    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter]
@@ -165,7 +182,7 @@ class PatientAdmin(admin.ModelAdmin):
         reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
         fieldsets = []
         for reg_code in reg_spec_field_defs:
-            cde_field_pairs =reversed(reg_spec_field_defs[reg_code])
+            cde_field_pairs = reversed(reg_spec_field_defs[reg_code])
             fieldset_title = "%s Specific Fields" % reg_code.upper()
             field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}  # pair up cde name and field object generated from that cde
             fieldsets.append((fieldset_title, field_dict))
@@ -304,7 +321,7 @@ class PatientAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(PatientAdmin, self).get_urls()
         local_urls = patterns("",
-            url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
+                              url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
         )
         return local_urls + urls
 
@@ -418,6 +435,7 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Doctor, DoctorAdmin)
+admin.site.register(PatientRelative)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
