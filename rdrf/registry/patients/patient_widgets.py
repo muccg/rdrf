@@ -10,7 +10,17 @@ class CreatePatientWidget(widgets.Widget):
         logger.debug("value = %s" % value)
         logger.debug("attrs = %s" % attrs)
         if value is None:
-            return """<input type="button" value="Create Patient"/>"""
+            button_id = "jsdhksh"
+            script = """
+            <script>
+                $(document).ready(function() {
+                    $("#%s").click(function () {
+                        alert('hi there');
+                    });
+                });
+            </script>
+            """ % button_id
+            return """%s<input id="%s" type="button" value="Create Patient"/>""" % (script, button_id)
         else:
             return """<a href='http://www.smh.com.au">Patient in registry</a>"""
 
