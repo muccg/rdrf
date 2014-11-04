@@ -28,8 +28,9 @@ class ActionExecutor(object):
         return client_response
 
     def _locate_command_function(self, rpc_command):
+        command_name = "rpc_%s" % rpc_command
         rpc_module = __import__('rpc_command')
-        if hasattr(rpc_command, rpc_command):
-            rpc_function = getattr(rpc_module, rpc_command)
+        if hasattr(rpc_command, command_name):
+            rpc_function = getattr(rpc_module, command_name)
             if callable(rpc_function):
                 return rpc_function
