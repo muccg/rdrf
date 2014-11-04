@@ -24,6 +24,8 @@ from utils import de_camelcase
 import json
 import os
 from django.conf import settings
+from rdrf.actions import ActionExecutor
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -715,3 +717,16 @@ class RDRFDesignerRegistryStructureEndPoint(View):
             message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=400, content_type="application/json")
+
+
+class RPCHandler(View):
+    def post(self, request):
+        import json
+        rpc_command = request.body
+        action_dict = json.loads(rpc_command)
+        action_executor = ActionExecutor(action_dict)
+        client_response_dict = action_executor.run()
+        client_response_json = json.dumps(client_response_dict)
+        return HttpResponse(client_response_json, status=200, content_type="application/json")
+
+

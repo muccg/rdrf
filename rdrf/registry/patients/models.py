@@ -17,6 +17,8 @@ import logging
 logger = logging.getLogger('patient')
 
 from registry.utils import stripspaces
+from registry.patients.patient_widgets import CreatePatientWidget
+
 from django.conf import settings  # for APP_NAME
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
@@ -229,6 +231,31 @@ class PatientDoctor(models.Model):
     class Meta:
         verbose_name = "medical professionals for patient"
         verbose_name_plural = "medical professionals for patient"
+
+
+class PatientRelative(models.Model):
+
+    RELATIVE_TYPES = (
+        ("1st Degree", "1st Degree"),
+        ("2nd Degree", "2nd Degree"),
+        ("3rd Degree", "3rd Degree"),
+    )
+
+    RELATIVE_LOCATIONS = (
+        ("AU - WA", "AU - WA"),
+        ("AU - SA", "AU - SA"),
+    )
+
+    LIVING_STATES = (('Alive', 'Alive'), ('Deceased', 'Deceased'))
+
+    patient = models.ForeignKey(Patient)
+    family_name = models.CharField(max_length=100, blank=True)
+    given_names = models.CharField(max_length=100, blank=True)
+
+    relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
+    location = models.CharField(choices=RELATIVE_LOCATIONS, max_length=80)
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80)
+    relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative")
 
 
 @receiver(post_save, sender=Patient)
