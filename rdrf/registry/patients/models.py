@@ -17,7 +17,6 @@ import logging
 logger = logging.getLogger('patient')
 
 from registry.utils import stripspaces
-from registry.patients.patient_widgets import CreatePatientWidget
 
 from django.conf import settings  # for APP_NAME
 

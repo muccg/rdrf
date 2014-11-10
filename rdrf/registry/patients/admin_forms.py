@@ -7,7 +7,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
 import logging
 logger = logging.getLogger("registry_log")
-from registry.patients.patient_widgets import CreatePatientWidget
+from registry.patients.patient_widgets import PatientRelativeLinkWidget
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -30,8 +30,62 @@ class PatientRelativeForm(forms.ModelForm):
     class Meta:
         model = PatientRelative
         widgets = {
-            'relative_patient': CreatePatientWidget
+            'relative_patient': PatientRelativeLinkWidget
         }
+
+    def __init__(self, *args, **kwargs):
+        self.create_patient_data = None
+        super(PatientRelativeForm, self).__init__(*args, **kwargs)
+
+    def full_clean(self):
+        keys_to_update = []
+        # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
+        # this 'on' value from widget is replaced by the pk of the created patient
+        for k in self.data.keys():
+            if k.startswith("patientrelative_set-") and k.endswith("-relative_patient"):
+                if self.data[k] == "on":  # checkbox  checked - create patient from this data
+                    patient_relative_index = k.split("-")[1]
+                    self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
+                    patient = self._create_patient()
+                    logger.debug("created patient for rel")
+                    keys_to_update.append((k, patient))
+
+        logger.debug("keys to update = %s" % keys_to_update)
+        for k, patient_model in keys_to_update:
+            logger.debug("Updating patient relative form to link to created patient")
+            if patient_model is not None:
+                logger.debug("updating data for patient relative form")
+                self.data[k] = patient_model.pk
+
+        logger.debug("PatientRelativeForm after check = %s" % self.data)
+        super(PatientRelativeForm, self).full_clean()
+
+    def _create_patient(self):
+        if not self.create_patient_data:
+            return None
+
+        def grab_data(substring):
+            for k in self.create_patient_data:
+                if substring in k:
+                    return self.create_patient_data[k]
+
+        p = Patient()
+        p.given_names = grab_data("given_names")
+        p.family_name = grab_data("family_name")
+        p.date_of_birth = "1965-06-14" #todo fix date of birth
+        p.consent = True
+        p.active = True
+        p.save()
+
+        return p
+
+    def _get_patient_relative_data(self, index):
+        data = {}
+        for k in self.data:
+            if k.startswith("patientrelative_set-%s-" % index):
+                data[k] = self.data[k]
+
+        return data
 
 
 class PatientAddressForm(forms.ModelForm):
