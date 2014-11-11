@@ -8,7 +8,8 @@ import pycountry
 import logging
 logger = logging.getLogger("registry_log")
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
-
+from django.core.exceptions import ValidationError
+from django.forms.util import ErrorList, ErrorDict
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -38,6 +39,10 @@ class PatientRelativeForm(forms.ModelForm):
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
 
     def full_clean(self):
+        self._errors = ErrorDict()
+        if not self.is_bound: # Stop further processing.
+            return
+        self.cleaned_data = {}
         keys_to_update = []
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
@@ -46,7 +51,13 @@ class PatientRelativeForm(forms.ModelForm):
                 if self.data[k] == "on":  # checkbox  checked - create patient from this data
                     patient_relative_index = k.split("-")[1]
                     self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
-                    patient = self._create_patient()
+                    try:
+                        patient = self._create_patient()
+                    except ValidationError, verr:
+                        self.data[k] = None  # get rid of the 'on'
+                        self._errors[k] = ErrorList([verr.message])
+                        return
+
                     logger.debug("created patient for rel")
                     keys_to_update.append((k, patient))
 
@@ -70,9 +81,19 @@ class PatientRelativeForm(forms.ModelForm):
                     return self.create_patient_data[k]
 
         p = Patient()
+
+        given_names = grab_data("given_names")
+        family_name = grab_data("family_name")
+        date_of_birth = grab_data("date_of_birth")
+
+        if not all([given_names, family_name, date_of_birth]):
+            raise ValidationError(" Not all data supplied for relative : Patient not created")
+
+
         p.given_names = grab_data("given_names")
         p.family_name = grab_data("family_name")
-        p.date_of_birth = "1965-06-14" #todo fix date of birth
+
+        #p.date_of_birth = "1965-06-14" #todo fix date of birth
         p.consent = True
         p.active = True
         p.save()
