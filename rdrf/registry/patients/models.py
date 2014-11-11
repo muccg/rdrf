@@ -250,6 +250,7 @@ class PatientRelative(models.Model):
     patient = models.ForeignKey(Patient)
     family_name = models.CharField(max_length=100, blank=True)
     given_names = models.CharField(max_length=100, blank=True)
+    date_of_birth = models.DateField(null=True)
 
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
     location = models.CharField(choices=RELATIVE_LOCATIONS, max_length=80)
