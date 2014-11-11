@@ -58,17 +58,12 @@ class PatientRelativeForm(forms.ModelForm):
                         self._errors[k] = ErrorList([verr.message])
                         return
 
-                    logger.debug("created patient for rel")
                     keys_to_update.append((k, patient))
 
-        logger.debug("keys to update = %s" % keys_to_update)
         for k, patient_model in keys_to_update:
-            logger.debug("Updating patient relative form to link to created patient")
             if patient_model is not None:
-                logger.debug("updating data for patient relative form")
-                self.data[k] = patient_model.pk
+                self.data[k] = str(patient_model.pk)
 
-        logger.debug("PatientRelativeForm after check = %s" % self.data)
         super(PatientRelativeForm, self).full_clean()
 
     def _create_patient(self):
@@ -85,16 +80,13 @@ class PatientRelativeForm(forms.ModelForm):
         given_names = grab_data("given_names")
         family_name = grab_data("family_name")
         date_of_birth = grab_data("date_of_birth")
-
         if not all([given_names, family_name, date_of_birth]):
             raise ValidationError(" Not all data supplied for relative : Patient not created")
 
-
         p.given_names = grab_data("given_names")
         p.family_name = grab_data("family_name")
-
-        #p.date_of_birth = "1965-06-14" #todo fix date of birth
-        p.consent = True
+        p.date_of_birth = date_of_birth
+        p.consent = True # need to work out how to handle this
         p.active = True
         p.save()
 
