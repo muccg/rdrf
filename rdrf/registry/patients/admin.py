@@ -35,17 +35,6 @@ class PatientRelativeAdmin(admin.TabularInline):
     form = PatientRelativeForm
     fk_name = 'patient'
     extra = 1
-    #template = 'patient_relatives_inline.html'
-    
-    def formfield_for_dbfield(self, dbfield, *args, **kwargs):
-        logger.debug(kwargs)
-        request = kwargs['request']
-        if not request.path.endswith('/add/'):
-            patient_id = int(request.path.split('/')[-2])
-            if dbfield.name == 'relative_patient':
-                kwargs['queryset'] = Patient.objects.exclude(id=patient_id)
-            
-        return super(PatientRelativeAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
 
 class PatientConsentAdmin(admin.TabularInline):
