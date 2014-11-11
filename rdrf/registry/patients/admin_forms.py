@@ -10,6 +10,7 @@ logger = logging.getLogger("registry_log")
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict
+from django.forms.widgets import TextInput, DateInput
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -31,7 +32,8 @@ class PatientRelativeForm(forms.ModelForm):
     class Meta:
         model = PatientRelative
         widgets = {
-            'relative_patient': PatientRelativeLinkWidget
+            'relative_patient': PatientRelativeLinkWidget,
+            'date_of_birth': DateInput,
         }
 
     def __init__(self, *args, **kwargs):
@@ -67,6 +69,7 @@ class PatientRelativeForm(forms.ModelForm):
         super(PatientRelativeForm, self).full_clean()
 
     def _create_patient(self):
+        # Create the patient corresponding to this relative
         if not self.create_patient_data:
             return None
 
@@ -89,6 +92,8 @@ class PatientRelativeForm(forms.ModelForm):
         p.consent = True # need to work out how to handle this
         p.active = True
         p.save()
+
+
 
         return p
 
