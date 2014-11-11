@@ -34,15 +34,16 @@ class PatientRelativeAdmin(admin.TabularInline):
     model = PatientRelative
     form = PatientRelativeForm
     fk_name = 'patient'
-    extra = 0
-    template = 'patient_relatives_inline.html'
+    extra = 1
+    #template = 'patient_relatives_inline.html'
     
     def formfield_for_dbfield(self, dbfield, *args, **kwargs):
         logger.debug(kwargs)
         request = kwargs['request']
-        patient_id = int(request.path.split('/')[-2])
-        if dbfield.name == 'relative_patient':
-            kwargs['queryset'] = Patient.objects.exclude(id=patient_id)
+        if not request.path.endswith('/add/'):
+            patient_id = int(request.path.split('/')[-2])
+            if dbfield.name == 'relative_patient':
+                kwargs['queryset'] = Patient.objects.exclude(id=patient_id)
             
         return super(PatientRelativeAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
@@ -286,6 +287,17 @@ class PatientAdmin(admin.ModelAdmin):
             patient_id = obj.pk
             self._save_registry_specific_data_in_mongo(obj)
 
+    def save_formset(self, request, form, formset, change):
+        """
+        Given an inline formset save it to the database.
+        """
+        if formset.__class__.__name__ == 'PatientRelativeFormFormSet':
+            # check to see if we're creating a patient from this relative
+            logger.debug("saving patient relative")
+            formset.save()
+        else:
+            formset.save()
+
     def get_fieldsets(self, request, obj=None):
         return self.create_fieldset(request.user)
 
@@ -435,7 +447,6 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Doctor, DoctorAdmin)
-admin.site.register(PatientRelative)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
