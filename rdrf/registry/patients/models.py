@@ -147,6 +147,39 @@ class Patient(models.Model):
 
         return ",".join([display_group(wg) for wg in self.working_groups.all()])
 
+    def get_form_value(self, registry_code, form_name, section_code, data_element_code):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.utils import mongo_key
+        wrapper = DynamicDataWrapper(self)
+        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        key = mongo_key(form_name, section_code, data_element_code)
+        if mongo_data is None:
+            # no mongo data
+            raise KeyError(key)
+        else:
+            return mongo_data[key]
+
+    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.utils import mongo_key
+        wrapper = DynamicDataWrapper(self)
+        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        key = mongo_key(form_name, section_code, data_element_code)
+        if mongo_data is None:
+            # No dynamic data has been persisted yet
+            wrapper.save_dynamic_data(registry_code, "cdes", {key: value})
+        else:
+            mongo_data[key] = value
+            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+    def in_registry(self, reg_code):
+        """
+        returns True if patient belongs to the registry with reg code provided
+        """
+        for registry in self.rdrf_registry.all():
+            if registry.code == reg_code:
+                return True
+
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
 
