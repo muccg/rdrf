@@ -11,6 +11,8 @@ from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict
 from django.forms.widgets import TextInput, DateInput
+from rdrf.hooking import run_hooks
+
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -92,9 +94,7 @@ class PatientRelativeForm(forms.ModelForm):
         p.consent = True # need to work out how to handle this
         p.active = True
         p.save()
-
-
-
+        run_hooks('patient_created_from_relative', p)
         return p
 
     def _get_patient_relative_data(self, index):
