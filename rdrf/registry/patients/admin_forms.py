@@ -109,8 +109,7 @@ class PatientRelativeForm(forms.ModelForm):
 class PatientAddressForm(forms.ModelForm):
     class Meta:
         model = PatientAddress
-        
-        fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
+        fields = ('address_type', 'address', 'suburb', 'state', 'postcode', 'country')
 
     country = forms.ComboField(widget=CountryWidget(attrs={'default': 'AU', 'onChange': 'select_country(this);'}))
     state = forms.ComboField(widget=StateWidget(attrs={'default': 'AU-WA'}))
