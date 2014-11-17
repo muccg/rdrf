@@ -48,6 +48,28 @@
     });
   });
   </script>
+
+  <script>
+       function setupPatientRelativeForm() {
+           // TODO
+            var visible = false;
+            $("#id_rdrf_registry option").each(function () {
+                  if ($(this).text() == "FH Registry (fh)") {
+                      visible = true;
+                  }
+            })
+            if (visible) {
+                $("#patientrelative_set-group").show();
+            }
+            else {
+                 $("#patientrelative_set-group").hide();
+            }
+          }
+
+      $(document).ready(function(){
+         setupPatientRelativeForm();
+      });
+  </script>
   
   <script>
     function select_country(obj) {
