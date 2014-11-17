@@ -288,7 +288,7 @@ class PatientRelative(models.Model):
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
     location = models.CharField(choices=RELATIVE_LOCATIONS, max_length=80)
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
-    relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative")
+    relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
 
 
 @receiver(post_save, sender=Patient)
