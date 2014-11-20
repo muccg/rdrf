@@ -67,11 +67,11 @@ class Registry(models.Model):
     desc = models.TextField()
     splash_screen = models.TextField()
     version = models.CharField(max_length=20, blank=True)
-    patient_data_section = models.ForeignKey(Section, null=True)   # a section which holds registry specific patient information
+    patient_data_section = models.ForeignKey(Section, null=True, blank=True)   # a section which holds registry specific patient information
     # metadata is a dictionary
     # keys ( so far):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
-    metadata_json = models.TextField(blank=True) # a dictionary of configuration data -  GUI visibility
+    metadata_json = models.TextField(blank=True)  # a dictionary of configuration data -  GUI visibility
 
     @property
     def metadata(self):
