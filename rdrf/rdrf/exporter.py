@@ -145,6 +145,7 @@ class Exporter(object):
         data["cdes"] = [model_to_dict(cde) for cde in self._get_cdes(export_type)]
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
+        data["metadata_json"] = self.registry.metadata_json
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
