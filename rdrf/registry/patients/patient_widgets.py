@@ -15,10 +15,10 @@ class PatientRelativeLinkWidget(widgets.Widget):
                                 if (inputName.match(/^patientrelative_set.*-id$/)) {
                                     var value = $(this).attr("value");
                                     if (value != null) {
-                                        checkBox.prop("disabled", false);
+                                        checkBox.show();
                                     }
                                     else {
-                                        checkBox.prop("disabled", true);
+                                        checkBox.hide();
                                     }
                                 }
                             })
