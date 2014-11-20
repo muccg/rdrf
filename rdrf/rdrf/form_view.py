@@ -724,7 +724,7 @@ class RPCHandler(View):
         import json
         rpc_command = request.body
         action_dict = json.loads(rpc_command)
-        action_executor = ActionExecutor(action_dict)
+        action_executor = ActionExecutor(request, action_dict)
         client_response_dict = action_executor.run()
         client_response_json = json.dumps(client_response_dict)
         return HttpResponse(client_response_json, status=200, content_type="application/json")
