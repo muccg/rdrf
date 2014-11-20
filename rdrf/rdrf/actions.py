@@ -4,8 +4,9 @@ logger = logging.getLogger("registry_log")
 
 
 class ActionExecutor(object):
-    def __init__(self, action_dict):
+    def __init__(self, request, action_dict):
         self.action_dict = action_dict
+        self.request = request
 
     def run(self):
         rpc_command = self.action_dict['rpc_command']
@@ -15,7 +16,9 @@ class ActionExecutor(object):
 
         if rpc_function:
             try:
-                result = rpc_function(*rpc_args)
+                # always pass request (conventionally) as first argument
+                args = [self.request] + rpc_args
+                result = rpc_function(*args)
                 client_response['result'] = result
                 client_response['status'] = 'success'
             except Exception, ex:
