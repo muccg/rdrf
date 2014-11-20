@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
+import json
 
 logger = logging.getLogger("registry")
 
@@ -66,7 +67,27 @@ class Registry(models.Model):
     desc = models.TextField()
     splash_screen = models.TextField()
     version = models.CharField(max_length=20, blank=True)
-    patient_data_section = models.ForeignKey(Section, null=True)  # a section which holds registry specific patient information
+    patient_data_section = models.ForeignKey(Section, null=True)   # a section which holds registry specific patient information
+    # metadata is a dictionary
+    # keys ( so far):
+    # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
+    metadata_json = models.TextField(blank=True) # a dictionary of configuration data -  GUI visibility
+
+    @property
+    def metadata(self):
+        if self.metadata_json:
+            try:
+                return json.loads(self.metadata_json)
+            except ValueError:
+                logger.error("Registry %s has invalid json metadata: data = '%s" % (self, self.metadata_json))
+                return {}
+        else:
+            return {}
+
+    def shows(self, element):
+        # does this registry make visible extra/custom functionality ( false by default)
+        if "visibility" in self.metadata:
+            return element in self.metadata["visibility"]
 
     @property
     def questionnaire(self):
