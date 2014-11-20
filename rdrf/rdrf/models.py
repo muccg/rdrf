@@ -249,6 +249,7 @@ class Registry(models.Model):
         s["desc"] = self.desc
         s["version"] = self.version
         s["forms"] = []
+        s["metadata_json"] = self.metadata_json
         for form in self.forms:
             if form.name == self.generated_questionnaire_name:
                 # we don't need to "design" a generated form so we skip
@@ -298,6 +299,8 @@ class Registry(models.Model):
         self.code = new_structure["code"]
         self.desc = new_structure["desc"]
         self.version = new_structure["version"]
+        if "metadata_json" in new_structure:
+            self.metadata_json = new_structure["metadata_json"]
         self.save()
 
         new_forms = []
@@ -338,6 +341,19 @@ class Registry(models.Model):
         for form in forms_to_delete:
             logger.warning("%s not in new forms - deleting!" % form)
             form.delete()
+
+    def clean(self):
+        self._check_metadata()
+
+    def _check_metadata(self):
+        if self.metadata_json == "":
+            return True
+        try:
+            value = json.loads(self.metadata_json)
+            if not isinstance(value, dict):
+                raise ValidationError("metadata json field should be a valid json dictionary")
+        except ValueError:
+            raise ValidationError("metadata json field should be a valid json dictionary")
 
     def _check_structure(self, structure):
         # raise error if structure not valid
