@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger('registry_log')
 
 
-def rpc_create_fh_patient_from_relative(relative_pk, family_name, given_names):
+def rpc_create_fh_patient_from_relative(request, relative_pk, family_name, given_names):
     from registry.patients.models import Patient
     from registry.patients.models import PatientRelative
     relative = PatientRelative.objects.get(pk=relative_pk)
@@ -18,3 +18,9 @@ def rpc_create_fh_patient_from_relative(relative_pk, family_name, given_names):
     relative.save()
 
     return p.pk
+
+
+def rpc_visibility(request, element):
+    user = request.user
+    if user.can("see", element):
+        return True
