@@ -50,21 +50,23 @@
   </script>
 
   <script>
-       function setupPatientRelativeForm() {
-           // TODO
-            var visible = false;
-            $("#id_rdrf_registry option").each(function () {
-                  if ($(this).text() == "FH Registry (fh)") {
-                      visible = true;
-                  }
-            })
+       function setPatientRelativeFormVisiblity(visible) {
             if (visible) {
                 $("#patientrelative_set-group").show();
             }
             else {
                  $("#patientrelative_set-group").hide();
             }
-          }
+       }
+
+       function setupPatientRelativeForm() {
+           // <input type='hidden' name='csrfmiddlewaretoken' value='65kgqy2v7y0sijw1sg262aki71OOjYf0' />
+           var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+           var rpc = new RPC.RPC("{% url 'rpc' %}",csrfToken);
+           rpc.send("visibility",["PatientRelativeForm"], function (result) {
+               setPatientRelativeFormVisiblity(result);
+           })
+       }
 
       $(document).ready(function(){
          setupPatientRelativeForm();
