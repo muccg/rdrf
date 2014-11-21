@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import json
-
+import pycountry
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
 
@@ -265,6 +265,11 @@ class PatientDoctor(models.Model):
         verbose_name_plural = "medical professionals for patient"
 
 
+
+def get_countries():
+        return [(c.alpha2, c.name) for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
+
+
 class PatientRelative(models.Model):
 
     RELATIVE_TYPES = (
@@ -273,10 +278,16 @@ class PatientRelative(models.Model):
         ("3rd Degree", "3rd Degree"),
     )
 
-    RELATIVE_LOCATIONS = (
+    RELATIVE_LOCATIONS = [
         ("AU - WA", "AU - WA"),
         ("AU - SA", "AU - SA"),
-    )
+        ("AU - NSW", "AU - NSW"),
+        ("AU - QLD", "AU - QLD"),
+        ("AU - NT", "AU - NT"),
+        ("AU - VIC", "AU - VIC"),
+        ("AU - TAS", "AU - TAS"),
+
+    ]
 
     LIVING_STATES = (('Alive', 'Alive'), ('Deceased', 'Deceased'))
 
@@ -287,9 +298,10 @@ class PatientRelative(models.Model):
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
-    location = models.CharField(choices=RELATIVE_LOCATIONS, max_length=80)
+    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
+
 
 
 @receiver(post_save, sender=Patient)
