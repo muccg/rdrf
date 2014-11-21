@@ -14,6 +14,7 @@ from django.forms.widgets import TextInput, DateInput
 from rdrf.hooking import run_hooks
 from registry.patients.models import Patient, PatientRelative
 from django.forms.widgets import Select
+from django.db import transaction
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -35,15 +36,18 @@ class PatientDoctorForm(forms.ModelForm):
 class PatientRelativeForm(forms.ModelForm):
     class Meta:
         model = PatientRelative
+        date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), input_formats=['%d-%m-%Y'])
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
-            'date_of_birth': DateInput(attrs={"style": "width:70px"}),
-            'sex': Select(attrs={"style": "width:70px"}),
+            'sex': Select(attrs={"style": "width:90px"}),
+            'living_status': Select(attrs={"style": "width:70px"}),
+            'date_of_birth': forms.DateInput(attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'),
         }
 
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
+        self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
 
     def full_clean(self):
         self._errors = ErrorDict()
@@ -63,8 +67,9 @@ class PatientRelativeForm(forms.ModelForm):
                     logger.debug("creating patient from relative %s" % patient_relative_index)
                     self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
                     try:
-                        patient = self._create_patient()
-                        logger.debug("patient created ok!")
+                        with transaction.atomic():
+                            patient = self._create_patient()
+                            logger.debug("patient created ok!")
                     except ValidationError, verr:
                         logger.debug("validation error: %s" % verr)
                         self.data[k] = None  # get rid of the 'on'
@@ -118,10 +123,10 @@ class PatientRelativeForm(forms.ModelForm):
         logger.debug("set given names")
         p.family_name = grab_data("family_name")
         logger.debug("set family name")
-        p.date_of_birth = date_of_birth
+        logger.debug(" date of birth to save to patient = %s" % date_of_birth)
+        p.date_of_birth = self._set_date_of_birth(date_of_birth)
         logger.debug("set date of birth")
         p.sex = sex
-
         p.consent = True  # need to work out how to handle this
         logger.debug("set consent")
 
@@ -142,6 +147,11 @@ class PatientRelativeForm(forms.ModelForm):
         run_hooks('patient_created_from_relative', p)
         logger.debug("ran hooks ok")
         return p
+
+    def _set_date_of_birth(self, dob):
+        #todo figure  out why the correct input format is not being respected - the field for dob on PatientRelative is in aus format already
+        parts = dob.split("-")
+        return "-".join([parts[2], parts[1], parts[0]])
 
     def _get_patient_relative_data(self, index):
         data = {}
