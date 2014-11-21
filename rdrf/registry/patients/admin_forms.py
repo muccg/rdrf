@@ -40,7 +40,7 @@ class PatientRelativeForm(forms.ModelForm):
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
             'sex': Select(attrs={"style": "width:90px"}),
-            'living_status': Select(attrs={"style": "width:70px"}),
+            'living_status': Select(attrs={"style": "width:100px"}),
             'date_of_birth': forms.DateInput(attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'),
         }
 
