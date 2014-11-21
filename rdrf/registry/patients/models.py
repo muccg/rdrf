@@ -280,11 +280,12 @@ class PatientRelative(models.Model):
 
     LIVING_STATES = (('Alive', 'Alive'), ('Deceased', 'Deceased'))
 
-    patient = models.ForeignKey(Patient)
-    family_name = models.CharField(max_length=100, blank=True)
-    given_names = models.CharField(max_length=100, blank=True)
-    date_of_birth = models.DateField(null=True)
-
+    SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
+    patient = models.ForeignKey(Patient, related_name="relatives")
+    family_name = models.CharField(max_length=100)
+    given_names = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
     location = models.CharField(choices=RELATIVE_LOCATIONS, max_length=80)
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)

@@ -12,6 +12,8 @@ from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict
 from django.forms.widgets import TextInput, DateInput
 from rdrf.hooking import run_hooks
+from registry.patients.models import Patient, PatientRelative
+from django.forms.widgets import Select
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -35,7 +37,8 @@ class PatientRelativeForm(forms.ModelForm):
         model = PatientRelative
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
-            'date_of_birth': DateInput,
+            'date_of_birth': DateInput(attrs={"style": "width:70px"}),
+            'sex': Select(attrs={"style": "width:70px"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -44,22 +47,33 @@ class PatientRelativeForm(forms.ModelForm):
 
     def full_clean(self):
         self._errors = ErrorDict()
-        if not self.is_bound: # Stop further processing.
+        if not self.is_bound:  # Stop further processing.
             return
         self.cleaned_data = {}
         keys_to_update = []
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
         for k in self.data.keys():
-            if k.startswith("patientrelative_set-") and k.endswith("-relative_patient"):
+            logger.debug("full-clean checking key %s value = %s" % (k, self.data[k]))
+            # relatives-0-relative_patient value = on
+
+            if k.startswith("relatives-") and k.endswith("-relative_patient"):
                 if self.data[k] == "on":  # checkbox  checked - create patient from this data
                     patient_relative_index = k.split("-")[1]
+                    logger.debug("creating patient from relative %s" % patient_relative_index)
                     self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
                     try:
                         patient = self._create_patient()
+                        logger.debug("patient created ok!")
                     except ValidationError, verr:
+                        logger.debug("validation error: %s" % verr)
                         self.data[k] = None  # get rid of the 'on'
                         self._errors[k] = ErrorList([verr.message])
+                        return
+                    except Exception, ex:
+                        logger.debug("other error: %s" % ex)
+                        self.data[k] = None
+                        self._errors[k] = ErrorList([ex.message])
                         return
 
                     keys_to_update.append((k, patient))
@@ -82,27 +96,58 @@ class PatientRelativeForm(forms.ModelForm):
 
         p = Patient()
 
+        logger.debug("data to create relative patient from = %s" % self.create_patient_data)
+
         given_names = grab_data("given_names")
         family_name = grab_data("family_name")
         date_of_birth = grab_data("date_of_birth")
+        sex = grab_data("sex")
+        id_of_patient_relative = grab_data("id")
+        logger.debug("PatientRelativeId = %s" % id_of_patient_relative)
+        patient_relative_model = PatientRelative.objects.get(id=int(id_of_patient_relative))
+        logger.debug("patient relative model = %s" % patient_relative_model)
+        patient_whose_relative_this_is = patient_relative_model.patient
+        logger.debug("patient whose relative this is = %s" % patient_whose_relative_this_is)
+
+
         if not all([given_names, family_name, date_of_birth]):
             raise ValidationError(" Not all data supplied for relative : Patient not created")
 
+        logger.debug("setting values on created patient ...")
         p.given_names = grab_data("given_names")
+        logger.debug("set given names")
         p.family_name = grab_data("family_name")
+        logger.debug("set family name")
         p.date_of_birth = date_of_birth
-        p.consent = True # need to work out how to handle this
+        logger.debug("set date of birth")
+        p.sex = sex
+
+        p.consent = True  # need to work out how to handle this
+        logger.debug("set consent")
+
         p.active = True
+        logger.debug("set active")
+        try:
+            p.save()
+        except Exception, ex:
+            raise ValidationError("Could not create patient from relative: %s" % ex)
+
+        logger.debug("attempting to set rdrf registry")
+        p.rdrf_registry = [r for r in patient_whose_relative_this_is.rdrf_registry.all()]
+        logger.debug("set rdrf_registry")
+        p.working_groups = [wg for wg in patient_whose_relative_this_is.working_groups.all()]
+        logger.debug("set working groups")
         p.save()
+        logger.debug("saved created patient ok with pk = %s" % p.pk)
         run_hooks('patient_created_from_relative', p)
+        logger.debug("ran hooks ok")
         return p
 
     def _get_patient_relative_data(self, index):
         data = {}
         for k in self.data:
-            if k.startswith("patientrelative_set-%s-" % index):
+            if k.startswith("relatives-%s-" % index):
                 data[k] = self.data[k]
-
         return data
 
 

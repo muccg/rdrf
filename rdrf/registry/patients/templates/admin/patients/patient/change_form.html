@@ -60,7 +60,6 @@
        }
 
        function setupPatientRelativeForm() {
-           // <input type='hidden' name='csrfmiddlewaretoken' value='65kgqy2v7y0sijw1sg262aki71OOjYf0' />
            var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
            var rpc = new RPC.RPC("{% url 'rpc' %}",csrfToken);
            rpc.send("visibility",["PatientRelativeForm"], function (result) {
