@@ -311,7 +311,6 @@ class PatientAdmin(admin.ModelAdmin):
         if dbfield.name == "working_groups" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)  # get the user's associated objects
             kwargs["queryset"] = WorkingGroup.objects.filter(id__in=get_working_groups(user))
-            #kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
@@ -321,18 +320,13 @@ class PatientAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns("",
-                              url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
-        )
+        local_urls = patterns("", url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search"))
         return local_urls + urls
 
     def queryset(self, request):
         self.request = request
-        import registry.groups.models
-
         if request.user.is_superuser:
             return Patient.objects.all()
-
         user = get_user_model().objects.get(username=request.user)
         return Patient.objects.get_filtered(user)
 
