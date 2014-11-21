@@ -58,9 +58,6 @@ class PatientRelativeForm(forms.ModelForm):
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
         for k in self.data.keys():
-            logger.debug("full-clean checking key %s value = %s" % (k, self.data[k]))
-            # relatives-0-relative_patient value = on
-
             if k.startswith("relatives-") and k.endswith("-relative_patient"):
                 if self.data[k] == "on":  # checkbox  checked - create patient from this data
                     patient_relative_index = k.split("-")[1]
@@ -69,14 +66,13 @@ class PatientRelativeForm(forms.ModelForm):
                     try:
                         with transaction.atomic():
                             patient = self._create_patient()
-                            logger.debug("patient created ok!")
                     except ValidationError, verr:
-                        logger.debug("validation error: %s" % verr)
+                        logger.info("validation error: %s" % verr)
                         self.data[k] = None  # get rid of the 'on'
                         self._errors[k] = ErrorList([verr.message])
                         return
                     except Exception, ex:
-                        logger.debug("other error: %s" % ex)
+                        logger.error("other error: %s" % ex)
                         self.data[k] = None
                         self._errors[k] = ErrorList([ex.message])
                         return
@@ -113,7 +109,6 @@ class PatientRelativeForm(forms.ModelForm):
         logger.debug("patient relative model = %s" % patient_relative_model)
         patient_whose_relative_this_is = patient_relative_model.patient
         logger.debug("patient whose relative this is = %s" % patient_whose_relative_this_is)
-
 
         if not all([given_names, family_name, date_of_birth]):
             raise ValidationError(" Not all data supplied for relative : Patient not created")
@@ -181,6 +176,7 @@ class PatientForm(forms.ModelForm):
         if 'instance' in kwargs:
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
+            logger.debug("registry specific data = %s" % registry_specific_data)
             initial_data = kwargs.get('initial', {})
             for reg_code in registry_specific_data:
                 initial_data.update(registry_specific_data[reg_code])
