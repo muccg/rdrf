@@ -7,6 +7,7 @@ node default {
   include reop::sydney
   include repo::repo::ius
   include repo::repo::ccgtesting
+  include repo::repo::ccgdeps
   include yum::repo::pgdg93
   include globals
   include ccgdatabase::postgresql::devel

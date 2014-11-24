@@ -6,6 +6,7 @@ node default {
   include python
   include repo::sydney
   include repo::repo::ius
+  include repo::repo::ccgdeps
   include yum::repo::pgdg93
   include globals
 

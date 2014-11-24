@@ -7,6 +7,7 @@ node default {
   include repo::sydney
   include repo::repo::ius
   include yum::repo::pgdg93
+  include repo::repo::ccgdeps
   include globals
 
   $user = $globals::aws_user
