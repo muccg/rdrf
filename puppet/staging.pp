@@ -4,10 +4,10 @@ node default {
   include ccgcommon::source
   include ccgapache
   include python
-  include repo::epel
-  include repo::ius
-  include repo::pgrpms
-  include repo::ccgtesting
+  include reop::sydney
+  include repo::repo::ius
+  include repo::repo::pgrpms
+  include repo::repo::ccgtesting
   include globals
   include ccgdatabase::postgresql::devel
 

@@ -4,9 +4,9 @@ node default {
   include ccgcommon::source
   include ccgapache
   include python
-  include repo::epel
-  include repo::ius
-  include repo::pgrpms
+  include repo::sydney
+  include repo::repo::ius
+  include repo::repo::pgrpms
   include globals
 
   $user = $globals::aws_user
