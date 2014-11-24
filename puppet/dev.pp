@@ -6,8 +6,10 @@ node default {
   include python
   include repo
   include repo::repo::ius
-  include yum::repo::pgdg93
   include repo::repo::ccgdeps
+  class { 'yum::repo::pgdg93':
+    stage => 'setup',
+  }
   include globals
   include ccgdatabase::postgresql::devel
   include ccgdatabase::mysql::devel
