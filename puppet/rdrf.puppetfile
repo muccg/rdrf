@@ -14,7 +14,7 @@ mod "capriza/s3cmd",
 
 mod "muccg/ccgcommon",
   :git => "git://github.com/muccg/puppet-ccgcommon.git",
-  :ref => "1.4.3"
+  :ref => "1.4.4"
 
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
@@ -34,7 +34,7 @@ mod "muccg/ccgdatabase",
 
 mod "muccg/repo",
   :git => "git://github.com/muccg/puppet-repo.git",
-  :ref => "1.2.10"
+  :ref => "1.2.13"
 
 mod "muccg/ccgapache",
   :git => "git://github.com/muccg/puppet-ccgapache.git",
