@@ -6,7 +6,7 @@ node default {
   include python
   include repo::sydney
   include repo::repo::ius
-  include repo::repo::pgrpms
+  include yum::repo::pgdg93
   include globals
 
   $user = $globals::aws_user
