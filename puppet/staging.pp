@@ -5,6 +5,7 @@ node default {
   include ccgapache
   include python
   include repo::sydney
+  include repo::upgrade
   include repo::repo::ius
   include repo::repo::ccgtesting
   include repo::repo::ccgdeps
