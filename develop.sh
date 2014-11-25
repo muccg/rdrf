@@ -87,6 +87,7 @@ function ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
     ccg ${AWS_STAGING_INSTANCE} boot
     ccg ${AWS_STAGING_INSTANCE} puppet
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf syncdb --all' # Ensure that permissions and contenttypes are "in synch"
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
 }
 
@@ -224,7 +225,7 @@ function installapp() {
 # django syncdb, migrate and collect static
 function syncmigrate() {
     echo "syncdb"
-    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
+    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all
     echo "migrate"
     virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE} 
     echo "collectstatic"
