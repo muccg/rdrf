@@ -7,7 +7,9 @@ node default {
   include repo::sydney
   include repo::repo::ius
   include repo::repo::ccgdeps
-  include yum::repo::pgdg93
+  class { 'yum::repo::pgdg93':
+    stage => 'setup',
+  }
   include globals
 
   $user = $globals::aws_user

@@ -4,11 +4,13 @@ node default {
   include ccgcommon::source
   include ccgapache
   include python
-  include reop::sydney
+  include repo::sydney
   include repo::repo::ius
   include repo::repo::ccgtesting
   include repo::repo::ccgdeps
-  include yum::repo::pgdg93
+  class { 'yum::repo::pgdg93':
+    stage => 'setup',
+  }
   include globals
   include ccgdatabase::postgresql::devel
 
