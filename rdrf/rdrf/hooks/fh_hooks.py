@@ -1,4 +1,6 @@
 from rdrf.hooking import hook
+# test
+
 
 @hook("patient_created_from_relative")
 def mark_as_relative_in_clinical_form(patient):
