@@ -181,7 +181,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
         link = "-"
         if not obj.processed:
             url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
-            link = "<a href='%s'>Create Patient</a>" % url
+            link = "<a href='%s'>Review</a>" % url
         return link
 
     def queryset(self, request):
