@@ -277,8 +277,6 @@ ALLOWED_HOSTS = [
 
 INSTALL_NAME = 'rdrf'
 
-LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
-
 # Django Suit Config
 SUIT_CONFIG = {
     'ADMIN_NAME': 'Rare Disease Registry Framework',
