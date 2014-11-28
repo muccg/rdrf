@@ -7,6 +7,8 @@ from django.contrib.messages import constants as message_constants
 
 env = EnvConfig()
 
+FORCE_SCRIPT_NAME = env.get("force_script_name", None)
+
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
