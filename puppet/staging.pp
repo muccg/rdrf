@@ -1,5 +1,7 @@
 #
 node default {
+  $custom_hostname = 'aws-syd-rdrf-staging.ec2.ccgapps.com.au'
+
   include ccgcommon
   include ccgcommon::source
   include ccgapache
@@ -45,7 +47,7 @@ node default {
     dbpass             => 'rdrf',
     memcache           => $globals::memcache_syd,
     secret_key         => '*&^*&768768YFYTFYHGGHCgcgfcg',
-    allowed_hosts      => 'localhost ccgapps.com.au',
+    allowed_hosts      => 'localhost .ccgapps.com.au',
     csrf_cookie_domain => '.ccgapps.com.au',
     key_prefix         => 'rdrf_staging_'
   }
