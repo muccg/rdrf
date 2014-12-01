@@ -18,7 +18,7 @@ mod "muccg/ccgcommon",
 
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
-  :ref => "1.1.4"
+  :ref => "1.1.5"
 
 mod "muccg/role",
   :git => "git://github.com/muccg/puppet-role.git",
