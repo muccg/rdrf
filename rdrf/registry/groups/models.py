@@ -4,8 +4,10 @@ from rdrf.models import Registry
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
+
 class WorkingGroup(models.Model):
-    name = models.CharField(max_length=40)
+    name = models.CharField(max_length=100)
+    registry = models.ForeignKey(Registry, null=True)
 
     class Meta:
         ordering = ["name"]
@@ -22,3 +24,7 @@ class CustomUser(AbstractUser):
     @property
     def num_registries(self):
         return self.registry.count()
+
+    def can(self, verb, datum):
+        if verb == "see":
+            return any([ registry.shows(datum) for registry in self.registry.all() ])

@@ -13,6 +13,7 @@ import json
 
 from django.contrib.auth import get_user_model
 
+
 class AllocateView(View):
     def get(self, request):
         user = get_user_model().objects.get(username=request.user)
@@ -29,6 +30,7 @@ class RegistryList(View):
         print regs
         results = [obj.as_json() for obj in regs]
         return HttpResponse(json.dumps(results), mimetype='application/json')
+
 
 def patient_cdes(request, patient_id):
     owner_model_func = settings.CDE_MODEL_MAP["Patient"]
@@ -51,14 +53,10 @@ def patient_cdes(request, patient_id):
     else:
         form = form_class(dyn_patient.load_dynamic_data("dmd", "cdes"))
 
-    context = {'form': form, 'owner':  'patient',
-                                        'owner_id': patient_id,
-                                        'name': patient.given_names + " " + patient.family_name,
-                }
+    context = {'form': form, 'owner': 'patient',
+               'owner_id': patient_id,
+               'name': patient.given_names + " " + patient.family_name}
 
     context.update(csrf(request))
 
     return render_to_response('rdrf_cdes/cde.html', context)
-
-
-

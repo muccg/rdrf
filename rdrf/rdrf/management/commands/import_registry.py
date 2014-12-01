@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from rdrf.importer import Importer
 
+
 class Command(BaseCommand):
     help = 'Imports a given registry file'
 

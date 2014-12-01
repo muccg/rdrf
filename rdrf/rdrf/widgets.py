@@ -70,7 +70,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             return data[name]
         else:
             option_selected = data.get(name + "_0", self.unset_value)
-            text_entered = data.get(name + "_1","")
+            text_entered = data.get(name + "_1", "")
 
             if option_selected == self.other_please_specify_value:
                 return text_entered
@@ -127,6 +127,7 @@ class CalculatedFieldWidget(widgets.TextInput):
         #attrs['readonly'] = 'readonly'
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
+
 class ExtensibleListWidget(MultiWidget):
     def __init__(self, prototype_widget, attrs={}):
         self.widget_count = 1
@@ -146,12 +147,12 @@ class ExtensibleListWidget(MultiWidget):
         """
         from copy import copy
         if not data:
-            self.widgets = [ copy(self.prototype_widget) ]
+            self.widgets = [copy(self.prototype_widget)]
             return [None]
         else:
             items = data["items"]
             num_widgets = len(items)
-            self.widgets = [ copy(self.prototype_widget) for i in range(num_widgets) ]
+            self.widgets = [copy(self.prototype_widget) for i in range(num_widgets)]
             return data
 
     def render(self, name, value):
@@ -187,7 +188,8 @@ class DateWidget(widgets.TextInput):
         def just_date(value):
             if value:
                 if hasattr(value, 'date'):
-                    return value.date()
+                    d = value.date()
+                    return "%s-%s-%s" % (d.day, d.month, d.year)
                 else:
                     return value
             else:
@@ -205,7 +207,7 @@ class CountryWidget(widgets.Select):
 
         countries = pycountry.countries
 
-        output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name),]
+        output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
         for country in countries:
             if value == country.alpha2:
                 output.append("<option value='%s' selected>%s</option>" % (country.alpha2, country.name))
@@ -228,7 +230,7 @@ class StateWidget(widgets.Select):
 
         country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
         
-        output = ["<select id='%s' name='%s'>" % (name, name),]
+        output = ["<select id='%s' name='%s'>" % (name, name)]
         for state in country_states:
             if value == state.code:
                 output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))

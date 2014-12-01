@@ -10,6 +10,7 @@ from registry.groups.models import WorkingGroup
 
 logger = logging.getLogger("registry_log")
 
+
 class PatientCreatorState:
     READY = "READY"
     CREATED_OK = "PATIENT CREATED OK"
@@ -21,7 +22,7 @@ class QuestionnaireReverseMapper(object):
     """
     Save data back into original forms from the Questionnaire Response data
     """
-    def __init__(self, registry, patient , questionnaire_data):
+    def __init__(self, registry, patient, questionnaire_data):
         self.patient = patient
         self.registry = registry
         self.questionnaire_data = questionnaire_data
@@ -37,10 +38,10 @@ class QuestionnaireReverseMapper(object):
                 address_object = self._create_address(address_map, self.patient)
                 address_object.save()
 
-
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
         #GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+
         def getcde(address_map, code):
             for k in address_map:
                 if k.endswith("___" + code):
@@ -55,11 +56,9 @@ class QuestionnaireReverseMapper(object):
         def get_address_type(address_map):
             value = getcde(address_map, "AddressType")
             logger.debug("address type = %s" % value)
-            value = value.replace("AddressType", "") # AddressTypeHome --> Home etc
+            value = value.replace("AddressType", "")  # AddressTypeHome --> Home etc
             address_type_obj = AddressType.objects.get(type=value)
             return address_type_obj
-
-
 
         address.address_type = get_address_type(address_map)
         logger.debug("set address type")
@@ -68,7 +67,7 @@ class QuestionnaireReverseMapper(object):
         logger.debug("set address")
         address.suburb = getcde(address_map, "SuburbTown")
         logger.debug("set suburb")
-        address.state =  getcde(address_map, "State")
+        address.state = getcde(address_map, "State")
         logger.debug("set state")
         address.postcode = getcde(address_map, "postcode")
         logger.debug("set postcode")
@@ -76,7 +75,6 @@ class QuestionnaireReverseMapper(object):
         logger.debug("set country")
 
         return address
-
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -92,20 +90,16 @@ class QuestionnaireReverseMapper(object):
             else:
                 dynamic_data_dict[original_multiple_section] = element_list
 
-
         wrapper.save_dynamic_data(self.registry.code, 'cdes', dynamic_data_dict)
-
-
 
     def _get_multiple_sections(self):
         for k in self.questionnaire_data:
             if settings.FORM_SECTION_DELIMITER not in k:
                 if k not in self.registry.generic_sections:
                     data = self.questionnaire_data[k]
-                    if type(data) is type([]):
+                    if isinstance(data, list):
                         if len(data) > 0:
                             yield self._parse_multisection_data(k, data)
-
 
     def _parse_multisection_data(self, generated_multisectionkey, item_dicts):
         # sorry !- this is hideous - Todo refactor how storing multisections work
@@ -132,7 +126,6 @@ class QuestionnaireReverseMapper(object):
 
         return original_multisection, new_items
 
-
     def _get_field_data(self, dynamic=True):
         for k in self.questionnaire_data:
             logger.debug("getting key: %s" % k)
@@ -147,13 +140,13 @@ class QuestionnaireReverseMapper(object):
                 generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
                 original_form_name, original_section_code = self._parse_generated_section_code(generated_section_code)
 
-                yield  self.registry.code, original_form_name, original_section_code, cde_code,  self.questionnaire_data[k]
+                yield self.registry.code, original_form_name, original_section_code, cde_code, self.questionnaire_data[k]
 
             if not dynamic and not is_a_dynamic_field:
                 logger.debug("yield non-dynamic %s" % k)
-                patient_attribute, converter  = self._get_patient_attribute_and_converter(cde_code)
+                patient_attribute, converter = self._get_patient_attribute_and_converter(cde_code)
                 if converter is None:
-                    yield  patient_attribute, self.questionnaire_data[k]
+                    yield patient_attribute, self.questionnaire_data[k]
                 else:
                     yield patient_attribute, converter(self.questionnaire_data[k])
 
@@ -161,19 +154,19 @@ class QuestionnaireReverseMapper(object):
 
         def get_working_group(working_group_name):
 
-            return WorkingGroup.objects.get(name__iexact=working_group_name.strip())
+            return [WorkingGroup.objects.get(name__iexact=working_group_name.strip())]
 
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
             "CDEPatientFamilyName": ("family_name", None),
             "CDEPatientSex": ("sex", None),
             "CDEPatientEmail": ("email", None),
-            "PatientConsentPartOfRegistry" : ("consent", None),
+            "PatientConsentPartOfRegistry": ("consent", None),
             "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
-            "PatientConsentSentInfo" : ("consent_sent_information", None),
-            "CDEPatientDateOfBirth" : ("date_of_birth", None),
-            "CDEPatientCentre" : ("working_group", get_working_group),
-            "CDEPatientMobilePhone" : ("mobile_phone", None),
+            "PatientConsentSentInfo": ("consent_sent_information", None),
+            "CDEPatientDateOfBirth": ("date_of_birth", None),
+            "CDEPatientCentre": ("working_groups", get_working_group),
+            "CDEPatientMobilePhone": ("mobile_phone", None),
             "CDEPatientHomePhone": ("home_phone", None),
 
 
@@ -181,13 +174,11 @@ class QuestionnaireReverseMapper(object):
 
         return key_map[cde_code]
 
-
     def _get_demographic_data(self):
         return self._get_field_data(dynamic=False)
 
     def _get_dynamic_data(self):
         return self._get_field_data()
-
 
     def _get_key_components(self, delimited_key):
         return delimited_key.split(settings.FORM_SECTION_DELIMITER)
@@ -212,7 +203,6 @@ class PatientCreator(object):
         self.state = PatientCreatorState.READY
         self.error = None
 
-
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True
@@ -225,11 +215,10 @@ class PatientCreator(object):
             self.state = PatientCreatorState.FAILED
             return
 
-
         try:
             patient.full_clean()
             patient.save()
-            patient.rdrf_registry = [self.registry,]
+            patient.rdrf_registry = [self.registry]
             mapper.save_address_data()
         except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION

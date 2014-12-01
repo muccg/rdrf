@@ -20,7 +20,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
         base_dir = package
         os.chdir(os.path.join(start_dir, base_dir))
 
-    for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'templatetags', 'management'):
+    for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'hooks', 'templatetags', 'management'):
         data_files[package].extend(
             [ add_file_for_package(package, subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
 
@@ -72,7 +72,12 @@ setup(name='django-rdrf',
         'django-positions', 
         'django-tastypie',
         'pycountry==1.8',
-        'django-countries'
+        'django-countries',
+        'hgtools',
+        'nose',
+        'nose-timer',
+        'sphinx',
+        'sphinxcontrib-fulltoc'
     ],
     dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
@@ -82,6 +87,7 @@ setup(name='django-rdrf',
         'https://ccg-django-extras.googlecode.com/files/ccg-auth-0.3.3.tar.gz',
         'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
         'https://pypi.python.org/pypi/django-tastypie/0.11.1',
-        'https://pypi.python.org/packages/source/d/django-tastypie/django-tastypie-0.11.1.tar.gz'
+        'https://pypi.python.org/packages/source/d/django-tastypie/django-tastypie-0.11.1.tar.gz',
+
     ],
 )

@@ -12,9 +12,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
-import logging
-
 from models import RegistryForm, Registry, QuestionnaireResponse
 from models import Section, CommonDataElement
 from registry.patients.models import Patient
@@ -27,8 +24,28 @@ from utils import de_camelcase
 import json
 import os
 from django.conf import settings
+from rdrf.actions import ActionExecutor
+
+import logging
 
 logger = logging.getLogger("registry_log")
+
+
+class FormLink(object):
+    def __init__(self, patient_id, registry, registry_form, selected=False):
+        self.registry = registry
+        self.patient_id = patient_id
+        self.form = registry_form
+        self.selected = selected
+
+    @property
+    def url(self):
+        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
+
+    @property
+    def text(self):
+        return de_camelcase(self.form.name)
+
 
 def log_context(when, context):
     logger.debug("dumping page context: %s" % when)
@@ -51,11 +68,9 @@ def log_context(when, context):
                 logger.debug("field %s.%s = %s" % (field_name, attr, getattr(field_object, attr)))
 
 
-
 class FormView(View):
-
     def __init__(self, *args, **kwargs):
-        self.testing = False # when set to True in integration testing, switches off unsupported messaging middleware
+        self.testing = False    # when set to True in integration testing, switches off unsupported messaging middleware
         self.template = 'rdrf_cdes/form.html'
         self.registry = None
         self.dynamic_data = {}
@@ -72,9 +87,8 @@ class FormView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry %s does not exist" % registry_code)
 
-
     def _get_dynamic_data(self, **kwargs):
-        if kwargs.has_key('model_class'):
+        if 'model_class' in kwargs:
             model_class = kwargs['model_class']
         else:
             model_class = Patient
@@ -82,9 +96,8 @@ class FormView(View):
         dyn_obj = DynamicDataWrapper(obj)
         if self.testing:
             dyn_obj.testing = True
-        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'],"cdes")
+        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
-
 
     @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id):
@@ -104,7 +117,7 @@ class FormView(View):
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
         dummy = form_class()
-        ids = [ field  for field in dummy.fields.keys() ]
+        ids = [field for field in dummy.fields.keys()]
         logger.debug("ids = %s" % ids)
         return ",".join(ids)
 
@@ -118,6 +131,7 @@ class FormView(View):
         form_obj = self.get_registry_form(form_id)
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
+        self.registry = registry
         form_display_name = form_obj.name
         sections, display_names = self._get_sections(form_obj)
         form_section = {}
@@ -127,12 +141,12 @@ class FormView(View):
         formset_prefixes = {}
         error_count = 0
         # this is used by formset plugin:
-        section_field_ids_map = {} # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section_index, s in enumerate(sections):
             logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
-            form_class = create_form_class_for_section(registry,form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id)
+            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -141,7 +155,6 @@ class FormView(View):
             logger.debug("POST data = %s" % request.POST)
             logger.debug("FILES data = %s" % str(request.FILES))
 
-
             if not section_model.allow_multiple:
                 form = form_class(request.POST, files=request.FILES)
                 if form.is_valid():
@@ -149,7 +162,7 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                     from copy import deepcopy
-                    form2 = form_class(dynamic_data,initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
+                    form2 = form_class(dynamic_data, initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
                     for e in form.errors:
@@ -164,22 +177,22 @@ class FormView(View):
                 else:
                     extra = 0
 
-                prefix="formset_%s" % s
+                prefix = "formset_%s" % s
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
                 form_set_class = formset_factory(form_class, extra=extra)
-                formset  = form_set_class(request.POST, files=request.FILES, prefix=prefix)
+                formset = form_set_class(request.POST, files=request.FILES, prefix=prefix)
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
                     logger.debug("formset %s is valid" % formset)
                     logger.debug("POST data = %s" % request.POST)
-                    dynamic_data = formset.cleaned_data # a list of values
+                    dynamic_data = formset.cleaned_data  # a list of values
                     section_dict = {}
                     section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
-                    logger.debug("updated data for section %s to %s OK" % (s, dynamic_data) )
+                    logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
                     form_section[s] = form_set_class(initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
                 else:
                     for e in formset.errors:
@@ -187,12 +200,12 @@ class FormView(View):
                         logger.debug("Validation error on form: %s" % e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
-        dyn_patient.save_snapshot(registry_code, "cdes") # Save one snapshot after all sections have being persisted
+        dyn_patient.save_snapshot(registry_code, "cdes")  # Save one snapshot after all sections have being persisted
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
         context = {
-            'current_registry_name' : registry.name,
+            'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
             'registry': registry_code,
             'form_name': form_id,
@@ -200,14 +213,15 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_name': patient_name,
             'sections': sections,
-            'section_field_ids_map' : section_field_ids_map,
+            'section_field_ids_map': section_field_ids_map,
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
-            "total_forms_ids" : total_forms_ids,
-            "initial_forms_ids" : initial_forms_ids,
-            "formset_prefixes" : formset_prefixes,
-            "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
+            "total_forms_ids": total_forms_ids,
+            "initial_forms_ids": initial_forms_ids,
+            "formset_prefixes": formset_prefixes,
+            "form_links" : self._get_formlinks(),
+            "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
         context.update(csrf(request))
@@ -221,7 +235,6 @@ class FormView(View):
 
         logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
-
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
@@ -240,7 +253,10 @@ class FormView(View):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section,injected_model="Patient", injected_model_id=self.patient_id)
+        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id)
+
+    def _get_formlinks(self):
+        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms]
 
     def _build_context(self):
         sections, display_names = self._get_sections(self.registry_form)
@@ -250,26 +266,26 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         section_field_ids_map = {}
+        form_links = self._get_formlinks()
 
         for s in sections:
             logger.debug("creating cdes for section %s" % s)
             section_model = Section.objects.get(code=s)
-            form_class = self._get_form_class_for_section(self.registry, self.registry_form,section_model)
+            form_class = self._get_form_class_for_section(self.registry, self.registry_form, section_model)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
-            logger.debug("section field ids map for section %s = %s" % (s,section_field_ids_map[s]))
+            logger.debug("section field ids map for section %s = %s" % (s, section_field_ids_map[s]))
 
             if not section_model.allow_multiple:
                 # return a normal form
-
                 logger.debug("creating form instance for section %s" % s)
                 from copy import deepcopy
                 initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
                 # Ensure that we can have multiple formsets on the one page
-                prefix="formset_%s" % s
+                prefix = "formset_%s" % s
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
@@ -289,14 +305,13 @@ class FormView(View):
                         initial_data = [""] * len(section_elements)
                 else:
                     #initial_data = [""] * len(section_elements)
-                    initial_data =  [""]  # this appears to forms
+                    initial_data = [""]  # this appears to forms
 
                 logger.debug("initial data for section %s = %s" % (s, initial_data))
-                form_section[s]  = form_set_class(initial=initial_data, prefix=prefix)
-
+                form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
-            'current_registry_name' : self.registry.name,
+            'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
             'registry': self.registry.code,
             'form_name': self.form_id,
@@ -307,11 +322,12 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
-            "total_forms_ids" : total_forms_ids,
-            'section_field_ids_map' : section_field_ids_map,
-            "initial_forms_ids" : initial_forms_ids,
-            "formset_prefixes" : formset_prefixes,
-            "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
+            "total_forms_ids": total_forms_ids,
+            'section_field_ids_map': section_field_ids_map,
+            "initial_forms_ids": initial_forms_ids,
+            "formset_prefixes": formset_prefixes,
+            "form_links" : form_links,
+            "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
         logger.debug("questionnaire context = %s" % context)
@@ -382,19 +398,19 @@ class QuestionnaireView(FormView):
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
 
     def _get_prelude(self, registry_code, questionnaire_context):
-        if questionnaire_context  is None:
-             prelude_file = "prelude_%s.html" % registry_code
+        if questionnaire_context is None:
+            prelude_file = "prelude_%s.html" % registry_code
         else:
             prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
 
-        file_path = os.path.join(settings.TEMPLATE_DIRS[0],'rdrf_cdes',prelude_file)
+        file_path = os.path.join(settings.TEMPLATE_DIRS[0], 'rdrf_cdes', prelude_file)
         if os.path.exists(file_path):
-            return os.path.join('rdrf_cdes',prelude_file)
+            return os.path.join('rdrf_cdes', prelude_file)
         else:
             return None
 
-    def post(self, request, registry_code):
-        error_count  = 0
+    def post(self, request, registry_code, **kwargs):
+        error_count = 0
         registry = self._get_registry(registry_code)
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
@@ -406,7 +422,7 @@ class QuestionnaireView(FormView):
         initial_forms_ids = {}
         section_element_map = {}
         # this is used by formset plugin:
-        section_field_ids_map = {} # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section in sections:
             section_model = Section.objects.get(code=section)
@@ -430,18 +446,18 @@ class QuestionnaireView(FormView):
                 else:
                     extra = 0
 
-                prefix="formset_%s" % section
+                prefix = "formset_%s" % section
                 form_set_class = formset_factory(form_class, extra=extra)
-                form_section[section] = form_set_class(request.POST,request.FILES, prefix=prefix)
+                form_section[section] = form_set_class(request.POST, request.FILES, prefix=prefix)
                 formset_prefixes[section] = prefix
                 total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[section] = "id_%s-INITIAL_FORMS" % prefix
-                formset  = form_set_class(request.POST,  prefix=prefix)
+                formset = form_set_class(request.POST, prefix=prefix)
 
                 if formset.is_valid():
                     logger.debug("formset %s is valid" % formset)
                     logger.debug("POST data = %s" % request.POST)
-                    dynamic_data = formset.cleaned_data # a list of values
+                    dynamic_data = formset.cleaned_data  # a list of values
                     section_dict = {}
                     section_dict[section] = dynamic_data
                     data_map[section] = section_dict
@@ -472,11 +488,11 @@ class QuestionnaireView(FormView):
                 'forms': form_section,
                 'display_names': display_names,
                 'section_element_map': section_element_map,
-                'section_field_ids_map' : section_field_ids_map,
-                "total_forms_ids" : total_forms_ids,
-                "initial_forms_ids" : initial_forms_ids,
-                "formset_prefixes" : formset_prefixes,
-                "metadata_json_for_sections" : self._get_metadata_json_dict(self.registry_form),
+                'section_field_ids_map': section_field_ids_map,
+                "total_forms_ids": total_forms_ids,
+                "initial_forms_ids": initial_forms_ids,
+                "formset_prefixes": formset_prefixes,
+                "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             }
 
             context.update(csrf(request))
@@ -560,12 +576,13 @@ class FileUploadView(View):
         from bson.objectid import ObjectId
         import gridfs
         client = MongoClient()
-        db =client[registry_code]
+        db = client[registry_code]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
-        response = HttpResponse(data , mimetype='application/octet-stream')
+        response = HttpResponse(data, mimetype='application/octet-stream')
         return response
+
 
 class QuestionnaireConfigurationView(View):
     """
@@ -579,17 +596,17 @@ class QuestionnaireConfigurationView(View):
 
         class QuestionWrapper(object):
             def __init__(self, registry_form, section_model, cde_model):
-                self.registry_form =registry_form
+                self.registry_form = registry_form
                 self.section_model = section_model
                 self.cde_model = cde_model
 
             @property
             def clinical(self):
-                return self.cde_model.name # The clinical label
+                return self.cde_model.name  # The clinical label
 
             @property
             def questionnaire(self):
-                return self.cde_model.questionnaire_text # The text configured at the cde level for the questionnaire
+                return self.cde_model.questionnaire_text  # The text configured at the cde level for the questionnaire
 
             @property
             def section(self):
@@ -627,13 +644,12 @@ class QuestionnaireConfigurationView(View):
         for section_model in registry_form.section_models:
             sections.append(SectionWrapper(registry_form, section_model))
 
-        context = {"registry_form" : registry_form, "sections": sections}
+        context = {"registry_form": registry_form, "sections": sections}
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
         context.update(csrf(request))
         return render_to_response(self.TEMPLATE, context, context_instance=RequestContext(request))
-
 
 
 class RDRFDesignerCDESEndPoint(View):
@@ -655,13 +671,14 @@ class RDRFDesignerCDESEndPoint(View):
 class RDRFDesigner(View):
 
     def get(self, request, reg_pk=0):
-        context = {"reg_pk" : reg_pk }
+        context = {"reg_pk": reg_pk}
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/rdrf-designer.html',context)
+        return render_to_response('rdrf_cdes/rdrf-designer.html', context)
 
 
 class RDRFDesignerRegistryStructureEndPoint(View):
-     def get(self, request, reg_pk):
+
+    def get(self, request, reg_pk):
         try:
             registry = Registry.objects.get(pk=reg_pk)
             data = registry.structure
@@ -670,7 +687,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 
         return HttpResponse(json.dumps(data), content_type="application/json")
 
-     def post(self, request, reg_pk):
+    def post(self, request, reg_pk):
         import json
         registry_structure_json = request.body
         try:
@@ -678,7 +695,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         except Exception, ex:
             message = {"message": "Error: Could not load registry structure: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
-            return HttpResponse(message_json,status=400, content_type="application/json")
+            return HttpResponse(message_json, status=400, content_type="application/json")
 
         try:
             reg_pk = int(reg_pk)
@@ -694,9 +711,22 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 
             message = {"message": "Saved registry %s OK" % registry, "message_type": "info", "reg_pk": reg_pk}
             message_json = json.dumps(message)
-            return HttpResponse(message_json,status=200, content_type="application/json")
+            return HttpResponse(message_json, status=200, content_type="application/json")
 
         except Exception, ex:
             message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
-            return HttpResponse(message_json,status=400, content_type="application/json")
+            return HttpResponse(message_json, status=400, content_type="application/json")
+
+
+class RPCHandler(View):
+    def post(self, request):
+        import json
+        rpc_command = request.body
+        action_dict = json.loads(rpc_command)
+        action_executor = ActionExecutor(request, action_dict)
+        client_response_dict = action_executor.run()
+        client_response_json = json.dumps(client_response_dict)
+        return HttpResponse(client_response_json, status=200, content_type="application/json")
+
+

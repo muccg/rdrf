@@ -1,5 +1,5 @@
 {% extends 'admin/base.html' %}
-
+{% load staticfiles %}
 {% block extrahead %}
     {% if not request.user.is_superuser %}
     <style>
@@ -7,6 +7,7 @@
         #wrap{background:url() top left repeat-y}
     </style>
     {% endif %}
+    <script src="{% static 'js/rpc_module.js' %}"></script>
 {% endblock %}
 
 {% block footer %}

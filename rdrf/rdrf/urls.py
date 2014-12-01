@@ -14,23 +14,24 @@ import hgvs_view
 from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
-
 from views import RegistryList, AllocateView
 from registry.patients.views import update_session
-
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-admin.autodiscover() # very important so that registry admins (genetic, patient, etc) are discovered.
+admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
+
 
 def handler404(request):
     return render_to_response("error/404.html")
 
+
 def handler500(request):
     return render_to_response("error/500.html")
 
+
 def handlerApplicationError(request):
-    return render_to_response("rdrf_cdes/application_error.html",{"application_error": "Example config Error"})
+    return render_to_response("rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
 
 
 # TastyPie API
@@ -75,4 +76,5 @@ urlpatterns = patterns('',
     url(r'^designer/(?P<reg_pk>\d+)$', form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
     url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(), name='rdrf_designer_registry_structure_endpoint'),
+    url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 )

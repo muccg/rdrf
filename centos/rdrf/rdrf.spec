@@ -5,8 +5,8 @@
 %define pybasever 2.7
 
 %define name rdrf
-%define version 0.8.2
-%define unmangled_version 0.8.2
+%define version 0.8.3
+%define unmangled_version 0.8.3
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
@@ -81,7 +81,7 @@ export PATH=$PATH:/usr/pgsql-9.3/bin
 
 # Install package into the prefix
 pip install --process-dependency-links .
-pip uninstall -y Cython
+#pip uninstall -y Cython
 
 # Fix up paths in virtualenv, enable use of global site-packages
 virtualenv-%{pybasever} --relocatable %{buildinstalldir}

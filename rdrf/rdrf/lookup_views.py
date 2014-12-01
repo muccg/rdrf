@@ -32,13 +32,13 @@ class LookupView(View):
 class GeneView(LookupView):
     MODEL = Gene
     QUERY = 'symbol__icontains'
-    ATTRS = {'value': 'symbol', 'label': 'name' }
+    ATTRS = {'value': 'symbol', 'label': 'name'}
     
 
 class LaboratoryView(LookupView):
     MODEL = Laboratory
     QUERY = "name__icontains"
-    ATTRS = {'value': 'id', 'label': 'name' }
+    ATTRS = {'value': 'id', 'label': 'name'}
 
 
 class StateLookup(View):
@@ -48,9 +48,8 @@ class StateLookup(View):
         try:
             states = sorted(pycountry.subdivisions.get(country_code=country_code.upper()), key=lambda x: x.name)
             return HttpResponse(json.dumps(self._to_json(states)))
-        except: KeyError
-        
-        return HttpResponse()
+        except KeyError:
+            return HttpResponse()
     
     def _to_json(self, states):
         json_result = []

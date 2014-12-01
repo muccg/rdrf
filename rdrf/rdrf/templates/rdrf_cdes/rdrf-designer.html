@@ -31,8 +31,7 @@
 <body ng-controller='RDRFDesignerController'>
 
 <div id="sidebar">
-
-        <table>
+        <table class="table-bordered table-striped">
             <tr ng-repeat="cde in cdes" >
                 <td is-draggable>{[{cde.code}]}</td>
             </tr>
@@ -68,22 +67,26 @@
 
     <div message data="info"></div>
 
-    <table border=4 class="table table-striped">
+    <table class="table table-bordered table-striped">
 
       <tr>
-         <td>Registry Name:</td><td><input ng-model="registry.name"></td>
+         <td>Registry Name:</td><td><input class="form-control" ng-model="registry.name"></td>
       </tr>
 
       <tr>
-         <td>Registry Code:</td><td><input ng-model="registry.code"></td>
+         <td>Registry Code:</td><td><input class="form-control" ng-model="registry.code"></td>
       </tr>
 
       <tr>
-         <td>Registry Version:</td><td><input ng-model="registry.version"></td>
+         <td>Registry Version:</td><td><input class="form-control" ng-model="registry.version"></td>
       </tr>
 
       <tr>
-         <td>Registry Description:</td><td><input ng-model="registry.desc"></td>
+         <td>Registry Description:</td><td><input class="form-control" ng-model="registry.desc"></td>
+      </tr>
+
+       <tr>
+         <td>Registry Metadata JSON:</td><td><input class="form-control" ng-model="registry.metadata_json"></td>
       </tr>
 
       <tr>
@@ -96,12 +99,12 @@
 
     </table>
 
-    <table border=3 class="table table-striped" ng-repeat="form in registry.forms">
+    <table  class="table table-bordered table-striped" ng-repeat="form in registry.forms">
       <tr>
-         <td>Form Name:</td> <td><input ng-model="form.name"></td>
+         <td>Form Name:</td> <td><input class="form-control" ng-model="form.name"></td>
       </tr>
        <tr>
-         <td>Form Position:</td> <td><input ng-model="form.position"></td>
+         <td>Form Position:</td> <td><input class="form-control" ng-model="form.position"></td>
       </tr>
 
         <tr>
@@ -112,15 +115,15 @@
       </tr>
       <tr ng-repeat="section in form.sections">  <!-- section row -->
       <td colspan="2">
-        <table border=2 class="table table-striped">
+        <table class="table table-bordered table-striped">
             <tr>
-                <td>Section Code</td><td><input  ng-model="section.code"/></td>
+                <td>Section Code</td><td><input  class="form-control" ng-model="section.code"/></td>
             </tr>
             <tr>
-                <td>Section Display Name</td><td><input ng-model="section.display_name"/></td>
+                <td>Section Display Name</td><td><input class="form-control" ng-model="section.display_name"/></td>
             </tr>
             <tr>
-                <td>Section Questionnaire Help Text</td><td><input ng-model="section.questionnaire_help"/></td>
+                <td>Section Questionnaire Help Text</td><td><input class="form-control" ng-model="section.questionnaire_help"/></td>
             </tr>
             <tr>
                 <td>Section Allow Multiple</td><td><input type="checkbox" ng-model="section.allow_mulitple"/></td>
@@ -128,7 +131,7 @@
             <tr>
                 <td>Elements</td>
                 <td>
-                    <table border=1 is-drop-target class="table table-striped">
+                    <table  is-drop-target class="table table-bordered table-striped">
                         <thead>
                         <th>
                             Code

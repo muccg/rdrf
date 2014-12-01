@@ -7,11 +7,12 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-	from django.core.management import call_command
-        call_command("loaddata", "initial_groups.json")
+        from django.core.management import call_command
+        #call_command("loaddata", "initial_groups.json")
+        pass  # avoid error after working group model change - load fixture now applied after
 
     def backwards(self, orm):
-	pass
+        pass
 
     models = {
         u'auth.group': {

@@ -17,6 +17,7 @@ from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
+
 class ResourceFormat:
     JSON = "JSON"
     YAML = "YAML"
@@ -50,12 +51,13 @@ class ResourceFormat:
             raise RESTInterfaceError("Unknown format: %s" % format)
 
 
-
 class RESTInterfaceError(Exception):
     pass
 
+
 class CDECodeNotDefined(RESTInterfaceError):
     pass
+
 
 class REST(object):
     def __init__(self, verb, request, args, initial_data_dict):
@@ -65,7 +67,7 @@ class REST(object):
         self.request = request
         self.args = args
         self.data = None
-        self.patient_id = initial_data_dict.get("patient_id",None)
+        self.patient_id = initial_data_dict.get("patient_id", None)
         self.registry_code = initial_data_dict.get("registry_code", None)
         self.form_name = initial_data_dict.get("form_name", None)
         self.section_code = initial_data_dict.get("section_code", None)
@@ -81,7 +83,7 @@ class REST(object):
 
         if self.form_name:
             try:
-                self.registry_form = RegistryForm.objects.get(registry=self.registry, name = self.form_name)
+                self.registry_form = RegistryForm.objects.get(registry=self.registry, name=self.form_name)
             except RegistryForm.DoesNotExist:
                 raise RESTInterfaceError("Registry Form %s does not in exist in registry %s" % (self.form_name, self.registry_code))
         else:
@@ -94,9 +96,8 @@ class REST(object):
                 except Section.DoesNotExist:
                     raise RESTInterfaceError("Section %s does not exist" % self.section_code)
 
-
             else:
-                raise RESTInterfaceError("Section %s does not appear in Registry form %s in Registry %s" %  (self.section_code, self.form_name, self.registry_code))
+                raise RESTInterfaceError("Section %s does not appear in Registry form %s in Registry %s" % (self.section_code, self.form_name, self.registry_code))
 
         else:
             self.section = None
@@ -104,7 +105,7 @@ class REST(object):
         if self.cde_code:
             try:
                 self.cde = CommonDataElement.objects.get(code=self.cde_code)
-                if not appears_in(self.cde, self.registry, self.registry_form, self.section ):
+                if not appears_in(self.cde, self.registry, self.registry_form, self.section):
                     raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (self.cde_code, self.registry_code, self.form_name, self.section_code))
             except CommonDataElement.DoesNotExist:
                 raise RESTInterfaceError("Data Elemement with code %s doesn't exist" % self.cde_code)
@@ -127,10 +128,9 @@ class REST(object):
     def __unicode__(self):
         return "Registry %s Patient %s Form %s Section %s CDE %s" % (self.registry_code, self.patient_id, self.form_name, self.section_code, self.cde_code)
 
-
     @property
     def valid(self):
-       return self.error_message is None
+        return self.error_message is None
 
     @property
     def html(self):
@@ -144,7 +144,7 @@ class REST(object):
 
     @property
     def response(self):
-        method = getattr(self, "do_%s" % self.verb)
+        method = getattr(self, "do_%s" % self.verb.lower())
         try:
             return method()
         except CDECodeNotDefined, cdeerr:
@@ -153,18 +153,17 @@ class REST(object):
         except RESTInterfaceError, rierr:
             return HttpResponse(rierr, status=400)
 
-
-    def do_GET(self):
+    def do_get(self):
         if self.patient_id is None:
             return HttpResponse("No patient id supplied", status=400)
 
         if self.dyn_data_wrapper is None:
             raise Http404("No Patient with %s exists" % self.patient_id)
 
-        existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
+        existing_patient_data = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
 
         if self.cde_code:
-            retrieved_data = self._retrieve("cde",existing_patient_data)
+            retrieved_data = self._retrieve("cde", existing_patient_data)
         elif self.section_code:
             retrieved_data = self._retrieve("section", existing_patient_data)
         elif self.form_name:
@@ -176,8 +175,7 @@ class REST(object):
 
         return self._response_data(retrieved_data)
 
-
-    def do_POST(self):
+    def do_post(self):
         # PUT didn't work so uating with POST
         #existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
 
@@ -186,10 +184,9 @@ class REST(object):
             key = self._create_delimited_key()
             new_value = self._get_value()
             logger.debug("Updating %s to %s" % (key, new_value))
-            updated_data = { key : new_value }
+            updated_data = {key: new_value}
             self.dyn_data_wrapper.save_dynamic_data(self.registry.code, "cdes", updated_data)
             return HttpResponse('OK', status=200)
-
 
         elif self.section_code:
             # update entire section
@@ -226,7 +223,6 @@ class REST(object):
             else:
                 raise RESTInterfaceError("Unknown request format")
 
-
             logger.debug("decoded request data = %s" % data)
             return data
         else:
@@ -240,12 +236,11 @@ class REST(object):
         elif "yaml" in accept_header:
             return ResourceFormat.YAML
         else:
-            raise RESTInterfaceError("Unknown HTTP_ACCEPT Header: %s" % self.request.META["HTTP_ACCEPT"] )
+            raise RESTInterfaceError("Unknown HTTP_ACCEPT Header: %s" % self.request.META["HTTP_ACCEPT"])
 
     def _create_delimited_key(self):
         from django.conf import settings
         return settings.FORM_SECTION_DELIMITER.join([self.form_name, self.section_code, self.cde_code])
-
 
     def _retrieve(self, level, data):
         from operator import add
@@ -266,13 +261,13 @@ class REST(object):
                 logger.debug("checking key %s" % delimited_key)
                 try:
                     form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                except ValueError,ex:
+                except ValueError, ex:
                     # this means there's bad data in there - saved with diff delimiter
                     continue
 
                 if section_code == self.section_code:
                     section_model = Section.objects.get(code=self.section_code)
-                    defined_cde_codes  = section_model.get_elements()
+                    defined_cde_codes = section_model.get_elements()
                     if cde_code in defined_cde_codes:
                         section_cde_map[cde_code] = data[delimited_key]
                     else:
@@ -281,17 +276,17 @@ class REST(object):
 
         elif level == 'form':
             form_map = {}
-            defined_section_codes  = self.registry_form.get_sections()
+            defined_section_codes = self.registry_form.get_sections()
             for defined_section_code in defined_section_codes:
                 defined_section = Section.objects.get(code=defined_section_code)
                 section_map = {}
                 for delimited_key in data:
                     try:
                         form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                    except ValueError,ex:
+                    except ValueError, ex:
                     # this means there's bad data in there - saved with diff delimiter
                         continue
-                    if self.registry_form.name == form_name and  defined_section_code == section_code:
+                    if self.registry_form.name == form_name and defined_section_code == section_code:
                         section_map[cde_code] = data[delimited_key]
 
                 form_map[defined_section_code] = section_map
@@ -341,26 +336,20 @@ class RDRFEndpointView(View):
 
     @rest_call
     def get(self, request, *args, **kwargs):
-        resource_request = REST("GET",request,args,kwargs)
+        resource_request = REST("GET", request, args, kwargs)
         return resource_request.response
 
     @rest_call
     def post(self, request, *args, **kwargs):
-        resource_request = REST("POST",request,args,kwargs)
+        resource_request = REST("POST", request, args, kwargs)
         return resource_request.response
 
     @rest_call
     def put(self, request, *args, **kwargs):
-        resource_request = REST("PUT",request,args,kwargs)
+        resource_request = REST("PUT", request, args, kwargs)
         return resource_request.response
 
     @rest_call
     def delete(self, request, *args, **kwargs):
-        resource_request = REST("DELETE",request,args,kwargs)
+        resource_request = REST("DELETE", request, args, kwargs)
         return resource_request.response
-
-    # @rest_call
-    # @csrf_exempt
-    # def patch(self, request, *args, **kwargs):
-    #     resource_request = REST("PATCH",request,args,kwargs)
-    #     return resource_request.response

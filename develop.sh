@@ -87,6 +87,7 @@ function ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
     ccg ${AWS_STAGING_INSTANCE} boot
     ccg ${AWS_STAGING_INSTANCE} puppet
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf syncdb --all' # Ensure that permissions and contenttypes are "in synch"
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
 }
 
@@ -117,7 +118,7 @@ function ci_staging_selenium() {
     #ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
-    #sleep 5
+    sleep 5
     ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
@@ -147,7 +148,7 @@ make_virtualenv() {
 
 # lint using flake8
 function lint() {
-    virt_rdrf/bin/flake8 rdrf --ignore=E501 --count
+    virt_rdrf/bin/flake8 rdrf/rdrf --exclude=migrations --ignore=E501 --count
 }
 
 # lint js, assumes closure compiler
@@ -224,7 +225,7 @@ function installapp() {
 # django syncdb, migrate and collect static
 function syncmigrate() {
     echo "syncdb"
-    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
+    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all
     echo "migrate"
     virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE} 
     echo "collectstatic"
@@ -283,6 +284,9 @@ test)
     ;;
 ci_lint)
     ci_lint
+    ;;
+lint)
+    lint
     ;;
 syncmigrate)
     settings
