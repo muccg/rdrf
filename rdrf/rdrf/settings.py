@@ -7,7 +7,11 @@ from django.contrib.messages import constants as message_constants
 
 env = EnvConfig()
 
-FORCE_SCRIPT_NAME = env.get("force_script_name", None)
+environ_script_name = env.get("force_script_name", "DUMMYVALUE")
+if environ_script_name == "DUMMYVALUE":
+    FORCE_SCRIPT_NAME = None
+else:
+    FORCE_SCRIPT_NAME = environ_script_name
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
