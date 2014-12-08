@@ -175,7 +175,7 @@ ci_lint() {
 function dropdb() {
     # assumes postgres, user rdrf exists, appropriate pg_hba.conf
     echo "Drop the dev database manually:"
-    echo "psql -aeE -U postgres -c \"SELECT pg_terminate_backend(pg_stat_activity.procpid) FROM pg_stat_activity where pg_stat_activity.datname = 'rdrf'\" && psql -aeE -U postgres -c \"alter user rdrf createdb;\" template1 && psql -aeE -U postgres  -c \"drop database rdrf\" template1 && psql -aeE -U rdrf -c \"create database rdrf;\" template1"
+    echo "psql -aeE -U postgres -c \"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity where pg_stat_activity.datname = 'rdrf'\" && psql -aeE -U postgres -c \"alter user rdrf createdb;\" template1 && psql -aeE -U postgres  -c \"drop database rdrf\" template1 && psql -aeE -U rdrf -c \"create database rdrf;\" template1"
 }
 
 
@@ -227,7 +227,7 @@ function syncmigrate() {
     echo "syncdb"
     virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all
     echo "migrate"
-    virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE} 
+    virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE}
     echo "collectstatic"
     virt_rdrf/bin/django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 1> collectstatic-develop.log
 }
