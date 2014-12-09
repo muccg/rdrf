@@ -103,6 +103,8 @@ class SpreadSheetCreator(object):
             validation = {"validate" : 'list', 'source': ['True','False']}
         elif datatype == RANGE:
             if values is not None:
+                if "---" not in values:
+                    values.insert(0,'---')
                 validation = {"validate": 'list', 'source': values}
             else:
                 return
