@@ -94,7 +94,6 @@ class Patient(models.Model):
         ("Chinese", "Chinese"),
         ("Indian", "Indian"),
         ("Maori", "Maori"),
-        ("Aboriginal", "Aboriginal"),
         ("Middle eastern", "Middle eastern"),
         ("Person from the Pacific Islands", "Person from the Pacific Islands"),
         ("Other Asian", "Other Asian"),
