@@ -553,7 +553,7 @@ class QuestionnaireResponseView(FormView):
             questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
             if patient_creator.state == PatientCreatorState.CREATED_OK:
-                messages.info(request, "Questionnaire approved")
+                messages.info(request, "Questionnaire approved - A patient record has now been created")
             elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
                 error = patient_creator.error
                 messages.error(request, "Patient failed to be created due to validation errors: %s" % error)
