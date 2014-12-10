@@ -49,7 +49,6 @@ class DynamicDataWrapper(object):
         if not self.testing:
             db = self.client[registry]
         else:
-            logger.debug("getting test db..")
             db = self.client["testing_" + registry]
 
         collection = db[collection_name]
@@ -69,12 +68,10 @@ class DynamicDataWrapper(object):
         :param collection_name: e.g. cde or hpo
         :return:
         """
-        logger.debug("%s: loading data for %s %s" % (self, registry, collection_name))
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
         data = collection.find_one(record_query)
         self._wrap_gridfs_files_from_mongo(registry, data)
-        logger.debug("%s: dynamic data = %s" % (self, data))
         return data
 
     def load_registry_specific_data(self):
@@ -160,8 +157,6 @@ class DynamicDataWrapper(object):
                 # section data
                 for section_dict in value:
                     self._wrap_gridfs_files_from_mongo(registry, section_dict)
-
-        logger.debug("wrapped gridfs data = %s" % data)
 
     def _get_gridfs_filename(self, registry, data_record, cde_code, original_file_name):
         return "%s****%s****%s****%s****%s" % (registry, self.django_model, self.django_id, cde_code, original_file_name)
