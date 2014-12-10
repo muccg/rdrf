@@ -261,6 +261,8 @@ class PatientCreator(object):
                 return
 
         self.state = PatientCreatorState.CREATED_OK
+        # RDR-667 we don't need to preserve the approved QRs once patient created
+        questionnaire_response.delete()
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
