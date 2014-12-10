@@ -174,7 +174,7 @@ class RegistryAdmin(admin.ModelAdmin):
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'date_submitted', 'processed', 'process_link', 'name', 'date_of_birth')
+    list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
     list_filter = ('registry', 'date_submitted')
 
     def process_link(self, obj):
