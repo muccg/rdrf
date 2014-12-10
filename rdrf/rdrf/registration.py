@@ -212,6 +212,7 @@ class PatientCreator(object):
             mapper.save_patient_fields()
         except Exception, ex:
             logger.error("Error saving patient fields: %s" % ex)
+            self.error = ex
             self.state = PatientCreatorState.FAILED
             return
 
