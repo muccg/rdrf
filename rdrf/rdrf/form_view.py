@@ -256,7 +256,7 @@ class FormView(View):
         return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id)
 
     def _get_formlinks(self):
-        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms]
+        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire]
 
     def _build_context(self):
         sections, display_names = self._get_sections(self.registry_form)

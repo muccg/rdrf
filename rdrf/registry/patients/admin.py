@@ -158,6 +158,8 @@ class PatientAdmin(admin.ModelAdmin):
         links = []
         for registry_model in patient.rdrf_registry.all():
             for form_model in registry_model.forms:
+                if form_model.is_questionnaire:
+                    continue
                 form_link = FormLink(patient.id, registry_model, form_model)
                 links.append(form_link)
         return links
