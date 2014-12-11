@@ -10,8 +10,11 @@ env = EnvConfig()
 environ_script_name = env.get("force_script_name", "DUMMYVALUE")
 if environ_script_name == "DUMMYVALUE":
     FORCE_SCRIPT_NAME = None
+    SCRIPT_NAME = env.get("SCRIPT_NAME", "")
+
 else:
     FORCE_SCRIPT_NAME = environ_script_name
+    SCRIPT_NAME = FORCE_SCRIPT_NAME
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -122,10 +125,10 @@ MANAGERS = ADMINS
 
 
 STATIC_ROOT = os.path.join(WEBAPP_ROOT, 'static')
-STATIC_URL = '{0}/static/'.format(os.environ.get("SCRIPT_NAME", ""))
+STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
 MEDIA_ROOT = os.path.join(WEBAPP_ROOT, 'media')
-MEDIA_URL = '{0}/static/media/'.format(os.environ.get("SCRIPT_NAME", ""))
+MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
 
 # for local development, this is set to the static serving directory. For deployment use Apache Alias
 STATIC_SERVER_PATH = os.path.join(WEBAPP_ROOT, "static")
@@ -136,7 +139,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # session and cookies
 SESSION_COOKIE_AGE = 60 * 60
-SESSION_COOKIE_PATH = '{0}/'.format(os.environ.get("SCRIPT_NAME", ""))
+SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_NAME = "csrftoken_registry"
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or None
@@ -304,7 +307,7 @@ SUIT_CONFIG = {
 One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
-    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True},
+    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
 ]
 
 AJAX_LOOKUP_CHANNELS = {
