@@ -113,9 +113,9 @@ EMAIL_HOST = env.get("email_host", '127.0.0.1')
 EMAIL_PORT = env.get("email_port", 25)
 EMAIL_HOST_USER = env.get("email_host_user", "")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
-EMAIL_APP_NAME = env.get("email_app_name", "Registry ")
-EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV ")
-SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf_dev")
+EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
+EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
+SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # default emailsn
 ADMINS = [
@@ -141,11 +141,11 @@ TEMPLATE_DEBUG = DEBUG
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
 SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
-CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrftoken_rdrf")
+CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrftoken_{0}".format(SCRIPT_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or None
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
 SESSION_COOKIE_SECURE = env.get("session_cookie_secure", False)
-SESSION_COOKIE_NAME = env.get("session_cookie_name", "rdrf")
+SESSION_COOKIE_NAME = env.get("session_cookie_name", SCRIPT_NAME)
 
 # see https://docs.djangoproject.com/en/dev/ref/settings/#session-engine
 # https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-SESSION_FILE_PATH
