@@ -49,7 +49,8 @@ node default {
     secret_key            => '*&^*&768768YFYTFYHGGHCgcgfcg',
     allowed_hosts         => 'localhost .ccgapps.com.au',
     session_cookie_domain => '.ccgapps.com.au',
-    key_prefix            => 'rdrf_staging_'
+    key_prefix            => 'rdrf_staging_',
+    force_script_name     => 'rdrf-staging',
   }
 
   # postgressql database
