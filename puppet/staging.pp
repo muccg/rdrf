@@ -39,17 +39,17 @@ node default {
 
   # There are some leaked local secrets here we don't care about
   $django_config = {
-    deployment         => 'staging',
-    dbdriver           => 'django.db.backends.postgresql_psycopg2',
-    dbhost             => '',
-    dbname             => 'rdrf_staging',
-    dbuser             => 'rdrf',
-    dbpass             => 'rdrf',
-    memcache           => $globals::memcache_syd,
-    secret_key         => '*&^*&768768YFYTFYHGGHCgcgfcg',
-    allowed_hosts      => 'localhost .ccgapps.com.au',
-    csrf_cookie_domain => '.ccgapps.com.au',
-    key_prefix         => 'rdrf_staging_'
+    deployment            => 'staging',
+    dbdriver              => 'django.db.backends.postgresql_psycopg2',
+    dbhost                => '',
+    dbname                => 'rdrf_staging',
+    dbuser                => 'rdrf',
+    dbpass                => 'rdrf',
+    memcache              => $globals::memcache_syd,
+    secret_key            => '*&^*&768768YFYTFYHGGHCgcgfcg',
+    allowed_hosts         => 'localhost .ccgapps.com.au',
+    session_cookie_domain => '.ccgapps.com.au',
+    key_prefix            => 'rdrf_staging_'
   }
 
   # postgressql database
