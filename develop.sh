@@ -225,7 +225,7 @@ function installapp() {
 # django syncdb, migrate and collect static
 function syncmigrate() {
     echo "syncdb"
-    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all
+    virt_rdrf/bin/django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
     echo "migrate"
     virt_rdrf/bin/django-admin.py migrate --settings=${DJANGO_SETTINGS_MODULE}
     echo "collectstatic"
