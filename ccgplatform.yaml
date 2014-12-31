@@ -28,8 +28,6 @@ instances:
       - which puppet || sudo yum install -y -q puppet
     extends: centos_66_aws_syd
     puppet_manifest: staging.pp
-    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
-    aws_key_name: ccg-syd-staging
     aws_security_groups:
       - default
       - ssh
@@ -44,8 +42,6 @@ instances:
       - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: demo.pp
-    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
-    aws_key_name: ccg-syd-staging
     
   aws-syd-rdrf-scratch:
     extends: centos_66_aws_syd
@@ -54,8 +50,6 @@ instances:
       - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: scratch.pp
-    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
-    aws_key_name: ccg-syd-staging
     
   aws-syd-rdrf-pmrff:
     extends: centos_66_aws_syd
@@ -64,8 +58,6 @@ instances:
       - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: pmrff.pp
-    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
-    aws_key_name: ccg-syd-staging
   
   aws-syd-rdrf-pbcrc:
     extends: centos_66_aws_syd
@@ -74,8 +66,6 @@ instances:
       - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
       - which puppet || sudo yum install -y -q puppet
     puppet_manifest: pbcrc.pp
-    key_filename: os.path.expanduser('~/.ssh/ccg-syd-staging.pem')
-    aws_key_name: ccg-syd-staging
     
   local_staging:
     extends: centos_66_lxc
