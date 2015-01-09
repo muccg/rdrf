@@ -105,8 +105,8 @@ if [ "$1" = 'runserver' ]; then
     django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE}
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
-    django-admin.py load_fixture --file=users.json
     django-admin.py load_fixture --file=rdrf.json
+    django-admin.py load_fixture --file=users.json
     django-admin.py ${RUNSERVER_OPTS}
     exit $?
 fi
