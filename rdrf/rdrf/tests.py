@@ -198,7 +198,7 @@ class FormTestCase(RDRFTestCase):
         self.request_factory = RequestFactory()
 
     def _reset_mongo(self):
-        self.client = MongoClient()
+        self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         # delete any testing databases
         for db in self.client.database_names():
             if db.startswith("testing_"):
