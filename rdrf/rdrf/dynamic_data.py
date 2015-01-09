@@ -4,6 +4,7 @@ import gridfs
 import logging
 from rdrf.utils import get_code
 from bson.objectid import ObjectId
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -25,7 +26,7 @@ class DynamicDataWrapper(object):
     """
     REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION = "registry_specific_patient_data"
 
-    def __init__(self, obj, client=MongoClient(), filestore_class=gridfs.GridFS):
+    def __init__(self, obj, client=MongoClient(settings.MONGOSERVER, settings.MONGOPORT), filestore_class=gridfs.GridFS):
         self.testing = False  # When set to True by integration tests, uses testing mongo database
         self.obj = obj
         self.django_id = obj.pk
