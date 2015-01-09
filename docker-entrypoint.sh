@@ -52,37 +52,6 @@ function defaults {
 }
 
 
-function celery_defaults {
-    : ${CELERY_CONFIG_MODULE="settings"}
-    : ${CELERYD_CHDIR=`pwd`}
-    : ${CELERY_BROKER="amqp://admin:admin@${QUEUESERVER}:${QUEUEPORT}//"}
-    : ${CELERY_APP="app.celerytasks"}
-    : ${CELERY_LOGLEVEL="DEBUG"}
-    : ${CELERY_OPTIMIZATION="fair"}
-    if [[ -z "$CELERY_AUTORELOAD" ]] ; then
-        CELERY_AUTORELOAD=""
-    else
-        CELERY_AUTORELOAD="--autoreload"
-    fi
-    : ${CELERY_OPTS="-A ${CELERY_APP} -E --loglevel=${CELERY_LOGLEVEL} -O${CELERY_OPTIMIZATION} -b ${CELERY_BROKER} ${CELERY_AUTORELOAD}"}
-    : ${DJANGO_PROJECT_DIR="${CELERYD_CHDIR}"}
-    : ${PROJECT_DIRECTORY="${CELERYD_CHDIR}"}
-
-    echo "CELERY_CONFIG_MODULE is ${CELERY_CONFIG_MODULE}"
-    echo "CELERYD_CHDIR is ${CELERYD_CHDIR}"
-    echo "CELERY_BROKER is ${CELERY_BROKER}"
-    echo "CELERY_APP is ${CELERY_APP}"
-    echo "CELERY_LOGLEVEL is ${CELERY_LOGLEVEL}"
-    echo "CELERY_OPTIMIZATION is ${CELERY_OPTIMIZATION}"
-    echo "CELERY_AUTORELOAD is ${CELERY_AUTORELOAD}"
-    echo "CELERY_OPTS is ${CELERY_OPTS}"
-    echo "DJANGO_PROJECT_DIR is ${DJANGO_PROJECT_DIR}"
-    echo "PROJECT_DIRECTORY is ${PROJECT_DIRECTORY}"
-
-    export CELERY_CONFIG_MODULE CELERYD_CHDIR CELERY_BROKER CELERY_APP CELERY_LOGLEVEL CELERY_OPTIMIZATION CELERY_AUTORELOAD CELERY_OPTS DJANGO_PROJECT_DIR PROJECT_DIRECTORY
-}
-
-
 function django_defaults {
     : ${DEPLOYMENT="dev"}
     : ${PRODUCTION=0}
@@ -113,17 +82,6 @@ echo "WHOAMI is `whoami`"
 defaults
 wait_for_services
 
-# celery entrypoint
-if [ "$1" = 'celery' ]; then
-    echo "[Run] Starting celery"
-
-    django_defaults
-    celery_defaults
-
-    celery worker ${CELERY_OPTS}
-    exit $?
-fi
-
 # uwsgi entrypoint
 if [ "$1" = 'uwsgi' ]; then
     echo "[Run] Starting uwsgi"
@@ -139,7 +97,6 @@ fi
 if [ "$1" = 'runserver' ]; then
     echo "[Run] Starting runserver"
 
-    celery_defaults
     django_defaults
 
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${WEBPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
@@ -148,6 +105,7 @@ if [ "$1" = 'runserver' ]; then
     django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE}
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE}
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py load_fixture --file=users.json
     django-admin.py load_fixture --file=rdrf.json
     django-admin.py ${RUNSERVER_OPTS}
     exit $?
@@ -169,7 +127,7 @@ if [ "$1" = 'runtests' ]; then
     exit $?
 fi
 
-echo "[RUN]: Builtin command not provided [runtests|runserver|celery|uwsgi]"
+echo "[RUN]: Builtin command not provided [runtests|runserver|uwsgi]"
 echo "[RUN]: $@"
 
 exec "$@"
