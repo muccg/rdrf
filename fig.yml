@@ -1,0 +1,66 @@
+# https://github.com/docker-library/postgres/tree/master/9.3
+db:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - "5432:5432"
+
+cache:
+  image: memcached
+  expose:
+    - "11211"
+
+mongo:
+  image: mongo:2.6
+
+#nginx:
+#  image: nginx:1.7
+#  volumes:
+#    - nginx:/etc/nginx
+#  links:
+#    - uwsgi
+#  expose:
+#    - "8443"
+#  ports:
+#    - "443:8443"
+
+web:
+  build: .
+  command: runserver
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes:
+    - .:/app
+  ports:
+    - "8000:8000"
+  links:
+    - db
+    - cache
+    - mongo
+
+uwsgi:
+  image: rdrf_web
+  command: uwsgi
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+      # note: uwsgi ini file sets environment
+  volumes:
+    - .:/app
+  ports:
+    - "9000:9000"
+    - "9001:9001"
+    - "9100:9100"
+    - "9101:9101"
+  links:
+    - db
+    - cache
+    - mongo
