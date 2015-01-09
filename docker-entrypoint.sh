@@ -86,9 +86,12 @@ wait_for_services
 if [ "$1" = 'uwsgi' ]; then
     echo "[Run] Starting uwsgi"
 
+    django_defaults
+
     : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
 
+    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
     uwsgi ${UWSGI_OPTS}
     exit $?
 fi
