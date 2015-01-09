@@ -124,14 +124,15 @@ ADMINS = [
 MANAGERS = ADMINS
 
 
-STATIC_ROOT = os.path.join(WEBAPP_ROOT, 'static')
+STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
 STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
-MEDIA_ROOT = os.path.join(WEBAPP_ROOT, 'media')
+MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'static', 'media'))
 MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
 
+# TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For deployment use Apache Alias
-STATIC_SERVER_PATH = os.path.join(WEBAPP_ROOT, "static")
+STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writeable_directory", "/tmp")
@@ -143,18 +144,12 @@ SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
 SESSION_COOKIE_SECURE = env.get("session_cookie_secure", False)
-SESSION_COOKIE_NAME = env.get("session_cookie_name", SCRIPT_NAME.replace("/", ""))
+SESSION_COOKIE_NAME = env.get("session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
-CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrftoken_{0}".format(SESSION_COOKIE_NAME))
+CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", False)
-
-# see https://docs.djangoproject.com/en/dev/ref/settings/#session-engine
-# https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-SESSION_FILE_PATH
-# in production we would suggest using memcached for your session engine
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = WRITABLE_DIRECTORY
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
@@ -182,16 +177,28 @@ if env.get("memcache", ""):
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': env.getlist("memcache"),
-            'KEY_PREFIX': env.get("key_prefix", "")
+            'KEY_PREFIX': env.get("key_prefix", "rdrf")
         }
     }
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'rdrf_cache',
+            'TIMEOUT': 3600,
+            'MAX_ENTRIES': 600
+        }
+    }
+
+    SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+    SESSION_FILE_PATH = WRITABLE_DIRECTORY
 
 # #
 # # LOGGING
 # #
-LOG_DIRECTORY = os.path.join(WEBAPP_ROOT, "log")
+LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 try:
     if not os.path.exists(LOG_DIRECTORY):
         os.mkdir(LOG_DIRECTORY)
