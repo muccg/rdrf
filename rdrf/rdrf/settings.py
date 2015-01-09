@@ -135,7 +135,7 @@ MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
 STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
-WRITABLE_DIRECTORY = env.get("writeable_directory", "/tmp")
+WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 TEMPLATE_DEBUG = DEBUG
 
 # session and cookies
