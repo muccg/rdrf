@@ -43,6 +43,9 @@ DATABASES = {
     }
 }
 
+MONGOSERVER = env.get("mongoserver", "localhost")
+MONGOPORT = env.get("mongoport", 27017)
+
 # Django Core stuff
 TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
