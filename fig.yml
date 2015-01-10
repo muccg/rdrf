@@ -8,23 +8,19 @@ db:
     - "5432:5432"
 
 cache:
-  image: memcached
+  image: memcached:1.4
   expose:
     - "11211"
 
 mongo:
   image: mongo:2.6
 
-#nginx:
-#  image: nginx:1.7
-#  volumes:
-#    - nginx:/etc/nginx
-#  links:
-#    - uwsgi
-#  expose:
-#    - "8443"
-#  ports:
-#    - "443:8443"
+nginx:
+  image: muccg/nginx-uwsgi:1.7
+  links:
+    - uwsgi
+  ports:
+    - "8443:443"
 
 web:
   build: .
