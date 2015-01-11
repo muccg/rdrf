@@ -118,15 +118,9 @@ fi
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
 
-    XUNIT_OPTS="--with-xunit --xunit-file=tests.xml"
-    COVERAGE_OPTS="--with-coverage --cover-html --cover-erase --cover-package=rdrf"
-    NOSETESTS="nosetests -v --logging-clear-handlers ${XUNIT_OPTS}"
-    IGNORES="-I sshtorque_tests.py -I torque_tests.py -I sshpbspro_tests.py"
-    IGNORES="${IGNORES} -a !external_service"
-    TEST_CASES="/app/tests /app/rdrf/rdrf"
+    django_defaults
 
-    echo ${NOSETESTS} ${IGNORES} ${TEST_CASES}
-    ${NOSETESTS} ${IGNORES} ${TEST_CASES}
+    django-admin.py test rdrf
     exit $?
 fi
 
