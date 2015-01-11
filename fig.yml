@@ -1,16 +1,13 @@
-# https://github.com/docker-library/postgres/tree/master/9.3
 db:
   image: postgres:9.3
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - "5432:5432"
+    - ":5432"
 
 cache:
   image: memcached:1.4
-  expose:
-    - "11211"
 
 mongo:
   image: mongo:2.6
