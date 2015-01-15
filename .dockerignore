@@ -1,0 +1,14 @@
+.git
+virt_*
+docs
+*.pyc
+*.log
+*.pid
+*.fa
+*egg-info*
+puppet
+sql
+tmp
+centos
+*/log/*
+*/scratch/*
