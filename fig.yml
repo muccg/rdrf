@@ -12,6 +12,11 @@ cache:
 mongo:
   image: mongo:2.6
 
+triplestore:
+  image: muccg/allegro:4.14.1
+  ports:
+    - ":10035"
+
 nginx:
   image: muccg/nginx-uwsgi:1.7
   links:

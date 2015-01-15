@@ -13,7 +13,7 @@ mongotest:
   image: mongo:2.6
 
 webtest:
-  build: .
+  image: rdrf_web
   command: runserver
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
@@ -35,7 +35,7 @@ webtest:
 
 # runs the tests against the stack above
 testhost:
-  image: rdrf_webtest
+  image: rdrf_web
   command: runtests
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
