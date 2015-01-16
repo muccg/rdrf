@@ -156,7 +156,7 @@ Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patie
                     <!-- start management form for {{s}}-->
                     {{ forms|get_management_form:s }}
                     <!-- end management form for {{s}} -->
-                    <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
+                    <button type="button" id="add_button_for_section_{{s}}"  class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</button>
                     <table id="section_table_{{s}}">
                     <script>
                         $(document).ready(function() {
@@ -176,7 +176,7 @@ Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patie
                     {% for f in forms|get_forms:s %}
                       {{ f.as_table }}
                       <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                        <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a>
+                        <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><button type="button" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</button>
                         </td>
                       </tr>
                     {% endfor %}
