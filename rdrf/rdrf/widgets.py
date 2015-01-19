@@ -228,7 +228,7 @@ class CountryWidget(widgets.Select):
 
 
 class StateWidget(widgets.Select):
-    
+
     def render(self, name, value, attrs):
         if not value:
             value = self.attrs['default']
@@ -248,3 +248,50 @@ class StateWidget(widgets.Select):
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
         return mark_safe('\n'.join(output))
+
+
+class ParametrisedSelectWidget(widgets.Select):
+    """
+    A dropdown that can retrieve values dynamically from the registry that "owns" the form containing the widget.
+    This is an abstract class which must be subclassed.
+    NB. The field factory is responsible for supplying the registry model to the widget instance  at
+    form creation creation time.
+    """
+    def __init__(self, *args, **kwargs):
+        self._widget_parameter = kwargs['widget_parameter']
+        del kwargs['widget_parameter']
+        self._widget_context = kwargs['widget_context'] #
+        del kwargs['widget_context']
+        super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs):
+        if not value:
+            value = self.attrs.get('default', '')
+
+        output = ["<select  id='%s' name='%s'>" % (name, name)]
+        for code, display in self._get_items():
+            if value == code:
+                output.append("<option value='%s' selected>%s</option>" % (code, display))
+            else:
+                output.append("<option value='%s'>%s</option>" % (code, display))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))
+
+    def _get_items(self):
+        raise NotImplementedError("subclass responsibility - it should return a list of pairs: [(code, display), ...]")
+
+
+class DataSourceSelect(ParametrisedSelectWidget):
+    """
+    A parametrised select that retrieves values from a data source specified in the parameter
+    """
+    def _get_items(self):
+        """
+        :return: [(code, value), ... ] pairs from the metadata json from the registry context
+        """
+        from rdrf import datasources
+        logger.debug("checking for data source: %s" % self._widget_parameter)
+        if hasattr(datasources, self._widget_parameter):
+            datasource_class = getattr(datasources, self._widget_parameter)
+            datasource = datasource_class(self._widget_context)
+            return datasource.values()
