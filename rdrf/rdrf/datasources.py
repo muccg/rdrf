@@ -19,6 +19,7 @@ class PatientCentres(DataSource):
         registry_model = self.context["registry_model"]
         if "patientCentres" in registry_model.metadata:
             questionnaire_context = self.context.get("questionnaire_context", "au")
+            # Assumes a list of pairs ( code and display text to fill the drop down)
             return registry_model.metadata["patientCentres"][questionnaire_context]
         else:
             from registry.groups.models import WorkingGroup
