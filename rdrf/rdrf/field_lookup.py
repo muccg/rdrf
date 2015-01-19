@@ -53,7 +53,7 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire=False, injected_model=None, injected_model_id=None):
+    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None, injected_model=None, injected_model_id=None):
         """
         :param cde: Common Data Element model instance
         """
@@ -61,7 +61,8 @@ class FieldFactory(object):
         self.registry_form = registry_form
         self.section = section
         self.cde = cde
-        if questionnaire:
+        self.questionnaire_context = questionnaire_context
+        if questionnaire_context:
             self.context = FieldContext.QUESTIONNAIRE
         else:
             self.context = FieldContext.CLINICAL_FORM
@@ -202,7 +203,36 @@ class FieldFactory(object):
             widget_class = getattr(django_forms, widget_class_name)
             return widget_class
 
+        if self._is_parametrised_widget(widget_class_name):
+            logger.debug("creating parametrised widget: %s" % widget_class_name)
+            widget_context = {"registry_model": self.registry,
+                              "registry_form": self.registry_form,
+                              "cde": self.cde,
+                              "on_questionnaire": self.context == FieldContext.QUESTIONNAIRE,
+                              "questionnaire_context": self.questionnaire_context,
+                              "primary_model": self.primary_model,
+                              "primary_id": self.primary_id
+                              }
+
+            logger.debug("widget_context = %s" % widget_context)
+            return self._get_parametrised_widget_instance(widget_class_name, widget_context)
+
         return None
+
+    def _is_parametrised_widget(self, widget_string):
+        return ":" in widget_string
+
+    def _get_parametrised_widget_instance(self, widget_string, widget_context):
+        # Given a widget string ( from the DE specification page ) like:   <SomeWidgetClassName>:<widget parameter string>
+        widget_class_name, widget_parameter = widget_string.split(":")
+        logger.debug("widget class name = %s" % widget_class_name)
+        logger.debug("widget parameter = %s" % widget_parameter)
+        if hasattr(widgets, widget_class_name):
+            logger.debug("found widget!")
+            widget_class = getattr(widgets, widget_class_name)
+            return widget_class(widget_parameter=widget_parameter, widget_context=widget_context)
+        else:
+            logger.debug("could not locate widget from widget string: %s" % widget_string)
 
     def create_field(self):
         """
@@ -320,6 +350,7 @@ class FieldFactory(object):
                     widget = self._widget_search(self.cde.widget_name)
                 except Exception, ex:
                     logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
+                    raise ex
                     widget = None
             else:
                 if self.cde.datatype.lower() == 'date':
