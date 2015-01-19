@@ -258,7 +258,11 @@ class FormView(View):
     def _get_formlinks(self):
         return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire]
 
-    def _build_context(self):
+    def _build_context(self, **kwargs):
+        """
+        :param kwargs: extra key value pairs to be passed into the built context
+        :return: a context dictionary to render the template ( all form generation done here)
+        """
         sections, display_names = self._get_sections(self.registry_form)
         form_section = {}
         section_element_map = {}
@@ -269,17 +273,14 @@ class FormView(View):
         form_links = self._get_formlinks()
 
         for s in sections:
-            logger.debug("creating cdes for section %s" % s)
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(self.registry, self.registry_form, section_model)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
-            logger.debug("section field ids map for section %s = %s" % (s, section_field_ids_map[s]))
 
             if not section_model.allow_multiple:
                 # return a normal form
-                logger.debug("creating form instance for section %s" % s)
                 from copy import deepcopy
                 initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
@@ -299,7 +300,6 @@ class FormView(View):
                 if self.dynamic_data:
                     try:
                         initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])  # we grab the list of data items by section code not cde code
-                        logger.debug("retrieved data for section %s OK" % s)
                     except KeyError, ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
                         initial_data = [""] * len(section_elements)
@@ -307,7 +307,6 @@ class FormView(View):
                     #initial_data = [""] * len(section_elements)
                     initial_data = [""]  # this appears to forms
 
-                logger.debug("initial data for section %s = %s" % (s, initial_data))
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
@@ -326,11 +325,13 @@ class FormView(View):
             'section_field_ids_map': section_field_ids_map,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
-            "form_links" : form_links,
+            "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
-        logger.debug("questionnaire context = %s" % context)
+        context.update(kwargs)
+        for k in context:
+            logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
 
     def _get_patient_id(self):
@@ -381,8 +382,9 @@ class QuestionnaireView(FormView):
                 raise RegistryForm.DoesNotExist()
 
             self.registry_form = form
-            context = self._build_context()
+            context = self._build_context(questionnaire_context=questionnaire_context)
             context["registry"] = self.registry
+            #context["questionnaire_context"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
