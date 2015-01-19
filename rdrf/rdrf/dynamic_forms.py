@@ -32,7 +32,7 @@ def create_form_class(owner_class_name):
     return form_class
 
 
-def create_form_class_for_section(registry, registry_form, section, for_questionnaire=False, injected_model=None,
+def create_form_class_for_section(registry, registry_form, section, questionnaire_context=None, injected_model=None,
                                   injected_model_id=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
@@ -40,7 +40,7 @@ def create_form_class_for_section(registry, registry_form, section, for_question
 
     for s in section.elements.split(","):
         cde = CommonDataElement.objects.get(code=s.strip())
-        cde_field = FieldFactory(registry, registry_form, section, cde, for_questionnaire,
+        cde_field = FieldFactory(registry, registry_form, section, cde, questionnaire_context,
                                  injected_model=injected_model,
                                  injected_model_id=injected_model_id).create_field()
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name, settings.FORM_SECTION_DELIMITER, section.code,

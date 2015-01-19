@@ -372,10 +372,15 @@ class FormView(View):
 class QuestionnaireView(FormView):
     def __init__(self, *args, **kwargs):
         super(QuestionnaireView, self).__init__(*args, **kwargs)
+        self.questionnaire_context = None
         self.template = 'rdrf_cdes/questionnaire.html'
 
-    def get(self, request, registry_code, questionnaire_context=None):
+    def get(self, request, registry_code, questionnaire_context="au"):
         try:
+            if questionnaire_context is not None:
+                self.questionnaire_context = questionnaire_context
+            else:
+                self.questionnaire_context = 'au'
             self.registry = self._get_registry(registry_code)
             form = self.registry.questionnaire
             if form is None:
@@ -411,7 +416,16 @@ class QuestionnaireView(FormView):
         else:
             return None
 
+    def _get_questionnaire_context(self, request):
+        parts = request.path.split("/")
+        context_flag = parts[-1]
+        if context_flag in ["au", "nz"]:
+            return context_flag
+        else:
+            return "au"
+
     def post(self, request, registry_code, **kwargs):
+        self.questionnaire_context = self._get_questionnaire_context(request)
         error_count = 0
         registry = self._get_registry(registry_code)
         questionnaire_form = registry.questionnaire
@@ -430,7 +444,7 @@ class QuestionnaireView(FormView):
             section_model = Section.objects.get(code=section)
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
-            form_class = create_form_class_for_section(registry, questionnaire_form, section_model)
+            form_class = create_form_class_for_section(registry, questionnaire_form, section_model, questionnaire_context=self.questionnaire_context)
             section_field_ids_map[section] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
@@ -508,7 +522,7 @@ class QuestionnaireView(FormView):
         return "questionnaire"
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section, for_questionnaire=True)
+        return create_form_class_for_section(registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
 class QuestionnaireResponseView(FormView):
