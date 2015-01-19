@@ -202,7 +202,36 @@ class FieldFactory(object):
             widget_class = getattr(django_forms, widget_class_name)
             return widget_class
 
+        if self._is_parametrised_widget(widget_class_name):
+            logger.debug("creating parametrised widget: %s" % widget_class_name)
+            widget_context = {"registry_model" : self.registry,
+                              "registry_form": self.registry_form,
+                              "cde" : self.cde,
+                              "on_questionnaire": self.context == FieldContext.QUESTIONNAIRE,
+                              "questionnaire_context": self.context["questionnaire_context"],
+                              "primary_model": self.primary_model,
+                              "primary_id": self.primary_id
+                              }
+
+            logger.debug("widget_context = %s" % widget_context)
+            return self._get_parametrised_widget_instance(widget_class_name, widget_context)
+
         return None
+
+    def _is_parametrised_widget(self, widget_string):
+        return ":" in widget_string
+
+    def _get_parametrised_widget_instance(self, widget_string, widget_context):
+        # Given a widget string ( from the DE specification page ) like:   <SomeWidgetClassName>:<widget parameter string>
+        widget_class_name, widget_parameter = widget_string.split(":")
+        logger.debug("widget class name = %s" % widget_class_name)
+        logger.debug("widget parameter = %s" % widget_parameter)
+        if hasattr(widgets, widget_class_name):
+            logger.debug("found widget!")
+            widget_class = getattr(widgets, widget_class_name)
+            return widget_class(widget_parameter=widget_parameter, widget_context=widget_context)
+        else:
+            logger.debug("could not locate widget from widget string: %s" % widget_string)
 
     def create_field(self):
         """
