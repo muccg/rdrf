@@ -260,7 +260,7 @@ class ParametrisedSelectWidget(widgets.Select):
     def __init__(self, *args, **kwargs):
         self._widget_parameter = kwargs['widget_parameter']
         del kwargs['widget_parameter']
-        self._widget_context = kwargs['widget_context'] #
+        self._widget_context = kwargs['widget_context']
         del kwargs['widget_context']
         super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
 
@@ -268,7 +268,8 @@ class ParametrisedSelectWidget(widgets.Select):
         if not value:
             value = self.attrs.get('default', '')
 
-        output = ["<select  id='%s' name='%s'>" % (name, name)]
+        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        output.append("<option value='---'>---</option>")
         for code, display in self._get_items():
             if value == code:
                 output.append("<option value='%s' selected>%s</option>" % (code, display))
