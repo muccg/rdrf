@@ -204,9 +204,9 @@ class FieldFactory(object):
 
         if self._is_parametrised_widget(widget_class_name):
             logger.debug("creating parametrised widget: %s" % widget_class_name)
-            widget_context = {"registry_model" : self.registry,
+            widget_context = {"registry_model": self.registry,
                               "registry_form": self.registry_form,
-                              "cde" : self.cde,
+                              "cde": self.cde,
                               "on_questionnaire": self.context == FieldContext.QUESTIONNAIRE,
                               "questionnaire_context": self.context["questionnaire_context"],
                               "primary_model": self.primary_model,
@@ -349,6 +349,7 @@ class FieldFactory(object):
                     widget = self._widget_search(self.cde.widget_name)
                 except Exception, ex:
                     logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
+                    raise ex
                     widget = None
             else:
                 if self.cde.datatype.lower() == 'date':
