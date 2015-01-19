@@ -9,15 +9,10 @@ RUN apt-get update && apt-get install -y \
   libpcre3 \
   libpcre3-dev \
   libpq-dev \
-  libssl-dev
+  libssl-dev \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN env --unset=DEBIAN_FRONTEND
-
-# create user so we can drop priviliges for entrypoint
-RUN addgroup --gid 1000 ccg-user
-RUN adduser --disabled-password --home /data --no-create-home --system -q --uid 1000 --ingroup ccg-user ccg-user
-RUN mkdir /data && chown ccg-user:ccg-user /data
 
 # Install dependencies only (not the app itself) to use the build cache more efficiently
 # This will be redone only if setup.py changes
@@ -29,6 +24,11 @@ RUN INSTALL_ONLY_DEPENDENCIES=True pip install --process-dependency-links .
 # Copy code and install the app
 COPY . /app
 RUN pip install --process-dependency-links --no-deps -e .
+
+# now that we have installed everything globally purge /app
+# /app gets added as a volume at run time
+WORKDIR /app
+RUN rm -rf ..?* .[!.]* *
 
 EXPOSE 8000 9000 9001 9100 9101
 VOLUME ["/app", "/data"]
