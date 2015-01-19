@@ -53,7 +53,7 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire=False, injected_model=None, injected_model_id=None):
+    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None, injected_model=None, injected_model_id=None):
         """
         :param cde: Common Data Element model instance
         """
@@ -61,7 +61,8 @@ class FieldFactory(object):
         self.registry_form = registry_form
         self.section = section
         self.cde = cde
-        if questionnaire:
+        self.questionnaire_context = questionnaire_context
+        if questionnaire_context:
             self.context = FieldContext.QUESTIONNAIRE
         else:
             self.context = FieldContext.CLINICAL_FORM
@@ -208,7 +209,7 @@ class FieldFactory(object):
                               "registry_form": self.registry_form,
                               "cde": self.cde,
                               "on_questionnaire": self.context == FieldContext.QUESTIONNAIRE,
-                              "questionnaire_context": self.context["questionnaire_context"],
+                              "questionnaire_context": self.questionnaire_context,
                               "primary_model": self.primary_model,
                               "primary_id": self.primary_id
                               }
