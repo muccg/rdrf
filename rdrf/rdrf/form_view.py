@@ -591,7 +591,7 @@ class FileUploadView(View):
         from pymongo import MongoClient
         from bson.objectid import ObjectId
         import gridfs
-        client = MongoClient()
+        client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         db = client[registry_code]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)

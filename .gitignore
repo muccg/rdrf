@@ -1,5 +1,7 @@
 syntax: glob
+
 *.pyc
+*.swp
 
 bootstrap
 build
@@ -24,4 +26,4 @@ tests*.xml
 
 .ccgplatform
 .idea
-.hgignore
+.gitignore
