@@ -1,11 +1,13 @@
 {% extends "admin/base_site.html" %}
 {% load get_display_name %}
+{% load get_section_id %}
 {% load is_formset %}
 {% load get_management_form %}
 {% load lookup %}
 {% load get_forms %}
 {% load get_form %}
 {% load static %}
+{% load i18n admin_urls admin_static admin_modify %}
 
 {% block extrastyle %}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
@@ -68,39 +70,57 @@
       showOn: "button",
       buttonImage: '{% static 'images/calendar.gif' %}',
       buttonImageOnly: true,
+      showButtonPanel: true,
       changeMonth: true,
       changeYear: true,
       dateFormat: 'dd-mm-yy',
       yearRange: '-100:+0',
     });
   });
+
+
+    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
+    // clicking the today button
+    $.datepicker._gotoToday = function(id) {
+    var target = $(id);
+    var inst = this._getInst(target[0]);
+    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+            inst.selectedDay = inst.currentDay;
+            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+            inst.drawYear = inst.selectedYear = inst.currentYear;
+    }
+    else {
+            var date = new Date();
+            inst.selectedDay = date.getDate();
+            inst.drawMonth = inst.selectedMonth = date.getMonth();
+            inst.drawYear = inst.selectedYear = date.getFullYear();
+            // the below two lines are new
+            this._setDateDatepicker(target, date);
+            this._selectDate(id, this._getDateDatepicker(target));
+    }
+    this._notifyChange(inst);
+    this._adjustDate(target);
+}
   </script>
 {% endblock %}
 
 {% block breadcrumbs %}
-<ul class="breadcrumb">
-<h2>Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a></h2>
+<div class="breadcrumbs">
+Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a>
 {% for form_link in form_links %}
     {% if form_link.selected %}
-        <li class="active">
-            <h2>
-                {{form_link.text}}
-                {% if not forloop.last %}
-                    <span class="divider">»</span>
-                {% endif %}
-            </h2>
-        </li>
+    {{form_link.text}}
+    {% if not forloop.last %}
+            <span class="divider">»</span>
+        {% endif %}
     {% else %}
-        <li>
-            <h2><a href="{{form_link.url}}">{{form_link.text}}</a>
-                {% if not forloop.last %}
-                    <span class="divider">»</span>
-                {% endif %}
-            </h2>
-        </li>
+    <a href="{{form_link.url}}">{{form_link.text}}</a>
+        {% if not forloop.last %}
+            <span class="divider">»</span>
+        {% endif %}
     {% endif %}
 {% endfor %}
-</ul>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -126,7 +146,11 @@
             
         <thead>
             <tr>
-                <th>{{display_names|get_display_name:s}}</th>
+                {% if request.user.is_superuser %}
+                    <th><a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}">{{display_names|get_display_name:s}}</a></th>
+                {% else %}
+                    <th>{{display_names|get_display_name:s}}</th>
+                {% endif %}
             </tr>
         </thead>
     
@@ -137,7 +161,7 @@
                     <!-- start management form for {{s}}-->
                     {{ forms|get_management_form:s }}
                     <!-- end management form for {{s}} -->
-                    <a href="#" id="add_button_for_section_{{s}}" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</a>
+                    <button type="button" id="add_button_for_section_{{s}}"  class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</button>
                     <table id="section_table_{{s}}">
                     <script>
                         $(document).ready(function() {
@@ -157,7 +181,7 @@
                     {% for f in forms|get_forms:s %}
                       {{ f.as_table }}
                       <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                        <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><a href="#" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</a>
+                        <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><button type="button" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</button>
                         </td>
                       </tr>
                     {% endfor %}

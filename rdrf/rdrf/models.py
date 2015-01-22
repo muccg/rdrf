@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
+import json
 
 logger = logging.getLogger("registry")
 
@@ -66,7 +67,27 @@ class Registry(models.Model):
     desc = models.TextField()
     splash_screen = models.TextField()
     version = models.CharField(max_length=20, blank=True)
-    patient_data_section = models.ForeignKey(Section, null=True)  # a section which holds registry specific patient information
+    patient_data_section = models.ForeignKey(Section, null=True, blank=True)   # a section which holds registry specific patient information
+    # metadata is a dictionary
+    # keys ( so far):
+    # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
+    metadata_json = models.TextField(blank=True)  # a dictionary of configuration data -  GUI visibility
+
+    @property
+    def metadata(self):
+        if self.metadata_json:
+            try:
+                return json.loads(self.metadata_json)
+            except ValueError:
+                logger.error("Registry %s has invalid json metadata: data = '%s" % (self, self.metadata_json))
+                return {}
+        else:
+            return {}
+
+    def shows(self, element):
+        # does this registry make visible extra/custom functionality ( false by default)
+        if "visibility" in self.metadata:
+            return element in self.metadata["visibility"]
 
     @property
     def questionnaire(self):
@@ -228,6 +249,7 @@ class Registry(models.Model):
         s["desc"] = self.desc
         s["version"] = self.version
         s["forms"] = []
+        s["metadata_json"] = self.metadata_json
         for form in self.forms:
             if form.name == self.generated_questionnaire_name:
                 # we don't need to "design" a generated form so we skip
@@ -277,6 +299,8 @@ class Registry(models.Model):
         self.code = new_structure["code"]
         self.desc = new_structure["desc"]
         self.version = new_structure["version"]
+        if "metadata_json" in new_structure:
+            self.metadata_json = new_structure["metadata_json"]
         self.save()
 
         new_forms = []
@@ -317,6 +341,19 @@ class Registry(models.Model):
         for form in forms_to_delete:
             logger.warning("%s not in new forms - deleting!" % form)
             form.delete()
+
+    def clean(self):
+        self._check_metadata()
+
+    def _check_metadata(self):
+        if self.metadata_json == "":
+            return True
+        try:
+            value = json.loads(self.metadata_json)
+            if not isinstance(value, dict):
+                raise ValidationError("metadata json field should be a valid json dictionary")
+        except ValueError:
+            raise ValidationError("metadata json field should be a valid json dictionary")
 
     def _check_structure(self, structure):
         # raise error if structure not valid

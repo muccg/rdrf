@@ -1,12 +1,19 @@
 #
 node default {
+  $custom_hostname = 'aws-syd-rdrf-scratch.ec2.ccgapps.com.au'
+
   include ccgcommon
   include ccgcommon::source
   include ccgapache
   include python
-  include repo::epel
-  include repo::ius
-  include repo::pgrpms
+  include repo::sydney
+  include repo::upgrade
+  include repo::repo::ius
+  include repo::repo::ccgcentos
+  include repo::repo::ccgdeps
+  class { 'yum::repo::pgdg93':
+    stage => 'setup',
+  }
   include globals
 
   $user = $globals::aws_user
@@ -48,7 +55,7 @@ node default {
   
   $django_config = {
     deployment          => 'prod',
-    release             => '0.8.2-1',
+    release             => '0.8.3-1',
     dbdriver            => 'django.db.backends.postgresql_psycopg2',
     dbserver            => $globals::dbhost_rds_syd_postgresql_prod,
     dbuser              => $globals::dbuser_syd_prod,
@@ -57,7 +64,7 @@ node default {
     memcache            => $globals::memcache_syd,
     secretkey           => $globals::secretkey_rdrf_scratch,
     admin_email         => $globals::system_email,
-    allowed_hosts       => 'localhost ccgapps.com.au',
+    allowed_hosts       => 'localhost .ccgapps.com.au',
     csrf_cookie_domain  => '.ccgapps.com.au',
     key_prefix          => 'rdrf_scratch_'
   }

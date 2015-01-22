@@ -13,9 +13,7 @@ del activate_this
 
 webapp_root = os.path.dirname(os.path.abspath(__file__))
 
-# prepare the settings module for the WSGI app
 from ccg_django_utils.conf import setup_prod_env
-setup_prod_env("rdrf")
 
 import django.core.handlers.wsgi
 
@@ -28,4 +26,9 @@ def application(environ, start):
         os.environ['SCRIPT_NAME']=environ['SCRIPT_NAME']
     if 'DJANGODEV' in environ:
        os.environ['DJANGODEV']=environ['DJANGODEV']
+
+    # we want our config to take precendece, so load it last
+    # prepare the settings module for the WSGI app
+    setup_prod_env("rdrf")
+
     return django.core.handlers.wsgi.WSGIHandler()(environ,start)

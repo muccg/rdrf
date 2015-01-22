@@ -30,6 +30,13 @@ class PatientDoctorAdmin(admin.TabularInline):
     extra = 0
 
 
+class PatientRelativeAdmin(admin.TabularInline):
+    model = PatientRelative
+    form = PatientRelativeForm
+    fk_name = 'patient'
+    extra = 1
+
+
 class PatientConsentAdmin(admin.TabularInline):
     model = PatientConsent
     extra = 1
@@ -75,7 +82,7 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin]
+    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
     list_filter = [RegistryFilter]
@@ -138,6 +145,26 @@ class PatientAdmin(admin.ModelAdmin):
         form.is_superuser = request.user.is_superuser
         return form
 
+    def render_change_form(self, *args, **kwargs):
+        #return self.render_change_form(request, context, change=True, obj=obj, form_url=form_url)
+        context = args[1]
+        if 'original' in context:
+            patient = context['original']
+            context['form_links'] = self._get_formlinks(patient)
+        return super(PatientAdmin, self).render_change_form(*args, **kwargs)
+
+    def _get_formlinks(self, patient):
+        from rdrf.utils import FormLink
+        links = []
+        for registry_model in patient.rdrf_registry.all():
+            for form_model in registry_model.forms:
+                if form_model.is_questionnaire:
+                    continue
+                form_link = FormLink(patient.id, registry_model, form_model)
+                links.append(form_link)
+        return links
+
+
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
         additional_fields = {}
         for reg_code in registry_specific_fields_dict:
@@ -165,7 +192,7 @@ class PatientAdmin(admin.ModelAdmin):
         reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
         fieldsets = []
         for reg_code in reg_spec_field_defs:
-            cde_field_pairs =reversed(reg_spec_field_defs[reg_code])
+            cde_field_pairs = reversed(reg_spec_field_defs[reg_code])
             fieldset_title = "%s Specific Fields" % reg_code.upper()
             field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}  # pair up cde name and field object generated from that cde
             fieldsets.append((fieldset_title, field_dict))
@@ -269,6 +296,17 @@ class PatientAdmin(admin.ModelAdmin):
             patient_id = obj.pk
             self._save_registry_specific_data_in_mongo(obj)
 
+    def save_formset(self, request, form, formset, change):
+        """
+        Given an inline formset save it to the database.
+        """
+        if formset.__class__.__name__ == 'PatientRelativeFormFormSet':
+            # check to see if we're creating a patient from this relative
+            logger.debug("saving patient relative")
+            formset.save()
+        else:
+            formset.save()
+
     def get_fieldsets(self, request, obj=None):
         return self.create_fieldset(request.user)
 
@@ -293,7 +331,6 @@ class PatientAdmin(admin.ModelAdmin):
         if dbfield.name == "working_groups" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)  # get the user's associated objects
             kwargs["queryset"] = WorkingGroup.objects.filter(id__in=get_working_groups(user))
-            #kwargs["queryset"] = WorkingGroup.objects
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
@@ -303,18 +340,13 @@ class PatientAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns("",
-            url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
-        )
+        local_urls = patterns("", url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search"))
         return local_urls + urls
 
     def queryset(self, request):
         self.request = request
-        import registry.groups.models
-
         if request.user.is_superuser:
             return Patient.objects.all()
-
         user = get_user_model().objects.get(username=request.user)
         return Patient.objects.get_filtered(user)
 

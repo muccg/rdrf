@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import json
-
+import pycountry
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
 
@@ -17,7 +17,8 @@ import logging
 logger = logging.getLogger('patient')
 
 from registry.utils import stripspaces
-from django.conf import settings  # for APP_NAME
+
+from django.conf import settings 
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -93,7 +94,6 @@ class Patient(models.Model):
         ("Chinese", "Chinese"),
         ("Indian", "Indian"),
         ("Maori", "Maori"),
-        ("Aboriginal", "Aboriginal"),
         ("Middle eastern", "Middle eastern"),
         ("Person from the Pacific Islands", "Person from the Pacific Islands"),
         ("Other Asian", "Other Asian"),
@@ -145,6 +145,39 @@ class Patient(models.Model):
                 return working_group.name
 
         return ",".join([display_group(wg) for wg in self.working_groups.all()])
+
+    def get_form_value(self, registry_code, form_name, section_code, data_element_code):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.utils import mongo_key
+        wrapper = DynamicDataWrapper(self)
+        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        key = mongo_key(form_name, section_code, data_element_code)
+        if mongo_data is None:
+            # no mongo data
+            raise KeyError(key)
+        else:
+            return mongo_data[key]
+
+    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.utils import mongo_key
+        wrapper = DynamicDataWrapper(self)
+        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        key = mongo_key(form_name, section_code, data_element_code)
+        if mongo_data is None:
+            # No dynamic data has been persisted yet
+            wrapper.save_dynamic_data(registry_code, "cdes", {key: value})
+        else:
+            mongo_data[key] = value
+            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+    def in_registry(self, reg_code):
+        """
+        returns True if patient belongs to the registry with reg code provided
+        """
+        for registry in self.rdrf_registry.all():
+            if registry.code == reg_code:
+                return True
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -231,6 +264,45 @@ class PatientDoctor(models.Model):
         verbose_name_plural = "medical professionals for patient"
 
 
+
+def get_countries():
+        return [(c.alpha2, c.name) for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
+
+
+class PatientRelative(models.Model):
+
+    RELATIVE_TYPES = (
+        ("1st Degree", "1st Degree"),
+        ("2nd Degree", "2nd Degree"),
+        ("3rd Degree", "3rd Degree"),
+    )
+
+    RELATIVE_LOCATIONS = [
+        ("AU - WA", "AU - WA"),
+        ("AU - SA", "AU - SA"),
+        ("AU - NSW", "AU - NSW"),
+        ("AU - QLD", "AU - QLD"),
+        ("AU - NT", "AU - NT"),
+        ("AU - VIC", "AU - VIC"),
+        ("AU - TAS", "AU - TAS"),
+
+    ]
+
+    LIVING_STATES = (('Alive', 'Alive'), ('Deceased', 'Deceased'))
+
+    SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
+    patient = models.ForeignKey(Patient, related_name="relatives")
+    family_name = models.CharField(max_length=100)
+    given_names = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
+    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80)
+    relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
+
+
+
 @receiver(post_save, sender=Patient)
 def save_patient_mongo(sender, instance, **kwargs):
     patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
@@ -238,7 +310,7 @@ def save_patient_mongo(sender, instance, **kwargs):
 
 
 def _save_patient_mongo(patient_obj):
-    client = MongoClient()
+    client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
     patient_db = client[_MONGO_PATIENT_DATABASE]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
     

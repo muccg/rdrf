@@ -7,14 +7,17 @@ from django.contrib.messages import constants as message_constants
 
 env = EnvConfig()
 
+SCRIPT_NAME = env.get("script_name", os.environ.get("SCRIPT_NAME", "")) 
+FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
+
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
-DEBUG = True
-DEV_SERVER = True
-SITE_ID = 1
-APPEND_SLASH = True
-SSL_ENABLED = False
+DEBUG = env.get("debug", True)
+DEV_SERVER = env.get("dev_server", True)
+SITE_ID = env.get("site_id", 1)
+APPEND_SLASH = env.get("append_slash", True)
+SSL_ENABLED = env.get("ssl_enabled", False)
 
 FORM_SECTION_DELIMITER = "____"
 
@@ -22,9 +25,9 @@ ROOT_URLCONF = 'rdrf.urls'
 
 SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
-TIME_ZONE = 'Australia/Perth'
-LANGUAGE_CODE = 'en-us'
-USE_I18N = True
+TIME_ZONE = env.get("time_zone", 'Australia/Perth')
+LANGUAGE_CODE = env.get("language_code", 'en-us')
+USE_I18N = env.get("use_i18n", True)
 
 DATABASES = {
     'default': {
@@ -36,6 +39,9 @@ DATABASES = {
         'PORT': env.get("dbport", ""),                          # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+MONGOSERVER = env.get("mongoserver", "localhost")
+MONGOPORT = env.get("mongoport", 27017)
 
 # Django Core stuff
 TEMPLATE_LOADERS = [
@@ -105,9 +111,9 @@ EMAIL_HOST = env.get("email_host", '127.0.0.1')
 EMAIL_PORT = env.get("email_port", 25)
 EMAIL_HOST_USER = env.get("email_host_user", "")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
-EMAIL_APP_NAME = env.get("email_app_name", "Registry ")
-EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV ")
-SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf_dev")
+EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
+EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
+SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # default emailsn
 ADMINS = [
@@ -116,34 +122,32 @@ ADMINS = [
 MANAGERS = ADMINS
 
 
-STATIC_ROOT = os.path.join(WEBAPP_ROOT, 'static')
-STATIC_URL = '{0}/static/'.format(os.environ.get("SCRIPT_NAME", ""))
+STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
+STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
-MEDIA_ROOT = os.path.join(WEBAPP_ROOT, 'media')
-MEDIA_URL = '{0}/static/media/'.format(os.environ.get("SCRIPT_NAME", ""))
+MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'static', 'media'))
+MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
 
+# TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For deployment use Apache Alias
-STATIC_SERVER_PATH = os.path.join(WEBAPP_ROOT, "static")
+STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
-WRITABLE_DIRECTORY = env.get("writeable_directory", "/tmp")
+WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 TEMPLATE_DEBUG = DEBUG
 
 # session and cookies
-SESSION_COOKIE_AGE = 60 * 60
-SESSION_COOKIE_PATH = '{0}/'.format(os.environ.get("SCRIPT_NAME", ""))
-SESSION_SAVE_EVERY_REQUEST = True
-CSRF_COOKIE_NAME = "csrftoken_registry"
-CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or None
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_NAME = "rdrf"
-
-# see https://docs.djangoproject.com/en/dev/ref/settings/#session-engine
-# https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-SESSION_FILE_PATH
-# in production we would suggest using memcached for your session engine
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = WRITABLE_DIRECTORY
+SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
+SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
+SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
+SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
+SESSION_COOKIE_SECURE = env.get("session_cookie_secure", False)
+SESSION_COOKIE_NAME = env.get("session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
+SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
+CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
+CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
+CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
+CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", False)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
@@ -164,23 +168,35 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
 # This honours the X-Forwarded-Host header set by our nginx frontend when
 # constructing redirect URLS.
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
-USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_HOST = env.get("use_x_forwarded_host", True)
 
 if env.get("memcache", ""):
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': env.getlist("memcache"),
-            'KEY_PREFIX': env.get("key_prefix", "")
+            'KEY_PREFIX': env.get("key_prefix", "rdrf")
         }
     }
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'rdrf_cache',
+            'TIMEOUT': 3600,
+            'MAX_ENTRIES': 600
+        }
+    }
+
+    SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+    SESSION_FILE_PATH = WRITABLE_DIRECTORY
 
 # #
 # # LOGGING
 # #
-LOG_DIRECTORY = os.path.join(WEBAPP_ROOT, "log")
+LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 try:
     if not os.path.exists(LOG_DIRECTORY):
         os.mkdir(LOG_DIRECTORY)
@@ -269,14 +285,7 @@ AUTH_USER_MODEL = 'groups.CustomUser'
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
-ALLOWED_HOSTS = [
-    'localhost'
-]
-
-
-INSTALL_NAME = 'rdrf'
-
-LOGIN_URL = '{0}/login'.format(os.environ.get("SCRIPT_NAME", ""))
+INSTALL_NAME = env.get("install_name", 'rdrf')
 
 # Django Suit Config
 SUIT_CONFIG = {
@@ -301,7 +310,7 @@ SUIT_CONFIG = {
 One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
-    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(os.environ.get("SCRIPT_NAME", "")), 'superuser': True},
+    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
 ]
 
 AJAX_LOOKUP_CHANNELS = {

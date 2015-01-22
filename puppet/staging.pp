@@ -1,13 +1,19 @@
 #
 node default {
+  $custom_hostname = 'aws-syd-rdrf-staging.ec2.ccgapps.com.au'
+
   include ccgcommon
   include ccgcommon::source
   include ccgapache
   include python
-  include repo::epel
-  include repo::ius
-  include repo::pgrpms
-  include repo::ccgtesting
+  include repo::sydney
+  include repo::upgrade
+  include repo::repo::ius
+  include repo::repo::ccgtesting
+  include repo::repo::ccgdeps
+  class { 'yum::repo::pgdg93':
+    stage => 'setup',
+  }
   include globals
   include ccgdatabase::postgresql::devel
 
@@ -33,17 +39,18 @@ node default {
 
   # There are some leaked local secrets here we don't care about
   $django_config = {
-    deployment         => 'staging',
-    dbdriver           => 'django.db.backends.postgresql_psycopg2',
-    dbhost             => '',
-    dbname             => 'rdrf_staging',
-    dbuser             => 'rdrf',
-    dbpass             => 'rdrf',
-    memcache           => $globals::memcache_syd,
-    secret_key         => '*&^*&768768YFYTFYHGGHCgcgfcg',
-    allowed_hosts      => 'localhost ccgapps.com.au',
-    csrf_cookie_domain => '.ccgapps.com.au',
-    key_prefix         => 'rdrf_staging_'
+    deployment            => 'staging',
+    dbdriver              => 'django.db.backends.postgresql_psycopg2',
+    dbhost                => '',
+    dbname                => 'rdrf_staging',
+    dbuser                => 'rdrf',
+    dbpass                => 'rdrf',
+    memcache              => $globals::memcache_syd,
+    secret_key            => '*&^*&768768YFYTFYHGGHCgcgfcg',
+    allowed_hosts         => 'localhost .ccgapps.com.au',
+    session_cookie_domain => '.ccgapps.com.au',
+    key_prefix            => 'rdrf_staging_',
+    force_script_name     => '/rdrf-staging',
   }
 
   # postgressql database

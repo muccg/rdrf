@@ -3,42 +3,35 @@
 
 forge "https://forge.puppetlabs.com"
 
-mod "puppetlabs/postgresql", "3.3.3"
-mod "puppetlabs/mysql", "2.2.3"
-mod "puppetlabs/concat", "1.0.2"
-mod "puppetlabs/denyhosts", "0.1.0"
 mod "puppetlabs/mongodb", "0.3.0"
-mod "saz/memcached", "2.4.0"
-mod "stahnma/epel", "0.0.6"
-mod "rodjek/logrotate", "1.1.1"
 
 mod "capriza/s3cmd",
   :git => "git://github.com/capriza/capriza-s3cmd.git",
   :ref => "master"
 
+mod "muccg/ccgcommon",
+  :git => "git://github.com/muccg/puppet-ccgcommon.git",
+  :ref => "1.4.5"
+
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
-  :ref => "1.0.1"
+  :ref => "1.1.5"
 
 mod "muccg/role",
   :git => "git://github.com/muccg/puppet-role.git",
-  :ref => "1.0.0"
+  :ref => "1.1.1"
 
 mod "muccg/python",
   :git => "git://github.com/muccg/puppet-python.git",
-  :ref => "1.1.1"
-
-mod "muccg/ccgcommon",
-  :git => "git://github.com/muccg/puppet-ccgcommon.git",
-  :ref => "1.1.0"
+  :ref => "1.1.2"
 
 mod "muccg/ccgdatabase",
   :git => "git://github.com/muccg/puppet-ccgdatabase.git",
-  :ref => "1.1.0"
+  :ref => "2.0.0"
 
 mod "muccg/repo",
   :git => "git://github.com/muccg/puppet-repo.git",
-  :ref => "1.0.7"
+  :ref => "1.2.14"
 
 mod "muccg/ccgapache",
   :git => "git://github.com/muccg/puppet-ccgapache.git",

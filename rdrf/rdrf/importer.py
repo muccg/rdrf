@@ -343,6 +343,19 @@ class Importer(object):
         else:
             return None
 
+    def _check_metadata_json(self, metadata_json):
+        if not metadata_json:
+            # no metadata - OK
+            return True
+        try:
+            metadata = json.loads(metadata_json)
+            if not isinstance(metadata, dict):
+                raise ValueError("Not a dictionary")
+            return True
+        except ValueError, verr:
+            logger.info("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
+            return False
+
     def _create_registry_objects(self):
         self._create_groups(self.data["pvgs"])
         logger.info("imported pvgs OK")
@@ -375,6 +388,13 @@ class Importer(object):
             if patient_data_section_map:
                 patient_data_section = self._create_patient_data_section(patient_data_section_map)
                 r.patient_data_section = patient_data_section
+
+        if "metadata_json" in self.data:
+            metadata_json = self.data["metadata_json"]
+            if self._check_metadata_json(metadata_json):
+                r.metadata_json = self.data["metadata_json"]
+            else:
+                raise DefinitionFileInvalid("Invalid JSON for registry metadata ( should be a json dictionary")
 
         r.save()
         logger.info("imported registry object OK")

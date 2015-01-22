@@ -1,6 +1,7 @@
 {% extends "admin/change_form.html" %}
 {% load staticfiles %}
 {% load stickiness %}
+{% load i18n admin_urls admin_static admin_modify %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -48,6 +49,29 @@
     });
   });
   </script>
+
+  <script>
+       function setPatientRelativeFormVisiblity(visible) {
+            if (visible) {
+                $("#patientrelative_set-group").show();
+            }
+            else {
+                 $("#patientrelative_set-group").hide();
+            }
+       }
+
+       function setupPatientRelativeForm() {
+           var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+           var rpc = new RPC.RPC("{% url 'rpc' %}",csrfToken);
+           rpc.send("visibility",["PatientRelativeForm"], function (result) {
+               setPatientRelativeFormVisiblity(result);
+           })
+       }
+
+      $(document).ready(function(){
+         setupPatientRelativeForm();
+      });
+  </script>
   
   <script>
     function select_country(obj) {
@@ -63,6 +87,23 @@
         });
     }
   </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+{% for form_link in form_links %}
+    <a href="{{form_link.url}}">{{form_link.text}}</a>
+        {% if not forloop.last %}
+            <span class="divider">»</span>
+        {% endif %}
+
+{% endfor %}
+
+</div>
 {% endblock %}
 
 {% block content %}

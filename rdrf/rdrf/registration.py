@@ -28,8 +28,17 @@ class QuestionnaireReverseMapper(object):
         self.questionnaire_data = questionnaire_data
 
     def save_patient_fields(self):
+        working_groups = []
         for attr, value in self._get_demographic_data():
+            if attr == 'working_groups':
+                working_groups = value
+                continue
+            logger.debug("setting patient demographic field: %s = %s" % (attr, value))
             setattr(self.patient, attr, value)
+
+        self.patient.save()
+        self.patient.working_groups = working_groups
+        self.patient.save()
 
     def save_address_data(self):
         if "PatientDataAddressSection" in self.questionnaire_data:
@@ -212,13 +221,16 @@ class PatientCreator(object):
             mapper.save_patient_fields()
         except Exception, ex:
             logger.error("Error saving patient fields: %s" % ex)
+            self.error = ex
             self.state = PatientCreatorState.FAILED
             return
 
         try:
             patient.full_clean()
+            logger.debug("patient creator patient fullclean")
             patient.save()
             patient.rdrf_registry = [self.registry]
+            patient.save()
             mapper.save_address_data()
         except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
@@ -249,6 +261,8 @@ class PatientCreator(object):
                 return
 
         self.state = PatientCreatorState.CREATED_OK
+        # RDR-667 we don't need to preserve the approved QRs once patient created
+        questionnaire_response.delete()
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
