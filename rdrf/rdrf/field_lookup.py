@@ -6,6 +6,8 @@ from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
 from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import AdminFileWidget
+from django.utils.safestring import mark_safe
+from django.core.urlresolvers import reverse
 
 import fields
 import widgets
@@ -53,7 +55,7 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None, injected_model=None, injected_model_id=None):
+    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None, injected_model=None, injected_model_id=None, is_superuser=False):
         """
         :param cde: Common Data Element model instance
         """
@@ -72,6 +74,7 @@ class FieldFactory(object):
         self.list_field_factory = ListFieldFactory(self.cde)
         self.primary_model = injected_model
         self.primary_id = injected_model_id
+        self.is_superuser = is_superuser
 
     def _customisation_module_exists(self):
         try:
@@ -100,12 +103,18 @@ class FieldFactory(object):
 
     def _get_field_name(self):
         if self.context == FieldContext.CLINICAL_FORM:
-            return self.cde.name
+            return self._get_cde_link(self.cde.name) if self.is_superuser else self.cde.name
         else:
             q_field_text = self.cde.questionnaire_text
             if not q_field_text:
-                q_field_text = self.cde.name
-            return q_field_text
+                q_field_text = self._get_cde_link(self.cde.name) if self.is_superuser else self.cde.name
+            return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
+
+    
+    def _get_cde_link(self, name):
+        cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
+        label_link = mark_safe("<a target='blank' href='%s'>%s</a>" % (cde_url, name))
+        return label_link
 
     def _get_code(self):
         return self.cde.code

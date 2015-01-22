@@ -133,7 +133,7 @@ class FormView(View):
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
         form_display_name = form_obj.name
-        sections, display_names = self._get_sections(form_obj)
+        sections, display_names, ids = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -146,7 +146,7 @@ class FormView(View):
         for section_index, s in enumerate(sections):
             logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
-            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id)
+            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -214,6 +214,7 @@ class FormView(View):
             'patient_name': patient_name,
             'sections': sections,
             'section_field_ids_map': section_field_ids_map,
+            'section_ids': ids,
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
@@ -240,20 +241,22 @@ class FormView(View):
         section_parts = form.get_sections()
         sections = []
         display_names = {}
+        ids = {}
         for s in section_parts:
             try:
                 sec = Section.objects.get(code=s.strip())
                 display_names[s] = sec.display_name
+                ids[s] = sec.id
                 sections.append(s)
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
-        return sections, display_names
+        return sections, display_names, ids
     
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id)
+        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
 
     def _get_formlinks(self):
         return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire]
@@ -263,7 +266,7 @@ class FormView(View):
         :param kwargs: extra key value pairs to be passed into the built context
         :return: a context dictionary to render the template ( all form generation done here)
         """
-        sections, display_names = self._get_sections(self.registry_form)
+        sections, display_names, ids = self._get_sections(self.registry_form)
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -320,6 +323,7 @@ class FormView(View):
             'sections': sections,
             'forms': form_section,
             'display_names': display_names,
+            'section_ids': ids,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,
