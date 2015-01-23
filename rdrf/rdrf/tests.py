@@ -273,6 +273,7 @@ class FormTestCase(RDRFTestCase):
         print str(form_data)
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
+        view.request = request
         view.testing = True  # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
 

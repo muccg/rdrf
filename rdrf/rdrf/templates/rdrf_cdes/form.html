@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load get_display_name %}
+{% load get_section_id %}
 {% load is_formset %}
 {% load get_management_form %}
 {% load lookup %}
@@ -145,7 +146,11 @@ Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patie
             
         <thead>
             <tr>
-                <th>{{display_names|get_display_name:s}}</th>
+                {% if request.user.is_superuser %}
+                    <th><a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}">{{display_names|get_display_name:s}}</a></th>
+                {% else %}
+                    <th>{{display_names|get_display_name:s}}</th>
+                {% endif %}
             </tr>
         </thead>
     
