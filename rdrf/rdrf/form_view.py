@@ -25,6 +25,7 @@ import json
 import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
+from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition
 
 import logging
 
@@ -744,5 +745,134 @@ class RPCHandler(View):
         client_response_dict = action_executor.run()
         client_response_json = json.dumps(client_response_dict)
         return HttpResponse(client_response_json, status=200, content_type="application/json")
+
+
+class AdjudicationRequestView(View):
+    @method_decorator(login_required)
+    def get(self, request, adjudication_request_id):
+        user = request.user
+        from rdrf.models import AdjudicationRequest, AdjudicationRequestState
+        try:
+            adj_req = AdjudicationRequest.objects.get(pk=adjudication_request_id, username=user.username, state=AdjudicationRequestState.REQUESTED)
+        except AdjudicationRequest.DoesNotExist:
+            raise Http404("Adjudication request not found or not for current user or has already been actioned")
+
+        adjudication_form, datapoints = adj_req.create_adjudication_form()
+
+        context = { "adjudication_form" : adjudication_form,
+                    "datapoints": datapoints,
+                    "req": adj_req}
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/adjudication_form.html', context, context_instance=RequestContext(request))
+
+
+
+    @method_decorator(login_required)
+    def post(self, request, adjudication_request_id):
+        arid = request.POST["arid"]
+        if arid != adjudication_request_id:
+            raise Http404("Incorrect ID")
+        else:
+            from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError
+            try:
+                adj_req = AdjudicationRequest.objects.get(pk=arid, state=AdjudicationRequestState.REQUESTED, username=request.user.username)
+                try:
+                    adj_req.handle_response(request.POST)
+
+                except AdjudicationError, aerr:
+                   return HttpResponse("oops: %s" % aerr)
+
+                return HttpResponse("Adjudication Response processed - thanks!")
+
+            except AdjudicationRequest.DoesNotExist:
+                raise Http404("Cannot submit adjudication")
+
+
+class AdjudicationResultsView(View):
+    def get(self, request, adjudication_definition_id, patient_id):
+        context = {}
+        current_username = request.user.username
+        adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
+        stats, adj_responses = self._get_stats_and_responses(patient_id, current_username, adj_def)
+        if len(adj_responses) == 0:
+            return HttpResponse("No one has responded to the adjudication request yet!- stats are %s" % stats)
+
+        context["stats"] = stats
+
+        context['patient']  = Patient.objects.get(pk=patient_id)
+
+        class AdjudicationField(object):
+            """
+            Wrapper to hold values submitted so far for one adjudication field
+            """
+            def __init__(self, cde, results):
+                self.cde = cde
+                self.results = results
+
+            @property
+            def label(self):
+                return self.cde.name
+
+            @property
+            def avg(self):
+                return sum(self.results) / len(self.results)
+
+            @property
+            def histogram(self):
+                import json
+                # return as json for chart? - assumes we have discrete values for adjudication question answers
+                h = {}
+                for result in self.results:
+                    if result in h:
+                        h[result] += 1
+                    else:
+                        h[result] = 1
+                return json.dumps(h)
+
+        fields = []
+
+        for cde_model in adj_def.cde_models:
+            results = self._get_results_for_one_cde(adj_responses, cde_model)
+            adj_field = AdjudicationField(cde_model, results)
+            fields.append(adj_field)
+
+        context['fields'] = fields
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/adjudication_results.html', context,
+                                  context_instance=RequestContext(request))
+
+    def _get_results_for_one_cde(self, adjudication_responses, cde_model):
+        results = []
+        for adjudication_response in adjudication_responses:
+            value = adjudication_response.get_cde_value(cde_model)
+            results.append(value)
+        return results
+
+    def _get_stats_and_responses(self, patient_id, requesting_username, adjudication_definition):
+        """
+
+        :param patient_id: pk of patient
+        :param requesting_username: who requested the adj
+        :param adjudication_definition: holds what fields are we adjudicating, what categorisation fields we are using
+        :return:
+        """
+        responses = []
+        stats = {}
+        for adj_req in AdjudicationRequest.objects.filter(definition=adjudication_definition, patient=patient_id,
+                                                          requesting_username=requesting_username):
+            if adj_req.state not in stats:
+                stats[adj_req.state] = 1
+            else:
+                stats[adj_req.state] += 1
+
+            adj_resp = adj_req.response
+            if adj_resp:
+                responses.append(adj_resp)
+        return stats, responses
+
+
+
+
+
 
 

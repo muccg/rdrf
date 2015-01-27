@@ -1,0 +1,21 @@
+<html>
+<head>
+    <title>Adjudication Form</title>
+</head>
+<body>
+<h1>Adjudication Request from {{ req.requesting_username }}</h1>
+
+<h2>Patient Data:</h2>
+
+{% for datapoint in datapoints %}
+    {{datapoint.label}} = {{datapoint.value}} <br>
+{% endfor %}
+
+<form method="post">{% csrf_token %}
+    {{ adjudication_form }}
+     <input type="hidden" name="arid" value="{{req.pk}}"/>
+     <input type="hidden" name="username" value="{{req.username}}"/>
+     <input type="submit" class="btn btn-info" value="Submit Adjudication"/>
+</form>
+</body>
+</html>

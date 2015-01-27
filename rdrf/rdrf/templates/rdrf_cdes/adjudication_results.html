@@ -1,0 +1,20 @@
+{% load adjudication_charts %}
+<html>
+<head>
+    <title>Adjudication Results for patient {{ patient }}</title>
+</head>
+<body>
+<h1>Adjudication Results for {{patient}} </h1>
+
+Statistics: {{ stats }}<p>
+
+{% for field in fields %}
+    {{ field.label }}<br>
+    {% bar_chart field.result %}
+
+    {{ field.histogram }}
+{% endfor %}
+
+
+</body>
+</html>
