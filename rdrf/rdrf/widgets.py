@@ -303,13 +303,15 @@ class DataSourceSelect(ParametrisedSelectWidget):
 class PositiveIntegerInput(widgets.TextInput):
 
     def render(self, name, value, attrs):
-        return """
-            <input type="number" name="%s" id="id_%s" value="%s" min="0" max="%s">
-        """ % (name, name, value, self._get_max_value(name))
+        min_value, max_value = self._get_value_range(name)
     
-    def _get_max_value(self, cde_name):
+        return """
+            <input type="number" name="%s" id="id_%s" value="%s" min="%s" max="%s">
+        """ % (name, name, value, min_value, max_value)
+    
+    def _get_value_range(self, cde_name):
         cde_code = cde_name.split("____")[2]
         cde = CommonDataElement.objects.get(code = cde_code)
-        if cde.max_value:
-            return cde.max_value
-        return 2147483647
+        max_value = cde.max_value if cde.max_value else 2147483647
+        min_value = cde.min_value if cde.min_value else 0
+        return min_value, max_value
