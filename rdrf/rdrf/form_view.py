@@ -221,7 +221,7 @@ class FormView(View):
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
-            "form_links" : self._get_formlinks(),
+            "form_links": self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
@@ -556,7 +556,7 @@ class QuestionnaireResponseView(FormView):
 
         user = get_user_model().objects.get(username=auth_user)
 
-        return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
+        return [WorkingGroupOption(wg) for wg in user.working_groups.all()]
 
     @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):

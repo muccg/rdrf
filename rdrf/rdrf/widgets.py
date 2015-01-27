@@ -8,6 +8,8 @@ from django.core.urlresolvers import reverse_lazy
 import logging
 logger = logging.getLogger("registry_log")
 
+from models import CommonDataElement
+
 import pycountry
 
 
@@ -296,3 +298,18 @@ class DataSourceSelect(ParametrisedSelectWidget):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
             return datasource.values()
+
+
+class PositiveIntegerInput(widgets.TextInput):
+
+    def render(self, name, value, attrs):
+        return """
+            <input type="number" name="%s" id="id_%s" value="%s" min="0" max="%s">
+        """ % (name, name, value, self._get_max_value(name))
+    
+    def _get_max_value(self, cde_name):
+        cde_code = cde_name.split("____")[2]
+        cde = CommonDataElement.objects.get(code = cde_code)
+        if cde.max_value:
+            return cde.max_value
+        return 2147483647
