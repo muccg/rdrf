@@ -360,12 +360,15 @@ class FormView(View):
             metadata = {}
             section_model = Section.objects.get(code=section)
             for cde_code in section_model.get_elements():
-                cde = CommonDataElement.objects.get(code=cde_code)
-                cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                if cde.datatype.lower() == "date":
-                    # date widgets are complex
-                    metadata[cde_code_on_page] = {}
-                    metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+                try:
+                    cde = CommonDataElement.objects.get(code=cde_code)
+                    cde_code_on_page = id_on_page(registry_form, section_model, cde)
+                    if cde.datatype.lower() == "date":
+                        # date widgets are complex
+                        metadata[cde_code_on_page] = {}
+                        metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+                except CommonDataElement.DoesNotExist:
+                    continue
 
             if metadata:
                 json_dict[section] = json.dumps(metadata)
