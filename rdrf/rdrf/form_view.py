@@ -804,9 +804,30 @@ class AdjudicationResultsView(View):
         if len(adj_responses) == 0:
             return HttpResponse("No one has responded to the adjudication request yet!- stats are %s" % stats)
 
-        context["stats"] = stats
+        class StatsField(object):
+            def __init__(self, data):
+                self.data = data
+                self.colors = []
+                self.highlight_colors = []
+
+            @property
+            def pie_data(self):
+                l = []
+                for k in self.data:
+                    item = {
+                        "value": int(self.data[k]),
+                        "color": "#F7464A",
+                        "highlight": "#FF5A5E",
+                        "label": k
+				    }
+                    l.append(item)
+                return l
+
+
+        context["stats"] = StatsField(stats)
 
         context['patient']  = Patient.objects.get(pk=patient_id)
+
 
         class AdjudicationField(object):
             """
@@ -823,6 +844,10 @@ class AdjudicationResultsView(View):
             @property
             def avg(self):
                 return sum(self.results) / len(self.results)
+
+            @property
+            def id(self):
+                return "id_adjudication_%s" % self.cde.code
 
             @property
             def histogram(self):

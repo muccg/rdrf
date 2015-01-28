@@ -1,21 +1,25 @@
-{% load charts %}
-<html>
-<head>
-    <title>Adjudication Results for patient {{ patient }}</title>
-</head>
-<body>
-<h1>Adjudication Results for {{patient}} </h1>
+{% extends "admin/base_site.html" %}
+{% load static %}
 
+{% load charts %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+<h1>Adjudication Results for {{patient}} </h1>
 <h2>Statistics</h2>
-{{ pie_chart stats }}
+{% pie_chart "id_stats" stats.pie_data %}
 <p>
 
-{% for field in fields %}
-    {{ field.label }}<br>
-    {% bar_chart field.result %}
-    {{ field.histogram }}
-{% endfor %}
+
+{% endblock %}
 
 
-</body>
-</html>
