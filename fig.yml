@@ -3,6 +3,7 @@ data:
   image: muccg/base:debian8
   volumes:
     - .:/app
+    - data:/data
 
 db:
   image: postgres:9.3
@@ -18,10 +19,10 @@ cache:
 mongo:
   image: mongo:2.6
 
-triplestore:
-  image: muccg/allegro:4.14.1
-  ports:
-    - ":10035"
+#triplestore:
+#  image: muccg/allegro:4.14.1
+#  ports:
+#    - ":10035"
 
 nginx:
   image: muccg/nginx-uwsgi:1.7
@@ -53,10 +54,12 @@ uwsgi:
   command: uwsgi
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
-      # note: uwsgi ini file sets environment
+    - WAIT_FOR_WEB=1
+    # note: important to wait for runserver in dev as both will attempt to syncdb etc
   volumes_from:
     - data      
   ports:
@@ -68,3 +71,4 @@ uwsgi:
     - db
     - cache
     - mongo
+    - web

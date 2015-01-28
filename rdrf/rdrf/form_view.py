@@ -134,7 +134,7 @@ class FormView(View):
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
         form_display_name = form_obj.name
-        sections, display_names = self._get_sections(form_obj)
+        sections, display_names, ids = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -147,7 +147,7 @@ class FormView(View):
         for section_index, s in enumerate(sections):
             logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
-            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id)
+            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -215,13 +215,14 @@ class FormView(View):
             'patient_name': patient_name,
             'sections': sections,
             'section_field_ids_map': section_field_ids_map,
+            'section_ids': ids,
             'forms': form_section,
             'display_names': display_names,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
-            "form_links" : self._get_formlinks(),
+            "form_links": self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
         }
 
@@ -241,20 +242,22 @@ class FormView(View):
         section_parts = form.get_sections()
         sections = []
         display_names = {}
+        ids = {}
         for s in section_parts:
             try:
                 sec = Section.objects.get(code=s.strip())
                 display_names[s] = sec.display_name
+                ids[s] = sec.id
                 sections.append(s)
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
-        return sections, display_names
+        return sections, display_names, ids
     
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id)
+        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
 
     def _get_formlinks(self):
         return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire]
@@ -264,7 +267,7 @@ class FormView(View):
         :param kwargs: extra key value pairs to be passed into the built context
         :return: a context dictionary to render the template ( all form generation done here)
         """
-        sections, display_names = self._get_sections(self.registry_form)
+        sections, display_names, ids = self._get_sections(self.registry_form)
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -321,6 +324,7 @@ class FormView(View):
             'sections': sections,
             'forms': form_section,
             'display_names': display_names,
+            'section_ids': ids,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,
@@ -357,12 +361,15 @@ class FormView(View):
             metadata = {}
             section_model = Section.objects.get(code=section)
             for cde_code in section_model.get_elements():
-                cde = CommonDataElement.objects.get(code=cde_code)
-                cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                if cde.datatype.lower() == "date":
-                    # date widgets are complex
-                    metadata[cde_code_on_page] = {}
-                    metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+                try:
+                    cde = CommonDataElement.objects.get(code=cde_code)
+                    cde_code_on_page = id_on_page(registry_form, section_model, cde)
+                    if cde.datatype.lower() == "date":
+                        # date widgets are complex
+                        metadata[cde_code_on_page] = {}
+                        metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+                except CommonDataElement.DoesNotExist:
+                    continue
 
             if metadata:
                 json_dict[section] = json.dumps(metadata)
@@ -553,7 +560,7 @@ class QuestionnaireResponseView(FormView):
 
         user = get_user_model().objects.get(username=auth_user)
 
-        return [ WorkingGroupOption(wg) for wg in user.working_groups.all() ]
+        return [WorkingGroupOption(wg) for wg in user.working_groups.all()]
 
     @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):
