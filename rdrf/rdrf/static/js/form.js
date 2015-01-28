@@ -6,11 +6,11 @@ function get_fields_per_form(table_id) {
     // counting -0- naively ( as originally) , breaks when the removed section is the 0th one itself,
     // hence this strategy.
 
-    var first_input = $("#" + table_id).find(":input").first();
+    var first_input = $("#" + table_id).find("input").first();
     var N = $(first_input).attr("id").match(/-(\d+)-/)[1];
     var pattern = "-" + N + "-";
 
-    $("#" + table_id).find(':input').each(function () {
+    $("#" + table_id).find('input').each(function () {
         var input = $(this);
         if (input.attr('id').match(new RegExp(pattern))) {
             num_inputs += 1;
@@ -74,7 +74,7 @@ function renumber_section_table(table_id) {
 
         $(this)
                 // update ids for inputs
-                .find(":input").each(function () {
+                .find("input").each(function () {
                     $(this).attr({
                         'id': function (_, old_id){
                             var new_index_string = input_id_gen();

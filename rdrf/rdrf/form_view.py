@@ -305,7 +305,7 @@ class FormView(View):
                         initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])  # we grab the list of data items by section code not cde code
                     except KeyError, ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
-                        initial_data = [""] * len(section_elements)
+                        initial_data = [""] #* len(section_elements)
                 else:
                     #initial_data = [""] * len(section_elements)
                     initial_data = [""]  # this appears to forms
