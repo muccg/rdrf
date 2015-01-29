@@ -34,8 +34,8 @@ class ChartNode(template.Node):
                             }})
                         }})();
                     </script>
-                    <div width="50%">
-                        <canvas id="{canvas_id}" height="50" width="50"></canvas>
+                    <div width="100%">
+                        <canvas id="{canvas_id}" height="200" width="200"></canvas>
                     </div>"""
 
         return html.format(canvas_id=canvas_id, chart_method=chart_method, chart_data_json=chart_data_json)

@@ -795,6 +795,13 @@ class AdjudicationRequestView(View):
                 raise Http404("Cannot submit adjudication")
 
 
+class Colours(object):
+    grey ="#808080"
+    blue = "#0000ff"
+    green = "#00ff00"
+    red = "#f7464a"
+
+
 class AdjudicationResultsView(View):
     def get(self, request, adjudication_definition_id, patient_id):
         context = {}
@@ -805,10 +812,21 @@ class AdjudicationResultsView(View):
             return HttpResponse("No one has responded to the adjudication request yet!- stats are %s" % stats)
 
         class StatsField(object):
+            COLOURS = {
+                AdjudicationRequestState.CREATED: Colours.grey,
+                AdjudicationRequestState.REQUESTED: Colours.blue,
+                AdjudicationRequestState.PROCESSED: Colours.green,
+                AdjudicationRequestState.INVALID: Colours.red,
+            }
+            LABELS = {
+                "C": "Created",
+                "R":  "Requested",
+                "P": "Processed",
+                "I": "Invalid",
+            }
             def __init__(self, data):
                 self.data = data
-                self.colors = []
-                self.highlight_colors = []
+
 
             @property
             def pie_data(self):
@@ -816,23 +834,28 @@ class AdjudicationResultsView(View):
                 for k in self.data:
                     item = {
                         "value": int(self.data[k]),
-                        "color": "#F7464A",
+                        "color": self.COLOURS[k],
                         "highlight": "#FF5A5E",
-                        "label": k
-				    }
+                        "label": self.LABELS[k]
+                    }
                     l.append(item)
                 return l
 
-
         context["stats"] = StatsField(stats)
-
         context['patient']  = Patient.objects.get(pk=patient_id)
-
 
         class AdjudicationField(object):
             """
             Wrapper to hold values submitted so far for one adjudication field
             """
+
+            def _is_numeric(self, values):
+                try:
+                    l = map(float, values)
+                    return True
+                except ValueError:
+                    return False
+
             def __init__(self, cde, results):
                 self.cde = cde
                 self.results = results
@@ -843,23 +866,57 @@ class AdjudicationResultsView(View):
 
             @property
             def avg(self):
-                return sum(self.results) / len(self.results)
+                if not self._is_numeric(self.results):
+                    return "NA"
+
+                if len(self.results) > 0:
+                    return sum(map(float, self.results)) / float(len(self.results))
+                else:
+                    return "NA"
 
             @property
             def id(self):
                 return "id_adjudication_%s" % self.cde.code
 
-            @property
-            def histogram(self):
-                import json
-                # return as json for chart? - assumes we have discrete values for adjudication question answers
+            def _munge_type(self, values):
+                if self._is_numeric(values):
+                    return map(float, values)
+                else:
+                    return values
+
+
+            def _create_histogram(self):
                 h = {}
-                for result in self.results:
-                    if result in h:
-                        h[result] += 1
+                if self.cde.datatype == "range":
+                    discrete_values = sorted(self._munge_type(self.cde.get_range_members(get_code=False)))
+                    for value in discrete_values:
+                        h[value] = 0
+
+                for r in self.results:
+                    if r in h:
+                        h[r] += 1
                     else:
-                        h[result] = 1
-                return json.dumps(h)
+                        h[r] = 1
+                return h
+
+            @property
+            def bar_chart_data(self):
+                histogram = self._create_histogram()
+                data = {
+                    "labels": histogram.keys(),
+                    "datasets": [
+                         {
+                            "label": self.label,
+                            "fillColor": "rgba(220,220,220,0.5)",
+                            "strokeColor": "rgba(220,220,220,0.8)",
+                            "highlightFill": "rgba(220,220,220,0.75)",
+                            "highlightStroke": "rgba(220,220,220,1)",
+                            "data": histogram.values()
+                            }
+                        ]
+                }
+                return data
+
 
         fields = []
 

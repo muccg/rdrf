@@ -417,8 +417,13 @@ class CDEPermittedValueGroup(models.Model):
             d["values"].append(value_dict)
         return d
 
-    def members(self):
-        return [v.code for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
+    def members(self, get_code=True):
+        if get_code:
+            att = "code"
+        else:
+            att = "value"
+
+        return [getattr(v, att) for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
 
     def __unicode__(self):
         members = self.members()
@@ -484,6 +489,16 @@ class CommonDataElement(models.Model):
     class Meta:
         verbose_name = 'Data Element'
         verbose_name_plural = 'Data Elements'
+
+    def get_range_members(self, get_code=True):
+        """
+        if get_code false return the display value
+        not the code
+        """
+        if self.pv_group:
+            return self.pv_group.members(get_code=get_code)
+        else:
+            return None
 
 
 class RegistryFormManager(models.Manager):
@@ -593,8 +608,8 @@ class AdjudicationError(Exception):
 
 
 class AdjudicationRequestState(object):
-    CREATED = "C"        # Just been created - no email sent
-    REQUESTED = "R"          # Email sent - waiting to be processed
+    CREATED = "C"        # Just been created - no notification sent
+    REQUESTED = "R"      # Email sent - waiting to be processed
     PROCESSED = "P"     # User has checked the data and updated result
     INVALID = "I"      # Something has gone wrong and this request is not useable
 
@@ -755,7 +770,10 @@ class AdjudicationRequest(models.Model):
 
     @property
     def response(self):
-        return AdjudicationResponse.objects.get(request=self)
+        try:
+            return AdjudicationResponse.objects.get(request=self)
+        except AdjudicationResponse.DoesNotExist:
+            return None
 
 
 class AdjudicationResponse(models.Model):
