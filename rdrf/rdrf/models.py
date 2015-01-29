@@ -618,6 +618,7 @@ class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
     fields = models.TextField()
     result_fields = models.TextField() # section_code containing cde codes of result
+    decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
 
     def create_adjudication_requests(self, requesting_user, patient):
         recipients = set([])
@@ -790,5 +791,3 @@ class AdjudicationResponse(models.Model):
             return self.data[cde_model.code]
         else:
             raise AdjudicationError("cde not in data")
-
-
