@@ -619,6 +619,7 @@ class AdjudicationDefinition(models.Model):
     fields = models.TextField()
     result_fields = models.TextField() # section_code containing cde codes of result
     decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
+    adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming results
 
     def create_adjudication_requests(self, requesting_user, patient):
         recipients = set([])
@@ -646,7 +647,6 @@ class AdjudicationDefinition(models.Model):
             form_name, section_code, cde_code = spec.strip().split('.')
             yield form_name, section_code, cde_code
 
-
     def create_form(self):
         from field_lookup import FieldFactory
         adjudication_section = Section.objects.get(code=self.result_fields)
@@ -657,6 +657,18 @@ class AdjudicationDefinition(models.Model):
 
         adj_form = DummyForm()
         form_class = create_form_class_for_section(self.registry, adj_form, adjudication_section)
+        return form_class()
+
+    def create_decision_form(self):
+        from field_lookup import FieldFactory
+        decision_section = Section.objects.get(code=self.decision_field)
+        from dynamic_forms import create_form_class_for_section
+        class DummyForm(object):
+            def __init__(self):
+                self.name = "DecisionForm"
+
+        dec_form = DummyForm()
+        form_class = create_form_class_for_section(self.registry, dec_form, decision_section)
         return form_class()
 
     @property
@@ -791,3 +803,34 @@ class AdjudicationResponse(models.Model):
             return self.data[cde_model.code]
         else:
             raise AdjudicationError("cde not in data")
+
+
+class AdjudicationDecision(models.Model):
+    definition = models.ForeignKey(AdjudicationDefinition)
+    patient = models.IntegerField()           # the patient's pk
+    decision_data = models.TextField() # json list  of action cde codes (decision codes)#  to values ( actions)
+
+    @property
+    def actions(self):
+        try:
+            import json
+            return json.loads(self.decision_data)
+        except:
+            return []
+
+    @actions.setter
+    def actions(self, action_code_value_pairs):
+        import json
+        actions = []
+        for code, value in action_code_value_pairs:
+            actions.append((code, value))
+        self.decision_data = json.dumps(actions)
+
+
+    def perform_actions(self):
+        for action_cde_code, action_value in self.actions:
+            pass
+
+
+
+
