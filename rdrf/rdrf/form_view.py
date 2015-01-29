@@ -800,6 +800,7 @@ class Colours(object):
     blue = "#0000ff"
     green = "#00ff00"
     red = "#f7464a"
+    yellow = "#ffff00"
 
 
 class AdjudicationResultsView(View):
@@ -835,7 +836,7 @@ class AdjudicationResultsView(View):
                     item = {
                         "value": int(self.data[k]),
                         "color": self.COLOURS[k],
-                        "highlight": "#FF5A5E",
+                        "highlight": Colours.yellow,
                         "label": self.LABELS[k]
                     }
                     l.append(item)
