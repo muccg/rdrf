@@ -13,11 +13,11 @@ FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
-DEBUG = env.get("debug", True)
-DEV_SERVER = env.get("dev_server", True)
+PRODUCTION = env.get("production", False)
+SSL_ENABLED = PRODUCTION
+DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
-SSL_ENABLED = env.get("ssl_enabled", False)
 
 FORM_SECTION_DELIMITER = "____"
 
