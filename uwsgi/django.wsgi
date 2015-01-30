@@ -6,6 +6,6 @@ def application(environ, start):
 
     # copy any vars into os.environ
     for key in environ:
-        os.environ[key] = environ[key]
+        os.environ[key] = str(environ[key])
 
     return django.core.handlers.wsgi.WSGIHandler()(environ,start)
