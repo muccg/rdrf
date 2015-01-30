@@ -691,12 +691,17 @@ class AdjudicationDefinition(models.Model):
         section = Section.objects.get(code=self.result_fields)
         return section.cde_models
 
+    @property
+    def action_cde_models(self):
+        section = Section.objects.get(code=self.decision_field)
+        return section.cde_models
+
     def get_state(self,  patient):
         try:
             AdjudicationDecision.objects.get(definition=self, patient=patient.pk)
             return AdjudicationState.ADJUDICATED
         except AdjudicationDecision.DoesNotExist:
-            requests = [ar for ar in AdjudicationRequest.objects.filter(patient=patient.pk, definition=adjudication_definition)]
+            requests = [ar for ar in AdjudicationRequest.objects.filter(patient=patient.pk, definition=self)]
             if len(requests) == 0:
                 return AdjudicationState.NOT_CREATED
             else:
@@ -845,6 +850,7 @@ class AdjudicationDecision(models.Model):
     @actions.setter
     def actions(self, action_code_value_pairs):
         import json
+
         actions = []
         for code, value in action_code_value_pairs:
             actions.append((code, value))
@@ -852,8 +858,21 @@ class AdjudicationDecision(models.Model):
 
 
     def perform_actions(self):
+        import rdrf
         for action_cde_code, action_value in self.actions:
             pass
+
+    def clean(self):
+        definition_action_cde_models = self.definition.action_action_cde_models
+        allowed_codes = [ cde.code for cde in definition_action_cde_models]
+
+        for (action_cde_code, value) in self.actions:
+            if action_cde_code not in allowed_codes:
+                raise ValidationError("Action code %s is not in allowed codes for definition" % action_cde_code)
+
+
+
+
 
 
 

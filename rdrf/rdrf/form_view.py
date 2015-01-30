@@ -785,7 +785,6 @@ class AdjudicationRequestView(View):
                 adj_req = AdjudicationRequest.objects.get(pk=arid, state=AdjudicationRequestState.REQUESTED, username=request.user.username)
                 try:
                     adj_req.handle_response(request.POST)
-
                 except AdjudicationError, aerr:
                    return HttpResponse("oops: %s" % aerr)
 
@@ -927,9 +926,11 @@ class AdjudicationResultsView(View):
             fields.append(adj_field)
 
         context['fields'] = fields
+        context['decision_form'] = adj_def.create_decision_form()
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/adjudication_results.html', context,
                                   context_instance=RequestContext(request))
+
 
     def _get_results_for_one_cde(self, adjudication_responses, cde_model):
         results = []
@@ -959,6 +960,59 @@ class AdjudicationResultsView(View):
             if adj_resp:
                 responses.append(adj_resp)
         return stats, responses
+
+    def post(self, request):
+        raise
+
+    @method_decorator(login_required)
+    def post(self, request, adjudication_definition_id, patient_id):
+        from rdrf.models import AdjudicationDefinition, AdjudicationError, AdjudicationState, AdjudicationDecision
+        try:
+            adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
+        except AdjudicationDefinition.DoesNotExist:
+            raise Http404("Adjudication Definition with id %s not found" % adjudication_definition_id)
+
+        if adj_def.adjudicator_username != request.user.username:
+            raise Http404("You are not authorised to submit an adjudication for this patient")
+
+        patient_id_on_form = request.POST["patient_id"]
+        if patient_id_on_form != patient_id:
+            raise Http404("patient incorrect!")
+
+        try:
+            patient = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404("Patient does not exist")
+
+        adjudication_state = adj_def.get_state(patient)
+
+        if adjudication_state == AdjudicationState.NOT_CREATED:
+            # No requests have been sent out for this definiton
+            raise Http404("No Adjudication requests have come back for this patient - it cannot be decided yet!")
+
+        elif adjudication_state == AdjudicationState.ADJUDICATED:
+            raise Http404("This patient has already been adjudicated!")
+        elif adjudication_state != AdjudicationState.UNADJUDICATED:
+            raise Http404("Unknown adjudication state")
+        else:
+            adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
+            actions = []
+            action_code_value_pairs = self._get_actions_data(adj_def, request.POST)
+            adj_dec.actions = action_code_value_pairs
+            adj_dec.save()
+            adj_dec.perform_actions()
+
+    def _get_actions_data(self, definition, post_data):
+        # POST:<QueryDict: {u'DecisionForm____APMATADJDECSECTION____APMATADJDECADAMTS13': [u'Yes'], u'csrfmiddlewaretoken': [u'1zrpaa02P6996cwFDP35wFfhEYLVUBgg'], u'patient_id': [u'2']}>,
+        actions = []
+        for adjudication_cde_model in definition.action_cde_models:
+            for k in post_data:
+                logger.debug(k)
+                if adjudication_cde_model.code in k:
+                    value = post_data[k]
+                    actions.append((adjudication_cde_model.code, value))
+        return actions
+
 
 
 

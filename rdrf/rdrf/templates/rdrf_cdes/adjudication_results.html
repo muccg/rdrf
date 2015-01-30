@@ -18,11 +18,24 @@
 <h2>Statistics</h2>
 {% pie_chart "id_stats" stats.pie_data %}
 
+<div class="row">
 {% for field in fields %}
-    <h2>{{ field.label }}</h2><br>
-    {% bar_chart field.id field.bar_chart_data %}<br>
-    Average = {{ field.avg }}
+    <div class="col-md-4">
+        <h2>{{ field.label }}</h2><br>
+        {% bar_chart field.id field.bar_chart_data %}<br>
+        Average = {{ field.avg }}
+    </div>
 {% endfor %}
+</div>
+<p>
+</p>
+<h2>Adjudication Decision:</h2>
+<form method="post">{% csrf_token %}
+    {{ decision_form }}
+     <input type="hidden" name="patient_id" value="{{patient.pk}}"/>
+    <p></p>
+     <input type="submit" class="btn btn-info" value="Submit Adjudication Decision"/>
+</form>
 
 {% endblock %}
 
