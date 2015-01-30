@@ -15,6 +15,7 @@ WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # General site config
 PRODUCTION = env.get("production", False)
 SSL_ENABLED = PRODUCTION
+SSL_FORCE = PRODUCTION
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
