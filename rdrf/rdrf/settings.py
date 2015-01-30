@@ -140,13 +140,13 @@ SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
 SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
-SESSION_COOKIE_SECURE = env.get("session_cookie_secure", False)
+SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get("session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
-CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", False)
+CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
