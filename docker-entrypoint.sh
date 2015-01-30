@@ -95,7 +95,7 @@ if [ "$1" = 'uwsgi' ]; then
     django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-syncdb.log
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
 
-    uwsgi ${UWSGI_OPTS}
+    uwsgi ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
     exit $?
 fi
 
@@ -114,7 +114,7 @@ if [ "$1" = 'runserver' ]; then
 
     django-admin.py load_fixture --file=rdrf.json
     django-admin.py load_fixture --file=users.json
-    django-admin.py ${RUNSERVER_OPTS}
+    django-admin.py ${RUNSERVER_OPTS} 2>&1 | tee /data/runserver.log
     exit $?
 fi
 
