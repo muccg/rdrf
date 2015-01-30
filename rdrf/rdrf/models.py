@@ -614,12 +614,22 @@ class AdjudicationRequestState(object):
     INVALID = "I"      # Something has gone wrong and this request is not useable
 
 
+class AdjudicationState(object):
+    """
+    for a given patient and definition
+    """
+    NOT_CREATED = "N"    # no adjudication requests exist for this patient/adjudication pair
+    UNADJUDICATED = "U"  # requests sent out, but admin has not adjudicated
+    ADJUDICATED = "A"
+
+
 class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
     fields = models.TextField()
     result_fields = models.TextField() # section_code containing cde codes of result
     decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
-    adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming results
+    adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
+                                                                             # results
 
     def create_adjudication_requests(self, requesting_user, patient):
         recipients = set([])
@@ -635,7 +645,8 @@ class AdjudicationDefinition(models.Model):
     def get_field_data(self, patient):
         data = {}
         if not patient.in_registry(self.registry.code):
-            raise AdjudicationError("Patient %s is not in registry %s so cannot be adjudicated!" % (patient, self.registry))
+            raise AdjudicationError("Patient %s is not in registry %s so cannot be adjudicated!" %
+                                    (patient, self.registry))
         for form_name, section_code, cde_code in self._get_field_specs():
             field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
             data[(form_name, section_code, cde_code)] = field_value
@@ -663,6 +674,7 @@ class AdjudicationDefinition(models.Model):
         from field_lookup import FieldFactory
         decision_section = Section.objects.get(code=self.decision_field)
         from dynamic_forms import create_form_class_for_section
+
         class DummyForm(object):
             def __init__(self):
                 self.name = "DecisionForm"
@@ -678,6 +690,18 @@ class AdjudicationDefinition(models.Model):
         """
         section = Section.objects.get(code=self.result_fields)
         return section.cde_models
+
+    def get_state(self,  patient):
+        try:
+            AdjudicationDecision.objects.get(definition=self, patient=patient.pk)
+            return AdjudicationState.ADJUDICATED
+        except AdjudicationDecision.DoesNotExist:
+            requests = [ar for ar in AdjudicationRequest.objects.filter(patient=patient.pk, definition=adjudication_definition)]
+            if len(requests) == 0:
+                return AdjudicationState.NOT_CREATED
+            else:
+                return AdjudicationState.UNADJUDICATED
+
 
 
 class AdjudicationRequest(models.Model):
