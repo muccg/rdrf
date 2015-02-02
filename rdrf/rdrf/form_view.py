@@ -25,6 +25,7 @@ import json
 import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
+from rdrf.utils import mongo_db_name
 
 import logging
 
@@ -599,7 +600,7 @@ class FileUploadView(View):
         from bson.objectid import ObjectId
         import gridfs
         client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
-        db = client[registry_code]
+        db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)

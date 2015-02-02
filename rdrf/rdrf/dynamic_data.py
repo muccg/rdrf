@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from pymongo import MongoClient
 import gridfs
 import logging
-from rdrf.utils import get_code
+from rdrf.utils import get_code, mongo_db_name
 from bson.objectid import ObjectId
 from django.conf import settings
 
@@ -48,7 +48,7 @@ class DynamicDataWrapper(object):
 
     def _get_collection(self, registry, collection_name):
         if not self.testing:
-            db = self.client[registry]
+            db = self.client[mongo_db_name(registry)]
         else:
             db = self.client["testing_" + registry]
 
@@ -57,7 +57,7 @@ class DynamicDataWrapper(object):
 
     def _get_filestore(self, registry):
         if not self.testing:
-            db = self.client[registry]
+            db = self.client[mongo_db_name(registry)]
         else:
             db = self.client["testing_" + registry]
 

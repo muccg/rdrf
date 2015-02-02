@@ -43,6 +43,7 @@ DATABASES = {
 
 MONGOSERVER = env.get("mongoserver", "localhost")
 MONGOPORT = env.get("mongoport", 27017)
+MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
 
 # Django Core stuff
 TEMPLATE_LOADERS = [
@@ -163,7 +164,7 @@ NOSE_ARGS = [
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
-ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
+ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 
 # This honours the X-Forwarded-Host header set by our nginx frontend when
 # constructing redirect URLS.
