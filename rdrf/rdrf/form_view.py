@@ -274,6 +274,11 @@ class FormView(View):
         formset_prefixes = {}
         section_field_ids_map = {}
         form_links = self._get_formlinks()
+        if self.dynamic_data:
+            if 'questionnaire_context' in kwargs:
+                self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
+            else:
+                self.dynamic_data['questionnaire_context'] = 'au'
 
         for s in sections:
             section_model = Section.objects.get(code=s)
@@ -497,6 +502,8 @@ class QuestionnaireView(FormView):
             if self.testing:
                 questionnaire_response_wrapper.testing = True
             for section in sections:
+                data_map[section]['questionnaire_context'] = self.questionnaire_context
+                logger.debug("data_map qc = %s" % self.questionnaire_context)
                 questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
             return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html')
         else:
@@ -547,9 +554,31 @@ class QuestionnaireResponseView(FormView):
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
         self.registry_form = self.registry.questionnaire
-        context = self._build_context()
+        context = self._build_context(questionnaire_context=self._get_questionnaire_context())
+        self._fix_centre_dropdown(context)
         context['working_groups'] = self._get_working_groups(request.user)
         return self._render_context(request, context)
+
+    def _get_questionnaire_context(self):
+        """
+        hack to correctly display the Centres dropdown ( which depends on working group for DM1.)
+        questionnaire_context is au for all registries but might be nz for dm1
+        """
+        for k in self.dynamic_data:
+            if "questionnaire_context" in k:
+                return self.dynamic_data[k]
+
+        logger.debug("questionnaire_context not in dynamic data")
+        return 'au'
+
+    def _fix_centre_dropdown(self, context):
+        for field_key, field_object in context['forms']['PatientData'].fields.items():
+            if 'CDEPatientCentre' in field_key:
+                field_object.widget._widget_context['questionnaire_context'] =  self._get_questionnaire_context()
+                #raise Exception("field obj = %s" % field_object)
+
+
+
 
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
