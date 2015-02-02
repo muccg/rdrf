@@ -437,7 +437,7 @@ class QuestionnaireView(FormView):
         registry = self._get_registry(registry_code)
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
-        sections, display_names = self._get_sections(registry.questionnaire)
+        sections, display_names, ids = self._get_sections(registry.questionnaire)
         data_map = {}           # section --> dynamic data for questionnaire response object if no errors
         form_section = {}       # section --> form instances if there are errors and form needs to be redisplayed
         formset_prefixes = {}
