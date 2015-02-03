@@ -6,8 +6,6 @@ if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 
     def create_notice_types(app, created_models, verbosity, **kwargs):
-        notification.create_notice_type("friends_invite", _("Invitation Received"), _("you have received an invitation"))
-        notification.create_notice_type("friends_accept", _("Acceptance Received"), _("an invitation you sent has been accepted"))
         notification.create_notice_type("adjudication_decision", _("Adjudication Decided"), _("your adjudication request has been decided"))
         notification.create_notice_type("adjudication_request", _("Adjudication Requested"), _("you have received an N adjudication request"))
         notification.create_notice_type("adjudication_results_ready", _("Adjudication Results Ready"), _("adjudication results are ready to review"))
