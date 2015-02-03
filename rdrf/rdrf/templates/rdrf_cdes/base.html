@@ -3,11 +3,12 @@
 {% load get_form %}
 {% load get_forms %}
 {% load get_elements %}
+{% load i18n %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
-      <title>Rare Disease Registry Framework</title>
+      <title>{% trans "Rare Disease Registry Framework" %}</title>
       
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
@@ -47,7 +48,7 @@
     <div id="header" class="header">
         {% block header%}
 	  <div id="branding" class="branding">
-	      <h1 id="site-name">Rare Disease Registry Framework</h1>
+	      <h1 id="site-name">{% trans "Rare Disease Registry Framework" %}</h1>
 	  </div>
 	  
 	  <div id="user-tools">
