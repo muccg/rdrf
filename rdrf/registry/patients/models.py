@@ -18,7 +18,7 @@ logger = logging.getLogger('patient')
 
 from registry.utils import stripspaces
 
-from django.conf import settings  # for APP_NAME
+from django.conf import settings 
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -94,7 +94,6 @@ class Patient(models.Model):
         ("Chinese", "Chinese"),
         ("Indian", "Indian"),
         ("Maori", "Maori"),
-        ("Aboriginal", "Aboriginal"),
         ("Middle eastern", "Middle eastern"),
         ("Person from the Pacific Islands", "Person from the Pacific Islands"),
         ("Other Asian", "Other Asian"),
@@ -311,7 +310,7 @@ def save_patient_mongo(sender, instance, **kwargs):
 
 
 def _save_patient_mongo(patient_obj):
-    client = MongoClient()
+    client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
     patient_db = client[_MONGO_PATIENT_DATABASE]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
     

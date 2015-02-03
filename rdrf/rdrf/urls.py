@@ -1,5 +1,5 @@
-from django.conf.urls import patterns, url
-from django.conf.urls import patterns, include
+from django.conf.urls import patterns, url, include
+from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render_to_response
 import registry.urls as common_urls
@@ -78,3 +78,9 @@ urlpatterns = patterns('',
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(), name='rdrf_designer_registry_structure_endpoint'),
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 )
+
+# pattern for serving statically
+if settings.DEBUG:
+    urlpatterns += patterns('',
+                           (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+                           {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))

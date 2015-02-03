@@ -198,7 +198,7 @@ class FormTestCase(RDRFTestCase):
         self.request_factory = RequestFactory()
 
     def _reset_mongo(self):
-        self.client = MongoClient()
+        self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         # delete any testing databases
         for db in self.client.database_names():
             if db.startswith("testing_"):
@@ -273,6 +273,7 @@ class FormTestCase(RDRFTestCase):
         print str(form_data)
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
+        view.request = request
         view.testing = True  # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
 

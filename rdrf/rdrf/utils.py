@@ -39,3 +39,20 @@ def de_camelcase(s):
         i += 1
 
     return p
+
+
+class FormLink(object):
+    def __init__(self, patient_id, registry, registry_form, selected=False):
+        self.registry = registry
+        self.patient_id = patient_id
+        self.form = registry_form
+        self.selected = selected
+
+    @property
+    def url(self):
+        from django.core.urlresolvers import reverse
+        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
+
+    @property
+    def text(self):
+        return de_camelcase(self.form.name)

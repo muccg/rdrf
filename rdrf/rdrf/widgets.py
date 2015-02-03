@@ -8,6 +8,8 @@ from django.core.urlresolvers import reverse_lazy
 import logging
 logger = logging.getLogger("registry_log")
 
+from models import CommonDataElement
+
 import pycountry
 
 
@@ -173,12 +175,22 @@ class LookupWidget(widgets.TextInput):
             </script>
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
+class LookupWidget2(LookupWidget):
+    def render(self, name, value, attrs):
+        return """
+            <input type="text" name="%s" id="id_%s" value="%s">
+            <script type="text/javascript">
+                $("#id_%s").keyup(function() {
+                    lookup2($(this), '%s');
+                });
+            </script>
+        """ % (name, name, value or '', name, self.SOURCE_URL)
 
 class GeneLookupWidget(LookupWidget):
     SOURCE_URL = reverse_lazy('gene_source')
 
     
-class LaboratoryLookupWidget(LookupWidget):
+class LaboratoryLookupWidget(LookupWidget2):
     SOURCE_URL = reverse_lazy('laboratory_source')
 
 
@@ -218,7 +230,7 @@ class CountryWidget(widgets.Select):
 
 
 class StateWidget(widgets.Select):
-    
+
     def render(self, name, value, attrs):
         if not value:
             value = self.attrs['default']
@@ -238,3 +250,68 @@ class StateWidget(widgets.Select):
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
         return mark_safe('\n'.join(output))
+
+
+class ParametrisedSelectWidget(widgets.Select):
+    """
+    A dropdown that can retrieve values dynamically from the registry that "owns" the form containing the widget.
+    This is an abstract class which must be subclassed.
+    NB. The field factory is responsible for supplying the registry model to the widget instance  at
+    form creation creation time.
+    """
+    def __init__(self, *args, **kwargs):
+        self._widget_parameter = kwargs['widget_parameter']
+        del kwargs['widget_parameter']
+        self._widget_context = kwargs['widget_context']
+        del kwargs['widget_context']
+        super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs):
+        if not value:
+            value = self.attrs.get('default', '')
+
+        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        output.append("<option value='---'>---</option>")
+        for code, display in self._get_items():
+            if value == code:
+                output.append("<option value='%s' selected>%s</option>" % (code, display))
+            else:
+                output.append("<option value='%s'>%s</option>" % (code, display))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))
+
+    def _get_items(self):
+        raise NotImplementedError("subclass responsibility - it should return a list of pairs: [(code, display), ...]")
+
+
+class DataSourceSelect(ParametrisedSelectWidget):
+    """
+    A parametrised select that retrieves values from a data source specified in the parameter
+    """
+    def _get_items(self):
+        """
+        :return: [(code, value), ... ] pairs from the metadata json from the registry context
+        """
+        from rdrf import datasources
+        logger.debug("checking for data source: %s" % self._widget_parameter)
+        if hasattr(datasources, self._widget_parameter):
+            datasource_class = getattr(datasources, self._widget_parameter)
+            datasource = datasource_class(self._widget_context)
+            return datasource.values()
+
+
+class PositiveIntegerInput(widgets.TextInput):
+
+    def render(self, name, value, attrs):
+        min_value, max_value = self._get_value_range(name)
+    
+        return """
+            <input type="number" name="%s" id="id_%s" value="%s" min="%s" max="%s">
+        """ % (name, name, value, min_value, max_value)
+    
+    def _get_value_range(self, cde_name):
+        cde_code = cde_name.split("____")[2]
+        cde = CommonDataElement.objects.get(code = cde_code)
+        max_value = cde.max_value if cde.max_value else 2147483647
+        min_value = cde.min_value if cde.min_value else 0
+        return min_value, max_value

@@ -3,10 +3,7 @@
 
 forge "https://forge.puppetlabs.com"
 
-mod "puppetlabs/postgresql", "3.3.3"
-mod "puppetlabs/mysql", "2.2.3"
 mod "puppetlabs/mongodb", "0.3.0"
-mod "rodjek/logrotate", "1.1.1"
 
 mod "capriza/s3cmd",
   :git => "git://github.com/capriza/capriza-s3cmd.git",
@@ -18,7 +15,7 @@ mod "muccg/ccgcommon",
 
 mod "muccg/profile",
   :git => "git://github.com/muccg/puppet-profile.git",
-  :ref => "1.1.4"
+  :ref => "1.1.5"
 
 mod "muccg/role",
   :git => "git://github.com/muccg/puppet-role.git",
@@ -30,7 +27,7 @@ mod "muccg/python",
 
 mod "muccg/ccgdatabase",
   :git => "git://github.com/muccg/puppet-ccgdatabase.git",
-  :ref => "1.1.0"
+  :ref => "2.0.0"
 
 mod "muccg/repo",
   :git => "git://github.com/muccg/puppet-repo.git",

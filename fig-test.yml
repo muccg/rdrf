@@ -1,0 +1,60 @@
+# data only container pattern
+datatest:
+  image: muccg/base:debian8
+  volumes:
+    - .:/app
+
+dbtest:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - ":5432"
+
+cachetest:
+  image: memcached:1.4
+
+mongotest:
+  image: mongo:2.6
+
+webtest:
+  image: rdrf_web
+  command: runserver
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBSERVER=dbtest
+    - DBUSER=rdrfapp
+    - CACHESERVER=cachetest
+    - MONGOSERVER=mongotest
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - datatest      
+  ports:
+    - ":8000"
+  links:
+    - dbtest
+    - cachetest
+    - mongotest
+
+# runs the tests against the stack above
+testhost:
+  image: rdrf_web
+  command: runtests
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBSERVER=dbtest
+    - DBUSER=rdrfapp
+    - WEBSERVER=webtest
+    - MONGOSERVER=mongotest
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_WEB=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - datatest      
+  links:
+    - dbtest
+    - webtest
+    - mongotest

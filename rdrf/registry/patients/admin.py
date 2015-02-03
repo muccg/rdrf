@@ -145,6 +145,26 @@ class PatientAdmin(admin.ModelAdmin):
         form.is_superuser = request.user.is_superuser
         return form
 
+    def render_change_form(self, *args, **kwargs):
+        #return self.render_change_form(request, context, change=True, obj=obj, form_url=form_url)
+        context = args[1]
+        if 'original' in context:
+            patient = context['original']
+            context['form_links'] = self._get_formlinks(patient)
+        return super(PatientAdmin, self).render_change_form(*args, **kwargs)
+
+    def _get_formlinks(self, patient):
+        from rdrf.utils import FormLink
+        links = []
+        for registry_model in patient.rdrf_registry.all():
+            for form_model in registry_model.forms:
+                if form_model.is_questionnaire:
+                    continue
+                form_link = FormLink(patient.id, registry_model, form_model)
+                links.append(form_link)
+        return links
+
+
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
         additional_fields = {}
         for reg_code in registry_specific_fields_dict:

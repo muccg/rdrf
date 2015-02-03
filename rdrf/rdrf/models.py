@@ -37,7 +37,7 @@ class Section(models.Model):
     questionnaire_help = models.TextField(blank=True)
 
     def __unicode__(self):
-        return "Section %s comprising %s" % (self.code, self.elements)
+        return self.code
 
     def get_elements(self):
         import string
