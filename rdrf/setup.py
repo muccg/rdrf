@@ -45,7 +45,7 @@ else:
 #print "package_data dict = %s" % package_data
 
 setup(name='django-rdrf',
-    version="0.8.4",
+    version="0.8.5",
     packages=packages,
     description='RDRF',
     long_description='Rare Disease Registry Framework',
