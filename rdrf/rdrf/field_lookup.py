@@ -113,7 +113,7 @@ class FieldFactory(object):
     
     def _get_cde_link(self, name):
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
-        label_link = mark_safe("<a target='blank' href='%s'>%s</a>" % (cde_url, name))
+        label_link = mark_safe("<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
         return label_link
 
     def _get_code(self):
