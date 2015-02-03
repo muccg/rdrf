@@ -45,16 +45,16 @@ else:
 #print "package_data dict = %s" % package_data
 
 setup(name='django-rdrf',
-        version="0.8.4",
-        packages=packages,
-        description='RDRF',
-        long_description='Rare Disease Registry Framework',
-        author='Centre for Comparative Genomics',
-        author_email='web@ccg.murdoch.edu.au',
-        package_data= package_data,
-        zip_safe=False,
-        scripts=package_scripts,
-        install_requires=[
+    version="0.8.5",
+    packages=packages,
+    description='RDRF',
+    long_description='Rare Disease Registry Framework',
+    author='Centre for Comparative Genomics',
+    author_email='web@ccg.murdoch.edu.au',
+    package_data= package_data,
+    zip_safe=False,
+    scripts=package_scripts,
+    install_requires=[
         'Django==1.6.10',
         'pymongo',
         'pyyaml',
@@ -92,8 +92,9 @@ setup(name='django-rdrf',
         'pyinotify==0.9.4',
         'Werkzeug',
         'psycopg2==2.5.4',
+        'six==1.9.0'
     ],
-    dependency_links=[
+    dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
         #"https://pypi.python.org/packages/source/d/django-templatetag-handlebars/django-templatetag-handlebars-1.2.0.zip",
         "https://bitbucket.org/ccgmurdoch/django-userlog/downloads/django_userlog-0.2.1.tar.gz",

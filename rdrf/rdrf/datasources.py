@@ -20,6 +20,10 @@ class PatientCentres(DataSource):
         if "patientCentres" in registry_model.metadata:
             questionnaire_context = self.context.get("questionnaire_context", "au")
             # Assumes a list of pairs ( code and display text to fill the drop down)
+            if questionnaire_context is None:
+                logger.debug("questionnaire_context is None in PatientCentres.values() setting to au")
+                questionnaire_context ='au'
+
             return registry_model.metadata["patientCentres"][questionnaire_context]
         else:
             from registry.groups.models import WorkingGroup
