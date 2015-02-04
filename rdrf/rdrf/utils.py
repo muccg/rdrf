@@ -56,3 +56,14 @@ class FormLink(object):
     @property
     def text(self):
         return de_camelcase(self.form.name)
+
+def get_user(username):
+    from registry.groups.models import CustomUser
+    try:
+        return CustomUser.objects.get(username=username)
+    except CustomUser.DoesNotExist:
+        return None
+
+
+def get_users(usernames):
+    return filter(lambda x : x is not None, [ get_user(username) for username in usernames])
