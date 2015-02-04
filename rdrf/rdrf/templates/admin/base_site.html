@@ -23,9 +23,16 @@
     </script>
 {% endblock %}
 
-{% block branding %}{% current_registry request %}{% endblock %}
+{% block branding %}{% current_registry request %}
+
+
+
+{% endblock %}
 
 {% block userlinks %}
+
+
+
     {% url 'django-admindocs-docroot' as docsroot %}
     {% if docsroot %}
         <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
@@ -35,4 +42,6 @@
     <span class="separator">|</span>
         <a href="{% url 'admin:logout' %}?next={% sticky_logout_url request %}">{% trans 'Log out' %}</a>
     </span>
+
+
 {% endblock %}

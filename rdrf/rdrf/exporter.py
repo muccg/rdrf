@@ -312,3 +312,25 @@ class Exporter(object):
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+
+    def _get_adjudication_definitions(self):
+        """
+        fields = models.TextField()
+        result_fields = models.TextField() # section_code containing cde codes of result
+        decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
+        adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
+        :return:
+        """
+        from rdrf.models import AdjudicationDefinition
+        adj_defs = []
+
+        for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
+            item = {}
+            item['fields'] = adj_def.fields
+            item['result_fields'] = adj_def.result_fields
+            item['decision_field'] = adj_def.decision_field
+            item['adjudicator_username'] = adj_def.adjudicator_username
+
+        return adj_defs
+
+

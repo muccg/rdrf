@@ -116,6 +116,9 @@ EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
+# Django Notifications
+DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
+
 # default emailsn
 ADMINS = [
     ('alerts', env.get("alert_email", "root@localhost"))
