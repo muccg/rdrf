@@ -45,7 +45,7 @@ else:
 #print "package_data dict = %s" % package_data
 
 setup(name='django-rdrf',
-    version="0.8.4",
+    version="0.8.5",
     packages=packages,
     description='RDRF',
     long_description='Rare Disease Registry Framework',
@@ -93,7 +93,8 @@ setup(name='django-rdrf',
         'Werkzeug',
         'psycopg2==2.5.4',
         # https://bitbucket.org/gutworth/six/issue/51/
-        'six>=1.9.0',
+        'six==1.9.0',
+        'python-gettext'
     ],
     dependency_links = [
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",

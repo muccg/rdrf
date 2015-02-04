@@ -55,7 +55,7 @@ node default {
   
   $django_config = {
     deployment          => 'prod',
-    release             => '0.8.3-1',
+    release             => '0.8.5-1',
     dbdriver            => 'django.db.backends.postgresql_psycopg2',
     dbserver            => $globals::dbhost_rds_syd_postgresql_prod,
     dbuser              => $globals::dbuser_syd_prod,
