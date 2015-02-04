@@ -116,9 +116,9 @@ AUTHENTICATION_BACKENDS = [
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
-EMAIL_HOST = env.get("email_host", '127.0.0.1')
+EMAIL_HOST = env.get("email_host", 'localhost')
 EMAIL_PORT = env.get("email_port", 25)
-EMAIL_HOST_USER = env.get("email_host_user", "")
+EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
 EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
@@ -127,8 +127,11 @@ SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 # Django Notifications
 DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+FEATURES = env.get("features", "*") # list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+
 
 # default emailsn
 ADMINS = [
