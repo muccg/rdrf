@@ -5,8 +5,6 @@ from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
 import json
-from rdrf.notifications import Notifier
-import notification
 
 logger = logging.getLogger("registry")
 
