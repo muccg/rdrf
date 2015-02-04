@@ -5,3 +5,8 @@ from rdrf.utils import get_user, get_users
 
 logger = logging.getLogger("registry_log")
 
+class NotificationChannel:
+    EMAIL = "email"
+    SYSTEM = "system"
+    SMS = "sms"
+
