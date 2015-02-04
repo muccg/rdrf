@@ -1,5 +1,7 @@
 from django.conf import settings
 
+def mongo_db_name(registry):
+    return settings.MONGO_DB_PREFIX + registry
 
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
