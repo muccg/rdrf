@@ -10,15 +10,13 @@ import json
 import pycountry
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
-
 from rdrf.models import Registry
+from registry.utils import stripspaces
+from django.conf import settings 
+from rdrf.utils import mongo_db_name
 
 import logging
 logger = logging.getLogger('patient')
-
-from registry.utils import stripspaces
-
-from django.conf import settings 
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -311,7 +309,7 @@ def save_patient_mongo(sender, instance, **kwargs):
 
 def _save_patient_mongo(patient_obj):
     client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
-    patient_db = client[_MONGO_PATIENT_DATABASE]
+    patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
     
     json_str = serializers.serialize("json", [patient_obj])
