@@ -65,3 +65,18 @@ msgstr "تعريف استيراد التسجيل"
 
 msgid "Rare Disease Registry Framework"
 msgstr "الإطار سجل الأمراض النادرة"
+
+msgid "Age at Clinical Diagnosis"
+msgstr "العمر عند التشخيص السريري"
+
+msgid "Yes"
+msgstr "نعم"
+
+msgid "Age in years at clinical diagnosis"
+msgstr "العمر في السنوات عند التشخيص السريري"
+
+msgid "Age in years at molecular diagnosis"
+msgstr "العمر في السنوات عند التشخيص الجزيئي"
+
+msgid "Diagnosis"
+msgstr "التشخيص"

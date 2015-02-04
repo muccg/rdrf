@@ -16,6 +16,13 @@ from calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from validation import ValidatorFactory
 from models import CommonDataElement
 
+from django.utils import six
+from django.utils.functional import lazy
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+
+mark_safe_lazy = lazy(mark_safe, six.text_type)
+
 logger = logging.getLogger('registry_log')
 
 
@@ -103,17 +110,17 @@ class FieldFactory(object):
 
     def _get_field_name(self):
         if self.context == FieldContext.CLINICAL_FORM:
-            return self._get_cde_link(self.cde.name) if self.is_superuser else self.cde.name
+            return self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
         else:
             q_field_text = self.cde.questionnaire_text
             if not q_field_text:
-                q_field_text = self._get_cde_link(self.cde.name) if self.is_superuser else self.cde.name
+                q_field_text = self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
     
     def _get_cde_link(self, name):
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
-        label_link = mark_safe("<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
+        label_link = mark_safe_lazy(u"<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
         return label_link
 
     def _get_code(self):
@@ -134,7 +141,8 @@ class FieldFactory(object):
         return options_dict
 
     def _get_help_text(self):
-        return self.cde.instructions
+        if self.cde.instructions:
+            return _(self.cde.instructions)
 
     def _get_required(self):
         return self.cde.is_required
@@ -187,7 +195,7 @@ class FieldFactory(object):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
             for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
-                value = permitted_value.value
+                value = _(permitted_value.value)
                 if self.context == FieldContext.QUESTIONNAIRE:
                     q_value = getattr(permitted_value, 'questionnaire_value')
                     if q_value:
