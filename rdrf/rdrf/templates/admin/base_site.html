@@ -19,21 +19,34 @@
                 'trigger': 'click',
                 'placement': 'bottom'
             });
+            
+            $('#lang-list').change(function() {
+                lang = $("#lang-list option:selected").val();
+                form = $("<form></form>").attr("action", "{% url 'set_language' %}").attr("method", "POST");
+                form.append("{% csrf_token %}");
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "next").val("{{ request.path|slice:"3:" }}"));
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "language").val(lang));
+                form.submit();
+            });
         })
     </script>
 {% endblock %}
 
-{% block branding %}{% current_registry request %}
-
-
-
-{% endblock %}
+{% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
-
-
-
-    {% url 'django-admindocs-docroot' as docsroot %}
+    {% get_current_language as LANGUAGE_CODE %}
+    
+    <select id="lang-list">
+        <option>Select one...</option>
+    {% for lang in LANGUAGES %}
+        <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %} selected="selected"{% endif %}>{{lang.1}}</option>
+        </option>
+    {% endfor %}
+    </select>
+    
+    {% url 'django-admindocs-docroot' as docsroot %}    
+    <span class="separator">|</span>
     {% if docsroot %}
         <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
         <span class="separator">|</span>
@@ -42,6 +55,4 @@
     <span class="separator">|</span>
         <a href="{% url 'admin:logout' %}?next={% sticky_logout_url request %}">{% trans 'Log out' %}</a>
     </span>
-
-
 {% endblock %}

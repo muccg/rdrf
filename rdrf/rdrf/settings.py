@@ -27,8 +27,13 @@ ROOT_URLCONF = 'rdrf.urls'
 SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
 TIME_ZONE = env.get("time_zone", 'Australia/Perth')
-LANGUAGE_CODE = env.get("language_code", 'en-us')
+LANGUAGE_CODE = env.get("language_code", 'en')
 USE_I18N = env.get("use_i18n", True)
+
+LANGUAGES = (
+    ('ar', 'Arabic'),
+    ('en', 'English'),
+)
 
 DATABASES = {
     'default': {
@@ -64,6 +69,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     #'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'ccg.middleware.ssl.SSLRedirect',
@@ -96,6 +102,7 @@ INSTALLED_APPS = [
 
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
+    'django.core.context_processors.i18n',
     'django.core.context_processors.request',
 )
 
@@ -293,7 +300,7 @@ INSTALL_NAME = env.get("install_name", 'rdrf')
 
 # Django Suit Config
 SUIT_CONFIG = {
-    'ADMIN_NAME': 'Rare Disease Registry Framework',
+    'ADMIN_NAME': 'Rare Disease Registry Frameworks',
     'MENU_OPEN_FIRST_CHILD': False,
     'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
 
