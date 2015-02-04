@@ -10,6 +10,8 @@ from django.http import HttpResponseRedirect
 
 from django.contrib.auth import get_user_model
 
+from rdrf.utils import has_feature
+
 logger = logging.getLogger("registry_log")
 
 
@@ -263,6 +265,7 @@ admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)
 
-admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
-admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
-admin.site.register(AdjudicationResponse, AAdjudicationResponseAdmin)
+if has_feature('adjudication'):
+    admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
+    admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
+    admin.site.register(AdjudicationResponse, AAdjudicationResponseAdmin)
