@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
 import json
+from rdrf.notifications import Notifier
 
 logger = logging.getLogger("registry")
 
@@ -722,6 +723,14 @@ class AdjudicationRequest(models.Model):
         # send the email or something ..
         self.state = AdjudicationRequestState.REQUESTED
         self.save()
+        self._send_notification()
+
+    def _send_notification(self):
+        sending_user = get_user(self.requesting_username)
+        to_user = get_user(self.username)
+        if to_user:
+            notifier = Notifier()
+            notifier.send([to_user], "adjudication_request", [sending_user])
 
     def _get_adjudication_form_datapoints(self):
         """
