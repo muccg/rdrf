@@ -15,6 +15,7 @@ from registry.utils import stripspaces
 from django.conf import settings 
 from rdrf.utils import mongo_db_name
 from django.dispatch import receiver
+from rdrf.utils import requires_feature
 
 import logging
 logger = logging.getLogger('patient')
@@ -359,14 +360,17 @@ def _get_registry_for_mongo(regs):
 
 
 @receiver(post_save, sender=Patient)
+@requires_feature('email_notification')
 def send_notification(sender, instance, created, **kwargs):
     if created:
         try:
             from django.core.mail import send_mail
             from django.conf import settings
             logger.debug("about to send welcome email to %s patient %s" % (instance.email, instance))
-            send_mail('Welcome to FKRP', 'You have been added to the registry', settings.DEFAULT_FROM_EMAIL,
+            name = "%s %s" % (instance.given_names, instance.family_name)
+            send_mail('Welcome to FKRP!', 'Dear %s\nYou have been added to the FKRP registry.\nPlease note this is a test of the email subsystem only!' % name, settings.DEFAULT_FROM_EMAIL,
                       [instance.email], fail_silently=False)
+            logger.debug("sent email ok to %s" % instance.email)
         except Exception, ex:
             logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
 
