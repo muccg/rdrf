@@ -361,17 +361,13 @@ def _get_registry_for_mongo(regs):
 @receiver(post_save, sender=Patient)
 def send_notification(sender, instance, created, **kwargs):
     if created:
-        from rdrf.notifications import Notifier
-        notifier = Notifier()
-        from rdrf.utils import get_user
-        admin_user = get_user('admin')
         try:
             from django.core.mail import send_mail
             from django.conf import settings
-            #notifier.send([instance], 'patient_welcome', [admin_user])
-            send_mail('Welcome to FKRP', 'You have been added to the registry', settings.DEFAULT_FROM_EMAIL
-                        [instance.email], fail_silently=False)
+            logger.debug("about to send welcome email to %s patient %s" % (instance.email, instance))
+            send_mail('Welcome to FKRP', 'You have been added to the registry', settings.DEFAULT_FROM_EMAIL,
+                      [instance.email], fail_silently=False)
         except Exception, ex:
-            logger.error("Error sending welcome email to %s: %s" % (instance, ex))
+            logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
 
 
