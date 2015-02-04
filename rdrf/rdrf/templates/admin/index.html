@@ -90,6 +90,35 @@
         at runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics.
       </h5>
       <i class="icon-book"></i> <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Rare Disease Registry Framework Documentation</a>
+
+
+
+       {% if request.user.notices %}
+           <table>
+            <caption>{% trans "Notices" %}</caption>
+            <thead>
+                <tr>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Message" %}</th>
+                    <th>{% trans "Date of the Notice" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notice in request.user.notices %}
+                    {% if notice.is_unseen %}
+                        <tr class="unseen_notice">
+                    {% else %}
+                        <tr class="notice">
+                    {% endif %}
+                        <td class="notice_type">[{% trans notice.notice_type.display %}]</td>
+                        <td class="notice_message">{{ notice.message|safe }}</td>
+                        <td class="notice_time">{{ notice.added|timesince }} {% trans "ago" %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+       {% endif %}
+
     </div>
   </div>
 

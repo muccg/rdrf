@@ -13,6 +13,7 @@ if "notification" in settings.INSTALLED_APPS:
         notification.create_notice_type("adjudication_results_ready", _("Adjudication Results Ready"), _("adjudication results are ready to review"))
         notification.create_notice_type("patient_reminder", _("Data Update Requested"), _("please update your data"))
         notification.create_notice_type("patient_welcome", _("Welcome to the registry!"), _("welcome message"))
+        notification.create_notice_type("new_user_welcome", _("Welcome new user!"), _("you have been added as a user"))
 
     signals.post_syncdb.connect(create_notice_types, sender=notification)
 else:

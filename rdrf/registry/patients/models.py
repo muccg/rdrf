@@ -14,6 +14,7 @@ from rdrf.models import Registry
 from registry.utils import stripspaces
 from django.conf import settings 
 from rdrf.utils import mongo_db_name
+from django.dispatch import receiver
 
 import logging
 logger = logging.getLogger('patient')
@@ -355,3 +356,22 @@ def _get_registry_for_mongo(regs):
         json_final.append(reg['fields'])
 
     return json_final
+
+
+@receiver(post_save, sender=Patient)
+def send_notification(sender, instance, created, **kwargs):
+    if created:
+        from rdrf.notifications import Notifier
+        notifier = Notifier()
+        from rdrf.utils import get_user
+        admin_user = get_user('admin')
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            #notifier.send([instance], 'patient_welcome', [admin_user])
+            send_mail('Welcome to FKRP', 'You have been added to the registry', settings.DEFAULT_FROM_EMAIL
+                        [instance.email], fail_silently=False)
+        except Exception, ex:
+            logger.error("Error sending welcome email to %s: %s" % (instance, ex))
+
+

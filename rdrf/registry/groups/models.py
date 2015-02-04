@@ -1,9 +1,10 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User as AuthUser
 from rdrf.models import Registry
+from django.db.models.signals import post_save
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-
+from django.dispatch import receiver
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -28,3 +29,13 @@ class CustomUser(AbstractUser):
     def can(self, verb, datum):
         if verb == "see":
             return any([ registry.shows(datum) for registry in self.registry.all() ])
+
+    @property
+    def notices(self):
+        #return Notice.objects.filter(user=self).order_by("-added")
+        # todo
+        return []
+
+
+
+

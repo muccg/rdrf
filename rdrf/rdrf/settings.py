@@ -127,6 +127,9 @@ SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 # Django Notifications
 DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # default emailsn
 ADMINS = [
     ('alerts', env.get("alert_email", "root@localhost"))

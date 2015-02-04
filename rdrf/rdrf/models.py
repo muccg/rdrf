@@ -6,6 +6,7 @@ from positions.fields import PositionField
 import string
 import json
 from rdrf.notifications import Notifier
+import notification
 
 logger = logging.getLogger("registry")
 
@@ -878,11 +879,3 @@ class AdjudicationDecision(models.Model):
         for (action_cde_code, value) in self.actions:
             if action_cde_code not in allowed_codes:
                 raise ValidationError("Action code %s is not in allowed codes for definition" % action_cde_code)
-
-
-
-
-
-
-
-
