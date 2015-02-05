@@ -98,7 +98,6 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'iprestrict',
     'ajax_select',
-    'notification',
 ]
 
 
