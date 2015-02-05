@@ -417,8 +417,13 @@ class CDEPermittedValueGroup(models.Model):
             d["values"].append(value_dict)
         return d
 
-    def members(self):
-        return [v.code for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
+    def members(self, get_code=True):
+        if get_code:
+            att = "code"
+        else:
+            att = "value"
+
+        return [getattr(v, att) for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
 
     def __unicode__(self):
         members = self.members()
@@ -484,6 +489,16 @@ class CommonDataElement(models.Model):
     class Meta:
         verbose_name = 'Data Element'
         verbose_name_plural = 'Data Elements'
+
+    def get_range_members(self, get_code=True):
+        """
+        if get_code false return the display value
+        not the code
+        """
+        if self.pv_group:
+            return self.pv_group.members(get_code=get_code)
+        else:
+            return None
 
 
 class RegistryFormManager(models.Manager):
@@ -585,3 +600,280 @@ def appears_in(cde, registry, registry_form, section):
         return False
     else:
         return cde.code in section.get_elements()
+
+
+# Adjudication models
+class AdjudicationError(Exception):
+    pass
+
+
+class AdjudicationRequestState(object):
+    CREATED = "C"        # Just been created - no notification sent
+    REQUESTED = "R"      # Email sent - waiting to be processed
+    PROCESSED = "P"     # User has checked the data and updated result
+    INVALID = "I"      # Something has gone wrong and this request is not useable
+
+
+class AdjudicationState(object):
+    """
+    for a given patient and definition
+    """
+    NOT_CREATED = "N"    # no adjudication requests exist for this patient/adjudication pair
+    UNADJUDICATED = "U"  # requests sent out, but admin has not adjudicated
+    ADJUDICATED = "A"
+
+
+class AdjudicationDefinition(models.Model):
+    registry = models.ForeignKey(Registry)
+    fields = models.TextField()
+    result_fields = models.TextField() # section_code containing cde codes of result
+    decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
+    adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
+                                                                             # results
+
+    def create_adjudication_requests(self, requesting_user, patient):
+        recipients = set([])
+        for working_group in patient.working_groups.objects.filter(registry=self.registry):
+            for user in working_group.users:   #todo add this property
+                recipients.add(user)
+
+        for user in recipients:
+            adj_request = AdjudicationRequest(username=user.username, requesting_username=requesting_user.username,
+                                              patient=patient.pk, definition=self)
+            adj_request.save()
+
+    def get_field_data(self, patient):
+        data = {}
+        if not patient.in_registry(self.registry.code):
+            raise AdjudicationError("Patient %s is not in registry %s so cannot be adjudicated!" %
+                                    (patient, self.registry))
+        for form_name, section_code, cde_code in self._get_field_specs():
+            field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
+            data[(form_name, section_code, cde_code)] = field_value
+        return data
+
+    def _get_field_specs(self):
+        specs = self.fields.strip().split(",")
+        for spec in specs:
+            form_name, section_code, cde_code = spec.strip().split('.')
+            yield form_name, section_code, cde_code
+
+    def create_form(self):
+        from field_lookup import FieldFactory
+        adjudication_section = Section.objects.get(code=self.result_fields)
+        from dynamic_forms import create_form_class_for_section
+        class DummyForm(object):
+            def __init__(self):
+                self.name = "AdjudicationForm"
+
+        adj_form = DummyForm()
+        form_class = create_form_class_for_section(self.registry, adj_form, adjudication_section)
+        return form_class()
+
+    def create_decision_form(self):
+        from field_lookup import FieldFactory
+        decision_section = Section.objects.get(code=self.decision_field)
+        from dynamic_forms import create_form_class_for_section
+
+        class DummyForm(object):
+            def __init__(self):
+                self.name = "DecisionForm"
+
+        dec_form = DummyForm()
+        form_class = create_form_class_for_section(self.registry, dec_form, decision_section)
+        return form_class()
+
+    @property
+    def cde_models(self):
+        """
+        :return: data elements for the adjudication fields of this definition
+        """
+        section = Section.objects.get(code=self.result_fields)
+        return section.cde_models
+
+    @property
+    def action_cde_models(self):
+        section = Section.objects.get(code=self.decision_field)
+        return section.cde_models
+
+    def get_state(self,  patient):
+        try:
+            AdjudicationDecision.objects.get(definition=self, patient=patient.pk)
+            return AdjudicationState.ADJUDICATED
+        except AdjudicationDecision.DoesNotExist:
+            requests = [ar for ar in AdjudicationRequest.objects.filter(patient=patient.pk, definition=self)]
+            if len(requests) == 0:
+                return AdjudicationState.NOT_CREATED
+            else:
+                return AdjudicationState.UNADJUDICATED
+
+
+
+class AdjudicationRequest(models.Model):
+    # NB I am using usernames and patient pk here because using caused circular import ...
+    username = models.CharField(max_length=80)                  # username of the user  this request directed to
+    requesting_username = models.CharField(max_length=80)       # the username of the user requesting this adjudication
+    patient = models.IntegerField()           # the patient's pk whose data we are checking
+    definition = models.ForeignKey(AdjudicationDefinition)  # the set of fields we are exposing in the request and
+                                                    # the result fields to hold the diagnosis vote
+    state = models.CharField(max_length=1, default=AdjudicationRequestState.CREATED)
+
+    def send(self):
+        # send the email or something ..
+        self.state = AdjudicationRequestState.REQUESTED
+        self.save()
+        self._send_notification()
+
+    def _send_notification(self):
+        sending_user = get_user(self.requesting_username)
+        to_user = get_user(self.username)
+        if to_user:
+            notifier = Notifier()
+            notifier.send([to_user], "adjudication_request", [sending_user])
+
+    def _get_adjudication_form_datapoints(self):
+        """
+        The field values to "judge"
+        :return:
+        """
+        from registry.patients.models import Patient
+        patient = Patient.objects.get(pk=self.patient)
+        datapoints = []
+        class DataPoint(object):
+            def __init__(self, label, value):
+                self.label = label
+                self.value = value
+
+
+        field_map = self.definition.get_field_data(patient)
+
+        for form_name, section_code, cde_code in field_map:
+            form_model = RegistryForm.objects.get(name=form_name)
+            section_model = Section.objects.get(code=section_code)
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            label = "Form %s Section %s Field %s" % (form_name, section_model.display_name, cde_model.name)
+            value = field_map[(form_name, section_code, cde_code)]
+            display_value = self._get_cde_display_value(cde_model, value)
+            datapoints.append(DataPoint(label, display_value))
+        return datapoints
+
+    def _get_cde_display_value(self, cde_model, stored_value):
+        def get_disp(stored_value):
+            if cde_model.datatype in ['range']:
+                group_dict = cde_model.pv_group.as_dict()
+                for value_map in group_dict["values"]:
+                    if value_map["code"] == stored_value:
+                        return value_map["value"]
+                return "Error! stored_value = %s allowed_values = %s" % (stored_value, group_dict)
+            else:
+                return stored_value
+
+        # sometimes _lists_ are stored when we have multiple checklist
+        if isinstance(stored_value, list):
+            return ",".join(map(get_disp, stored_value))
+        else:
+            return get_disp(stored_value)
+
+    def handle_response(self, adjudication_form_response_data):
+        adjudication_codes = [cde.code for cde in self.definition.cde_models]
+
+        def is_valid(field_data):
+            return set(field_data.keys()) == set(adjudication_codes)
+
+        def extract_field_data(data):
+            from rdrf.utils import get_form_section_code
+
+            field_data = {}
+            for k in data:
+                try:
+                    frm, sec, code = get_form_section_code(k)
+                    if code in adjudication_codes:
+                        cde_model = CommonDataElement.objects.get(code=code)
+                        #todo for now we assume integers
+                        field_data[code] = int(data[k])
+                except:
+                    pass
+
+            if not is_valid(field_data):
+                raise AdjudicationError("Adjudication form not filled in completely - please try again")
+
+            return field_data
+
+
+        def convert_to_json(data):
+            import json
+            return json.dumps(data)
+
+        field_data = extract_field_data(adjudication_form_response_data)
+        json_field_data = convert_to_json(field_data)
+        adj_response = AdjudicationResponse(request=self, response_data=json_field_data)
+        adj_response.save()
+        self.state = AdjudicationRequestState.PROCESSED
+        self.save()
+        return True
+
+
+    def create_adjudication_form(self):
+        datapoints = self._get_adjudication_form_datapoints()  # The fields on the patients form(s) we wish to seek an opinion on - these are presented read only
+        adjudication_form = self.definition.create_form()
+        return adjudication_form, datapoints
+
+    @property
+    def response(self):
+        try:
+            return AdjudicationResponse.objects.get(request=self)
+        except AdjudicationResponse.DoesNotExist:
+            return None
+
+
+class AdjudicationResponse(models.Model):
+    request = models.ForeignKey(AdjudicationRequest)   # the originating adjudication request
+    response_data = models.TextField()  # json dict of response cde codes to chosen values
+
+    @property
+    def data(self):
+        import json
+        return json.loads(self.response_data)
+
+    def get_cde_value(self, cde_model):
+        if cde_model.code in self.data:
+            return self.data[cde_model.code]
+        else:
+            raise AdjudicationError("cde not in data")
+
+
+class AdjudicationDecision(models.Model):
+    definition = models.ForeignKey(AdjudicationDefinition)
+    patient = models.IntegerField()           # the patient's pk
+    decision_data = models.TextField() # json list  of action cde codes (decision codes)#  to values ( actions)
+
+    @property
+    def actions(self):
+        try:
+            import json
+            return json.loads(self.decision_data)
+        except:
+            return []
+
+    @actions.setter
+    def actions(self, action_code_value_pairs):
+        import json
+
+        actions = []
+        for code, value in action_code_value_pairs:
+            actions.append((code, value))
+        self.decision_data = json.dumps(actions)
+
+
+    def perform_actions(self):
+        import rdrf
+        for action_cde_code, action_value in self.actions:
+            pass
+
+    def clean(self):
+        definition_action_cde_models = self.definition.action_action_cde_models
+        allowed_codes = [ cde.code for cde in definition_action_cde_models]
+
+        for (action_cde_code, value) in self.actions:
+            if action_cde_code not in allowed_codes:
+                raise ValidationError("Action code %s is not in allowed codes for definition" % action_cde_code)

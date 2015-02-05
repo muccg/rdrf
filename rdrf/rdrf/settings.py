@@ -27,8 +27,13 @@ ROOT_URLCONF = 'rdrf.urls'
 SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
 TIME_ZONE = env.get("time_zone", 'Australia/Perth')
-LANGUAGE_CODE = env.get("language_code", 'en-us')
-USE_I18N = env.get("use_i18n", True)
+LANGUAGE_CODE = env.get("language_code", 'en')
+USE_I18N = env.get("use_i18n", False)
+
+LANGUAGES = (
+    ('ar', 'Arabic'),
+    ('en', 'English'),
+)
 
 DATABASES = {
     'default': {
@@ -43,6 +48,7 @@ DATABASES = {
 
 MONGOSERVER = env.get("mongoserver", "localhost")
 MONGOPORT = env.get("mongoport", 27017)
+MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
 
 # Django Core stuff
 TEMPLATE_LOADERS = [
@@ -64,6 +70,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     #'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'ccg.middleware.ssl.SSLRedirect',
@@ -95,6 +102,7 @@ INSTALLED_APPS = [
 
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
+    'django.core.context_processors.i18n',
     'django.core.context_processors.request',
 )
 
@@ -107,13 +115,22 @@ AUTHENTICATION_BACKENDS = [
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
-EMAIL_HOST = env.get("email_host", '127.0.0.1')
+EMAIL_HOST = env.get("email_host", 'localhost')
 EMAIL_PORT = env.get("email_port", 25)
-EMAIL_HOST_USER = env.get("email_host_user", "")
+EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
 EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
+
+# Django Notifications
+DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
+
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+FEATURES = env.get("features", "*") # list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+
 
 # default emailsn
 ADMINS = [
@@ -163,7 +180,7 @@ NOSE_ARGS = [
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
-ALLOWED_HOSTS = env.getlist("allowed_hosts", ["*"])
+ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 
 # This honours the X-Forwarded-Host header set by our nginx frontend when
 # constructing redirect URLS.
@@ -289,7 +306,7 @@ INSTALL_NAME = env.get("install_name", 'rdrf')
 
 # Django Suit Config
 SUIT_CONFIG = {
-    'ADMIN_NAME': 'Rare Disease Registry Framework',
+    'ADMIN_NAME': 'Rare Disease Registry Frameworks',
     'MENU_OPEN_FIRST_CHILD': False,
     'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
 

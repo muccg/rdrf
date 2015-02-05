@@ -10,6 +10,8 @@ from django.http import HttpResponseRedirect
 
 from django.contrib.auth import get_user_model
 
+from rdrf.utils import has_feature
+
 logger = logging.getLogger("registry_log")
 
 
@@ -241,6 +243,18 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
     inlines = [CDEPermittedValueAdmin]
 
 
+
+class AdjudicationRequestAdmin(admin.ModelAdmin):
+    list_display = ('patient', 'definition', 'requesting_username', 'username')
+    ordering = ['patient', 'requesting_username', 'username']
+    list_filter = ['requesting_username', 'username']
+
+class AdjudicationDefinitionAdmin(admin.ModelAdmin):
+    list_display = ('registry', 'fields', 'result_fields')
+
+class AAdjudicationResponseAdmin(admin.ModelAdmin):
+    list_display = ('request', 'response_data')
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
@@ -250,3 +264,8 @@ admin.site.register(CommonDataElement, create_restricted_model_admin_class(Commo
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)
+
+if has_feature('adjudication'):
+    admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
+    admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
+    admin.site.register(AdjudicationResponse, AAdjudicationResponseAdmin)

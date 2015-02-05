@@ -18,6 +18,7 @@ from views import RegistryList, AllocateView
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
+from django.conf.urls.i18n import i18n_patterns
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -41,7 +42,7 @@ v1_api.register(PatientResource())
 
 
 
-urlpatterns = patterns('',
+urlpatterns = i18n_patterns('',
     url(r'^test404',handler404),
     url(r'^test500',handler500),
     url(r'^testAppError',handlerApplicationError),
@@ -77,10 +78,16 @@ urlpatterns = patterns('',
     url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(), name='rdrf_designer_registry_structure_endpoint'),
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
+    url(r'^adjudicationrequest/(?P<adjudication_request_id>\d+)/?$', form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
+    url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
+)
+
+urlpatterns += patterns('',
+    url(r'^i18n', include('django.conf.urls.i18n')),
 )
 
 # pattern for serving statically
 if settings.DEBUG:
-    urlpatterns += patterns('',
+    urlpatterns += i18n_patterns('',
                            (r'^static/(?P<path>.*)$', 'django.views.static.serve',
                            {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))

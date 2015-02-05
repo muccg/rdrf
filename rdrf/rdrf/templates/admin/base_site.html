@@ -1,6 +1,7 @@
 {% extends "admin/base_ccg.html" %}
 {% load i18n %}
 {% load stickiness %}
+{% load is_i18n %}
 
 {% load admin_static %}
 
@@ -19,6 +20,17 @@
                 'trigger': 'click',
                 'placement': 'bottom'
             });
+            {% is_i18n as i18n_flag %}
+            {% if i18n_flag %}
+            $('#lang-list').change(function() {
+                lang = $("#lang-list option:selected").val();
+                form = $("<form></form>").attr("action", "{% url 'set_language' %}").attr("method", "POST");
+                form.append("{% csrf_token %}");
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "next").val("{{ request.path|slice:"3:" }}"));
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "language").val(lang));
+                form.submit();
+            });
+            {% endif %}
         })
     </script>
 {% endblock %}
@@ -26,7 +38,21 @@
 {% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
-    {% url 'django-admindocs-docroot' as docsroot %}
+    {% is_i18n as i18n_flag %}
+    {% if i18n_flag %}
+        {% get_current_language as LANGUAGE_CODE %}
+        
+        <select id="lang-list">
+            <option>Select one...</option>
+        {% for lang in LANGUAGES %}
+            <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %} selected="selected"{% endif %}>{{lang.1}}</option>
+            </option>
+        {% endfor %}
+        </select>
+    {% endif %}
+    
+    {% url 'django-admindocs-docroot' as docsroot %}    
+    <span class="separator">|</span>
     {% if docsroot %}
         <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
         <span class="separator">|</span>

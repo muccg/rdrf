@@ -146,6 +146,7 @@ class Exporter(object):
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
+        data["adjudication_definitions"] = self._get_adjudication_definitions()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
@@ -284,9 +285,15 @@ class Exporter(object):
         cdes = cdes.union(patient_data_section_cdes)
 
         generic_cdes = self._get_generic_cdes()
+        adjudication_cdes = self._get_adjudication_cdes()
         cdes = cdes.union(generic_cdes)
+        cdes = cdes.union(adjudication_cdes)
 
         return cdes
+
+    def _get_adjudication_cdes(self):
+        return []
+
 
     def _get_cdes_for_sections(self, section_codes):
         cdes = set([])
@@ -312,3 +319,37 @@ class Exporter(object):
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+
+    def _get_adjudication_definitions(self):
+        """
+        fields = models.TextField()
+        result_fields = models.TextField() # section_code containing cde codes of result
+        decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
+        adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
+        :return:
+        """
+        from rdrf.models import AdjudicationDefinition
+        adj_defs = []
+
+
+        def get_section_maps(adj_def):
+            result_fields_section = self._create_section_map(adj_def.result_fields)
+            decision_fields_section = self._create_section_map(adj_def.decision_field)
+            return {"results_fields" : result_fields_section, "decision_fields_section" : decision_fields_section}
+
+
+
+        for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
+            item = {}
+            item['fields'] = adj_def.fields
+            item['result_fields'] = adj_def.result_fields
+            item['decision_field'] = adj_def.decision_field
+            item['adjudicator_username'] = adj_def.adjudicator_username
+            item["sections_required"] = get_section_maps(adj_def)
+
+
+
+
+        return adj_defs
+
+

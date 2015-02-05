@@ -1,5 +1,10 @@
 from django.conf import settings
+import logging
 
+logger = logging.getLogger("registry_log")
+
+def mongo_db_name(registry):
+    return settings.MONGO_DB_PREFIX + registry
 
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
@@ -56,3 +61,31 @@ class FormLink(object):
     @property
     def text(self):
         return de_camelcase(self.form.name)
+
+def get_user(username):
+    from registry.groups.models import CustomUser
+    try:
+        return CustomUser.objects.get(username=username)
+    except CustomUser.DoesNotExist:
+        return None
+
+
+def get_users(usernames):
+    return filter(lambda x : x is not None, [ get_user(username) for username in usernames])
+
+
+def has_feature(feature_name):
+    if settings.FEATURES == "*":
+        return True
+    return feature_name in settings.FEATURES  # e.g. [ 'email_notification', 'adjudication' ]
+
+
+def requires_feature(feature_name):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if has_feature(feature_name):
+                return func(*args, **kwargs)
+            else:
+                logger.info("%s will not be run with args %s kwargs %s as the site lacks feature %s" % (func.__name__, args, kwargs, feature_name))
+        return wrapper
+    return decorator

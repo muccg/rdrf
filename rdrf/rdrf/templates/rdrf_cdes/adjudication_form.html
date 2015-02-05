@@ -1,0 +1,105 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+
+    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+
+    <!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+    <![endif]-->
+
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+
+
+
+    <script>
+        function goBack() {
+            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            if (warning == true) {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            }
+        }
+    </script>
+
+  <script>
+  $(function() {
+    $( ".datepicker" ).datepicker({
+      showOn: "button",
+      buttonImage: '{% static 'images/calendar.gif' %}',
+      buttonImageOnly: true,
+      showButtonPanel: true,
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'dd-mm-yy',
+      yearRange: '-100:+0',
+    });
+  });
+
+
+    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
+    // clicking the today button
+    $.datepicker._gotoToday = function(id) {
+    var target = $(id);
+    var inst = this._getInst(target[0]);
+    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+            inst.selectedDay = inst.currentDay;
+            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+            inst.drawYear = inst.selectedYear = inst.currentYear;
+    }
+    else {
+            var date = new Date();
+            inst.selectedDay = date.getDate();
+            inst.drawMonth = inst.selectedMonth = date.getMonth();
+            inst.drawYear = inst.selectedYear = date.getFullYear();
+            // the below two lines are new
+            this._setDateDatepicker(target, date);
+            this._selectDate(id, this._getDateDatepicker(target));
+    }
+    this._notifyChange(inst);
+    this._adjustDate(target);
+}
+  </script>
+{% endblock %}
+
+{% block content %}
+<h1>Adjudication Request from {{ req.requesting_username }}</h1>
+
+<h2>Patient Data:</h2>
+
+{% for datapoint in datapoints %}
+
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <h3 class="panel-title">{{datapoint.label}}</h3>
+      </div>
+      <div class="panel-body">
+       {{datapoint.value}}
+      </div>
+    </div>
+{% endfor %}
+
+<form method="post">{% csrf_token %}
+    {{ adjudication_form }}
+     <input type="hidden" name="arid" value="{{req.pk}}"/>
+     <input type="hidden" name="username" value="{{req.username}}"/>
+     <input type="submit" class="btn btn-info" value="Submit Adjudication"/>
+</form>
+{% endblock %}

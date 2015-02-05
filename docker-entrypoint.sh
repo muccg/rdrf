@@ -62,6 +62,7 @@ function django_defaults {
     : ${MEDIA_ROOT="/data/static/media"}
     : ${LOG_DIRECTORY="/data/log"}
     : ${DJANGO_SETTINGS_MODULE="django.settings"}
+    : ${MONGO_DB_PREFIX="dev_"}
 
     echo "DEPLOYMENT is ${DEPLOYMENT}"
     echo "PRODUCTION is ${PRODUCTION}"
@@ -72,8 +73,9 @@ function django_defaults {
     echo "MEDIA_ROOT is ${MEDIA_ROOT}"
     echo "LOG_DIRECTORY is ${LOG_DIRECTORY}"
     echo "DJANGO_SETTINGS_MODULE is ${DJANGO_SETTINGS_MODULE}"
+    echo "MONGO_DB_PREFIX is ${MONGO_DB_PREFIX}"
     
-    export DEPLOYMENT PRODUCTION DEBUG DBSERVER MEMCACHE WRITABLE_DIRECTORY STATIC_ROOT MEDIA_ROOT LOG_DIRECTORY DJANGO_SETTINGS_MODULE
+    export DEPLOYMENT PRODUCTION DEBUG DBSERVER MEMCACHE WRITABLE_DIRECTORY STATIC_ROOT MEDIA_ROOT LOG_DIRECTORY DJANGO_SETTINGS_MODULE MONGO_DB_PREFIX
 }
 
 echo "HOME is ${HOME}"
@@ -109,7 +111,7 @@ if [ "$1" = 'runserver' ]; then
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
 
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-syncdb.log
+    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all 2>&1 | tee /data/runserver-syncdb.log
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-migrate.log
 
     django-admin.py load_fixture --file=rdrf.json

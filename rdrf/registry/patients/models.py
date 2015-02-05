@@ -10,15 +10,15 @@ import json
 import pycountry
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
-
 from rdrf.models import Registry
+from registry.utils import stripspaces
+from django.conf import settings 
+from rdrf.utils import mongo_db_name
+from django.dispatch import receiver
+from rdrf.utils import requires_feature
 
 import logging
 logger = logging.getLogger('patient')
-
-from registry.utils import stripspaces
-
-from django.conf import settings 
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -311,7 +311,7 @@ def save_patient_mongo(sender, instance, **kwargs):
 
 def _save_patient_mongo(patient_obj):
     client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
-    patient_db = client[_MONGO_PATIENT_DATABASE]
+    patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
     
     json_str = serializers.serialize("json", [patient_obj])
@@ -357,3 +357,21 @@ def _get_registry_for_mongo(regs):
         json_final.append(reg['fields'])
 
     return json_final
+
+
+@receiver(post_save, sender=Patient)
+@requires_feature('email_notification')
+def send_notification(sender, instance, created, **kwargs):
+    if created:
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            logger.debug("about to send welcome email to %s patient %s" % (instance.email, instance))
+            name = "%s %s" % (instance.given_names, instance.family_name)
+            send_mail('Welcome to FKRP!', 'Dear %s\nYou have been added to the FKRP registry.\nPlease note this is a test of the email subsystem only!' % name, settings.DEFAULT_FROM_EMAIL,
+                      [instance.email], fail_silently=False)
+            logger.debug("sent email ok to %s" % instance.email)
+        except Exception, ex:
+            logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
+
+
