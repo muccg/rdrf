@@ -231,11 +231,11 @@ class FormView(View):
         if error_count == 0:
             if not self.testing:
                 messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
-                from rdrf.notifications import Notifier
-                notifier = Notifier()
-                from rdrf.utils import get_user
-                admin_user = get_user('admin')
-                notifier.send([admin_user],'patient_welcome', request.user)
+                # from rdrf.notifications import Notifier
+                # notifier = Notifier()
+                # from rdrf.utils import get_user
+                # admin_user = get_user('admin')
+                # notifier.send([admin_user],'patient_welcome', request.user)
 
         else:
             if not self.testing:
