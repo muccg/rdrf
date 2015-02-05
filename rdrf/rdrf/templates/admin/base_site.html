@@ -26,7 +26,7 @@
                 lang = $("#lang-list option:selected").val();
                 form = $("<form></form>").attr("action", "{% url 'set_language' %}").attr("method", "POST");
                 form.append("{% csrf_token %}");
-                form.append($("<input></input>").attr("type", "hidden").attr("name", "next").val("{{ request.path|slice:"3:" }}"));
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "next").val("{{ request.path }}"));
                 form.append($("<input></input>").attr("type", "hidden").attr("name", "language").val(lang));
                 form.submit();
             });
