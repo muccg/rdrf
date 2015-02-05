@@ -80,3 +80,7 @@ msgstr "العمر في السنوات عند التشخيص الجزيئي"
 
 msgid "Diagnosis"
 msgstr "التشخيص"
+
+msgid "Address type"
+msgstr "نوع العنوان"
+
