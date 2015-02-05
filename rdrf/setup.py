@@ -92,8 +92,7 @@ setup(name='django-rdrf',
         'Werkzeug',
         'psycopg2==2.5.4',
         'six==1.9.0',
-        'python-gettext'
-        'django-notification',
+        'python-gettext',
     ],
     dependency_links=[
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
