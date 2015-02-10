@@ -345,7 +345,7 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "form_progress": self.form_progress(self.registry_form, self._get_patient_object()),
+            "form_progress": self._get_patient_object().form_progress(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
@@ -353,28 +353,6 @@ class FormView(View):
         for k in context:
             logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
-
-    def form_progress(self, registry_form, patient):
-        if not registry_form.has_progress_indicator:
-            return 0
-    
-        dynamic_store = DynamicDataWrapper(patient)
-        cde_registry = registry_form.registry.code
-        section_array = registry_form.sections.split(",")
-        
-        cde_complete = registry_form.complete_form_cdes.values()
-        set_count = 0
-        
-        for cde in cde_complete:
-            for s in section_array:
-                if cde["code"] in Section.objects.get(code=s).elements.split(","):
-                    cde_section = s
-            
-            cde_value = dynamic_store.get_cde(cde_registry, cde_section, cde['code'])
-            if cde_value:
-                set_count += 1
-        
-        return float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100
         
     def _get_patient_id(self):
         return self.patient_id
