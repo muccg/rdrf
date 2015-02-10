@@ -5,6 +5,7 @@ import logging
 from rdrf.utils import get_code, mongo_db_name
 from bson.objectid import ObjectId
 from django.conf import settings
+from utils import mongo_db_name
 
 logger = logging.getLogger("registry_log")
 
@@ -352,3 +353,23 @@ class DynamicDataWrapper(object):
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
         cdes.remove({"django_id" : patient_model.pk , "django_model": "Patient"})
+        
+    def get_cde(self, registry, section, cde_code):
+        if not self.testing:
+            db = self.client[mongo_db_name(registry)]
+        else:
+            db = self.client["testing_" + registry]
+
+        collection = db["cdes"]
+        cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
+        cde_record = collection.find_one(self._get_record_query(), { cde_mongo_key: True })
+        cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
+        
+        return cde_value
+
+    def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
+        try:
+            return cde_record[cde_mongo_key]
+        except TypeError:
+            return None
+            

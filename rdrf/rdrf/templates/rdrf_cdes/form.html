@@ -73,44 +73,52 @@
         }
     </script>
     
-  <script>
-  $(function() {
-    $( ".datepicker" ).datepicker({
-      showOn: "button",
-      buttonImage: '{% static 'images/calendar.gif' %}',
-      buttonImageOnly: true,
-      showButtonPanel: true,
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'dd-mm-yy',
-      yearRange: '-100:+0',
+    <script>
+    $(function() {
+        $( ".datepicker" ).datepicker({
+            showOn: "button",
+            buttonImage: '{% static 'images/calendar.gif' %}',
+            buttonImageOnly: true,
+            showButtonPanel: true,
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            yearRange: '-100:+0',
+        });
     });
-  });
 
 
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
-    var target = $(id);
-    var inst = this._getInst(target[0]);
-    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
-            inst.selectedDay = inst.currentDay;
-            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
-            inst.drawYear = inst.selectedYear = inst.currentYear;
+        var target = $(id);
+        var inst = this._getInst(target[0]);
+        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+                inst.selectedDay = inst.currentDay;
+                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+                inst.drawYear = inst.selectedYear = inst.currentYear;
+        }
+        else {
+                var date = new Date();
+                inst.selectedDay = date.getDate();
+                inst.drawMonth = inst.selectedMonth = date.getMonth();
+                inst.drawYear = inst.selectedYear = date.getFullYear();
+                // the below two lines are new
+                this._setDateDatepicker(target, date);
+                this._selectDate(id, this._getDateDatepicker(target));
+        }
+        this._notifyChange(inst);
+        this._adjustDate(target);
     }
-    else {
-            var date = new Date();
-            inst.selectedDay = date.getDate();
-            inst.drawMonth = inst.selectedMonth = date.getMonth();
-            inst.drawYear = inst.selectedYear = date.getFullYear();
-            // the below two lines are new
-            this._setDateDatepicker(target, date);
-            this._selectDate(id, this._getDateDatepicker(target));
-    }
-    this._notifyChange(inst);
-    this._adjustDate(target);
-}
-  </script>
+    
+    {% if user.is_superuser and has_form_progress %}
+        $(function() {
+            $( "#form_progress" ).progressbar({
+                value: {{form_progress}}
+            });
+        });
+    {% endif %}
+    </script>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -151,6 +159,12 @@ Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patie
     </div>
     
     <div class="inner-center-column">
+
+    {% if user.is_superuser and has_form_progress %}
+        <h4>Data entry progress: <font color="green">{{form_progress|floatformat:"0"}}%</font></h4>
+        <div id="form_progress"></div>
+        </br>
+    {% endif %}
 
     {% for s in sections %}
     <table class="table table-striped">

@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 
 from rdrf.utils import has_feature
+from admin_forms import RegistryFormAdminForm
 
 logger = logging.getLogger("registry_log")
 
@@ -39,6 +40,7 @@ class SectionAdmin(admin.ModelAdmin):
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'position')
     ordering = ['registry', 'name']
+    form = RegistryFormAdminForm
 
     list_filter = ['registry']
 
