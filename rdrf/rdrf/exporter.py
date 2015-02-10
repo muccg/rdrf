@@ -334,7 +334,7 @@ class Exporter(object):
         adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
         :return:
         """
-        adj_defs = []
+        adj_def_maps = []
 
         def get_section_maps(adj_def):
             result_fields_section = self._create_section_map(adj_def.result_fields)
@@ -342,11 +342,12 @@ class Exporter(object):
             return {"results_fields" : result_fields_section, "decision_fields_section" : decision_fields_section}
 
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
-            item = {}
-            item['fields'] = adj_def.fields
-            item['result_fields'] = adj_def.result_fields
-            item['decision_field'] = adj_def.decision_field   # section for dec
-            item['adjudicator_username'] = adj_def.adjudicator_username
-            item["sections_required"] = get_section_maps(adj_def)
+            adj_def_map = {}
+            adj_def_map['fields'] = adj_def.fields
+            adj_def_map['result_fields'] = adj_def.result_fields
+            adj_def_map['decision_field'] = adj_def.decision_field   # section for dec
+            adj_def_map['adjudicator_username'] = adj_def.adjudicator_username
+            adj_def_map["sections_required"] = get_section_maps(adj_def)
+            adj_def_maps.append(adj_def_map)
 
-        return adj_defs
+        return adj_def_maps
