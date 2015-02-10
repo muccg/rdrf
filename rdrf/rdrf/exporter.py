@@ -6,6 +6,7 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
+from rdrf.models import AdjudicationDefinition
 
 logger = logging.getLogger("registry_log")
 
@@ -292,7 +293,12 @@ class Exporter(object):
         return cdes
 
     def _get_adjudication_cdes(self):
-        return []
+        adjudication_cdes = set([])
+        for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
+            adjudication_section_code = adj_def.result_fields  # points to a section containing cdes which capture adjucation ratings
+            result_section_code = adj_def.decision_field       # points to a section containing decision fields ( which are mapped to actions )
+            adjudication_cdes = adjudication_cdes.union(self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
+        return adjudication_cdes
 
 
     def _get_cdes_for_sections(self, section_codes):
@@ -328,28 +334,19 @@ class Exporter(object):
         adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
         :return:
         """
-        from rdrf.models import AdjudicationDefinition
         adj_defs = []
-
 
         def get_section_maps(adj_def):
             result_fields_section = self._create_section_map(adj_def.result_fields)
             decision_fields_section = self._create_section_map(adj_def.decision_field)
             return {"results_fields" : result_fields_section, "decision_fields_section" : decision_fields_section}
 
-
-
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
             item = {}
             item['fields'] = adj_def.fields
             item['result_fields'] = adj_def.result_fields
-            item['decision_field'] = adj_def.decision_field
+            item['decision_field'] = adj_def.decision_field   # section for dec
             item['adjudicator_username'] = adj_def.adjudicator_username
             item["sections_required"] = get_section_maps(adj_def)
 
-
-
-
         return adj_defs
-
-
