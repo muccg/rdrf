@@ -655,7 +655,7 @@ class AdjudicationDefinition(models.Model):
     def _get_field_specs(self):
         specs = self.fields.strip().split(",")
         for spec in specs:
-            form_name, section_code, cde_code = spec.strip().split('.')
+            form_name, section_code, cde_code = spec.strip().split(settings.FORM_SECTION_DELIMITER)
             yield form_name, section_code, cde_code
 
     def create_form(self):
