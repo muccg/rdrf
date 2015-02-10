@@ -2,6 +2,8 @@ from django.core import serializers
 import copy
 import json
 from pymongo import MongoClient
+import datetime
+
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
@@ -24,6 +26,8 @@ file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.
 
 _MONGO_PATIENT_DATABASE = 'patients'
 _MONGO_PATIENT_COLLECTION = 'patient'
+
+_6MONTHS_IN_DAYS = 183
 
 
 class State(models.Model):
@@ -240,6 +244,15 @@ class Patient(models.Model):
         
         return float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100    
     
+    def form_currency(self, registry_form):
+        dynamic_store = DynamicDataWrapper(self)
+        timestamp = dynamic_store.get_form_timestamp(registry_form)
+        if timestamp:
+            ts = timestamp["timestamp"]
+            delta = datetime.datetime.now() - ts
+            return True if delta.days < _6MONTHS_IN_DAYS else False
+        else:
+            False
     
     def as_json(self):
         return dict(

@@ -225,7 +225,7 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "form_progress": self.form_progress(self.registry_form, self._get_patient_object()),
+            "form_progress": self._get_patient_object().form_progress(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
