@@ -127,6 +127,8 @@ class PatientAdmin(admin.ModelAdmin):
             return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % url
 
         for form in forms:
+            if form.is_questionnaire:
+                continue
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
             content += "<a href=%s>%s</a> Current: %s</br>" % (url, nice_name(form.name), obj.form_currency(form))
         
