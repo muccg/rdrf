@@ -16,6 +16,8 @@ from models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
+from rdrf.utils import has_feature
+
 logger = logging.getLogger("registry_log")
 
 
@@ -84,7 +86,11 @@ class PatientAdmin(admin.ModelAdmin):
 
     inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
+    if has_feature('adjudication'):
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'patient_actions_btn']
+    else:
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
+
     list_filter = [RegistryFilter]
     
     def full_name(self, obj):
@@ -134,6 +140,36 @@ class PatientAdmin(admin.ModelAdmin):
     
     data_modules_btn.allow_tags = True
     data_modules_btn.short_description = 'Data Modules'
+
+    def patient_actions_btn(self, obj):
+        content = ""
+        if obj.rdrf_registry.count() == 0:
+            return "No registry assigned"
+
+        rdrf_id = self.request.GET.get('registry')
+
+        if not rdrf_id and Registry.objects.count() > 1:
+            return "Please filter registry"
+        registry = Registry.objects.get(pk=rdrf_id)
+        patient_actions = []   #registry.get_patient_actions()
+        if not patient_actions:
+            content = "No actions available"
+
+        if len(patient_actions) == 1:
+            action = patient_actions[0]
+            url = reverse(action.url_name, args=(obj.id,))
+            return "<a href='%s' class='btn btn-info btn-small'>%s</a>" % (url, action.display_name)
+
+        for patient_action in patient_actions:
+            url = reverse(patient_action.url_name, args=(obj.id,))
+            content += "<a href=%s>%s</a><br/>" % (url, patient_action.display_name)
+
+
+
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='patient-actions-btn'>Available Actions</button>" % content
+
+    patient_actions_btn.allow_tags = True
+    patient_actions_btn.short_description = 'Available Actions'
 
     def get_form(self, request, obj=None, **kwargs):
         # NB. This method returns a form class
