@@ -121,6 +121,18 @@ class Registry(models.Model):
                 field_pairs.append((cde_model, field))
         return field_pairs
 
+    def get_patient_actions(self):
+        class ActionDropDownItem(object):
+            def __init__(self):
+                self.display_name = display_name
+                self.url_name = url_name
+
+        actions = []
+        for adj_def in AdjudicationDefinition.objects.filter(registry=self):
+            item = ActionDropDownItem()
+
+        return actions
+
     def _generated_section_questionnaire_code(self, form_name, section_code):
         return self.questionnaire_section_prefix + form_name + section_code
 
@@ -625,11 +637,14 @@ class AdjudicationState(object):
 
 class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
+    display_name = models.CharField(max_length=80, blank=True, null=True)  # name which will be seen by end users
     fields = models.TextField()
     result_fields = models.TextField() # section_code containing cde codes of result
     decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
     adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
                                                                              # results
+    adjudicating_users = models.TextField(blank=True, null=True,  help_text="Either comma-seperated list of usernames and/or working group names")
+
 
     def create_adjudication_requests(self, requesting_user, patient):
         recipients = set([])
