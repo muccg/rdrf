@@ -82,13 +82,12 @@ echo "HOME is ${HOME}"
 echo "WHOAMI is `whoami`"
 
 defaults
+django_defaults
 wait_for_services
 
 # uwsgi entrypoint
 if [ "$1" = 'uwsgi' ]; then
     echo "[Run] Starting uwsgi"
-
-    django_defaults
 
     : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
@@ -104,8 +103,6 @@ fi
 # runserver entrypoint
 if [ "$1" = 'runserver' ]; then
     echo "[Run] Starting runserver"
-
-    django_defaults
 
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${WEBPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
@@ -123,8 +120,6 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-
-    django_defaults
 
     django-admin.py test rdrf 2>&1 | tee /data/runtests.log
     exit $?
