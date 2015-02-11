@@ -658,8 +658,8 @@ class AdjudicationDefinition(models.Model):
         adj_request = AdjudicationRequest(username=target_user.username, requesting_username=requesting_user.username,
                                               patient=patient.pk, definition=self)
 
-        adj_request.save()
-
+        adj_request.save()   # state now created
+        adj_request.send()   # state not I or S
         return adj_request
 
     def _get_demographic_field(self, patient, demographic_cde_code):
@@ -834,11 +834,29 @@ class AdjudicationRequest(models.Model):
                                                     # the result fields to hold the diagnosis vote
     state = models.CharField(max_length=1, default=AdjudicationRequestState.CREATED)
 
+
+
+
     def send(self):
         # send the email or something ..
-        self._send_email()
-        self._create_notification()
-        self.state = AdjudicationRequestState.REQUESTED
+        fails = 0
+        try:
+            self._send_email()
+        except Exception, ex:
+            logger.error("could not send email for %s: %s" % (self, ex))
+            fails += 1
+
+        try:
+            self._create_notification()
+        except Exception, ex:
+            logger.error("could not send internal notification for %s: %s" % (self, ex))
+            fails +1
+
+        if fails == 2:
+            self.state = AdjudicationRequestState.INVALID
+        else:
+            self.state = AdjudicationRequestState.REQUESTED
+
         self.save()
 
     def _send_email(self):
