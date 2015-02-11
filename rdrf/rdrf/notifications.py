@@ -10,3 +10,9 @@ class NotificationChannel:
     SYSTEM = "system"
     SMS = "sms"
 
+class Notifier(object):
+    def send_notification(self, from_user_name, to_username, html_content):
+        pass
+
+
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<h1>Adjudication Initiation Form - {{ adjudication_definition.display_name}}</h1>
+<h2>Patient {{patient}}</h2>
+
+<h3>This adjudication is for the following data fields which will be presented to the adjudicators. Note: the patient's name will not be shown.</h3>
+<h4>Please note if the patient's data is modified after this adjucation is initiated - the adjudicators will see the latest data!</h4>
+<table border="2">
+ <th>
+     Data Point
+ </th><th>Current Value</th>
+{% for datapoint in datapoints %}
+
+  <tr><td>{{ datapoint.label}}</td><td>{{datapoint.value}}</td></tr>
+{% endfor %}
+</table>
+
+<p>
+
+</p>
+
+<h3>The adjudicators will be asked to rate the following questions:</h3>
+{% for question in adjudication_definition.questions %}
+{{ question }}<br>
+{% endfor %}
+
+<h3>The following users will be sent the adjudication:</h3><p></p>
+<form method="post">{% csrf_token %}
+
+    {% for user in users %}
+        {% if user != request.user %}
+            Send to {{user}}? <input type="checkbox" name="user_{{user.username}}" checked value="{{user.username}}"><br>
+        {% endif %}
+{% endfor %}
+
+</table>
+   {% if groups %}
+<h3>The users within the following working groups will be will be sent the adjudication:</h3><p></p>
+{% for g in groups %}
+    Send to {{g}}? <input type="checkbox" name="group_{{g.name}}" checked value="{{g.name}}"><br>
+{% endfor %}
+{% endif %}
+
+
+<p>
+
+</p>
+    <h3>The adjudications will be judged by user {{ adjudication_definition.adjudicating_username }} with actions:</h3><p></p>
+    {% for action in adjudication_definition.actions %}
+       {{ action }}
+    {% endfor %}
+
+    <p></p>
+
+    <h3>Notification of the result will be sent to you after the ajudicator has assessed the responses.</h3><br>
+
+   <input type="submit" name="Send Adjudication" value="Send Adjudication">
+
+</form>
+
+</body>
+</html>

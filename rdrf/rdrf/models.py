@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
 import json
+from rdrf.utils import has_feature
 
 logger = logging.getLogger("registry")
 
@@ -121,15 +122,24 @@ class Registry(models.Model):
                 field_pairs.append((cde_model, field))
         return field_pairs
 
-    def get_patient_actions(self):
+
+    def get_adjudications(self):
+        if not has_feature("adjudication"):
+            return []
+
         class ActionDropDownItem(object):
             def __init__(self):
-                self.display_name = display_name
-                self.url_name = url_name
+                self.display_name = ""
+                self.url_name = "adjudication_initiation"
+                self.args = []
 
         actions = []
         for adj_def in AdjudicationDefinition.objects.filter(registry=self):
             item = ActionDropDownItem()
+            item.display_name = adj_def.display_name
+            item.url_name = "adjudication_initiation"
+            item.args = [adj_def.id]
+            actions.append(item)
 
         return actions
 
@@ -642,20 +652,18 @@ class AdjudicationDefinition(models.Model):
     result_fields = models.TextField() # section_code containing cde codes of result
     decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
     adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
-                                                                             # results
     adjudicating_users = models.TextField(blank=True, null=True,  help_text="Either comma-seperated list of usernames and/or working group names")
 
-
-    def create_adjudication_requests(self, requesting_user, patient):
-        recipients = set([])
-        for working_group in patient.working_groups.objects.filter(registry=self.registry):
-            for user in working_group.users:   #todo add this property
-                recipients.add(user)
-
-        for user in recipients:
-            adj_request = AdjudicationRequest(username=user.username, requesting_username=requesting_user.username,
+    def create_adjudication_request(self, requesting_user, patient, target_user):
+        adj_request = AdjudicationRequest(username=target_user.username, requesting_username=requesting_user.username,
                                               patient=patient.pk, definition=self)
-            adj_request.save()
+
+        adj_request.save()
+
+        return adj_request
+
+    def _get_demographic_field(self, patient, demographic_cde_code):
+        return getattr(patient, demographic_cde_code)
 
     def get_field_data(self, patient):
         data = {}
@@ -663,15 +671,23 @@ class AdjudicationDefinition(models.Model):
             raise AdjudicationError("Patient %s is not in registry %s so cannot be adjudicated!" %
                                     (patient, self.registry))
         for form_name, section_code, cde_code in self._get_field_specs():
-            field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
+            if form_name == 'demographics':
+                field_value = self._get_demographic_field(patient, cde_code) # NB. for demographics section isn't used
+            else:
+                field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
             data[(form_name, section_code, cde_code)] = field_value
         return data
 
     def _get_field_specs(self):
+        from django.conf import settings
         specs = self.fields.strip().split(",")
         for spec in specs:
-            form_name, section_code, cde_code = spec.strip().split(settings.FORM_SECTION_DELIMITER)
-            yield form_name, section_code, cde_code
+            if "patient." in spec.lower():
+                field_name = spec.split(".")[1]
+                yield "demographics", "dummy", field_name
+            else:
+                form_name, section_code, cde_code = spec.strip().split(settings.FORM_SECTION_DELIMITER)
+                yield form_name, section_code, cde_code
 
     def create_form(self):
         from field_lookup import FieldFactory
@@ -697,6 +713,91 @@ class AdjudicationDefinition(models.Model):
         dec_form = DummyForm()
         form_class = create_form_class_for_section(self.registry, dec_form, decision_section)
         return form_class()
+
+    @property
+    def questions(self):
+        return sorted([cde_model.name for cde_model in self.cde_models])
+
+    @property
+    def actions(self):
+        return sorted([cde_model.name for cde_model in self.action_cde_models])
+
+
+    def get_adjudication_form_datapoints(self, patient):
+        """
+        The field values to "judge"
+        :return:
+        """
+        datapoints = []
+
+        def get_cde_display_value(cde_model, stored_value):
+            def get_disp(stored_value):
+                if cde_model.datatype in ['range']:
+                    group_dict = cde_model.pv_group.as_dict()
+                    for value_map in group_dict["values"]:
+                        if value_map["code"] == stored_value:
+                            return value_map["value"]
+                    return "Error! stored_value = %s allowed_values = %s" % (stored_value, group_dict)
+                else:
+                    return stored_value
+
+            # sometimes _lists_ are stored when we have multiple checklist
+            if isinstance(stored_value, list):
+                return ",".join(map(get_disp, stored_value))
+            else:
+                return get_disp(stored_value)
+
+        class DataPoint(object):
+            def __init__(self, label, value):
+                self.label = label
+                self.value = value
+
+        field_map = self.get_field_data(patient)
+        for form_name, section_code, cde_code in field_map:
+            if form_name == 'demographics':
+                value = self._get_demographic_field(patient, cde_code)
+                label = "Form %s  Field %s" % (form_name, cde_code)
+                display_value = str(value)
+            else:
+                form_model = RegistryForm.objects.get(name=form_name)
+                section_model = Section.objects.get(code=section_code)
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                label = "Form %s Section %s Field %s" % (form_name, section_model.display_name, cde_model.name)
+                value = field_map[(form_name, section_code, cde_code)]
+                display_value = get_cde_display_value(cde_model, value)
+            datapoints.append(DataPoint(label, display_value))
+        return sorted(datapoints,key=lambda datapoint: datapoint.label)
+
+    def create_adjudication_inititiation_form_context(self, patient_model):
+        # adjudication_initiation_form, datapoints, users, working_groups = adj_def.create_adjudication_inititiation_form(patient)
+        from registry.groups.models import CustomUser, WorkingGroup
+        datapoints = self.get_adjudication_form_datapoints(patient_model)
+        logger.debug("datapoints = %s" % datapoints)
+        users_or_groups = self.adjudicating_users.split(",")
+        users = []
+        groups = []
+
+        for username_or_working_group_name in users_or_groups:
+            try:
+                logger.debug("checking user or group %s" % username_or_working_group_name)
+                user = CustomUser.objects.get(username=username_or_working_group_name)
+                users.append(user)
+            except CustomUser.DoesNotExist:
+                try:
+                    wg = WorkingGroup.objects.get(registry=self.registry, name=username_or_working_group_name)
+                    logger.debug("Adding working group %s" % wg)
+                    groups.append(wg)
+                except WorkingGroup.DoesNotExist:
+                    logger.error("%s is not in %s as a user or a working group so can't be added to the adjudication list for %s" % (username_or_working_group_name, self))
+
+        context = {
+            "adjudication_definition": self,
+            "patient": patient_model,
+            "datapoints": datapoints,
+            "users": users,
+            "groups": groups,
+        }
+        return context
 
     @property
     def cde_models(self):
@@ -735,60 +836,46 @@ class AdjudicationRequest(models.Model):
 
     def send(self):
         # send the email or something ..
+        self._send_email()
+        self._create_notification()
         self.state = AdjudicationRequestState.REQUESTED
         self.save()
-        self._send_notification()
 
-    def _send_notification(self):
-        pass
-        #sending_user = get_user(self.requesting_username)
-        #to_user = get_user(self.username)
-        #if to_user:
-            #notifier = Notifier()
-            #notifier.send([to_user], "adjudication_request", [sending_user])
+    def _send_email(self):
+        email_subject = self._create_email_subject()
+        email_body = self._create_email_body()
+        sending_user = get_user(self.requesting_username)
+        to_user = get_user(self.username)
+        if to_user:
+            from django.conf import settings
+            from django.core.mail import send_mail
+            send_mail(email_subject, email_body, settings.DEFAULT_FROM_EMAIL,[to_user.email], fail_silently=False)
 
-    def _get_adjudication_form_datapoints(self):
-        """
-        The field values to "judge"
-        :return:
-        """
-        from registry.patients.models import Patient
-        patient = Patient.objects.get(pk=self.patient)
-        datapoints = []
-        class DataPoint(object):
-            def __init__(self, label, value):
-                self.label = label
-                self.value = value
+    def _create_email_subject(self):
+        return "Adjudication Request from %s: %s" % (self.definition.registry.name, self.definition.display_name)
 
+    def _create_email_body(self):
 
-        field_map = self.definition.get_field_data(patient)
+        body = """
+            Hello %s User!
+            An adjudication request has been assigned to you for %s.
+            Please visit %s to complete the adjudication.
+            """ % (self.definition.registry.name, self.definition.display_name, self.link)
+        return body
 
-        for form_name, section_code, cde_code in field_map:
-            form_model = RegistryForm.objects.get(name=form_name)
-            section_model = Section.objects.get(code=section_code)
-            cde_model = CommonDataElement.objects.get(code=cde_code)
-            label = "Form %s Section %s Field %s" % (form_name, section_model.display_name, cde_model.name)
-            value = field_map[(form_name, section_code, cde_code)]
-            display_value = self._get_cde_display_value(cde_model, value)
-            datapoints.append(DataPoint(label, display_value))
-        return datapoints
+    def _create_notification(self):
+        from rdrf.notifcations import Notifier
+        notification_html = self._create_notification_html()
+        notifier = Notifier()
+        notifier.send_notification(self.requesting_username, self.username, notification_html)
 
-    def _get_cde_display_value(self, cde_model, stored_value):
-        def get_disp(stored_value):
-            if cde_model.datatype in ['range']:
-                group_dict = cde_model.pv_group.as_dict()
-                for value_map in group_dict["values"]:
-                    if value_map["code"] == stored_value:
-                        return value_map["value"]
-                return "Error! stored_value = %s allowed_values = %s" % (stored_value, group_dict)
-            else:
-                return stored_value
+    def _create_notification_html(self):
+        html = "Adjudication Requested for %s - please visit %s" % (self.definition.display_name, self.link)
+        return html
 
-        # sometimes _lists_ are stored when we have multiple checklist
-        if isinstance(stored_value, list):
-            return ",".join(map(get_disp, stored_value))
-        else:
-            return get_disp(stored_value)
+    @property
+    def link(self):
+        reverse('adjudication_request', args=(self.pk,))
 
     def handle_response(self, adjudication_form_response_data):
         adjudication_codes = [cde.code for cde in self.definition.cde_models]
@@ -815,7 +902,6 @@ class AdjudicationRequest(models.Model):
 
             return field_data
 
-
         def convert_to_json(data):
             import json
             return json.dumps(data)
@@ -828,9 +914,10 @@ class AdjudicationRequest(models.Model):
         self.save()
         return True
 
-
     def create_adjudication_form(self):
-        datapoints = self._get_adjudication_form_datapoints()  # The fields on the patients form(s) we wish to seek an opinion on - these are presented read only
+        from registry.patients.models import Patient
+        patient_model = Patient.objects.get(pk=self.patient)
+        datapoints = self.definition.get_adjudication_form_datapoints(patient_model)
         adjudication_form = self.definition.create_form()
         return adjudication_form, datapoints
 

@@ -789,6 +789,99 @@ class RPCHandler(View):
         return HttpResponse(client_response_json, status=200, content_type="application/json")
 
 
+class AdjudicationInitiationView(View):
+    @method_decorator(login_required)
+    def get(self, request, def_id, patient_id):
+        try:
+            adj_def = AdjudicationDefinition.objects.get(pk=def_id)
+        except AdjudicationDefinition.DoesNotExist:
+            raise Http404("Adjudication Definition not found!")
+
+        try:
+            patient = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404("Patient not found!")
+
+        context = adj_def.create_adjudication_inititiation_form_context(patient)
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/adjudication_initiation_form.html', context, context_instance=RequestContext(request))
+
+    @method_decorator(login_required)
+    def post(self, request, def_id, patient_id):
+        try:
+            adj_def = AdjudicationDefinition.objects.get(pk=def_id)
+        except AdjudicationDefinition.DoesNotExist:
+             raise Http404("Adjudication Definition %s not found" % def_id)
+
+        try:
+            patient = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404("Patient %s not found" % patient_id)
+
+        from rdrf.models import AdjudicationState
+        adjudication_state = adj_def.get_state(patient)
+        if adjudication_state == AdjudicationState.ADJUDICATED:
+            raise Http404("This patient has already been adjudicated!")
+        elif adjudication_state == AdjudicationState.UNADJUDICATED:
+            raise Http404("This patient has already had an adjudication initiated")
+        elif adjudication_state != AdjudicationState.NOT_CREATED:
+            raise Http404("Unknown adjudication state - contact admin")
+        else:
+            # no requests have been adjudication requests created for this patient
+            sent_ok, errors = self._create_adjudication_requests(request.POST, adj_def, patient, request.user)
+            if errors:
+                return HttpResponse("Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
+            else:
+                return HttpResponse("Adjudication Request Sent Successfully!")
+
+    def _create_adjudication_requests(self, form_data, adjudication_definition, patient, requesting_user):
+        from registry.groups.models import CustomUser
+        errors = []
+        request_created_ok = []
+
+        target_usernames = []
+        target_working_group_names = []
+        for k in form_data.keys():
+            if k.startswith("user_"):
+                target_usernames.append(form_data[k])
+            elif k.startswith('group_'):
+                target_working_group_names.append(form_data[k])
+
+        for target_username in target_usernames:
+                try:
+                    target_user = CustomUser.objects.get(username=target_username)
+                except CustomUser.DoesNotExist:
+                    errors.append("Could not find user for %s: %s" % (target_username, ex))
+                    continue
+
+                if not target_user:
+                    errors.append("Could not find user for %s" % target_username)
+                    continue
+                else:
+                    try:
+                        adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
+                        request_created_ok.append(target_username)
+                    except Exception, ex:
+                        errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
+
+        for target_working_group_name in target_working_group_names:
+            try:
+                target_working_group = WorkingGroup.objects.get(name=target_working_group_name)
+            except WorkingGroup.DoesNotExist:
+                errors.append("There is no working group called %s" % target_working_group_name)
+                continue
+
+            for target_user in target_working_group.users:
+                try:
+                    adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
+                    request_created_ok.append(target_username)
+                except Exception, ex:
+                    errors.append("could not create adjudication request for %s in group %s: %s" % (target_user, target_working_group, ex))
+                    continue
+
+        return request_created_ok, errors
+
+
 class AdjudicationRequestView(View):
     @method_decorator(login_required)
     def get(self, request, adjudication_request_id):
