@@ -27,8 +27,6 @@ webstaging:
   volumes:
     - data:/data
   ports:
-    - ":9000"
-    - ":9001"
     - "9100:9100"
     - "9101:9101"
   links:
