@@ -233,16 +233,20 @@ class Patient(models.Model):
         cde_complete = registry_form.complete_form_cdes.values()
         set_count = 0
         
+        cdes_status = {}
+        
         for cde in cde_complete:
             for s in section_array:
                 if cde["code"] in Section.objects.get(code=s).elements.split(","):
                     cde_section = s
             
             cde_value = dynamic_store.get_cde(cde_registry, cde_section, cde['code'])
+            cdes_status[cde["name"]] = False
             if cde_value:
+                cdes_status[cde["name"]] = True
                 set_count += 1
         
-        return float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100    
+        return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
     
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)

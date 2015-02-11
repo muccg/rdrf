@@ -153,17 +153,25 @@ Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patie
                 <input type="button" onclick="goBack();" class="btn btn-danger" value="Cancel"/>
             </div>
         </div>
-
-
-
     </div>
     
     <div class="inner-center-column">
 
     {% if user.is_superuser and has_form_progress %}
-        <h4>Data entry progress: <font color="green">{{form_progress|floatformat:"0"}}%</font></h4>
-        <div id="form_progress"></div>
-        </br>
+        <div class="well">
+            <h4>Data entry progress: <font color="green">{{form_progress|floatformat:"0"}}%</font></h4>
+            <div id="form_progress"></div>
+            </br>
+            {% for fpc in form_progress_cdes.items %}
+                <p>
+                    {% if fpc.1 %}
+                        <img src='{% static 'images/tick.png'%}'>
+                    {% elif fpc.1 == False %}
+                        <img src='{% static 'images/cross.png'%}'>
+                    {% endif %} {{fpc.0}}
+                </p>
+            {% endfor %}
+        </div>
     {% endif %}
 
     {% for s in sections %}

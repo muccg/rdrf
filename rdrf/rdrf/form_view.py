@@ -206,6 +206,7 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
+        cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
         context = {
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
@@ -225,7 +226,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "form_progress": self._get_patient_object().form_progress(self.registry_form),
+            "form_progress": progress,
+            "form_progress_cdes": cdes_status,
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
@@ -326,6 +328,7 @@ class FormView(View):
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
         
+        cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
         context = {
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
@@ -345,7 +348,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "form_progress": self._get_patient_object().form_progress(self.registry_form),
+            "form_progress": progress,
+            "form_progress_cdes": cdes_status,
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
