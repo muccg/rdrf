@@ -36,6 +36,7 @@ class CustomUser(AbstractUser):
         # todo
         return []
 
-
-
-
+    def in_registry(self, registry_model):
+        for reg in self.registry.all():
+            if reg is registry_model:
+                return True
