@@ -931,11 +931,26 @@ class Colours(object):
 
 
 class AdjudicationResultsView(View):
-    def get(self, request, adjudication_definition_id, patient_id):
+    def get(self, request, adjudication_definition_id, requesting_user_id,  patient_id):
         context = {}
         current_username = request.user.username
-        adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
-        stats, adj_responses = self._get_stats_and_responses(patient_id, current_username, adj_def)
+        try:
+            adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
+        except AdjudicationDefinition.DoesNotExist:
+            return Http404("Adjudication definition not found")
+
+        adjudicating_username = adj_def.adjudicator_username
+
+        if adjudicating_username != request.user.username:
+            return Http404("This adjudication result is not for you!")
+
+        try:
+            from registry.groups.models import CustomUser
+            requesting_user = CustomUser.objects.get(pk=requesting_user_id)
+        except CustomUser.DoesNotExist:
+            return Http404("Could not find requesting user for this adjudication")
+
+        stats, adj_responses = self._get_stats_and_responses(patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
             return HttpResponse("No one has responded to the adjudication request yet!- stats are %s" % stats)
 

@@ -79,7 +79,7 @@ urlpatterns = patterns('',
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     url(r'^adjudicationinitiation/(?P<def_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationInitiationView.as_view(), name='adjudication_initiation'),
     url(r'^adjudicationrequest/(?P<adjudication_request_id>\d+)/?$', form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
-    url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
+    url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 )
 
 urlpatterns += patterns('',
