@@ -243,16 +243,42 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
     inlines = [CDEPermittedValueAdmin]
 
 
-
 class AdjudicationRequestAdmin(admin.ModelAdmin):
-    list_display = ('patient', 'definition', 'requesting_username', 'username')
-    ordering = ['patient', 'requesting_username', 'username']
+    list_display = ('requesting_username', 'username', 'adjudicate_link')
+    ordering = ['requesting_username', 'username']
     list_filter = ['requesting_username', 'username']
+
+    def adjudicate_link(self, obj):
+        if obj.state == AdjudicationRequestState.REQUESTED:
+            url = obj.link
+            url = "<a href='%s'>Adjudicate</a>" % url
+            return url
+        else:
+            if obj.state == 'P':
+                return "Done"
+            elif obj.state == 'C':
+                return "No ready"
+            elif obj.state == 'I':
+                return "Invalid"
+            else:
+                return "Unknown State:%s" % obj.state
+
+    adjudicate_link.allow_tags = True
+    adjudicate_link.short_description = 'Adjudication State'
+
+    def queryset(self, request):
+        user = request.user
+        if user.is_superuser:
+            return AdjudicationRequest.objects.all()
+        else:
+            return AdjudicationRequest.objects.filter(username=user.username, state=AdjudicationRequestState.REQUESTED)
+
 
 class AdjudicationDefinitionAdmin(admin.ModelAdmin):
     list_display = ('registry', 'fields', 'result_fields')
 
-class AAdjudicationResponseAdmin(admin.ModelAdmin):
+
+class AdjudicationResponseAdmin(admin.ModelAdmin):
     list_display = ('request', 'response_data')
 
 admin.site.register(Registry, RegistryAdmin)
@@ -268,4 +294,4 @@ admin.site.register(Section, SectionAdmin)
 if has_feature('adjudication'):
     admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
     admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
-    admin.site.register(AdjudicationResponse, AAdjudicationResponseAdmin)
+    admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)

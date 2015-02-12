@@ -834,9 +834,6 @@ class AdjudicationRequest(models.Model):
                                                     # the result fields to hold the diagnosis vote
     state = models.CharField(max_length=1, default=AdjudicationRequestState.CREATED)
 
-
-
-
     def send(self):
         # send the email or something ..
         fails = 0
@@ -893,7 +890,7 @@ class AdjudicationRequest(models.Model):
 
     @property
     def link(self):
-        reverse('adjudication_request', args=(self.pk,))
+        return reverse('adjudication_request', args=(self.pk,))
 
     def handle_response(self, adjudication_form_response_data):
         adjudication_codes = [cde.code for cde in self.definition.cde_models]
