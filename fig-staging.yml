@@ -1,0 +1,35 @@
+dbstaging:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - ":5432"
+
+cachestaging:
+  image: memcached:1.4
+
+mongostaging:
+  image: mongo:2.6
+
+webstaging:
+  build: docker/unstable/
+  command: uwsgi
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - DBSERVER=dbstaging
+    - MONGOSERVER=mongostaging
+    - CACHESERVER=cachestaging
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes:
+    - data:/data
+  ports:
+    - "9100:9100"
+    - "9101:9101"
+  links:
+    - dbstaging
+    - cachestaging
+    - mongostaging
