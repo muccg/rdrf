@@ -995,3 +995,11 @@ class AdjudicationDecision(models.Model):
         for (action_cde_code, value) in self.actions:
             if action_cde_code not in allowed_codes:
                 raise ValidationError("Action code %s is not in allowed codes for definition" % action_cde_code)
+
+class Adjudication(models.Model):
+    definition = models.ForeignKey(AdjudicationDefinition)
+    requesting_username = models.CharField(max_length=80)       # the username of the user requesting this adjudication
+    patient_id = models.IntegerField()           # the patient's pk
+    decision = models.ForeignKey(AdjudicationDecision, null=True)  # The decision the deciding/adjudicating user made
+    adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming requests
+
