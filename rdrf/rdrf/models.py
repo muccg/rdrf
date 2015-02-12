@@ -645,6 +645,10 @@ class AdjudicationState(object):
     ADJUDICATED = "A"
 
 
+class MissingData(object):
+    pass
+
+
 class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
     display_name = models.CharField(max_length=80, blank=True, null=True)  # name which will be seen by end users
@@ -674,7 +678,10 @@ class AdjudicationDefinition(models.Model):
             if form_name == 'demographics':
                 field_value = self._get_demographic_field(patient, cde_code) # NB. for demographics section isn't used
             else:
-                field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
+                try:
+                    field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
+                except KeyError:
+                    field_value = MissingData
             data[(form_name, section_code, cde_code)] = field_value
         return data
 
@@ -726,11 +733,15 @@ class AdjudicationDefinition(models.Model):
     def get_adjudication_form_datapoints(self, patient):
         """
         The field values to "judge"
-        :return:
+        :return: datapoints, missing_flag
         """
         datapoints = []
+        missing_flag = False # flags if any datapoints are missing
 
         def get_cde_display_value(cde_model, stored_value):
+            if stored_value is MissingData:
+                return "Missing Data!"
+
             def get_disp(stored_value):
                 if cde_model.datatype in ['range']:
                     group_dict = cde_model.pv_group.as_dict()
@@ -753,6 +764,8 @@ class AdjudicationDefinition(models.Model):
                 self.value = value
 
         field_map = self.get_field_data(patient)
+        missing_flag = MissingData in field_map.values()
+
         for form_name, section_code, cde_code in field_map:
             if form_name == 'demographics':
                 value = self._get_demographic_field(patient, cde_code)
@@ -766,12 +779,12 @@ class AdjudicationDefinition(models.Model):
                 value = field_map[(form_name, section_code, cde_code)]
                 display_value = get_cde_display_value(cde_model, value)
             datapoints.append(DataPoint(label, display_value))
-        return sorted(datapoints,key=lambda datapoint: datapoint.label)
+        return sorted(datapoints,key=lambda datapoint: datapoint.label), missing_flag
 
     def create_adjudication_inititiation_form_context(self, patient_model):
         # adjudication_initiation_form, datapoints, users, working_groups = adj_def.create_adjudication_inititiation_form(patient)
         from registry.groups.models import CustomUser, WorkingGroup
-        datapoints = self.get_adjudication_form_datapoints(patient_model)
+        datapoints, missing_data = self.get_adjudication_form_datapoints(patient_model)
         logger.debug("datapoints = %s" % datapoints)
         users_or_groups = self.adjudicating_users.split(",")
         users = []
@@ -796,6 +809,7 @@ class AdjudicationDefinition(models.Model):
             "datapoints": datapoints,
             "users": users,
             "groups": groups,
+            "missing_data": missing_data,
         }
         return context
 
@@ -976,21 +990,40 @@ class AdjudicationDecision(models.Model):
     @actions.setter
     def actions(self, action_code_value_pairs):
         import json
-
         actions = []
         for code, value in action_code_value_pairs:
             actions.append((code, value))
         self.decision_data = json.dumps(actions)
 
+    @property
+    def summary(self):
+        return ','.join(["%s: %s" % (variable, value) for variable, value in self.display_actions])
+
+    @property
+    def display_actions(self):
+        for code, value in self.actions:
+            try:
+                cde_model = CommonDataElement.objects.get(code=code)
+                display_text = cde_model.name
+                display_value = value
+                if cde_model.pv_group:
+                    range_dict = cde_model.pv_group.as_dict()
+                    for value_dict in range_dict['values']:
+                        if value == value_dict['code']:
+                            display_value = value_dict['value']  # the display value for the range member
+                yield display_text, display_value
+            except CommonDataElement.DoesNotExist:
+                yield code, value
+
+
 
     def perform_actions(self):
-        import rdrf
-        for action_cde_code, action_value in self.actions:
-            pass
+        from rdrf.adjudication_actions import CommandInterpreter
+        pass
 
     def clean(self):
         definition_action_cde_models = self.definition.action_action_cde_models
-        allowed_codes = [ cde.code for cde in definition_action_cde_models]
+        allowed_codes = [cde.code for cde in definition_action_cde_models]
 
         for (action_cde_code, value) in self.actions:
             if action_cde_code not in allowed_codes:
@@ -998,7 +1031,69 @@ class AdjudicationDecision(models.Model):
 
 
 class Adjudication(models.Model):
+    """
+    Used to present adjudication to admin
+    """
     definition = models.ForeignKey(AdjudicationDefinition)
     requesting_username = models.CharField(max_length=80)       # the username of the user requesting this adjudication
     patient_id = models.IntegerField()           # the patient's pk
     decision = models.ForeignKey(AdjudicationDecision, null=True)  # The decision the deciding/adjudicating user made
+
+    def _count_requests(self, state=None):
+        if not state:
+            return AdjudicationRequest.objects.filter(definition=self.definition, patient=self.patient_id,
+                                                      requesting_username=self.requesting_username).count()
+        else:
+            return AdjudicationRequest.objects.filter(definition=self.definition, patient=self.patient_id,
+                                                      requesting_username=self.requesting_username,
+                                                      state=state).count()
+
+    @property
+    def adjudicator(self):
+        return self.definition.adjudicator_username
+
+    @property
+    def adjudicator_user(self):
+        from registry.groups.models import CustomUser
+        try:
+            return CustomUser.objects.get(username=self.adjudicator)
+        except CustomUser.DoesNotExist:
+            return None
+
+    @property
+    def requesting_user(self):
+        from registry.groups.models import CustomUser
+        try:
+            return CustomUser.objects.get(username=self.requesting_username)
+        except CustomUser.DoesNotExist:
+            return None
+
+    @property
+    def responded(self):
+        return self._count_requests(AdjudicationRequestState.PROCESSED)
+
+    @property
+    def requested(self):
+        return self._count_requests()
+
+
+    @property
+    def status(self):
+        state_map = {}
+        for adj_req in AdjudicationRequest.objects.filter(definition=self.definition,patient=self.patient_id,requesting_username=self.requesting_username):
+            if adj_req.state not in state_map:
+                state_map[adj_req.state] = 1
+            else:
+                state_map[adj_req.state] += 1
+        return str(state_map)
+
+    @property
+    def link(self):
+        from registry.groups.models import CustomUser
+        requesting_user = CustomUser.objects.get(username=self.requesting_username)
+        return reverse('adjudication_result', args=(self.definition.pk, requesting_user.pk, self.patient_id))
+
+
+
+
+

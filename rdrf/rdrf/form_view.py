@@ -25,9 +25,9 @@ import json
 import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
-from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition
+from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
 from rdrf.utils import mongo_db_name
-
+from registry.groups.models import CustomUser
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -835,9 +835,20 @@ class AdjudicationInitiationView(View):
                 return HttpResponse("Adjudication Request Sent Successfully!")
 
     def _create_adjudication_requests(self, form_data, adjudication_definition, patient, requesting_user):
-        from registry.groups.models import CustomUser
+
         errors = []
         request_created_ok = []
+        try:
+            adjudication = Adjudication.objects.get(definition=adjudication_definition, patient_id=patient.pk, requesting_username=requesting_user.username)
+            raise AdjudicationError("Adjudication already created for this patient and definition")
+
+        except Adjudication.DoesNotExist:
+            # this is good
+            # adjudication object created as bookkeeping object so adjudicator can launch from admin and decide result
+            adjudication = Adjudication(definition=adjudication_definition, patient_id=patient.pk,
+                                        requesting_username=requesting_user.username)
+
+            adjudication.save()
 
         target_usernames = []
         target_working_group_names = []
@@ -949,6 +960,11 @@ class AdjudicationResultsView(View):
             requesting_user = CustomUser.objects.get(pk=requesting_user_id)
         except CustomUser.DoesNotExist:
             return Http404("Could not find requesting user for this adjudication")
+
+        try:
+            adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id, requesting_username=requesting_user.username)
+        except Adjudication.DoesNotExist:
+            raise Http404("Matching Adjudication object does not exist")
 
         stats, adj_responses = self._get_stats_and_responses(patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
@@ -1070,6 +1086,7 @@ class AdjudicationResultsView(View):
 
         context['fields'] = fields
         context['decision_form'] = adj_def.create_decision_form()
+        context['adjudication'] = adjudication
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/adjudication_results.html', context,
                                   context_instance=RequestContext(request))
@@ -1108,7 +1125,7 @@ class AdjudicationResultsView(View):
         raise
 
     @method_decorator(login_required)
-    def post(self, request, adjudication_definition_id, patient_id):
+    def post(self, request, adjudication_definition_id,  requesting_user_id, patient_id):
         from rdrf.models import AdjudicationDefinition, AdjudicationError, AdjudicationState, AdjudicationDecision
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
@@ -1121,6 +1138,11 @@ class AdjudicationResultsView(View):
         patient_id_on_form = request.POST["patient_id"]
         if patient_id_on_form != patient_id:
             raise Http404("patient incorrect!")
+
+        try:
+            requesting_user = CustomUser.objects.get(pk=requesting_user_id)
+        except CustomUser.DoesNotExist:
+            raise Http404("requesting user cannot be found")
 
         try:
             patient = Patient.objects.get(pk=patient_id)
@@ -1139,10 +1161,17 @@ class AdjudicationResultsView(View):
             raise Http404("Unknown adjudication state")
         else:
             adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
-            actions = []
             action_code_value_pairs = self._get_actions_data(adj_def, request.POST)
             adj_dec.actions = action_code_value_pairs
             adj_dec.save()
+            # link the adjudication bookkeeping object to this decision
+            try:
+                adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id, requesting_username=requesting_user.username)
+            except Adjudication.DoesNotExist:
+                raise Http404("Adjudication object doesn't exist")
+
+            adjudication.decision = adj_dec
+            adjudication.save()
             adj_dec.perform_actions()
 
     def _get_actions_data(self, definition, post_data):

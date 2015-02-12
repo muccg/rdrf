@@ -273,6 +273,31 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
         else:
             return AdjudicationRequest.objects.filter(username=user.username, state=AdjudicationRequestState.REQUESTED)
 
+class AdjudicationAdmin(admin.ModelAdmin):
+    list_display = ('requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
+    ordering = ['requesting_username', 'definition']
+    list_filter = ['requesting_username', 'definition']
+
+    def adjudicate_link(self, obj):
+        if obj.decision:
+            return obj.decision.summary
+        if obj.responded > 0:
+            url = obj.link
+            url = "<a href='%s'>Adjudicate</a>" % url
+            return url
+        else:
+            return "-"
+
+    adjudicate_link.allow_tags = True
+    adjudicate_link.short_description = 'Adjudication'
+
+    def queryset(self, request):
+        user = request.user
+        if user.is_superuser:
+            return Adjudication.objects.all()
+        else:
+            return Adjudication.objects.filter(adjudicator_username=user.username)
+
 
 class AdjudicationDefinitionAdmin(admin.ModelAdmin):
     list_display = ('registry', 'fields', 'result_fields')
@@ -292,6 +317,7 @@ admin.site.register(RegistryForm, RegistryFormAdmin)
 admin.site.register(Section, SectionAdmin)
 
 if has_feature('adjudication'):
+    admin.site.register(Adjudication, AdjudicationAdmin)
     admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
     admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
     admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)

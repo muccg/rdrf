@@ -49,6 +49,7 @@
 
 <p>
 
+{% if not missing_data %}
 </p>
     <h3>The adjudications will be judged by user {{ adjudication_definition.adjudicating_username }} with actions:</h3><p></p>
     {% for action in adjudication_definition.actions %}
@@ -60,6 +61,14 @@
     <h3>Notification of the result will be sent to you after the ajudicator has assessed the responses.</h3><br>
 
    <input type="submit" name="Send Adjudication" value="Send Adjudication">
+
+{% else %}
+
+Some data points are missing!<br>
+You cannot request adjudication until every field comprising the adjudication has a value.<br>
+Enter the missing data and try again.
+
+{% endif %}
 
 </form>
 
