@@ -352,7 +352,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
-        if not self.registry_form.is_questionnaire:       
+        if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:       
             cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = progress
             context["form_progress_cdes"] = cdes_status
