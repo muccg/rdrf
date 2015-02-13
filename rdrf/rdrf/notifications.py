@@ -20,4 +20,5 @@ class Notifier(object):
         notification.from_username = from_user_name
         notification.to_username = to_username
         notification.message = message
+        notification.link = link
         notification.save()

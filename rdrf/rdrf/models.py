@@ -901,12 +901,12 @@ class AdjudicationRequest(models.Model):
 
     def _create_notification(self):
         from rdrf.notifications import Notifier
-        notification_html = self._create_notification_html()
+        notification_message = self._create_notification_html()
         notifier = Notifier()
-        notifier.send_system_notification(self.requesting_username, self.username, notification_html)
+        notifier.send_system_notification(self.requesting_username, self.username, notification_message, self.link)
 
     def _create_notification_html(self):
-        html = "Adjudication Requested for %s - please visit %s" % (self.definition.display_name, self.link)
+        html = "Adjudication Requested for %s" % (self.definition.display_name)
         return html
 
     @property

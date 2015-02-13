@@ -32,9 +32,9 @@ class CustomUser(AbstractUser):
 
     @property
     def notices(self):
-        #return Notice.objects.filter(user=self).order_by("-added")
-        # todo
-        return []
+        from rdrf.models import Notification
+        return Notification.objects.filter(to_username=self.username).order_by("-created")
+
 
     def in_registry(self, registry_model):
         for reg in self.registry.all():
