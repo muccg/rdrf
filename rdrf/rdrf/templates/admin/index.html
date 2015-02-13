@@ -103,6 +103,7 @@
                     <th>{% trans "From" %}</th>
                     <th>{% trans "When" %}</th>
                     <th>{% trans "Link" %}</th>
+                    <th>{% trans "Mark as seen" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,6 +112,7 @@
                         <td class="notice_message">{{ notice.from_username|safe }}</td>
                         <td class="notice_time">{{ notice.created|timesince }} {% trans "ago" %}</td>
                         <td class="notice_time"><a href="{{ notice.link}}">link</a></td>
+                        <td>seen</td>
                     </tr>
                 {% endfor %}
             </tbody>
