@@ -306,6 +306,13 @@ class AdjudicationDefinitionAdmin(admin.ModelAdmin):
 class AdjudicationResponseAdmin(admin.ModelAdmin):
     list_display = ('request', 'response_data')
 
+class AdjudicationDecisionAdmin(admin.ModelAdmin):
+    list_display = ('definition', 'patient', 'decision_data')
+
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('created', 'from_username','to_username', 'message')
+
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
@@ -317,7 +324,9 @@ admin.site.register(RegistryForm, RegistryFormAdmin)
 admin.site.register(Section, SectionAdmin)
 
 if has_feature('adjudication'):
+    admin.site.register(Notification, NotificationAdmin)
     admin.site.register(Adjudication, AdjudicationAdmin)
     admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
     admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
     admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
+    admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)

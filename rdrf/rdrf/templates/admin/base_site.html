@@ -38,6 +38,58 @@
 {% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
+
+    <select id="notificationDropdown">
+        <option selected disabled>Notifications</option>
+    </select>
+    <script>
+            (function(){
+                console.log("evaulating");
+                 var notificationDropdown = $("#notificationDropdown");
+                 var regex = /value='(.*?)'/;
+                 var csrfString = regex.exec("{% csrf_token %}")[1];
+
+
+                 function updateDateNotficationDropdown(results) {
+                     notificationDropdown.empty();
+                     notificationDropdown.append($("<option />").attr("selected", "selected").attr("disabled","disabled").text("Notifications"))
+
+                     $.each(results, function () {
+                         var optionText = "Message from " + this.from_user + ":" + this.message
+                         notificationDropdown.append($("<option />").val(this.link).text(optionText));
+                     });
+
+//                     if (notificationDropdown.children('option').length >0) {
+//                         notificationDropdown.show();
+//                     }
+//                     else {
+//                         notificationDropdown.hide();
+//                     }
+                 }
+
+                 function checkForNotifications() {
+                     console.log("checking for notifications ...");
+                     var csrfToken = csrfString;   //("input[name='csrfmiddlewaretoken']").val();
+                     var rpc = new RPC.RPC("{% url 'rpc' %}", csrfToken);
+
+                     rpc.send("check_notifications", [], function (result) {
+                         var results = result.result;
+                         if(results.length>0){
+                             console.log("got some notifications!")
+                         }
+                         else {
+                             console.log("no notifications")
+                         }
+                         updateDateNotficationDropdown(results);
+                     });
+                 }
+
+                 $(document).ready(function () {
+                     setTimeout(checkForNotifications, 5000);
+                 })
+           })();
+
+    </script>
     {% is_i18n as i18n_flag %}
     {% if i18n_flag %}
         {% get_current_language as LANGUAGE_CODE %}

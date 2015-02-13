@@ -1172,7 +1172,10 @@ class AdjudicationResultsView(View):
 
             adjudication.decision = adj_dec
             adjudication.save()
-            adj_dec.perform_actions()
+            adjudication.perform_actions()
+            return HttpResponse("Your adjudication decision has been sent to %s" % adjudication.requesting_username)
+
+
 
     def _get_actions_data(self, definition, post_data):
         # POST:<QueryDict: {u'DecisionForm____APMATADJDECSECTION____APMATADJDECADAMTS13': [u'Yes'], u'csrfmiddlewaretoken': [u'1zrpaa02P6996cwFDP35wFfhEYLVUBgg'], u'patient_id': [u'2']}>,

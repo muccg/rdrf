@@ -871,6 +871,13 @@ class AdjudicationRequest(models.Model):
         self.save()
 
     def _send_email(self):
+        def get_user(username):
+            from registry.groups.models import CustomUser
+            try:
+                return CustomUser.objects.get(username=username)
+            except:
+                return None
+
         email_subject = self._create_email_subject()
         email_body = self._create_email_body()
         sending_user = get_user(self.requesting_username)
@@ -893,10 +900,10 @@ class AdjudicationRequest(models.Model):
         return body
 
     def _create_notification(self):
-        from rdrf.notifcations import Notifier
+        from rdrf.notifications import Notifier
         notification_html = self._create_notification_html()
         notifier = Notifier()
-        notifier.send_notification(self.requesting_username, self.username, notification_html)
+        notifier.send_system_notification(self.requesting_username, self.username, notification_html)
 
     def _create_notification_html(self):
         html = "Adjudication Requested for %s - please visit %s" % (self.definition.display_name, self.link)
@@ -905,6 +912,18 @@ class AdjudicationRequest(models.Model):
     @property
     def link(self):
         return reverse('adjudication_request', args=(self.pk,))
+
+    @property
+    def patient_model(self):
+        from registry.patients.models import Patient
+        return Patient.objects.get(pk=self.patient)
+
+    @property
+    def adjudication(self):
+        # helper property to locate the corresponding adjudication object
+        return Adjudication.objects.get(definition=self.definition,
+                                        patient_id=self.patient,
+                                        requesting_username=self.requesting_username)
 
     def handle_response(self, adjudication_form_response_data):
         adjudication_codes = [cde.code for cde in self.definition.cde_models]
@@ -941,12 +960,13 @@ class AdjudicationRequest(models.Model):
         adj_response.save()
         self.state = AdjudicationRequestState.PROCESSED
         self.save()
+        adj_response.send_notifications()
         return True
 
     def create_adjudication_form(self):
         from registry.patients.models import Patient
         patient_model = Patient.objects.get(pk=self.patient)
-        datapoints = self.definition.get_adjudication_form_datapoints(patient_model)
+        datapoints, missing_flag = self.definition.get_adjudication_form_datapoints(patient_model)
         adjudication_form = self.definition.create_form()
         return adjudication_form, datapoints
 
@@ -973,6 +993,23 @@ class AdjudicationResponse(models.Model):
         else:
             raise AdjudicationError("cde not in data")
 
+    def send_notifications(self):
+        # back to adjudicator telling them someone responded
+        from rdrf.notifications import Notifier
+        n = Notifier()
+        notification_message = "An adjudication request has been completed by %s for %s for %s concerning %s" % \
+                               (self.request.username,
+                                self.request.requesting_username,
+                                self.request.definition.display_name,
+                                self.request.patient)
+
+        link = self.request.adjudication.link
+
+        n.send_system_notification(self.request.username,
+                                   self.request.definition.adjudicator_username,
+                                   notification_message,
+                                   link)
+
 
 class AdjudicationDecision(models.Model):
     definition = models.ForeignKey(AdjudicationDefinition)
@@ -996,8 +1033,15 @@ class AdjudicationDecision(models.Model):
         self.decision_data = json.dumps(actions)
 
     @property
+    def patient_model(self):
+        from registry.patients.models import Patient
+        return Patient.objects.get(pk=self.patient)
+
+    @property
     def summary(self):
-        return ','.join(["%s: %s" % (variable, value) for variable, value in self.display_actions])
+        actions = ','.join(["%s: %s" % (variable, value) for variable, value in self.display_actions])
+        patient = "%s" % self.patient_model
+        return "Adjudication Decision for %s concerning %s: %s" % (patient, self.definition.display_name, actions)
 
     @property
     def display_actions(self):
@@ -1017,9 +1061,7 @@ class AdjudicationDecision(models.Model):
 
 
 
-    def perform_actions(self):
-        from rdrf.adjudication_actions import CommandInterpreter
-        pass
+
 
     def clean(self):
         definition_action_cde_models = self.definition.action_action_cde_models
@@ -1093,7 +1135,15 @@ class Adjudication(models.Model):
         requesting_user = CustomUser.objects.get(username=self.requesting_username)
         return reverse('adjudication_result', args=(self.definition.pk, requesting_user.pk, self.patient_id))
 
+    def perform_actions(self):
+        from rdrf.adjudication_actions import AdjudicationAction
+        action = AdjudicationAction(self)
+        action.run()
 
 
-
-
+class Notification(models.Model):
+    from_username = models.CharField(max_length=80)
+    to_username = models.CharField(max_length=80)
+    created = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+    link = models.CharField(max_length=100, default="")
