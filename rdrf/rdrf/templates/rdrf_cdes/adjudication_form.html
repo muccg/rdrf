@@ -84,17 +84,12 @@
 
 <h2>Patient Data:</h2>
 
-{% for datapoint in datapoints %}
-
-    <div class="panel panel-success">
-      <div class="panel-heading">
-        <h3 class="panel-title">{{datapoint.label}}</h3>
-      </div>
-      <div class="panel-body">
-       {{datapoint.value}}
-      </div>
-    </div>
-{% endfor %}
+<table border="2">
+     <th>Data Point</th><th>Current Value</th>
+    {% for datapoint in datapoints %}
+      <tr><td>{{ datapoint.label}}</td><td>{{datapoint.value}}</td></tr>
+    {% endfor %}
+</table>
 
 <form method="post">{% csrf_token %}
     {{ adjudication_form }}
