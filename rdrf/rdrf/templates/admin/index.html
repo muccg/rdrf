@@ -91,32 +91,32 @@
       </h5>
       <i class="icon-book"></i> <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Rare Disease Registry Framework Documentation</a>
 
+       <p>
 
-
+       </p>
        {% if request.user.notices %}
            <table>
             <caption>{% trans "Notices" %}</caption>
             <thead>
                 <tr>
-                    <th>{% trans "Type" %}</th>
                     <th>{% trans "Message" %}</th>
-                    <th>{% trans "Date of the Notice" %}</th>
+                    <th>{% trans "From" %}</th>
+                    <th>{% trans "When" %}</th>
+                    <th>{% trans "Link" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for notice in request.user.notices %}
-                    {% if notice.is_unseen %}
-                        <tr class="unseen_notice">
-                    {% else %}
-                        <tr class="notice">
-                    {% endif %}
-                        <td class="notice_type">[{% trans notice.notice_type.display %}]</td>
                         <td class="notice_message">{{ notice.message|safe }}</td>
-                        <td class="notice_time">{{ notice.added|timesince }} {% trans "ago" %}</td>
+                        <td class="notice_message">{{ notice.from_username|safe }}</td>
+                        <td class="notice_time">{{ notice.created|timesince }} {% trans "ago" %}</td>
+                        <td class="notice_time"><a href="{{ notice.link}}">link</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+       {% else %}
+        No Notices
        {% endif %}
 
     </div>
