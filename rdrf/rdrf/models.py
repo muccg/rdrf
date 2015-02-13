@@ -1147,3 +1147,4 @@ class Notification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     message = models.TextField()
     link = models.CharField(max_length=100, default="")
+    seen = models.BooleanField(default=False)
