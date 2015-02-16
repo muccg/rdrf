@@ -643,6 +643,29 @@ class FileUploadView(View):
         return response
 
 
+class StandardView(object):
+    TEMPLATE_DIR = 'rdrf_cdes'
+    INFORMATION = "information.html"
+    APPLICATION_ERROR = "application_error.html"
+
+    @staticmethod
+    def _render(request, view_type, context):
+        context.update(csrf(request))
+        template = StandardView.TEMPLATE_DIR + "/" + view_type
+        return render_to_response(template, context, context_instance=RequestContext(request))
+
+    @staticmethod
+    def render_information(request, message):
+        context = {"message": message}
+        return StandardView._render(request, StandardView.INFORMATION, context)
+
+    @staticmethod
+    def render_error(request, error_message):
+        context = {"application_error": error_message}
+        return StandardView._render(request, StandardView.APPLICATION_ERROR, context)
+
+
+
 class QuestionnaireConfigurationView(View):
     """
     Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
@@ -795,12 +818,12 @@ class AdjudicationInitiationView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
         except AdjudicationDefinition.DoesNotExist:
-            raise Http404("Adjudication Definition not found!")
+            return StandardView.render_error(request, "Adjudication Definition not found!")
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            raise Http404("Patient not found!")
+            return StandardView.render_error(request, "Patient with id %s not found!" % patient_id)
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
@@ -811,28 +834,29 @@ class AdjudicationInitiationView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
         except AdjudicationDefinition.DoesNotExist:
-             raise Http404("Adjudication Definition %s not found" % def_id)
+            return StandardView.render_error(request, "Adjudication Definition %s not found" % def_id)
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            raise Http404("Patient %s not found" % patient_id)
+            return StandardView.render_error(request, "Patient with id %s not found!" % patient_id)
 
         from rdrf.models import AdjudicationState
         adjudication_state = adj_def.get_state(patient)
         if adjudication_state == AdjudicationState.ADJUDICATED:
-            raise Http404("This patient has already been adjudicated!")
+            return StandardView.render_error(request, "This patient has already been adjudicated!")
         elif adjudication_state == AdjudicationState.UNADJUDICATED:
-            raise Http404("This patient has already had an adjudication initiated")
+            return StandardView.render_error(request, "This patient has already had an adjudication initiated")
         elif adjudication_state != AdjudicationState.NOT_CREATED:
-            raise Http404("Unknown adjudication state - contact admin")
+            return StandardView.render_error(request, "Unknown adjudication state '%s' - contact admin" %
+                                             adjudication_state)
         else:
             # no requests have been adjudication requests created for this patient
             sent_ok, errors = self._create_adjudication_requests(request.POST, adj_def, patient, request.user)
             if errors:
-                return HttpResponse("Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
+                return StandardView.render_error(request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
             else:
-                return HttpResponse("Adjudication Request Sent Successfully!")
+                return StandardView.render_information(request, "Adjudication Request Sent Successfully!")
 
     def _create_adjudication_requests(self, form_data, adjudication_definition, patient, requesting_user):
 
@@ -887,7 +911,9 @@ class AdjudicationInitiationView(View):
                     adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
                 except Exception, ex:
-                    errors.append("could not create adjudication request for %s in group %s: %s" % (target_user, target_working_group, ex))
+                    errors.append("could not create adjudication request for %s in group %s:%s" % (target_user,
+                                                                                                   target_working_group,
+                                                                                                   ex))
                     continue
 
         return request_created_ok, errors
@@ -899,19 +925,20 @@ class AdjudicationRequestView(View):
         user = request.user
         from rdrf.models import AdjudicationRequest, AdjudicationRequestState
         try:
-            adj_req = AdjudicationRequest.objects.get(pk=adjudication_request_id, username=user.username, state=AdjudicationRequestState.REQUESTED)
+            adj_req = AdjudicationRequest.objects.get(pk=adjudication_request_id, username=user.username,
+                                                      state=AdjudicationRequestState.REQUESTED)
         except AdjudicationRequest.DoesNotExist:
-            raise Http404("Adjudication request not found or not for current user or has already been actioned")
+            msg = "Adjudication request not found or not for current user or has already been actioned"
+            return StandardView.render_error(request, msg)
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 
-        context = { "adjudication_form" : adjudication_form,
-                    "datapoints": datapoints,
-                    "req": adj_req}
+        context = {"adjudication_form": adjudication_form,
+                   "datapoints": datapoints,
+                   "req": adj_req}
+
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/adjudication_form.html', context, context_instance=RequestContext(request))
-
-
 
     @method_decorator(login_required)
     def post(self, request, adjudication_request_id):
@@ -921,16 +948,19 @@ class AdjudicationRequestView(View):
         else:
             from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError
             try:
-                adj_req = AdjudicationRequest.objects.get(pk=arid, state=AdjudicationRequestState.REQUESTED, username=request.user.username)
+                adj_req = AdjudicationRequest.objects.get(pk=arid, state=AdjudicationRequestState.REQUESTED,
+                                                          username=request.user.username)
                 try:
-                    adj_req.handle_response(request.POST)
+                    adj_req.handle_response(request)
                 except AdjudicationError, aerr:
-                   return HttpResponse("oops: %s" % aerr)
+                    return StandardView.render_error(request, "Adjudication Error: %s" % aerr)
 
-                return HttpResponse("Adjudication Response processed - thanks!")
+                return StandardView.render_information(request, "Adjudication Response submitted successfully!")
 
             except AdjudicationRequest.DoesNotExist:
-                raise Http404("Cannot submit adjudication")
+                msg = "Cannot submit adjudication - adjudication request with id %s not found" %  \
+                    adjudication_request_id
+                return StandardView.render_error(request, msg)
 
 
 class Colours(object):
@@ -953,22 +983,30 @@ class AdjudicationResultsView(View):
         adjudicating_username = adj_def.adjudicator_username
 
         if adjudicating_username != request.user.username:
-            return Http404("This adjudication result is not for you!")
+            return StandardView.render_error(request, "This adjudication result is not adjudicable by you!")
 
         try:
             from registry.groups.models import CustomUser
             requesting_user = CustomUser.objects.get(pk=requesting_user_id)
         except CustomUser.DoesNotExist:
-            return Http404("Could not find requesting user for this adjudication")
+            return StandardView.render_error(request, "Could not find requesting user for this adjudication '%s'" %
+                                             requesting_user_id)
 
         try:
-            adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id, requesting_username=requesting_user.username)
+            adjudication = Adjudication.objects.get(definition=adj_def,
+                                                    patient_id=patient_id,
+                                                    requesting_username=requesting_user.username)
         except Adjudication.DoesNotExist:
-            raise Http404("Matching Adjudication object does not exist")
+            msg = "Could not find adjudication for definition %s patient %s requested by %s" % (adj_def,
+                                                                                                patient_id,
+                                                                                                requesting_user)
+
+            return StandardView.render_error(request, msg)
 
         stats, adj_responses = self._get_stats_and_responses(patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
-            return HttpResponse("No one has responded to the adjudication request yet!- stats are %s" % stats)
+            msg = "No one has responded to the adjudication request yet!- stats are %s" % stats
+            return StandardView.render_information(request, msg)
 
         class StatsField(object):
             COLOURS = {
@@ -1121,44 +1159,44 @@ class AdjudicationResultsView(View):
                 responses.append(adj_resp)
         return stats, responses
 
-    def post(self, request):
-        raise
-
     @method_decorator(login_required)
     def post(self, request, adjudication_definition_id,  requesting_user_id, patient_id):
         from rdrf.models import AdjudicationDefinition, AdjudicationError, AdjudicationState, AdjudicationDecision
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:
-            raise Http404("Adjudication Definition with id %s not found" % adjudication_definition_id)
+            msg = "Adjudication Definition with id %s not found" % adjudication_definition_id
+            return StandardView.render_error(request, msg)
 
         if adj_def.adjudicator_username != request.user.username:
-            raise Http404("You are not authorised to submit an adjudication for this patient")
+            return StandardView.render_error(request,
+                                             "You are not authorised to submit an adjudication for this patient")
 
         patient_id_on_form = request.POST["patient_id"]
         if patient_id_on_form != patient_id:
-            raise Http404("patient incorrect!")
+            return StandardView.render_error(request, "patient incorrect!")
 
         try:
             requesting_user = CustomUser.objects.get(pk=requesting_user_id)
         except CustomUser.DoesNotExist:
-            raise Http404("requesting user cannot be found")
+            return StandardView.render_error(request, "requesting user cannot be found")
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            raise Http404("Patient does not exist")
+            return StandardView.render_error(request, "Patient does not exist")
 
         adjudication_state = adj_def.get_state(patient)
 
         if adjudication_state == AdjudicationState.NOT_CREATED:
             # No requests have been sent out for this definiton
-            raise Http404("No Adjudication requests have come back for this patient - it cannot be decided yet!")
+            msg = "No Adjudication requests have come back for this patient - it cannot be decided yet!"
+            return StandardView.render_information(request)
 
         elif adjudication_state == AdjudicationState.ADJUDICATED:
-            raise Http404("This patient has already been adjudicated!")
+            return StandardView.render_error(request, "This patient has already been adjudicated!")
         elif adjudication_state != AdjudicationState.UNADJUDICATED:
-            raise Http404("Unknown adjudication state")
+            return StandardView.render_error(request, "Unknown adjudication state: %s" % adjudication_state)
         else:
             adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
             action_code_value_pairs = self._get_actions_data(adj_def, request.POST)
@@ -1166,19 +1204,18 @@ class AdjudicationResultsView(View):
             adj_dec.save()
             # link the adjudication bookkeeping object to this decision
             try:
-                adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id, requesting_username=requesting_user.username)
+                adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id,
+                                                        requesting_username=requesting_user.username)
             except Adjudication.DoesNotExist:
-                raise Http404("Adjudication object doesn't exist")
+                return StandardView.render_error(request, "Adjudication object doesn't exist")
 
             adjudication.decision = adj_dec
             adjudication.save()
             adjudication.perform_actions()
-            return HttpResponse("Your adjudication decision has been sent to %s" % adjudication.requesting_username)
-
-
+            return StandardView.render_information(request, "Your adjudication decision has been sent to %s" %
+                                                   adjudication.requesting_username)
 
     def _get_actions_data(self, definition, post_data):
-        # POST:<QueryDict: {u'DecisionForm____APMATADJDECSECTION____APMATADJDECADAMTS13': [u'Yes'], u'csrfmiddlewaretoken': [u'1zrpaa02P6996cwFDP35wFfhEYLVUBgg'], u'patient_id': [u'2']}>,
         actions = []
         for adjudication_cde_model in definition.action_cde_models:
             for k in post_data:
@@ -1187,11 +1224,3 @@ class AdjudicationResultsView(View):
                     value = post_data[k]
                     actions.append((adjudication_cde_model.code, value))
         return actions
-
-
-
-
-
-
-
-
