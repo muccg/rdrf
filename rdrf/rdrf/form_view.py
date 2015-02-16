@@ -852,14 +852,14 @@ class AdjudicationInitiationView(View):
                                              adjudication_state)
         else:
             # no requests have been adjudication requests created for this patient
-            sent_ok, errors = self._create_adjudication_requests(request.POST, adj_def, patient, request.user)
+            sent_ok, errors = self._create_adjudication_requests(request, adj_def, patient, request.user)
             if errors:
                 return StandardView.render_error(request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
             else:
                 return StandardView.render_information(request, "Adjudication Request Sent Successfully!")
 
-    def _create_adjudication_requests(self, form_data, adjudication_definition, patient, requesting_user):
-
+    def _create_adjudication_requests(self, request, adjudication_definition, patient, requesting_user):
+        form_data = request.POST
         errors = []
         request_created_ok = []
         try:
@@ -930,6 +930,10 @@ class AdjudicationRequestView(View):
         except AdjudicationRequest.DoesNotExist:
             msg = "Adjudication request not found or not for current user or has already been actioned"
             return StandardView.render_error(request, msg)
+
+        if adj_req.definition.decision:
+            # The adjudicator has already acted on the information from other requests for this patient
+            return StandardView.render_information(request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 

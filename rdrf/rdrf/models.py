@@ -7,7 +7,7 @@ import string
 import json
 from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import full_link, get_site_url
+from rdrf.utils import get_full_link, get_site_url
 
 logger = logging.getLogger("registry")
 
@@ -878,28 +878,26 @@ class AdjudicationRequest(models.Model):
         sending_user = get_user(self.requesting_username)
         if not sending_user:
             raise NotificationError("Could not send email from %s as the user doesn't exist!" % self.requesting_username)
-        to_user = get_user(self.username)
-        if to_user:
-            from rdrf.notifications import Notifier
-            notifier = Notifier()
-            notifier.send_email(to_user.email,
+
+        from rdrf.notifications import Notifier
+        notifier = Notifier()
+        notifier.send_email_to_username(self.username,
                                 email_subject,
                                 email_body,
-                                message_type="Adjudication Request",
-                                from_email=sending_user.email)
-        else:
-            logger.error("Could not send email to %s as no user object exists" % self.username)
+                                message_type="Adjudication Request")
 
     def _create_email_subject(self):
         return "Adjudication Request from %s: %s" % (self.definition.registry.name, self.definition.display_name)
 
     def _create_email_body(self):
+        from rdrf.utils import get_full_link
+        full_link = get_full_link(self.link, login_link=True)
 
         body = """
-            Hello %s User!
+            Dear %s user %s,
             An adjudication request has been assigned to you for %s.
             Please visit %s to complete the adjudication.
-            """ % (self.definition.registry.name, self.definition.display_name, self.link)
+            """ % (self.definition.registry.name,self.username,  self.definition.display_name, full_link)
         return body
 
     def _create_notification(self):
@@ -929,7 +927,6 @@ class AdjudicationRequest(models.Model):
                                         requesting_username=self.requesting_username)
 
     def handle_response(self, request):
-        site_url = get_site_url(request) # used for building links in email notifications
         adjudication_form_response_data = request.POST
         adjudication_codes = [cde.code for cde in self.definition.cde_models]
 
@@ -1014,6 +1011,28 @@ class AdjudicationResponse(models.Model):
                                    self.request.definition.adjudicator_username,
                                    notification_message,
                                    link)
+
+        self._send_email()
+
+    def _send_email(self):
+        email_subject = "Adjudication Request completed by %s for %s concerning %s" % (self.request.username,
+                                                                                       self.request.requesting_username,
+                                                                                       self.request.definition.display_name)
+        full_link = get_full_link(self.request.adjudication.link, login_link=True)
+        email_body = """
+                     Hello %s User %s,
+                     An adjudication request has been completed for adjudication %s for which you are an
+                     adjudicator.
+                     You can check the incoming adjudications here: %s.
+                     If enough adjudiction requests have come back, submit your adjudication decision in
+                     the results field.
+                     """ % (self.request.definition.registry.name,
+                            self.request.definition.adjudicator_username,
+                            self.request.definition.display_name,
+                            full_link)
+
+        n = Notifier()
+        n.send_email_to_username(self.request.definition.adjudicator_username, email_subject, email_body)
 
 
 class AdjudicationDecision(models.Model):

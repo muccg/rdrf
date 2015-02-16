@@ -49,3 +49,11 @@ class Notifier(object):
                                                                                               ex))
             logger.error("Email body =\n%s" % body)
             raise NotificationError("email failed")
+
+    def send_email_to_username(self, username, subject, body, message_type="System Email",
+                               from_email=settings.DEFAULT_FROM_EMAIL):
+        to_user = get_user(username)
+        if not to_user:
+            raise NotificationError("Cannot send email to %s" % username)
+        else:
+            self.send_email(to_user.email, subject, body, message_type, from_email)
