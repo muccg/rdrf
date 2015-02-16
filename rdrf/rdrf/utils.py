@@ -89,3 +89,18 @@ def requires_feature(feature_name):
                 logger.info("%s will not be run with args %s kwargs %s as the site lacks feature %s" % (func.__name__, args, kwargs, feature_name))
         return wrapper
     return decorator
+
+def full_link(site_url, partial_link, login=False):
+    if login:
+        # return a redirect login    https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
+        login_url = site_url + "/login?next="
+        return login_url + partial_link
+    else:
+        return site_url + partial_link
+
+
+def get_site_url(request):
+    # https://rdrf.ccgapps.com.au/ophg/admin/patients/patient/3/
+    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # this part !
+    host = req

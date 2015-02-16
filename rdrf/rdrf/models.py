@@ -6,6 +6,8 @@ from positions.fields import PositionField
 import string
 import json
 from rdrf.utils import has_feature
+from rdrf.notifications import Notifier, NotificationError
+from rdrf.utils import full_link, get_site_url
 
 logger = logging.getLogger("registry")
 
@@ -838,7 +840,6 @@ class AdjudicationDefinition(models.Model):
                 return AdjudicationState.UNADJUDICATED
 
 
-
 class AdjudicationRequest(models.Model):
     # NB I am using usernames and patient pk here because using caused circular import ...
     username = models.CharField(max_length=80)                  # username of the user  this request directed to
@@ -853,13 +854,13 @@ class AdjudicationRequest(models.Model):
         fails = 0
         try:
             self._send_email()
-        except Exception, ex:
+        except NotificationError, ex:
             logger.error("could not send email for %s: %s" % (self, ex))
             fails += 1
 
         try:
             self._create_notification()
-        except Exception, ex:
+        except NotificationError:
             logger.error("could not send internal notification for %s: %s" % (self, ex))
             fails +1
 
@@ -871,21 +872,23 @@ class AdjudicationRequest(models.Model):
         self.save()
 
     def _send_email(self):
-        def get_user(username):
-            from registry.groups.models import CustomUser
-            try:
-                return CustomUser.objects.get(username=username)
-            except:
-                return None
-
+        from rdrf.utils import get_user
         email_subject = self._create_email_subject()
         email_body = self._create_email_body()
         sending_user = get_user(self.requesting_username)
+        if not sending_user:
+            raise NotificationError("Could not send email from %s as the user doesn't exist!" % self.requesting_username)
         to_user = get_user(self.username)
         if to_user:
-            from django.conf import settings
-            from django.core.mail import send_mail
-            send_mail(email_subject, email_body, settings.DEFAULT_FROM_EMAIL,[to_user.email], fail_silently=False)
+            from rdrf.notifications import Notifier
+            notifier = Notifier()
+            notifier.send_email(to_user.email,
+                                email_subject,
+                                email_body,
+                                message_type="Adjudication Request",
+                                from_email=sending_user.email)
+        else:
+            logger.error("Could not send email to %s as no user object exists" % self.username)
 
     def _create_email_subject(self):
         return "Adjudication Request from %s: %s" % (self.definition.registry.name, self.definition.display_name)
@@ -925,7 +928,9 @@ class AdjudicationRequest(models.Model):
                                         patient_id=self.patient,
                                         requesting_username=self.requesting_username)
 
-    def handle_response(self, adjudication_form_response_data):
+    def handle_response(self, request):
+        site_url = get_site_url(request) # used for building links in email notifications
+        adjudication_form_response_data = request.POST
         adjudication_codes = [cde.code for cde in self.definition.cde_models]
 
         def is_valid(field_data):
