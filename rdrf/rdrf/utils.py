@@ -90,17 +90,19 @@ def requires_feature(feature_name):
         return wrapper
     return decorator
 
-def full_link(site_url, partial_link, login=False):
-    if login:
+def get_full_link(partial_link, login_link=False):
+    if login_link:
         # return a redirect login    https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
-        login_url = site_url + "/login?next="
+        login_url = get_site_url() + "/login?next="
         return login_url + partial_link
     else:
         return site_url + partial_link
 
 
-def get_site_url(request):
+def get_site_url():
     # https://rdrf.ccgapps.com.au/ophg/admin/patients/patient/3/
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # this part !
-    host = req
+    # todo get_site_url do this without analysing a request???
+    return "http://localhost:8000"
+
