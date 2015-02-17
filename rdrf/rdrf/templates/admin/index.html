@@ -96,18 +96,38 @@
        </p>
 
        {% if request.user.notices %}
-           <table class="table">
+           <script>
+                 var notificationTable = $("#notificationTable");
+                 var regex = /value='(.*?)'/;
+                 var csrfString = regex.exec("{% csrf_token %}")[1];
+                 var rpc = new RPC.RPC("{% url 'rpc' %}", csrfString);
+
+                 function rdrfDismissNotification(obj) {
+                     var id = $(obj).closest("tr").children('td:first').text();
+                     rpc.send("dismiss_notification", [id], function (result) {
+                        window.location.reload();
+
+                     });
+                 }
+
+           </script>
+           <table id="notificationTable" class="table table-striped table-bordered table-hover table-condensed">
             <caption class="alert alert-info">{% trans "Notifications" %}</caption>
             <thead>
                 <tr>
+                    <th>{% trans "Id" %}</th>
                     <th>{% trans "Message" %}</th>
                     <th>{% trans "From" %}</th>
                     <th>{% trans "When" %}</th>
                     <th>{% trans "Link" %}</th>
+                     <th>{% trans "Dismiss" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for notice in request.user.notices %}
+
+                      <tr>
+                        <td>{{notice.pk}}</td>
                         <td class="notice_message">{{ notice.message|safe }}</td>
                         <td class="notice_message">{{ notice.from_username|safe }}</td>
                         <td class="notice_time">{{ notice.created|timesince }} {% trans "ago" %}</td>
@@ -116,7 +136,10 @@
                         {% else %}
                             <td class="notice_time">NA</td>
                            {% endif %}
+
+                        <td><button onclick="rdrfDismissNotification(this);">Dismiss</button></td>
                     </tr>
+
                 {% endfor %}
             </tbody>
         </table>
