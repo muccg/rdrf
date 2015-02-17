@@ -2,11 +2,12 @@ from django.core import serializers
 import copy
 import json
 from pymongo import MongoClient
+import datetime
+
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-import json
 import pycountry
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries
@@ -14,8 +15,9 @@ from rdrf.models import Registry
 from registry.utils import stripspaces
 from django.conf import settings 
 from rdrf.utils import mongo_db_name
-from django.dispatch import receiver
 from rdrf.utils import requires_feature
+from rdrf.dynamic_data import DynamicDataWrapper
+from rdrf.models import Section
 
 import logging
 logger = logging.getLogger('patient')
@@ -24,6 +26,8 @@ file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.
 
 _MONGO_PATIENT_DATABASE = 'patients'
 _MONGO_PATIENT_COLLECTION = 'patient'
+
+_6MONTHS_IN_DAYS = 183
 
 
 class State(models.Model):
@@ -217,6 +221,42 @@ class Patient(models.Model):
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
+    
+    def form_progress(self, registry_form):
+        if not registry_form.has_progress_indicator:
+            return 0
+    
+        dynamic_store = DynamicDataWrapper(self)
+        cde_registry = registry_form.registry.code
+        section_array = registry_form.sections.split(",")
+        
+        cde_complete = registry_form.complete_form_cdes.values()
+        set_count = 0
+        
+        cdes_status = {}
+        
+        for cde in cde_complete:
+            for s in section_array:
+                if cde["code"] in Section.objects.get(code=s).elements.split(","):
+                    cde_section = s
+            
+            cde_value = dynamic_store.get_cde(cde_registry, cde_section, cde['code'])
+            cdes_status[cde["name"]] = False
+            if cde_value:
+                cdes_status[cde["name"]] = True
+                set_count += 1
+        
+        return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
+    
+    def form_currency(self, registry_form):
+        dynamic_store = DynamicDataWrapper(self)
+        timestamp = dynamic_store.get_form_timestamp(registry_form)
+        if timestamp:
+            ts = timestamp["timestamp"]
+            delta = datetime.datetime.now() - ts
+            return True if delta.days < _6MONTHS_IN_DAYS else False
+        else:
+            False
     
     def as_json(self):
         return dict(

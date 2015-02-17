@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.core import urlresolvers
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.templatetags.static import static
 import os
 import json
 import datetime
@@ -127,8 +128,15 @@ class PatientAdmin(admin.ModelAdmin):
             return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % url
 
         for form in forms:
+            if form.is_questionnaire:
+                continue
+            is_current = obj.form_currency(form)
+            flag = "images/%s.png" % ("tick" if is_current else "cross")
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
-            content += "<a href=%s>%s</a><br/>" % (url, nice_name(form.name))
+            if form.has_progress_indicator:
+                content += "<img src=%s> <strong>%d%%</strong> <a href=%s>%s</a></br>" % (static(flag), obj.form_progress(form)[1] , url, nice_name(form.name))
+            else:
+                content += "<img src=%s> <a href=%s>%s</a></br>" % (static(flag), url, nice_name(form.name))
         
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
     

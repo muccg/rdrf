@@ -5,6 +5,8 @@ import logging
 from rdrf.utils import get_code, mongo_db_name
 from bson.objectid import ObjectId
 from django.conf import settings
+from utils import mongo_db_name
+import datetime
 
 logger = logging.getLogger("registry_log")
 
@@ -271,6 +273,7 @@ class DynamicDataWrapper(object):
         self._convert_date_to_datetime(data)
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)
+        data["timestamp"] = datetime.datetime.now()
         if record:
             logger.debug("%s: updating existing mongo data record %s" % (self, record))
             mongo_id = record['_id']
@@ -352,3 +355,34 @@ class DynamicDataWrapper(object):
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
         cdes.remove({"django_id" : patient_model.pk , "django_model": "Patient"})
+        
+    def get_cde(self, registry, section, cde_code):
+        if not self.testing:
+            db = self.client[mongo_db_name(registry)]
+        else:
+            db = self.client["testing_" + registry]
+
+        collection = db["cdes"]
+        cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
+        cde_record = collection.find_one(self._get_record_query(), { cde_mongo_key: True })
+        cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
+        
+        return cde_value
+
+    def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
+        try:
+            return cde_record[cde_mongo_key]
+        except KeyError:
+            return None
+            
+
+    def get_form_timestamp(self, registry_form):
+        if not self.testing:
+            db = self.client[mongo_db_name(registry_form.registry.code)]
+        else:
+            db = self.client["testing_" + registry_form.registry.code]
+            
+        collection = db["cdes"]
+        form_timestamp = collection.find_one(self._get_record_query(), { "timestamp": True })
+        
+        return form_timestamp

@@ -6,6 +6,8 @@ from positions.fields import PositionField
 import string
 import json
 
+from dynamic_data import DynamicDataWrapper
+
 logger = logging.getLogger("registry")
 
 
@@ -517,7 +519,8 @@ class RegistryForm(models.Model):
     is_questionnaire = models.BooleanField(default=False, help_text="Check if this form is questionnaire form for it's registry")
     position = PositionField(collection='registry')
     questionnaire_questions = models.TextField(blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
-
+    complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
+    
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
@@ -545,6 +548,10 @@ class RegistryForm(models.Model):
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
         return questionnaire_code in self.questionnaire_list
+
+    @property
+    def has_progress_indicator(self):
+        return True if len(self.complete_form_cdes.values_list()) > 0 else False
 
 
 class Wizard(models.Model):

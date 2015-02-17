@@ -225,8 +225,14 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
+            "has_form_progress": self.registry_form.has_progress_indicator
         }
 
+        if not self.registry_form.is_questionnaire:       
+            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
+            context["form_progress"] = progress
+            context["form_progress_cdes"] = cdes_status
+        
         context.update(csrf(request))
         if error_count == 0:
             if not self.testing:
@@ -323,7 +329,7 @@ class FormView(View):
                     initial_data = [""]  # this appears to forms
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
-
+        
         context = {
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
@@ -343,13 +349,19 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
+            "has_form_progress": self.registry_form.has_progress_indicator
         }
+
+        if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:       
+            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
+            context["form_progress"] = progress
+            context["form_progress_cdes"] = cdes_status
 
         context.update(kwargs)
         for k in context:
             logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
-
+        
     def _get_patient_id(self):
         return self.patient_id
 
@@ -357,6 +369,9 @@ class FormView(View):
         patient = Patient.objects.get(pk=self.patient_id)
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         return patient_name
+        
+    def _get_patient_object(self):
+        return Patient.objects.get(pk=self.patient_id)
 
     def _get_metadata_json_dict(self, registry_form):
         """
@@ -529,7 +544,7 @@ class QuestionnaireView(FormView):
                 "total_forms_ids": total_forms_ids,
                 "initial_forms_ids": initial_forms_ids,
                 "formset_prefixes": formset_prefixes,
-                "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
+                "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form)
             }
 
             context.update(csrf(request))
