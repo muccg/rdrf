@@ -276,11 +276,14 @@ class Patient(models.Model):
         dynamic_store = DynamicDataWrapper(self)
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
-            ts = timestamp["timestamp"]
-            delta = datetime.datetime.now() - ts
-            return True if delta.days < _6MONTHS_IN_DAYS else False
+            if "timestamp" in timestamp:
+                ts = timestamp["timestamp"]
+                delta = datetime.datetime.now() - ts
+                return True if delta.days < _6MONTHS_IN_DAYS else False
+            else:
+                return True
         else:
-            False
+            return False
     
     def as_json(self):
         return dict(
