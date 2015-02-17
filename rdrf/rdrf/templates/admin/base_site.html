@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load stickiness %}
 {% load is_i18n %}
+{% load get_feature %}
 
 {% load admin_static %}
 
@@ -38,7 +39,8 @@
 {% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
-
+    {% get_feature "notifications" as notifications_feature %}
+    {% if notifications_feature %}
     <select id="notificationDropdown">
         <option selected disabled>Notifications</option>
     </select>
@@ -75,6 +77,7 @@
            })();
 
     </script>
+    {% endif %}
     {% is_i18n as i18n_flag %}
     {% if i18n_flag %}
         {% get_current_language as LANGUAGE_CODE %}

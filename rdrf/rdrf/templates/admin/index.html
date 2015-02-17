@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static %}
 {% load version_number %}
+{% load get_feature %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -94,7 +95,8 @@
        <p>
 
        </p>
-
+       {% get_feature "notifications" as notifications_feature %}
+       {% if notifications_feature %}
        {% if request.user.notices %}
            <script>
                  var notificationTable = $("#notificationTable");
@@ -146,7 +148,7 @@
        {% else %}
         No Notices
        {% endif %}
-
+       {% endif %}
     </div>
   </div>
 
