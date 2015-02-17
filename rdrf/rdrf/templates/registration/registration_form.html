@@ -1,0 +1,64 @@
+<html>
+
+<head>
+    <title>RDRF | Patient registration</title>
+    
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #edeff1;
+        }
+    </style>
+</head>
+
+<body>
+    <br>
+    {{form.errors}}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-offset-3 col-md-6 col-md-offset-3>
+                <div class="panel panel-default" style="background-color: #f5f5f5;">
+                    <div class="panel-body" style="padding-left: 30px; padding-right: 30px; padding-bottom: 5px">
+                        <form class="form-horizontal" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="Email address" id="id_email" name="email" type="email" />
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="Password" id="id_password1" name="password1" type="password" />
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control input-lg" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-block btn-lg">Register</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

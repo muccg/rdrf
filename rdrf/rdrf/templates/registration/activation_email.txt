@@ -1,0 +1,3 @@
+<a href="{{ site }}{% url 'registration_activate' activation_key %}">Activate</a>
+<br>
+This link will expire in {{expiration_days}} days.

@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'iprestrict',
     'ajax_select',
+    'registration',
 ]
 
 
@@ -115,7 +116,7 @@ AUTHENTICATION_BACKENDS = [
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
-EMAIL_HOST = env.get("email_host", 'localhost')
+EMAIL_HOST = env.get("email_host", '127.0.0.1')
 EMAIL_PORT = env.get("email_port", 25)
 EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
@@ -333,3 +334,7 @@ CUSTOM_MENU_ITEMS = [
 AJAX_LOOKUP_CHANNELS = {
     'gene': {'model': 'genetic.Gene', 'search_field': 'symbol'},
 }
+
+ACCOUNT_ACTIVATION_DAYS = 2
+
+LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)

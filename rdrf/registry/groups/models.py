@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import Group
 from rdrf.models import Registry
 from django.db.models.signals import post_save
 
@@ -37,5 +38,18 @@ class CustomUser(AbstractUser):
         return []
 
 
+from registration.signals import user_registered
+ 
+def user_registered_callback(sender, user, request, **kwargs):
+    user.first_name = request.POST['first_name']
+    user.last_name = request.POST['surname']
+    user.is_staff = True
+    user.groups = [_get_group("Patients"),]
+    user.save()
+
+def _get_group(group_name):
+    group = Group.objects.get(name__contains = group_name)
+    return group
 
 
+user_registered.connect(user_registered_callback)

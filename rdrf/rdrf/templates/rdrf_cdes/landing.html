@@ -6,7 +6,11 @@
 </div>
 
 <div id="user-tools">
-    <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'admin:index' %}">Log in</a>
+    {% if request.user.is_authenticated %}
+        Hello {{ request.user.username }} | <a href="{% url 'logout' %}?next={% url 'landing' %}" >Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}?next={% url 'landing' %}">Log in</a>
+    {% endif %}
 </div>
 {% endblock %}
 

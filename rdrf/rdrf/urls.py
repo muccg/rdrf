@@ -79,6 +79,8 @@ urlpatterns = patterns('',
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     url(r'^adjudicationrequest/(?P<adjudication_request_id>\d+)/?$', form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
     url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
+
+    (r'^accounts/', include('registration.backends.default.urls')),
 )
 
 urlpatterns += patterns('',
