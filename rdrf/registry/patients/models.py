@@ -248,7 +248,7 @@ class Patient(models.Model):
     
     def form_progress(self, registry_form):
         if not registry_form.has_progress_indicator:
-            return 0
+            return [], 0
     
         dynamic_store = DynamicDataWrapper(self)
         cde_registry = registry_form.registry.code
