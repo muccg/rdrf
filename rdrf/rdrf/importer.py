@@ -343,6 +343,18 @@ class Importer(object):
         else:
             return None
 
+    def _create_section_model(self, section_map):
+        s, created = Section.objects.get_or_create(code=section_map["code"])
+        s.code = section_map["code"]
+        s.display_name = section_map["display_name"]
+        s.elements = ",".join(section_map["elements"])
+        s.allow_multiple = section_map["allow_multiple"]
+        s.extra = section_map["extra"]
+        if "questionnaire_help" in section_map:
+            s.questionnaire_help = section_map["questionnaire_help"]
+        s.save()
+        logger.info("imported section %s OK" % s.code)
+
     def _check_metadata_json(self, metadata_json):
         if not metadata_json:
             # no metadata - OK
@@ -365,6 +377,8 @@ class Importer(object):
             self._create_generic_sections(self.data["generic_sections"])
 
         logger.info("imported generic sections OK")
+
+
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
@@ -443,6 +457,25 @@ class Importer(object):
             r.generate_questionnaire()
         except Exception, ex:
             raise QuestionnaireGenerationError(str(ex))
+
+        if "adjudication_definitions" in self.data:
+            self._create_adjudication_definitions(self.data["adjudication_definitions"])
+        logger.info("imported adjudication definitions OK")
+
+    def _create_adjudication_definitions(self, registry_model, adj_def_maps):
+        for adj_def_map in adj_def_maps:
+            result_fields_section_map = adj_def_map["sections_required"]["results_fields"]
+            decision_fields_section_map = adj_def_map["sections_required"]["decision_fields_section"]
+            self._create_section_model(result_fields_section_map)
+            self._create_section_model(decision_fields_section_map)
+            adj_def_model = AdjudicationDefinition(registry=registry_model)
+            adj_def_model.fields = adj_def_map["fields"]
+            adj_def_model.result_fields = adj_def_map["result_fields"]
+            adj_def_model.decision_field = adj_def_map["decision_field"]
+            adj_def_model.adjudicator_username = adj_def_map["adjudicator_username"]
+            adj_def_model.save()
+            logger.info("created Adjudication Definition %s OK" % adj_def_model)
+
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:

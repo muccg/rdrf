@@ -12,12 +12,10 @@
     <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 {% endblock %}
 
-
 {% block content %}
 <h1>Adjudication Results for {{patient}} </h1>
 <h2>Statistics</h2>
 {% pie_chart "id_stats" stats.pie_data %}
-
 <div class="row">
 {% for field in fields %}
     <div class="col-md-4">
@@ -27,15 +25,23 @@
     </div>
 {% endfor %}
 </div>
-<p>
-</p>
+
 <h2>Adjudication Decision:</h2>
+{% if not adjudication.decision %}
 <form method="post">{% csrf_token %}
     {{ decision_form }}
      <input type="hidden" name="patient_id" value="{{patient.pk}}"/>
     <p></p>
      <input type="submit" class="btn btn-info" value="Submit Adjudication Decision"/>
 </form>
+{% else %}
+<br>
+This adjudication has been decided. Your decision was:<br>
+        {% for pair in adjudication.decision.display_actions %}
+        {{pair.0}}: {{pair.1}}<br>
+        {% endfor %}
+{% endif %}
+
 
 {% endblock %}
 

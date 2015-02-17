@@ -28,7 +28,7 @@ SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
 TIME_ZONE = env.get("time_zone", 'Australia/Perth')
 LANGUAGE_CODE = env.get("language_code", 'en')
-USE_I18N = env.get("use_i18n", False)
+USE_I18N = env.get("use_i18n", True)
 
 LANGUAGES = (
     ('ar', 'Arabic'),
