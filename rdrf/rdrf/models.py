@@ -651,6 +651,7 @@ class MissingData(object):
     pass
 
 
+
 class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
     display_name = models.CharField(max_length=80, blank=True, null=True)  # name which will be seen by end users
@@ -660,12 +661,12 @@ class AdjudicationDefinition(models.Model):
     adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
     adjudicating_users = models.TextField(blank=True, null=True,  help_text="Either comma-seperated list of usernames and/or working group names")
 
-    def create_adjudication_request(self, requesting_user, patient, target_user):
+    def create_adjudication_request(self, request, requesting_user, patient, target_user):
         adj_request = AdjudicationRequest(username=target_user.username, requesting_username=requesting_user.username,
                                               patient=patient.pk, definition=self)
 
         adj_request.save()   # state now created
-        adj_request.send()   # state not I or S
+        adj_request.send(request)   # state not I or S
         return adj_request
 
     def _get_demographic_field(self, patient, demographic_cde_code):
@@ -849,11 +850,11 @@ class AdjudicationRequest(models.Model):
                                                     # the result fields to hold the diagnosis vote
     state = models.CharField(max_length=1, default=AdjudicationRequestState.CREATED)
 
-    def send(self):
+    def send(self, request):
         # send the email or something ..
         fails = 0
         try:
-            self._send_email()
+            self._send_email(request)
         except NotificationError, ex:
             logger.error("could not send email for %s: %s" % (self, ex))
             fails += 1
@@ -871,10 +872,10 @@ class AdjudicationRequest(models.Model):
 
         self.save()
 
-    def _send_email(self):
+    def _send_email(self, request):
         from rdrf.utils import get_user
         email_subject = self._create_email_subject()
-        email_body = self._create_email_body()
+        email_body = self._create_email_body(request)
         sending_user = get_user(self.requesting_username)
         if not sending_user:
             raise NotificationError("Could not send email from %s as the user doesn't exist!" % self.requesting_username)
@@ -889,15 +890,15 @@ class AdjudicationRequest(models.Model):
     def _create_email_subject(self):
         return "Adjudication Request from %s: %s" % (self.definition.registry.name, self.definition.display_name)
 
-    def _create_email_body(self):
+    def _create_email_body(self, request):
         from rdrf.utils import get_full_link
-        full_link = get_full_link(self.link, login_link=True)
+        full_link = get_full_link(request, self.link, login_link=True)
 
         body = """
             Dear %s user %s,
             An adjudication request has been assigned to you for %s.
             Please visit %s to complete the adjudication.
-            """ % (self.definition.registry.name,self.username,  self.definition.display_name, full_link)
+            """ % (self.definition.registry.name, self.username,  self.definition.display_name, full_link)
         return body
 
     def _create_notification(self):
@@ -925,6 +926,16 @@ class AdjudicationRequest(models.Model):
         return Adjudication.objects.get(definition=self.definition,
                                         patient_id=self.patient,
                                         requesting_username=self.requesting_username)
+
+    @property
+    def decided(self):
+        # check if a decision object exists for the definition and patient corresponding to this request
+        try:
+            decision = AdjudicationDecision.objects.get(definition=self.definition, patient=self.patient)
+            if decision:
+                return True
+        except:
+            return False
 
     def handle_response(self, request):
         adjudication_form_response_data = request.POST
@@ -962,7 +973,7 @@ class AdjudicationRequest(models.Model):
         adj_response.save()
         self.state = AdjudicationRequestState.PROCESSED
         self.save()
-        adj_response.send_notifications()
+        adj_response.send_notifications(request)
         return True
 
     def create_adjudication_form(self):
@@ -995,7 +1006,7 @@ class AdjudicationResponse(models.Model):
         else:
             raise AdjudicationError("cde not in data")
 
-    def send_notifications(self):
+    def send_notifications(self, request):
         # back to adjudicator telling them someone responded
         from rdrf.notifications import Notifier
         n = Notifier()
@@ -1011,14 +1022,20 @@ class AdjudicationResponse(models.Model):
                                    self.request.definition.adjudicator_username,
                                    notification_message,
                                    link)
+        try:
+            self._send_email(request)
+        except NotificationError, nerr:
+            msg = "could not send email to adjudicator %s about %s adjudication response: %s" % (self.request.definition.adjudicator_username,
+                                                                                                 self.request.definition.display_name,
+                                                                                                 nerr)
 
-        self._send_email()
+            logger.error(msg)
 
-    def _send_email(self):
+    def _send_email(self, request):
         email_subject = "Adjudication Request completed by %s for %s concerning %s" % (self.request.username,
                                                                                        self.request.requesting_username,
                                                                                        self.request.definition.display_name)
-        full_link = get_full_link(self.request.adjudication.link, login_link=True)
+        full_link = get_full_link(request, self.request.adjudication.link, login_link=True)
         email_body = """
                      Hello %s User %s,
                      An adjudication request has been completed for adjudication %s for which you are an
@@ -1159,10 +1176,23 @@ class Adjudication(models.Model):
         requesting_user = CustomUser.objects.get(username=self.requesting_username)
         return reverse('adjudication_result', args=(self.definition.pk, requesting_user.pk, self.patient_id))
 
-    def perform_actions(self):
+    def perform_actions(self, request):
+        class Result(object):
+            def __init__(self):
+                self.ok = True
+                self.error_message = ""
+
         from rdrf.adjudication_actions import AdjudicationAction
         action = AdjudicationAction(self)
-        action.run()
+        result = Result()
+        action.run(request)
+        if action.email_notify_failed:
+            result.ok = False
+            result.error_message += "Email failed to be sent"
+        elif action.system_notify_failed:
+            result.ok = False
+            result.error_message += "System notification failed to be sent"
+        return result
 
 
 class Notification(models.Model):

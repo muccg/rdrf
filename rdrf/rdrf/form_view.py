@@ -894,7 +894,7 @@ class AdjudicationInitiationView(View):
                     continue
                 else:
                     try:
-                        adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
+                        adjudication_definition.create_adjudication_request(request, requesting_user, patient, target_user)
                         request_created_ok.append(target_username)
                     except Exception, ex:
                         errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
@@ -931,7 +931,7 @@ class AdjudicationRequestView(View):
             msg = "Adjudication request not found or not for current user or has already been actioned"
             return StandardView.render_error(request, msg)
 
-        if adj_req.definition.decision:
+        if adj_req.decided:
             # The adjudicator has already acted on the information from other requests for this patient
             return StandardView.render_information(request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
 
@@ -1215,9 +1215,13 @@ class AdjudicationResultsView(View):
 
             adjudication.decision = adj_dec
             adjudication.save()
-            adjudication.perform_actions()
-            return StandardView.render_information(request, "Your adjudication decision has been sent to %s" %
-                                                   adjudication.requesting_username)
+            result = adjudication.perform_actions(request)
+            if result.ok:
+                return StandardView.render_information(request, "Your adjudication decision has been sent to %s" %
+                                                       adjudication.requesting_username)
+            else:
+                return StandardView.render_error(request, "Your adjudication decision was not communicated: %s" %
+                                                 result.error_message)
 
     def _get_actions_data(self, definition, post_data):
         actions = []
