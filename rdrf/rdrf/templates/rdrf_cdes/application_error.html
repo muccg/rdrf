@@ -1,49 +1,75 @@
-{% load staticfiles %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Rare Disease Registry Framework - Application Error</title>
-<link rel="stylesheet" type="text/css" href="{% static 'css/registry.css' %}"/>
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load i18n admin_static %}
+{% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+    <!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+    <![endif]-->
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script>
+        function goBack() {
+            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            if (warning == true) {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            }
+        }
+    </script>
+  <script>
+  $(function() {
+    $( ".datepicker" ).datepicker({
+      showOn: "button",
+      buttonImage: '{% static 'images/calendar.gif' %}',
+      buttonImageOnly: true,
+      showButtonPanel: true,
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'dd-mm-yy',
+      yearRange: '-100:+0',
+    });
+  });
+    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
+    // clicking the today button
+    $.datepicker._gotoToday = function(id) {
+    var target = $(id);
+    var inst = this._getInst(target[0]);
+    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+            inst.selectedDay = inst.currentDay;
+            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+            inst.drawYear = inst.selectedYear = inst.currentYear;
+    }
+    else {
+            var date = new Date();
+            inst.selectedDay = date.getDate();
+            inst.drawMonth = inst.selectedMonth = date.getMonth();
+            inst.drawYear = inst.selectedYear = date.getFullYear();
+            // the below two lines are new
+            this._setDateDatepicker(target, date);
+            this._selectDate(id, this._getDateDatepicker(target));
+    }
+    this._notifyChange(inst);
+    this._adjustDate(target);
+}
+  </script>
+{% endblock %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'suit/bootstrap/css/bootstrap.min.css' %}" media="all"/>
-<link rel="stylesheet" type="text/css" href="{% static 'suit/css/suit.css' %}" media="all">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-<script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
-<script src="{% static 'suit/js/jquery-1.8.3.min.js' %}"></script>
-<script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
-<script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
-<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
-<!--[if IE 6]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
-<![endif]-->
-<!--[if IE 7]>
-<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
-<![endif]-->
-</head>
- 
-<body>
-	<div id="header" class="header">
-<h1>Application Error</h1>
-</div>
-
-<div id="content" class="colM">
-
-	 
-	<p>Application Error: {{ application_error }}</p>
-	 
-
-
-</div>
-
-<div id="content" class="colM">
-
-</div>
-
-
-</body>
-
-</html>
+{% block content %}
+    <div class="alert alert-error">
+    <h3>Error: {% trans application_error %}</h3>
+    </div>
+{% endblock %}

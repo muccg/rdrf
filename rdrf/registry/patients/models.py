@@ -140,6 +140,30 @@ class Patient(models.Model):
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
 
+
+    @property
+    def age(self):
+        """ in years """
+        from datetime import date
+        def calculate_age(born):
+            today = date.today()
+            try:
+                birthday = born.replace(year=today.year)
+            except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+                birthday = born.replace(year=today.year, month=born.month+1, day=1)
+            if birthday > today:
+                return today.year - born.year - 1
+            else:
+                return today.year - born.year
+
+        try:
+            age_in_years = calculate_age(self.date_of_birth)
+            return age_in_years
+        except:
+            return None
+
+
+
     @property
     def working_groups_display(self):
         def display_group(working_group):
@@ -224,7 +248,7 @@ class Patient(models.Model):
     
     def form_progress(self, registry_form):
         if not registry_form.has_progress_indicator:
-            return 0
+            return [], 0
     
         dynamic_store = DynamicDataWrapper(self)
         cde_registry = registry_form.registry.code
@@ -252,11 +276,14 @@ class Patient(models.Model):
         dynamic_store = DynamicDataWrapper(self)
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
-            ts = timestamp["timestamp"]
-            delta = datetime.datetime.now() - ts
-            return True if delta.days < _6MONTHS_IN_DAYS else False
+            if "timestamp" in timestamp:
+                ts = timestamp["timestamp"]
+                delta = datetime.datetime.now() - ts
+                return True if delta.days < _6MONTHS_IN_DAYS else False
+            else:
+                return True
         else:
-            False
+            return False
     
     def as_json(self):
         return dict(

@@ -7,6 +7,8 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.dispatch import receiver
 
+from registration.signals import user_registered
+
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, null=True)
@@ -33,12 +35,14 @@ class CustomUser(AbstractUser):
 
     @property
     def notices(self):
-        #return Notice.objects.filter(user=self).order_by("-added")
-        # todo
-        return []
+        from rdrf.models import Notification
+        return Notification.objects.filter(to_username=self.username, seen=False).order_by("-created")
 
+    def in_registry(self, registry_model):
+        for reg in self.registry.all():
+            if reg is registry_model:
+                return True
 
-from registration.signals import user_registered
  
 def user_registered_callback(sender, user, request, **kwargs):
     user.first_name = request.POST['first_name']
@@ -50,6 +54,5 @@ def user_registered_callback(sender, user, request, **kwargs):
 def _get_group(group_name):
     group = Group.objects.get(name__contains = group_name)
     return group
-
 
 user_registered.connect(user_registered_callback)

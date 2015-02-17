@@ -307,9 +307,11 @@ class DynamicDataWrapper(object):
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
     def save_snapshot(self, registry_code, collection_name):
-        return
-        record = self.load_dynamic_data(registry_code, collection_name)
-        self._save_longitudinal_snapshot(registry_code, record)
+        try:
+            record = self.load_dynamic_data(registry_code, collection_name)
+            self._save_longitudinal_snapshot(registry_code, record)
+        except Exception, ex:
+            logger.error("Error saving longitudinal snapshot: %s" % ex)
 
     def _convert_date_to_datetime(self, data):
         """
