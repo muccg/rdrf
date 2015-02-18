@@ -7,7 +7,11 @@
 
 <div id="user-tools">
     {% if request.user.is_authenticated %}
-        Hello {{ request.user.username }} | <a href="{% url 'logout' %}?next={% url 'landing' %}" >Logout</a>
+        Hello {{ request.user.username }} |
+        {% if is_admin %}
+            <a href="{% url 'admin:index' %}">Admin Page</a> |
+        {% endif %}
+        <a href="{% url 'logout' %}?next={% url 'landing' %}" >Logout</a>
     {% else %}
         <a href="{% url 'login' %}?next={% url 'landing' %}">Log in</a>
     {% endif %}
@@ -19,6 +23,7 @@
 	<div class="page-header">
 	  <h1><i>Welcome to Rare Disease Registry Framework!</i></h1>
 	</div>
+    
 	<div class="well">
 	<p class="text-justify">
 	  RDRF ( Rare Disease Registry Framework ) is a tool for the creation of web-based data entry forms and questionnaires based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system at runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics

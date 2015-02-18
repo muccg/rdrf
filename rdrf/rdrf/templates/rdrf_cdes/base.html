@@ -46,13 +46,21 @@
 <div id="wrap">
 
     <div id="header" class="header">
-        {% block header%}
+      {% block header%}
 	  <div id="branding" class="branding">
 	      <h1 id="site-name">{% trans "Rare Disease Registry Framework" %}</h1>
 	  </div>
 	  
 	  <div id="user-tools">
-	      <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'admin:index' %}">Log in</a>
+      {% if request.user.is_authenticated %}
+        Hello {{ request.user.username }} |
+        {% if is_admin %}
+            <a href="{% url 'admin:index' %}">Admin Page</a> |
+        {% endif %}
+            <a href="{% url 'logout' %}?next={{request.path}}" >Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}?next={% url 'admin:index' %}">Admin log in</a> | <a href="{% url 'login' %}?next={{request.path}}/patient">Patient log in</a>
+        {% endif %}
 	  </div>
         {% endblock%}
     </div>

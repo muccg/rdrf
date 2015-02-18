@@ -76,6 +76,7 @@ setup(name='django-rdrf',
         'django-iprestrict==0.1',
         'django-suit',
         'django-ajax-selects',
+        'pysam==0.8.1',
         'hgvs==0.2.1',
         'django-positions', 
         'django-tastypie==0.11.1',
@@ -93,7 +94,7 @@ setup(name='django-rdrf',
         'psycopg2==2.5.4',
         'six==1.9.0',
         'python-gettext',
-        'django-registration'
+        'django-registration-redux'
     ],
     dependency_links=[
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",

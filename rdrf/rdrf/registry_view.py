@@ -1,3 +1,4 @@
+from django.shortcuts import RequestContext
 from django.shortcuts import render_to_response
 from django.views.generic.base import View
 from django.core.context_processors import csrf
@@ -21,4 +22,4 @@ class RegistryView(View):
         }
  
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/splash.html', context)
+        return render_to_response('rdrf_cdes/splash.html', context, context_instance = RequestContext(request))

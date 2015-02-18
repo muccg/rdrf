@@ -1,13 +1,17 @@
-from django.db import models, transaction
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.models import Group
-from rdrf.models import Registry
-from django.db.models.signals import post_save
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+
+from django.db.models.signals import post_save
+from django.db import models, transaction
+
+from django.dispatch import receiver
 from django.dispatch import receiver
 
 from registration.signals import user_registered
+
+from rdrf.models import Registry
+
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -43,16 +47,34 @@ class CustomUser(AbstractUser):
             if reg is registry_model:
                 return True
 
- 
+
+@receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
     user.first_name = request.POST['first_name']
     user.last_name = request.POST['surname']
     user.is_staff = True
-    user.groups = [_get_group("Patients"),]
+    user.groups = [ _get_group("Patients"), ]
+    
+    registry_code = _get_registry_code(request.path)
+    user.registry = [ _get_registry_object(registry_code), ]
+    
     user.save()
 
-def _get_group(group_name):
-    group = Group.objects.get(name__contains = group_name)
-    return group
+def _get_registry_code(path):
+    account = "accounts/"
+    register ="/register"
+    return (path.split(account))[1].split(register)[0]
 
-user_registered.connect(user_registered_callback)
+def _get_registry_object(registry_name):
+    try:
+        registry = Registry.objects.get(code__iexact = registry_name)
+        return registry
+    except Registry.DoesNoExist:
+        return None
+    
+def _get_group(group_name):
+    try:
+        group = Group.objects.get(name__icontains = group_name)
+        return group
+    except Group.DoesNoExist:
+        return None

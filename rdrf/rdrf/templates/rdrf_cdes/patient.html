@@ -1,0 +1,35 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block content %}
+    <br/>
+
+    {% if request.user.is_authenticated %}
+
+        {% if is_patient %}
+            <div class="alert alert-success">Welcome {{request.user.first_name}}</div>
+
+            {% if error_msg %}
+                <div class="alert alert-danger">{{error_msg}}</div>
+            {% endif %}
+            
+            {% if not access %}
+                <div class="alert alert-danger">You don't ave access to this registry</div>
+            {% endif %}
+
+            <ul class="list-group">
+            {% for form in forms %}
+                <li class="list-group-item">{{form.name}}<span class="badge">Access</span></li>
+            {% endfor %}
+            </ul>
+            
+        {% endif %}
+        
+        {% if is_admin %}
+            <div class="alert alert-warning">Place for admins is <a href="{% url 'admin:index' %}">here</a></div>
+        {% endif %}
+        
+    {% else %}
+        <div class="alert alert-danger">Please log in</div>
+    {% endif %}
+
+{% endblock %}

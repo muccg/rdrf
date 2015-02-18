@@ -11,6 +11,7 @@ import landing_view
 import import_registry_view
 import rest_interface
 import hgvs_view
+import patient_view
 from lookup_views import GeneView, LaboratoryView, StateLookup
 from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
@@ -18,6 +19,11 @@ from views import RegistryList, AllocateView
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
+
+from django.views.generic.base import TemplateView
+
+#from registration.backends.default.views import ActivationView
+#from registration.backends.default.views import RegistrationView
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -39,8 +45,6 @@ v1_api = Api(api_name='v1')
 v1_api.register(PatientResource())
 
 
-
-
 urlpatterns = patterns('',
     url(r'^test404',handler404),
     url(r'^test500',handler500),
@@ -51,6 +55,7 @@ urlpatterns = patterns('',
     url(r"^patient/(\d+)$", views.patient_cdes),
     url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$", form_view.FormView.as_view(), name='registry_form'),
     url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
+    url(r"^registry/(?P<registry_code>\w+)/patient/?$", patient_view.PatientView.as_view(), name='patient_page'),
     url(r'^/?$',landing_view.LandingView.as_view(), name='landing'),
     url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry' ),
     url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}, name='login'),
@@ -79,13 +84,17 @@ urlpatterns = patterns('',
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     url(r'^adjudicationinitiation/(?P<def_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationInitiationView.as_view(), name='adjudication_initiation'),
     url(r'^adjudicationrequest/(?P<adjudication_request_id>\d+)/?$', form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
-    (r'^accounts/', include('registration.backends.default.urls')),
     url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$', form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
+)
+
+urlpatterns += patterns('',
+    (r'^accounts/fkrp/', include('registration.backends.default.urls')),
 )
 
 urlpatterns += patterns('',
     url(r'^i18n', include('django.conf.urls.i18n')),
 )
+
 
 # pattern for serving statically
 if settings.DEBUG:
