@@ -14,10 +14,10 @@ class PatientView(View):
         
         try:
             registry = Registry.objects.get(code=registry_code)
-            if registry in request.user.groups.all():
+            if registry in request.user.registry.all():
                 context['access']  = True
         except Registry.DoesNotExist:
-            context['error_msg'] = "Registry does not exist or you dont have access to it"
+            context['error_msg'] = "Registry does not exist"
         
         try:
             forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
