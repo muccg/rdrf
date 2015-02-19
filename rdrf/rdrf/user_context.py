@@ -29,5 +29,5 @@ def _get_group(group_name):
     try:
         group = Group.objects.get(name__icontains = group_name)
         return group
-    except Group.DoesNoExist:
+    except Group.DoesNotExist:
         return None
