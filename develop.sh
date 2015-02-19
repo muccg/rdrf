@@ -87,7 +87,9 @@ function ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
     ccg ${AWS_STAGING_INSTANCE} boot
     ccg ${AWS_STAGING_INSTANCE} puppet
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf syncdb --all' # Ensure that permissions and contenttypes are "in synch"
+    # a hack to wait for mongo
+    sleep 10
+    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf syncdb'
     ccg ${AWS_STAGING_INSTANCE} shutdown:120
 }
 
