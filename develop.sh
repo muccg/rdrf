@@ -37,7 +37,7 @@ function addregistries() {
     python rdrf/manage.py load_fixture --file=rdrf.json
 
 }
-function addusers {
+function addusers() {
     echo "Adding RDRF users to $HOSTNAME"
     cd /usr/local/src
     source virt_rdrf/bin/activate
