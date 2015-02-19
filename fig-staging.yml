@@ -17,6 +17,7 @@ cachestaging:
 
 mongostaging:
   image: mongo:2.6
+  command: mongod --smallfiles
 
 webstaging:
   build: docker/unstable

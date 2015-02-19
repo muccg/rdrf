@@ -18,6 +18,7 @@ cache:
 
 mongo:
   image: mongo:2.6
+  command: mongod --smallfiles
 
 #triplestore:
 #  image: muccg/allegro:4.14.1
