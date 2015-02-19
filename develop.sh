@@ -32,7 +32,7 @@ settings() {
 # ssh setup, make sure our ccg commands can run in an automated environment
 ci_ssh_agent() {
     ssh-agent > /tmp/agent.env.sh
-    source /tmp/agent.env.sh
+    . /tmp/agent.env.sh
     ssh-add ~/.ssh/ccg-syd-staging-2014.pem
 }
 
