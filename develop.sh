@@ -11,7 +11,7 @@ ACTION="$1"
 
 PROJECT_NAME='rdrf'
 AWS_BUILD_INSTANCE='aws_rpmbuild_centos6'
-AWS_STAGING_INSTANCE='aws-syd-rdrf-staging'
+AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
@@ -84,15 +84,25 @@ function ci_remote_destroy() {
 
 # puppet up staging which will install the latest rpm for each registry
 function ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} destroy # force recreation
-    ccg ${AWS_STAGING_INSTANCE} boot
-    ccg ${AWS_STAGING_INSTANCE} puppet
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf syncdb'
-    ccg ${AWS_STAGING_INSTANCE} shutdown:120
+    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/docker/unstable'
+    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/data'
+    ccg ${AWS_STAGING_INSTANCE} drun:'chmod o+w rdrf/data'
+    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,rdrf/fig-staging.yml
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,rdrf/docker/unstable/Dockerfile
+
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml stop'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml kill'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
+    ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged'
 }
 
 #Preload fixtures from JSON file
 function ci_staging_fixture() {
+    # todo
+    exit -1
+
     local result=`ccg ${AWS_STAGING_INSTANCE} dsudo:'cat /tmp/rdrfsentinel || exit 0' | grep 'out: loaded' | awk  '{print $3;}'`
     echo "content of sentinel file=[$result]"
     if [ "$result" != "loaded" ]; then
@@ -107,6 +117,9 @@ function ci_staging_fixture() {
 
 # staging selenium test
 function ci_staging_selenium() {
+    # todo
+    exit -1
+
     ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
     ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
     ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
@@ -126,6 +139,9 @@ function ci_staging_selenium() {
 
 # run tests on staging
 function ci_staging_tests() {
+    # todo
+    exit -1
+
     REMOTE_TEST_DIR=/tmp
     # Grant permission to create a test database.
     DATABASE_USER=rdrf
