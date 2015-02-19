@@ -128,9 +128,8 @@ ci_staging_tests() {
 
 make_virtualenv() {
     # check requirements
-    which virtualenv-2.7 > /dev/null
-    virtualenv-2.7 ${VIRTUALENV}
-    ${VIRTUALENV}/bin/pip install ${PIP_OPTS} --upgrade 'pip>=1.5,<1.6'
+    which virtualenv > /dev/null
+    virtualenv ${VIRTUALENV}
 }
 
 
