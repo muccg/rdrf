@@ -6,6 +6,7 @@ VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 
 # break on error
 set -e 
+set -x
 
 ACTION="$1"
 
