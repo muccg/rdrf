@@ -409,6 +409,9 @@ class QuestionnaireView(FormView):
         self.questionnaire_context = None
         self.template = 'rdrf_cdes/questionnaire.html'
 
+    from patient_decorators import patient_has_access
+    
+    @method_decorator(patient_has_access)
     def get(self, request, registry_code, questionnaire_context="au"):
         try:
             if questionnaire_context is not None:
@@ -458,6 +461,7 @@ class QuestionnaireView(FormView):
         else:
             return "au"
 
+    @method_decorator(patient_has_access)
     def post(self, request, registry_code, **kwargs):
         self.questionnaire_context = self._get_questionnaire_context(request)
         error_count = 0

@@ -4,6 +4,11 @@ from django.views.generic.base import View
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
 
+import logging
+
+logger = logging.getLogger("registry_log")
+
+
 class PatientView(View):
 
     def get(self, request, registry_code):
@@ -19,11 +24,12 @@ class PatientView(View):
                     context['access']  = True
             except Registry.DoesNotExist:
                 context['error_msg'] = "Registry does not exist"
+                logger.error("Registry %s does not exist" % registry_code)
             
             try:
                 forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
                 context['forms'] = forms
             except RegistryForm.DoesNotExist:
-                pass
+                logger.error("No questionnaire for %s reistry" % registry_code)
 
         return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))

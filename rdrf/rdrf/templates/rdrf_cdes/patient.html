@@ -18,14 +18,13 @@
 
             <ul class="list-group">
             {% for form in forms %}
-                <li class="list-group-item">{{form.name}}<span class="badge">Access</span></li>
+                <li class="list-group-item">{{form.name}}<a target="_blank" href="{% url 'questionnaire' form.registry.code %}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
             {% endfor %}
             </ul>
-            
-        {% endif %}
-        
-        {% if is_admin %}
+        {% elif is_admin %}
             <div class="alert alert-warning">Place for admins is <a href="{% url 'admin:index' %}">here</a></div>
+        {% else %}
+            <div class="alert alert-danger">Looks like you are not a patient. Please contact admnistrator!</div>
         {% endif %}
         
     {% else %}
