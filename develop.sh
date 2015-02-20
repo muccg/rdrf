@@ -12,14 +12,13 @@ ACTION="$1"
 PROJECT_NAME='rdrf'
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
-CLOSURE="/usr/local/closure/compiler.jar"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
 MODULES="psycopg2==2.5.2 Werkzeug flake8 ${TESTING_MODULES}"
 PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 usage() {
-    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|unit_tests)'
 }
 
 
@@ -108,21 +107,15 @@ ci_staging_selenium() {
     ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
 }
 
-# run tests on staging
-ci_staging_tests() {
-    # todo
-    exit -1
 
-    REMOTE_TEST_DIR=/tmp
-    # Grant permission to create a test database.
-    DATABASE_USER=rdrf
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"su postgres -c \"psql -c 'ALTER ROLE ${DATABASE_USER} CREATEDB;'\""
+unit_tests() {
+    mkdir -p data
 
-    # This is the command which runs manage.py with the correct environment
-    DJANGO_ADMIN="rdrf"
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
+    pip install fig
 
-    # Run tests
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd ${REMOTE_TEST_DIR} && ${DJANGO_ADMIN} test rdrf"
+    fig -f fig-test.yml up
 }
 
 make_virtualenv() {
@@ -210,9 +203,9 @@ ci_staging_fixture)
     ci_ssh_agent
     ci_staging_fixture
     ;;
-ci_staging_tests)
+unit_tests)
     ci_ssh_agent
-    ci_staging_tests
+    unit_tests
     ;;
 *)
     usage
