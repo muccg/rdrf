@@ -69,12 +69,12 @@ def _get_registry_object(registry_name):
     try:
         registry = Registry.objects.get(code__iexact = registry_name)
         return registry
-    except Registry.DoesNoExist:
+    except Registry.DoesNotExist:
         return None
     
 def _get_group(group_name):
     try:
         group = Group.objects.get(name__icontains = group_name)
         return group
-    except Group.DoesNoExist:
+    except Group.DoesNotExist:
         return None

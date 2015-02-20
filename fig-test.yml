@@ -17,6 +17,7 @@ cachetest:
 
 mongotest:
   image: mongo:2.6
+  command: mongod --smallfiles
 
 webtest:
   image: rdrf_web
