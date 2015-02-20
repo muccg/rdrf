@@ -6,7 +6,6 @@ VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 
 # break on error
 set -e 
-set -x
 
 ACTION="$1"
 
@@ -20,7 +19,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 usage() {
-    echo 'Usage ./develop.sh (test|ci_lint|rpmbuild|rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
+    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|ci_staging_tests)'
 }
 
 
@@ -67,7 +66,7 @@ ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
-    ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged'
+    ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged || true'
 }
 
 #Preload fixtures from JSON file
@@ -134,26 +133,23 @@ make_virtualenv() {
 
 
 # lint using flake8
-lint() {
-    virt_rdrf/bin/flake8 rdrf/rdrf --exclude=migrations --ignore=E501 --count
+pythonlint() {
+    make_virtualenv
+    ${VIRTUALENV}/bin/pip install 'flake8>=2.0,<2.1'
+    ${VIRTUALENV}/bin/flake8 rdrf/rdrf --exclude=migrations --ignore=E501 --count
 }
 
 # lint js, assumes closure compiler
 jslint() {
-    JSFILES="rdrf/rdrf/rdrf/static/js/*.js"
+    make_virtualenv
+    ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13'
+
+    JSFILES="rdrf/rdrf/static/js/*.js"
     for JS in $JSFILES
     do
         ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
 
-}
-
-# lint both Python and JS on CI server
-ci_lint() {
-    make_virtualenv
-    ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13' 'flake8>=2.0,<2.1'
-    lint
-    jslint
 }
 
 
@@ -185,21 +181,15 @@ runtest() {
 
 
 case ${ACTION} in
-pythonversion)
-    pythonversion
-    ;;
-pipfreeze)
-    pipfreeze
-    ;;
 test)
     settings
     runtest
     ;;
-ci_lint)
-    ci_lint
+pythonlint)
+    pythonlint
     ;;
-lint)
-    lint
+jslint)
+    jslint
     ;;
 rpmbuild)
     rpmbuild
