@@ -3,6 +3,7 @@ datatest:
   image: muccg/base:debian8
   volumes:
     - .:/app
+    - data/tests:/data
 
 dbtest:
   image: postgres:9.3
