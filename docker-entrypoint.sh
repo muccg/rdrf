@@ -129,7 +129,7 @@ fi
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
 
-    django-admin.py run_lettuce 2>&1 | tee /data/lettuce.log
+    django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml 2>&1 | tee /data/lettuce.log
     exit $?
 fi
 
