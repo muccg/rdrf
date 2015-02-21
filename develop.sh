@@ -11,19 +11,10 @@ ACTION="$1"
 PROJECT_NAME='rdrf'
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
-TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
-TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
-MODULES="psycopg2==2.5.2 Werkzeug flake8 ${TESTING_MODULES}"
-PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 usage() {
-    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
-}
-
-
-settings() {
-    export DJANGO_SETTINGS_MODULE="rdrf.settings"
+    echo 'Usage ./develop.sh (pythonlint|jslint|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
 }
 
 
@@ -35,7 +26,6 @@ ci_ssh_agent() {
 }
 
 
-# build RPMs
 rpmbuild() {
     mkdir -p data/rpmbuild
     chmod o+rwx data/rpmbuild
@@ -44,10 +34,10 @@ rpmbuild() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
-    fig --project-name yabi -f fig-rpmbuild.yml up
+    fig --project-name rdrf -f fig-rpmbuild.yml up
 }
 
-# publish rpms 
+
 rpm_publish() {
     time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/rdrf*.rpm,release=6
 }
@@ -77,7 +67,7 @@ selenium() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
-    fig -f fig-selenium.yml up
+    fig --project-name rdrf -f fig-selenium.yml up
 }
 
 
@@ -89,24 +79,23 @@ unit_tests() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
-    fig -f fig-test.yml up
+    fig --project-name rdrf -f fig-test.yml up
 }
 
+
 make_virtualenv() {
-    # check requirements
     which virtualenv > /dev/null
     virtualenv ${VIRTUALENV}
 }
 
 
-# lint using flake8
 pythonlint() {
     make_virtualenv
     ${VIRTUALENV}/bin/pip install 'flake8>=2.0,<2.1'
     ${VIRTUALENV}/bin/flake8 rdrf/rdrf --exclude=migrations --ignore=E501 --count
 }
 
-# lint js, assumes closure compiler
+
 jslint() {
     make_virtualenv
     ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13'
@@ -116,42 +105,10 @@ jslint() {
     do
         ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
-
-}
-
-
-# run the tests using nose
-nosetests() {
-    source virt_rdrf/bin/activate
-    virt_rdrf/bin/nosetests --with-xunit --xunit-file=tests.xml -v -w rdrf
-}
-
-
-# run the tests using django-admin.py
-djangotests() {
-    source virt_rdrf/bin/activate
-    virt_rdrf/bin/django-admin.py test rdrf --noinput
-}
-
-# nose collect, untested
-nose_collect() {
-    source virt_rdrf/bin/activate
-    virt_rdrf/bin/nosetests -v -w rdrf --collect-only
-}
-
-
-# tests
-runtest() {
-    #nosetests
-    djangotests
 }
 
 
 case ${ACTION} in
-test)
-    settings
-    runtest
-    ;;
 pythonlint)
     pythonlint
     ;;
