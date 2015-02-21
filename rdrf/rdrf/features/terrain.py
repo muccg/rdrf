@@ -9,35 +9,25 @@ import lettuce_webdriver.webdriver
 
 from rdrf import steps
 
-if "DISPLAY" not in os.environ:
-    from pyvirtualdisplay import Display
-    display = Display(visible=0, size=(800, 600))
-else:
-    display = None
-
 
 @before.all
 def set_browser():
-    if display:
-        display.start()
-    world.browser = webdriver.Firefox()
+    desired_capabilities = webdriver.DesiredCapabilities.FIREFOX
+
+    world.browser = webdriver.Remote(
+        desired_capabilities=desired_capabilities,
+        command_executor="http://seleniumhub:4444/wd/hub"
+    )
 
 
 @before.all
 def set_site_url():
-    world.site_url = steps.get_site_url("rdrf", default_url="http://localhost:8000")
+    world.site_url = steps.get_site_url("rdrf", default_url="http://webselenium:8000")
 
 
 @before.all
 def set_wait_seconds():
     world.wait_seconds = 3
-
-
-@after.all
-def clean_after_tests(result):
-    world.browser.quit()
-    if display:
-        display.stop()
 
 
 @before.each_scenario

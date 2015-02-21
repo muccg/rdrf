@@ -1,0 +1,79 @@
+#
+dataselenium:
+  image: muccg/base:debian8
+  volumes:
+    - .:/app
+
+seleniumhub:
+  image: selenium/hub
+  ports:
+    - ":4444"
+
+chrome:
+  image: selenium/node-chrome
+  links:
+  - seleniumhub:hub
+  - webselenium
+
+firefox:
+  image: selenium/node-firefox
+  links:
+  - seleniumhub:hub
+  - webselenium
+
+dbselenium:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - ":5432"
+
+cacheselenium:
+  image: memcached:1.4
+
+mongoselenium:
+  image: mongo:2.6
+  command: mongod --smallfiles
+
+webselenium:
+  image: rdrf_web
+  command: runserver
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBSERVER=dbselenium
+    - DBUSER=rdrfapp
+    - CACHESERVER=cacheselenium
+    - MONGOSERVER=mongoselenium
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - dataselenium      
+  ports:
+    - ":8000"
+  links:
+    - dbselenium
+    - cacheselenium
+    - mongoselenium
+
+# runs the lettuce tests against the stack above
+lettucehost:
+  image: rdrf_web
+  command: lettuce
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBSERVER=dbselenium
+    - DBUSER=rdrfapp
+    - WEBSERVER=webselenium
+    - MONGOSERVER=mongoselenium
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_WEB=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - dataselenium      
+  links:
+    - dbselenium
+    - webselenium
+    - mongoselenium
+    - seleniumhub
