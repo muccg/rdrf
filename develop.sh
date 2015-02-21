@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 TOPDIR=$(cd `dirname $0`; pwd)
 
