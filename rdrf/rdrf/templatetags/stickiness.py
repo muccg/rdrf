@@ -7,10 +7,12 @@ DEFAULT_NAME = "Rare Disease Registry Framework"
 
 register = template.Library()
 
+
 @register.simple_tag
 def sticky_registry(request):
     # return primary key of registry
     return request.session.get("sticky_registry", '')
+
 
 @register.simple_tag
 def current_registry(request):
@@ -49,4 +51,3 @@ def sticky_logout_url(request):
             return reverse("landing")
     else:
         return reverse("landing")
-
