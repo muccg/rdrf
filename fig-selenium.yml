@@ -3,6 +3,7 @@ dataselenium:
   image: muccg/base:debian8
   volumes:
     - .:/app
+    - data/selenium:/data
 
 seleniumhub:
   image: selenium/hub
