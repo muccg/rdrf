@@ -25,9 +25,9 @@ def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
 
 
-@before.all
-def set_wait_seconds():
-    world.wait_seconds = 3
+#@before.all
+#def set_wait_seconds():
+#    world.wait_seconds = 3
 
 
 @before.each_scenario
@@ -36,5 +36,5 @@ def delete_cookies(scenario):
     world.browser.delete_all_cookies()
 
 @after.each_scenario
-def screenshot(feature):
-    world.browser.get_screenshot_as_file('/data/%s.png' % feature.name)
+def screenshot(scenario):
+    world.browser.get_screenshot_as_file("/data/{0}-{1}.png".format(scenario.passed, scenario.name))
