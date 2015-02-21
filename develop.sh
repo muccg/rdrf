@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 TOPDIR=$(cd `dirname $0`; pwd)
-VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 
 
 # break on error
@@ -10,6 +9,7 @@ set -e
 ACTION="$1"
 
 PROJECT_NAME='rdrf'
+VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 TARGET_DIR="/usr/local/src/${PROJECT_NAME}"
 TESTING_MODULES="pyvirtualdisplay nose selenium lettuce lettuce_webdriver"
@@ -18,7 +18,7 @@ PIP_OPTS='--download-cache ~/.pip/cache --process-dependency-links'
 
 
 usage() {
-    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|ci_staging|ci_staging_selenium|ci_staging_fixture|unit_tests)'
+    echo 'Usage ./develop.sh (test|pythonlint|jslint|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
 }
 
 
@@ -68,48 +68,22 @@ ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged || true'
 }
 
-#Preload fixtures from JSON file
-ci_staging_fixture() {
-    # todo
-    exit -1
 
-    local result=`ccg ${AWS_STAGING_INSTANCE} dsudo:'cat /tmp/rdrfsentinel || exit 0' | grep 'out: loaded' | awk  '{print $3;}'`
-    echo "content of sentinel file=[$result]"
-    if [ "$result" != "loaded" ]; then
-        echo "/tmp/rdrfsentinel file does not exist - loading fixtures ..."
-        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=rdrf.json'
-        ccg ${AWS_STAGING_INSTANCE} dsudo:'rdrf load_fixture --file\=users.json'
-        ccg ${AWS_STAGING_INSTANCE} dsudo:'echo loaded > /tmp/rdrfsentinel'
-    else
-        echo "Fixtures already loaded as sentinel file /tmp/rdrfsentinel exists - No fixtures were loaded"
-    fi
-}
+selenium() {
+    mkdir -p data/selenium
+    chmod o+rwx data/selenium
 
-# staging selenium test
-ci_staging_selenium() {
-    # todo
-    exit -1
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
+    pip install fig
 
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"pip2.7 install ${PIP_OPTS} ${TESTING_MODULES}"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'dbus-uuidgen --ensure'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'chown apache:apache /var/www'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'yum --enablerepo\=ccg-testing clean all'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'yum install rdrf -y'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'killall httpd || true'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'service httpd start'
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'echo https://staging.ccgapps.com.au/rdrf-staging > /tmp/rdrf_site_url'
-    #ccg ${AWS_STAGING_INSTANCE} dsudo:'echo http://localhost/rdrf > /tmp/rdrf_site_url'
-    ccg ${AWS_STAGING_INSTANCE} drunbg:"Xvfb -ac \:0"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'mkdir -p lettuce && chmod o+w lettuce'
-    sleep 5
-    ccg ${AWS_STAGING_INSTANCE} dsudo:"cd lettuce && env DISPLAY\=\:0 rdrf run_lettuce --with-xunit --xunit-file\=/tmp/tests.xml || true"
-    ccg ${AWS_STAGING_INSTANCE} dsudo:'rm /tmp/rdrf_site_url'
-    ccg ${AWS_STAGING_INSTANCE} getfile:/tmp/tests.xml,./
+    fig -f fig-selenium.yml up
 }
 
 
 unit_tests() {
-    mkdir -p data
+    mkdir -p data/tests
+    chmod o+rwx data/tests
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
@@ -195,17 +169,11 @@ ci_staging)
     ci_ssh_agent
     ci_staging
     ;;
-ci_staging_selenium)
-    ci_ssh_agent
-    ci_staging_selenium
-    ;;
-ci_staging_fixture)
-    ci_ssh_agent
-    ci_staging_fixture
-    ;;
 unit_tests)
-    ci_ssh_agent
     unit_tests
+    ;;
+selenium)
+    selenium
     ;;
 *)
     usage
