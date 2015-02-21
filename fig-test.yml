@@ -20,14 +20,11 @@ mongotest:
   command: mongod --smallfiles
 
 webtest:
-  image: rdrf_web
+  build: .
   command: runserver
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBSERVER=dbtest
     - DBUSER=rdrfapp
-    - CACHESERVER=cachetest
-    - MONGOSERVER=mongotest
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
@@ -36,9 +33,9 @@ webtest:
   ports:
     - ":8000"
   links:
-    - dbtest
-    - cachetest
-    - mongotest
+    - dbtest:db
+    - cachetest:cache
+    - mongotest:mongo
 
 # runs the tests against the stack above
 testhost:
@@ -46,16 +43,13 @@ testhost:
   command: runtests
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBSERVER=dbtest
     - DBUSER=rdrfapp
-    - WEBSERVER=webtest
-    - MONGOSERVER=mongotest
     - WAIT_FOR_DB=1
     - WAIT_FOR_WEB=1
     - WAIT_FOR_MONGO=1
   volumes_from:
     - datatest      
   links:
-    - dbtest
-    - webtest
-    - mongotest
+    - dbtest:db
+    - webtest:web
+    - mongotest:mongo

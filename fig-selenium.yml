@@ -14,13 +14,13 @@ chrome:
   image: selenium/node-chrome
   links:
   - seleniumhub:hub
-  - webselenium
+  - webselenium:web
 
 firefox:
   image: selenium/node-firefox
   links:
   - seleniumhub:hub
-  - webselenium
+  - webselenium:web
 
 dbselenium:
   image: postgres:9.3
@@ -38,14 +38,11 @@ mongoselenium:
   command: mongod --smallfiles
 
 webselenium:
-  image: rdrf_web
+  build: .
   command: runserver
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBSERVER=dbselenium
     - DBUSER=rdrfapp
-    - CACHESERVER=cacheselenium
-    - MONGOSERVER=mongoselenium
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
@@ -54,9 +51,9 @@ webselenium:
   ports:
     - ":8000"
   links:
-    - dbselenium
-    - cacheselenium
-    - mongoselenium
+    - dbselenium:db
+    - cacheselenium:cache
+    - mongoselenium:mongo
 
 # runs the lettuce tests against the stack above
 lettucehost:
@@ -64,17 +61,14 @@ lettucehost:
   command: lettuce
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBSERVER=dbselenium
     - DBUSER=rdrfapp
-    - WEBSERVER=webselenium
-    - MONGOSERVER=mongoselenium
     - WAIT_FOR_DB=1
     - WAIT_FOR_WEB=1
     - WAIT_FOR_MONGO=1
   volumes_from:
     - dataselenium      
   links:
-    - dbselenium
-    - webselenium
-    - mongoselenium
-    - seleniumhub
+    - dbselenium:db
+    - webselenium:web
+    - mongoselenium:mongo
+    - seleniumhub:hub

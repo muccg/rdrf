@@ -16,13 +16,13 @@ def set_browser():
 
     world.browser = webdriver.Remote(
         desired_capabilities=desired_capabilities,
-        command_executor="http://seleniumhub:4444/wd/hub"
+        command_executor="http://hub:4444/wd/hub"
     )
 
 
 @before.all
 def set_site_url():
-    world.site_url = steps.get_site_url("rdrf", default_url="http://webselenium:8000")
+    world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
 
 
 @before.all
@@ -35,6 +35,6 @@ def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
 
-@after.each_feature
+@after.each_scenario
 def screenshot(feature):
     world.browser.get_screenshot_as_file('/data/%s.png' % feature.name)
