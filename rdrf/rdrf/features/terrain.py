@@ -34,3 +34,7 @@ def set_wait_seconds():
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
+
+@after.each_feature
+def screenshot(feature):
+    world.browser.get_screenshot_as_file('/data/%s.png' % feature.name)
