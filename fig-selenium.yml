@@ -57,7 +57,7 @@ webselenium:
 
 # runs the lettuce tests against the stack above
 lettucehost:
-  image: rdrf_web
+  image: rdrf_webselenium
   command: lettuce
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
