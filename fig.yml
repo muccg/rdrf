@@ -3,7 +3,7 @@ data:
   image: muccg/base:debian8
   volumes:
     - .:/app
-    - data:/data
+    - data/dev:/data
 
 db:
   image: postgres:9.3
