@@ -5,7 +5,7 @@ Feature: Login
         And I click "Log in"
         Then I log in as "admin" with "admin" password
         Then I should see "Hello admin"
-        Then I should see "Rare Disease Registry Framework"
+        Then I should see "Logout"
         And I click "Logout"
 
     Scenario: Login failed as random user
