@@ -14,7 +14,7 @@ AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
 }
 
 
@@ -71,6 +71,18 @@ selenium() {
 }
 
 
+start() {
+    mkdir -p data/dev
+    chmod o+rwx data/dev
+
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
+    pip install fig
+
+    fig --project-name rdrf up
+}
+
+
 unit_tests() {
     mkdir -p data/tests
     chmod o+rwx data/tests
@@ -85,7 +97,9 @@ unit_tests() {
 
 make_virtualenv() {
     which virtualenv > /dev/null
-    virtualenv ${VIRTUALENV}
+    if [ -f ${VIRTUALENV} ]; then
+        virtualenv ${VIRTUALENV}
+    fi
 }
 
 
@@ -125,6 +139,9 @@ rpm_publish)
 ci_staging)
     ci_ssh_agent
     ci_staging
+    ;;
+start)
+    start
     ;;
 unit_tests)
     unit_tests
