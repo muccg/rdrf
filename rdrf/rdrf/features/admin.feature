@@ -2,9 +2,9 @@ Feature: Admin
 
     Scenario: Admin interface has working link to Patient Forms
         Given I go to "/"
-        I accept the alert
         And I click "Log in"
         Then I log in as "curator" with "curator" password
+        Then I should see "Hello curator"
         And I click "Patients"
         Then I should see "Patients"
 
@@ -13,6 +13,8 @@ Feature: Admin
         Given I go to "/"
         And I click "Log in"
         Then I log in as "curator" with "curator" password
+        Then I should see "Hello curator"
+        Then I should see "Quick access links"
         Then I should not see "Import Registry Definition"
 
 
@@ -20,4 +22,6 @@ Feature: Admin
         Given I go to "/"
         And I click "Log in"
         Then I log in as "admin" with "admin" password
+        Then I should see "Hello admin"
+	And I click "Admin Page"
         Then I should see "Import Registry Definition"

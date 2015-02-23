@@ -3,8 +3,14 @@ import argparse
 import yaml
 import xlsxwriter as xl
 from xlsxwriter.utility import xl_rowcol_to_cell as get_cell
-_l = lambda s : sorted(s.split("/"))        # to list
-_s = lambda l : "\n".join(l)               # multiline string
+
+
+def tolist(s):
+    return sorted(s.split("/"))
+
+
+def multiline(l):
+    return "\n".join(l)
 
 TEXT = "TEXT"
 DECIMAL = "DECIMAL"
@@ -13,22 +19,23 @@ INTEGER = "INTEGER"
 CALC = "CALCULATED"
 FILE = "FILE"
 RANGE = "DROPDOWN"
-BOOL = _l("True/False")
-SEXES = _l("M/F/X")
-STATES = _l("WA/NSW/NT/SA/VIC/TAS/QLD/ACT")
+BOOL = tolist("True/False")
+SEXES = tolist("M/F/X")
+STATES = tolist("WA/NSW/NT/SA/VIC/TAS/QLD/ACT")
 ETHNICITIES = sorted(["Aboriginal",
-                            "Person from Torres Strait Islands",
-                            "Black African/African American",
-                            "Caucasian/European",
-                            "Chinese",
-                            "Indian",
-                            "Maori",
-                            "Aboriginal",
-                            "Middle eastern",
-                            "Person from the Pacific Islands",
-                            "Other Asian",
-                            "Other",
-                            "Decline to Answer"])
+                      "Person from Torres Strait Islands",
+                      "Black African/African American",
+                      "Caucasian/European",
+                      "Chinese",
+                      "Indian",
+                      "Maori",
+                      "Aboriginal",
+                      "Middle eastern",
+                      "Person from the Pacific Islands",
+                      "Other Asian",
+                      "Other",
+                      "Decline to Answer"])
+
 
 class SpreadSheetCreator(object):
     def __init__(self, registry_dict, output_filename, nrows=300, excludes=[]):
@@ -46,37 +53,35 @@ class SpreadSheetCreator(object):
         self.workbook.close()
 
     def _patient_demographics_spec(self):
-        return [ ("Family Name", TEXT),
-                 ("Given Names",TEXT),
-                 ("Maiden Name",TEXT),
-                 ("Consent", BOOL),
-                 ("Consent Clinical Trials", BOOL),
-                 ("Consent Sent Info", BOOL),
-                 ("Centre", TEXT),
-                 ("HOSPITAL/Clinic ID", TEXT),
-                 ("DOB", DATE),
-                 ("Place of Birth", TEXT),
-                 ("Country of Birth", TEXT),
-                 ("Ethnic Origin",  ETHNICITIES),
-                 ("Sex", SEXES),
-                 ("Home Phone", TEXT),
-                 ("Mobile Phone", TEXT),
-                 ("Work Phone", TEXT),
-                 ("Email", TEXT),
-                 ("Address", TEXT),
-                 ("Suburb/Town", TEXT),
-                 ("State", STATES)]
-
-
+        return [("Family Name", TEXT),
+                ("Given Names", TEXT),
+                ("Maiden Name", TEXT),
+                ("Consent", BOOL),
+                ("Consent Clinical Trials", BOOL),
+                ("Consent Sent Info", BOOL),
+                ("Centre", TEXT),
+                ("HOSPITAL/Clinic ID", TEXT),
+                ("DOB", DATE),
+                ("Place of Birth", TEXT),
+                ("Country of Birth", TEXT),
+                ("Ethnic Origin", ETHNICITIES),
+                ("Sex", SEXES),
+                ("Home Phone", TEXT),
+                ("Mobile Phone", TEXT),
+                ("Work Phone", TEXT),
+                ("Email", TEXT),
+                ("Address", TEXT),
+                ("Suburb/Town", TEXT),
+                ("State", STATES)]
 
     def _h(self, coord, text):
         header_format = self.workbook.add_format({'border': 1,
-                                             'bg_color': '#C6EFCE',
-                                             'bold': True,
-                                             'text_wrap': True,
-                                             'valign': 'vcenter',
-                                            'indent': 1})
-        self.sheet.write(coord,text,header_format)
+                                                  'bg_color': '#C6EFCE',
+                                                  'bold': True,
+                                                  'text_wrap': True,
+                                                  'valign': 'vcenter',
+                                                  'indent': 1})
+        self.sheet.write(coord, text, header_format)
 
     def _create_demographic_fields(self):
         for field_name, field_info in self._patient_demographics_spec():
@@ -85,26 +90,25 @@ class SpreadSheetCreator(object):
             self._apply_validation(self.current_column, field_info)
             self.current_column += 1
 
-
     def _apply_validation(self, column, datatype, values=None):
-        if isinstance(datatype,list):
+        if isinstance(datatype, list):
             values = datatype
             datatype = RANGE
 
-        if datatype in [ TEXT, FILE, CALC]:
+        if datatype in [TEXT, FILE, CALC]:
             return
         elif datatype == INTEGER:
-            validation = {"validate" : "integer", "criteria" : 'between', "minimum": 0, "maximum" : 1000000}
+            validation = {"validate": "integer", "criteria": 'between', "minimum": 0, "maximum": 1000000}
         elif datatype == DATE:
-            validation = {"validate" : 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
-        elif datatype  == DECIMAL:
-            validation = {"validate" : 'decimal', 'input_title': 'Enter a decimal', 'criteria': 'between', 'minimum': -1000000.00 , "maximum": 1000000.00 }
+            validation = {"validate": 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
+        elif datatype == DECIMAL:
+            validation = {"validate": 'decimal', 'input_title': 'Enter a decimal', 'criteria': 'between', 'minimum': -1000000.00, "maximum": 1000000.00}
         elif datatype == BOOL:
-            validation = {"validate" : 'list', 'source': ['True','False']}
+            validation = {"validate": 'list', 'source': ['True', 'False']}
         elif datatype == RANGE:
             if values is not None:
                 if "---" not in values:
-                    values.insert(0,'---')
+                    values.insert(0, '---')
                 validation = {"validate": 'list', 'source': values}
             else:
                 return
@@ -120,22 +124,22 @@ class SpreadSheetCreator(object):
 
     def _get_type(self, cde_dict):
         datatype = cde_dict['datatype'].lower().strip()
-        if datatype in ['string','text']:
+        if datatype in ['string', 'text']:
             return TEXT
         elif datatype in ['integer']:
             return INTEGER
-        elif datatype in ['float','decimal','numeric']:
+        elif datatype in ['float', 'decimal', 'numeric']:
             return DECIMAL
-        elif datatype in ['calculated','calculation']:
+        elif datatype in ['calculated', 'calculation']:
             return CALC
         elif cde_dict['calculation']:
             return CALC
-        elif datatype in ['date','datetime']:
-            return  DATE
+        elif datatype in ['date', 'datetime']:
+            return DATE
         elif datatype == 'file':
-            return  FILE
+            return FILE
         elif datatype in ["range"]:
-            return RANGE 
+            return RANGE
         elif cde_dict["pv_group"]:
             return RANGE
         else:
@@ -149,16 +153,15 @@ class SpreadSheetCreator(object):
         for group_dict in self.registry_dict['pvgs']:
             if pv_group == group_dict['code']:
                 return sorted([v['value'] for v in group_dict['values']])
-        raise Exception("Could get values for group %s"  % pv_group)
-
+        raise Exception("Could get values for group %s" % pv_group)
 
     def _write_header(self, column, text):
         cell = get_cell(0, column)
         self._h(cell, text)
 
     def _write_info(self, column, text):
-        if isinstance(text,list):
-            text = _s(text)
+        if isinstance(text, list):
+            text = multiline(text)
 
         cell = get_cell(1, column)
         self.sheet.write(cell, text)
@@ -185,7 +188,7 @@ class SpreadSheetCreator(object):
                     field_header = "\n".join([form_dict['name'], section_dict['display_name'], cde_dict['name']])
                     datatype = self._get_type(cde_dict)
                     if datatype == RANGE:
-                        values  = self._get_values(cde_dict['pv_group'])
+                        values = self._get_values(cde_dict['pv_group'])
                         field_info = "\n".join([RANGE + ":"] + values)
                     else:
                         field_info = datatype
@@ -199,14 +202,12 @@ class SpreadSheetCreator(object):
                     self.current_column += 1
 
 
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--yaml_file","-y", required=True,dest='yaml_file')
-    parser.add_argument("--output","-o", required=True,dest='output_file')
-    parser.add_argument("--exclude","-e", dest='exclude', default="")
-    parser.add_argument("--rows","-r", type=int, dest='nrows', default=300)
+    parser.add_argument("--yaml_file", "-y", required=True, dest='yaml_file')
+    parser.add_argument("--output", "-o", required=True, dest='output_file')
+    parser.add_argument("--exclude", "-e", dest='exclude', default="")
+    parser.add_argument("--rows", "-r", type=int, dest='nrows', default=300)
 
     args = parser.parse_args()
     excludes = args.exclude.split(",")
@@ -215,4 +216,3 @@ if __name__=="__main__":
         data = yaml.load(f)
     spreadsheet = SpreadSheetCreator(data, args.output_file, args.nrows, excludes=excludes)
     spreadsheet.create()
-

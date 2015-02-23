@@ -125,7 +125,15 @@ if [ "$1" = 'runtests' ]; then
     exit $?
 fi
 
-echo "[RUN]: Builtin command not provided [runtests|runserver|uwsgi]"
+# lettuce entrypoint
+if [ "$1" = 'lettuce' ]; then
+    echo "[Run] Starting lettuce"
+
+    django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml 2>&1 | tee /data/lettuce.log
+    exit $?
+fi
+
+echo "[RUN]: Builtin command not provided [lettuce|runtests|runserver|uwsgi]"
 echo "[RUN]: $@"
 
 exec "$@"
