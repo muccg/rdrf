@@ -61,13 +61,13 @@ def our_goto(step, relative_url):
     """
     absolute_url = world.site_url + relative_url
     lettuce_webdriver.webdriver.goto(step, absolute_url)
-    time.sleep(15)
+    #time.sleep(15)
 
 
 @step('Then I should see "(.*)"')
 def eventually(step, expectation):
-    number_of_seconds_to_wait = getattr(world, "wait_seconds", 30)
-    lettuce_webdriver.webdriver.should_see_in_seconds(step, expectation, number_of_seconds_to_wait)
+    #number_of_seconds_to_wait = getattr(world, "wait_seconds", 30)
+    lettuce_webdriver.webdriver.should_see(step, expectation)#, number_of_seconds_to_wait)
 
 
 def generate_random_str(length):
@@ -108,5 +108,5 @@ def get_site_url(app_name, default_url):
         return site_url.strip()
 
 
-def get_default_page_timeout_seconds():
-    return 10
+#def get_default_page_timeout_seconds():
+#    return 10

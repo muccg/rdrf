@@ -39,14 +39,16 @@
 {% block branding %}{% current_registry request %}{% endblock %}
 
 {% block userlinks %}
+    {{ block.super }}
     {% get_feature "notifications" as notifications_feature %}
     {% if notifications_feature %}
-    <select id="notificationDropdown">
-        <option selected disabled>Notifications</option>
-    </select>
-    <script>
+        <select id="notificationDropdown">
+            <option selected disabled>Notifications</option>
+        </select>
+        <script>
             (function(){
                  var notificationDropdown = $("#notificationDropdown");
+                 notificationDropdown.attr("style", "width: 150px");
                  var regex = /value='(.*?)'/;
                  var csrfString = regex.exec("{% csrf_token %}")[1];
 
@@ -75,29 +77,19 @@
                      setTimeout(checkForNotifications, 5000);
                  })
            })();
-
-    </script>
+        </script>
     {% endif %}
+
     {% is_i18n as i18n_flag %}
     {% if i18n_flag %}
         {% get_current_language as LANGUAGE_CODE %}
         
-        <select id="lang-list">
+        <select style="width: 150px" id="lang-list">
             <option>Select one...</option>
-        {% for lang in LANGUAGES %}
-            <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %} selected="selected"{% endif %}>{{lang.1}}</option>
-        {% endfor %}
+                {% for lang in LANGUAGES %}
+                    <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %} selected="selected"{% endif %}>{{lang.1}}</option>
+                {% endfor %}
         </select>
     {% endif %}
-    
-    {% url 'django-admindocs-docroot' as docsroot %}    
-    <span class="separator">|</span>
-    {% if docsroot %}
-        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a>
-        <span class="separator">|</span>
-    {% endif %}
-    <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
-    <span class="separator">|</span>
-        <a href="{% url 'admin:logout' %}?next={% sticky_logout_url request %}">{% trans 'Log out' %}</a>
-    </span>
+
 {% endblock %}
