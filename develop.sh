@@ -97,7 +97,7 @@ unit_tests() {
 
 make_virtualenv() {
     which virtualenv > /dev/null
-    if [ -f ${VIRTUALENV} ]; then
+    if [ ! -e ${VIRTUALENV} ]; then
         virtualenv ${VIRTUALENV}
     fi
 }
