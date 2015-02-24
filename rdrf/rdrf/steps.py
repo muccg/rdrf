@@ -2,9 +2,9 @@ import os
 import random
 import string
 
-from lettuce import *
+from lettuce import step
+from lettuce import world
 
-from selenium import webdriver
 import lettuce_webdriver.webdriver
 import time
 
@@ -66,7 +66,7 @@ def our_goto(step, relative_url):
 
 @step('Then I should see "(.*)"')
 def eventually(step, expectation):
-    #number_of_seconds_to_wait = getattr(world, "wait_seconds", 30)
+    # number_of_seconds_to_wait = getattr(world, "wait_seconds", 30)
     lettuce_webdriver.webdriver.should_see(step, expectation)  # , number_of_seconds_to_wait)
 
 
@@ -97,7 +97,6 @@ def get_site_url(app_name, default_url):
     """
     :return: http://example.com:8081
     """
-    import os
     site_url_file = "/tmp/%s_site_url" % app_name
     if not os.path.exists(site_url_file):
         return default_url
@@ -106,7 +105,3 @@ def get_site_url(app_name, default_url):
             site_url = f.read()
         # os.unlink(site_url_file)
         return site_url.strip()
-
-
-# def get_default_page_timeout_seconds():
-#    return 10

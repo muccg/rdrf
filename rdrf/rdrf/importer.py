@@ -1,10 +1,14 @@
 import logging
-from models import *
+from models import Registry
+from models import RegistryForm
+from models import Section
+from models import CommonDataElement
+from models import CDEPermittedValueGroup
+from models import CDEPermittedValue
+from models import AdjudicationDefinition
 from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient
 import yaml
-from django.core.exceptions import MultipleObjectsReturned
-
+import json
 
 logger = logging.getLogger("registry_log")
 
@@ -139,7 +143,7 @@ class Importer(object):
     def _check_soundness(self):
         def exists(cde_code):
             try:
-                cde = CommonDataElement.objects.get(code=cde_code)
+                CommonDataElement.objects.get(code=cde_code)
                 return True
             except CommonDataElement.DoesNotExist:
                 return False
@@ -182,7 +186,7 @@ class Importer(object):
             sections_in_db = set(form.get_sections())
             for section_code in sections_in_db:
                 try:
-                    section = Section.objects.get(code=section_code)
+                    Section.objects.get(code=section_code)
                 except Section.DoesNotExist:
                     raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
 
@@ -236,7 +240,7 @@ class Importer(object):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
-            #logger.info("imported permissible value group %s" % pvg)
+            # logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
@@ -277,7 +281,7 @@ class Importer(object):
                     value.position = value_map['position']
 
                 value.save()
-                #logger.info("imported value %s" % value)
+                # logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
@@ -301,7 +305,7 @@ class Importer(object):
                                            (cde_model.code, old_value, import_value))
 
                     setattr(cde_model, field, cde_map[field])
-                    #logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
+                    # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
             # Assign value group - pv_group will be empty string is not a range
 
@@ -319,7 +323,7 @@ class Importer(object):
                                            (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
-            #logger.info("updated cde %s" % cde_model)
+            # logger.info("updated cde %s" % cde_model)
 
     def _create_generic_sections(self, generic_section_maps):
         logger.info("creating generic sections")

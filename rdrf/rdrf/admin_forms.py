@@ -1,4 +1,4 @@
-from django.forms import ModelForm, CheckboxSelectMultiple, SelectMultiple
+from django.forms import ModelForm, SelectMultiple
 
 from models import RegistryForm, CommonDataElement, Section
 

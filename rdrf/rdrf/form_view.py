@@ -3,12 +3,10 @@ from django.views.generic.base import View
 from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from django.template import RequestContext
 from django.http import HttpResponse
 from django.forms.formsets import formset_factory
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -26,9 +24,9 @@ import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
-from rdrf.utils import mongo_db_name
 from registry.groups.models import CustomUser
 import logging
+from registry.groups.models import WorkingGroup
 
 logger = logging.getLogger("registry_log")
 
@@ -309,7 +307,6 @@ class FormView(View):
 
             if not section_model.allow_multiple:
                 # return a normal form
-                from copy import deepcopy
                 initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
@@ -333,7 +330,7 @@ class FormView(View):
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
                         initial_data = [""]  # * len(section_elements)
                 else:
-                    #initial_data = [""] * len(section_elements)
+                    # initial_data = [""] * len(section_elements)
                     initial_data = [""]  # this appears to forms
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
@@ -435,7 +432,7 @@ class QuestionnaireView(FormView):
             self.registry_form = form
             context = self._build_context(questionnaire_context=questionnaire_context)
             context["registry"] = self.registry
-            #context["questionnaire_context"] = questionnaire_context
+            # context["questionnaire_context"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
@@ -614,7 +611,7 @@ class QuestionnaireResponseView(FormView):
         for field_key, field_object in context['forms']['PatientData'].fields.items():
             if 'CDEPatientCentre' in field_key:
                 field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
-                #raise Exception("field obj = %s" % field_object)
+                # raise Exception("field obj = %s" % field_object)
 
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
@@ -923,7 +920,7 @@ class AdjudicationInitiationView(View):
         for target_username in target_usernames:
             try:
                 target_user = CustomUser.objects.get(username=target_username)
-            except CustomUser.DoesNotExist:
+            except CustomUser.DoesNotExist as ex:
                 errors.append("Could not find user for %s: %s" % (target_username, ex))
                 continue
 
@@ -1019,7 +1016,6 @@ class AdjudicationResultsView(View):
 
     def get(self, request, adjudication_definition_id, requesting_user_id, patient_id):
         context = {}
-        current_username = request.user.username
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:
@@ -1094,7 +1090,7 @@ class AdjudicationResultsView(View):
 
             def _is_numeric(self, values):
                 try:
-                    l = map(float, values)
+                    map(float, values)
                     return True
                 except ValueError:
                     return False
@@ -1204,7 +1200,7 @@ class AdjudicationResultsView(View):
 
     @method_decorator(login_required)
     def post(self, request, adjudication_definition_id, requesting_user_id, patient_id):
-        from rdrf.models import AdjudicationDefinition, AdjudicationError, AdjudicationState, AdjudicationDecision
+        from rdrf.models import AdjudicationDefinition, AdjudicationState, AdjudicationDecision
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:

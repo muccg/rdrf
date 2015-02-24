@@ -2,7 +2,6 @@ from models import RegistryForm, Section, CommonDataElement, CDEPermittedValueGr
 import logging
 import yaml
 import json
-from django.conf import settings
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
@@ -319,7 +318,7 @@ class Exporter(object):
                     except CommonDataElement.DoesNotExist as ex:
                         logger.error("No CDE with code: %s" % cde_code)
 
-            except Section.DoesNotExist as ex:
+            except Section.DoesNotExist:
                 logger.error("No Section with code: %s" % section_code)
         return cdes
 

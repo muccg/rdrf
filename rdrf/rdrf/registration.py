@@ -2,9 +2,7 @@ from django.core.exceptions import ValidationError
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
 from dynamic_data import DynamicDataWrapper
-from rdrf.utils import get_code, get_form_section_code
 import logging
-import string
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 

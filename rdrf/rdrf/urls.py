@@ -3,7 +3,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render_to_response
 import registry.urls as common_urls
-from registry.common import views
 import views
 import form_view
 import registry_view
@@ -13,17 +12,14 @@ import rest_interface
 import hgvs_view
 import patient_view
 from lookup_views import GeneView, LaboratoryView, StateLookup
-from django.shortcuts import render_to_response
 from ajax_select import urls as ajax_select_urls
-from views import RegistryList, AllocateView
+from views import RegistryList
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-from django.views.generic.base import TemplateView
-
-#from registration.backends.default.views import ActivationView
-#from registration.backends.default.views import RegistrationView
+# from registration.backends.default.views import ActivationView
+# from registration.backends.default.views import RegistrationView
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 

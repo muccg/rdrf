@@ -1,8 +1,12 @@
 from django.test import TestCase, RequestFactory
-from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
-from rdrf.importer import Importer, ImportState, RegistryImportError
-from rdrf.models import *
+from rdrf.importer import Importer, ImportState
+from rdrf.models import Section
+from rdrf.models import Registry
+from rdrf.models import CDEPermittedValueGroup
+from rdrf.models import CDEPermittedValue
+from rdrf.models import CommonDataElement
+from rdrf.models import RegistryForm
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
@@ -11,7 +15,6 @@ from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
-from django_countries import countries
 from django.contrib.auth import get_user_model
 
 from django.conf import settings
@@ -261,7 +264,7 @@ class FormTestCase(RDRFTestCase):
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
         # A multi allowed section with a file CDE
-        #self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
+        # self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
 
     def _create_form_key(self, form, section, cde_code):
         return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
@@ -301,7 +304,6 @@ class FormTestCase(RDRFTestCase):
 class LongitudinalTestCase(FormTestCase):
 
     def test_simple_form(self):
-        num_sections = 2
         mongo_db = self.client["testing_" + self.registry.code]
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot

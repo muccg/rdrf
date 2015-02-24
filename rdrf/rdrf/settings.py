@@ -70,7 +70,7 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    #'iprestrict.middleware.IPRestrictMiddleware',
+    # 'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -132,7 +132,7 @@ SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
 
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
 FEATURES = env.get("features", "*")
@@ -174,7 +174,7 @@ CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
-#TEST_RUNNER = 'rdrf.rdrf.tests.PatchedNoseTestSuiteRunner'
+# TEST_RUNNER = 'rdrf.rdrf.tests.PatchedNoseTestSuiteRunner'
 SOUTH_TESTS_MIGRATE = True
 NOSE_ARGS = [
     '--with-coverage',

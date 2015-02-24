@@ -1,12 +1,5 @@
-import os
-import random
-import string
-
-from lettuce import *
-
+from lettuce import before, after, world
 from selenium import webdriver
-import lettuce_webdriver.webdriver
-
 from rdrf import steps
 
 
@@ -23,11 +16,6 @@ def set_browser():
 @before.all
 def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
-
-
-#@before.all
-# def set_wait_seconds():
-#    world.wait_seconds = 3
 
 
 @before.each_scenario

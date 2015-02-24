@@ -7,9 +7,7 @@ import string
 import json
 from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import get_full_link, get_site_url
-
-from dynamic_data import DynamicDataWrapper
+from rdrf.utils import get_full_link
 
 logger = logging.getLogger("registry")
 
@@ -56,7 +54,7 @@ class Section(models.Model):
     def clean(self):
         for element in self.get_elements():
             try:
-                cde = CommonDataElement.objects.get(code=element)
+                CommonDataElement.objects.get(code=element)
             except CommonDataElement.DoesNotExist:
                 raise ValidationError("section %s refers to CDE with code %s which doesn't exist" %
                                       (self.display_name, element))
@@ -393,18 +391,18 @@ class Registry(models.Model):
         # raise error if structure not valid
 
         for k in ["name", "code", "version", "forms"]:
-            if not k in structure:
+            if k not in structure:
                 raise InvalidStructureError("Missing key: %s" % k)
         for form_dict in structure["forms"]:
             for k in ["name", "is_questionnaire", "position", "sections"]:
-                if not k in form_dict:
+                if k not in form_dict:
                     raise InvalidStructureError("Form dict %s missing key %s" % (form_dict, k))
 
             form_name = form_dict["name"]
 
             for section_dict in form_dict["sections"]:
                 for k in ["code", "display_name", "allow_multiple", "extra", "elements", "questionnaire_help"]:
-                    if not k in section_dict:
+                    if k not in section_dict:
                         raise InvalidStructureError("Section %s missing key %s" % (section_dict, k))
 
                 for pair in section_dict["elements"]:
@@ -412,7 +410,7 @@ class Registry(models.Model):
 
                     logger.info("checking section %s code %s" % (section_dict["code"], element_code))
                     try:
-                        cde = CommonDataElement.objects.get(code=element_code)
+                        CommonDataElement.objects.get(code=element_code)
                     except CommonDataElement.DoesNotExist:
                         section_code = section_dict["code"]
                         raise InvalidStructureError(
@@ -426,8 +424,6 @@ def get_owner_choices():
     UNUSED means this CDE will not be used to construct any forms in the registry.
 
     """
-    from django.conf import settings
-    choices = [('UNUSED', 'UNUSED')]
     # for display_name, owner_model_func in settings.CDE_MODEL_MAP.items():
     #     owner_class_name = owner_model_func().__name__
     #     choices.append((owner_class_name, display_name))
@@ -461,7 +457,6 @@ class CDEPermittedValueGroup(models.Model):
         return [getattr(v, att) for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
 
     def __unicode__(self):
-        members = self.members()
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
 
@@ -930,7 +925,7 @@ class AdjudicationRequest(models.Model):
             Dear %s user %s,
             An adjudication request has been assigned to you for %s.
             Please visit %s to complete the adjudication.
-            """ % (self.definition.registry.name, self.username,  self.definition.display_name, full_link)
+            """ % (self.definition.registry.name, self.username, self.definition.display_name, full_link)
         return body
 
     def _create_notification(self):

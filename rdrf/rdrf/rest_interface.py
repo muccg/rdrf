@@ -3,11 +3,13 @@ from django.http import HttpResponse
 import logging
 import dynamic_data
 from registry.patients.models import Patient
-from rdrf.models import *
+from rdrf.models import Registry
+from rdrf.models import RegistryForm
+from rdrf.models import Section
+from rdrf.models import CommonDataElement
+from rdrf.models import appears_in
 import json
 import yaml
-from django.core.servers.basehttp import FileWrapper
-import cStringIO as StringIO
 from django.http import Http404
 from functools import wraps
 from django.views.decorators.csrf import csrf_exempt
@@ -33,12 +35,10 @@ class ResourceFormat:
 
     @staticmethod
     def as_yaml(data):
-        import yaml
         return yaml.dumps(data)
 
     @staticmethod
     def as_json(data):
-        import json
         return json.dumps(data)
 
     @staticmethod
@@ -182,7 +182,7 @@ class REST(object):
 
     def do_post(self):
         # PUT didn't work so uating with POST
-        #existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
+        # existing_patient_data  = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
 
         if self.cde_code:
             # update the value of cde code and save back
@@ -219,11 +219,9 @@ class REST(object):
                 request_format = self._get_request_format()
 
             if request_format == ResourceFormat.JSON:
-                import json
                 data = json.loads(source)
 
             elif request_format == ResourceFormat.YAML:
-                import yaml
                 data = yaml.loads(source)
             else:
                 raise RESTInterfaceError("Unknown request format")
@@ -248,7 +246,6 @@ class REST(object):
         return settings.FORM_SECTION_DELIMITER.join([self.form_name, self.section_code, self.cde_code])
 
     def _retrieve(self, level, data):
-        from operator import add
         logger.debug("dynamic data = %s" % data)
 
         if level == 'cde':
@@ -266,7 +263,7 @@ class REST(object):
                 logger.debug("checking key %s" % delimited_key)
                 try:
                     form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                except ValueError as ex:
+                except ValueError:
                     # this means there's bad data in there - saved with diff delimiter
                     continue
 
@@ -283,12 +280,11 @@ class REST(object):
             form_map = {}
             defined_section_codes = self.registry_form.get_sections()
             for defined_section_code in defined_section_codes:
-                defined_section = Section.objects.get(code=defined_section_code)
                 section_map = {}
                 for delimited_key in data:
                     try:
                         form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                    except ValueError as ex:
+                    except ValueError:
                         # this means there's bad data in there - saved with diff delimiter
                         continue
                     if self.registry_form.name == form_name and defined_section_code == section_code:
@@ -302,15 +298,15 @@ class REST(object):
             for delimited_key in data:
                 try:
                     form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                except ValueError as verr:
+                except ValueError:
                     continue
 
-                if not form_name in registry_map:
+                if form_name not in registry_map:
                     registry_map[form_name] = {}
-                if not section_code in registry_map[form_name]:
+                if section_code not in registry_map[form_name]:
                     registry_map[form_name][section_code] = {}
 
-                if not cde_code in registry_map[form_name][section_code]:
+                if cde_code not in registry_map[form_name][section_code]:
                     registry_map[form_name][section_code][cde_code] = data[delimited_key]
 
             return registry_map

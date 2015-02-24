@@ -2,7 +2,6 @@ from django.forms import BaseForm
 from django.utils.datastructures import SortedDict
 from field_lookup import FieldFactory
 from django.conf import settings
-import re
 import logging
 
 logger = logging.getLogger("registry_log")

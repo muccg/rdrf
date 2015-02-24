@@ -31,7 +31,6 @@ class ImportRegistryView(View):
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
-        import yaml
         registry_yaml = request.POST["registry_yaml"]
 
         from rdrf.importer import Importer

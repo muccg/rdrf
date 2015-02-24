@@ -1,16 +1,14 @@
 # Custom widgets / Complex controls required
 from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
-from registry.utils import get_static_url
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
 
 import logging
-logger = logging.getLogger("registry_log")
-
 from models import CommonDataElement
-
 import pycountry
+
+logger = logging.getLogger("registry_log")
 
 
 class BadCustomFieldWidget(Textarea):
@@ -131,7 +129,7 @@ class CalculatedFieldWidget(widgets.TextInput):
         super(CalculatedFieldWidget, self).__init__(attrs=attrs)
 
     def render(self, name, value, attrs):
-        #attrs['readonly'] = 'readonly'
+        # attrs['readonly'] = 'readonly'
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
 

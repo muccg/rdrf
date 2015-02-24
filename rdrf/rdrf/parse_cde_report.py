@@ -32,7 +32,7 @@ class NINDSReportParser:
         if pvg_code is None:
             return
         try:
-            existing = CDEPermittedValueGroup.objects.get(code__exact=pvg_code)
+            CDEPermittedValueGroup.objects.get(code__exact=pvg_code)
             print "PVG %s already exists." % pvg_code
             return
         except CDEPermittedValueGroup.DoesNotExist:
@@ -61,12 +61,11 @@ class NINDSReportParser:
     def parse_cde(cls, elem, pvg):
         cde_code = elem.get(cls.CDE_CODE)
         try:
-            existing = CommonDataElement.objects.get(code__exact=cde_code)
+            CommonDataElement.objects.get(code__exact=cde_code)
             print "CDE %s already exists." % cde_code
             return
         except CommonDataElement.DoesNotExist:
             pass
-        pv_code = elem.get(cls.CDE_PV_CODE)
         new_obj = CommonDataElement(
             code=cde_code,
             name=elem.get(cls.CDE_NAME),
@@ -78,12 +77,12 @@ class NINDSReportParser:
             classification=elem.get(cls.CDE_CLASSIFICATION),
             version=elem.get(cls.CDE_VERSION),
             version_date=(elem.get(cls.CDE_VERSION_DATE).split('T', 1))[0],
-            variable_name = elem.get(cls.CDE_VARIABLE_NAME),
-            aliases_for_variable_name = elem.get(cls.CDE_VARIABLE_NAME_ALIASES),
-            crf_module = elem.get(cls.CDE_CRF_MODULE),
-            subdomain = elem.get(cls.CDE_SUBDOMAIN),
-            domain = elem.get(cls.CDE_DOMAIN),
-            pv_group = pvg,
+            variable_name=elem.get(cls.CDE_VARIABLE_NAME),
+            aliases_for_variable_name=elem.get(cls.CDE_VARIABLE_NAME_ALIASES),
+            crf_module=elem.get(cls.CDE_CRF_MODULE),
+            subdomain=elem.get(cls.CDE_SUBDOMAIN),
+            domain=elem.get(cls.CDE_DOMAIN),
+            pv_group=pvg,
         )
         print "Created: ", new_obj
         new_obj.save()

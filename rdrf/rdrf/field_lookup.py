@@ -1,6 +1,6 @@
 import re
 import django.forms
-from django.forms import MultiValueField, MultiWidget, BaseForm, MultipleChoiceField, FileField
+from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
@@ -18,7 +18,6 @@ from models import CommonDataElement
 
 from django.utils import six
 from django.utils.functional import lazy
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 mark_safe_lazy = lazy(mark_safe, six.text_type)
@@ -393,7 +392,7 @@ class FieldFactory(object):
             return field(**options)
 
     def _create_file_field(self, options):
-        #options['widget'] = AdminFileWidget
+        # options['widget'] = AdminFileWidget
         field = FileField(**options)
         logger.debug("file field = %s" % field)
         logger.debug("options = %s" % options)
@@ -470,7 +469,7 @@ class ComplexFieldFactory(object):
             "&nbsp;&nbsp;&nbsp;&nbsp;".join(rendered_widgets)
 
         class_dict['decompress'] = decompress_method
-        #class_dict['format_output'] = format_output_method
+        # class_dict['format_output'] = format_output_method
         multi_widget_class = type(str(complex_widget_class_name), (MultiWidget,), class_dict)
         multi_widget_instance = multi_widget_class(self.component_widgets, attrs=None)
         return multi_widget_instance

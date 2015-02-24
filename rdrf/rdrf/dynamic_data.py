@@ -3,9 +3,7 @@ from pymongo import MongoClient
 import gridfs
 import logging
 from rdrf.utils import get_code, mongo_db_name
-from bson.objectid import ObjectId
 from django.conf import settings
-from utils import mongo_db_name
 import datetime
 
 logger = logging.getLogger("registry_log")
@@ -137,7 +135,7 @@ class DynamicDataWrapper(object):
             return
         if isinstance(data, unicode):
             return
-        from django.conf import settings
+
         replacements = {}
         for key, value in data.items():
             if isinstance(value, dict):
@@ -197,7 +195,7 @@ class DynamicDataWrapper(object):
         # Supplied code will be non-delimited
         from models import Section
         try:
-            section = Section.objects.get(code=code)
+            Section.objects.get(code=code)
             return True
         except:
             pass
@@ -325,7 +323,6 @@ class DynamicDataWrapper(object):
         :param data: dictionary of CDE codes --> values
         :return:
         """
-        import types
         from datetime import date
         from datetime import datetime
 

@@ -1,8 +1,9 @@
 import logging
 import re
-logger = logging.getLogger("registry_log")
 
 from django.core.exceptions import ValidationError
+
+logger = logging.getLogger("registry_log")
 
 
 class ValidationType:
@@ -26,7 +27,7 @@ def make_validation_func(val_type, cde):
     elif val_type == ValidationType.PATTERN:
         try:
             re_pattern = re.compile(cde.pattern)
-        except Exception as ex:
+        except Exception:
             logger.info("CDE %s has bad pattern: %s" % (cde, cde.pattern))
             return None
 
