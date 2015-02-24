@@ -11,13 +11,11 @@ class Migration(SchemaMigration):
         # Deleting field 'Adjudication.adjudicator_username'
         db.delete_column(u'rdrf_adjudication', 'adjudicator_username')
 
-
     def backwards(self, orm):
         # Adding field 'Adjudication.adjudicator_username'
         db.add_column(u'rdrf_adjudication', 'adjudicator_username',
                       self.gf('django.db.models.fields.CharField')(default='admin', max_length=80),
                       keep_default=False)
-
 
     models = {
         u'rdrf.adjudication': {

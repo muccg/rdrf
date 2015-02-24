@@ -34,6 +34,7 @@ logger = logging.getLogger("registry_log")
 
 
 class FormLink(object):
+
     def __init__(self, patient_id, registry, registry_form, selected=False):
         self.registry = registry
         self.patient_id = patient_id
@@ -71,6 +72,7 @@ def log_context(when, context):
 
 
 class FormView(View):
+
     def __init__(self, *args, **kwargs):
         self.testing = False    # when set to True in integration testing, switches off unsupported messaging middleware
         self.template = 'rdrf_cdes/form.html'
@@ -148,7 +150,8 @@ class FormView(View):
         for section_index, s in enumerate(sections):
             logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
-            form_class = create_form_class_for_section(registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
+            form_class = create_form_class_for_section(
+                registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -164,7 +167,8 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                     from copy import deepcopy
-                    form2 = form_class(dynamic_data, initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
+                    form2 = form_class(
+                        dynamic_data, initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
                     for e in form.errors:
@@ -195,7 +199,8 @@ class FormView(View):
                     section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
-                    form_section[s] = form_set_class(initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
+                    form_section[s] = form_set_class(
+                        initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
                 else:
                     for e in formset.errors:
                         error_count += 1
@@ -228,11 +233,11 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
-        if not self.registry_form.is_questionnaire:       
+        if not self.registry_form.is_questionnaire:
             cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = progress
             context["form_progress_cdes"] = cdes_status
-        
+
         context.update(csrf(request))
         if error_count == 0:
             if not self.testing:
@@ -264,7 +269,7 @@ class FormView(View):
             except ObjectDoesNotExist:
                 logger.error("Section %s does not exist" % s)
         return sections, display_names, ids
-    
+
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
@@ -320,16 +325,17 @@ class FormView(View):
                 form_set_class = formset_factory(form_class, extra=extra)
                 if self.dynamic_data:
                     try:
-                        initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])  # we grab the list of data items by section code not cde code
+                        # we grab the list of data items by section code not cde code
+                        initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])
                     except KeyError, ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
-                        initial_data = [""] #* len(section_elements)
+                        initial_data = [""]  # * len(section_elements)
                 else:
                     #initial_data = [""] * len(section_elements)
                     initial_data = [""]  # this appears to forms
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
-        
+
         context = {
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
@@ -352,7 +358,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
-        if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:       
+        if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
             cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = progress
             context["form_progress_cdes"] = cdes_status
@@ -361,7 +367,7 @@ class FormView(View):
         for k in context:
             logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
-        
+
     def _get_patient_id(self):
         return self.patient_id
 
@@ -369,7 +375,7 @@ class FormView(View):
         patient = Patient.objects.get(pk=self.patient_id)
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         return patient_name
-        
+
     def _get_patient_object(self):
         return Patient.objects.get(pk=self.patient_id)
 
@@ -404,13 +410,14 @@ class FormView(View):
 
 
 class QuestionnaireView(FormView):
+
     def __init__(self, *args, **kwargs):
         super(QuestionnaireView, self).__init__(*args, **kwargs)
         self.questionnaire_context = None
         self.template = 'rdrf_cdes/questionnaire.html'
 
     from patient_decorators import patient_has_access
-    
+
     @method_decorator(patient_has_access)
     def get(self, request, registry_code, questionnaire_context="au"):
         try:
@@ -482,7 +489,8 @@ class QuestionnaireView(FormView):
             section_model = Section.objects.get(code=section)
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
-            form_class = create_form_class_for_section(registry, questionnaire_form, section_model, questionnaire_context=self.questionnaire_context)
+            form_class = create_form_class_for_section(
+                registry, questionnaire_form, section_model, questionnaire_context=self.questionnaire_context)
             section_field_ids_map[section] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
@@ -552,7 +560,8 @@ class QuestionnaireView(FormView):
             }
 
             context.update(csrf(request))
-            messages.add_message(request, messages.ERROR, 'The questionnaire was not submitted because of validation errors - please try again')
+            messages.add_message(
+                request, messages.ERROR, 'The questionnaire was not submitted because of validation errors - please try again')
             return render_to_response('rdrf_cdes/questionnaire.html', context, context_instance=RequestContext(request))
 
     def _get_patient_id(self):
@@ -578,7 +587,8 @@ class QuestionnaireResponseView(FormView):
     def get(self, request, registry_code, questionnaire_response_id):
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
-        self.dynamic_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+        self.dynamic_data = self._get_dynamic_data(
+            id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -600,14 +610,12 @@ class QuestionnaireResponseView(FormView):
     def _fix_centre_dropdown(self, context):
         for field_key, field_object in context['forms']['PatientData'].fields.items():
             if 'CDEPatientCentre' in field_key:
-                field_object.widget._widget_context['questionnaire_context'] =  self._get_questionnaire_context()
+                field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
                 #raise Exception("field obj = %s" % field_object)
-
-
-
 
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
+
             def __init__(self, working_group_model):
                 self.code = working_group_model.pk
                 self.desc = working_group_model.name
@@ -628,7 +636,8 @@ class QuestionnaireResponseView(FormView):
         else:
             logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
-            questionnaire_data = self._get_dynamic_data(id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+            questionnaire_data = self._get_dynamic_data(
+                id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
             if patient_creator.state == PatientCreatorState.CREATED_OK:
                 messages.info(request, "Questionnaire approved - A patient record has now been created")
@@ -684,8 +693,8 @@ class StandardView(object):
         return StandardView._render(request, StandardView.APPLICATION_ERROR, context)
 
 
-
 class QuestionnaireConfigurationView(View):
+
     """
     Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
     """
@@ -696,6 +705,7 @@ class QuestionnaireConfigurationView(View):
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
         class QuestionWrapper(object):
+
             def __init__(self, registry_form, section_model, cde_model):
                 self.registry_form = registry_form
                 self.section_model = section_model
@@ -727,6 +737,7 @@ class QuestionnaireConfigurationView(View):
         sections = []
 
         class SectionWrapper(object):
+
             def __init__(self, registry_form, section_model):
                 self.registry_form = registry_form
                 self.section_model = section_model
@@ -821,6 +832,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 
 
 class RPCHandler(View):
+
     def post(self, request):
         import json
         rpc_command = request.body
@@ -832,6 +844,7 @@ class RPCHandler(View):
 
 
 class AdjudicationInitiationView(View):
+
     @method_decorator(login_required)
     def get(self, request, def_id, patient_id):
         try:
@@ -882,7 +895,8 @@ class AdjudicationInitiationView(View):
         errors = []
         request_created_ok = []
         try:
-            adjudication = Adjudication.objects.get(definition=adjudication_definition, patient_id=patient.pk, requesting_username=requesting_user.username)
+            adjudication = Adjudication.objects.get(
+                definition=adjudication_definition, patient_id=patient.pk, requesting_username=requesting_user.username)
             raise AdjudicationError("Adjudication already created for this patient and definition")
 
         except Adjudication.DoesNotExist:
@@ -902,21 +916,21 @@ class AdjudicationInitiationView(View):
                 target_working_group_names.append(form_data[k])
 
         for target_username in target_usernames:
-                try:
-                    target_user = CustomUser.objects.get(username=target_username)
-                except CustomUser.DoesNotExist:
-                    errors.append("Could not find user for %s: %s" % (target_username, ex))
-                    continue
+            try:
+                target_user = CustomUser.objects.get(username=target_username)
+            except CustomUser.DoesNotExist:
+                errors.append("Could not find user for %s: %s" % (target_username, ex))
+                continue
 
-                if not target_user:
-                    errors.append("Could not find user for %s" % target_username)
-                    continue
-                else:
-                    try:
-                        adjudication_definition.create_adjudication_request(request, requesting_user, patient, target_user)
-                        request_created_ok.append(target_username)
-                    except Exception, ex:
-                        errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
+            if not target_user:
+                errors.append("Could not find user for %s" % target_username)
+                continue
+            else:
+                try:
+                    adjudication_definition.create_adjudication_request(request, requesting_user, patient, target_user)
+                    request_created_ok.append(target_username)
+                except Exception, ex:
+                    errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
 
         for target_working_group_name in target_working_group_names:
             try:
@@ -939,6 +953,7 @@ class AdjudicationInitiationView(View):
 
 
 class AdjudicationRequestView(View):
+
     @method_decorator(login_required)
     def get(self, request, adjudication_request_id):
         user = request.user
@@ -987,7 +1002,7 @@ class AdjudicationRequestView(View):
 
 
 class Colours(object):
-    grey ="#808080"
+    grey = "#808080"
     blue = "#0000ff"
     green = "#00ff00"
     red = "#f7464a"
@@ -995,6 +1010,7 @@ class Colours(object):
 
 
 class AdjudicationResultsView(View):
+
     def get(self, request, adjudication_definition_id, requesting_user_id,  patient_id):
         context = {}
         current_username = request.user.username
@@ -1044,9 +1060,9 @@ class AdjudicationResultsView(View):
                 "P": "Processed",
                 "I": "Invalid",
             }
+
             def __init__(self, data):
                 self.data = data
-
 
             @property
             def pie_data(self):
@@ -1062,9 +1078,10 @@ class AdjudicationResultsView(View):
                 return l
 
         context["stats"] = StatsField(stats)
-        context['patient']  = Patient.objects.get(pk=patient_id)
+        context['patient'] = Patient.objects.get(pk=patient_id)
 
         class AdjudicationField(object):
+
             """
             Wrapper to hold values submitted so far for one adjudication field
             """
@@ -1104,7 +1121,6 @@ class AdjudicationResultsView(View):
                 else:
                     return values
 
-
             def _create_histogram(self):
                 h = {}
                 if self.cde.datatype == "range":
@@ -1125,18 +1141,17 @@ class AdjudicationResultsView(View):
                 data = {
                     "labels": histogram.keys(),
                     "datasets": [
-                         {
+                        {
                             "label": self.label,
                             "fillColor": "rgba(220,220,220,0.5)",
                             "strokeColor": "rgba(220,220,220,0.8)",
                             "highlightFill": "rgba(220,220,220,0.75)",
                             "highlightStroke": "rgba(220,220,220,1)",
                             "data": histogram.values()
-                            }
-                        ]
+                        }
+                    ]
                 }
                 return data
-
 
         fields = []
 
@@ -1151,7 +1166,6 @@ class AdjudicationResultsView(View):
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/adjudication_results.html', context,
                                   context_instance=RequestContext(request))
-
 
     def _get_results_for_one_cde(self, adjudication_responses, cde_model):
         results = []

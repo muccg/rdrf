@@ -6,6 +6,7 @@ register = template.Library()
 
 
 class ChartNode(template.Node):
+
     def __init__(self, chart_type, chart_id_variable, data_variable):
         self.chart_type = chart_type
         self.chart_id = template.Variable(chart_id_variable)

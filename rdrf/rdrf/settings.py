@@ -1,13 +1,15 @@
 # Django settings for rdrf project.
 import os
-from ccg_django_utils.conf import EnvConfig  # A wrapper around environment which has been populated from /etc/rdrf/rdrf.conf in production. Also does type conversion of values
+# A wrapper around environment which has been populated from
+# /etc/rdrf/rdrf.conf in production. Also does type conversion of values
+from ccg_django_utils.conf import EnvConfig
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 
 env = EnvConfig()
 
-SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", "")) 
+SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,7 +134,8 @@ DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-FEATURES = env.get("features", "*") # list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+# list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+FEATURES = env.get("features", "*")
 
 
 # default emailsn
@@ -298,7 +301,7 @@ LOGGING = {
 
 
 ################################################################################
-## Customize settings for each registry below
+# Customize settings for each registry below
 ################################################################################
 
 AUTH_USER_MODEL = 'groups.CustomUser'

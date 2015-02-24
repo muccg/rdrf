@@ -3,8 +3,10 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
+
 def mongo_db_name(registry):
     return settings.MONGO_DB_PREFIX + registry
+
 
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
@@ -47,6 +49,7 @@ def de_camelcase(s):
 
 
 class FormLink(object):
+
     def __init__(self, patient_id, registry, registry_form, selected=False):
         self.registry = registry
         self.patient_id = patient_id
@@ -62,6 +65,7 @@ class FormLink(object):
     def text(self):
         return de_camelcase(self.form.name)
 
+
 def get_user(username):
     from registry.groups.models import CustomUser
     try:
@@ -71,7 +75,7 @@ def get_user(username):
 
 
 def get_users(usernames):
-    return filter(lambda x : x is not None, [ get_user(username) for username in usernames])
+    return filter(lambda x: x is not None, [get_user(username) for username in usernames])
 
 
 def has_feature(feature_name):
@@ -86,9 +90,11 @@ def requires_feature(feature_name):
             if has_feature(feature_name):
                 return func(*args, **kwargs)
             else:
-                logger.info("%s will not be run with args %s kwargs %s as the site lacks feature %s" % (func.__name__, args, kwargs, feature_name))
+                logger.info("%s will not be run with args %s kwargs %s as the site lacks feature %s" %
+                            (func.__name__, args, kwargs, feature_name))
         return wrapper
     return decorator
+
 
 def get_full_link(request, partial_link, login_link=False):
     if login_link:
@@ -104,4 +110,3 @@ def get_site_url(request, path="/"):
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # this part !
     return request.build_absolute_uri(path)
-

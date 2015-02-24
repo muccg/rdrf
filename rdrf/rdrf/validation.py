@@ -37,13 +37,15 @@ def make_validation_func(val_type, cde):
     elif val_type == ValidationType.LENGTH:
         def vf(value):
             if len(value) > cde.max_length:
-                raise ValidationError("Value of '%s' for %s is longer than max length of %s" % (value, cde.name, cde.max_length))
+                raise ValidationError("Value of '%s' for %s is longer than max length of %s" %
+                                      (value, cde.name, cde.max_length))
         return vf
     else:
         raise Exception("Unknown ValidationType %s" % val_type)
 
 
 class ValidatorFactory(object):
+
     def __init__(self, cde):
         self.cde = cde
 
@@ -77,7 +79,8 @@ class ValidatorFactory(object):
                     if validate_pattern is not None:
                         validators.append(validate_pattern)
                 except Exception, ex:
-                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" % (self.cde.name, self.cde.pattern, ex))
+                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" %
+                                 (self.cde.name, self.cde.pattern, ex))
 
             if self.cde.max_length:
                 validate_length = make_validation_func(ValidationType.LENGTH, self.cde)

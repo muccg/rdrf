@@ -87,22 +87,22 @@ def export_registry_action(modeladmin, request, registry_models_selected):
     registrys = [r for r in registry_models_selected]
 
     if len(registrys) == 1:
-            registry = registrys[0]
-            yaml_export_filename = registry.name + ".yaml"
-            yaml_data = export_registry(registry, request)
-            if yaml_data is None:
-                return HttpResponseRedirect("")
+        registry = registrys[0]
+        yaml_export_filename = registry.name + ".yaml"
+        yaml_data = export_registry(registry, request)
+        if yaml_data is None:
+            return HttpResponseRedirect("")
 
-            myfile = StringIO.StringIO()
-            myfile.write(yaml_data)
-            myfile.flush()
-            myfile.seek(0)
+        myfile = StringIO.StringIO()
+        myfile.write(yaml_data)
+        myfile.flush()
+        myfile.seek(0)
 
-            response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
-            yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
-            response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
+        response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
+        yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
+        response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
 
-            return response
+        return response
     else:
         import zipfile
         zippedfile = StringIO.StringIO()
@@ -169,11 +169,11 @@ class RegistryAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return False
-    
+
     def get_urls(self):
         original_urls = super(RegistryAdmin, self).get_urls()
         added_urls = []
-        
+
         return original_urls
 
 
@@ -194,7 +194,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
             return QuestionnaireResponse.objects.all()
         else:
             return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all()])
-    
+
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
 
@@ -235,11 +235,11 @@ def create_restricted_model_admin_class(model_class, search_fields=None, orderin
 class CDEPermittedValueAdmin(admin.StackedInline):
     model = CDEPermittedValue
     extra = 0
-    
+
     fieldsets = (
         (None, {'fields': ('code', 'value', 'questionnaire_value', 'desc', 'position')}),
     )
-    
+
 
 class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
     inlines = [CDEPermittedValueAdmin]
@@ -275,6 +275,7 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
         else:
             return AdjudicationRequest.objects.filter(username=user.username, state=AdjudicationRequestState.REQUESTED)
 
+
 class AdjudicationAdmin(admin.ModelAdmin):
     list_display = ('requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
     ordering = ['requesting_username', 'definition']
@@ -308,19 +309,23 @@ class AdjudicationDefinitionAdmin(admin.ModelAdmin):
 class AdjudicationResponseAdmin(admin.ModelAdmin):
     list_display = ('request', 'response_data')
 
+
 class AdjudicationDecisionAdmin(admin.ModelAdmin):
     list_display = ('definition', 'patient', 'decision_data')
 
+
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('created', 'from_username','to_username', 'message')
+    list_display = ('created', 'from_username', 'to_username', 'message')
 
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=['code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
+admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=[
+                    'code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
 admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
 #admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=['code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
+admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=[
+                    'code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)

@@ -5,6 +5,7 @@ logger = logging.getLogger("registry_log")
 
 
 class AdjudicationAction(object):
+
     def __init__(self, adjudication):
         self.adjudication = adjudication
         self.notifier = Notifier()
@@ -23,8 +24,6 @@ class AdjudicationAction(object):
         except Exception, ex:
             logger.error("could not send email notification for %s back to requestor: %s" % (self.adjudication, ex))
             self.email_notify_failed = True
-
-
 
     def _send_notification(self):
         message = self.adjudication.decision.summary
@@ -62,4 +61,3 @@ class AdjudicationAction(object):
         self.notifier.send_email_to_username(self.adjudication.requesting_username,
                                              email_subject,
                                              email_body)
-

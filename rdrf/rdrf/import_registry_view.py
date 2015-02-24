@@ -14,6 +14,7 @@ logger = logging.getLogger("registry_log")
 
 
 class ImportRegistryView(View):
+
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def get(self, request):

@@ -38,6 +38,7 @@ ETHNICITIES = sorted(["Aboriginal",
 
 
 class SpreadSheetCreator(object):
+
     def __init__(self, registry_dict, output_filename, nrows=300, excludes=[]):
         self.registry_dict = registry_dict
         self.output_filename = output_filename
@@ -102,7 +103,8 @@ class SpreadSheetCreator(object):
         elif datatype == DATE:
             validation = {"validate": 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
         elif datatype == DECIMAL:
-            validation = {"validate": 'decimal', 'input_title': 'Enter a decimal', 'criteria': 'between', 'minimum': -1000000.00, "maximum": 1000000.00}
+            validation = {"validate": 'decimal', 'input_title': 'Enter a decimal',
+                          'criteria': 'between', 'minimum': -1000000.00, "maximum": 1000000.00}
         elif datatype == BOOL:
             validation = {"validate": 'list', 'source': ['True', 'False']}
         elif datatype == RANGE:

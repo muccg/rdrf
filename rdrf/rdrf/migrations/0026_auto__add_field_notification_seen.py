@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Notification.seen'
         db.delete_column(u'rdrf_notification', 'seen')
-
 
     models = {
         u'rdrf.adjudication': {

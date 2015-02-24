@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(default='', max_length=20, blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Registry.version'
         db.delete_column(u'rdrf_registry', 'version')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

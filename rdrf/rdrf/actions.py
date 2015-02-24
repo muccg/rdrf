@@ -4,13 +4,14 @@ logger = logging.getLogger("registry_log")
 
 
 class ActionExecutor(object):
+
     def __init__(self, request, action_dict):
         self.action_dict = action_dict
         self.request = request
 
     def run(self):
         rpc_command = self.action_dict['rpc_command']
-        rpc_args = self.action_dict['args'] #  a list of values
+        rpc_args = self.action_dict['args']  # a list of values
         rpc_function = self._locate_command_function(rpc_command)
         client_response = {}
 

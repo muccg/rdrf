@@ -19,9 +19,11 @@ class PatientCreatorState:
 
 
 class QuestionnaireReverseMapper(object):
+
     """
     Save data back into original forms from the Questionnaire Response data
     """
+
     def __init__(self, registry, patient, questionnaire_data):
         self.patient = patient
         self.registry = registry
@@ -49,7 +51,7 @@ class QuestionnaireReverseMapper(object):
 
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
-        #GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+        # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
 
         def getcde(address_map, code):
             for k in address_map:
@@ -206,6 +208,7 @@ class QuestionnaireReverseMapper(object):
 
 
 class PatientCreator(object):
+
     def __init__(self, registry, user):
         self.registry = registry
         self.user = user

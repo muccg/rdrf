@@ -26,7 +26,7 @@ def set_site_url():
 
 
 #@before.all
-#def set_wait_seconds():
+# def set_wait_seconds():
 #    world.wait_seconds = 3
 
 
@@ -34,6 +34,7 @@ def set_site_url():
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
+
 
 @after.each_scenario
 def screenshot(scenario):

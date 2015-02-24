@@ -12,6 +12,7 @@ class NotificationError(Exception):
 
 
 class Notifier(object):
+
     def send_system_notification(self, from_user_name, to_username, message, link=""):
         from rdrf.models import Notification
         try:

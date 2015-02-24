@@ -60,6 +60,7 @@ class CDECodeNotDefined(RESTInterfaceError):
 
 
 class REST(object):
+
     def __init__(self, verb, request, args, initial_data_dict):
         self.format = ResourceFormat.JSON
         self.error_message = None
@@ -85,7 +86,8 @@ class REST(object):
             try:
                 self.registry_form = RegistryForm.objects.get(registry=self.registry, name=self.form_name)
             except RegistryForm.DoesNotExist:
-                raise RESTInterfaceError("Registry Form %s does not in exist in registry %s" % (self.form_name, self.registry_code))
+                raise RESTInterfaceError("Registry Form %s does not in exist in registry %s" %
+                                         (self.form_name, self.registry_code))
         else:
             self.registry = None
 
@@ -97,7 +99,8 @@ class REST(object):
                     raise RESTInterfaceError("Section %s does not exist" % self.section_code)
 
             else:
-                raise RESTInterfaceError("Section %s does not appear in Registry form %s in Registry %s" % (self.section_code, self.form_name, self.registry_code))
+                raise RESTInterfaceError("Section %s does not appear in Registry form %s in Registry %s" % (
+                    self.section_code, self.form_name, self.registry_code))
 
         else:
             self.section = None
@@ -106,7 +109,8 @@ class REST(object):
             try:
                 self.cde = CommonDataElement.objects.get(code=self.cde_code)
                 if not appears_in(self.cde, self.registry, self.registry_form, self.section):
-                    raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (self.cde_code, self.registry_code, self.form_name, self.section_code))
+                    raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (
+                        self.cde_code, self.registry_code, self.form_name, self.section_code))
             except CommonDataElement.DoesNotExist:
                 raise RESTInterfaceError("Data Elemement with code %s doesn't exist" % self.cde_code)
 
@@ -122,7 +126,7 @@ class REST(object):
                 self.dyn_data_wrapper = None
 
     def _validate(self):
-        #TODO check supplied reg code , etc against definition
+        # TODO check supplied reg code , etc against definition
         pass
 
     def __unicode__(self):
@@ -190,16 +194,16 @@ class REST(object):
 
         elif self.section_code:
             # update entire section
-            #todo - REST interface update section
+            # todo - REST interface update section
             pass
 
         elif self.form_name:
-            #update entire form
-            #todo - REST interface update form
+            # update entire form
+            # todo - REST interface update form
             pass
         elif self.registry_code:
-            #update all form data
-            #todo - REST interface update forms
+            # update all form data
+            # todo - REST interface update forms
             pass
 
     def _get_value(self):
@@ -284,7 +288,7 @@ class REST(object):
                     try:
                         form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
                     except ValueError, ex:
-                    # this means there's bad data in there - saved with diff delimiter
+                        # this means there's bad data in there - saved with diff delimiter
                         continue
                     if self.registry_form.name == form_name and defined_section_code == section_code:
                         section_map[cde_code] = data[delimited_key]

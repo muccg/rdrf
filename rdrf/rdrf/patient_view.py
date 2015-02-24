@@ -16,16 +16,16 @@ class PatientView(View):
             'registry_code': registry_code,
             'access': False
         }
-        
+
         if request.user.is_authenticated():
             try:
                 registry = Registry.objects.get(code=registry_code)
                 if registry in request.user.registry.all():
-                    context['access']  = True
+                    context['access'] = True
             except Registry.DoesNotExist:
                 context['error_msg'] = "Registry does not exist"
                 logger.error("Registry %s does not exist" % registry_code)
-            
+
             try:
                 forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
                 context['forms'] = forms

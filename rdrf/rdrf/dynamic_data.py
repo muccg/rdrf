@@ -12,11 +12,13 @@ logger = logging.getLogger("registry_log")
 
 
 class FileStore(object):
+
     def __init__(self, mongo_db):
         self.fs = gridfs.GridFS(mongo_db)
 
 
 class DynamicDataWrapper(object):
+
     """
     Utility class to save and load dynamic data for a Django model object
     Usage:
@@ -119,7 +121,8 @@ class DynamicDataWrapper(object):
                 logger.debug("record not found - inserting new record ...")
                 record = self._get_record_query()
                 record.update(registry_data)
-                logger.debug("about tpo insert record %s into collection %s for registry %s" % (record, collection, reg_code))
+                logger.debug("about tpo insert record %s into collection %s for registry %s" %
+                             (record, collection, reg_code))
                 collection.insert(record)
                 logger.debug("inserted record OK")
 
@@ -140,6 +143,7 @@ class DynamicDataWrapper(object):
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
                     class FileUpload(object):
+
                         def __init__(self, registry, cde_code, gridfs_dict):
                             self.cde_code = cde_code
                             self.gridfs_dict = gridfs_dict
@@ -171,7 +175,8 @@ class DynamicDataWrapper(object):
         gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
         # _alter_ the dyamic data to store reference to gridfs + the original file name
         dynamic_data[cde_code] = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
-        logger.debug("UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" % (cde_code, original_file_name, registry, gridfs_id, dynamic_data[cde_code]))
+        logger.debug("UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
+                     (cde_code, original_file_name, registry, gridfs_id, dynamic_data[cde_code]))
         return gridfs_id
 
     def _is_file_cde(self, code):
@@ -342,7 +347,8 @@ class DynamicDataWrapper(object):
     def _set_in_memory_uploaded_files_to_none(self, data):
         if not isinstance(data, dict):
             # TODO find a better way! this test added to fix RDR-634
-            # The items in a multiple allowed select widget were being passed in here ( values in the list are not dicts so the recursive call failed below)
+            # The items in a multiple allowed select widget were being passed in here
+            # ( values in the list are not dicts so the recursive call failed below)
             return
         keys_to_change = []
         for key, value in data.items():
@@ -356,8 +362,8 @@ class DynamicDataWrapper(object):
 
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
-        cdes.remove({"django_id" : patient_model.pk , "django_model": "Patient"})
-        
+        cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
+
     def get_cde(self, registry, section, cde_code):
         if not self.testing:
             db = self.client[mongo_db_name(registry)]
@@ -366,9 +372,9 @@ class DynamicDataWrapper(object):
 
         collection = db["cdes"]
         cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
-        cde_record = collection.find_one(self._get_record_query(), { cde_mongo_key: True })
+        cde_record = collection.find_one(self._get_record_query(), {cde_mongo_key: True})
         cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
-        
+
         return cde_value
 
     def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
@@ -376,15 +382,14 @@ class DynamicDataWrapper(object):
             return cde_record[cde_mongo_key]
         except KeyError:
             return None
-            
 
     def get_form_timestamp(self, registry_form):
         if not self.testing:
             db = self.client[mongo_db_name(registry_form.registry.code)]
         else:
             db = self.client["testing_" + registry_form.registry.code]
-            
+
         collection = db["cdes"]
-        form_timestamp = collection.find_one(self._get_record_query(), { "timestamp": True })
-        
+        form_timestamp = collection.find_one(self._get_record_query(), {"timestamp": True})
+
         return form_timestamp

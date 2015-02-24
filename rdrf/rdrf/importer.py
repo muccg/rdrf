@@ -62,6 +62,7 @@ class ImportState:
 
 
 class Importer(object):
+
     def __init__(self):
         self.yaml_data = None
         self.data = None
@@ -167,7 +168,8 @@ class Importer(object):
 
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against the original yaml data
-        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
+        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(
+            registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
@@ -208,7 +210,8 @@ class Importer(object):
                             cde_model = CommonDataElement.objects.get(code=section_cde_code)
                             imported_section_cdes.add(cde_model.code)
                         except CommonDataElement.DoesNotExist:
-                            raise RegistryImportError("CDE %s.%s does not exist" % (form.name, section_code, section_cde_code))
+                            raise RegistryImportError(
+                                "CDE %s.%s does not exist" % (form.name, section_code, section_cde_code))
 
                     yaml_section_cdes = set([])
                     for form_map in self.data["forms"]:
@@ -223,7 +226,8 @@ class Importer(object):
                         yaml_msg = "in YAML %s.%s has cdes %s" % (form.name, section.code, yaml_section_cdes)
                         msg = "%s\n%s" % (db_msg, yaml_msg)
 
-                        raise RegistryImportError("CDE codes on imported registry do not match those specified in data file: %s" % msg)
+                        raise RegistryImportError(
+                            "CDE codes on imported registry do not match those specified in data file: %s" % msg)
 
                 except Section.DoesNotExist:
                     raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
@@ -250,28 +254,30 @@ class Importer(object):
                     value.delete()
 
             for value_map in pvg_map["values"]:
-                    value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"], pv_group=pvg)
-                    if not created:
-                        if value.value != value_map["value"]:
-                            logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code, value.code, value.value))
-                            logger.warning("Import value code %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["value"]))
+                value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"], pv_group=pvg)
+                if not created:
+                    if value.value != value_map["value"]:
+                        logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code, value.code, value.value))
+                        logger.warning("Import value code %s.%s = '%s'" %
+                                       (pvg_map["code"], value_map["code"], value_map["value"]))
 
-                        if value.desc != value_map["desc"]:
-                            logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code, value.code, value.desc))
-                            logger.warning("Import value desc %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["desc"]))
+                    if value.desc != value_map["desc"]:
+                        logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code, value.code, value.desc))
+                        logger.warning("Import value desc %s.%s = '%s'" %
+                                       (pvg_map["code"], value_map["code"], value_map["desc"]))
 
-                    # update the value ...
-                    value.value = value_map["value"]
-                    value.desc = value_map["desc"]
+                # update the value ...
+                value.value = value_map["value"]
+                value.desc = value_map["desc"]
 
-                    if 'questionnaire_value' in value_map:
-                        value.questionnaire_value = value_map['questionnaire_value']
+                if 'questionnaire_value' in value_map:
+                    value.questionnaire_value = value_map['questionnaire_value']
 
-                    if 'position' in value_map:
-                        value.position = value_map['position']
+                if 'position' in value_map:
+                    value.position = value_map['position']
 
-                    value.save()
-                    #logger.info("imported value %s" % value)
+                value.save()
+                #logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
@@ -291,23 +297,26 @@ class Importer(object):
                     if not created:
                         old_value = getattr(cde_model, field)
                         if old_value != import_value:
-                            logger.warning("import will change cde %s: import value = %s new value = %s" % (cde_model.code, old_value, import_value))
+                            logger.warning("import will change cde %s: import value = %s new value = %s" %
+                                           (cde_model.code, old_value, import_value))
 
                     setattr(cde_model, field, cde_map[field])
                     #logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
-            #Assign value group - pv_group will be empty string is not a range
+            # Assign value group - pv_group will be empty string is not a range
 
             if cde_map["pv_group"]:
                 try:
                     pvg = CDEPermittedValueGroup.objects.get(code=cde_map["pv_group"])
                     if not created:
                         if cde_model.pv_group != pvg:
-                            logger.warning("import will change cde %s: old group = %s new group = %s" % (cde_model.code, cde_model.pv_group, pvg))
+                            logger.warning("import will change cde %s: old group = %s new group = %s" %
+                                           (cde_model.code, cde_model.pv_group, pvg))
 
                     cde_model.pv_group = pvg
                 except CDEPermittedValueGroup.DoesNotExist, ex:
-                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" % (cde_map["pv_group"], cde_model.code, ex))
+                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" %
+                                           (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
             #logger.info("updated cde %s" % cde_model)
@@ -377,8 +386,6 @@ class Importer(object):
             self._create_generic_sections(self.data["generic_sections"])
 
         logger.info("imported generic sections OK")
-
-
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
@@ -475,7 +482,6 @@ class Importer(object):
             adj_def_model.adjudicator_username = adj_def_map["adjudicator_username"]
             adj_def_model.save()
             logger.info("created Adjudication Definition %s OK" % adj_def_model)
-
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:

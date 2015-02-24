@@ -24,7 +24,7 @@ class NINDSReportParser:
     PV_CODE = 'textbox34'
     PV_VALUE = 'textbox7'
     PV_DESC = 'textbox90'
-    
+
     @classmethod
     def parse_pvg(cls, elem):
         pvg_code = elem.get(cls.PVG_CODE)

@@ -8,18 +8,18 @@ import pycountry
 
 
 class LookupView(View):
-    
+
     MODEL = ""
     QUERY = ""
     ATTRS = {}
-    
+
     def get(self, request):
         query = request.GET['term']
-        
+
         results = self.MODEL.objects.filter(**{self.QUERY: query})
-        
+
         json_results = []
-        
+
         for r in results:
             json_ = {}
             json_['value'] = getattr(r, self.ATTRS['value'])
@@ -33,7 +33,7 @@ class GeneView(LookupView):
     MODEL = Gene
     QUERY = 'symbol__icontains'
     ATTRS = {'value': 'symbol', 'label': 'name'}
-    
+
 
 class LaboratoryView(LookupView):
     MODEL = Laboratory
@@ -50,7 +50,7 @@ class StateLookup(View):
             return HttpResponse(json.dumps(self._to_json(states)))
         except KeyError:
             return HttpResponse()
-    
+
     def _to_json(self, states):
         json_result = []
         for state in states:

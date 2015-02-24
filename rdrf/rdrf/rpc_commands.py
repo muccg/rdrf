@@ -29,4 +29,3 @@ def rpc_dismiss_notification(request, notification_id):
     except Exception, ex:
         logger.error("could not mark notification with id %s as seen: %s" % (notification_id, ex))
     return status
-

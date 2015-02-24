@@ -27,6 +27,7 @@ logger = logging.getLogger('registry_log')
 
 
 class FieldContext:
+
     """
     Where a field can appear - on a form or in a questionnaire
     On the questionnaire we use a different label text
@@ -117,7 +118,6 @@ class FieldFactory(object):
                 q_field_text = self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
-    
     def _get_cde_link(self, name):
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
         label_link = mark_safe_lazy(u"<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
@@ -151,7 +151,7 @@ class FieldFactory(object):
         return self.cde.pv_group is not None
 
     def _has_other_please_specify(self):
-        #todo improve other please specify check
+        # todo improve other please specify check
         if self.cde.pv_group:
             for permitted_value in self.cde.pv_group.permitted_value_set.all():
                 if permitted_value.value and permitted_value.value.lower().find("specify") > -1:
@@ -203,7 +203,7 @@ class FieldFactory(object):
                 choice_tuple = (permitted_value.code, value)
                 choices.append(choice_tuple)
         return choices
-        
+
     def _widget_search(self, widget_class_name):
         """
 
@@ -288,17 +288,20 @@ class FieldFactory(object):
             options['choices'] = choices
             options['initial'] = self.UNSET_CHOICE
             if self._has_other_please_specify():
-                #TODO make this more robust
+                # TODO make this more robust
                 other_please_specify_index = ["specify" in pair[1].lower() for pair in choices].index(True)
                 other_please_specify_value = choices[other_please_specify_index][0]
                 if self.cde.widget_name:
                     try:
                         widget_class = getattr(widgets, self.cde.widget_name)
-                        widget = widget_class(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                        widget = widget_class(
+                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
                     except:
-                        widget = widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                        widget = widgets.OtherPleaseSpecifyWidget(
+                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
                 else:
-                    widget = widgets.OtherPleaseSpecifyWidget(main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                    widget = widgets.OtherPleaseSpecifyWidget(
+                        main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
 
                 return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
@@ -320,7 +323,8 @@ class FieldFactory(object):
                         options['widget'] = widget
                         if "RadioSelect" in str(widget):
                             options["choices"] = options['choices'][1:]     # get rid of the unset choice
-                            logger.debug("adjusted options for radio select: cde = %s field options = %s" % (self.cde, options))
+                            logger.debug("adjusted options for radio select: cde = %s field options = %s" %
+                                         (self.cde, options))
 
                     return django.forms.ChoiceField(**options)
         else:
@@ -344,7 +348,8 @@ class FieldFactory(object):
 
                 if self._is_calculated_field():
                     try:
-                        parser = CalculatedFieldParser(self.registry, self.registry_form, self.section, self.cde, injected_model=self.primary_model, injected_model_id=self.primary_id)
+                        parser = CalculatedFieldParser(
+                            self.registry, self.registry_form, self.section, self.cde, injected_model=self.primary_model, injected_model_id=self.primary_id)
                         script = parser.get_script()
                         from widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
@@ -500,6 +505,7 @@ class ListFieldParseError(Exception):
 
 
 class ListFieldFactory(object):
+
     """
     A class to create formsets for CDEs ( Allowing multiple values to added )
 

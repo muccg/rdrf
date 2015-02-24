@@ -14,16 +14,15 @@ class Migration(SchemaMigration):
             ('definition', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.AdjudicationDefinition'])),
             ('requesting_username', self.gf('django.db.models.fields.CharField')(max_length=80)),
             ('patient_id', self.gf('django.db.models.fields.IntegerField')()),
-            ('decision', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.AdjudicationDecision'], null=True)),
+            ('decision', self.gf('django.db.models.fields.related.ForeignKey')
+             (to=orm['rdrf.AdjudicationDecision'], null=True)),
             ('adjudicator_username', self.gf('django.db.models.fields.CharField')(default='admin', max_length=80)),
         ))
         db.send_create_signal(u'rdrf', ['Adjudication'])
 
-
     def backwards(self, orm):
         # Deleting model 'Adjudication'
         db.delete_table(u'rdrf_adjudication')
-
 
     models = {
         u'rdrf.adjudication': {

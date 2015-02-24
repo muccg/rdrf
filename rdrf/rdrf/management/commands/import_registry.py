@@ -21,7 +21,7 @@ class Command(BaseCommand):
                     dest='import_format',
                     default='yaml',
                     type='choice',
-                    choices=['yaml','json'],
+                    choices=['yaml', 'json'],
                     help='Import format: yaml or json'),
     )
 

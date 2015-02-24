@@ -15,6 +15,7 @@ from django.contrib.auth import get_user_model
 
 
 class AllocateView(View):
+
     def get(self, request):
         user = get_user_model().objects.get(username=request.user)
         regs = Registry.objects.all()
@@ -24,6 +25,7 @@ class AllocateView(View):
 
 
 class RegistryList(View):
+
     def get(self, request):
         user = get_user_model().objects.get(username=request.user)
         regs = Registry.objects.all()

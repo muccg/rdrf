@@ -17,11 +17,9 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['registryform_id', 'commondataelement_id'])
 
-
     def backwards(self, orm):
         # Removing M2M table for field complete_form_cdes on 'RegistryForm'
         db.delete_table(db.shorten_name(u'rdrf_registryform_complete_form_cdes'))
-
 
     models = {
         u'rdrf.adjudicationdecision': {

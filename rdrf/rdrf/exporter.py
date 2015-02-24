@@ -29,9 +29,11 @@ class ExportType:
 
 
 class Exporter(object):
+
     """
     Export a registry definition to yaml or json
     """
+
     def __init__(self, registry_model):
         self.registry = registry_model
 
@@ -295,11 +297,13 @@ class Exporter(object):
     def _get_adjudication_cdes(self):
         adjudication_cdes = set([])
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
-            adjudication_section_code = adj_def.result_fields  # points to a section containing cdes which capture adjucation ratings
-            result_section_code = adj_def.decision_field       # points to a section containing decision fields ( which are mapped to actions )
-            adjudication_cdes = adjudication_cdes.union(self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
+            # points to a section containing cdes which capture adjucation ratings
+            adjudication_section_code = adj_def.result_fields
+            # points to a section containing decision fields ( which are mapped to actions )
+            result_section_code = adj_def.decision_field
+            adjudication_cdes = adjudication_cdes.union(
+                self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
         return adjudication_cdes
-
 
     def _get_cdes_for_sections(self, section_codes):
         cdes = set([])
@@ -324,7 +328,7 @@ class Exporter(object):
 
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
-        return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+        return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
 
     def _get_adjudication_definitions(self):
         """
@@ -339,7 +343,7 @@ class Exporter(object):
         def get_section_maps(adj_def):
             result_fields_section = self._create_section_map(adj_def.result_fields)
             decision_fields_section = self._create_section_map(adj_def.decision_field)
-            return {"results_fields" : result_fields_section, "decision_fields_section" : decision_fields_section}
+            return {"results_fields": result_fields_section, "decision_fields_section": decision_fields_section}
 
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
             adj_def_map = {}
