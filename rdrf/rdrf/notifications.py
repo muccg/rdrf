@@ -22,7 +22,7 @@ class Notifier(object):
             notification.message = message
             notification.link = link
             notification.save()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Could not create notification for %s to %s with message %s and link '%s': %s" %
                          from_user_name,
                          to_username,
@@ -42,7 +42,7 @@ class Notifier(object):
                                                                                           to_email,
                                                                                           subject))
             logger.debug("Email body =\n%s" % body)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Notification Email: %s from %s to %s with subject %s FAILED: %s" % (message_type,
                                                                                               from_email,
                                                                                               to_email,

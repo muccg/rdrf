@@ -687,7 +687,7 @@ class AdjudicationDefinition(models.Model):
     decision_field = models.TextField(blank=True, null=True)  # cde code of a range field with allowed actions
     adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
     adjudicating_users = models.TextField(
-        blank=True, null=True,  help_text="Either comma-seperated list of usernames and/or working group names")
+        blank=True, null=True, help_text="Either comma-seperated list of usernames and/or working group names")
 
     def create_adjudication_request(self, request, requesting_user, patient, target_user):
         adj_request = AdjudicationRequest(username=target_user.username, requesting_username=requesting_user.username,
@@ -861,7 +861,7 @@ class AdjudicationDefinition(models.Model):
         section = Section.objects.get(code=self.decision_field)
         return section.cde_models
 
-    def get_state(self,  patient):
+    def get_state(self, patient):
         try:
             AdjudicationDecision.objects.get(definition=self, patient=patient.pk)
             return AdjudicationState.ADJUDICATED
@@ -887,7 +887,7 @@ class AdjudicationRequest(models.Model):
         fails = 0
         try:
             self._send_email(request)
-        except NotificationError, ex:
+        except NotificationError as ex:
             logger.error("could not send email for %s: %s" % (self, ex))
             fails += 1
 
@@ -1056,7 +1056,7 @@ class AdjudicationResponse(models.Model):
                                    link)
         try:
             self._send_email(request)
-        except NotificationError, nerr:
+        except NotificationError as nerr:
             msg = "could not send email to adjudicator %s about %s adjudication response: %s" % (self.request.definition.adjudicator_username,
                                                                                                  self.request.definition.display_name,
                                                                                                  nerr)
@@ -1191,7 +1191,8 @@ class Adjudication(models.Model):
     @property
     def status(self):
         state_map = {}
-        for adj_req in AdjudicationRequest.objects.filter(definition=self.definition, patient=self.patient_id, requesting_username=self.requesting_username):
+        for adj_req in AdjudicationRequest.objects.filter(
+                definition=self.definition, patient=self.patient_id, requesting_username=self.requesting_username):
             if adj_req.state not in state_map:
                 state_map[adj_req.state] = 1
             else:

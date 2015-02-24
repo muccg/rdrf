@@ -274,10 +274,12 @@ class FormView(View):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
+        return create_form_class_for_section(
+            registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
 
     def _get_formlinks(self):
-        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire]
+        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
+                for form in self.registry.forms if not form.is_questionnaire]
 
     def _build_context(self, **kwargs):
         """
@@ -327,7 +329,7 @@ class FormView(View):
                     try:
                         # we grab the list of data items by section code not cde code
                         initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])
-                    except KeyError, ke:
+                    except KeyError as ke:
                         logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
                         initial_data = [""]  # * len(section_elements)
                 else:
@@ -571,7 +573,8 @@ class QuestionnaireView(FormView):
         return "questionnaire"
 
     def _get_form_class_for_section(self, registry, registry_form, section):
-        return create_form_class_for_section(registry, registry_form, section, questionnaire_context=self.questionnaire_context)
+        return create_form_class_for_section(
+            registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
 class QuestionnaireResponseView(FormView):
@@ -628,7 +631,7 @@ class QuestionnaireResponseView(FormView):
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
-        if request.POST.has_key('reject'):
+        if 'reject' in request.POST:
             # delete from Mongo first todo !
             qr.delete()
             logger.debug("deleted rejected questionnaire response %s" % questionnaire_response_id)
@@ -804,7 +807,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         registry_structure_json = request.body
         try:
             registry_structure = json.loads(registry_structure_json)
-        except Exception, ex:
+        except Exception as ex:
             message = {"message": "Error: Could not load registry structure: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=400, content_type="application/json")
@@ -825,7 +828,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=200, content_type="application/json")
 
-        except Exception, ex:
+        except Exception as ex:
             message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=400, content_type="application/json")
@@ -859,7 +862,8 @@ class AdjudicationInitiationView(View):
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/adjudication_initiation_form.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/adjudication_initiation_form.html', context, context_instance=RequestContext(request))
 
     @method_decorator(login_required)
     def post(self, request, def_id, patient_id):
@@ -886,7 +890,8 @@ class AdjudicationInitiationView(View):
             # no requests have been adjudication requests created for this patient
             sent_ok, errors = self._create_adjudication_requests(request, adj_def, patient, request.user)
             if errors:
-                return StandardView.render_error(request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
+                return StandardView.render_error(
+                    request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
             else:
                 return StandardView.render_information(request, "Adjudication Request Sent Successfully!")
 
@@ -929,7 +934,7 @@ class AdjudicationInitiationView(View):
                 try:
                     adjudication_definition.create_adjudication_request(request, requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
-                except Exception, ex:
+                except Exception as ex:
                     errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
 
         for target_working_group_name in target_working_group_names:
@@ -943,7 +948,7 @@ class AdjudicationInitiationView(View):
                 try:
                     adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
-                except Exception, ex:
+                except Exception as ex:
                     errors.append("could not create adjudication request for %s in group %s:%s" % (target_user,
                                                                                                    target_working_group,
                                                                                                    ex))
@@ -967,7 +972,8 @@ class AdjudicationRequestView(View):
 
         if adj_req.decided:
             # The adjudicator has already acted on the information from other requests for this patient
-            return StandardView.render_information(request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
+            return StandardView.render_information(
+                request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 
@@ -990,7 +996,7 @@ class AdjudicationRequestView(View):
                                                           username=request.user.username)
                 try:
                     adj_req.handle_response(request)
-                except AdjudicationError, aerr:
+                except AdjudicationError as aerr:
                     return StandardView.render_error(request, "Adjudication Error: %s" % aerr)
 
                 return StandardView.render_information(request, "Adjudication Response submitted successfully!")
@@ -1011,7 +1017,7 @@ class Colours(object):
 
 class AdjudicationResultsView(View):
 
-    def get(self, request, adjudication_definition_id, requesting_user_id,  patient_id):
+    def get(self, request, adjudication_definition_id, requesting_user_id, patient_id):
         context = {}
         current_username = request.user.username
         try:
@@ -1056,7 +1062,7 @@ class AdjudicationResultsView(View):
             }
             LABELS = {
                 "C": "Created",
-                "R":  "Requested",
+                "R": "Requested",
                 "P": "Processed",
                 "I": "Invalid",
             }
@@ -1197,7 +1203,7 @@ class AdjudicationResultsView(View):
         return stats, responses
 
     @method_decorator(login_required)
-    def post(self, request, adjudication_definition_id,  requesting_user_id, patient_id):
+    def post(self, request, adjudication_definition_id, requesting_user_id, patient_id):
         from rdrf.models import AdjudicationDefinition, AdjudicationError, AdjudicationState, AdjudicationDecision
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)

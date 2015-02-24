@@ -76,7 +76,7 @@ class Exporter(object):
         try:
             export = self._export(ExportFormat.YAML, export_type)
             return export, []
-        except Exception, ex:
+        except Exception as ex:
             return None, [ex]
 
     def export_json(self):
@@ -177,7 +177,7 @@ class Exporter(object):
             logger.debug("About to yaml dump the export: data = %s" % data)
             try:
                 export_data = yaml.dump(data)
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
         elif format == ExportFormat.JSON:
@@ -316,10 +316,10 @@ class Exporter(object):
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist, ex:
+                    except CommonDataElement.DoesNotExist as ex:
                         logger.error("No CDE with code: %s" % cde_code)
 
-            except Section.DoesNotExist, ex:
+            except Section.DoesNotExist as ex:
                 logger.error("No Section with code: %s" % section_code)
         return cdes
 

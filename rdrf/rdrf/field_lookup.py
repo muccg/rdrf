@@ -63,7 +63,8 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None, injected_model=None, injected_model_id=None, is_superuser=False):
+    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None,
+                 injected_model=None, injected_model_id=None, is_superuser=False):
         """
         :param cde: Common Data Element model instance
         """
@@ -355,7 +356,7 @@ class FieldFactory(object):
                         options['widget'] = CalculatedFieldWidget(script)
                         return django.forms.CharField(**options)
 
-                    except CalculatedFieldParseError, pe:
+                    except CalculatedFieldParseError as pe:
                         logger.error("Calculated Field %s Error: %s" % (self.cde, pe))
 
                 field_or_tuple = self.DATATYPE_DICTIONARY.get(self.cde.datatype.lower(), django.forms.CharField)
@@ -370,7 +371,7 @@ class FieldFactory(object):
             if self.cde.widget_name:
                 try:
                     widget = self._widget_search(self.cde.widget_name)
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
                     raise ex
                     widget = None
@@ -444,7 +445,7 @@ class ComplexFieldFactory(object):
                 try:
                     cde = CommonDataElement.objects.get(code=cde_code)
                     cdes.append(cde)
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("Couldn't get CDEs for %s - errored on code %s: %s" % (self, self.cde.code, ex))
                     raise ComplexFieldParseError("%s couldn't be created: %s" % (self, ex))
 

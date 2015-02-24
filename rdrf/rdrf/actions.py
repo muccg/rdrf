@@ -22,7 +22,7 @@ class ActionExecutor(object):
                 result = rpc_function(*args)
                 client_response['result'] = result
                 client_response['status'] = 'success'
-            except Exception, ex:
+            except Exception as ex:
                 client_response['status'] = 'fail'
                 client_response['error'] = ex.message
         else:

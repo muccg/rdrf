@@ -66,7 +66,8 @@ class CalculatedFieldParser(object):
         :param cde_code:
         :return: in the section of the form this cde is in
         """
-        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
+        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
+            self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
 
     def _replace_cde_calc(self, old_code, calc):
         s = "context.%s" % old_code

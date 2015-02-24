@@ -188,7 +188,7 @@ class DynamicDataWrapper(object):
                 return True
             else:
                 logger.debug("CDE %s is not a file" % cde.code)
-        except Exception, ex:
+        except Exception as ex:
             # section forms have codes which are not CDEs
             logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
@@ -308,14 +308,14 @@ class DynamicDataWrapper(object):
             if h is None:
                 history.insert({"_id": patient_id, "snapshots": []})
             history.update({"_id": patient_id}, {"$push": {"snapshots": {"timestamp": timestamp, "record": record}}})
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
     def save_snapshot(self, registry_code, collection_name):
         try:
             record = self.load_dynamic_data(registry_code, collection_name)
             self._save_longitudinal_snapshot(registry_code, record)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
 
     def _convert_date_to_datetime(self, data):
@@ -337,7 +337,7 @@ class DynamicDataWrapper(object):
                 self._convert_date_to_datetime(x)
 
         for k, value in data.items():
-            if type(value) is date:
+            if isinstance(value, date):
                 data[k] = datetime(value.year, value.month, value.day)
             elif isinstance(value, list):
                 # recurse on multisection data

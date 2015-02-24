@@ -313,7 +313,7 @@ class LongitudinalTestCase(FormTestCase):
         for snapshot_dict in record["snapshots"]:
             assert isinstance(snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
             assert "timestamp" in snapshot_dict, "snapshot dict should have  timestamp key"
-            assert type(snapshot_dict["timestamp"]) is type(
-                u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
+            assert isinstance(snapshot_dict["timestamp"], type(
+                u"")), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert "record" in snapshot_dict, "snapshot dict should have key record"
         assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])

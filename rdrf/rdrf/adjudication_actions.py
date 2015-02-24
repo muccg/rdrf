@@ -15,13 +15,13 @@ class AdjudicationAction(object):
     def run(self, request):
         try:
             self._send_notification()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Could not send system notification for %s: %s" % (self.adjudication, ex))
             self.system_notify_failed = True
 
         try:
             self._send_email(request)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("could not send email notification for %s back to requestor: %s" % (self.adjudication, ex))
             self.email_notify_failed = True
 

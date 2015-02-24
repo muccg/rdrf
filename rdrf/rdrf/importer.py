@@ -86,7 +86,7 @@ class Importer(object):
             yaml_data.close()
             logger.debug("importer.data = %s" % self.data)
             self.state = ImportState.LOADED
-        except Exception, ex:
+        except Exception as ex:
             self.state = ImportState.MALFORMED
             logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex))
             raise BadDefinitionFile("YAML file is malformed: %s" % ex)
@@ -314,7 +314,7 @@ class Importer(object):
                                            (cde_model.code, cde_model.pv_group, pvg))
 
                     cde_model.pv_group = pvg
-                except CDEPermittedValueGroup.DoesNotExist, ex:
+                except CDEPermittedValueGroup.DoesNotExist as ex:
                     raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" %
                                            (cde_map["pv_group"], cde_model.code, ex))
 
@@ -373,7 +373,7 @@ class Importer(object):
             if not isinstance(metadata, dict):
                 raise ValueError("Not a dictionary")
             return True
-        except ValueError, verr:
+        except ValueError as verr:
             logger.info("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
             return False
 
@@ -462,7 +462,7 @@ class Importer(object):
         # generate the questionnaire for this reqistry
         try:
             r.generate_questionnaire()
-        except Exception, ex:
+        except Exception as ex:
             raise QuestionnaireGenerationError(str(ex))
 
         if "adjudication_definitions" in self.data:

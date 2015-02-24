@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 
 from rdrf.utils import has_feature
 from admin_forms import RegistryFormAdminForm
+from functools import reduce
 
 logger = logging.getLogger("registry_log")
 
@@ -79,7 +80,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             else:
                 logger.info("Exported YAML Data for %s OK" % registry.name)
             return yaml_data
-        except Exception, ex:
+        except Exception as ex:
             logger.error("export registry action for %s error: %s" % (registry.name, ex))
             messages.error(request, "Custom Action Failed: %s" % ex)
             return None

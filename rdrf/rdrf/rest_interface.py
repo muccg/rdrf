@@ -130,7 +130,8 @@ class REST(object):
         pass
 
     def __unicode__(self):
-        return "Registry %s Patient %s Form %s Section %s CDE %s" % (self.registry_code, self.patient_id, self.form_name, self.section_code, self.cde_code)
+        return "Registry %s Patient %s Form %s Section %s CDE %s" % (
+            self.registry_code, self.patient_id, self.form_name, self.section_code, self.cde_code)
 
     @property
     def valid(self):
@@ -151,10 +152,10 @@ class REST(object):
         method = getattr(self, "do_%s" % self.verb.lower())
         try:
             return method()
-        except CDECodeNotDefined, cdeerr:
+        except CDECodeNotDefined as cdeerr:
             return HttpResponse(cdeerr, status=400)
 
-        except RESTInterfaceError, rierr:
+        except RESTInterfaceError as rierr:
             return HttpResponse(rierr, status=400)
 
     def do_get(self):
@@ -265,7 +266,7 @@ class REST(object):
                 logger.debug("checking key %s" % delimited_key)
                 try:
                     form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                except ValueError, ex:
+                except ValueError as ex:
                     # this means there's bad data in there - saved with diff delimiter
                     continue
 
@@ -287,7 +288,7 @@ class REST(object):
                 for delimited_key in data:
                     try:
                         form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                    except ValueError, ex:
+                    except ValueError as ex:
                         # this means there's bad data in there - saved with diff delimiter
                         continue
                     if self.registry_form.name == form_name and defined_section_code == section_code:
@@ -301,7 +302,7 @@ class REST(object):
             for delimited_key in data:
                 try:
                     form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
-                except ValueError, verr:
+                except ValueError as verr:
                     continue
 
                 if not form_name in registry_map:
@@ -327,7 +328,7 @@ def rest_call(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except RESTInterfaceError, rierr:
+        except RESTInterfaceError as rierr:
             return HttpResponse(str(rierr), status=400)
     return wrapper
 

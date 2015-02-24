@@ -46,7 +46,7 @@ class ImportRegistryView(View):
             with transaction.commit_on_success():
                 importer.create_registry()
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Import failed: %s" % ex)
             return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
 

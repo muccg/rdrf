@@ -26,7 +26,7 @@ def make_validation_func(val_type, cde):
     elif val_type == ValidationType.PATTERN:
         try:
             re_pattern = re.compile(cde.pattern)
-        except Exception, ex:
+        except Exception as ex:
             logger.info("CDE %s has bad pattern: %s" % (cde, cde.pattern))
             return None
 
@@ -78,7 +78,7 @@ class ValidatorFactory(object):
                     validate_pattern = make_validation_func(ValidationType.PATTERN, self.cde)
                     if validate_pattern is not None:
                         validators.append(validate_pattern)
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" %
                                  (self.cde.name, self.cde.pattern, ex))
 

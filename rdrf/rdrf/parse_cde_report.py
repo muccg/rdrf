@@ -93,9 +93,11 @@ class NINDSReportParser:
         print "Parsing: " + xml_file
         with open(xml_file, 'r') as fd:
             et = etree.parse(fd)
-        for table1_group1 in etree.ETXPath('./{rptAllCDE}table1/{rptAllCDE}table1_Group1_Collection/{rptAllCDE}table1_Group1')(et.getroot()):
+        for table1_group1 in etree.ETXPath(
+                './{rptAllCDE}table1/{rptAllCDE}table1_Group1_Collection/{rptAllCDE}table1_Group1')(et.getroot()):
             pvg = None
-            for table1_group2 in etree.ETXPath('./{rptAllCDE}table1_Group2_Collection/{rptAllCDE}table1_Group2')(table1_group1):
+            for table1_group2 in etree.ETXPath(
+                    './{rptAllCDE}table1_Group2_Collection/{rptAllCDE}table1_Group2')(table1_group1):
                 pvg = NINDSReportParser.parse_pvg(table1_group2)
             NINDSReportParser.parse_cde(table1_group1, pvg)
 
