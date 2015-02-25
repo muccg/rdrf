@@ -3,22 +3,27 @@
 <head>
     <title>RDRF | Patient registration</title>
     
-    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-
-    <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-
-    <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 
-    <!-- Latest compiled and minified JavaScript -->
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
     
     <style>
         body {
             background-color: #edeff1;
         }
     </style>
+    
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#registration-submit").click(function() {
+                var registration_form = $("#registration-form");
+                console.log(registration_form.valid());
+            });
+        });    
+    </script>
 </head>
 
 <body>
@@ -26,39 +31,43 @@
     {{form.errors}}
     <div class="container">
         <div class="row">
-            <div class="col-md-offset-3 col-md-6 col-md-offset-3>
-                <div class="panel panel-default" style="background-color: #f5f5f5;">
-                    <div class="panel-body" style="padding-left: 30px; padding-right: 30px; padding-bottom: 5px">
-                        <form class="form-horizontal" method="POST">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />
-                            </div>
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" />
-                            </div>
-                            
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
-                            </div>
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="Email address" id="id_email" name="email" type="email" />
-                            </div>
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="Password" id="id_password1" name="password1" type="password" />
-                            </div>
-                            <div class="form-group">
-                                <input class="form-control input-lg" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary btn-block btn-lg">Register</button>
-                            </div>
-                        </form>
+            <div class="col-md-4">
+                <form class="form-horizontal" id="registration-form" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />
                     </div>
-                </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="registration-submit" class="btn btn-primary btn-block">Continue</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-7" style="text-align: justify; margin-left: 20px; border-left: dashed 1px #bbb;">
+                <h3>Registration</h3>
+                Please complete this form and click on the “Continue” button to start the registration.
+                If you have already registered and would like to update your data or add another patient, you don't have to fill in this form again. Just go to the login page and login with the e-mail address and password you previously registered with.
+                <h3>Personal data</h3>
+                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
             </div>
         </div>
     </div>
+    
 </body>
 
 </html>
