@@ -120,7 +120,7 @@ AUTHENTICATION_BACKENDS = [
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
-EMAIL_HOST = env.get("email_host", '127.0.0.1')
+EMAIL_HOST = env.get("email_host", 'smtp')
 EMAIL_PORT = env.get("email_port", 25)
 EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")

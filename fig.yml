@@ -5,6 +5,9 @@ data:
     - .:/app
     - data/dev:/data
 
+smtp:
+  image: muccg/postfix:latest
+
 db:
   image: postgres:9.3
   environment:
@@ -49,6 +52,7 @@ web:
     - db
     - cache
     - mongo
+    - smtp
 
 uwsgi:
   image: rdrf_web
