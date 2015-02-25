@@ -108,7 +108,7 @@ if [ "$1" = 'runserver' ]; then
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
 
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} --all 2>&1 | tee /data/runserver-syncdb.log
+    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-syncdb.log
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-migrate.log
 
     django-admin.py load_fixture --file=rdrf.json
