@@ -53,10 +53,13 @@ def user_registered_callback(sender, user, request, **kwargs):
     user.first_name = request.POST['first_name']
     user.last_name = request.POST['surname']
     user.is_staff = True
-    user.groups = [ _get_group("Patients"), ]
+    
+    patient_group = _get_group("Patients")
+    user.groups = [ patient_group, ] if patient_group else []
     
     registry_code = _get_registry_code(request.path)
-    user.registry = [ _get_registry_object(registry_code), ]
+    registry = _get_registry_object(registry_code)
+    user.registry = [ registry, ] if registry else []
     
     user.save()
 
