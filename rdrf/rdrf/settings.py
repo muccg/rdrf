@@ -322,6 +322,7 @@ SUIT_CONFIG = {
         'groups',
         'iprestrict',
         'patients',
+        'registration',
         {'app': 'rdrf', 'label': 'Registry'},
         {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
                 {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}
