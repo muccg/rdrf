@@ -11,6 +11,7 @@ import import_registry_view
 import rest_interface
 import hgvs_view
 import patient_view
+import login_router
 from lookup_views import GeneView, LaboratoryView, StateLookup
 from ajax_select import urls as ajax_select_urls
 from views import RegistryList
@@ -95,6 +96,9 @@ urlpatterns = patterns('',
                            form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
                        url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
+
+                       url(r'^router/',
+                            login_router.RouterView.as_view(), name="login_router"),
                        )
 
 urlpatterns += patterns('',

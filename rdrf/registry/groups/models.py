@@ -47,7 +47,27 @@ class CustomUser(AbstractUser):
             if reg is registry_model:
                 return True
 
+    @property
+    def is_patient(self):
+        try:
+            patient_group = Group.objects.get(name__icontains = "patients")
+            _is_patient = True if patient_group in self.groups.all() else False
+            return _is_patient
+        except Group.DoesNotExist:
+            return False
 
+    @property
+    def is_clinician(self):
+        try:
+            clinical_group = Group.objects.get(name__icontains = "clinical")
+            _is_clinicial = True if clinical_group in self.groups.all() else False
+            return _is_clinicial
+        except Group.DoesNotExist:
+            return False
+
+    def get_registries(self):
+        return self.registry.all()
+    
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
     user.first_name = request.POST['first_name']
