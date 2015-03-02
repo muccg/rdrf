@@ -470,7 +470,7 @@ class Importer(object):
             raise QuestionnaireGenerationError(str(ex))
 
         if "adjudication_definitions" in self.data:
-            self._create_adjudication_definitions(self.data["adjudication_definitions"])
+            self._create_adjudication_definitions(r, self.data["adjudication_definitions"])
         logger.info("imported adjudication definitions OK")
 
     def _create_adjudication_definitions(self, registry_model, adj_def_maps):
