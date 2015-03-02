@@ -5,10 +5,12 @@
     
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
 
     <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
     
     <style>
         body {
@@ -18,6 +20,20 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
+            var url_path = "{{request.path}}";
+            var registry_code = url_path.split("/")[2];
+            
+            $("#id_date_of_birth").datepicker({
+                'dateFormat': 'yy-mm-dd'
+            });
+            
+            $.get("{% url 'clinician_lookup' %}", { 'registry_code': registry_code }, function(data) {
+                clinician_drop = $("#id_clinician");
+                $.each($.parseJSON(data), function(i, item){
+                    clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
+                });
+            });
+
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
                 console.log(registration_form.valid());
@@ -47,6 +63,14 @@
                     </div>
                     <div class="form-group">
                         <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" id="id_clinician" name="clinician">
+                            <option value="-1">Choose your preferred Clinician</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
