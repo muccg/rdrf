@@ -1,3 +1,5 @@
+{% load static %}
+
 <html>
 
 <head>
@@ -11,6 +13,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
     <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
+    <script src="{% static  'js/pwstrength-bootstrap-1.2.5.min.js' %}"></script>
     
     <style>
         body {
@@ -22,6 +25,9 @@
         $(document).ready(function() {
             var url_path = "{{request.path}}";
             var registry_code = url_path.split("/")[2];
+            $('#id_password1').pwstrength({
+                ui: { showVerdictsInsideProgressBar: true }
+            });
             
             $("#id_date_of_birth").datepicker({
                 'dateFormat': 'yy-mm-dd'
