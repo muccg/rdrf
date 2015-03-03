@@ -16,12 +16,21 @@ class PatientView(View):
             'registry_code': registry_code,
             'access': False
         }
+        
+        try:
+            registry = Registry.objects.get(code=registry_code)
+            context['splash_screen'] = registry.patient_splash_screen
+        except Registry.DoesNotExist:
+            context['error_msg'] = "Registry does not exist"
+            logger.error("Registry %s does not exist" % registry_code)
+            return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))
 
         if request.user.is_authenticated():
             try:
                 registry = Registry.objects.get(code=registry_code)
                 if registry in request.user.registry.all():
                     context['access'] = True
+                    context['splash_screen'] = registry.patient_splash_screen
             except Registry.DoesNotExist:
                 context['error_msg'] = "Registry does not exist"
                 logger.error("Registry %s does not exist" % registry_code)

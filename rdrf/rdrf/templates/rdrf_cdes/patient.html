@@ -2,20 +2,29 @@
 
 {% block content %}
     <br/>
+    
+    {% if splash_screen %}
+        <div class="well">
+            {% autoescape off %}
+                {{ splash_screen }}
+            {% endautoescape %}
+        </div>
+    {% endif %}
+    
+    {% if error_msg %}
+        <div class="alert alert-danger">{{error_msg}}</div>
+    {% endif %}
+
 
     {% if request.user.is_authenticated %}
 
         {% if is_patient %}
             <div class="alert alert-success">Welcome {{request.user.first_name}}</div>
-
-            {% if error_msg %}
-                <div class="alert alert-danger">{{error_msg}}</div>
-            {% endif %}
             
             {% if not access %}
                 <div class="alert alert-danger">You don't have access to this registry</div>
             {% endif %}
-
+            
             <ul class="list-group">
             {% for form in forms %}
                 <li class="list-group-item">{{form.name}}<a target="_blank" href="{% url 'questionnaire' form.registry.code %}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
