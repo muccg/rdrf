@@ -54,8 +54,12 @@
     {{form.errors}}
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
-                <form class="form-horizontal" id="registration-form" method="POST">
+            <div class="col-md-5">
+                <h3>Personal data</h3>
+                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
+            </div>
+            <div class="col-md-6" style="text-align: justify; border-left: dashed 1px #bbb;">
+                <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px;">
                     {% csrf_token %}
                     <div class="form-group">
                         <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />
@@ -63,20 +67,25 @@
                     <div class="form-group">
                         <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" />
                     </div>
-                    
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
-                    </div>
                     <div class="form-group">
                         <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <div class="radio">
+                            <label><input type="radio" id="id_gender" name="gender" value="M">Male</label>
+                            <label><input type="radio" id="id_gender" name="gender" value="F">Female</label>
+                        </div>
+                    </div> 
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
                     </div>
                     <div class="form-group">
                         <select class="form-control" id="id_clinician" name="clinician">
                             <option value="-1">Choose your preferred Clinician</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
                     </div>
                     <div class="form-group">
                         <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
@@ -85,16 +94,9 @@
                         <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
                     </div>
                     <div class="form-group">
-                        <button type="button" id="registration-submit" class="btn btn-primary btn-block">Continue</button>
+                        <button type="button" id="registration-submit" class="btn btn-success pull-right">Register</button>
                     </div>
                 </form>
-            </div>
-            <div class="col-md-7" style="text-align: justify; margin-left: 20px; border-left: dashed 1px #bbb;">
-                <h3>Registration</h3>
-                Please complete this form and click on the “Continue” button to start the registration.
-                If you have already registered and would like to update your data or add another patient, you don't have to fill in this form again. Just go to the login page and login with the e-mail address and password you previously registered with.
-                <h3>Personal data</h3>
-                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
             </div>
         </div>
     </div>

@@ -14,7 +14,7 @@ AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|ci_staging)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging)'
 }
 
 
@@ -58,6 +58,16 @@ ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged || true'
 }
 
+lettuce() {
+    mkdir -p data/selenium
+    chmod o+rwx data/selenium
+
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
+    pip install fig
+
+    fig --project-name rdrf -f fig-lettuce.yml up
+}
 
 selenium() {
     mkdir -p data/selenium
@@ -148,6 +158,9 @@ unit_tests)
     ;;
 selenium)
     selenium
+    ;;
+lettuce)
+    lettuce
     ;;
 *)
     usage

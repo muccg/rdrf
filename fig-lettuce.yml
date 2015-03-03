@@ -58,7 +58,7 @@ webselenium:
 # runs the lettuce tests against the stack above
 lettucehost:
   image: rdrf_webselenium
-  command: django-admin.py test /app/rdrf/rdrf/selenium_test/
+  command: lettuce
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp

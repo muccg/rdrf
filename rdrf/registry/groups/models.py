@@ -94,7 +94,8 @@ def user_registered_callback(sender, user, request, **kwargs):
         consent=True,
         family_name = user.last_name,
         given_names = user.first_name,
-        date_of_birth = request.POST["date_of_birth"]
+        date_of_birth = request.POST["date_of_birth"],
+        sex = request.POST["gender"]
     )
 
     patient.rdrf_registry.add(registry.id)
