@@ -1,11 +1,8 @@
 from selenium import selenium
 import unittest, time, re
+from base import Base
 
-class AddPatient(unittest.TestCase):
-    def setUp(self):
-        self.verificationErrors = []
-        self.selenium = selenium("hub", 4444, "*firefox", "http://web:8000")
-        self.selenium.start()
+class AddPatient(Base):
     
     def test_add_patient(self):
         sel = self.selenium
@@ -33,7 +30,3 @@ class AddPatient(unittest.TestCase):
         self.assertEqual(u"\xd7 The patient \"JOHN Doe\" was added successfully.", sel.get_text("//div[@id='suit-center']/div"))
         sel.click("link=Log out")
         sel.wait_for_page_to_load("30000")
-    
-    def tearDown(self):
-        self.selenium.stop()
-        self.assertEqual([], self.verificationErrors)
