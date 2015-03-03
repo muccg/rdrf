@@ -479,7 +479,7 @@ class Importer(object):
             decision_fields_section_map = adj_def_map["sections_required"]["decision_fields_section"]
             self._create_section_model(result_fields_section_map)
             self._create_section_model(decision_fields_section_map)
-            adj_def_model = AdjudicationDefinition(registry=registry_model)
+            adj_def_model, created = AdjudicationDefinition.objects.get_or_create(registry=registry_model, display_name= adj_def_map["display_name"])
             try:
                 adj_def_model.display_name = adj_def_map["display_name"]
             except Exception, ex:
