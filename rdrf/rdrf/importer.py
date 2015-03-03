@@ -470,7 +470,7 @@ class Importer(object):
             raise QuestionnaireGenerationError(str(ex))
 
         if "adjudication_definitions" in self.data:
-            self._create_adjudication_definitions(self.data["adjudication_definitions"])
+            self._create_adjudication_definitions(r, self.data["adjudication_definitions"])
         logger.info("imported adjudication definitions OK")
 
     def _create_adjudication_definitions(self, registry_model, adj_def_maps):
@@ -479,11 +479,21 @@ class Importer(object):
             decision_fields_section_map = adj_def_map["sections_required"]["decision_fields_section"]
             self._create_section_model(result_fields_section_map)
             self._create_section_model(decision_fields_section_map)
-            adj_def_model = AdjudicationDefinition(registry=registry_model)
+            adj_def_model, created = AdjudicationDefinition.objects.get_or_create(registry=registry_model, display_name= adj_def_map["display_name"])
+            try:
+                adj_def_model.display_name = adj_def_map["display_name"]
+            except Exception, ex:
+                logger.error("display_name not in adjudication definition")
+
             adj_def_model.fields = adj_def_map["fields"]
             adj_def_model.result_fields = adj_def_map["result_fields"]
             adj_def_model.decision_field = adj_def_map["decision_field"]
             adj_def_model.adjudicator_username = adj_def_map["adjudicator_username"]
+            try:
+                adj_def_model.adjudicating_users = adj_def_map["adjudicating_users"]
+            except Exception, ex:
+                logger.error("adjudicating_users not in definition")
+
             adj_def_model.save()
             logger.info("created Adjudication Definition %s OK" % adj_def_model)
 

@@ -8,6 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding M2M table for field complete_form_cdes on 'RegistryForm'
+        m2m_table_name = db.shorten_name(u'rdrf_registryform_complete_form_cdes')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('registryform', models.ForeignKey(orm[u'rdrf.registryform'], null=False)),
+            ('commondataelement', models.ForeignKey(orm[u'rdrf.commondataelement'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['registryform_id', 'commondataelement_id'])
+
         # Adding field 'AdjudicationDefinition.adjudicating_users'
         db.add_column(u'rdrf_adjudicationdefinition', 'adjudicating_users',
                       self.gf('django.db.models.fields.TextField')(null=True, blank=True),
@@ -16,6 +25,9 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Deleting field 'AdjudicationDefinition.adjudicating_users'
         db.delete_column(u'rdrf_adjudicationdefinition', 'adjudicating_users')
+
+        # Removing M2M table for field complete_form_cdes on 'RegistryForm'
+        db.delete_table(db.shorten_name(u'rdrf_registryform_complete_form_cdes'))
 
     models = {
         u'rdrf.adjudicationdecision': {
@@ -103,6 +115,7 @@ class Migration(SchemaMigration):
         },
         u'rdrf.registryform': {
             'Meta': {'object_name': 'RegistryForm'},
+            'complete_form_cdes': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['rdrf.CommonDataElement']", 'symmetrical': 'False', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_questionnaire': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),

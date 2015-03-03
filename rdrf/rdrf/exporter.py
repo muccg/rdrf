@@ -350,6 +350,8 @@ class Exporter(object):
             adj_def_map['result_fields'] = adj_def.result_fields
             adj_def_map['decision_field'] = adj_def.decision_field   # section for dec
             adj_def_map['adjudicator_username'] = adj_def.adjudicator_username
+            adj_def_map["adjudicating_users"] = adj_def.adjudicating_users
+            adj_def_map["display_name"] = adj_def.display_name
             adj_def_map["sections_required"] = get_section_maps(adj_def)
             adj_def_maps.append(adj_def_map)
 
