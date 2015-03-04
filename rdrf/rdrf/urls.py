@@ -12,7 +12,7 @@ import rest_interface
 import hgvs_view
 import patient_view
 import login_router
-from lookup_views import GeneView, LaboratoryView, StateLookup
+from lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
 from ajax_select import urls as ajax_select_urls
 from views import RegistryList
 from registry.patients.views import update_session
@@ -99,7 +99,11 @@ urlpatterns = patterns('',
 
                        url(r'^router/',
                             login_router.RouterView.as_view(), name="login_router"),
+
+                       url(r'^api/clinitian/',
+                            ClinitianLookup.as_view(), name="clinician_lookup")
                        )
+
 
 urlpatterns += patterns('',
                         (r'^accounts/fkrp/', include('registration.backends.default.urls')),
