@@ -17,6 +17,8 @@ class RouterView(View):
                 redirect_url = reverse("admin:index")
             elif user.is_clinician:
                 redirect_url = reverse("admin:index")
+            elif user.is_curator:
+                redirect_url = reverse("admin:index")
             elif user.is_patient:
                 regs = user.get_registries()
                 if regs:
