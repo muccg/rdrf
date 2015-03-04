@@ -1,19 +1,18 @@
- # Custom widgets / Complex controls required
+# Custom widgets / Complex controls required
 from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
-from registry.utils import get_static_url
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
 
 import logging
-logger = logging.getLogger("registry_log")
-
 from models import CommonDataElement
-
 import pycountry
+
+logger = logging.getLogger("registry_log")
 
 
 class BadCustomFieldWidget(Textarea):
+
     """
     Widget to use instead if a custom widget is defined and fails on creation
     """
@@ -21,17 +20,20 @@ class BadCustomFieldWidget(Textarea):
 
 
 class CustomWidgetC18583(Widget):
+
     def render(self, name, value, attrs=None):
         return "<h1>%s</h1>" % value
 
 
 class DatatypeWidgetAlphanumericxxx(Textarea):
+
     def render(self, name, value, attrs=None):
         html = super(DatatypeWidgetAlphanumericxxx, self).render(name, value, attrs)
         return "<table border=3>%s</table>" % html
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
+
     def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
         self.main_choices = main_choices
         self.other_please_specify_value = other_please_specify_value
@@ -103,11 +105,11 @@ class OtherPleaseSpecifyWidget(MultiWidget):
 
 
 class HgvsValidation(widgets.TextInput):
-    
+
     def __init__(self, attrs={}):
         self.attrs = attrs
         super(HgvsValidation, self).__init__(attrs=attrs)
-    
+
     def render(self, name, value, attrs):
         return mark_safe(u'''<input type="text" name="%s" id="id_%s" value="%s"><div id="result_id_%s"></div>
                          <script type="text/javascript">
@@ -120,17 +122,19 @@ class HgvsValidation(widgets.TextInput):
 
 
 class CalculatedFieldWidget(widgets.TextInput):
+
     def __init__(self, script, attrs={}):
         attrs['readonly'] = 'readonly'
         self.script = script
         super(CalculatedFieldWidget, self).__init__(attrs=attrs)
 
     def render(self, name, value, attrs):
-        #attrs['readonly'] = 'readonly'
+        # attrs['readonly'] = 'readonly'
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
 
 class ExtensibleListWidget(MultiWidget):
+
     def __init__(self, prototype_widget, attrs={}):
         self.widget_count = 1
         self.prototype_widget = prototype_widget
@@ -164,7 +168,7 @@ class ExtensibleListWidget(MultiWidget):
 
 class LookupWidget(widgets.TextInput):
     SOURCE_URL = ""
-    
+
     def render(self, name, value, attrs):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
@@ -175,7 +179,9 @@ class LookupWidget(widgets.TextInput):
             </script>
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
+
 class LookupWidget2(LookupWidget):
+
     def render(self, name, value, attrs):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
@@ -186,10 +192,11 @@ class LookupWidget2(LookupWidget):
             </script>
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
+
 class GeneLookupWidget(LookupWidget):
     SOURCE_URL = reverse_lazy('gene_source')
 
-    
+
 class LaboratoryLookupWidget(LookupWidget2):
     SOURCE_URL = reverse_lazy('laboratory_source')
 
@@ -241,7 +248,7 @@ class StateWidget(widgets.Select):
             state = pycountry.subdivisions.get(code=self.attrs['default'])
 
         country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
-        
+
         output = ["<select id='%s' name='%s'>" % (name, name)]
         for state in country_states:
             if value == state.code:
@@ -253,12 +260,14 @@ class StateWidget(widgets.Select):
 
 
 class ParametrisedSelectWidget(widgets.Select):
+
     """
     A dropdown that can retrieve values dynamically from the registry that "owns" the form containing the widget.
     This is an abstract class which must be subclassed.
     NB. The field factory is responsible for supplying the registry model to the widget instance  at
     form creation creation time.
     """
+
     def __init__(self, *args, **kwargs):
         self._widget_parameter = kwargs['widget_parameter']
         del kwargs['widget_parameter']
@@ -285,9 +294,11 @@ class ParametrisedSelectWidget(widgets.Select):
 
 
 class DataSourceSelect(ParametrisedSelectWidget):
+
     """
     A parametrised select that retrieves values from a data source specified in the parameter
     """
+
     def _get_items(self):
         """
         :return: [(code, value), ... ] pairs from the metadata json from the registry context
@@ -304,14 +315,14 @@ class PositiveIntegerInput(widgets.TextInput):
 
     def render(self, name, value, attrs):
         min_value, max_value = self._get_value_range(name)
-    
+
         return """
             <input type="number" name="%s" id="id_%s" value="%s" min="%s" max="%s">
         """ % (name, name, value, min_value, max_value)
-    
+
     def _get_value_range(self, cde_name):
         cde_code = cde_name.split("____")[2]
-        cde = CommonDataElement.objects.get(code = cde_code)
+        cde = CommonDataElement.objects.get(code=cde_code)
         max_value = cde.max_value if cde.max_value else 2147483647
         min_value = cde.min_value if cde.min_value else 0
         return min_value, max_value

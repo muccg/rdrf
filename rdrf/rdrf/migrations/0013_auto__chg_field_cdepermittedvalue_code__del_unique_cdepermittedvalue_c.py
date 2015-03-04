@@ -14,7 +14,6 @@ class Migration(SchemaMigration):
         except ValueError:
             pass
 
-
         # Changing field 'CDEPermittedValue.code'
         db.alter_column(u'rdrf_cdepermittedvalue', 'code', self.gf('django.db.models.fields.CharField')(max_length=30))
 
@@ -28,20 +27,18 @@ class Migration(SchemaMigration):
         db.delete_primary_key('rdrf_cdepermittedvalue')
         db.create_primary_key('rdrf_cdepermittedvalue', ['id'])
         #db.alter_column(u'rdrf_cdepermittedvalue', 'id', self.gf('django.db.models.fields.AutoField')(primary_key=True))
-        db.execute("ALTER TABLE rdrf_cdepermittedvalue ALTER COLUMN id SET DEFAULT nextval('rdrf_cdepermittedvalue_id_seq'::regclass)")
-
-
+        db.execute(
+            "ALTER TABLE rdrf_cdepermittedvalue ALTER COLUMN id SET DEFAULT nextval('rdrf_cdepermittedvalue_id_seq'::regclass)")
 
     def backwards(self, orm):
         # Removing unique constraint on 'CDEPermittedValue', fields ['id']
         db.delete_unique(u'rdrf_cdepermittedvalue', ['id'])
 
-
         # Changing field 'CDEPermittedValue.code'
-        db.alter_column(u'rdrf_cdepermittedvalue', 'code', self.gf('django.db.models.fields.CharField')(max_length=30, primary_key=True))
+        db.alter_column(u'rdrf_cdepermittedvalue', 'code', self.gf(
+            'django.db.models.fields.CharField')(max_length=30, primary_key=True))
         # Adding unique constraint on 'CDEPermittedValue', fields ['code']
         db.create_unique(u'rdrf_cdepermittedvalue', ['code'])
-
 
         # Changing field 'CDEPermittedValue.id'
         db.alter_column(u'rdrf_cdepermittedvalue', 'id', self.gf('django.db.models.fields.IntegerField')())

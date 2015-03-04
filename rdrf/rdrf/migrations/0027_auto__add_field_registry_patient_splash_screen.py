@@ -8,18 +8,26 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'AdjudicationDefinition.adjudicating_users'
-        db.add_column(u'rdrf_adjudicationdefinition', 'adjudicating_users',
+        # Adding field 'Registry.patient_splash_screen'
+        db.add_column(u'rdrf_registry', 'patient_splash_screen',
                       self.gf('django.db.models.fields.TextField')(null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'AdjudicationDefinition.adjudicating_users'
-        db.delete_column(u'rdrf_adjudicationdefinition', 'adjudicating_users')
+        # Deleting field 'Registry.patient_splash_screen'
+        db.delete_column(u'rdrf_registry', 'patient_splash_screen')
 
 
     models = {
+        u'rdrf.adjudication': {
+            'Meta': {'object_name': 'Adjudication'},
+            'decision': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.AdjudicationDecision']", 'null': 'True'}),
+            'definition': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.AdjudicationDefinition']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'patient_id': ('django.db.models.fields.IntegerField', [], {}),
+            'requesting_username': ('django.db.models.fields.CharField', [], {'max_length': '80'})
+        },
         u'rdrf.adjudicationdecision': {
             'Meta': {'object_name': 'AdjudicationDecision'},
             'decision_data': ('django.db.models.fields.TextField', [], {}),
@@ -32,6 +40,7 @@ class Migration(SchemaMigration):
             'adjudicating_users': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'adjudicator_username': ('django.db.models.fields.CharField', [], {'default': "'admin'", 'max_length': '80'}),
             'decision_field': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'display_name': ('django.db.models.fields.CharField', [], {'max_length': '80', 'null': 'True', 'blank': 'True'}),
             'fields': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"}),
@@ -84,6 +93,16 @@ class Migration(SchemaMigration):
             'questionnaire_text': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'widget_name': ('django.db.models.fields.CharField', [], {'max_length': '80', 'blank': 'True'})
         },
+        u'rdrf.notification': {
+            'Meta': {'object_name': 'Notification'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'from_username': ('django.db.models.fields.CharField', [], {'max_length': '80'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'link': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '100'}),
+            'message': ('django.db.models.fields.TextField', [], {}),
+            'seen': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'to_username': ('django.db.models.fields.CharField', [], {'max_length': '80'})
+        },
         u'rdrf.questionnaireresponse': {
             'Meta': {'object_name': 'QuestionnaireResponse'},
             'date_submitted': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -100,11 +119,13 @@ class Migration(SchemaMigration):
             'metadata_json': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),
             'patient_data_section': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Section']", 'null': 'True', 'blank': 'True'}),
+            'patient_splash_screen': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'splash_screen': ('django.db.models.fields.TextField', [], {}),
             'version': ('django.db.models.fields.CharField', [], {'max_length': '20', 'blank': 'True'})
         },
         u'rdrf.registryform': {
             'Meta': {'object_name': 'RegistryForm'},
+            'complete_form_cdes': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['rdrf.CommonDataElement']", 'symmetrical': 'False', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_questionnaire': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),

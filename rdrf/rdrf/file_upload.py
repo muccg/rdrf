@@ -1,15 +1,16 @@
-from django.conf import settings
 import logging
 
 logger = logging.getLogger("registry_log")
 
 
 class FileUpload(object):
+
     """
     A wrapper to send to the django widget which will display the file upload
     :param data:
     :return:
     """
+
     def __init__(self, registry, cde_code, gridfs_dict):
         self.registry = registry
         self.cde_code = cde_code
@@ -59,6 +60,5 @@ def wrap_gridfs_data_for_form(registry, data):
     elif isinstance(data, dict):
         munge_dict(data)
         return data
-
 
     return data

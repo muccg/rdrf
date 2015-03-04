@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.TextField')(null=True, blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'AdjudicationDefinition.decision_field'
         db.delete_column(u'rdrf_adjudicationdefinition', 'decision_field')
-
 
     models = {
         u'rdrf.adjudicationdefinition': {

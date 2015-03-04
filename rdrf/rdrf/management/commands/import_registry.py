@@ -1,6 +1,5 @@
-import os
 from optparse import make_option
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from rdrf.importer import Importer
 
@@ -21,7 +20,7 @@ class Command(BaseCommand):
                     dest='import_format',
                     default='yaml',
                     type='choice',
-                    choices=['yaml','json'],
+                    choices=['yaml', 'json'],
                     help='Import format: yaml or json'),
     )
 

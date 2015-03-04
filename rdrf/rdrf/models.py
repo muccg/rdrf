@@ -7,9 +7,7 @@ import string
 import json
 from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import get_full_link, get_site_url
-
-from dynamic_data import DynamicDataWrapper
+from rdrf.utils import get_full_link
 
 logger = logging.getLogger("registry")
 
@@ -31,6 +29,7 @@ def new_style_questionnaire(registry):
 
 
 class Section(models.Model):
+
     """
     A group of fields that appear on a form as a unit
     """
@@ -55,15 +54,17 @@ class Section(models.Model):
     def clean(self):
         for element in self.get_elements():
             try:
-                cde = CommonDataElement.objects.get(code=element)
+                CommonDataElement.objects.get(code=element)
             except CommonDataElement.DoesNotExist:
-                raise ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, element))
+                raise ValidationError("section %s refers to CDE with code %s which doesn't exist" %
+                                      (self.display_name, element))
 
         if self.code.count(" ") > 0:
             raise ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
 
 
 class Registry(models.Model):
+
     class Meta:
         verbose_name_plural = "registries"
 
@@ -71,8 +72,10 @@ class Registry(models.Model):
     code = models.CharField(max_length=10)
     desc = models.TextField()
     splash_screen = models.TextField()
+    patient_splash_screen = models.TextField(blank=True, null=True)
     version = models.CharField(max_length=20, blank=True)
-    patient_data_section = models.ForeignKey(Section, null=True, blank=True)   # a section which holds registry specific patient information
+    # a section which holds registry specific patient information
+    patient_data_section = models.ForeignKey(Section, null=True, blank=True)
     # metadata is a dictionary
     # keys ( so far):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
@@ -126,12 +129,12 @@ class Registry(models.Model):
                 field_pairs.append((cde_model, field))
         return field_pairs
 
-
     def get_adjudications(self):
         if not has_feature("adjudication"):
             return []
 
         class ActionDropDownItem(object):
+
             def __init__(self):
                 self.display_name = ""
                 self.url_name = "adjudication_initiation"
@@ -173,7 +176,8 @@ class Registry(models.Model):
                 section_map[section_key] = [cde_code]
 
         generated_questionnaire_form_name = self.generated_questionnaire_name
-        generated_questionnaire_form, created = RegistryForm.objects.get_or_create(registry=self, name=generated_questionnaire_form_name)
+        generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
+            registry=self, name=generated_questionnaire_form_name)
 
         # get rid of any existing generated sections
         for section in Section.objects.all():
@@ -224,7 +228,8 @@ class Registry(models.Model):
         consent_section = self._get_consent_section()
         patient_info_section = self._get_patient_info_section()
 
-        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
+        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + \
+            "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
@@ -299,7 +304,8 @@ class Registry(models.Model):
                 for element_code in section.get_elements():
                     question_code = section.code + "." + element_code
                     in_questionnaire = question_code in qcodes
-                    elements.append([element_code, in_questionnaire])  # NB. We capture each cde code in a section and whether it is used in the questionnaire
+                    # NB. We capture each cde code in a section and whether it is used in the questionnaire
+                    elements.append([element_code, in_questionnaire])
 
                 section_dict["elements"] = elements  # codes + whether in questionnaire
                 form_dict["sections"].append(section_dict)
@@ -318,7 +324,8 @@ class Registry(models.Model):
         logger.info("old structure = %s" % self.structure)
         logger.info("new structure = %s" % new_structure)
 
-        original_forms = [f for f in self.forms if f.name != f.registry.generated_questionnaire_name]  # don't include generated form
+        # don't include generated form
+        original_forms = [f for f in self.forms if f.name != f.registry.generated_questionnaire_name]
         logger.info("original forms = %s" % original_forms)
 
         self.name = new_structure["name"]
@@ -385,18 +392,18 @@ class Registry(models.Model):
         # raise error if structure not valid
 
         for k in ["name", "code", "version", "forms"]:
-            if not k in structure:
+            if k not in structure:
                 raise InvalidStructureError("Missing key: %s" % k)
         for form_dict in structure["forms"]:
             for k in ["name", "is_questionnaire", "position", "sections"]:
-                if not k in form_dict:
+                if k not in form_dict:
                     raise InvalidStructureError("Form dict %s missing key %s" % (form_dict, k))
 
             form_name = form_dict["name"]
 
             for section_dict in form_dict["sections"]:
                 for k in ["code", "display_name", "allow_multiple", "extra", "elements", "questionnaire_help"]:
-                    if not k in section_dict:
+                    if k not in section_dict:
                         raise InvalidStructureError("Section %s missing key %s" % (section_dict, k))
 
                 for pair in section_dict["elements"]:
@@ -404,10 +411,11 @@ class Registry(models.Model):
 
                     logger.info("checking section %s code %s" % (section_dict["code"], element_code))
                     try:
-                        cde = CommonDataElement.objects.get(code=element_code)
+                        CommonDataElement.objects.get(code=element_code)
                     except CommonDataElement.DoesNotExist:
                         section_code = section_dict["code"]
-                        raise InvalidStructureError("Form %s Section %s refers to data element %s which does not exist" % (form_name, section_code, element_code))
+                        raise InvalidStructureError(
+                            "Form %s Section %s refers to data element %s which does not exist" % (form_name, section_code, element_code))
 
 
 def get_owner_choices():
@@ -417,8 +425,6 @@ def get_owner_choices():
     UNUSED means this CDE will not be used to construct any forms in the registry.
 
     """
-    from django.conf import settings
-    choices = [('UNUSED', 'UNUSED')]
     # for display_name, owner_model_func in settings.CDE_MODEL_MAP.items():
     #     owner_class_name = owner_model_func().__name__
     #     choices.append((owner_class_name, display_name))
@@ -452,7 +458,6 @@ class CDEPermittedValueGroup(models.Model):
         return [getattr(v, att) for v in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
 
     def __unicode__(self):
-        members = self.members()
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
 
@@ -471,7 +476,7 @@ class CDEPermittedValue(models.Model):
 
     pvg_link.allow_tags = True
     pvg_link.short_description = 'Permitted Value Group'
-    
+
     def questionnaire_value_formatted(self):
         if not self.questionnaire_value:
             return "<i><font color='red'>Not set</font></i>"
@@ -498,20 +503,25 @@ class CommonDataElement(models.Model):
     desc = models.TextField(blank=True, help_text="origin of field")
     datatype = models.CharField(max_length=50, help_text="type of field")
     instructions = models.TextField(blank=True, help_text="Used to indicate help text for field")
-    pv_group = models.ForeignKey(CDEPermittedValueGroup, null=True, blank=True, help_text="If a range, indicate the Permissible Value Group")
+    pv_group = models.ForeignKey(
+        CDEPermittedValueGroup, null=True, blank=True, help_text="If a range, indicate the Permissible Value Group")
     allow_multiple = models.BooleanField(default=False, help_text="If a range, indicate whether multiple selections allowed")
     max_length = models.IntegerField(blank=True, null=True, help_text="Length of field - only used for character fields")
     max_value = models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
     min_value = models.IntegerField(blank=True, null=True, help_text="Only used for numeric fields")
     is_required = models.BooleanField(default=False, help_text="Indicate whether field is non-optional")
-    pattern = models.CharField(max_length=50, blank=True, help_text="Regular expression to validate string fields (optional)")
-    widget_name = models.CharField(max_length=80, blank=True, help_text="If a special widget required indicate here - leave blank otherwise")
-    calculation = models.TextField(blank=True, help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
-    questionnaire_text = models.TextField(blank=True, help_text="The text to use in any public facing questionnaires/registration forms")
+    pattern = models.CharField(
+        max_length=50, blank=True, help_text="Regular expression to validate string fields (optional)")
+    widget_name = models.CharField(
+        max_length=80, blank=True, help_text="If a special widget required indicate here - leave blank otherwise")
+    calculation = models.TextField(
+        blank=True, help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
+    questionnaire_text = models.TextField(
+        blank=True, help_text="The text to use in any public facing questionnaires/registration forms")
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
-    
+
     class Meta:
         verbose_name = 'Data Element'
         verbose_name_plural = 'Data Elements'
@@ -528,11 +538,13 @@ class CommonDataElement(models.Model):
 
 
 class RegistryFormManager(models.Manager):
+
     def get_by_registry(self, registry):
         return self.model.objects.filter(registry__id__in=registry)
 
 
 class RegistryForm(models.Model):
+
     """
     A representation of a form ( a bunch of sections)
     """
@@ -540,11 +552,13 @@ class RegistryForm(models.Model):
     name = models.CharField(max_length=80)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
-    is_questionnaire = models.BooleanField(default=False, help_text="Check if this form is questionnaire form for it's registry")
+    is_questionnaire = models.BooleanField(
+        default=False, help_text="Check if this form is questionnaire form for it's registry")
     position = PositionField(collection='registry')
-    questionnaire_questions = models.TextField(blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
+    questionnaire_questions = models.TextField(
+        blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
-    
+
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
@@ -601,7 +615,8 @@ class QuestionnaireResponse(models.Model):
     registry = models.ForeignKey(Registry)
     date_submitted = models.DateTimeField(auto_now_add=True)
     processed = models.BooleanField(default=False)
-    patient_id = models.IntegerField(blank=True, null=True, help_text="The id of the patient created from this response, if any")
+    patient_id = models.IntegerField(
+        blank=True, null=True, help_text="The id of the patient created from this response, if any")
 
     def __str__(self):
         return "%s (%s)" % (self.registry, self.processed)
@@ -620,7 +635,8 @@ class QuestionnaireResponse(models.Model):
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
         record = wrapper.load_dynamic_data(self.registry.code, "cdes")
-        key = settings.FORM_SECTION_DELIMITER.join([self.registry.generated_questionnaire_name, "PatientData", patient_field])
+        key = settings.FORM_SECTION_DELIMITER.join(
+            [self.registry.generated_questionnaire_name, "PatientData", patient_field])
         return record[key]
 
 
@@ -646,6 +662,7 @@ class AdjudicationRequestState(object):
 
 
 class AdjudicationState(object):
+
     """
     for a given patient and definition
     """
@@ -658,19 +675,19 @@ class MissingData(object):
     pass
 
 
-
 class AdjudicationDefinition(models.Model):
     registry = models.ForeignKey(Registry)
     display_name = models.CharField(max_length=80, blank=True, null=True)  # name which will be seen by end users
     fields = models.TextField()
-    result_fields = models.TextField() # section_code containing cde codes of result
-    decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
+    result_fields = models.TextField()  # section_code containing cde codes of result
+    decision_field = models.TextField(blank=True, null=True)  # cde code of a range field with allowed actions
     adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
-    adjudicating_users = models.TextField(blank=True, null=True,  help_text="Either comma-seperated list of usernames and/or working group names")
+    adjudicating_users = models.TextField(
+        blank=True, null=True, help_text="Either comma-seperated list of usernames and/or working group names")
 
     def create_adjudication_request(self, request, requesting_user, patient, target_user):
         adj_request = AdjudicationRequest(username=target_user.username, requesting_username=requesting_user.username,
-                                              patient=patient.pk, definition=self)
+                                          patient=patient.pk, definition=self)
 
         adj_request.save()   # state now created
         adj_request.send(request)   # state not I or S
@@ -686,7 +703,7 @@ class AdjudicationDefinition(models.Model):
                                     (patient, self.registry))
         for form_name, section_code, cde_code in self._get_field_specs():
             if form_name == 'demographics':
-                field_value = self._get_demographic_field(patient, cde_code) # NB. for demographics section isn't used
+                field_value = self._get_demographic_field(patient, cde_code)  # NB. for demographics section isn't used
             else:
                 try:
                     field_value = patient.get_form_value(self.registry.code, form_name, section_code, cde_code)
@@ -710,7 +727,9 @@ class AdjudicationDefinition(models.Model):
         from field_lookup import FieldFactory
         adjudication_section = Section.objects.get(code=self.result_fields)
         from dynamic_forms import create_form_class_for_section
+
         class DummyForm(object):
+
             def __init__(self):
                 self.name = "AdjudicationForm"
 
@@ -724,6 +743,7 @@ class AdjudicationDefinition(models.Model):
         from dynamic_forms import create_form_class_for_section
 
         class DummyForm(object):
+
             def __init__(self):
                 self.name = "DecisionForm"
 
@@ -739,14 +759,13 @@ class AdjudicationDefinition(models.Model):
     def actions(self):
         return sorted([cde_model.name for cde_model in self.action_cde_models])
 
-
     def get_adjudication_form_datapoints(self, patient):
         """
         The field values to "judge"
         :return: datapoints, missing_flag
         """
         datapoints = []
-        missing_flag = False # flags if any datapoints are missing
+        missing_flag = False  # flags if any datapoints are missing
 
         def get_cde_display_value(cde_model, stored_value):
             if stored_value is MissingData:
@@ -769,6 +788,7 @@ class AdjudicationDefinition(models.Model):
                 return get_disp(stored_value)
 
         class DataPoint(object):
+
             def __init__(self, label, value):
                 self.label = label
                 self.value = value
@@ -789,7 +809,7 @@ class AdjudicationDefinition(models.Model):
                 value = field_map[(form_name, section_code, cde_code)]
                 display_value = get_cde_display_value(cde_model, value)
             datapoints.append(DataPoint(label, display_value))
-        return sorted(datapoints,key=lambda datapoint: datapoint.label), missing_flag
+        return sorted(datapoints, key=lambda datapoint: datapoint.label), missing_flag
 
     def create_adjudication_inititiation_form_context(self, patient_model):
         # adjudication_initiation_form, datapoints, users, working_groups = adj_def.create_adjudication_inititiation_form(patient)
@@ -811,7 +831,8 @@ class AdjudicationDefinition(models.Model):
                     logger.debug("Adding working group %s" % wg)
                     groups.append(wg)
                 except WorkingGroup.DoesNotExist:
-                    logger.error("%s is not in %s as a user or a working group so can't be added to the adjudication list for %s" % (username_or_working_group_name, self))
+                    logger.error("%s is not in %s as a user or a working group so can't be added to the adjudication list for %s" % (
+                        username_or_working_group_name, self))
 
         context = {
             "adjudication_definition": self,
@@ -836,7 +857,7 @@ class AdjudicationDefinition(models.Model):
         section = Section.objects.get(code=self.decision_field)
         return section.cde_models
 
-    def get_state(self,  patient):
+    def get_state(self, patient):
         try:
             AdjudicationDecision.objects.get(definition=self, patient=patient.pk)
             return AdjudicationState.ADJUDICATED
@@ -854,7 +875,7 @@ class AdjudicationRequest(models.Model):
     requesting_username = models.CharField(max_length=80)       # the username of the user requesting this adjudication
     patient = models.IntegerField()           # the patient's pk whose data we are checking
     definition = models.ForeignKey(AdjudicationDefinition)  # the set of fields we are exposing in the request and
-                                                    # the result fields to hold the diagnosis vote
+    # the result fields to hold the diagnosis vote
     state = models.CharField(max_length=1, default=AdjudicationRequestState.CREATED)
 
     def send(self, request):
@@ -862,7 +883,7 @@ class AdjudicationRequest(models.Model):
         fails = 0
         try:
             self._send_email(request)
-        except NotificationError, ex:
+        except NotificationError as ex:
             logger.error("could not send email for %s: %s" % (self, ex))
             fails += 1
 
@@ -870,7 +891,7 @@ class AdjudicationRequest(models.Model):
             self._create_notification()
         except NotificationError:
             logger.error("could not send internal notification for %s: %s" % (self, ex))
-            fails +1
+            fails + 1
 
         if fails == 2:
             self.state = AdjudicationRequestState.INVALID
@@ -890,9 +911,9 @@ class AdjudicationRequest(models.Model):
         from rdrf.notifications import Notifier
         notifier = Notifier()
         notifier.send_email_to_username(self.username,
-                                email_subject,
-                                email_body,
-                                message_type="Adjudication Request")
+                                        email_subject,
+                                        email_body,
+                                        message_type="Adjudication Request")
 
     def _create_email_subject(self):
         return "Adjudication Request from %s: %s" % (self.definition.registry.name, self.definition.display_name)
@@ -905,7 +926,7 @@ class AdjudicationRequest(models.Model):
             Dear %s user %s,
             An adjudication request has been assigned to you for %s.
             Please visit %s to complete the adjudication.
-            """ % (self.definition.registry.name, self.username,  self.definition.display_name, full_link)
+            """ % (self.definition.registry.name, self.username, self.definition.display_name, full_link)
         return body
 
     def _create_notification(self):
@@ -960,7 +981,7 @@ class AdjudicationRequest(models.Model):
                     frm, sec, code = get_form_section_code(k)
                     if code in adjudication_codes:
                         cde_model = CommonDataElement.objects.get(code=code)
-                        #todo for now we assume integers
+                        # todo for now we assume integers
                         field_data[code] = int(data[k])
                 except:
                     pass
@@ -1031,7 +1052,7 @@ class AdjudicationResponse(models.Model):
                                    link)
         try:
             self._send_email(request)
-        except NotificationError, nerr:
+        except NotificationError as nerr:
             msg = "could not send email to adjudicator %s about %s adjudication response: %s" % (self.request.definition.adjudicator_username,
                                                                                                  self.request.definition.display_name,
                                                                                                  nerr)
@@ -1062,7 +1083,7 @@ class AdjudicationResponse(models.Model):
 class AdjudicationDecision(models.Model):
     definition = models.ForeignKey(AdjudicationDefinition)
     patient = models.IntegerField()           # the patient's pk
-    decision_data = models.TextField() # json list  of action cde codes (decision codes)#  to values ( actions)
+    decision_data = models.TextField()  # json list  of action cde codes (decision codes)#  to values ( actions)
 
     @property
     def actions(self):
@@ -1107,10 +1128,6 @@ class AdjudicationDecision(models.Model):
             except CommonDataElement.DoesNotExist:
                 yield code, value
 
-
-
-
-
     def clean(self):
         definition_action_cde_models = self.definition.action_action_cde_models
         allowed_codes = [cde.code for cde in definition_action_cde_models]
@@ -1121,6 +1138,7 @@ class AdjudicationDecision(models.Model):
 
 
 class Adjudication(models.Model):
+
     """
     Used to present adjudication to admin
     """
@@ -1166,11 +1184,11 @@ class Adjudication(models.Model):
     def requested(self):
         return self._count_requests()
 
-
     @property
     def status(self):
         state_map = {}
-        for adj_req in AdjudicationRequest.objects.filter(definition=self.definition,patient=self.patient_id,requesting_username=self.requesting_username):
+        for adj_req in AdjudicationRequest.objects.filter(
+                definition=self.definition, patient=self.patient_id, requesting_username=self.requesting_username):
             if adj_req.state not in state_map:
                 state_map[adj_req.state] = 1
             else:
@@ -1185,6 +1203,7 @@ class Adjudication(models.Model):
 
     def perform_actions(self, request):
         class Result(object):
+
             def __init__(self):
                 self.ok = True
                 self.error_message = ""

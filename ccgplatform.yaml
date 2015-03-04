@@ -20,60 +20,9 @@ instances:
       - ./develop.sh install
       - ./develop.sh syncmigrate
       - echo finished running hooks
-      
-  aws-syd-rdrf-staging:
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    extends: centos_66_aws_syd
-    puppet_manifest: staging.pp
-    aws_security_groups:
-      - default
-      - ssh
-      - proxied
-      - rdsaccess
-      - web
-    
-  aws-syd-rdrf-demo:
-    extends: centos_66_aws_syd
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    puppet_manifest: demo.pp
-    
-  aws-syd-rdrf-scratch:
-    extends: centos_66_aws_syd
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    puppet_manifest: scratch.pp
-    
-  aws-syd-rdrf-pmrff:
-    extends: centos_66_aws_syd
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    puppet_manifest: pmrff.pp
-  
-  aws-syd-rdrf-pbcrc:
-    extends: centos_66_aws_syd
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    puppet_manifest: pbcrc.pp
-    
-  local_staging:
-    extends: centos_66_lxc
-    pre_puppet:
-      - which git || sudo yum install -y -q git
-      - which librarian-puppet || sudo gem install librarian-puppet -v 1.4.0
-      - which puppet || sudo yum install -y -q puppet
-    puppet_manifest: staging.pp
 
-  aws_rpmbuild_centos6:
-    extends: centos_6_rpmbuild
+  ccg_syd_nginx_staging:
+    instance_class: fixed
+    ssh_user: ec2-user
+    fixed_ip_address: staging.ccgapps.com.au
+    key_filename: ~/.ssh/ccg-syd-staging-2014.pem

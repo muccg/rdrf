@@ -1,7 +1,9 @@
 import logging
 logger = logging.getLogger("registry_log")
 
+
 class DataSource(object):
+
     def __init__(self, context):
         self.context = context
 
@@ -10,11 +12,13 @@ class DataSource(object):
 
 
 class PatientCentres(DataSource):
+
     """
     centres = working groups
     We default to working groups if metadata on the registry doesn't have override
     questionnaire_context is a string like au or nz ( ophg wanted different centre dropdowns for DM1 in au vs nz for example)
     """
+
     def values(self):
         registry_model = self.context["registry_model"]
         if "patientCentres" in registry_model.metadata:
@@ -22,7 +26,7 @@ class PatientCentres(DataSource):
             # Assumes a list of pairs ( code and display text to fill the drop down)
             if questionnaire_context is None:
                 logger.debug("questionnaire_context is None in PatientCentres.values() setting to au")
-                questionnaire_context ='au'
+                questionnaire_context = 'au'
 
             return registry_model.metadata["patientCentres"][questionnaire_context]
         else:

@@ -14,6 +14,7 @@ logger = logging.getLogger("registry_log")
 
 
 class ImportRegistryView(View):
+
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def get(self, request):
@@ -30,7 +31,6 @@ class ImportRegistryView(View):
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
-        import yaml
         registry_yaml = request.POST["registry_yaml"]
 
         from rdrf.importer import Importer
@@ -45,7 +45,7 @@ class ImportRegistryView(View):
             with transaction.commit_on_success():
                 importer.create_registry()
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Import failed: %s" % ex)
             return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
 

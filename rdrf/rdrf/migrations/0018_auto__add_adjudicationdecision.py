@@ -17,11 +17,9 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'rdrf', ['AdjudicationDecision'])
 
-
     def backwards(self, orm):
         # Deleting model 'AdjudicationDecision'
         db.delete_table(u'rdrf_adjudicationdecision')
-
 
     models = {
         u'rdrf.adjudicationdecision': {

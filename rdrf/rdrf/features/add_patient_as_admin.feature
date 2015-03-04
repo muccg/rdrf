@@ -1,9 +1,9 @@
 Feature: Add Patient as Admin
 
 Scenario: Admin sees all registries
-        Given I go to "/"
-        And I click "Log in"
+        Given I go to "/admin"
         When I log in as "admin" with "admin" password
+        Then I should see "Welcome, admin."
         Then I should see "Quick access links"
         Given I go to "/admin/patients/patient/add/"
         I should see option "FH Registry (fh)" in selector "Rdrf registry"

@@ -17,11 +17,17 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['registryform_id', 'commondataelement_id'])
 
+        # Adding field 'AdjudicationDefinition.adjudicating_users'
+        db.add_column(u'rdrf_adjudicationdefinition', 'adjudicating_users',
+                      self.gf('django.db.models.fields.TextField')(null=True, blank=True),
+                      keep_default=False)
 
     def backwards(self, orm):
+        # Deleting field 'AdjudicationDefinition.adjudicating_users'
+        db.delete_column(u'rdrf_adjudicationdefinition', 'adjudicating_users')
+
         # Removing M2M table for field complete_form_cdes on 'RegistryForm'
         db.delete_table(db.shorten_name(u'rdrf_registryform_complete_form_cdes'))
-
 
     models = {
         u'rdrf.adjudicationdecision': {
@@ -33,6 +39,7 @@ class Migration(SchemaMigration):
         },
         u'rdrf.adjudicationdefinition': {
             'Meta': {'object_name': 'AdjudicationDefinition'},
+            'adjudicating_users': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'adjudicator_username': ('django.db.models.fields.CharField', [], {'default': "'admin'", 'max_length': '80'}),
             'decision_field': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'fields': ('django.db.models.fields.TextField', [], {}),

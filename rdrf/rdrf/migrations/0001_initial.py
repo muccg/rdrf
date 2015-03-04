@@ -29,7 +29,8 @@ class Migration(SchemaMigration):
             ('code', self.gf('django.db.models.fields.CharField')(max_length=30, primary_key=True)),
             ('value', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('desc', self.gf('django.db.models.fields.TextField')(null=True)),
-            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')(related_name='permitted_value_set', to=orm['rdrf.CDEPermittedValueGroup'])),
+            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')
+             (related_name='permitted_value_set', to=orm['rdrf.CDEPermittedValueGroup'])),
         ))
         db.send_create_signal(u'rdrf', ['CDEPermittedValue'])
 
@@ -40,7 +41,8 @@ class Migration(SchemaMigration):
             ('desc', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('datatype', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('instructions', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.CDEPermittedValueGroup'], null=True, blank=True)),
+            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')
+             (to=orm['rdrf.CDEPermittedValueGroup'], null=True, blank=True)),
             ('allow_multiple', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('max_length', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
             ('max_value', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
@@ -93,7 +95,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'rdrf', ['QuestionnaireResponse'])
 
-
     def backwards(self, orm):
         # Deleting model 'Registry'
         db.delete_table(u'rdrf_registry')
@@ -118,7 +119,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'QuestionnaireResponse'
         db.delete_table(u'rdrf_questionnaireresponse')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

@@ -26,7 +26,6 @@ def rpc_dismiss_notification(request, notification_id):
         notification.seen = True
         notification.save()
         status = True
-    except Exception, ex:
+    except Exception as ex:
         logger.error("could not mark notification with id %s as seen: %s" % (notification_id, ex))
     return status
-

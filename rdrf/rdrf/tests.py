@@ -1,8 +1,12 @@
 from django.test import TestCase, RequestFactory
-from django.core.management import call_command
 from rdrf.exporter import Exporter, ExportType
-from rdrf.importer import Importer, ImportState, RegistryImportError
-from rdrf.models import *
+from rdrf.importer import Importer, ImportState
+from rdrf.models import Section
+from rdrf.models import Registry
+from rdrf.models import CDEPermittedValueGroup
+from rdrf.models import CDEPermittedValue
+from rdrf.models import CommonDataElement
+from rdrf.models import RegistryForm
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
@@ -11,7 +15,6 @@ from datetime import datetime
 from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
-from django_countries import countries
 from django.contrib.auth import get_user_model
 
 from django.conf import settings
@@ -19,6 +22,7 @@ import os
 
 
 class SectionFiller(object):
+
     def __init__(self, form_filler, section):
         self.__dict__["form_filler"] = form_filler
         self.__dict__["section"] = section
@@ -29,6 +33,7 @@ class SectionFiller(object):
 
 
 class FormFiller(object):
+
     def __init__(self, registry_form):
         self.form = registry_form
         self.section_codes = self.form.get_sections()
@@ -120,7 +125,8 @@ class ExporterTestCase(RDRFTestCase):
         set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
         generic_cdes = set(self.registry.generic_cdes)
 
-        assert set__of_cdes_in_forms == (set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+        assert set__of_cdes_in_forms == (
+            set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
 
         # consistency of values in groups - whats exported is whats there
 
@@ -171,6 +177,7 @@ class ImporterTestCase(RDRFTestCase):
 
 
 class FormTestCase(RDRFTestCase):
+
     def setUp(self):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
@@ -182,11 +189,11 @@ class FormTestCase(RDRFTestCase):
         self.create_forms()
         self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
-        
+
         self.patient = self.create_patient()
-        
+
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
-        
+
         self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
                                                                              address_type=self.address_type,
                                                                              suburb='Neverland',
@@ -257,7 +264,7 @@ class FormTestCase(RDRFTestCase):
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
         # A multi allowed section with a file CDE
-        #self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
+        # self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
 
     def _create_form_key(self, form, section, cde_code):
         return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
@@ -274,7 +281,8 @@ class FormTestCase(RDRFTestCase):
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
-        view.testing = True  # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
+        # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
+        view.testing = True
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
 
         mongo_query = {"django_id": self.patient.pk, "django_model": self.patient.__class__.__name__}
@@ -294,8 +302,8 @@ class FormTestCase(RDRFTestCase):
 
 
 class LongitudinalTestCase(FormTestCase):
+
     def test_simple_form(self):
-        num_sections = 2
         mongo_db = self.client["testing_" + self.registry.code]
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
@@ -307,6 +315,7 @@ class LongitudinalTestCase(FormTestCase):
         for snapshot_dict in record["snapshots"]:
             assert isinstance(snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
             assert "timestamp" in snapshot_dict, "snapshot dict should have  timestamp key"
-            assert type(snapshot_dict["timestamp"]) is type(u""), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
+            assert isinstance(snapshot_dict["timestamp"], type(
+                u"")), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert "record" in snapshot_dict, "snapshot dict should have key record"
         assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])

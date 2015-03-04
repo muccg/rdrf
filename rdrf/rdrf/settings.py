@@ -1,13 +1,15 @@
 # Django settings for rdrf project.
 import os
-from ccg_django_utils.conf import EnvConfig  # A wrapper around environment which has been populated from /etc/rdrf/rdrf.conf in production. Also does type conversion of values
+# A wrapper around environment which has been populated from
+# /etc/rdrf/rdrf.conf in production. Also does type conversion of values
+from ccg_django_utils.conf import EnvConfig
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 
 env = EnvConfig()
 
-SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", "")) 
+SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,7 +70,7 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    #'iprestrict.middleware.IPRestrictMiddleware',
+    # 'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -118,7 +120,7 @@ AUTHENTICATION_BACKENDS = [
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
-EMAIL_HOST = env.get("email_host", '127.0.0.1')
+EMAIL_HOST = env.get("email_host", 'smtp')
 EMAIL_PORT = env.get("email_port", 25)
 EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
@@ -130,9 +132,10 @@ SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
 
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-FEATURES = env.get("features", "*") # list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+# list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+FEATURES = env.get("features", "*")
 
 
 # default emailsn
@@ -171,7 +174,7 @@ CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
-#TEST_RUNNER = 'rdrf.rdrf.tests.PatchedNoseTestSuiteRunner'
+# TEST_RUNNER = 'rdrf.rdrf.tests.PatchedNoseTestSuiteRunner'
 SOUTH_TESTS_MIGRATE = True
 NOSE_ARGS = [
     '--with-coverage',
@@ -298,7 +301,7 @@ LOGGING = {
 
 
 ################################################################################
-## Customize settings for each registry below
+# Customize settings for each registry below
 ################################################################################
 
 AUTH_USER_MODEL = 'groups.CustomUser'
@@ -319,6 +322,7 @@ SUIT_CONFIG = {
         'groups',
         'iprestrict',
         'patients',
+        'registration',
         {'app': 'rdrf', 'label': 'Registry'},
         {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
                 {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}

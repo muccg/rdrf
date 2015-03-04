@@ -16,7 +16,6 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Section'], null=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Adding field 'Registry.demographics_config'
         db.add_column(u'rdrf_registry', 'demographics_config',
@@ -25,7 +24,6 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Registry.patient_data_section'
         db.delete_column(u'rdrf_registry', 'patient_data_section_id')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

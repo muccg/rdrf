@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Notification.seen'
         db.delete_column(u'rdrf_notification', 'seen')
-
 
     models = {
         u'rdrf.adjudication': {
@@ -124,6 +122,7 @@ class Migration(SchemaMigration):
         },
         u'rdrf.registryform': {
             'Meta': {'object_name': 'RegistryForm'},
+            'complete_form_cdes': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['rdrf.CommonDataElement']", 'symmetrical': 'False', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_questionnaire': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),

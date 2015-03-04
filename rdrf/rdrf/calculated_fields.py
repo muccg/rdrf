@@ -66,7 +66,8 @@ class CalculatedFieldParser(object):
         :param cde_code:
         :return: in the section of the form this cde is in
         """
-        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
+        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
+            self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
 
     def _replace_cde_calc(self, old_code, calc):
         s = "context.%s" % old_code
@@ -81,14 +82,16 @@ class CalculatedFieldParser(object):
         return c
 
     def get_script(self):
-        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER
+        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
+            self.section.code + settings.FORM_SECTION_DELIMITER
         observer_code = self.cde.code
         subject_codes_string = ",".join(self.subjects)  # e.g. CDE02,CDE05
         calculation_body = self.calculation
 
         # ergh - used to map context cde codes to
         # actual dom ids
-        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + self.section.code + settings.FORM_SECTION_DELIMITER
+        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
+            self.section.code + settings.FORM_SECTION_DELIMITER
 
         function_parameter_list = "context"
 
@@ -96,7 +99,8 @@ class CalculatedFieldParser(object):
             function_parameter_list = "context, patient"
             injected_model = self.injected_model
             injected_model_id = self.injected_model_id
-            tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk": self.injected_model_id})
+            tastypie_url = reverse(
+                'api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk": self.injected_model_id})
         else:
             function_parameter_list = "context"
             injected_model = ""

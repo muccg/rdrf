@@ -2,9 +2,7 @@ from django.core.exceptions import ValidationError
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
 from dynamic_data import DynamicDataWrapper
-from rdrf.utils import get_code, get_form_section_code
 import logging
-import string
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 
@@ -19,9 +17,11 @@ class PatientCreatorState:
 
 
 class QuestionnaireReverseMapper(object):
+
     """
     Save data back into original forms from the Questionnaire Response data
     """
+
     def __init__(self, registry, patient, questionnaire_data):
         self.patient = patient
         self.registry = registry
@@ -49,7 +49,7 @@ class QuestionnaireReverseMapper(object):
 
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
-        #GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+        # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
 
         def getcde(address_map, code):
             for k in address_map:
@@ -200,12 +200,14 @@ class QuestionnaireReverseMapper(object):
         """
         for form_model in self.registry.forms:
             for section_model in form_model.section_models:
-                if generated_section_code == self.registry._generated_section_questionnaire_code(form_model.name, section_model.code):
+                if generated_section_code == self.registry._generated_section_questionnaire_code(
+                        form_model.name, section_model.code):
                     return form_model.name, section_model.code
         return None, None
 
 
 class PatientCreator(object):
+
     def __init__(self, registry, user):
         self.registry = registry
         self.user = user
@@ -219,7 +221,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_patient_fields()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
@@ -232,12 +234,12 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-        except ValidationError, verr:
+        except ValidationError as verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             return
-        except Exception, ex:
+        except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             return
@@ -249,14 +251,14 @@ class PatientCreator(object):
 
         try:
             mapper.save_dynamic_fields()
-        except Exception, ex:
+        except Exception as ex:
             self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
                 return
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
                 return
 

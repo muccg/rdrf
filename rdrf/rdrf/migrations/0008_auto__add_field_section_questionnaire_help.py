@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.TextField')(default='', blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Section.questionnaire_help'
         db.delete_column(u'rdrf_section', 'questionnaire_help')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

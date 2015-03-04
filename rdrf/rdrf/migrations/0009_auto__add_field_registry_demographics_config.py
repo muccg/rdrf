@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.TextField')(default='', blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Registry.demographics_config'
         db.delete_column(u'rdrf_registry', 'demographics_config')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

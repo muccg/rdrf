@@ -2,7 +2,6 @@ from models import RegistryForm, Section, CommonDataElement, CDEPermittedValueGr
 import logging
 import yaml
 import json
-from django.conf import settings
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
@@ -29,9 +28,11 @@ class ExportType:
 
 
 class Exporter(object):
+
     """
     Export a registry definition to yaml or json
     """
+
     def __init__(self, registry_model):
         self.registry = registry_model
 
@@ -74,7 +75,7 @@ class Exporter(object):
         try:
             export = self._export(ExportFormat.YAML, export_type)
             return export, []
-        except Exception, ex:
+        except Exception as ex:
             return None, [ex]
 
     def export_json(self):
@@ -175,7 +176,7 @@ class Exporter(object):
             logger.debug("About to yaml dump the export: data = %s" % data)
             try:
                 export_data = yaml.dump(data)
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
         elif format == ExportFormat.JSON:
@@ -295,11 +296,13 @@ class Exporter(object):
     def _get_adjudication_cdes(self):
         adjudication_cdes = set([])
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
-            adjudication_section_code = adj_def.result_fields  # points to a section containing cdes which capture adjucation ratings
-            result_section_code = adj_def.decision_field       # points to a section containing decision fields ( which are mapped to actions )
-            adjudication_cdes = adjudication_cdes.union(self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
+            # points to a section containing cdes which capture adjucation ratings
+            adjudication_section_code = adj_def.result_fields
+            # points to a section containing decision fields ( which are mapped to actions )
+            result_section_code = adj_def.decision_field
+            adjudication_cdes = adjudication_cdes.union(
+                self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
         return adjudication_cdes
-
 
     def _get_cdes_for_sections(self, section_codes):
         cdes = set([])
@@ -312,10 +315,10 @@ class Exporter(object):
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist, ex:
+                    except CommonDataElement.DoesNotExist as ex:
                         logger.error("No CDE with code: %s" % cde_code)
 
-            except Section.DoesNotExist, ex:
+            except Section.DoesNotExist:
                 logger.error("No Section with code: %s" % section_code)
         return cdes
 
@@ -324,7 +327,7 @@ class Exporter(object):
 
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
-        return [ wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+        return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
 
     def _get_adjudication_definitions(self):
         """
@@ -339,7 +342,7 @@ class Exporter(object):
         def get_section_maps(adj_def):
             result_fields_section = self._create_section_map(adj_def.result_fields)
             decision_fields_section = self._create_section_map(adj_def.decision_field)
-            return {"results_fields" : result_fields_section, "decision_fields_section" : decision_fields_section}
+            return {"results_fields": result_fields_section, "decision_fields_section": decision_fields_section}
 
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
             adj_def_map = {}
@@ -347,6 +350,8 @@ class Exporter(object):
             adj_def_map['result_fields'] = adj_def.result_fields
             adj_def_map['decision_field'] = adj_def.decision_field   # section for dec
             adj_def_map['adjudicator_username'] = adj_def.adjudicator_username
+            adj_def_map["adjudicating_users"] = adj_def.adjudicating_users
+            adj_def_map["display_name"] = adj_def.display_name
             adj_def_map["sections_required"] = get_section_maps(adj_def)
             adj_def_maps.append(adj_def_map)
 

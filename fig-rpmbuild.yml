@@ -1,0 +1,15 @@
+# data only container pattern
+datarpmbuild:
+  image: muccg/base:debian8
+  volumes:
+    - .:/app
+    - data/rpmbuild:/data
+
+rpmbuild:
+  image: muccg/rpmbuild:centos6
+  command: rpmbuild
+  environment:
+    - SPECFILE=/app/centos/rdrf/rdrf.spec
+    - APPEND_PATH=/usr/pgsql-9.4/bin
+  volumes_from:
+    - datarpmbuild

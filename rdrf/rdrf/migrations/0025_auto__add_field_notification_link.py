@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(default='', max_length=100),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Notification.link'
         db.delete_column(u'rdrf_notification', 'link')
-
 
     models = {
         u'rdrf.adjudication': {

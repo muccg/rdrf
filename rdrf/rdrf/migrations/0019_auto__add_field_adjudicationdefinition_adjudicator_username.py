@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(default='admin', max_length=80),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'AdjudicationDefinition.adjudicator_username'
         db.delete_column(u'rdrf_adjudicationdefinition', 'adjudicator_username')
-
 
     models = {
         u'rdrf.adjudicationdecision': {

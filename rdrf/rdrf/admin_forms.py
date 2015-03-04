@@ -1,4 +1,4 @@
-from django.forms import ModelForm, CheckboxSelectMultiple, SelectMultiple
+from django.forms import ModelForm, SelectMultiple
 
 from models import RegistryForm, CommonDataElement, Section
 
@@ -15,6 +15,6 @@ class RegistryFormAdminForm(ModelForm):
 
     class Meta:
         model = RegistryForm
-        widgets= {
+        widgets = {
             'complete_form_cdes': SelectMultiple(attrs={'size': 20, 'style': 'width:50%'})
         }

@@ -1,10 +1,14 @@
 import logging
-from models import *
+from models import Registry
+from models import RegistryForm
+from models import Section
+from models import CommonDataElement
+from models import CDEPermittedValueGroup
+from models import CDEPermittedValue
+from models import AdjudicationDefinition
 from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient
 import yaml
-from django.core.exceptions import MultipleObjectsReturned
-
+import json
 
 logger = logging.getLogger("registry_log")
 
@@ -62,6 +66,7 @@ class ImportState:
 
 
 class Importer(object):
+
     def __init__(self):
         self.yaml_data = None
         self.data = None
@@ -85,7 +90,7 @@ class Importer(object):
             yaml_data.close()
             logger.debug("importer.data = %s" % self.data)
             self.state = ImportState.LOADED
-        except Exception, ex:
+        except Exception as ex:
             self.state = ImportState.MALFORMED
             logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex))
             raise BadDefinitionFile("YAML file is malformed: %s" % ex)
@@ -138,7 +143,7 @@ class Importer(object):
     def _check_soundness(self):
         def exists(cde_code):
             try:
-                cde = CommonDataElement.objects.get(code=cde_code)
+                CommonDataElement.objects.get(code=cde_code)
                 return True
             except CommonDataElement.DoesNotExist:
                 return False
@@ -167,7 +172,8 @@ class Importer(object):
 
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against the original yaml data
-        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
+        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(
+            registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
@@ -180,7 +186,7 @@ class Importer(object):
             sections_in_db = set(form.get_sections())
             for section_code in sections_in_db:
                 try:
-                    section = Section.objects.get(code=section_code)
+                    Section.objects.get(code=section_code)
                 except Section.DoesNotExist:
                     raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
 
@@ -208,7 +214,8 @@ class Importer(object):
                             cde_model = CommonDataElement.objects.get(code=section_cde_code)
                             imported_section_cdes.add(cde_model.code)
                         except CommonDataElement.DoesNotExist:
-                            raise RegistryImportError("CDE %s.%s does not exist" % (form.name, section_code, section_cde_code))
+                            raise RegistryImportError(
+                                "CDE %s.%s does not exist" % (form.name, section_code, section_cde_code))
 
                     yaml_section_cdes = set([])
                     for form_map in self.data["forms"]:
@@ -223,7 +230,8 @@ class Importer(object):
                         yaml_msg = "in YAML %s.%s has cdes %s" % (form.name, section.code, yaml_section_cdes)
                         msg = "%s\n%s" % (db_msg, yaml_msg)
 
-                        raise RegistryImportError("CDE codes on imported registry do not match those specified in data file: %s" % msg)
+                        raise RegistryImportError(
+                            "CDE codes on imported registry do not match those specified in data file: %s" % msg)
 
                 except Section.DoesNotExist:
                     raise RegistryImportError("Section %s in form %s has not been created?!" % (section_code, form.name))
@@ -232,7 +240,7 @@ class Importer(object):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
-            #logger.info("imported permissible value group %s" % pvg)
+            # logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
@@ -250,28 +258,30 @@ class Importer(object):
                     value.delete()
 
             for value_map in pvg_map["values"]:
-                    value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"], pv_group=pvg)
-                    if not created:
-                        if value.value != value_map["value"]:
-                            logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code, value.code, value.value))
-                            logger.warning("Import value code %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["value"]))
+                value, created = CDEPermittedValue.objects.get_or_create(code=value_map["code"], pv_group=pvg)
+                if not created:
+                    if value.value != value_map["value"]:
+                        logger.warning("Existing value code %s.%s = '%s'" % (value.pv_group.code, value.code, value.value))
+                        logger.warning("Import value code %s.%s = '%s'" %
+                                       (pvg_map["code"], value_map["code"], value_map["value"]))
 
-                        if value.desc != value_map["desc"]:
-                            logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code, value.code, value.desc))
-                            logger.warning("Import value desc %s.%s = '%s'" % (pvg_map["code"], value_map["code"], value_map["desc"]))
+                    if value.desc != value_map["desc"]:
+                        logger.warning("Existing value desc%s.%s = '%s'" % (value.pv_group.code, value.code, value.desc))
+                        logger.warning("Import value desc %s.%s = '%s'" %
+                                       (pvg_map["code"], value_map["code"], value_map["desc"]))
 
-                    # update the value ...
-                    value.value = value_map["value"]
-                    value.desc = value_map["desc"]
+                # update the value ...
+                value.value = value_map["value"]
+                value.desc = value_map["desc"]
 
-                    if 'questionnaire_value' in value_map:
-                        value.questionnaire_value = value_map['questionnaire_value']
+                if 'questionnaire_value' in value_map:
+                    value.questionnaire_value = value_map['questionnaire_value']
 
-                    if 'position' in value_map:
-                        value.position = value_map['position']
+                if 'position' in value_map:
+                    value.position = value_map['position']
 
-                    value.save()
-                    #logger.info("imported value %s" % value)
+                value.save()
+                # logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
@@ -291,26 +301,29 @@ class Importer(object):
                     if not created:
                         old_value = getattr(cde_model, field)
                         if old_value != import_value:
-                            logger.warning("import will change cde %s: import value = %s new value = %s" % (cde_model.code, old_value, import_value))
+                            logger.warning("import will change cde %s: import value = %s new value = %s" %
+                                           (cde_model.code, old_value, import_value))
 
                     setattr(cde_model, field, cde_map[field])
-                    #logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
+                    # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
-            #Assign value group - pv_group will be empty string is not a range
+            # Assign value group - pv_group will be empty string is not a range
 
             if cde_map["pv_group"]:
                 try:
                     pvg = CDEPermittedValueGroup.objects.get(code=cde_map["pv_group"])
                     if not created:
                         if cde_model.pv_group != pvg:
-                            logger.warning("import will change cde %s: old group = %s new group = %s" % (cde_model.code, cde_model.pv_group, pvg))
+                            logger.warning("import will change cde %s: old group = %s new group = %s" %
+                                           (cde_model.code, cde_model.pv_group, pvg))
 
                     cde_model.pv_group = pvg
-                except CDEPermittedValueGroup.DoesNotExist, ex:
-                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" % (cde_map["pv_group"], cde_model.code, ex))
+                except CDEPermittedValueGroup.DoesNotExist as ex:
+                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" %
+                                           (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
-            #logger.info("updated cde %s" % cde_model)
+            # logger.info("updated cde %s" % cde_model)
 
     def _create_generic_sections(self, generic_section_maps):
         logger.info("creating generic sections")
@@ -364,7 +377,7 @@ class Importer(object):
             if not isinstance(metadata, dict):
                 raise ValueError("Not a dictionary")
             return True
-        except ValueError, verr:
+        except ValueError as verr:
             logger.info("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
             return False
 
@@ -377,8 +390,6 @@ class Importer(object):
             self._create_generic_sections(self.data["generic_sections"])
 
         logger.info("imported generic sections OK")
-
-
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
@@ -455,11 +466,11 @@ class Importer(object):
         # generate the questionnaire for this reqistry
         try:
             r.generate_questionnaire()
-        except Exception, ex:
+        except Exception as ex:
             raise QuestionnaireGenerationError(str(ex))
 
         if "adjudication_definitions" in self.data:
-            self._create_adjudication_definitions(self.data["adjudication_definitions"])
+            self._create_adjudication_definitions(r, self.data["adjudication_definitions"])
         logger.info("imported adjudication definitions OK")
 
     def _create_adjudication_definitions(self, registry_model, adj_def_maps):
@@ -468,14 +479,23 @@ class Importer(object):
             decision_fields_section_map = adj_def_map["sections_required"]["decision_fields_section"]
             self._create_section_model(result_fields_section_map)
             self._create_section_model(decision_fields_section_map)
-            adj_def_model = AdjudicationDefinition(registry=registry_model)
+            adj_def_model, created = AdjudicationDefinition.objects.get_or_create(registry=registry_model, display_name= adj_def_map["display_name"])
+            try:
+                adj_def_model.display_name = adj_def_map["display_name"]
+            except Exception, ex:
+                logger.error("display_name not in adjudication definition")
+
             adj_def_model.fields = adj_def_map["fields"]
             adj_def_model.result_fields = adj_def_map["result_fields"]
             adj_def_model.decision_field = adj_def_map["decision_field"]
             adj_def_model.adjudicator_username = adj_def_map["adjudicator_username"]
+            try:
+                adj_def_model.adjudicating_users = adj_def_map["adjudicating_users"]
+            except Exception, ex:
+                logger.error("adjudicating_users not in definition")
+
             adj_def_model.save()
             logger.info("created Adjudication Definition %s OK" % adj_def_model)
-
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:

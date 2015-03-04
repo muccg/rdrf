@@ -4,18 +4,6 @@
 <div id="branding" class="branding">
     <h1 id="site-name">Rare Disease Registry Framework</h1>
 </div>
-
-<div id="user-tools">
-    {% if request.user.is_authenticated %}
-        Hello {{ request.user.username }} |
-        {% if is_admin %}
-            <a href="{% url 'admin:index' %}">Admin Page</a> |
-        {% endif %}
-        <a href="{% url 'logout' %}?next={% url 'landing' %}" >Logout</a>
-    {% else %}
-        <a href="{% url 'login' %}?next={% url 'landing' %}">Log in</a>
-    {% endif %}
-</div>
 {% endblock %}
 
 {% block content %}

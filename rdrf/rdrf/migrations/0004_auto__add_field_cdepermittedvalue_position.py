@@ -13,11 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'CDEPermittedValue.position'
         db.delete_column(u'rdrf_cdepermittedvalue', 'position')
-
 
     models = {
         u'rdrf.cdepermittedvalue': {

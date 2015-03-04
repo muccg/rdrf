@@ -47,18 +47,69 @@ class CustomUser(AbstractUser):
             if reg is registry_model:
                 return True
 
+    @property
+    def is_patient(self):
+        try:
+            patient_group = Group.objects.get(name__icontains = "patients")
+            _is_patient = True if patient_group in self.groups.all() else False
+            return _is_patient
+        except Group.DoesNotExist:
+            return False
 
+    @property
+    def is_clinician(self):
+        try:
+            clinical_group = Group.objects.get(name__icontains = "clinical")
+            _is_clinicial = True if clinical_group in self.groups.all() else False
+            return _is_clinicial
+        except Group.DoesNotExist:
+            return False
+
+    @property
+    def is_curator(self):
+        try:
+            curator_group = Group.objects.get(name__icontains = "curator")
+            _is_curator = True if curator_group in self.groups.all() else False
+            return _is_curator
+        except Group.DoesNotExist:
+            return False
+
+    def get_registries(self):
+        return self.registry.all()
+    
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
+    from registry.patients.models import Patient
+
     user.first_name = request.POST['first_name']
     user.last_name = request.POST['surname']
     user.is_staff = True
-    user.groups = [ _get_group("Patients"), ]
+    
+    patient_group = _get_group("Patients")
+    user.groups = [ patient_group, ] if patient_group else []
     
     registry_code = _get_registry_code(request.path)
-    user.registry = [ _get_registry_object(registry_code), ]
+    registry = _get_registry_object(registry_code)
+    user.registry = [ registry, ] if registry else []
+    
+    clinician_id, working_group_id = request.POST['clinician'].split("_")
+    
+    working_group = WorkingGroup.objects.get(id=working_group_id)
+    user.working_groups = [ working_group, ]
     
     user.save()
+
+    patient = Patient.objects.create(
+        consent=True,
+        family_name = user.last_name,
+        given_names = user.first_name,
+        date_of_birth = request.POST["date_of_birth"],
+        sex = request.POST["gender"]
+    )
+
+    patient.rdrf_registry.add(registry.id)
+    patient.working_groups.add(working_group.id)
+    patient.save()
 
 def _get_registry_code(path):
     account = "accounts/"

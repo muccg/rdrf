@@ -1,8 +1,9 @@
 import logging
 import re
-logger = logging.getLogger("registry_log")
 
 from django.core.exceptions import ValidationError
+
+logger = logging.getLogger("registry_log")
 
 
 class ValidationType:
@@ -26,7 +27,7 @@ def make_validation_func(val_type, cde):
     elif val_type == ValidationType.PATTERN:
         try:
             re_pattern = re.compile(cde.pattern)
-        except Exception, ex:
+        except Exception:
             logger.info("CDE %s has bad pattern: %s" % (cde, cde.pattern))
             return None
 
@@ -37,13 +38,15 @@ def make_validation_func(val_type, cde):
     elif val_type == ValidationType.LENGTH:
         def vf(value):
             if len(value) > cde.max_length:
-                raise ValidationError("Value of '%s' for %s is longer than max length of %s" % (value, cde.name, cde.max_length))
+                raise ValidationError("Value of '%s' for %s is longer than max length of %s" %
+                                      (value, cde.name, cde.max_length))
         return vf
     else:
         raise Exception("Unknown ValidationType %s" % val_type)
 
 
 class ValidatorFactory(object):
+
     def __init__(self, cde):
         self.cde = cde
 
@@ -76,8 +79,9 @@ class ValidatorFactory(object):
                     validate_pattern = make_validation_func(ValidationType.PATTERN, self.cde)
                     if validate_pattern is not None:
                         validators.append(validate_pattern)
-                except Exception, ex:
-                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" % (self.cde.name, self.cde.pattern, ex))
+                except Exception as ex:
+                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" %
+                                 (self.cde.name, self.cde.pattern, ex))
 
             if self.cde.max_length:
                 validate_length = make_validation_func(ValidationType.LENGTH, self.cde)
