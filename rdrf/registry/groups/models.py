@@ -65,6 +65,15 @@ class CustomUser(AbstractUser):
         except Group.DoesNotExist:
             return False
 
+    @property
+    def is_curator(self):
+        try:
+            curator_group = Group.objects.get(name__icontains = "curator")
+            _is_curator = True if curator_group in self.groups.all() else False
+            return _is_curator
+        except Group.DoesNotExist:
+            return False
+
     def get_registries(self):
         return self.registry.all()
     
