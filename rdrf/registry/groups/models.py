@@ -66,6 +66,15 @@ class CustomUser(AbstractUser):
             return False
 
     @property
+    def is_genetic(self):
+        try:
+            genetic_group = Group.objects.get(name__icontains = "genetic")
+            _is_genetic = True if genetic_group in self.groups.all() else False
+            return _is_genetic
+        except Group.DoesNotExist:
+            return False
+
+    @property
     def is_curator(self):
         try:
             curator_group = Group.objects.get(name__icontains = "curator")
