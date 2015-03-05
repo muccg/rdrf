@@ -24,7 +24,8 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var url_path = "{{request.path}}";
-            var registry_code = url_path.split("/")[3];
+            var url_elems = url_path.split("/")
+            var registry_code = url_elems[url_elems.length - 3];
             $('#id_password1').pwstrength({
                 ui: { showVerdictsInsideProgressBar: true }
             });
@@ -53,13 +54,16 @@
     <br>
     {{form.errors}}
     <div class="container">
+        <div class="alert alert-info">
+            <strong>Rare Disease Registry - Patient Registration</strong>
+        </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <h3>Personal data</h3>
                 Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
             </div>
             <div class="col-md-6" style="text-align: justify; border-left: dashed 1px #bbb;">
-                <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px;">
+                <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
                     {% csrf_token %}
                     <div class="form-group">
                         <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />

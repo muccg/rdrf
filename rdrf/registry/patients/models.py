@@ -18,6 +18,7 @@ from rdrf.utils import mongo_db_name
 from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
+from registry.groups.models import CustomUser
 
 import logging
 logger = logging.getLogger('patient')
@@ -139,7 +140,7 @@ class Patient(models.Model):
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
-
+    clinician = models.ForeignKey(CustomUser, blank=True, null=True)
 
     @property
     def age(self):

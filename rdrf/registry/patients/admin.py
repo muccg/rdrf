@@ -255,6 +255,7 @@ class PatientAdmin(admin.ModelAdmin):
         rdrf_registry = ("Registry", {
             "fields": (
                 "rdrf_registry",
+                "clinician"
             )
         })
 
