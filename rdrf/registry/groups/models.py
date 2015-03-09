@@ -119,6 +119,7 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.rdrf_registry.add(registry.id)
     patient.working_groups.add(working_group.id)
     patient.clinician = CustomUser.objects.get(id=clinician_id)
+    patient.home_phone = getattr(request.POST, "phone_number", None)
     patient.user = user
     patient.save()
     
