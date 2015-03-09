@@ -88,7 +88,7 @@ class CustomUser(AbstractUser):
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
-    from registry.patients.models import Patient
+    from registry.patients.models import Patient, PatientAddress, AddressType
 
     user.first_name = request.POST['first_name']
     user.last_name = request.POST['surname']
@@ -121,6 +121,16 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.clinician = CustomUser.objects.get(id=clinician_id)
     patient.user = user
     patient.save()
+    
+    addres = PatientAddress.objects.create(
+        patient = patient,
+        address_type = AddressType.objects.get(description__icontains = "Post"),
+        address = request.POST["address"],
+        suburb = request.POST["suburb"],
+        state = request.POST["state"],
+        postcode = request.POST["postcode"],
+        country = request.POST["country"]
+    ).save()
 
 def _get_registry_code(path):
     account = "accounts/"
