@@ -1,26 +1,30 @@
+from __future__ import absolute_import
 from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render_to_response
 import registry.urls as common_urls
-import views
-import form_view
-import registry_view
-import landing_view
-import import_registry_view
-import rest_interface
-import hgvs_view
-import patient_view
-import login_router
-from lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
+import rdrf.views as views
+import rdrf.form_view as form_view
+import rdrf.registry_view as registry_view
+import rdrf.landing_view as landing_view
+import rdrf.import_registry_view as import_registry_view
+import rdrf.rest_interface as rest_interface
+import rdrf.hgvs_view as hgvs_view
+import rdrf.patient_view as patient_view
+import rdrf.login_router as login_router
+from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
 from ajax_select import urls as ajax_select_urls
-from views import RegistryList
+from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-# from registration.backends.default.views import ActivationView
-# from registration.backends.default.views import RegistrationView
+from django.views.generic.base import TemplateView
+from registration.backends.default.views import ActivationView
+from registration.backends.default.views import RegistrationView
+
+from rdrf.registration_rdrf import RdrfRegistrationView, RdrfActivationView
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -108,6 +112,7 @@ urlpatterns = patterns('',
 urlpatterns += patterns('',
                         (r'^accounts/fkrp/', include('registration.backends.default.urls')),
                         )
+
 
 urlpatterns += patterns('',
                         url(r'^i18n', include('django.conf.urls.i18n')),

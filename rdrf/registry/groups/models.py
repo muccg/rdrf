@@ -119,6 +119,7 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.rdrf_registry.add(registry.id)
     patient.working_groups.add(working_group.id)
     patient.clinician = CustomUser.objects.get(id=clinician_id)
+    patient.user = user
     patient.save()
 
 def _get_registry_code(path):

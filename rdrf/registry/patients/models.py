@@ -141,6 +141,7 @@ class Patient(models.Model):
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
+    user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object")
 
     @property
     def age(self):
