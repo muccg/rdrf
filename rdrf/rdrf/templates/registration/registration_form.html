@@ -30,9 +30,19 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
-            var url_path = "{{request.path}}";
-            var url_elems = url_path.split("/")
-            var registry_code = url_elems[url_elems.length - 3];
+            var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
+
+            function dateDiffInYears(a, b) {
+                var utc2 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+                var utc1 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+            
+                return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+            }
+
+            $("#full_form").hide();
+            $("#underage_msg").hide();
+            
+            var registry_code = "{{registry_code}}"
             $('#id_password1').pwstrength({
                 ui: { showVerdictsInsideProgressBar: true }
             });
@@ -56,8 +66,21 @@
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
-                console.log(registration_form.valid());
-                registration_form.submit();
+                if (registration_form.valid()) {
+                    registration_form.submit();
+                }
+            });
+            
+            $("#id_date_of_birth").change(function() {
+                date_str = $("#id_date_of_birth").val();
+                dob = new Date(date_str);
+                if (dateDiffInYears(new Date(),dob) >= 18 ) {
+                    $("#underage_msg").hide("slow");
+                    $("#full_form").show("slow");
+                } else {
+                    $("#underage_msg").show("slow");
+                    $("#full_form").hide("slow");
+                }
             });            
         });    
     </script>
@@ -65,10 +88,14 @@
 
 <body>
     <br>
-    {{form.errors}}
     <div class="container">
         <div class="alert alert-info">
             <strong>Rare Disease Registry - Patient Registration</strong>
+        </div>
+        <div id="underage_msg">
+            <div class="alert alert-danger">
+                For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.
+            </div>            
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -79,65 +106,66 @@
                 <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
                     {% csrf_token %}
                     <div class="form-group">
-                        <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" />
+                        <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
                     </div>
                     <div class="form-group">
-                        <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" />
+                        <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" required />
                     </div>
                     <div class="form-group">
-                        <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" />
+                        <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" required />
                     </div>
                     <div class="form-group">
                         <div class="radio">
                             <label><input type="radio" id="id_gender" name="gender" value="M">Male</label>
                             <label><input type="radio" id="id_gender" name="gender" value="F">Female</label>
                         </div>
-                    </div> 
-                    
-                    <div class="form-group top-separator">
-                        <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
                     </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Suburb/Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="State" id="id_state" maxlength="30" name="state" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Postcode" id="id_postcode" maxlength="30" name="postcode" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <select class="form-control" placeholder="Country" id="id_country" name="country">
-                            <option value="-1">Country</option>
-                            {% countries as countries %}
-                            {% for con in countries %}
-                                <option value="{{con.alpha2}}">{{con.name}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group top-separator">
-                        <select class="form-control" id="id_clinician" name="clinician">
-                            <option value="-1">Choose your preferred Clinician</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
-                    </div>
-                    <div class="form-group">
-                        <button type="button" id="registration-submit" class="btn btn-success pull-right">Register</button>
+                    <div id="full_form">
+                        <div class="form-group top-separator">
+                            <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Suburb/Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="State" id="id_state" maxlength="30" name="state" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Postcode" id="id_postcode" maxlength="30" name="postcode" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" placeholder="Country" id="id_country" name="country">
+                                <option value="-1">Country</option>
+                                {% countries as countries %}
+                                {% for con in countries %}
+                                    <option value="{{con.alpha2}}">{{con.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group top-separator">
+                            <select class="form-control" id="id_clinician" name="clinician">
+                                <option value="-1">Choose your preferred Clinician</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
+                        </div>
+                        <div class="form-group">
+                            <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
+                        </div>
                     </div>
                 </form>
             </div>

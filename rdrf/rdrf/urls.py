@@ -22,9 +22,9 @@ from rdrf.api import PatientResource
 
 from django.views.generic.base import TemplateView
 from registration.backends.default.views import ActivationView
-from registration.backends.default.views import RegistrationView
+#from registration.backends.default.views import RegistrationView
 
-from rdrf.registration_rdrf import RdrfRegistrationView, RdrfActivationView
+from rdrf.registration_rdrf import RdrfRegistrationView
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -108,16 +108,18 @@ urlpatterns = patterns('',
                             ClinitianLookup.as_view(), name="clinician_lookup")
                        )
 
-
 urlpatterns += patterns('',
-                        (r'^accounts/fkrp/', include('registration.backends.default.urls')),
-                        )
+                       url(r'^(?P<registry_code>\w+)/register/$', RdrfRegistrationView.as_view(), name='registration_register'),
+                       url(r'^register/complete/$', TemplateView.as_view(template_name='registration/registration_complete.html'), name='registration_complete'),
+                       url(r'^register/closed/$', TemplateView.as_view(template_name='registration/registration_closed.html'), name='registration_disallowed'),
 
+                       url(r'^activate/complete/$', TemplateView.as_view(template_name='registration/activation_complete.html'), name='registration_activation_complete'),
+                       url(r'^activate/(?P<activation_key>\w+)/$', ActivationView.as_view(), name='registration_activate'),
+                       )
 
 urlpatterns += patterns('',
                         url(r'^i18n', include('django.conf.urls.i18n')),
                         )
-
 
 # pattern for serving statically
 if settings.DEBUG:
