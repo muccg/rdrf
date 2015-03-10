@@ -4,6 +4,9 @@ from django.views.generic.base import View
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
 
+from registry.patients.models import Patient
+from registry.patients.admin_forms import PatientForm
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -40,5 +43,13 @@ class PatientView(View):
                 context['forms'] = forms
             except RegistryForm.DoesNotExist:
                 logger.error("No questionnaire for %s reistry" % registry_code)
+
+            if request.user.is_patient:
+                try:
+                    patient = Patient.objects.get(user__id=request.user.id)
+                    context['patient_record'] = patient
+                    context['patient_form'] = PatientForm(instance=patient)
+                except Patient.DoesNotExist:
+                    logger.error("Paient record not found for user %s" % request.user.username)
 
         return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))

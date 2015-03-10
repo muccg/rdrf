@@ -15,6 +15,7 @@ from rdrf.hooking import run_hooks
 from registry.patients.models import Patient, PatientRelative
 from django.forms.widgets import Select
 from django.db import transaction
+from registry.groups.models import CustomUser
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -173,16 +174,17 @@ class PatientForm(forms.ModelForm):
     }
 
     def __init__(self, *args, **kwargs):
+        super(PatientForm, self).__init__(*args, **kwargs)
+
+        clinicians = CustomUser.objects.all()
         if 'instance' in kwargs:
             instance = kwargs['instance']
-            #registry_specific_data = self._get_registry_specific_data(instance)
-            #logger.debug("registry specific data = %s" % registry_specific_data)
             initial_data = kwargs.get('initial', {})
-            # for reg_code in registry_specific_data:
-            #     initial_data.update(registry_specific_data[reg_code])
             kwargs['initial'] = initial_data
-
-        super(PatientForm, self).__init__(*args, **kwargs)
+            clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
+        
+        clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
+        self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
 
     def _get_registry_specific_data(self, patient_model):
         mongo_wrapper = DynamicDataWrapper(patient_model)
