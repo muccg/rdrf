@@ -208,6 +208,33 @@ class Patient(models.Model):
             if registry.code == reg_code:
                 return True
 
+
+    @property
+    def my_index(self):
+        # This property is only applicable to FH
+        if self.in_registry("fh"):
+            # try to find patient relative object corresponding to this patient and
+            # then locate that relative's index patient
+            try:
+                patient_relative = PatientRelative.objects.get(relative_patient=self)
+                if patient_relative.patient:
+                    return patient_relative.patient
+            except PatientRelative.DoesNotExist:
+                pass
+
+        return None
+
+    @property
+    def is_index(self):
+        if not self.in_registry("fh"):
+            return False
+        else:
+            if not self.my_index:
+                return True
+            else:
+                return False
+
+
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
 
@@ -264,7 +291,7 @@ class Patient(models.Model):
             for s in section_array:
                 if cde["code"] in Section.objects.get(code=s).elements.split(","):
                     cde_section = s
-            
+
             cde_value = dynamic_store.get_cde(cde_registry, cde_section, cde['code'])
             cdes_status[cde["name"]] = False
             if cde_value:

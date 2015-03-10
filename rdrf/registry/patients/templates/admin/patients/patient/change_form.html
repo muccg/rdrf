@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load stickiness %}
 {% load i18n admin_urls admin_static admin_modify %}
+{% load get_patient %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -110,8 +111,9 @@
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
-&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">Patient List</a>{% else %}Patient List{% endif %}
 &rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+&rsaquo;&rsaquo;
 {% for form_link in form_links %}
     <a href="{{form_link.url}}">{{form_link.text}}</a>
         {% if not forloop.last %}
@@ -125,5 +127,19 @@
 
 {% block content %}
 {% include "messages_ui/_messages.html" %}
+
+{% get_patient object_id as patient %}
+{% if patient %}
+    {% if patient.my_index %}
+        <h2 class="legend aligned">Family Linkage</h2>
+        This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}}</a>
+    {% else %}
+        {% if patient.is_index %}
+           <h2 class="legend aligned">Family Linkage</h2>
+           This patient is an index
+        {% endif %}
+    {% endif %}
+{% endif %}
+
 {{ block.super }}
 {% endblock %}
