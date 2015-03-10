@@ -66,6 +66,7 @@
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
+                $("#id_email").val($("#id_username").val());
                 if (registration_form.valid()) {
                     registration_form.submit();
                 }
@@ -87,6 +88,7 @@
 </head>
 
 <body>
+    {{form.errors}}
     <br>
     <div class="container">
         <div class="alert alert-info">
@@ -149,13 +151,13 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Email address" id="id_email" name="email" type="email" />
+                            <input class="form-control" placeholder="Email address" id="id_email" name="email" type="hidden" />
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="text" />
+                            <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="email" />
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
