@@ -38,7 +38,13 @@
             });
             
             $("#id_date_of_birth").datepicker({
-                'dateFormat': 'yy-mm-dd'
+                'dateFormat': 'yy-mm-dd',
+                'showAnim': 'blind',
+                'changeMonth': true,
+                'changeYear': true,
+                'minDate': '-100Y',
+                'maxDate': '0',
+                'yearRange': '-100:+0'
             });
             
             $.get("{% url 'clinician_lookup' %}", { 'registry_code': registry_code }, function(data) {
@@ -52,7 +58,7 @@
                 var registration_form = $("#registration-form");
                 console.log(registration_form.valid());
                 registration_form.submit();
-            });
+            });            
         });    
     </script>
 </head>
