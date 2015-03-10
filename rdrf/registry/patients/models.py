@@ -266,7 +266,10 @@ class Patient(models.Model):
                 if cde["code"] in Section.objects.get(code=s).elements.split(","):
                     cde_section = s
             
-            cde_value = dynamic_store.get_cde(cde_registry, cde_section, cde['code'])
+            try:
+                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'])
+            except KeyError:
+                cde_value = None
             cdes_status[cde["name"]] = False
             if cde_value:
                 cdes_status[cde["name"]] = True
