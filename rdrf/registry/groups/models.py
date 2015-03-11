@@ -97,7 +97,7 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient_group = _get_group("Patients")
     user.groups = [ patient_group, ] if patient_group else []
     
-    registry_code = _get_registry_code(request.path)
+    registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
     user.registry = [ registry, ] if registry else []
     
@@ -132,11 +132,6 @@ def user_registered_callback(sender, user, request, **kwargs):
         postcode = request.POST["postcode"],
         country = request.POST["country"]
     ).save()
-
-def _get_registry_code(path):
-    account = "accounts/"
-    register ="/register"
-    return (path.split(account))[1].split(register)[0]
 
 def _get_registry_object(registry_name):
     try:

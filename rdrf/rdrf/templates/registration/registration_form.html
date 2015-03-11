@@ -107,6 +107,7 @@
             <div class="col-md-6" style="text-align: justify; border-left: dotted 1px #bbb;">
                 <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
                     {% csrf_token %}
+                    <input type="hidden" name="registry_code" value="{{registry_code}}">
                     <div class="form-group">
                         <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
                     </div>

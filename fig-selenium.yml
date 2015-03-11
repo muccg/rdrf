@@ -5,6 +5,9 @@ dataselenium:
     - .:/app
     - data/selenium:/data
 
+seleniumsmtp:
+  image: muccg/postfix:latest
+    
 seleniumhub:
   image: selenium/hub
   ports:
@@ -54,6 +57,7 @@ webselenium:
     - dbselenium:db
     - cacheselenium:cache
     - mongoselenium:mongo
+    - seleniumsmtp:smtp
 
 # runs the lettuce tests against the stack above
 lettucehost:
