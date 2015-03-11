@@ -269,6 +269,12 @@ class Registry(models.Model):
     def forms(self):
         return [f for f in RegistryForm.objects.filter(registry=self).order_by('position')]
 
+    def has_feature(self, feature):
+        if "features" in self.metadata:
+            return feature in self.metadata["features"]
+        else:
+            return False
+
     @property
     def structure(self):
         """

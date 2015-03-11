@@ -163,7 +163,8 @@ class Patient(models.Model):
         except:
             return None
 
-
+    def has_feature(self, feature):
+        return any([r.has_feature(feature) for r in self.rdrf_registry.all()])
 
     @property
     def working_groups_display(self):

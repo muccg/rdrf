@@ -3,6 +3,7 @@
 {% load stickiness %}
 {% load i18n admin_urls admin_static admin_modify %}
 {% load get_patient %}
+{% load has_feature %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -127,17 +128,49 @@
 
 {% block content %}
 {% include "messages_ui/_messages.html" %}
-
 {% get_patient object_id as patient %}
 {% if patient %}
-    {% if patient.my_index %}
-        <h2 class="legend aligned">Family Linkage</h2>
-        This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}}</a>
-    {% else %}
-        {% if patient.is_index %}
-           <h2 class="legend aligned">Family Linkage</h2>
-           This patient is an index
-        {% endif %}
+    {% if patient|has_feature:"family_linkage" %}
+        <fieldset id="familylinkage" class="module aligned with-legend">
+            <h2 class="legend">Family Linkage</h2>
+            {% if patient.my_index %}
+
+                <div class="control-group form-row">
+
+                    <div class="control-label">
+                        <label>Linkage</label>
+                    </div>
+
+                    <div class="controls">
+                     This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                    </div>
+
+                </div>
+
+            {% else %}
+                {% if patient.is_index %}
+                    <div class="control-group form-row">
+                       <div class="control-label">
+                            <label>Linkage</label>
+                        </div>
+
+                        <div class="controls">
+                            This patient is an index
+                        </div>
+
+                   </div>
+                {% endif %}
+            {% endif %}
+      </fieldset>
+
+     <script>
+         jQuery(document).ready(function() {
+             // this is the jquery way - seems odd
+             if($("#familylinkage").length){
+                 $("#familylinkage").prependTo(".tab-content-main");
+             }
+         })
+     </script>
     {% endif %}
 {% endif %}
 
