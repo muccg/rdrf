@@ -175,11 +175,11 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         if 'instance' in kwargs:
             instance = kwargs['instance']
-            #registry_specific_data = self._get_registry_specific_data(instance)
-            #logger.debug("registry specific data = %s" % registry_specific_data)
+            registry_specific_data = self._get_registry_specific_data(instance)
+            logger.debug("registry specific data = %s" % registry_specific_data)
             initial_data = kwargs.get('initial', {})
-            # for reg_code in registry_specific_data:
-            #     initial_data.update(registry_specific_data[reg_code])
+            for reg_code in registry_specific_data:
+                initial_data.update(registry_specific_data[reg_code])
             kwargs['initial'] = initial_data
 
         super(PatientForm, self).__init__(*args, **kwargs)

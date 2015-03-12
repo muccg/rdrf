@@ -48,9 +48,13 @@ class DynamicDataWrapper(object):
         return {"django_model": django_model,
                 "django_id": django_id}
 
-    def _get_collection(self, registry, collection_name):
+    def _get_collection(self, registry, collection_name, add_mongo_prefix=True):
         if not self.testing:
-            db = self.client[mongo_db_name(registry)]
+            if add_mongo_prefix:
+                db_name = mongo_db_name(registry)
+            else:
+                db_name = registry
+            db = self.client[db_name]
         else:
             db = self.client["testing_" + registry]
 
@@ -83,7 +87,10 @@ class DynamicDataWrapper(object):
         logger.debug("record_query = %s" % record_query)
         for reg_code in self._get_registry_codes():
             logger.debug("checking for reg specific fields in registry %s" % reg_code)
-            collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+            # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
+            # ( already prefixed db names from Mongo
+            collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
+                                              add_mongo_prefix=False)
             registry_data = collection.find_one(record_query)
             logger.debug("registry_data = %s" % registry_data)
             if registry_data:
