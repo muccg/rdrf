@@ -560,11 +560,19 @@ class RegistryForm(models.Model):
     objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(
         default=False, help_text="Check if this form is questionnaire form for it's registry")
+    is_questionnaire_login = models.BooleanField(
+        default=False, help_text="If the form is a questionnaire, is it accessible only by logged in users?",
+        verbose_name="Questionnaire Login Required"
+    )
     position = PositionField(collection='registry')
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
 
+    @property
+    def login_required(self):
+        return self.is_questionnaire_login
+    
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase

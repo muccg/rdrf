@@ -52,7 +52,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 
 class RegistryFormAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'name', 'position')
+    list_display = ('registry', 'name', 'is_questionnaire', 'position')
     ordering = ['registry', 'name']
     form = RegistryFormAdminForm
 
