@@ -19,6 +19,7 @@ from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
 from registry.groups.models import CustomUser
+from rdrf.hooking import run_hooks
 
 import logging
 logger = logging.getLogger('patient')
@@ -164,7 +165,8 @@ class Patient(models.Model):
         except:
             return None
 
-
+    def has_feature(self, feature):
+        return any([r.has_feature(feature) for r in self.rdrf_registry.all()])
 
     @property
     def working_groups_display(self):
@@ -208,6 +210,33 @@ class Patient(models.Model):
         for registry in self.rdrf_registry.all():
             if registry.code == reg_code:
                 return True
+
+
+    @property
+    def my_index(self):
+        # This property is only applicable to FH
+        if self.in_registry("fh"):
+            # try to find patient relative object corresponding to this patient and
+            # then locate that relative's index patient
+            try:
+                patient_relative = PatientRelative.objects.get(relative_patient=self)
+                if patient_relative.patient:
+                    return patient_relative.patient
+            except PatientRelative.DoesNotExist:
+                pass
+
+        return None
+
+    @property
+    def is_index(self):
+        if not self.in_registry("fh"):
+            return False
+        else:
+            if not self.my_index:
+                return True
+            else:
+                return False
+
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -265,11 +294,11 @@ class Patient(models.Model):
             for s in section_array:
                 if cde["code"] in Section.objects.get(code=s).elements.split(","):
                     cde_section = s
-            
             try:
                 cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'])
             except KeyError:
                 cde_value = None
+
             cdes_status[cde["name"]] = False
             if cde_value:
                 cdes_status[cde["name"]] = True
@@ -445,5 +474,14 @@ def send_notification(sender, instance, created, **kwargs):
             logger.debug("sent email ok to %s" % instance.email)
         except Exception, ex:
             logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
+
+
+
+@receiver(post_save, sender=Patient)
+def save_patient_hooks(sender, instance, created, **kwargs):
+    if created:
+        run_hooks('patient_created', instance)
+    else:
+        run_hooks('existing_patient_saved', instance)
 
 

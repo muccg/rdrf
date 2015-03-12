@@ -7,3 +7,9 @@ def mark_as_relative_in_clinical_form(patient):
     # Ensure that a patient created from a relative is marked as a relative in the clinical form
     if patient.in_registry('fh'):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
+
+
+
+@hook("patient_created")
+def mark_created_patient_as_index(patient):
+     patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
