@@ -12,6 +12,8 @@ from registration.signals import user_registered
 
 from rdrf.models import Registry
 
+_OTHER_CLINICIAN = "clinician-other"
+_UNALLOCATED_GROUP = "Unallocated"
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -100,11 +102,16 @@ def user_registered_callback(sender, user, request, **kwargs):
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
     user.registry = [ registry, ] if registry else []
-    
-    clinician_id, working_group_id = request.POST['clinician'].split("_")
-    
-    working_group = WorkingGroup.objects.get(id=working_group_id)
-    user.working_groups = [ working_group, ]
+
+    try:    
+        clinician_id, working_group_id = request.POST['clinician'].split("_")
+        clinician = CustomUser.objects.get(id=clinician_id)
+        working_group = WorkingGroup.objects.get(id=working_group_id)
+        user.working_groups = [ working_group, ]
+    except ValueError:
+        clinician = None
+        working_group = WorkingGroup.objects.get(name__icontains=_UNALLOCATED_GROUP)
+        user.working_groups = [ working_group, ]
     
     user.save()
 
@@ -118,7 +125,7 @@ def user_registered_callback(sender, user, request, **kwargs):
 
     patient.rdrf_registry.add(registry.id)
     patient.working_groups.add(working_group.id)
-    patient.clinician = CustomUser.objects.get(id=clinician_id)
+    patient.clinician = clinician
     patient.home_phone = getattr(request.POST, "phone_number", None)
     patient.user = user
     patient.save()

@@ -20,11 +20,13 @@
         body {
             background-color: #edeff1;
         }
-        
         .top-separator {
-            border-top:
-            dotted 1px #bbb;
+            border-top: dotted 1px #bbb;
             padding-top: 20px;
+        }
+        .bottom-separator {
+            border-bottom: dotted 1px #bbb;
+            padding-bottom: 20px;
         }
     </style>
     
@@ -41,6 +43,7 @@
 
             $("#full_form").hide();
             $("#underage_msg").hide();
+            $("#form-other-clinician").hide();
             
             var registry_code = "{{registry_code}}"
             $('#id_password1').pwstrength({
@@ -62,6 +65,7 @@
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
                 });
+                clinician_drop.append($('<option>', { value : 'clinician-other' }).text('Other - not listed'));
             });
 
             $("#registration-submit").click(function() {
@@ -71,16 +75,24 @@
                     registration_form.submit();
                 }
             });
-            
+            /**
+            $('#id_clinician').change(function() {
+                if($('#id_clinician option:selected').val() == 'clinician-other') {
+                    $("#form-other-clinician").show("blind");
+                } else {
+                    $("#form-other-clinician").hide("blind");
+                }
+            });
+            **/
             $("#id_date_of_birth").change(function() {
                 date_str = $("#id_date_of_birth").val();
                 dob = new Date(date_str);
                 if (dateDiffInYears(new Date(),dob) >= 18 ) {
-                    $("#underage_msg").hide("slow");
-                    $("#full_form").show("slow");
+                    $("#underage_msg").hide("blind");
+                    $("#full_form").show("blind");
                 } else {
-                    $("#underage_msg").show("slow");
-                    $("#full_form").hide("slow");
+                    $("#underage_msg").show("blind");
+                    $("#full_form").hide("blind");
                 }
             });            
         });    
@@ -108,6 +120,8 @@
                 <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
                     {% csrf_token %}
                     <input type="hidden" name="registry_code" value="{{registry_code}}">
+                    <input id="id_email" name="email" type="hidden" />
+                    
                     <div class="form-group">
                         <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
                     </div>
@@ -151,20 +165,28 @@
                                 <option value="-1">Choose your preferred Clinician</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Email address" id="id_email" name="email" type="hidden" />
+                        <div id="form-other-clinician">
+                            <div class="form-group">
+                                <input class="form-control" placeholder="Clinician's Name" id="id_other_clinician_name" name="other_clinician_name" type="text" />
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" placeholder="Clinician's Hospital" id="id_other_clinician_hospital" name="other_clinician_hospital" type="text" />
+                            </div>
+                            <div class="form-group bottom-separator">
+                                <input class="form-control" placeholder="Clinician's or Hospital's Address" id="id_other_clinician_address" name="other_clinician_address" type="text" />
+                            </div>
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="email" />
+                            <input class="form-control" placeholder="Username" id="id_username" maxlength="30" name="username" type="email" required />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" />
+                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" />
+                            <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" required />
                         </div>
                         <div class="form-group">
                             <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
