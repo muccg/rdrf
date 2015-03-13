@@ -20,6 +20,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
+from django.db.models.signals import m2m_changed
 
 import logging
 logger = logging.getLogger('patient')
@@ -483,5 +484,14 @@ def save_patient_hooks(sender, instance, created, **kwargs):
         run_hooks('patient_created', instance)
     else:
         run_hooks('existing_patient_saved', instance)
+
+
+@receiver(m2m_changed, sender=Patient.rdrf_registry.through)
+def registry_changed_on_patient(sender, **kwargs):
+    logger.debug("registry changed on patient %s: kwargs = %s" % (kwargs['instance'], kwargs))
+    if kwargs["action"] == "post_add":
+        instance = kwargs['instance']
+        registry_ids = kwargs['pk_set']
+        run_hooks('registry_added', instance, registry_ids)
 
 

@@ -57,8 +57,7 @@
            var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
            var rpc = new RPC.RPC("{% url 'rpc' %}", csrfToken);
            if (visible) {
-               rpc.send("fh_patient_is_index", [
-                   {{object_id}}],
+               rpc.send("fh_patient_is_index", [{{object_id}}],
            function (data) {
                var result = data.result;
                if (result) {
@@ -82,8 +81,8 @@
        function setupPatientRelativeForm() {
            var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
            var rpc = new RPC.RPC("{% url 'rpc' %}", csrfToken);
-           rpc.send("visibility",["PatientRelativeForm"], function (result) {
-               setPatientRelativeFormVisiblity(result);
+           rpc.send("visibility",["PatientRelativeForm"], function (data) {
+               setPatientRelativeFormVisiblity(data.result);
            })
        }
 
