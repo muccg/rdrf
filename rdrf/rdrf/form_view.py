@@ -610,8 +610,8 @@ class QuestionnaireResponseView(FormView):
     def _fix_centre_dropdown(self, context):
         for field_key, field_object in context['forms']['PatientData'].fields.items():
             if 'CDEPatientCentre' in field_key:
-                field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
-                # raise Exception("field obj = %s" % field_object)
+                if hasattr(field_object.widget, "_widget_context"):
+                    field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
 
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
@@ -638,6 +638,7 @@ class QuestionnaireResponseView(FormView):
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(
                 id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+            logger.debug("questionnaire data = %s" % questionnaire_data)
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
             if patient_creator.state == PatientCreatorState.CREATED_OK:
                 messages.info(request, "Questionnaire approved - A patient record has now been created")
