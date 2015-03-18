@@ -61,6 +61,7 @@
         {% else %}
             <a href="{% url 'login' %}?next={% url 'login_router' %}">Log in</a>
         {% endif %}
+        | <a href="{% url 'password_reset' %}">Password Reset</a>
 	  </div>
         {% endblock%}
     </div>
