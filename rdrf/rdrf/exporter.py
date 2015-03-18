@@ -160,6 +160,7 @@ class Exporter(object):
         if export_type in [ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
             data["code"] = self.registry.code
+            data["desc"] = self.registry.desc
             data["splash_screen"] = self.registry.splash_screen
             data["forms"] = []
             data["generic_sections"] = []

@@ -174,8 +174,6 @@ class PatientForm(forms.ModelForm):
     }
 
     def __init__(self, *args, **kwargs):
-        super(PatientForm, self).__init__(*args, **kwargs)
-
         clinicians = CustomUser.objects.all()
         if 'instance' in kwargs:
             instance = kwargs['instance']
@@ -186,9 +184,12 @@ class PatientForm(forms.ModelForm):
                 initial_data.update(registry_specific_data[reg_code])
             kwargs['initial'] = initial_data
             clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
-        
+
+        super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
+
+
 
     def _get_registry_specific_data(self, patient_model):
         mongo_wrapper = DynamicDataWrapper(patient_model)

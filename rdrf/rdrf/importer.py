@@ -399,6 +399,8 @@ class Importer(object):
         original_forms = set([f.name for f in RegistryForm.objects.filter(registry=r)])
         imported_forms = set([])
         r.code = self.data["code"]
+        if "desc" in self.data:
+            r.desc = self.data["desc"]
         r.name = self.data["name"]
 
         if "REGISTRY_VERSION" in self.data:
