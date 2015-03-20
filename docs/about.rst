@@ -43,7 +43,7 @@ Third-party Libraries
 Links
 =====
 
-`Demo Site <https://ccgapps.com.au/demo-rdrf>`_
+`Demo Site <https://rdrf.ccgapps.com.au/demo/>`_
 
 `Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
 
