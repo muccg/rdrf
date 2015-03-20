@@ -7,6 +7,11 @@ logger = logging.getLogger("registry_log")
 def mongo_db_name(registry):
     return settings.MONGO_DB_PREFIX + registry
 
+def mongo_db_name_reg_id(registry_id):
+    from models import Registry
+    reg = Registry.objects.get(id=registry_id)
+    return settings.MONGO_DB_PREFIX + reg.code
+
 
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
