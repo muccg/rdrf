@@ -297,6 +297,7 @@ class Registry(models.Model):
                 continue
             form_dict = {}
             form_dict["name"] = form.name
+            form_dict["questionnaire_display_name"] = form.questionnaire_display_name
             form_dict["sections"] = []
             form_dict["is_questionnaire"] = form.is_questionnaire
             form_dict["position"] = form.position
@@ -307,6 +308,7 @@ class Registry(models.Model):
                 section_dict = {}
                 section_dict["code"] = section.code
                 section_dict["display_name"] = section.display_name
+                section_dict["questionnaire_display_name"] = section.questionnaire_display_name
                 section_dict["allow_multiple"] = section.allow_multiple
                 section_dict["extra"] = section.extra
                 section_dict["questionnaire_help"] = section.questionnaire_help
@@ -350,6 +352,7 @@ class Registry(models.Model):
         for form_dict in new_structure["forms"]:
             form_name = form_dict["name"]
             form, created = RegistryForm.objects.get_or_create(name=form_name, registry=self)
+            form.questionnaire_display_name = form_dict["questionnaire_display_name"]
             form.is_questionnaire = form_dict["is_questionnaire"]
             form.position = form_dict["position"]
             questionnaire_questions = []
@@ -359,6 +362,7 @@ class Registry(models.Model):
             for section_dict in form_dict["sections"]:
                 section, created = Section.objects.get_or_create(code=section_dict["code"])
                 section.display_name = section_dict["display_name"]
+                section.questionnaire_display_name = section_dict["questionnaire_display_name"]
                 section.allow_multiple = section_dict["allow_multiple"]
                 section.extra = section_dict["extra"]
                 section.questionnaire_help = section_dict["questionnaire_help"]
