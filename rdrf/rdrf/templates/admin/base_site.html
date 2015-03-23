@@ -29,7 +29,7 @@
                 form.append("{% csrf_token %}");
                 form.append($("<input></input>").attr("type", "hidden").attr("name", "next").val("{{ request.path }}"));
                 form.append($("<input></input>").attr("type", "hidden").attr("name", "language").val(lang));
-                form.submit();
+                form.appendTo("body").submit();
             });
             {% endif %}
         })
