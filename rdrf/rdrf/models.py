@@ -560,6 +560,7 @@ class RegistryForm(models.Model):
     """
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
+    questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(
@@ -580,7 +581,10 @@ class RegistryForm(models.Model):
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
-        return de_camelcase(self.name)
+        if self.questionnaire_display_name:
+            return self.questionnaire_display_name
+        else:
+            return de_camelcase(self.name)
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
