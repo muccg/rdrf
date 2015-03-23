@@ -26,7 +26,7 @@
     <div class="container">
         <div class="alert alert-success" role="alert">
             <h3>You have successfuly activated your account.</h3><br>
-            Please proceed to <a href="{% url 'login' %}?next=/router">login page</a>.
+            Please proceed to <a href="{% url 'login' %}?next={% url 'login_router'}">login page</a>.
         </div>
     </div>
 </body>
