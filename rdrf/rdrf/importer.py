@@ -444,6 +444,8 @@ class Importer(object):
                 s, created = Section.objects.get_or_create(code=section_map["code"])
                 s.code = section_map["code"]
                 s.display_name = section_map["display_name"]
+                if "questionnaire_display_name" in section_map:
+                    s.questionnaire_display_name = section_map["questionnaire_display_name"]
                 s.elements = ",".join(section_map["elements"])
                 s.allow_multiple = section_map["allow_multiple"]
                 s.extra = section_map["extra"]

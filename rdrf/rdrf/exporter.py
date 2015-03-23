@@ -120,6 +120,7 @@ class Exporter(object):
         section_model = Section.objects.get(code=section_code)
         section_map = {}
         section_map["display_name"] = section_model.display_name
+        section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
         section_map["code"] = section_model.code
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple

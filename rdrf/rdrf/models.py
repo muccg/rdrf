@@ -35,6 +35,7 @@ class Section(models.Model):
     """
     code = models.CharField(max_length=100)
     display_name = models.CharField(max_length=100)
+    questionnaire_display_name = models.CharField(max_length=100, blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
@@ -207,7 +208,10 @@ class Registry(models.Model):
             except RegistryForm.DoesNotExist:
                 raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
 
-            qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
+            if not original_section.questionnaire_display_name:
+                qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
+            else:
+                qsection.display_name = original_form.questionnaire_name + " - " + original_section.questionnaire_display_name
             qsection.allow_multiple = original_section.allow_multiple
             qsection.extra = 0
             qsection.elements = ",".join([cde_code for cde_code in section_map[(form_name, original_section_code)]])
