@@ -35,6 +35,7 @@ class Section(models.Model):
     """
     code = models.CharField(max_length=100)
     display_name = models.CharField(max_length=100)
+    questionnaire_display_name = models.CharField(max_length=100, blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
@@ -207,7 +208,10 @@ class Registry(models.Model):
             except RegistryForm.DoesNotExist:
                 raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
 
-            qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
+            if not original_section.questionnaire_display_name:
+                qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
+            else:
+                qsection.display_name = original_form.questionnaire_name + " - " + original_section.questionnaire_display_name
             qsection.allow_multiple = original_section.allow_multiple
             qsection.extra = 0
             qsection.elements = ",".join([cde_code for cde_code in section_map[(form_name, original_section_code)]])
@@ -293,6 +297,7 @@ class Registry(models.Model):
                 continue
             form_dict = {}
             form_dict["name"] = form.name
+            form_dict["questionnaire_display_name"] = form.questionnaire_display_name
             form_dict["sections"] = []
             form_dict["is_questionnaire"] = form.is_questionnaire
             form_dict["position"] = form.position
@@ -303,6 +308,7 @@ class Registry(models.Model):
                 section_dict = {}
                 section_dict["code"] = section.code
                 section_dict["display_name"] = section.display_name
+                section_dict["questionnaire_display_name"] = section.questionnaire_display_name
                 section_dict["allow_multiple"] = section.allow_multiple
                 section_dict["extra"] = section.extra
                 section_dict["questionnaire_help"] = section.questionnaire_help
@@ -346,6 +352,7 @@ class Registry(models.Model):
         for form_dict in new_structure["forms"]:
             form_name = form_dict["name"]
             form, created = RegistryForm.objects.get_or_create(name=form_name, registry=self)
+            form.questionnaire_display_name = form_dict["questionnaire_display_name"]
             form.is_questionnaire = form_dict["is_questionnaire"]
             form.position = form_dict["position"]
             questionnaire_questions = []
@@ -355,6 +362,7 @@ class Registry(models.Model):
             for section_dict in form_dict["sections"]:
                 section, created = Section.objects.get_or_create(code=section_dict["code"])
                 section.display_name = section_dict["display_name"]
+                section.questionnaire_display_name = section_dict["questionnaire_display_name"]
                 section.allow_multiple = section_dict["allow_multiple"]
                 section.extra = section_dict["extra"]
                 section.questionnaire_help = section_dict["questionnaire_help"]
@@ -556,6 +564,7 @@ class RegistryForm(models.Model):
     """
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
+    questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(
@@ -576,7 +585,10 @@ class RegistryForm(models.Model):
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
-        return de_camelcase(self.name)
+        if self.questionnaire_display_name:
+            return self.questionnaire_display_name
+        else:
+            return de_camelcase(self.name)
 
     def __unicode__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)

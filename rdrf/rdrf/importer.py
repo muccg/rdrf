@@ -430,6 +430,8 @@ class Importer(object):
             logger.info("starting import of form map %s" % frm_map)
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
             f.name = frm_map["name"]
+            if "questionnaire_display_name" in frm_map:
+                f.questionnaire_display_name = frm_map["questionnaire_display_name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
             if "questionnaire_questions" in frm_map:
                 f.questionnaire_questions = frm_map["questionnaire_questions"]
@@ -444,6 +446,8 @@ class Importer(object):
                 s, created = Section.objects.get_or_create(code=section_map["code"])
                 s.code = section_map["code"]
                 s.display_name = section_map["display_name"]
+                if "questionnaire_display_name" in section_map:
+                    s.questionnaire_display_name = section_map["questionnaire_display_name"]
                 s.elements = ",".join(section_map["elements"])
                 s.allow_multiple = section_map["allow_multiple"]
                 s.extra = section_map["extra"]

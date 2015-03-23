@@ -120,6 +120,7 @@ class Exporter(object):
         section_model = Section.objects.get(code=section_code)
         section_map = {}
         section_map["display_name"] = section_model.display_name
+        section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
         section_map["code"] = section_model.code
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple
@@ -130,6 +131,7 @@ class Exporter(object):
     def _create_form_map(self, form_model):
         frm_map = {}
         frm_map["name"] = form_model.name
+        frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
         frm_map["is_questionnaire"] = form_model.is_questionnaire
         frm_map["questionnaire_questions"] = form_model.questionnaire_questions
         frm_map["sections"] = []
