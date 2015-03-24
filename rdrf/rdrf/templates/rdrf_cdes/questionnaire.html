@@ -107,11 +107,7 @@
                                     <tr class="{{ field.field.required|yesno:"danger," }}">
                                         <td style="width: 40%; vertical-align: middle;">{{ field.label }}</td>
                                         <td>
-                                            {% if field|widget_name != 'MultipleChoiceField' %}
-                                                {{field|add_attr:"class,form-control"}}
-                                            {% else %}
                                                 {{field}}
-                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
