@@ -42,16 +42,26 @@ class QuestionnaireReverseMapper(object):
         self.patient.working_groups = working_groups
         self.patient.save()
 
+    def _empty_address_data(self, address_map):
+        for value in address_map.values():
+            if value:
+                return False
+        return True
+
     def save_address_data(self):
         if "PatientDataAddressSection" in self.questionnaire_data:
             address_maps = self.questionnaire_data["PatientDataAddressSection"]
             for address_map in address_maps:
-                address_object = self._create_address(address_map, self.patient)
-                address_object.save()
+                address = self._create_address(address_map, self.patient)
+                if address:
+                    address_object.save()
 
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
         # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+
+        if self._empty_address_data(address_map):
+            return
 
         def getcde(address_map, code):
             for k in address_map:
@@ -218,7 +228,7 @@ class QuestionnaireReverseMapper(object):
             # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
             # "CDEPatientNextOfKinMobilePhone": ("next_of_kin_mobile_phone", None),
             # "CDEPatientNextOfKinWorkPhone": ("next_of_kin_work_phone", None),
-            # "CDEPatientNextOfKinEmail": ("next_of_kin_email", None),
+            "CDEPatientNextOfKinEmail": ("next_of_kin_email", None),
             # "CDEPatientNextOfKinParentPlace": ("next_of_kin_parent_place_of_birth", None),
         }
         return key_map[cde_code]
