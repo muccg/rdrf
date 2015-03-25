@@ -5,6 +5,8 @@ from dynamic_data import DynamicDataWrapper
 import logging
 from django.conf import settings
 from registry.groups.models import WorkingGroup
+from django.db import transaction
+
 
 logger = logging.getLogger("registry_log")
 
@@ -252,6 +254,7 @@ class PatientCreator(object):
         self.state = PatientCreatorState.READY
         self.error = None
 
+    @transaction.atomic
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True
