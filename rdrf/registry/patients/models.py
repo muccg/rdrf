@@ -356,7 +356,7 @@ class PatientAddress(models.Model):
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
     state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
-    postcode = models.IntegerField()
+    postcode = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=20)
     
     class Meta:
