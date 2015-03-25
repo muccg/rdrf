@@ -249,6 +249,7 @@ class PatientAdmin(admin.ModelAdmin):
                 "consent",
                 "consent_clinical_trials",
                 "consent_sent_information",
+                "consent_provided_by_parent_guardian",
             )
         })
         
