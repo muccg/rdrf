@@ -54,7 +54,7 @@ class QuestionnaireReverseMapper(object):
             for address_map in address_maps:
                 address = self._create_address(address_map, self.patient)
                 if address:
-                    address_object.save()
+                    address.save()
 
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
