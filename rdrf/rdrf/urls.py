@@ -105,7 +105,10 @@ urlpatterns = patterns('',
                             login_router.RouterView.as_view(), name="login_router"),
 
                        url(r'^api/clinitian/',
-                            ClinitianLookup.as_view(), name="clinician_lookup")
+                            ClinitianLookup.as_view(), name="clinician_lookup"),
+                       
+                       url(r'^report/', include('viewer.urls'))
+                       
                        )
 
 urlpatterns += patterns('',

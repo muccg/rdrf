@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     'iprestrict',
     'ajax_select',
     'registration',
+    'viewer'
 ]
 
 
@@ -343,4 +344,5 @@ AJAX_LOOKUP_CHANNELS = {
 
 ACCOUNT_ACTIVATION_DAYS = 2
 
+LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
