@@ -53,12 +53,19 @@ urlpatterns = patterns('',
                        (r'^admin/', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
                        (r'', include(common_urls, namespace="registry")),
-                       url(r"^patient/(\d+)$", views.patient_cdes),
+                       
+                       # No loger used? i am leaving it just in case somthing is still using it
+                       #url(r"^patient/(\d+)$", views.patient_cdes),
+                       
                        url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
                            form_view.FormView.as_view(), name='registry_form'),
                        url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
+                       
                        url(r"^registry/(?P<registry_code>\w+)/patient/?$",
                            patient_view.PatientView.as_view(), name='patient_page'),
+                       url(r"^patient/(?P<patient_id>\d+)/?$",
+                           patient_view.PatientEditView.as_view(), name='patient_edit'),
+                       
                        url(r'^/?$', landing_view.LandingView.as_view(), name='landing'),
                        url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry'),
                        url(r'^login/?$', 'django.contrib.auth.views.login',

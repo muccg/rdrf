@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libssl-dev \
   python-tk \
   sendmail \
+  git \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN env --unset=DEBIAN_FRONTEND
@@ -29,7 +30,7 @@ RUN pip install \
 # INSTALL_ONLY_DEPENDENCIES stops the app installing inside setup.py (pip --deps-only ??)
 COPY rdrf/setup.py /app/rdrf/setup.py
 WORKDIR /app/rdrf
-RUN INSTALL_ONLY_DEPENDENCIES=True pip install --process-dependency-links .
+RUN INSTALL_ONLY_DEPENDENCIES=True pip install --trusted-host github.com --allow-all-external --process-dependency-links .
 
 # Copy code and install the app
 COPY . /app

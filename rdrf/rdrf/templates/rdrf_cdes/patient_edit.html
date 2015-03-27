@@ -1,0 +1,95 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load add_attr %}
+{% load staticfiles %}
+{% load get_patient %}
+{% load has_feature %}
+{% load get_form_element %}
+{% load is_checkbox %}
+
+{% block extrastyle %}
+    {{block.super}}
+    <script src={% static 'js/rpc_module.js' %}></script>
+    
+    <script>
+        function setPatientRelativeFormVisiblity(visible) {
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+            if (visible) {
+                rpc.send("fh_patient_is_index", [{{patient.id}}], function (data) {
+                    var result = data.result;
+                    if (result) {
+                        $("#relatives-group").show();
+                    } else {
+                        $("#relatives-group").hide();
+                    }
+                });
+            } else {
+                $("#relatives-group").hide();
+            }
+        }
+
+        function setupPatientRelativeForm() {
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+            rpc.send("visibility",["PatientRelativeForm"], function (data) {
+                setPatientRelativeFormVisiblity(data.result);
+            })
+        }
+
+        $(document).ready(function(){
+            setupPatientRelativeForm();
+        });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <br/>
+    {% if patient %}
+        {% if patient|has_feature:"family_linkage" %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Family Linkage</strong>
+                </div>
+                <div class="panel-body">
+                    {% if patient.my_index %}
+                        This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                    {% else %}
+                        {% if patient.is_index %}
+                            This patient is an index
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <form class="form-horizontal" method="post">
+        {% csrf_token %}
+        
+        {% for section in sections %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>{{ section.0 }}</strong>
+                </div>
+                <div class="panel-body">
+                    {% for item in section.1 %}
+                        {% get_form_element patient_form item as element %}
+                        <div class="form-group">
+                            <label for="{{element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                            <div class="col-sm-9">
+                                {% if not element|is_checkbox %}
+                                    {{ element|add_attr:'class,form-control' }}
+                                {% else %}
+                                    {{ element }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <input type="submit" class="btn btn-success">
+        </div>
+    </form>
+{% endblock %}
