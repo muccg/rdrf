@@ -5,6 +5,8 @@ from dynamic_data import DynamicDataWrapper
 import logging
 from django.conf import settings
 from registry.groups.models import WorkingGroup
+from django.db import transaction
+
 
 logger = logging.getLogger("registry_log")
 
@@ -40,16 +42,26 @@ class QuestionnaireReverseMapper(object):
         self.patient.working_groups = working_groups
         self.patient.save()
 
+    def _empty_address_data(self, address_map):
+        for value in address_map.values():
+            if value:
+                return False
+        return True
+
     def save_address_data(self):
         if "PatientDataAddressSection" in self.questionnaire_data:
             address_maps = self.questionnaire_data["PatientDataAddressSection"]
             for address_map in address_maps:
-                address_object = self._create_address(address_map, self.patient)
-                address_object.save()
+                address = self._create_address(address_map, self.patient)
+                if address:
+                    address.save()
 
     def _create_address(self, address_map, patient_model):
         logger.debug("creating address for %s" % address_map)
         # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
+
+        if self._empty_address_data(address_map):
+            return
 
         def getcde(address_map, code):
             for k in address_map:
@@ -66,7 +78,10 @@ class QuestionnaireReverseMapper(object):
             value = getcde(address_map, "AddressType")
             logger.debug("address type = %s" % value)
             value = value.replace("AddressType", "")  # AddressTypeHome --> Home etc
-            address_type_obj = AddressType.objects.get(type=value)
+            try:
+                address_type_obj = AddressType.objects.get(type=value)
+            except:
+                address_type_obj = AddressType.objects.get(type="Home")
             return address_type_obj
 
         address.address_type = get_address_type(address_map)
@@ -78,7 +93,12 @@ class QuestionnaireReverseMapper(object):
         logger.debug("set suburb")
         address.state = getcde(address_map, "State")
         logger.debug("set state")
-        address.postcode = getcde(address_map, "postcode")
+        address_postcode = getcde(address_map, "postcode")
+        if address_postcode:
+            address.postcode = getcde(address_map, "postcode")
+        else:
+            address.postcode = ""
+
         logger.debug("set postcode")
         address.country = getcde(address_map, "Country")
         logger.debug("set country")
@@ -165,6 +185,25 @@ class QuestionnaireReverseMapper(object):
 
             return [WorkingGroup.objects.get(name__iexact=working_group_name.strip())]
 
+        def set_next_of_kin_relationship(relationship_name):
+            from registry.patients.models import NextOfKinRelationship
+            try:
+                rel, created = NextOfKinRelationship.objects.get_or_create(relationship=relationship_name)
+                if created:
+                    rel.save()
+                return rel
+            except:
+                return None
+
+        def set_next_of_kin_state(state_abbrev):
+            # State model objects must match the range of states in the Data Element
+            from registry.patients.models import State
+            try:
+                state = State.objects.get(short_name=state_abbrev)
+            except:
+                state = None
+            return state
+
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
             "CDEPatientFamilyName": ("family_name", None),
@@ -178,9 +217,20 @@ class QuestionnaireReverseMapper(object):
             "CDEPatientMobilePhone": ("mobile_phone", None),
             "CDEPatientHomePhone": ("home_phone", None),
 
-
+            "CDEPatientNextOfKinFamilyName": ("next_of_kin_family_name", None),
+            "CDEPatientNextOfKinGivenNames": ("next_of_kin_given_names", None),
+            "CDEPatientNOKRelationship": ("next_of_kin_relationship", set_next_of_kin_relationship),
+            "CDEPatientNextOfKinAddress": ("next_of_kin_address", None),
+            "CDEPatientNextOfKinSuburb": ("next_of_kin_suburb", None),
+            "CDEPatientNextOfKinState": ("next_of_kin_state", set_next_of_kin_state),
+            "CDEPatientNextOfKinPostCode": ("next_of_kin_postcode", None),
+            "PatientConsentByGuardian": ("consent_provided_by_parent_guardian", None),
+            # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
+            # "CDEPatientNextOfKinMobilePhone": ("next_of_kin_mobile_phone", None),
+            # "CDEPatientNextOfKinWorkPhone": ("next_of_kin_work_phone", None),
+            "CDEPatientNextOfKinEmail": ("next_of_kin_email", None),
+            # "CDEPatientNextOfKinParentPlace": ("next_of_kin_parent_place_of_birth", None),
         }
-
         return key_map[cde_code]
 
     def _get_demographic_data(self):
@@ -214,6 +264,7 @@ class PatientCreator(object):
         self.state = PatientCreatorState.READY
         self.error = None
 
+    @transaction.atomic
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         patient = Patient()
         patient.consent = True

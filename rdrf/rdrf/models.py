@@ -661,8 +661,9 @@ class QuestionnaireResponse(models.Model):
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
         record = wrapper.load_dynamic_data(self.registry.code, "cdes")
+        questionnaire_form_name = RegistryForm.objects.get(registry=self.registry, is_questionnaire=True).name
         key = settings.FORM_SECTION_DELIMITER.join(
-            [self.registry.generated_questionnaire_name, "PatientData", patient_field])
+            [questionnaire_form_name, "PatientData", patient_field])
         return record[key]
 
 

@@ -3,6 +3,7 @@ from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
+from django.utils.safestring import mark_safe
 
 import logging
 from models import CommonDataElement
@@ -326,3 +327,11 @@ class PositiveIntegerInput(widgets.TextInput):
         max_value = cde.max_value if cde.max_value else 2147483647
         min_value = cde.min_value if cde.min_value else 0
         return min_value, max_value
+
+class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
+    def render(self):
+        return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+
+
+class RadioSelect(widgets.RadioSelect):
+    renderer = HorizontalRadioRenderer

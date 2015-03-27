@@ -125,6 +125,7 @@ class Patient(models.Model):
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
     consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition.", verbose_name="consent to allow clinical trials given", default=False)
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
+    consent_provided_by_parent_guardian = models.BooleanField(null=False, blank=False, help_text="Parent/Guardian consent provided on behalf of the patient", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
     maiden_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Maiden Name")
@@ -355,7 +356,7 @@ class PatientAddress(models.Model):
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
     state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
-    postcode = models.IntegerField()
+    postcode = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=20)
     
     class Meta:
