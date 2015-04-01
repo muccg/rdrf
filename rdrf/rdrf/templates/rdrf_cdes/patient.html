@@ -21,6 +21,13 @@
         {% if is_patient %}
             <div class="alert alert-success">Welcome {{request.user.first_name}}</div>
             
+            <p>
+                <a href="{% url 'patient_edit' patient_id %}" class="btn btn-warning">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit your details
+                </a>
+            </p>
+            
+            
             {% if not access %}
                 <div class="alert alert-danger">You don't have access to this registry</div>
             {% endif %}

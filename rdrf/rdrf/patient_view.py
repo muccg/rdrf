@@ -1,11 +1,13 @@
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
+from django.core.urlresolvers import reverse
+from django.forms.formsets import formset_factory
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
 
-from registry.patients.models import Patient
-from registry.patients.admin_forms import PatientForm
+from registry.patients.models import Patient, PatientAddress, PatientDoctor
+from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm
 
 import logging
 
@@ -49,6 +51,7 @@ class PatientView(View):
                     patient = Patient.objects.get(user__id=request.user.id)
                     context['patient_record'] = patient
                     context['patient_form'] = PatientForm(instance=patient)
+                    context['patient_id'] = patient.id
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
 
@@ -58,11 +61,61 @@ class PatientView(View):
 class PatientEditView(View):
 
     def get(self, request, patient_id):
+        if not request.user.is_authenticated():
+            patient_edit_url = reverse('patient_edit', args=[patient_id,])
+            login_url = reverse('login')
+            return redirect("%s?next=%s" % (login_url, patient_edit_url))
+    
+        patient, form_sections = self._get_forms(patient_id)
+        
+        context = {
+            "forms": form_sections,
+            "patient": patient
+        }
+    
+        return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+
+    def post(self, request, patient_id):
+        patient_form = PatientForm(request.POST)
+
+        patient_form.save()
+        
+#        PatientDoctorFormSet = formset_factory(PatientDoctorForm)
+#        patient_doctor_form_set = PatientDoctorFormSet(request.POST, prefix="patient_doctor")
+
+#        for form in patient_doctor_form_set:
+#            form.save()
+        
+#        PatientAddressFormSet = formset_factory(PatientAddressForm)
+#        patient_address_form_set = PatientAddressFormSet(request.POST, prefix="patient_address")
+
+#        for form in patient_address_form_set:
+#            form.save()
+        
+        patient, form_sections = self._get_forms(patient_id)
+        
+        context = {
+            "forms": form_sections,
+            "patient": patient
+        }
+    
+        return render_to_response('rdrf_cdes/patient_edit.html', context_instance=RequestContext(request))
+
+    def _get_forms(self, patient_id):
         patient = Patient.objects.get(id=patient_id)
         patient_form = PatientForm(instance=patient)
         
+        patient_address = PatientAddress.objects.filter(patient = patient).values()
+        patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
+        
+        patient_address_formset = formset_factory(PatientAddressForm, extra=0, can_delete=True)
+        patient_address_form = patient_address_formset(initial=patient_address, prefix="patient_address")
+        
+        patient_doctor_formset = formset_factory(PatientDoctorForm, extra=0, can_delete=True)
+        patient_doctor_form = patient_doctor_formset(initial=patient_doctor, prefix="patient_doctor")
+        
         personal_details_fields = ('Personal Details', [
-            "working_groups",
+            #"working_groups",
             "family_name",
             "given_names",
             "maiden_name",
@@ -78,6 +131,21 @@ class PatientEditView(View):
             "email"
         ])
         
+        next_of_kin = ("Next of Kin", [
+            "next_of_kin_family_name",
+             "next_of_kin_given_names",
+             "next_of_kin_relationship",
+             "next_of_kin_address",
+             "next_of_kin_suburb",
+             "next_of_kin_state",
+             "next_of_kin_postcode",
+             "next_of_kin_home_phone",
+             "next_of_kin_mobile_phone",
+             "next_of_kin_work_phone",
+             "next_of_kin_email",
+             "next_of_kin_parent_place_of_birth"
+        ])
+        
         consent = ("Consent", [
             "consent",
             "consent_clinical_trials",
@@ -89,20 +157,26 @@ class PatientEditView(View):
             "clinician"
         ])
         
-        sections = [consent, rdrf_registry, personal_details_fields]
-        #sections.extend(self._get_registry_specific_fieldsets(request.user))
-
-        registry_specific_fields = self._get_registry_specific_patient_fields(request.user)
-        #patient_form = self._add_registry_specific_fields(PatientForm, registry_specific_fields)
-
-        context = {
-            "patient_form": patient_form,
-            "patient": patient,
-            "sections": sections
-        }
-    
-        return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
-
+        patient_address_section = ("Patient Address", None)
+        
+        patient_doctor_section = ("Patient Doctor", None)
+        
+        form_sections = [
+            (
+                patient_form,
+                ( consent, personal_details_fields, next_of_kin )
+#            ),(
+#                patient_address_form, 
+#                ( patient_address_section, )
+#            ),(
+#                patient_doctor_form,
+#                ( patient_doctor_section, )
+            )
+        ]
+        
+        return patient, form_sections
+        
+        
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
         additional_fields = {}
         for reg_code in registry_specific_fields_dict:
