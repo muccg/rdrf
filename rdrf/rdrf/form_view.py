@@ -109,7 +109,6 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
-        logger.debug("form context = %s" % context)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -120,7 +119,6 @@ class FormView(View):
         # the ids of each cde on the form
         dummy = form_class()
         ids = [field for field in dummy.fields.keys()]
-        logger.debug("ids = %s" % ids)
         return ",".join(ids)
 
     @method_decorator(login_required)
@@ -146,7 +144,7 @@ class FormView(View):
         section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section_index, s in enumerate(sections):
-            logger.debug("handling post data for section %s" % s)
+            logger.debug("*********************** handling section code %s *****************************" % s)
             section_model = Section.objects.get(code=s)
             form_class = create_form_class_for_section(
                 registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
@@ -154,12 +152,9 @@ class FormView(View):
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
 
-            logger.debug("created form class for section %s: %s" % (s, form_class))
-            logger.debug("POST data = %s" % request.POST)
-            logger.debug("FILES data = %s" % str(request.FILES))
-
             if not section_model.allow_multiple:
                 form = form_class(request.POST, files=request.FILES)
+                logger.debug("validating form for section %s" % section_model)
                 if form.is_valid():
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
@@ -176,6 +171,7 @@ class FormView(View):
                     form_section[s] = form_class(request.POST, request.FILES)
 
             else:
+                logger.debug("handling POST of multisection %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:
@@ -190,16 +186,25 @@ class FormView(View):
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
-                    logger.debug("formset %s is valid" % formset)
+                    logger.debug("formset is valid")
                     logger.debug("POST data = %s" % request.POST)
                     dynamic_data = formset.cleaned_data  # a list of values
+                    logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
-                    section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
+                    section_dict[s] = wrap_gridfs_data_for_form(self.registry.code, dynamic_data)
+
+                    logger.debug("after wrapping for gridfs = %s" % section_dict)
+
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+
+                    data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    logger.debug("data in mongo after saving = %s" % data_after_save)
+
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
                     form_section[s] = form_set_class(
                         initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
                 else:
+                    logger.debug("formset for multisection is invalid!")
                     for e in formset.errors:
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
@@ -240,17 +245,10 @@ class FormView(View):
         if error_count == 0:
             if not self.testing:
                 messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
-                # from rdrf.notifications import Notifier
-                # notifier = Notifier()
-                # from rdrf.utils import get_user
-                # admin_user = get_user('admin')
-                # notifier.send([admin_user],'patient_welcome', request.user)
-
         else:
             if not self.testing:
                 messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
 
-        logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
     def _get_sections(self, form):
@@ -363,8 +361,6 @@ class FormView(View):
             context["form_progress_cdes"] = cdes_status
 
         context.update(kwargs)
-        for k in context:
-            logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
 
     def _get_patient_id(self):
@@ -502,6 +498,7 @@ class QuestionnaireView(FormView):
                     for e in form.errors:
                         error_count += 1
             else:
+                logger.debug("MULTISECTION %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:

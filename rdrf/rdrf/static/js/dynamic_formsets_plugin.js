@@ -85,7 +85,7 @@
        }
        // current length of table
        $("#"+settings.add_button_id).on("click", function (){
-            //dump_state("before add");
+            dump_state("before add");
             for (var i=0;i<cdes.length;i++){
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
@@ -140,7 +140,7 @@
                 .end()
                 .insertAfter("#" + settings.table_id + " tr:last");
             update_form_total(1);
-            //dump_state("after add");
+            dump_state("after add");
         });
 
     }
