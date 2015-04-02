@@ -1,10 +1,11 @@
 {% load staticfiles %}
+{% load version_number %}
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
-	<title>{{ site.id }} - An RDRF Site</title>
+	<title>An RDRF Site</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 	<!-- stylesheets -->
@@ -29,7 +30,7 @@
 			        <span class="icon-bar"></span>
 			        <span class="icon-bar"></span>
 		      	</button>
-      			<a href="{% url 'landing' %}" class="navbar-brand">RDRF</a>
+      			<a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
     		</div>
     		<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
       			<ul class="nav navbar-nav navbar-right">
@@ -42,7 +43,7 @@
                             {% for reg in registrys %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
-								    {{reg.name}}
+								    {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}
 							    </a>
                             </li>
                             {% endfor %}
@@ -84,7 +85,7 @@
 					<h4>What is RDRF?</h4>
 					<p>RDRF ( Rare Disease Registry Framework ) is a tool for the creation of web-based data entry forms and questionnaires
                         based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system at
-                        runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics.</p>
+                        runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics, Murdoch University, Western Australia.</p>
 				</div>
 				<div class="col-md-6 image">
 					<img src="{% static 'images/doctorpointing.jpg' %}" class="img-responsive" alt="feature1" />
@@ -134,6 +135,7 @@
 	<div id="footer-white">
 		<div class="container">
 			<div class="row">
+
 				<div class="col-sm-3 menu">
 					<h3>Overview</h3>
 					<ul>
