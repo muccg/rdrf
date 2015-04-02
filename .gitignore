@@ -4,7 +4,6 @@ syntax: glob
 *.swp
 
 data
-bootstrap
 build
 dist
 *.rpm
