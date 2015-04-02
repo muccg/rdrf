@@ -116,7 +116,7 @@ urlpatterns = patterns('',
                        url(r'^api/clinitian/',
                             ClinitianLookup.as_view(), name="clinician_lookup"),
                        
-                       url(r'^report/', include('viewer.urls'))
+                      # url(r'^report/', include('viewer.urls'))
                        
                        )
 
