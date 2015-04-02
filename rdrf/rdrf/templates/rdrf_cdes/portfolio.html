@@ -1,0 +1,140 @@
+{% load staticfiles %}
+{% load version_number %}
+<!DOCTYPE html>
+<html class="bg">
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+	<title>Rare Disease Registry Framework</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- stylesheets -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/vendor/brankic.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/vendor/isotope.css' %}">
+
+	<!-- javascript -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/theme.js' %}"></script>
+	<script src="{% static 'js/vendor/jquery.isotope.min.js' %}"></script>
+
+	<!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="portfolio">
+	<header class="navbar navbar-inverse normal" role="banner">
+  		<div class="container">
+    		<div class="navbar-header">
+		      	<button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+		      	</button>
+      			<a href="{% url 'landing' %}" class="navbar-brand">RDRF</a>
+    		</div>
+    		<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+      			<ul class="nav navbar-nav">
+      				<li class="dropdown">
+        				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          					Links <b class="caret"></b>
+          				</a>
+          				<ul class="dropdown-menu">
+							<li><a href="{% url 'landing' %}">Home</a></li>
+							<li><a href="{% url 'admin:index' %}">Admin</a></li>
+				        </ul>
+        			</li>
+
+
+
+
+      			</ul>
+
+    		</nav>
+  		</div>
+	</header>
+
+	<div id="showcase">
+		<div class="container">
+			<div class="row header">
+				<div class="col-md-12">
+					<h3>Welcome to Rare Disease Registry Framework!</h3>
+
+                    <p>The following registries are defined on this site</p>
+				</div>
+			</div>
+            {% for reg in registrys %}
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="project">
+						<h3>{{ reg.name }}
+                            {% if reg.version %}
+                                {{reg.version}}
+                            {% endif %}
+                        </h3>
+						<div class="screen">
+                            {% with 'images/'|add:reg.code|add:'.jpg' as image_link %}
+							<img src="{% static image_link %}" class="img-responsive" alt="{{reg.code}}" />
+                            {% endwith %}
+						</div>
+						<p class="description">
+							{{ reg.desc }}
+						</p>
+						<div class="divider"></div>
+						<div class="visit">
+                            {% if reg.splash_screen %}
+							<a class="button" href="{% url 'registry' reg.code %}">
+								Go to the registry
+							</a>
+                            {% else %}
+			                    No further information is available
+			                {% endif %}
+						</div>
+					</div>
+
+				</div>
+			</div>
+            {% endfor %}
+		</div>
+	</div>
+
+
+	<div id="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-3 copyright">
+					RDRF Version {% version_number %}
+				</div>
+
+				<div class="col-sm-8 menu">
+					<ul>
+	        			<li>
+                            <a href="mailto:rdrf@googlegroups.com">Support</a>
+	        			</li>
+
+	        			<li>
+                            <a href="https://ccgmurdoch.atlassian.net/browse/RDR">Report a bug</a>
+	        			</li>
+
+	        			<li>
+                           <a href="mailto:mbellgard@ccg.murdoch.edu.au">Authorised by Prof Matthew Bellgard</a>
+	        			</li>
+
+                        <li>
+                            <a href="http://ccg.murdoch.edu.au/">CCG</a>
+                        </li>
+
+                        <li>
+                            <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>
+                        </li>
+
+	      			</ul>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</body>
+</html>

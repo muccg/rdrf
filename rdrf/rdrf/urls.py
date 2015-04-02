@@ -25,6 +25,7 @@ from registration.backends.default.views import ActivationView
 #from registration.backends.default.views import RegistrationView
 
 from rdrf.registration_rdrf import RdrfRegistrationView
+from rdrf.registry_list_view import RegistryListView
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 
@@ -60,6 +61,7 @@ urlpatterns = patterns('',
                        url(r"^registry/(?P<registry_code>\w+)/patient/?$",
                            patient_view.PatientView.as_view(), name='patient_page'),
                        url(r'^/?$', landing_view.LandingView.as_view(), name='landing'),
+                       url(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
                        url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry'),
                        url(r'^login/?$', 'django.contrib.auth.views.login',
                            {'template_name': 'admin/login.html'}, name='login'),
