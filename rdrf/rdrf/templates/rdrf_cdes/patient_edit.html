@@ -1,0 +1,217 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load add_attr %}
+{% load staticfiles %}
+{% load get_patient %}
+{% load has_feature %}
+{% load get_form_element %}
+{% load is_checkbox %}
+{% load is_formset_obj %}
+
+{% block extrastyle %}
+    {{block.super}}
+    <script src={% static 'js/rpc_module.js' %}></script>
+    
+    <script>
+        function setPatientRelativeFormVisiblity(visible) {
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+            if (visible) {
+                rpc.send("fh_patient_is_index", [{{patient.id}}], function (data) {
+                    var result = data.result;
+                    if (result) {
+                        $("#relatives-group").show();
+                    } else {
+                        $("#relatives-group").hide();
+                    }
+                });
+            } else {
+                $("#relatives-group").hide();
+            }
+        }
+
+        function setupPatientRelativeForm() {
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+            rpc.send("visibility",["PatientRelativeForm"], function (data) {
+                setPatientRelativeFormVisiblity(data.result);
+            })
+        }
+        
+        function add_formset(form, prefix) {
+            var total_forms = $("#id_"+ prefix +"-TOTAL_FORMS").val();
+            var modified_form = form.replace(/__prefix__/g, total_forms);
+         
+            var modified_form_html = process_empty_form(modified_form);
+            
+            var new_form_id = "section_" + prefix + "_" + total_forms;
+            
+            var form_div = $("<div/>").attr("id",  new_form_id);
+            form_div.attr("class", "form-group")
+            form_div.append(modified_form_html);
+            
+            var remove_link = $("<a/>");
+            remove_link.attr("class", "btn btn-danger pull-right");
+            remove_link.text("Remove");
+            remove_link.click(function(){
+                del_formset(new_form_id, prefix);
+            });
+            
+            form_div.append(remove_link);
+            form_div.append("<hr/>");
+            
+            $("#section_" + prefix).append(form_div);
+            
+            $("#id_"+ prefix +"-TOTAL_FORMS").val(++total_forms);
+        }
+        
+        function del_formset(form_id, prefix) {
+            $("#" + form_id).remove();
+            var total_forms = $("#id_"+ prefix +"-TOTAL_FORMS").val();
+            $("#id_"+ prefix +"-TOTAL_FORMS").val(--total_forms);
+        }
+
+        function process_empty_form(modified_form) {
+            var modified_form_html = $.parseHTML(modified_form);
+            
+            var full_form = $("<div/>");
+            full_form.attr("class", "col-sm-12");
+            
+            $.each( modified_form_html, function( i, element ) {
+                var label = ($(element).find("th").html());
+                var field = ($(element).find("td").html());
+                
+                var form_div = $("<div/>");
+                if (label && field ) {
+                    form_div.attr("class", "form-group");
+                    form_div.append($(label).attr("class", "col-sm-3 control-label"));
+                    
+                    var field_div = $("<div/>");
+                    field_div.attr("class", "col-sm-9");
+                    
+                    var field_obj = $(field);
+                    if (field_obj.attr("type") != "checkbox" ) {
+                        field_obj.attr("class", "form-control");
+                    }
+
+                    field_div.append(field_obj);
+                    
+                    form_div.append(field_div);
+                }
+                full_form.append(form_div);
+            });
+            
+            return full_form;
+        }
+
+        $(document).ready(function(){
+            setupPatientRelativeForm();
+        });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <br/>
+    <p>
+        <button class="btn btn-info" onclick="window.history.back();">
+            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Go back
+        </button>
+    </p>
+    
+    {% if patient %}
+        {% if patient|has_feature:"family_linkage" %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Family Linkage</strong>
+                </div>
+                <div class="panel-body">
+                    {% if patient.my_index %}
+                        This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                    {% else %}
+                        {% if patient.is_index %}
+                            This patient is an index
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <form class="form-horizontal" method="post">
+        {% csrf_token %}
+        {% for form, sections in forms %}
+            {% if form|is_formset_obj %}
+                {{ form.management_form }}
+                {% for name, section in sections %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><strong>{{name}}</strong></div>
+                        <div class="panel-body">
+                            <div id="section_{{form.prefix}}">
+                            {% for f in form %}
+                                {% with secs=section|default:f.fields %}
+                                    {% for s in secs %}
+                                        {% get_form_element f s as element %}
+                                        <div class="form-group">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                            <div class="col-sm-9">
+                                                {% if not element|is_checkbox %}
+                                                    {{ element | add_attr:"class,form-control" }}
+                                                {% else %}
+                                                    {{ element }}
+                                                {% endif %}
+                                                <small class="text-muted">
+                                                {{ element.help_text }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endwith %}
+                                <hr>
+                            {% endfor %}
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <a class="btn btn-warning pull-right" onclick="add_formset('{{form.empty_form|escapejs}}', '{{form.prefix}}')">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+            {% for name, section in sections %}
+                <div class="panel panel-default">
+                    <div class="panel-heading"><strong>{{name}}</strong></div>
+                    <div class="panel-body">
+                        {% for s in section %}
+                            {% get_form_element form s as element %}
+                            <div class="form-group">
+                                <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                <div class="col-sm-9">
+                                    {% if not element|is_checkbox %}
+                                        {{ element | add_attr:"class,form-control" }}
+                                    {% else %}
+                                        {{ element }}
+                                    {% endif %}
+                                    <small class="text-muted">
+                                    {{ element.help_text }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="form-group pull-right">
+            <a href="" class="btn btn-danger">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+            </a>
+            <button type="submit" class="btn btn-success" value="Save">
+                <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+            </button>
+        </div>
+    </form>
+{% endblock %}
