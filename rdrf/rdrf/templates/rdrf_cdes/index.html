@@ -3,114 +3,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
-	<title>RDRF - Rare Disease Regstry Framework </title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>RDRF - Rare Disease Regstry Framework </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-	<!-- stylesheets -->
-	<link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %}">
+    <!-- stylesheets -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %}">
 
-	<!-- javascript -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
-	<script src="{% static 'js/theme.js' %}"></script>
+    <!-- javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
 
-	<!--[if lt IE 9]>
+    <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 </head>
 <body id="home">
-	<header class="navbar navbar-inverse hero" role="banner">
-  		<div class="container">
-    		<div class="navbar-header">
-		      	<button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
-			        <span class="icon-bar"></span>
-			        <span class="icon-bar"></span>
-			        <span class="icon-bar"></span>
-		      	</button>
-      			<a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
-    		</div>
-    		<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
-      			<ul class="nav navbar-nav navbar-right">
-        			<li class="dropdown">
-        				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-          					Registries on this site <b class="caret"></b>
-          				</a>
-          				<ul class="dropdown-menu">
+    <header class="navbar navbar-inverse hero" role="banner">
+          <div class="container">
+            <div class="navbar-header">
+                  <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                  <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
+            </div>
+            <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                  <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                              Registries on this site <b class="caret"></b>
+                          </a>
+                          <ul class="dropdown-menu">
                             {% for reg in registrys %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
-								    {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}
-							    </a>
+                                    {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}
+                                </a>
                             </li>
                             {% endfor %}
+                        </ul>
+                    </li>
 
+                  </ul>
+            </nav>
+          </div>
+    </header>
 
-				        </ul>
-        			</li>
-
-      			</ul>
-    		</nav>
-  		</div>
-	</header>
-
-	<div id="hero">
-		<div class="container">
-			<h1 class="hero-text animated fadeInDown">
-				The Rare Disease Registry<br>
+    <div id="hero">
+        <div class="container">
+            <h1 class="hero-text animated fadeInDown">
+                The Rare Disease Registry<br>
                 Framework
 
-			</h1>
-			<p class="sub-text animated fadeInDown">
-			    Create a patient registry without software development.
-			</p>
+            </h1>
+            <p class="sub-text animated fadeInDown">
+                Create a patient registry without software development.
+            </p>
 
-		</div>
-	</div>
+        </div>
+    </div>
 
-	<div id="features">
-		<div class="container">
-			<div class="row header">
-				<div class="col-md-12">
-					<h3>Need a patient registry for your department, clinic or community?</h3>
+    <div id="features">
+        <div class="container">
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>Need a patient registry for your department, clinic or community?</h3>
                     <p>RDRF allows for rapid creation of patient registries.</p>
-				</div>
-			</div>
+                </div>
+            </div>
             <div class="divider"></div>
-			<div class="row header">
-				<div class="col-md-12">
-					<h3>What is RDRF?</h3>
-					<p>The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>What is RDRF?</h3>
+                    <p>The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
                         based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at
                         runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics, Murdoch University, Western Australia.</p>
-				</div>
-			</div>
+                </div>
+            </div>
             <div class="divider"></div>
-			<div class="row header">
-				<div class="col-md-12">
-					<h3>Publications</h3>
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>Publications</h3>
                     <p>
 Matthew I Bellgard, Lee Render, Maciej Radochonski and Adam Hunter, Second generation registry framework, Source Code Biol Med. 2014 Jun 20;9:14.
-					</p>
-					<p>
+                    </p>
+                    <p>
 Matthew Bellgard, Christophe Beroud, Kay Parkinson, Tess Harris, Segolene Ayme, Gareth Baynam, Tarun Weeramanthri, Hugh Dawkins and Adam Hunter, Dispelling myths about rare disease registry system development. Source Code for Biology and Medicine, 2013. 8(1): p. 21.
-					</p>
-					<p>
-Rodrigues M, Hammond-Tooke G, Kidd A, Love D, Patel R, Dawkins H, Bellgard M, Roxburgh R, The New Zealand Neuromuscular Disease Registry. J Clin Neurosci, 2012. 19(12): p. 1749-50. 
-					</p>
-					<p>
+                    </p>
+                    <p>
+Rodrigues M, Hammond-Tooke G, Kidd A, Love D, Patel R, Dawkins H, Bellgard M, Roxburgh R, The New Zealand Neuromuscular Disease Registry. J Clin Neurosci, 2012. 19(12): p. 1749-50.
+                    </p>
+                    <p>
 Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat 33: E2356-2366.
-					</p>
-				</div>
-			</div>
+                    </p>
+                </div>
+            </div>
 
-		</div>		
-	</div>
+        </div>
+    </div>
 
-	<div id="footer">
-		<div class="container">
+    <div id="footer">
+        <div class="container">
             <div class="row">
                 <div class="col-sm-12 menu">
                     <ul>
@@ -132,16 +130,16 @@ Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, 
             </div>
             <div class="row">
                 <div class="col-sm-12 copyright">
-					Authorised by Prof Matthew Bellgard, Director, Centre of Comparative Genomics, Murdoch University.
-				</div>
-		    </div>
+                    Authorised by Prof Matthew Bellgard, Director, Centre of Comparative Genomics, Murdoch University.
+                </div>
+            </div>
             <div class="row">
                 <div class="col-sm-12 copyright">
-					Copyright © 2015. Murdoch University. Landing page React theme Copyright © 2014
-				</div>
-		    </div>
+                    Copyright © 2015. Murdoch University. Landing page React theme Copyright © 2014
+                </div>
+            </div>
 
-		</div>
-	</div>
+        </div>
+    </div>
 </body>
 </html>
