@@ -11,19 +11,21 @@ Genomics <http://ccg.murdoch.edu.au>`_
 Links
 =====
 
-`Demo Site <https://ccgapps.com.au/demo-rdrf>`_
+`Demo Site <https://rdrf.ccgapps.com.au/demo/`_
 
 `Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
 
-`RDRF Google Group <mailto:rdrf@ccg.murdoch.edu.au>`_
+`Email <mailto:rdrf@ccg.murdoch.edu.au>`_
 
 `Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
 
 
-Citation
-========
-Bellgard, M.I., et al., *A modular approach to disease registry design: successful adoption of an internet-based rare disease registry.* Hum Mutat, 2012. 33(10): p. E2356-66.
-Other related citations
+Publications
+============
+Matthew I Bellgard, Lee Render, Maciej Radochonski and Adam Hunter, Second generation registry framework, Source Code Biol Med. 2014 Jun 20;9:14.
 
-Rodrigues, M., et al., *The New Zealand Neuromuscular Disease Registry.* J Clin Neurosci, 2012. 19(12): p. 1749-50.
-Bellgard, M., et al., *Dispelling myths about rare disease registry system development.* Source Code for Biology and Medicine, 2013. 8(1): p. 21.
+Matthew Bellgard, Christophe Beroud, Kay Parkinson, Tess Harris, Segolene Ayme, Gareth Baynam, Tarun Weeramanthri, Hugh Dawkins and Adam Hunter, Dispelling myths about rare disease registry system development. Source Code for Biology and Medicine, 2013. 8(1): p. 21.
+
+Rodrigues M, Hammond-Tooke G, Kidd A, Love D, Patel R, Dawkins H, Bellgard M, Roxburgh R, The New Zealand Neuromuscular Disease Registry. J Clin Neurosci, 2012. 19(12): p. 1749-50.
+
+Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat 33: E2356-2366.
