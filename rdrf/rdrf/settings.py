@@ -101,7 +101,7 @@ INSTALLED_APPS = [
     'iprestrict',
     'ajax_select',
     'registration',
-    'viewer'
+    #'viewer'
 ]
 
 

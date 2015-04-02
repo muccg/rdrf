@@ -4,7 +4,7 @@ from base import Base
 
 class AddPatient(Base):
     
-    def test_add_patient(self):
+    def todo_add_patient(self):
         sel = self.selenium
         sel.open("/admin/")
         sel.type("id=id_username", "admin")

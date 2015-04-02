@@ -12,29 +12,12 @@
       
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-      <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
-      <link rel="stylesheet" type="text/css" href="{% static 'css/suit_ccg.css' %}" media="all">
-      
-      <style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
-      
-      <!--[if IE 6]>
-	<link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
-      <![endif]-->
-      
-      <!--[if IE 7]>
-	<link rel="stylesheet" type="text/css" href="{% static 'css/ie7.css' %}"/>
-      <![endif]-->
-      
-      <!--[if !IE 7]>
-      <style type="text/css">#wrap {display:table;height:100%}</style>
-      <![endif]-->
+      <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-      <script type="text/javascript">var Suit = { $: $.noConflict() }; if (!$) $ = Suit.$; </script>
-      <script src="{% static 'suit/bootstrap/js/bootstrap.min.js' %}"></script>
       
       {% block extrastyle %}
       {% endblock %}

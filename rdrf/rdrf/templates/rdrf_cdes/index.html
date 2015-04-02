@@ -1,0 +1,178 @@
+{% load staticfiles %}
+{% load version_number %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+	<title>An RDRF Site</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- stylesheets -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %}">
+
+	<!-- javascript -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/theme.js' %}"></script>
+
+	<!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="home">
+	<header class="navbar navbar-inverse hero" role="banner">
+  		<div class="container">
+    		<div class="navbar-header">
+		      	<button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+		      	</button>
+      			<a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
+    		</div>
+    		<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+      			<ul class="nav navbar-nav navbar-right">
+        			<li class="dropdown">
+        				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          					Registries on this site <b class="caret"></b>
+          				</a>
+          				<ul class="dropdown-menu">
+                            <li><a href="{% url 'reglist' %}">All Registries</a></li>
+                            {% for reg in registrys %}
+                            <li>
+                                <a href="{% url 'registry' reg.code %}">
+								    {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}
+							    </a>
+                            </li>
+                            {% endfor %}
+
+
+				        </ul>
+        			</li>
+
+      			</ul>
+    		</nav>
+  		</div>
+	</header>
+
+	<div id="hero">
+		<div class="container">
+			<h1 class="hero-text animated fadeInDown">
+				The Rare Disease Registry<br>
+                Framework
+
+			</h1>
+			<p class="sub-text animated fadeInDown">
+			    Registry creation without coding
+			</p>
+
+
+			<div class="img"></div>
+		</div>
+	</div>
+
+	<div id="features">
+		<div class="container">
+			<div class="row header">
+				<div class="col-md-12">
+					<h3>FAQ</h3>
+				</div>
+			</div>
+			<div class="row feature">
+				<div class="col-md-6 info">
+					<h4>What is RDRF?</h4>
+					<p>RDRF ( Rare Disease Registry Framework ) is an open source tool for the creation of web-based data entry forms and questionnaires
+                        based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system at
+                        runtime without changes to the source code. RDRF has been developed at the Centre of Comparative Genomics, Murdoch University, Western Australia.</p>
+				</div>
+				<div class="col-md-6 image">
+					<img src="{% static 'images/doctorpointing.jpg' %}" class="img-responsive" alt="feature1" />
+				</div>
+			</div>
+
+		</div>		
+	</div>
+
+
+
+	<!--<div id="slider">-->
+		<!--<div class="container">-->
+			<!--<div class="row header">-->
+				<!--<div class="col-md-12">-->
+					<!--<h3>Sites Using RDRF</h3>-->
+				<!--</div>-->
+			<!--</div>-->
+			<!--<div class="row">-->
+				<!--<div class="col-md-12 slide-wrapper">-->
+					<!--<div class="slideshow">-->
+						<!--<div class="btn-nav prev"></div>-->
+						<!--<div class="btn-nav next"></div>-->
+						<!--<div class="slide active">-->
+							<!--<img src="images/slider/slide3.png" alt="slide3" />-->
+						<!--</div>-->
+						<!--<div class="slide">-->
+							<!--<img src="images/slider/slide4.png" alt="slide4" />-->
+						<!--</div>-->
+						<!--<div class="slide">-->
+							<!--<img src="images/slider/slide1.png" alt="slide1" />-->
+						<!--</div>-->
+						<!--<div class="slide">-->
+							<!--<img src="images/slider/slide5.png" alt="slide5" />-->
+						<!--</div>-->
+						<!--<div class="slide">-->
+							<!--<img src="images/slider/slide2.png" alt="slide2" />-->
+						<!--</div>-->
+					<!--</div>-->
+				<!--</div>	-->
+			<!--</div>-->
+		<!--</div>-->
+	<!--</div>-->
+
+
+
+	<div id="footer-white">
+		<div class="container">
+			<div class="row">
+
+				<div class="col-sm-3 menu">
+					<h3>Overview</h3>
+					<ul>
+	      				<li>
+                            <a href="mailto:rdrf@googlegroups.com">Support</a>
+	        			</li>
+
+	        			<li>
+                            <a href="https://ccgmurdoch.atlassian.net/browse/RDR">Report a bug</a>
+	        			</li>
+
+                        <li>
+                            <a href="http://ccg.murdoch.edu.au/">Centre of Comparative Genomics, Murdoch University</a>
+                        </li>
+
+                        <li>
+                            <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>
+                        </li>
+                        <li>
+                            <a href="https://bitbucket.org/ccgmurdoch/rdrf">Source code on BitBucket</a>
+                        </li>
+	      			</ul>
+				</div>
+
+
+
+			</div>
+			<div class="row credits">
+				<div class="col-md-12">
+					Copyright © 2015. Murdoch University. React Theme Copyright © 2014
+				</div>
+
+                <div class="col-md-12">
+					<a href="mailto:mbellgard@ccg.murdoch.edu.au">Authorised by Prof Matthew Bellgard, Director at CCG.</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
