@@ -11,7 +11,7 @@ Genomics <http://ccg.murdoch.edu.au>`_
 Links
 =====
 
-`Demo Site <https://rdrf.ccgapps.com.au/demo/`_
+`Demo Site <https://rdrf.ccgapps.com.au/demo/>`_
 
 `Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
 
