@@ -39,7 +39,6 @@
           					Registries on this site <b class="caret"></b>
           				</a>
           				<ul class="dropdown-menu">
-                            <li><a href="{% url 'reglist' %}">All Registries</a></li>
                             {% for reg in registrys %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
