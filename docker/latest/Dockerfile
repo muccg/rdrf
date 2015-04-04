@@ -1,6 +1,6 @@
 #
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER ccg <ccgdevops@googlegroups.com>
+MAINTAINER ccg <devops@ccg.murdoch.edu.au>
 
 ENV DEBIAN_FRONTEND noninteractive
 

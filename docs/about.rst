@@ -47,7 +47,7 @@ Links
 
 `Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
 
-`RDRF Google Group <mailto:rdrf@googlegroups.com>`_
+`RDRF Google Group <mailto:rdrf@ccg.murdoch.edu.au>`_
 
 `Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
 
