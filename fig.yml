@@ -34,6 +34,9 @@ nginx:
     - uwsgi
   ports:
     - "8443:443"
+    - "8080:80"
+  volumes:
+    - ./data/nginx:/data
 
 web:
   build: .
