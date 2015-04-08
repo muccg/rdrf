@@ -186,8 +186,6 @@ class FormView(View):
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
-                    logger.debug("formset is valid")
-                    logger.debug("POST data = %s" % request.POST)
                     dynamic_data = formset.cleaned_data  # a list of values
                     logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}

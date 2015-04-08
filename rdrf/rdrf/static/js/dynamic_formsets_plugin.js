@@ -27,8 +27,10 @@
            /*
            <input id="id_form-0-CDEAge" name="form-0-CDEAge" type="text">
            We return "form-1-CDEAge" for example  - there are num_cdes rows per form
+           complication is that a remove button is included when we add - hence
+           the + 1 to the num_cdes
            */
-           var form_number = Math.floor(new_row_index / num_cdes);
+           var form_number = Math.floor(new_row_index / ( num_cdes + 1));
            var new_form_string = "-" + form_number.toString() + "-";
            var s = old_value.replace(/-\d+-/, new_form_string);
            return s;
@@ -110,6 +112,7 @@
                             'name': function(_, old_name) { return new_specifier(cdes.length, old_name, get_row_count())}
                         });
                         $(this).val("");
+                        console.log("updated input : " + $(this).text());
                     })
                     .end()
                     .insertAfter("#" + settings.table_id + " tr:last");
