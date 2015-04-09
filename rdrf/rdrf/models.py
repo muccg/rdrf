@@ -607,7 +607,14 @@ class RegistryForm(models.Model):
 
     @property
     def section_models(self):
-        return [section_model for section_model in Section.objects.filter(code__in=self.get_sections())]
+        models = []
+        for section_code in self.get_sections():
+            try:
+                section_model = Section.objects.get(code=section_code)
+                models.append(section_model)
+            except Section.DoesNotExist:
+                pass
+        return models
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
