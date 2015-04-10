@@ -335,3 +335,23 @@ class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
 
 class RadioSelect(widgets.RadioSelect):
     renderer = HorizontalRadioRenderer
+
+
+class ReadOnlySelect(widgets.Select):
+    def render(self, name, value, attrs, choices=()):
+        html = super(ReadOnlySelect, self).render(name, value, attrs, choices)
+        return self._make_label(html) + self._make_hidden_field(name, value, attrs)
+
+    def _make_hidden_field(self, name, value, attrs):
+        return """<input type="hidden" id="%s" name="%s" value="%s"/>""" % (attrs['id'], name, value)
+
+    def _make_label(self, html):
+        import re
+        html = html.replace("\n", "")
+        pattern = re.compile(r'.*selected=\"selected\">(.*)</option>.*')
+        m = pattern.match(html)
+        if m:
+            option_display_text = m.groups(1)[0]
+            return """<span class="label label-default">%s</span>""" % option_display_text
+        else:
+            return html
