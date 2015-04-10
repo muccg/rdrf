@@ -64,12 +64,10 @@ class ValidatorFactory(object):
 
         if self._is_numeric():
             if self.cde.max_value is not None:
-                logger.debug("cde has a max value: %s" % self.cde.max_value)
                 validate_max = make_validation_func(ValidationType.MAX, self.cde)
                 validators.append(validate_max)
 
             if self.cde.min_value is not None:
-                logger.debug("cde has a min value: %s" % self.cde.min_value)
                 validate_min = make_validation_func(ValidationType.MIN, self.cde)
                 validators.append(validate_min)
 

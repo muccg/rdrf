@@ -42,7 +42,6 @@ def wrap_gridfs_data_for_form(registry, data):
     """
     def munge_dict(data):
         for key, value in data.items():
-            logger.debug("checking %s %s" % (key, value))
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
                     wrapper = FileUpload(registry, key, value)

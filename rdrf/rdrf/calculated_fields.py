@@ -123,5 +123,4 @@ class CalculatedFieldParser(object):
 
             </script>""" % (prefix, observer_code, subject_codes_string, prefix, tastypie_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
 
-        logger.debug("calculated field js: %s" % javascript)
         return javascript

@@ -50,7 +50,16 @@ class Section(models.Model):
 
     @property
     def cde_models(self):
-        return [cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements())]
+        models = []
+
+        for cde_code in self.get_elements():
+            try:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                models.append(cde_model)
+            except CommonDataElement.DoesNotExist:
+                pass
+
+        return models
 
     def clean(self):
         for element in self.get_elements():
@@ -607,7 +616,14 @@ class RegistryForm(models.Model):
 
     @property
     def section_models(self):
-        return [section_model for section_model in Section.objects.filter(code__in=self.get_sections())]
+        models = []
+        for section_code in self.get_sections():
+            try:
+                section_model = Section.objects.get(code=section_code)
+                models.append(section_model)
+            except Section.DoesNotExist:
+                pass
+        return models
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
