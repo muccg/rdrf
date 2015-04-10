@@ -144,7 +144,6 @@ class FormView(View):
         section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section_index, s in enumerate(sections):
-            logger.debug("*********************** handling section code %s *****************************" % s)
             section_model = Section.objects.get(code=s)
             form_class = create_form_class_for_section(
                 registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
@@ -533,7 +532,99 @@ class QuestionnaireView(FormView):
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 logger.debug("data_map qc = %s" % self.questionnaire_context)
                 questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
-            return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html')
+
+            def get_completed_questions(questionnaire_form_model, data_map):
+                from django.utils.datastructures import SortedDict
+                section_map = SortedDict()
+
+                class SectionWrapper(object):
+                    def __init__(self, label):
+                        self.label = label
+                        self.is_multi = False
+                        self.subsections = []
+                        self.questions = []
+
+                class Question(object):
+                    def __init__(self, delimited_key, value):
+                        self.delimited_key = delimited_key              # in Mongo
+                        self.value = value                              # value in Mongo
+                        self.label = self._get_label(delimited_key)     # label looked up via cde code
+                        self.answer = self._get_answer()                # display value if a range
+                        self.is_multi = False
+
+                    def _get_label(self, delimited_key):
+                        _, _, cde_code = delimited_key.split("____")
+                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        return cde_model.name
+
+                    def _get_answer(self):
+                        if self.value is None:
+                            return " "
+                        elif self.value == "":
+                            return " "
+                        else:
+                            cde_model = self._get_cde_model()
+                            if cde_model.pv_group:
+                                range_dict = cde_model.pv_group.as_dict()
+                                for value_dict in range_dict["values"]:
+                                    if value_dict["code"] == self.value:
+                                        if value_dict["questionnaire_value"]:
+                                            return value_dict["questionnaire_value"]
+                                        else:
+                                            return value_dict["value"]
+                            elif cde_model.datatype == 'boolean':
+                                if self.value:
+                                    return "Yes"
+                                else:
+                                    return "No"
+                            elif cde_model.datatype == 'date':
+                                return self.value.strftime("%d-%m-%Y")
+                            return str(self.value)
+
+                    def _get_cde_model(self):
+                        _, _, cde_code = self.delimited_key.split("____")
+                        return CommonDataElement.objects.get(code=cde_code)
+
+
+                def get_question(form_model, section_model, cde_model, data_map):
+                    from rdrf.utils import mongo_key_from_models
+                    delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
+                    section_data = data_map[section_model.code]
+                    if delimited_key in section_data:
+                        value = section_data[delimited_key]
+                    else:
+                        value = None
+                    return Question(delimited_key, value)
+
+                for section_model in questionnaire_form_model.section_models:
+                    section_label = section_model.questionnaire_display_name or section_model.display_name
+                    if not section_map.has_key(section_label):
+                        section_map[section_label] = SectionWrapper(section_label)
+                    if not section_model.allow_multiple:
+
+                        for cde_model in section_model.cde_models:
+                            question = get_question(questionnaire_form_model, section_model, cde_model, data_map)
+                            section_map[section_label].questions.append(question)
+                    else:
+                        section_map[section_label].is_multi = True
+
+                        for multisection_map in data_map[section_model.code][section_model.code]:
+                            subsection = []
+                            section_wrapper = {section_model.code : multisection_map}
+                            for cde_model in section_model.cde_models:
+                                question = get_question(questionnaire_form_model, section_model, cde_model, section_wrapper)
+                                subsection.append(question)
+                            section_map[section_label].subsections.append(subsection)
+
+
+                return section_map
+
+            section_map = get_completed_questions(questionnaire_form, data_map)
+            context = {"completed_sections": section_map}
+
+            context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
+
+            return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
 
             context = {
