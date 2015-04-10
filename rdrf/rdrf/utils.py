@@ -25,6 +25,10 @@ def mongo_key(form_name, section_code, cde_code):
     return settings.FORM_SECTION_DELIMITER.join([form_name, section_code, cde_code])
 
 
+def mongo_key_from_models(form_model, section_model, cde_model):
+    return mongo_key(form_model.name, section_model.code, cde_model.code)
+
+
 def id_on_page(registry_form_model, section_model, cde_model):
     return mongo_key(registry_form_model.name, section_model.code, cde_model.code)
 
