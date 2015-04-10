@@ -50,7 +50,16 @@ class Section(models.Model):
 
     @property
     def cde_models(self):
-        return [cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements())]
+        models = []
+
+        for cde_code in self.get_elements():
+            try:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                models.append(cde_model)
+            except CommonDataElement.DoesNotExist:
+                pass
+
+        return models
 
     def clean(self):
         for element in self.get_elements():
