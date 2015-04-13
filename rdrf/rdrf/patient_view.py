@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
+from django.utils.datastructures import SortedDict
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -176,19 +177,20 @@ class PatientEditView(View):
         
         return patient, form_sections
         
-        
+
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
-        additional_fields = {}
+        additional_fields = SortedDict()
         for reg_code in registry_specific_fields_dict:
             field_pairs = registry_specific_fields_dict[reg_code]
             for cde, field_object in field_pairs:
+                logger.debug("xxxx %s" % cde.code)
                 additional_fields[cde.code] = field_object
-                
+
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
 
     def _get_registry_specific_patient_fields(self, user):
-        result_dict = {}
+        result_dict = SortedDict()
         for registry in user.registry.all():
             patient_cde_field_pairs = registry.patient_fields
             if patient_cde_field_pairs:
@@ -200,7 +202,7 @@ class PatientEditView(View):
         reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
         fieldsets = []
         for reg_code in reg_spec_field_defs:
-            cde_field_pairs = reversed(reg_spec_field_defs[reg_code])
+            cde_field_pairs = reg_spec_field_defs[reg_code]
             fieldset_title = "%s Specific Fields" % reg_code.upper()
             field_dict = [pair[0].code for pair in cde_field_pairs]  # pair up cde name and field object generated from that cde
             fieldsets.append((fieldset_title, field_dict))

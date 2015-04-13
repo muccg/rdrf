@@ -137,6 +137,8 @@ class Registry(models.Model):
                 field_factory = FieldFactory(self, None, self.patient_data_section, cde_model)
                 field = field_factory.create_field()
                 field_pairs.append((cde_model, field))
+        # The fields were appearing in the "reverse" order, hence this
+        field_pairs.reverse()
         return field_pairs
 
     def get_adjudications(self):
