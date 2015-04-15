@@ -123,11 +123,6 @@
 
 {% block content %}
     <br/>
-    <p>
-        <button class="btn btn-info" onclick="window.history.back();">
-            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Go back
-        </button>
-    </p>
     
     {% if patient %}
         {% if patient|has_feature:"family_linkage" %}
