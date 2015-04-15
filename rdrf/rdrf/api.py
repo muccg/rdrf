@@ -1,5 +1,9 @@
 from tastypie.resources import ModelResource
+from tastypie import fields
 from registry.patients.models import Patient
+from registry.groups.models import WorkingGroup
+from rdrf.models import Registry
+
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
@@ -37,13 +41,26 @@ class UrlEncodeSerializer(Serializer):
         pass
 
 
+class WorkingGroupResource(ModelResource):
+    name = fields.CharField(attribute='name')
+    class Meta:
+        queryset = WorkingGroup.objects.all()
+
+
 class PatientResource(ModelResource):
+    working_groups = fields.ToManyField(WorkingGroupResource, 'working_groups')
 
     class Meta:
         queryset = Patient.objects.all()
         serializer = UrlEncodeSerializer()
         authorization = DjangoAuthorization()
 
+    def dehydrate(self, bundle):
+        id = int(bundle.data['id'])
+        p = Patient.objects.get(id=id)
+        bundle.data["working_groups_display"] = p.working_groups_display
+        bundle.data["reg_list"] = p.get_reg_list()
+        return bundle
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
@@ -102,8 +119,6 @@ class PatientResource(ModelResource):
 
         paginator = Paginator(query_set, row_count)
 
-
-
         try:
             page = paginator.page(current)
         except InvalidPage:
@@ -114,36 +129,16 @@ class PatientResource(ModelResource):
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
             bundle = self.full_dehydrate(bundle)
+            logger.debug("bundle = %s" % bundle)
             objects.append(bundle)
 
-
-        # jquery bootgrid expects:
-        #         {
-        #   "current": 1,
-        #   "rowCount": 10,
-        #   "rows": [
-        #     {
-        #       "id": 19,
-        #       "sender": "123@test.de",
-        #       "received": "2014-05-30T22:15:00"
-        #     },
-        #     {
-        #       "id": 14,
-        #       "sender": "123@test.de",
-        #       "received": "2014-05-30T20:15:00"
-        #     },
-        #     ...
-        #   ],
-        #   "total": 1123
-        # }
-
-
+        # Adapt the results to fit what jquery bootgrid expects
         results = {
-            "current" : current,
+            "current": current,
             "rowCount": row_count,
             "searchPhrase": search_phrase,
-            "rows"  : objects,
-            "total" : total
+            "rows": objects,
+            "total": total
         }
 
         self.log_throttled_access(request)
