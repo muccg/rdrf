@@ -146,6 +146,13 @@
     <form class="form-horizontal" method="post">
         {% csrf_token %}
         
+        {% if message %}
+            <div class="alert alert-success" role="alert">
+                {{ message }}
+            </div>
+        {% endif %}
+
+        
         {% if errors %}
             <div class="alert alert-danger" role="alert">
                 Please correct errors below

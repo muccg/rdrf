@@ -93,7 +93,13 @@ class PatientEditView(View):
             address_to_save.save()
             patient_form.save()
 
-            return redirect(reverse("patient_edit", args=[patient_id,]))
+            patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
+            
+            context = {
+                "forms": form_sections,
+                "patient": patient,
+                "message": "Patient's details saved successfully"
+            }
         else:
             patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
             
@@ -102,7 +108,7 @@ class PatientEditView(View):
                 "patient": patient,
                 "errors": True
             }
-            return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+        return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def _get_forms(self, patient_id, patient_form=None, patient_address_form=None, patient_doctor_form=None):
         patient = Patient.objects.get(id=patient_id)
