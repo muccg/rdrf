@@ -1,0 +1,82 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load staticfiles %}
+{% block extrastyle %}
+<link href="{% static 'css/jquery.bootgrid.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+        <table id="grid"   class="table table-condensed table-hover table-striped">
+            <thead>
+                <tr>
+                    <th data-column-id="id" data-formatter="id">ID</th>
+                    <th data-column-id="given_names">Given Names</th>
+                    <th data-column-id="family_name">Family Name</th>
+                    <th data-column-id="working_group">Working Groups</th>
+                    <th data-column-id="registry">Registry</th>
+                    <th data-column-id="date_of_birth">Date of Birth</th>
+                    <th data-column-id="commands" data-formatter="commands" data-sortable="false">Forms</th>
+
+                </tr>
+            </thead>
+        </table>
+        <!-- Scripts -->
+        <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
+        <script>
+            $(document).ready(function () {
+
+                $.ajaxSetup({beforeSend: function (xhr) {
+                             var csrfToken = '{{ csrf_token }}';
+                             xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                 }});
+
+                var grid = $('#grid').bootgrid({
+                    ajax: true,
+                    url: "{% url 'api_get_search' 'v1' 'patient'  %}",
+                    responseHandler: function (response) {
+                        return response;
+                    },
+
+                    formatters: {
+                        "id" : function (column, row) {
+                            var link = "{% url 'patient_edit' 999 %}".replace("/999", "/" + row.id);
+                            var html =  "<a href=\"" + link + "\"" +
+                                        " class=\"btn btn-warning\">" +
+                                        "<span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Edit Demographics</a>";
+
+                            return html;
+                            },
+
+                        "commands": function (column, row) {
+
+
+
+                            return "<button type=\"button\" class=\"btn btn-info btn-small command-data-modules\" data-toggle=\"popover\" " +
+                                    "data-html=\"true\" " +
+                                    "data-content=\"Forms<br>hhh<br>\" " +
+
+                                    "data-row-id=\"" + row.id + "\">Show Modules</button>";
+
+//                            return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " +
+//                                    "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>" + html;
+
+                        }
+
+                    }
+                })
+                        .on("loaded.rs.jquery.bootgrid", function() {
+                            $(function () {
+                                $('[data-toggle="popover"]').popover()
+                            })
+                            /* Executes after data is loaded and rendered */
+                            grid
+                                    .find(".command-data-modules").on("click", function (e) {
+
+
+                                    }).end()
+                                    .find(".command-delete").on("click", function (e) {
+                                        alert("You pressed delete on row: " + $(this).data("row-id"));
+                                    })
+                        })});
+
+        </script>
+
+{% endblock %}

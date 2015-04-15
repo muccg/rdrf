@@ -210,7 +210,7 @@
                 that.xqr.abort();
             }
 
-            that.xqr = $.post(url, request, function (response)
+            that.xqr = $.get(url, request, function (response)
             {
                 that.xqr = null;
 
