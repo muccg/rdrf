@@ -7,7 +7,9 @@ from django.utils.datastructures import SortedDict
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor
+from django.forms.models import inlineformset_factory
+
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm
 
 import logging
@@ -77,46 +79,49 @@ class PatientEditView(View):
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def post(self, request, patient_id):
-        patient_form = PatientForm(request.POST)
-
-        patient_form.save()
-        
-#        PatientDoctorFormSet = formset_factory(PatientDoctorForm)
-#        patient_doctor_form_set = PatientDoctorFormSet(request.POST, prefix="patient_doctor")
-
-#        for form in patient_doctor_form_set:
-#            form.save()
-        
-#        PatientAddressFormSet = formset_factory(PatientAddressForm)
-#        patient_address_form_set = PatientAddressFormSet(request.POST, prefix="patient_address")
-
-#        for form in patient_address_form_set:
-#            form.save()
-        
-        patient, form_sections = self._get_forms(patient_id)
-        
-        context = {
-            "forms": form_sections,
-            "patient": patient
-        }
-    
-        return render_to_response('rdrf_cdes/patient_edit.html', context_instance=RequestContext(request))
-
-    def _get_forms(self, patient_id):
         patient = Patient.objects.get(id=patient_id)
-        patient_form = PatientForm(instance=patient)
+        patient_form = PatientForm(request.POST, instance=patient)
+
+        patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
+        doctors_to_save = patient_doctor_form_set(request.POST, instance=patient, prefix="patient_doctor")
         
-        patient_address = PatientAddress.objects.filter(patient = patient).values()
-        patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
+        patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
+        address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
         
-        patient_address_formset = formset_factory(PatientAddressForm, extra=0, can_delete=True)
-        patient_address_form = patient_address_formset(initial=patient_address, prefix="patient_address")
-        
-        patient_doctor_formset = formset_factory(PatientDoctorForm, extra=0, can_delete=True)
-        patient_doctor_form = patient_doctor_formset(initial=patient_doctor, prefix="patient_doctor")
-        
+        if all([patient_form.is_valid(), doctors_to_save.is_valid(), address_to_save.is_valid()]):
+            docs = doctors_to_save.save()
+            address_to_save.save()
+            patient_form.save()
+
+            return redirect(reverse("patient_edit", args=[patient_id,]))
+        else:
+            patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
+            
+            context = {
+                "forms": form_sections,
+                "patient": patient,
+                "errors": True
+            }
+            return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+
+    def _get_forms(self, patient_id, patient_form=None, patient_address_form=None, patient_doctor_form=None):
+        patient = Patient.objects.get(id=patient_id)
+    
+        if not patient_form:
+            patient_form = PatientForm(instance=patient)
+
+        if not patient_doctor_form:
+            patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
+            patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through, form=PatientDoctorForm, extra=0, can_delete=True)
+            patient_doctor_form = patient_doctor_formset(instance=patient, prefix="patient_doctor")
+
+        if not patient_address_form:
+            patient_address = PatientAddress.objects.filter(patient = patient).values()
+            patient_address_formset = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm, extra=0, can_delete=True)
+            patient_address_form = patient_address_formset(instance=patient, prefix="patient_address")
+
+
         personal_details_fields = ('Personal Details', [
-            #"working_groups",
             "family_name",
             "given_names",
             "maiden_name",
@@ -129,7 +134,7 @@ class PatientEditView(View):
             "home_phone",
             "mobile_phone",
             "work_phone",
-            "email"
+            "email",
         ])
         
         next_of_kin = ("Next of Kin", [
@@ -155,7 +160,7 @@ class PatientEditView(View):
         
         rdrf_registry = ("Registry", [
             "rdrf_registry",
-            "clinician"
+            "working_groups"
         ])
         
         patient_address_section = ("Patient Address", None)
@@ -165,13 +170,13 @@ class PatientEditView(View):
         form_sections = [
             (
                 patient_form,
-                ( consent, personal_details_fields, next_of_kin )
-#            ),(
-#                patient_address_form, 
-#                ( patient_address_section, )
-#            ),(
-#                patient_doctor_form,
-#                ( patient_doctor_section, )
+                ( consent, rdrf_registry, personal_details_fields, next_of_kin )
+            ),(
+                patient_address_form, 
+                ( patient_address_section, )
+            ),(
+                patient_doctor_form,
+                ( patient_doctor_section, )
             )
         ]
         
