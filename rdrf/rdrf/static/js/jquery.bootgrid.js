@@ -50,7 +50,7 @@
             },
             post = this.options.post;
 
-        post = ($.isFunction(post)) ? post() : post;
+        post = false; //($.isFunction(post)) ? post() : post;
         return this.options.requestHandler($.extend(true, request, post));
     }
 
