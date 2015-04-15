@@ -92,13 +92,17 @@ class PatientResource(ModelResource):
             logger.debug("sort field = %s" % sort_field)
 
         if search_phrase:
-
             from django.db.models import Q
             query_set = query_set.filter(Q(given_names__icontains=search_phrase) | Q(family_name__icontains=search_phrase))
 
+        total = query_set.count()
+        if row_count == -1:
+            # All
+            row_count = total
+
         paginator = Paginator(query_set, row_count)
 
-        total = query_set.count()
+
 
         try:
             page = paginator.page(current)
