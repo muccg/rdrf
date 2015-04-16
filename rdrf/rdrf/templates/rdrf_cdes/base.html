@@ -9,15 +9,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
       <title>{% trans "Rare Disease Registry Framework" %}</title>
-      
+
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-      <script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
+      <!--<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>-->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
       
       {% block extrastyle %}

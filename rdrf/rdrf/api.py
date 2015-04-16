@@ -60,7 +60,45 @@ class PatientResource(ModelResource):
         p = Patient.objects.get(id=id)
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = p.get_reg_list()
+        bundle.data["forms_html"] = self._get_forms_html(p)
         return bundle
+
+    def _get_forms_html(self, patient_model):
+        from rdrf.utils import FormLink
+        #  return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
+        #        for form in self.registry.forms if not form.is_questionnaire]
+        select_html = "<select class='dropdown rdrflauncher' id='patientforms%s'><option value='---' selected>---<option>" % patient_model.id
+        dropdown = """<div class="dropdown"><button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="false">
+                        Forms
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">"""
+
+        rest_html = "</ul></div>"
+
+
+        lis = []
+        if patient_model.rdrf_registry.count() == 0:
+            return "No registry assigned!"
+
+        for registry_model in patient_model.rdrf_registry.all():
+            for form_model in registry_model.forms:
+                if not form_model.is_questionnaire:
+                    form_link = FormLink(patient_model.pk, registry_model, form_model)
+                    text = "%s" % form_link.text
+                    link_html = """<a href="%s">%s</a><br>""" % (form_link.url, text)
+                    li = """<li role="presentation"><a role="menuitem" tabindex="-1" href="#">%s</a></li>""" % link_html
+                    lis.append(li)
+                    option = """<option value="%s">%s</option>""" % (form_link.url, form_link.text)
+                    select_html += option
+
+        select_html += "</select>"
+
+
+        html = select_html
+        logger.debug(html)
+        return html
+
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
@@ -129,7 +167,6 @@ class PatientResource(ModelResource):
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
             bundle = self.full_dehydrate(bundle)
-            logger.debug("bundle = %s" % bundle)
             objects.append(bundle)
 
         # Adapt the results to fit what jquery bootgrid expects
