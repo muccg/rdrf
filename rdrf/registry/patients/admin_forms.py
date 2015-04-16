@@ -207,6 +207,7 @@ class PatientForm(forms.ModelForm):
             'next_of_kin_address': forms.Textarea(attrs={"rows": 3, "cols": 30}),
             'inactive_reason': forms.Textarea(attrs={"rows": 3, "cols": 30}),
         }
+        exclude = ['doctors']
 
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB

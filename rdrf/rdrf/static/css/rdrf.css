@@ -1,5 +1,11 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
 body {
     background-color: #edeff1;
+    margin-bottom: 60px;
 }
 
 .header {
@@ -105,9 +111,13 @@ body {
     background-color:#d5d7d8;
     font-size:11px;
     line-height:1.5em;
-    text-shadow:0 1px rgba(255,255,255,0.5)
+    text-shadow:0 1px rgba(255,255,255,0.5);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
 }
-    
+
 .footer .content{
     border-top:5px solid #e1e3e5
 }

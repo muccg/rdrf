@@ -15,7 +15,7 @@ rdrf.egg-info*
 rdrf/logs
 rdrf/log
 rdrf/media
-rdrf/static
+#rdrf/static
 ^docs/_static
 ^docs/_build
 ^docs/_templates

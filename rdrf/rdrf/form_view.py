@@ -109,7 +109,6 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context()
-        logger.debug("form context = %s" % context)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -120,7 +119,6 @@ class FormView(View):
         # the ids of each cde on the form
         dummy = form_class()
         ids = [field for field in dummy.fields.keys()]
-        logger.debug("ids = %s" % ids)
         return ",".join(ids)
 
     @method_decorator(login_required)
@@ -146,7 +144,6 @@ class FormView(View):
         section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section_index, s in enumerate(sections):
-            logger.debug("handling post data for section %s" % s)
             section_model = Section.objects.get(code=s)
             form_class = create_form_class_for_section(
                 registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
@@ -154,12 +151,9 @@ class FormView(View):
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
 
-            logger.debug("created form class for section %s: %s" % (s, form_class))
-            logger.debug("POST data = %s" % request.POST)
-            logger.debug("FILES data = %s" % str(request.FILES))
-
             if not section_model.allow_multiple:
                 form = form_class(request.POST, files=request.FILES)
+                logger.debug("validating form for section %s" % section_model)
                 if form.is_valid():
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
@@ -176,6 +170,7 @@ class FormView(View):
                     form_section[s] = form_class(request.POST, request.FILES)
 
             else:
+                logger.debug("handling POST of multisection %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:
@@ -190,16 +185,23 @@ class FormView(View):
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
-                    logger.debug("formset %s is valid" % formset)
-                    logger.debug("POST data = %s" % request.POST)
                     dynamic_data = formset.cleaned_data  # a list of values
+                    logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
-                    section_dict[s] = wrap_gridfs_data_for_form(self.registry, dynamic_data)
+                    section_dict[s] = wrap_gridfs_data_for_form(self.registry.code, dynamic_data)
+
+                    logger.debug("after wrapping for gridfs = %s" % section_dict)
+
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+
+                    data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    logger.debug("data in mongo after saving = %s" % data_after_save)
+
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
                     form_section[s] = form_set_class(
                         initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
                 else:
+                    logger.debug("formset for multisection is invalid!")
                     for e in formset.errors:
                         error_count += 1
                         logger.debug("Validation error on form: %s" % e)
@@ -240,17 +242,10 @@ class FormView(View):
         if error_count == 0:
             if not self.testing:
                 messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
-                # from rdrf.notifications import Notifier
-                # notifier = Notifier()
-                # from rdrf.utils import get_user
-                # admin_user = get_user('admin')
-                # notifier.send([admin_user],'patient_welcome', request.user)
-
         else:
             if not self.testing:
                 messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
 
-        logger.debug("form context = %s" % context)
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
     def _get_sections(self, form):
@@ -363,8 +358,6 @@ class FormView(View):
             context["form_progress_cdes"] = cdes_status
 
         context.update(kwargs)
-        for k in context:
-            logger.debug("_build context: %s = %s" % (k, context[k]))
         return context
 
     def _get_patient_id(self):
@@ -502,6 +495,7 @@ class QuestionnaireView(FormView):
                     for e in form.errors:
                         error_count += 1
             else:
+                logger.debug("MULTISECTION %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:
@@ -538,7 +532,99 @@ class QuestionnaireView(FormView):
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 logger.debug("data_map qc = %s" % self.questionnaire_context)
                 questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
-            return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html')
+
+            def get_completed_questions(questionnaire_form_model, data_map):
+                from django.utils.datastructures import SortedDict
+                section_map = SortedDict()
+
+                class SectionWrapper(object):
+                    def __init__(self, label):
+                        self.label = label
+                        self.is_multi = False
+                        self.subsections = []
+                        self.questions = []
+
+                class Question(object):
+                    def __init__(self, delimited_key, value):
+                        self.delimited_key = delimited_key              # in Mongo
+                        self.value = value                              # value in Mongo
+                        self.label = self._get_label(delimited_key)     # label looked up via cde code
+                        self.answer = self._get_answer()                # display value if a range
+                        self.is_multi = False
+
+                    def _get_label(self, delimited_key):
+                        _, _, cde_code = delimited_key.split("____")
+                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        return cde_model.name
+
+                    def _get_answer(self):
+                        if self.value is None:
+                            return " "
+                        elif self.value == "":
+                            return " "
+                        else:
+                            cde_model = self._get_cde_model()
+                            if cde_model.pv_group:
+                                range_dict = cde_model.pv_group.as_dict()
+                                for value_dict in range_dict["values"]:
+                                    if value_dict["code"] == self.value:
+                                        if value_dict["questionnaire_value"]:
+                                            return value_dict["questionnaire_value"]
+                                        else:
+                                            return value_dict["value"]
+                            elif cde_model.datatype == 'boolean':
+                                if self.value:
+                                    return "Yes"
+                                else:
+                                    return "No"
+                            elif cde_model.datatype == 'date':
+                                return self.value.strftime("%d-%m-%Y")
+                            return str(self.value)
+
+                    def _get_cde_model(self):
+                        _, _, cde_code = self.delimited_key.split("____")
+                        return CommonDataElement.objects.get(code=cde_code)
+
+
+                def get_question(form_model, section_model, cde_model, data_map):
+                    from rdrf.utils import mongo_key_from_models
+                    delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
+                    section_data = data_map[section_model.code]
+                    if delimited_key in section_data:
+                        value = section_data[delimited_key]
+                    else:
+                        value = None
+                    return Question(delimited_key, value)
+
+                for section_model in questionnaire_form_model.section_models:
+                    section_label = section_model.questionnaire_display_name or section_model.display_name
+                    if not section_map.has_key(section_label):
+                        section_map[section_label] = SectionWrapper(section_label)
+                    if not section_model.allow_multiple:
+
+                        for cde_model in section_model.cde_models:
+                            question = get_question(questionnaire_form_model, section_model, cde_model, data_map)
+                            section_map[section_label].questions.append(question)
+                    else:
+                        section_map[section_label].is_multi = True
+
+                        for multisection_map in data_map[section_model.code][section_model.code]:
+                            subsection = []
+                            section_wrapper = {section_model.code : multisection_map}
+                            for cde_model in section_model.cde_models:
+                                question = get_question(questionnaire_form_model, section_model, cde_model, section_wrapper)
+                                subsection.append(question)
+                            section_map[section_label].subsections.append(subsection)
+
+
+                return section_map
+
+            section_map = get_completed_questions(questionnaire_form, data_map)
+            context = {"completed_sections": section_map}
+
+            context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
+
+            return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
 
             context = {
@@ -1268,3 +1354,45 @@ class AdjudicationResultsView(View):
                     value = post_data[k]
                     actions.append((adjudication_cde_model.code, value))
         return actions
+
+
+class PatientsListingView(View):
+
+    def get(self, request):
+        #tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': 'patient', "api_name": "v1", "pk": self.injected_model_id})
+        context = {}
+        context.update(csrf(request))
+        return render_to_response('rdrf_cdes/patients.html', context)
+
+
+class BootGridApi(View):
+    def post(self, request):
+        # jquery b
+        import json
+        post_data = request.POST
+        #    request data  = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'], u'searchPhrase': [u'']}>
+
+        logger.debug("post data = %s" % post_data)
+        search_command = self._get_search_command(post_data)
+        command_result = self._run_search_command(search_command)
+        rows = [{"id": p.id,
+                            "name": p.given_names,
+                            "working_groups": "to do",
+                            "date_of_birth": p.date_of_birth,
+                            "registry": "to do"} for p in Patient.objects.all()]
+
+        command_result = {"current": 1,
+                          "rowCount": len(rows),
+                          "rows": rows}
+
+        logger.debug("api request data  = %s" % post_data)
+        command_result_json = json.dumps(command_result)
+
+        return HttpResponse(command_result_json, content_type="application/json")
+
+    def _get_search_command(self, post_data):
+        return None
+
+    def _run_search_command(self, command):
+        return {}
+

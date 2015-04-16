@@ -25,6 +25,8 @@ mark_safe_lazy = lazy(mark_safe, six.text_type)
 logger = logging.getLogger('registry_log')
 
 
+
+
 class FieldContext:
 
     """
@@ -221,7 +223,6 @@ class FieldFactory(object):
             return widget_class
 
         if self._is_parametrised_widget(widget_class_name):
-            logger.debug("creating parametrised widget: %s" % widget_class_name)
             widget_context = {"registry_model": self.registry,
                               "registry_form": self.registry_form,
                               "cde": self.cde,
@@ -231,7 +232,6 @@ class FieldFactory(object):
                               "primary_id": self.primary_id
                               }
 
-            logger.debug("widget_context = %s" % widget_context)
             return self._get_parametrised_widget_instance(widget_class_name, widget_context)
 
         return None
@@ -242,14 +242,11 @@ class FieldFactory(object):
     def _get_parametrised_widget_instance(self, widget_string, widget_context):
         # Given a widget string ( from the DE specification page ) like:   <SomeWidgetClassName>:<widget parameter string>
         widget_class_name, widget_parameter = widget_string.split(":")
-        logger.debug("widget class name = %s" % widget_class_name)
-        logger.debug("widget parameter = %s" % widget_parameter)
         if hasattr(widgets, widget_class_name):
-            logger.debug("found widget!")
             widget_class = getattr(widgets, widget_class_name)
             return widget_class(widget_parameter=widget_parameter, widget_context=widget_context)
         else:
-            logger.debug("could not locate widget from widget string: %s" % widget_string)
+            logger.info("could not locate widget from widget string: %s" % widget_string)
 
     def create_field(self):
         """
@@ -305,7 +302,6 @@ class FieldFactory(object):
 
                 return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
             else:
-                logger.debug("cde %s field ChoiceField options %s" % (self.cde, options))
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde.widget_name)
                 else:
@@ -323,8 +319,6 @@ class FieldFactory(object):
                         options['widget'] = widget
                         if "RadioSelect" in str(widget):
                             options["choices"] = options['choices'][1:]     # get rid of the unset choice
-                            logger.debug("adjusted options for radio select: cde = %s field options = %s" %
-                                         (self.cde, options))
 
                     return django.forms.ChoiceField(**options)
         else:
@@ -394,8 +388,6 @@ class FieldFactory(object):
     def _create_file_field(self, options):
         # options['widget'] = AdminFileWidget
         field = FileField(**options)
-        logger.debug("file field = %s" % field)
-        logger.debug("options = %s" % options)
         return field
 
 

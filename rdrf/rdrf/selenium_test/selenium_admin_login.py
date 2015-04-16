@@ -14,4 +14,4 @@ class AdminLogin(Base):
         self.assertEqual("Show full list of links", sel.get_text("css=#full-menu-alert > h4"))
         sel.click("link=Log out")
         sel.wait_for_page_to_load("30000")
-        self.assertEqual("FAQ", sel.get_text("css=h3"))
+        self.assertEqual("Need a patient registry for your department, clinic or community?", sel.get_text("css=h3"))

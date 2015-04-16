@@ -86,13 +86,11 @@ class DynamicDataWrapper(object):
         record_query = self._get_record_query()
         logger.debug("record_query = %s" % record_query)
         for reg_code in self._get_registry_codes():
-            logger.debug("checking for reg specific fields in registry %s" % reg_code)
             # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
             # ( already prefixed db names from Mongo
             collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
                                               add_mongo_prefix=False)
             registry_data = collection.find_one(record_query)
-            logger.debug("registry_data = %s" % registry_data)
             if registry_data:
                 for k in ['django_id', '_id', 'django_model']:
                     del registry_data[k]
@@ -103,33 +101,22 @@ class DynamicDataWrapper(object):
 
     def _get_registry_codes(self):
         reg_codes = self.client.database_names()
-        logger.debug("reg_codes = %s" % reg_codes)
         return reg_codes
 
     def save_registry_specific_data(self, data):
         logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
-            logger.debug("saving data into %s db" % reg_code)
             registry_data = data[reg_code]
-            logger.debug("data to save for %s = %s" % (reg_code, registry_data))
             collection = self._get_collection(reg_code, "registry_specific_patient_data")
-            logger.debug("collection = %s" % collection)
             query = self._get_record_query()
             record = collection.find_one(query)
             if record:
-                logger.debug("found record: %s" % record)
                 mongo_id = record['_id']
-                logger.debug("mongo id = %s" % mongo_id)
                 collection.update({'_id': mongo_id}, {"$set": registry_data}, upsert=False)
-                logger.debug("updated collection OK")
             else:
-                logger.debug("record not found - inserting new record ...")
                 record = self._get_record_query()
                 record.update(registry_data)
-                logger.debug("about tpo insert record %s into collection %s for registry %s" %
-                             (record, collection, reg_code))
                 collection.insert(record)
-                logger.debug("inserted record OK")
 
     def _wrap_gridfs_files_from_mongo(self, registry, data):
         """
@@ -191,8 +178,6 @@ class DynamicDataWrapper(object):
             if cde.datatype == 'file':
                 logger.debug("CDE %s is a file!" % cde.code)
                 return True
-            else:
-                logger.debug("CDE %s is not a file" % cde.code)
         except Exception as ex:
             # section forms have codes which are not CDEs
             logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
@@ -266,7 +251,6 @@ class DynamicDataWrapper(object):
                             new_data[key] = gridfs_file_dict
 
             elif self._is_section_code(key):
-                logger.debug("checking in section %s for files" % key)
                 # value is a list of section field data dictionaries
                 if key not in existing_record:
                     existing_record[key] = [{}] * len(value)
@@ -285,23 +269,15 @@ class DynamicDataWrapper(object):
         record = self.load_dynamic_data(registry, collection_name)
         data["timestamp"] = datetime.datetime.now()
         if record:
-            logger.debug("%s: updating existing mongo data record %s" % (self, record))
             mongo_id = record['_id']
-            logger.debug("data before saving files = %s" % data)
             self._update_files_in_gridfs(record, registry, data)
-            logger.debug("mongo data to update = %s" % data)
             collection.update({'_id': mongo_id}, {"$set": data}, upsert=False)
-            logger.info("%s: updated record %s OK" % (self, record))
         else:
-            logger.debug("adding new mongo record")
             record = self._get_record_query()
-
             record.update(data)
             self._set_in_memory_uploaded_files_to_none(record)
             self._update_files_in_gridfs(record, registry, data)
-            logger.debug("about to insert mongo record: %s" % record)
             collection.insert(record)
-            logger.info("%s: inserted record %s OK" % (self, record))
 
     def _save_longitudinal_snapshot(self, registry, record):
         try:

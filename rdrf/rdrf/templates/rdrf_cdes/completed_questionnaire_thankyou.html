@@ -1,11 +1,86 @@
 {% extends "rdrf_cdes/base_questionnaire.html" %}
+{% load lookup %}
 
 {% block title %}
     {{registry|upper}} Questionnaire Completed
 {% endblock %}
 
 {% block content %}
+   <script type="text/javascript">
+
+    function PrintElem(elem)
+    {
+        Popup($(elem).html());
+    }
+
+    function Popup(data)
+    {
+        var mywindow = window.open('', 'Questionnaire Responses', 'height=400,width=600');
+        mywindow.document.write('<html><head><title>Questionnaire Responses</title>');
+        /*optional stylesheet*/ //mywindow.document.write('<link rel="stylesheet" href="main.css" type="text/css" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+
+        mywindow.document.close(); // necessary for IE >= 10
+        mywindow.focus(); // necessary for IE >= 10
+
+        mywindow.print();
+        mywindow.close();
+
+        return true;
+    }
+    </script>
+
     <div class="alert alert-success">
-    Thank you for completing questionnaire
+    <h1>Thank you for completing the questionnaire!</h1>
     </div>
+
+    <div class="alert alert-info">
+        Please click the Print Button to keep a copy of your consent and other responses.
+    </div>
+
+    <button onclick='window.print();' type="button" class="btn btn-default" aria-label="Left Align">
+        <span class="glyphicon glyphicon-print" aria-hidden="true">Print!</span>
+    </button>
+
+    <h2>Information we provided you:</h2>
+
+    {% include prelude  %}
+
+    <h2>Information you provided us on {% now "D d M Y" %}:</h2>
+
+    {% for section_label in completed_sections %}
+         <div class="alert alert-info">
+            <h3>{{ section_label}}</h3>
+
+            <table class="table table-striped">
+            {% with section=completed_sections|lookup:section_label %}
+                    {% if section.is_multi %}
+                            <tr>
+                                <td span="2" align="right">
+                                       {% for subsection in section.subsections %}
+                                            <table  width="100%">
+                                                {% for question in subsection %}
+                                                    <tr>
+                                                        <td> <b>{{ question.label }}</b></td>
+                                                        <td align="right">{{ question.answer }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </table>
+                                            <p></p>
+                                        {% endfor %}
+                                </td>
+                            </tr>
+                    {% else %}
+                        {% for question in section.questions  %}
+                            <tr>
+                                <td> <b>{{ question.label }}</b></td>  <td align="right"> {{ question.answer }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+            {% endwith %}
+            </table>
+        </div>
+    {% endfor %}
 {% endblock %}

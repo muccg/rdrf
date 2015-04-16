@@ -34,8 +34,8 @@ class Section(models.Model):
     A group of fields that appear on a form as a unit
     """
     code = models.CharField(max_length=100)
-    display_name = models.CharField(max_length=100)
-    questionnaire_display_name = models.CharField(max_length=100, blank=True)
+    display_name = models.CharField(max_length=200)
+    questionnaire_display_name = models.CharField(max_length=200, blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
@@ -50,7 +50,16 @@ class Section(models.Model):
 
     @property
     def cde_models(self):
-        return [cde for cde in CommonDataElement.objects.filter(code__in=self.get_elements())]
+        models = []
+
+        for cde_code in self.get_elements():
+            try:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                models.append(cde_model)
+            except CommonDataElement.DoesNotExist:
+                pass
+
+        return models
 
     def clean(self):
         for element in self.get_elements():
@@ -128,6 +137,8 @@ class Registry(models.Model):
                 field_factory = FieldFactory(self, None, self.patient_data_section, cde_model)
                 field = field_factory.create_field()
                 field_pairs.append((cde_model, field))
+        # The fields were appearing in the "reverse" order, hence this
+        field_pairs.reverse()
         return field_pairs
 
     def get_adjudications(self):
@@ -212,6 +223,8 @@ class Registry(models.Model):
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
             else:
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.questionnaire_display_name
+
+
             qsection.allow_multiple = original_section.allow_multiple
             qsection.extra = 0
             qsection.elements = ",".join([cde_code for cde_code in section_map[(form_name, original_section_code)]])
@@ -607,7 +620,14 @@ class RegistryForm(models.Model):
 
     @property
     def section_models(self):
-        return [section_model for section_model in Section.objects.filter(code__in=self.get_sections())]
+        models = []
+        for section_code in self.get_sections():
+            try:
+                section_model = Section.objects.get(code=section_code)
+                models.append(section_model)
+            except Section.DoesNotExist:
+                pass
+        return models
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
