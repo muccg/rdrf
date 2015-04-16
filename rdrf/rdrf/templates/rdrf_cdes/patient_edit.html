@@ -14,6 +14,7 @@
     
     <script src={% static 'js/rpc_module.js' %}></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -129,133 +130,141 @@
 {% endblock %}
 
 {% block content %}
-    <br/>
     
-    {% if patient %}
-        {% if patient|has_feature:"family_linkage" %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong>Family Linkage</strong>
-                </div>
-                <div class="panel-body">
-                    {% if patient.my_index %}
-                        This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
-                    {% else %}
-                        {% if patient.is_index %}
-                            This patient is an index
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-    {% endif %}
+    <br>
 
-    <form class="form-horizontal" method="post">
-        {% csrf_token %}
+    <div class="row">
+        <div class="col-md-10">
         
-        {% if message %}
-            <div class="alert alert-success" role="alert">
-                {{ message }}
-            </div>
-        {% endif %}
-
-        
-        {% if errors %}
-            <div class="alert alert-danger" role="alert">
-                Please correct errors below
-            </div>
-        {% endif %}
-        
-        {% for form, sections in forms %}
-            {% if form|is_formset_obj %}
-                {{ form.management_form }}
-                {% for name, section in sections %}
+            {% if patient %}
+                {% if patient|has_feature:"family_linkage" %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <strong>{{name}}</strong>
-                            <a class="btn btn-info btn-xs pull-right" onclick="add_formset('{{form.empty_form|escapejs}}', '{{form.prefix}}')">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                            </a>
+                            <strong>Family Linkage</strong>
                         </div>
                         <div class="panel-body">
-                            <div id="section_{{form.prefix}}">
-                            {% for f in form %}
-                                {% with secs=section|default:f.fields %}
-                                    {% for s in secs %}
-                                        {% get_form_element f s as element %}
-                                            {% if element.label == "Delete" and form.can_delete == False %}
-                                                <!-- Empty in order to skip adding delete field in case of can_delete == False -->
-                                            {% else %}
-                                                    {% if element.errors %}
-                                                        <div class="form-group has-error">
-                                                    {% else %}
-                                                        <div class="form-group">
-                                                    {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
-                                                    <div class="col-sm-9">
-                                                        {% if not element|is_checkbox %}
-                                                            {{ element | add_attr:"class,form-control" }}
-                                                        {% else %}
-                                                            {{ element }}
-                                                        {% endif %}
-                                                        <small class="text-muted">
-                                                            {{ element.help_text }}
-                                                        </small>
-                                                        {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                    {% endfor %}
-                                {% endwith %}
-                                <hr>
-                            {% endfor %}
-                            </div>
+                            {% if patient.my_index %}
+                                This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                            {% else %}
+                                {% if patient.is_index %}
+                                    This patient is an index
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
-                {% endfor %}
-            {% else %}
-                {% for name, section in sections %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading"><strong>{{name}}</strong></div>
-                        <div class="panel-body">
-                            {% for s in section %}
-                                {% get_form_element form s as element %}
-                                {% if element.errors %}
-                                    <div class="form-group has-error">
-                                {% else %}
-                                    <div class="form-group">
-                                {% endif %}
-                                    <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
-                                    <div class="col-sm-9">
-                                        {% if not element|is_checkbox %}
-                                            {{ element | add_attr:"class,form-control" }}
-                                        {% else %}
-                                            {{ element }}
-                                        {% endif %}
-                                        <small class="text-muted">
-                                            {{ element.help_text }}
-                                        </small>
-                                        {% if element.errors %}
-                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                        {% endif %}
+                {% endif %}
+            {% endif %}
+    
+            <form class="form-horizontal" method="post">
+            
+                {% csrf_token %}
+                
+                {% if message %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+        
+                
+                {% if errors %}
+                    <div class="alert alert-danger" role="alert">
+                        Please correct errors below
+                    </div>
+                {% endif %}
+                
+                {% for form, sections in forms %}
+                    {% if form|is_formset_obj %}
+                        {{ form.management_form }}
+                        {% for name, section in sections %}
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <strong>{{name}}</strong>
+                                    <a class="btn btn-info btn-xs pull-right" onclick="add_formset('{{form.empty_form|escapejs}}', '{{form.prefix}}')">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                    </a>
+                                </div>
+                                <div class="panel-body">
+                                    <div id="section_{{form.prefix}}">
+                                    {% for f in form %}
+                                        {% with secs=section|default:f.fields %}
+                                            {% for s in secs %}
+                                                {% get_form_element f s as element %}
+                                                    {% if element.label == "Delete" and form.can_delete == False %}
+                                                        <!-- Empty in order to skip adding delete field in case of can_delete == False -->
+                                                    {% else %}
+                                                            {% if element.errors %}
+                                                                <div class="form-group has-error">
+                                                            {% else %}
+                                                                <div class="form-group">
+                                                            {% endif %}
+                                                            <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                            <div class="col-sm-9">
+                                                                {% if not element|is_checkbox %}
+                                                                    {{ element | add_attr:"class,form-control" }}
+                                                                {% else %}
+                                                                    {{ element }}
+                                                                {% endif %}
+                                                                <small class="text-muted">
+                                                                    {{ element.help_text }}
+                                                                </small>
+                                                                {% if element.errors %}
+                                                                    <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                        <hr>
+                                    {% endfor %}
                                     </div>
                                 </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for name, section in sections %}
+                            <div class="panel panel-default">
+                                <div class="panel-heading"><strong>{{name}}</strong></div>
+                                <div class="panel-body">
+                                    {% for s in section %}
+                                        {% get_form_element form s as element %}
+                                        {% if element.errors %}
+                                            <div class="form-group has-error">
+                                        {% else %}
+                                            <div class="form-group">
+                                        {% endif %}
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                            <div class="col-sm-9">
+                                                {% if not element|is_checkbox %}
+                                                    {{ element | add_attr:"class,form-control" }}
+                                                {% else %}
+                                                    {{ element }}
+                                                {% endif %}
+                                                <small class="text-muted">
+                                                    {{ element.help_text }}
+                                                </small>
+                                                {% if element.errors %}
+                                                    <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
-            {% endif %}
-        {% endfor %}
-
-        <div class="form-group pull-right">
-            <a href="" class="btn btn-danger">
-                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-            </a>
-            <button type="submit" class="btn btn-success" value="Save">
-                <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-            </button>
         </div>
-    </form>
+        <div class="col-md-2">
+            <div data-spy="affix" style="width: 150px;">
+                <button type="submit" class="btn btn-success btn-block" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+            </div>
+        </div>
+        </form>
+    </div>
 {% endblock %}
