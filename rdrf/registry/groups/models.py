@@ -87,6 +87,8 @@ class CustomUser(AbstractUser):
 
     def get_registries(self):
         return self.registry.all()
+
+
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
