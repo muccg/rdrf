@@ -93,7 +93,7 @@ class PatientEditView(View):
             address_to_save.save()
             patient_form.save()
 
-            patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
+            patient, form_sections = self._get_forms(patient_id)
             
             context = {
                 "forms": form_sections,
