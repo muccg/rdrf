@@ -20,6 +20,8 @@ from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
+from rdrf.migration_view import MigrationView
+
 from django.views.generic.base import TemplateView
 from registration.backends.default.views import ActivationView
 #from registration.backends.default.views import RegistrationView
@@ -120,7 +122,8 @@ urlpatterns = patterns('',
                             ClinitianLookup.as_view(), name="clinician_lookup"),
                        
                       # url(r'^report/', include('viewer.urls'))
-                       
+                       url(r'^migration/',
+                            MigrationView.as_view(), name="migration"),
                        )
 
 urlpatterns += patterns('',
