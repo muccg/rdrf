@@ -1,0 +1,22 @@
+#header-container h1, #container, #footer {
+    width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+#stakeholders li a {
+    display: inline-block;
+}
+
+#stakeholders li a {
+    display: block;
+}
+
+
+#introduction, #stakeholders {
+    margin-top: 4em;
+}
+
+
+/* vim: set nocin ai et ts=4 sw=4: */

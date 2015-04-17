@@ -1,3 +1,11 @@
+legacydb:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=legacyrdrf
+    - POSTGRES_PASSWORD=legacyrdrf
+  ports:
+    - "15432:5432"
+
 # data only container pattern
 data:
   image: muccg/base:debian8
@@ -50,6 +58,7 @@ web:
     - "8000:8000"
   links:
     - db
+    - legacydb
     - cache
     - mongo
     - smtp

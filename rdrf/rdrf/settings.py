@@ -45,6 +45,14 @@ DATABASES = {
         'PASSWORD': env.get("dbpass", "rdrf"),                  # Not used with sqlite3.
         'HOST': env.get("dbserver", ""),                        # Set to empty string for localhost. Not used with sqlite3.
         'PORT': env.get("dbport", ""),                          # Set to empty string for default. Not used with sqlite3.
+    },
+    'legacydb': {
+        'ENGINE': env.get_db_engine("dbtype", "pgsql"),
+        'NAME': "legacyrdrf",
+        'USER': "legacyrdrf",
+        'PASSWORD': "legacyrdrf",
+        'HOST': "legacydb",
+        'PORT': "5432",
     }
 }
 
