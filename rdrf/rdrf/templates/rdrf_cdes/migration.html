@@ -1,4 +1,70 @@
-Migration
+<!DOCTYPE html>
+<html>
 
-<br>
-{{legacy}}
+<head>
+    <title>Migration</title>
+    
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+
+<body>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <table>
+        <tr><td>RDRF YAML file</td><td><input type="file" name="rdrf_yaml" id="rdrf_yaml"></td></tr>
+        <tr><td>Legacy JSON file</td><td><input type="file" name="legacy_json" id="legacy_json"></td></tr>
+    </table>
+    
+    <input type="submit" value="Load"><br><br>
+    
+    {% if rdrf and legacy %}
+        <table>
+        
+            <thead>
+                <tr>
+                    <td><strong>RDRF</strong></td>
+                    <td><strong>Legacy</strong></td>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% for form in rdrf.forms %}
+                    {% with form_name=form.name %}
+                        {% for section in form.sections %}
+                            {% with section_code=section.code section_name=section.display_name %}
+                                {% for cde in section.elements %}
+                                    <tr>
+                                        <td>
+                                            <input id="{{form_name}}__{{section_code}}__{{cde}}__rdrf" name="{{form_name}}__{{section_code}}__{{cde}}__rdrf" readonly=true type="text" size="100" value="{{form_name}}__{{section_code}}__{{cde}}">
+                                        </td>
+                                        <td>
+                                            <select id="{{form_name}}__{{section_code}}__{{cde}}__legacy" name="{{form_name}}__{{section_code}}__{{cde}}__legacy">
+                                            {% for l in legacy %}
+                                                {% for model, fields in l.items %}
+                                                    {% for f in fields %}
+                                                        <option id="{{model}}-{{f}}">
+                                                            {{model}}.{{ f }}
+                                                        </option>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            {% endfor %}
+                                            </select>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endwith %}
+                        {% endfor %}
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        
+        </table>
+    
+        <input type="submit" value="Lock and load">
+    {% endif %}
+
+</form>
+
+</body>
