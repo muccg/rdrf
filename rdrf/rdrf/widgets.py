@@ -355,3 +355,77 @@ class ReadOnlySelect(widgets.Select):
             return """<span class="label label-default">%s</span>""" % option_display_text
         else:
             return html
+
+
+class GenericValidatorWidget(widgets.TextInput):
+    """
+    presents a  textbox with a tick or cross ( valid/invalid)
+    As the input is typed , an rpc call ( subclass ) is made to the server
+    the result is checked and if the answer is valid , a tick
+    is shown else a cross ( tne default )
+    NB incomplete 21/04/2015
+    """
+    RPC_COMMAND_NAME = ""  # Subclass Responsibility
+
+    def render(self, name, value, attrs):
+        text_box_html = super(GenericValidatorWidget, self).render(name, value, attrs)
+        validity_indicator_html = self._validation_indicator_html(self._validation_indicator_id(attrs['id']))
+        script_html = self._create_script(name, value, attrs)
+        return text_box_html + validity_indicator_html + script_html
+
+    def _create_script(self, name, value, attrs):
+        id = attrs['id']
+        validation_id = self._validation_indicator_id(attrs['id'])
+        rpc_endpoint = reverse_lazy("rpc")
+        return """
+            <script>
+                $(document).ready(function() {
+                        (function() { // closure
+                            var indicatorId = "{3}";
+
+                            function showTick() {
+                                $("#" + indicatorId).text("glyphicon glyphicon-ok");
+                            }
+                            function showCross() {
+                                 $("#" + indicatorId).text("glyphicon glyphicon-remove");
+                            }
+                            $("#{0}").change(function () {
+                                    var csrfToken = "{% csrf_token %}";
+                                    var rpc = new RPC("{1}", csrfToken);
+                                    rpc.send("{2}", [$(this).val()], function (response) {
+                                        var isValid = response.result;
+                                        if (isValid) {
+                                            showTick();
+                                        }
+                                        else {
+                                            showCross();
+                                        }
+                                    }); // send
+                            }); // change
+                        })(); // closure
+                }); // ready
+            </script>
+            """.format(id, rpc_endpoint, self.RPC_COMMAND_NAME, validation_id)
+
+    def _validation_indicator_html(id):
+        return """<span id="{0}" class="glyphicon-class">glyphicon glyphicon-remove</span>""".format(id)
+
+    def _validation_indicator_id(self, control_id):
+        return "validation_indicator_for_%s" % control_id
+
+
+class DMDDNAVariationValidator(GenericValidatorWidget):
+    RPC_COMMAND_NAME = "dmd_validate_dna_variation"
+
+
+class DMDRNAValidator(GenericValidatorWidget):
+    RPC_COMMAND_NAME = "dmd_validate_rna"
+
+
+class DMDProteinValidator(GenericValidatorWidget):
+    RPC_COMMAND_NAME = "dmd_validate_protein"
+
+
+class DMDExonValidator(GenericValidatorWidget):
+    RPC_COMMAND_NAME = "dmd_validate_exon"
+
