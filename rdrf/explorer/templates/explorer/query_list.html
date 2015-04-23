@@ -22,7 +22,12 @@
                 </td>
                 <td>
                     {% if request.user.is_superuser %}
-                        <a href="{% url 'explorer_query_delete' object.id %}"><i class="glyphicon glyphicon-trash" style="font-size: 18px;"></i></a>
+                        <i class="glyphicon glyphicon-trash" style="font-size: 18px;" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
+                        <div style="display: none;" id="confirm_{{object.id}}">
+                            Are you sure?
+                            <a href="{% url 'explorer_query_delete' object.id %}">Yes</a> | 
+                            <a onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
+                        </div>
                     {% else %}
                         N/A
                     {% endif %}
