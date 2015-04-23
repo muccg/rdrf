@@ -51,6 +51,7 @@ class NewQueryView(LoginRequiredMixin, View):
         if query_form.is_valid():
             m = query_form.save(commit=False)
             m.save()
+            query_form.save_m2m()
             return redirect(m)
         return HttpResponse()
 
