@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+{% load staticfiles %}
+    
+<html>
+    <head>
+        <title>RDRF Reporting Tool</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
+        <link rel="stylesheet" href="{% static 'css/explorer.css' %}">
+        
+        <script src="{% static 'js/jquery.cookies.js' %}"></script>
+    </head>
+    
+    <body>
+        
+        <nav class="navbar navbar-inverse" role="navigation">
+            <div class="container">
+                <p class="navbar-brand" href="explorer">RDRF Reporting Tool <sup>{{version}}</sup></p>
+                <ul class="nav navbar-nav">
+                    <li><a href="{% url 'explorer_main' %}">List</a></li>
+                    <li><a href="{% url 'explorer_new' %}">New</a></li>
+                </ul>
+
+                {% if status %}
+                    <p class="navbar-text pull-right"><b><font color="green">Connected</font></p>
+                {% else %}
+                    <p class="navbar-text pull-right"><b><font color="red">Not connected</font></b></p>
+                {% endif%}
+            </div>
+        </nav>
+        
+        <div class="container">
+            <div class="alert alert-danger" id="response_error" style="display: none;"></div>
+            {% if success_msg %}
+                <div class="alert alert-success">{{success_msg}}</div>
+            {% endif %}
+    
+            {% if error_msg %}
+                <div class="alert alert-danger">{{error_msg}}</div>
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <div id="footer">
+            <div class="container">
+                <h6 class="text-muted">Project developed at <a href="http://ccg.murdoch.edu.au" target="_blank">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>
+            </div>
+        </div>
+        
+        <script>
+            $(document).ready(function() {
+                if('{{form.mongo_search_type.value}}' == 'F') {
+                    $("#mongo-parameters-aggregation").hide();
+                } else {
+                    $("#mongo-parameters-find").hide();
+                }
+                
+                $("#query-error").hide();
+    
+                $("#registry-option").change(function(){
+                    $("#database").val(this.value);
+                });
+                
+                $("#id_mongo_search_type").change(function() {
+                    $("#mongo-parameters-aggregation").toggle();
+                    $("#mongo-parameters-find").toggle();
+                });
+
+                $('#submit-query').click(function() {
+                    $('#results-head').empty();
+                    $('#results-body').empty();
+                    $.post('', $("#query-form").serialize())
+                        .error(function(xhr, textStatus, error) { 
+                            $("#response_error").text(textStatus);
+                            $("#response_error").fadeIn().delay(3000).fadeOut();
+                        })
+                        .done(function( data ) {
+                            var response = jQuery.parseJSON(data);
+                            if ($.isEmptyObject(response)) {
+                                $("#response_error").text("No results");
+                                $("#response_error").fadeIn().delay(3000).fadeOut();
+                                return;
+                            }
+                            
+                            $('#results-head').empty();
+                            $('#results-body').empty();
+
+                            $.each(response[0], function(key, value) {
+                                $('#results-head').append($("<th></th>").text(key));
+                            });
+                            
+                            $.each(response, function(key, value) {
+                                var row = $('<tr></tr>');
+                                $.each(value, function(key, value) {
+                                    if (value instanceof Array) {
+                                        
+                                    }
+                                    row.append($('<td></td>').text(value));
+                                });
+                                $('#results-body').append(row);
+                        });
+                    });
+                });
+
+                $('#hide-form-btn').click(function() {
+                    $('#query-form-table').toggle("blind", function() {
+                        if($('#query-form-table').is( ":visible" )) {
+                            $('#hide-form-btn').html('Hide form');
+                        } else {
+                            $('#hide-form-btn').html('Show form');
+                        }
+                    });
+                });
+                
+                $('#hide-description-btn').click(function() {
+                    $('#query-description').toggle("blind", function() {
+                        if($('#query-description').is( ":visible" )) {
+                            $('#hide-description-btn').html('Hide description');
+                        } else {
+                            $('#hide-description-btn').html('Show description');
+                        }
+                    });
+                });
+                
+                $('#sql-submit-query').click(function(){
+                    $("#query-error").hide("blind");
+                    $.ajax({
+                        url: "{% url 'explorer_sql_query' %}",
+                        type: "POST",
+                        data: {
+                            'sql_query': $('#sql_query').val(),
+                            'registry': $('#id_registry').val()
+                        },
+                        headers: {
+                            'X-CSRFToken': $.cookie('{{ csrf_token_name }}')
+                        },
+                        success: function(data) {
+                            response = jQuery.parseJSON(data);
+                            if ("error_msg" in response) {
+                                $('#query-result-count').empty();
+                                $("#query-error").show('blind');
+                                $("#query-error").html(response['error_msg']);
+                            } else {
+                                $('#query-result-count').empty();
+                                $('#query-result-count').html("Valid query | <strong>" + response.length + "</strong> record(s) found");
+                            }
+                        }
+                    });
+                });
+            });
+        </script>
+
+    </body>
+</html>

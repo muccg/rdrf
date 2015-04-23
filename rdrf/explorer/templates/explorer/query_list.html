@@ -1,0 +1,34 @@
+{% extends "explorer/base.html" %}
+
+{% block content %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="col-md-3">Query</th>
+                <th class="col-md-3">Download</th>
+                <th class="col-md-3">Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for object in object_list %}
+            <tr>
+                {% if request.user.is_superuser %}
+                    <td><a href="{% url 'explorer_query' object.id %}">{{ object }}</a></td>
+                {% else %}
+                    <td>{{object}}</td>
+                {% endif %}
+                <td>
+                    <a href="{% url 'explorer_query_download' object.id %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                </td>
+                <td>
+                    {% if request.user.is_superuser %}
+                        <a href="{% url 'explorer_query_delete' object.id %}"><i class="glyphicon glyphicon-trash" style="font-size: 18px;"></i></a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

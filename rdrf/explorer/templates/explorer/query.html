@@ -1,0 +1,113 @@
+{% extends "explorer/base.html" %}
+
+{% block content %}    
+{{form.errors}}
+    <form name='query-form' id='query-form' class="form" method='post'>
+        {% csrf_token %}
+        <input type="hidden" name="collection" id="collection" value="cdes">
+        <input type="hidden" value="{{request.user}}" id="created_by" name="created_by">
+    
+        <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">Hide description</button>
+        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+
+        <div class="pull-right">
+            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">Validate SQL</button>
+            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">Run</button>
+        </div>
+
+        <div id="query-description">
+            <hr>
+            <div class="form-group" style="margin-top: 30px;">
+                <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
+            </div>
+            
+            <div class="form-group">
+                <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value}}</textarea>
+            </div>
+        </div>
+        
+        <div id="query-form-table">        
+            <hr/>
+    
+            <div class="row">
+                <div class="col-md-12">    
+                    <div class="form-group">
+                        <label for="registry">Registry</label>
+                            {{form.registry}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">    
+                    <div class="form-group">
+                        <label for="registry">Access</label>
+                            {{form.access_group}}
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="col-md-12">    
+                    <div class="form-group">
+                        <label for="mongo_search_type">Mongo Search Type</label>
+                            {{form.mongo_search_type}}
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-danger" id="query-error">
+                    
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div>
+                        <textarea placeholder="Patient SQL query" class="form-control" rows="15" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
+                        <div class="pull-left" id="query-result-count" style="color: green;">
+                        </div>
+                    </div>    
+                </div>
+                <div class="col-md-12">
+                    <table class="table">
+                        <thead>
+                            <tr id='query-result-head'></tr>
+                        </thead>
+                        <tbody id='query-result-body' class="table-hover ">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    
+            <div class="row" id="mongo-parameters-find">
+                <div class="col-md-6">
+                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
+                </div>
+            </div>
+            
+            <div class="row" id="mongo-parameters-aggregation">
+                <div class="col-md-12">
+                    <textarea class="form-control" cols="40" id="aggregation" name="aggregation" rows="10">{{form.aggregation.value}}</textarea>
+                </div>
+            </div>
+
+        </div>
+        
+    </form>
+    
+    <hr>
+
+    <table class="table">
+        <thead>
+            <tr id='results-head'></tr>
+        </thead>
+        <tbody id='results-body' class="table-hover ">
+        </tbody>
+    </table>
+    
+{% endblock %}

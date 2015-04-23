@@ -85,6 +85,12 @@ class CustomUser(AbstractUser):
         except Group.DoesNotExist:
             return False
 
+    def get_groups(self):
+        return self.groups.all()
+
+    def get_working_groups(self):
+        return self.working_groups.all()
+
     def get_registries(self):
         return self.registry.all()
 
