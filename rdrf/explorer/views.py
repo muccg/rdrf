@@ -34,9 +34,18 @@ class LoginRequiredMixin(object):
 class MainView(LoginRequiredMixin, View):
 
     def get(self, request):
+        user = request.user
+        
+        reports = None
+        
+        if user.is_superuser:
+            reports = Query.objects.all()
+        elif user.is_curator:
+            reports = Query.objects.filter(registry__in = [reg.id for reg in user.get_registries()]).filter(access_group__in = [g.id for g in user.get_groups()])
+    
         return render_to_response(
             'explorer/query_list.html',
-            {'object_list': Query.objects.all()},
+            {'object_list': reports},
             _get_default_params(request, None))
 
 
