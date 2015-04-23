@@ -28,7 +28,9 @@
                 <p class="navbar-brand" href="explorer">RDRF Reporting Tool <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
                     <li><a href="{% url 'explorer_main' %}">List</a></li>
-                    <li><a href="{% url 'explorer_new' %}">New</a></li>
+                    {% if request.user.is_superuser %}
+                        <li><a href="{% url 'explorer_new' %}">New</a></li>
+                    {% endif %}
                 </ul>
 
                 {% if status %}
