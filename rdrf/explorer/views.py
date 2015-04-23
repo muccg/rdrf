@@ -3,6 +3,7 @@ from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
+from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -52,10 +53,16 @@ class MainView(LoginRequiredMixin, View):
 class NewQueryView(LoginRequiredMixin, View):
 
     def get(self, request):
+        if not request.user.is_superuser:
+            raise PermissionDenied()
+
         params = _get_default_params(request, QueryForm)
         return render_to_response('explorer/query.html', params)
 
     def post(self, request):
+        if not request.user.is_superuser:
+            raise PermissionDenied()
+
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
             m = query_form.save(commit=False)
@@ -68,6 +75,9 @@ class NewQueryView(LoginRequiredMixin, View):
 class DeleteQueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
+        if not request.user.is_superuser:
+            raise PermissionDenied()    
+    
         query_model = Query.objects.get(id=query_id)
         query_model.delete()
         return redirect('explorer_main')
