@@ -1,0 +1,51 @@
+{% extends "explorer/base.html" %}
+
+{% block content %}
+    <script>
+        $(document).ready(function() {
+            $('input[id*=date_]').each(function() {
+                $(this).prop('readonly', true);
+                $(this).datepicker({
+                    "dateFormat": "yy-mm-dd"
+                });
+            })
+        });
+    </script>
+
+    <blockquote>
+        <p>Required parameters for <i>{{form.title.value}}</i> report</p>
+    </blockquote>
+    {{user_curator}}
+    <form name="params-form" class="form-horizontal" method="post">
+        {% csrf_token %}
+        {% for param in query_params %}
+            <div class="form-group">
+                <label for="id_{{param}}" class="col-sm-2 control-label">{{param|capfirst}}</label>
+                <div class="col-sm-10">
+                    {% if param = 'registry' %}
+                        <select id="id_{{param}}" name="{{param}}" class="form-control">
+                            <option value=-1>...</option>
+                            {% for reg in registry %}
+                                <option value={{reg.id}}>{{reg.name}}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif param = 'working_group' %}
+                        <select id="id_{{param}}" name="{{param}}" class="form-control">
+                            <option value=-1>...</option>
+                            {% for wg in working_group %}
+                                <option value={{wg.id}}>{{wg.name}}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="text" id="id_{{param}}" name="{{param}}" class="form-control">
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button class="btn btn-success" type="submit">Download</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

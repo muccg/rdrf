@@ -11,15 +11,13 @@
       <title>{% trans "Rare Disease Registry Framework" %}</title>
 
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-      <!--<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>-->
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-      <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
 
+      <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
       
       {% block extrastyle %}
@@ -30,27 +28,38 @@
 
 
 <div id="wrap">
-
-    <div id="header" class="header">
-      {% block header%}
-	  <div id="branding" class="branding">
-	      <h1 id="site-name">{% trans "Rare Disease Registry Framework" %}</h1>
-	  </div>
-	  
-	  <div id="user-tools">
-      {% if request.user.is_authenticated %}
-        Hello {{ request.user.username }} |
-        {% if is_admin %}
-            <a href="{% url 'admin:index' %}">Admin Page</a> |
-        {% endif %}
-            <a href="{% url 'logout' %}?next={{request.path}}" >Logout</a>
-        {% else %}
-            <a href="{% url 'login' %}?next={% url 'login_router' %}">Log in</a>
-        {% endif %}
-        | <a href="{% url 'password_reset' %}">Password Reset</a>
-	  </div>
-        {% endblock%}
-    </div>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">{% trans "Rare Disease Registry Framework" %}</a>
+        </div>
+    
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            {% if request.user.is_authenticated %}
+                {% if not request.user.is_patient %}
+                    <li><a href="{% url 'reports' %}"><span class="glyphicon glyphicon-list-alt"></span> Reports</a></li>
+                {% endif %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    <span class="glyphicon glyphicon-home"></span> {{ request.user.first_name }} {{ request.user.last_name }} <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    {% if is_admin %}
+                        <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span> Admin Page</a></li>
+                        <li class="divider"></li>
+                    {% endif %}
+                    <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> Password Reset</a></li>
+                    <li><a href="{% url 'logout' %}?next={{request.path}}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                  </ul>
+                </li>
+            {% else %}
+                <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> Log in</a></li>
+            {% endif %}
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
 
     <div class="container">
 	{% if messages %}

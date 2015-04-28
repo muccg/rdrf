@@ -31,6 +31,14 @@ from registry.groups.models import WorkingGroup
 logger = logging.getLogger("registry_log")
 
 
+class LoginRequiredMixin(object):
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(
+            request, *args, **kwargs)
+
+
 class FormLink(object):
 
     def __init__(self, patient_id, registry, registry_form, selected=False):
@@ -1356,13 +1364,13 @@ class AdjudicationResultsView(View):
         return actions
 
 
-class PatientsListingView(View):
+class PatientsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
         #tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': 'patient', "api_name": "v1", "pk": self.injected_model_id})
         context = {}
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/patients.html', context)
+        return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
 
 
 class BootGridApi(View):
