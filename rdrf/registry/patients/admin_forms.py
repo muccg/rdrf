@@ -166,6 +166,8 @@ class PatientAddressForm(forms.ModelForm):
     state = forms.ComboField(widget=StateWidget(attrs={'default': 'AU-WA'}))
 
 
+
+
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {
@@ -194,6 +196,9 @@ class PatientForm(forms.ModelForm):
     def _get_registry_specific_data(self, patient_model):
         mongo_wrapper = DynamicDataWrapper(patient_model)
         return mongo_wrapper.load_registry_specific_data()
+
+    def _add_consent_sections(self, patient_model):
+        pass
 
     consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
     consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
@@ -226,6 +231,14 @@ class PatientForm(forms.ModelForm):
         self._check_working_groups(cleaneddata)
 
         return super(PatientForm, self).clean()
+
+    def _add_custom_consent_fields(self, patient_model):
+        for registry_model in patient_model.rdrf_registry.all():
+            for consent in registry_model.consents:
+                if consent.applicable_to(patient):
+                    consent_field_name, consent_field = self._create_consent_field(consent)
+                    self.fields[consent_field_name] = consent_field
+
 
     def _check_working_groups(self, cleaned_data):
         working_group_data = {}

@@ -338,6 +338,7 @@ class Registry(models.Model):
 
         return s
 
+
     @structure.setter
     def structure(self, new_structure):
         """
@@ -1275,3 +1276,42 @@ class Notification(models.Model):
     message = models.TextField()
     link = models.CharField(max_length=100, default="")
     seen = models.BooleanField(default=False)
+
+
+class ConsentSection(models.Model):
+    section_label = models.CharField(max_length=100)
+    registry = models.ForeignKey(Registry, related_name="consent_sections")
+    information_link = models.CharField(max_length=100)
+    applicability_condition = models.TextField()  # eg "patient.age > 6 and patient.age" < 10
+
+    def applicable_to(self, patient):
+        if not patient.in_registry(self.registry):
+            return False
+        else:
+            function_context = { "patient": patient}
+            return eval(self.applicability_condition, {"__builtins__": None}, function_context)
+
+    @property
+    def form_info(self):
+        from django.forms import BooleanField
+        info = {}
+        info["section_label"] = "%s %s" % (self.registry.code, self.section_label)
+        info["information_link"] = self.information_link
+        consent_fields = []
+        for consent_question_model in self.questions.all().order_by("position"):
+            consent_fields.append(BooleanField(label=consent_question_model.question_label))
+        info["consent_fields"] = consent_fields
+        return info
+
+
+class ConsentQuestion(models.Model):
+    code = models.CharField(max_length=20) # used in patient consent json
+    position = models.IntegerField()
+    section = models.ForeignKey(ConsentSection, related_name="questions")
+    question_label = models.CharField(max_length=100)
+
+
+
+
+
+

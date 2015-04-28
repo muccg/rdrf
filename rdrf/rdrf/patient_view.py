@@ -47,7 +47,7 @@ class PatientView(View):
                 forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
                 context['forms'] = forms
             except RegistryForm.DoesNotExist:
-                logger.error("No questionnaire for %s reistry" % registry_code)
+                logger.error("No questionnaire for %s registry" % registry_code)
 
             if request.user.is_patient:
                 try:
