@@ -1285,10 +1285,14 @@ class ConsentSection(models.Model):
     applicability_condition = models.TextField()  # eg "patient.age > 6 and patient.age" < 10
 
     def applicable_to(self, patient):
-        if not patient.in_registry(self.registry):
+        print "checking applicability .."
+        if not patient.in_registry(self.registry.code):
+            print "patient not in registry - so False"
             return False
         else:
             function_context = { "patient": patient}
+            print function_context
+
             return eval(self.applicability_condition, {"__builtins__": None}, function_context)
 
     @property
