@@ -128,8 +128,8 @@ class Retriever(object):
 
 class BaseMultiSectionHandler(object):
     MODEL_NAME = ""             # subclass resp
-    PATIENT_KEY = "patient"     # always true?
-    DIAGNOSIS_KEY = "diagnosis"
+    PATIENT_LINK = "patient"     # always true?
+    DIAGNOSIS_LINK = "diagnosis"
     FORM_MODEL = None           # subclass - rdrf form model instance
     SECTION_MODEL = None        # subclass - rdrf section model instance
     FIELD_MAP = {}              # subclass resp map of old fields dump file to cde models in RDRF
@@ -139,17 +139,21 @@ class BaseMultiSectionHandler(object):
         self.app = app
         self.importer = importer
         self.code = mapkey(self.FORM_MODEL, self.SECTION_MODEL)
+        self.patient_id = None
+        self.diagnosis_id = None
+
 
     def __call__(self, patient_id, rdrf_patient):
         # The model objects which RDRF represents as multisections
         # are related to diagnosis objects in the old system as objects themselves
+        self.patient_id = patient_id
         original_models = []
         converted_sections = []
-        diagnosis_id = self.get_diagnosis_id(patient_id)
+        self.diagnosis_id = self.get_diagnosis_id(patient_id)
         # find the list of models which are now represented as multisections
 
         for old_model in self.importer._old_models(self.MODEL_NAME):
-            if old_model["fields"][self.DIAGNOSIS_KEY] == diagnosis_id:
+            if self.is_appropriate_model(old_model):
                 self.importer.msg("found a model for multisection: %s" % old_model)
                 original_models.append(old_model)
                 self.importer.msg("found %s so far" % len(original_models))
@@ -161,6 +165,9 @@ class BaseMultiSectionHandler(object):
             converted_sections.append(mongo_section_item)
 
         self._save_multisection_to_mongo(rdrf_patient, converted_sections)
+
+    def is_appropriate_model(self, old_model):
+        return old_model["fields"][self.DIAGNOSIS_LINK] == self.diagnosis_id
 
     def get_diagnosis_id(self, patient_id):
         diagnosis_model_name = self.app + "." + "diagnosis"
@@ -193,25 +200,24 @@ class BaseMultiSectionHandler(object):
         #  u'Clinical Diagnoses____NMDClinicalTrials____NMDTrialPhase': u'p2'}
         d = {}
 
-
         for old_field in self.FIELD_MAP:
             self.importer.msg("converting old field %s in multisection" % old_field)
             cde_model = self.FIELD_MAP[old_field]
             old_value = old_section_data["fields"][old_field]
             self.importer.msg("old value = %s" % old_value)
-            new_value = self._convert_value(self.FORM_MODEL, self.SECTION_MODEL, cde_model, old_value)
+            new_value = self.convert_value(self.FORM_MODEL, self.SECTION_MODEL, cde_model, old_value)
             self.importer.msg("new value = %s" % new_value)
             mongo_field_key = "%s____%s____%s" % (self.FORM_MODEL.name, self.SECTION_MODEL.code, cde_model.code)
             d[mongo_field_key] = new_value
         return d
 
-    def _convert_value(self, form_model, section_model, cde_model, old_value):
+
+    def convert_value(self, form_model, section_model, cde_model, old_value):
         return self.importer.get_new_data_value(form_model, section_model, cde_model, old_value)
 
 
 class SMAFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.familymember"
-    DIAGNOSIS_LINK = "diagnosis"
     FORM_MODEL = frm("Clinical Diagnoses")
     SECTION_MODEL = sec("SMAFamilyMember")
 
@@ -224,16 +230,75 @@ class SMAFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     }
 
 
+class NMDOtherRegistriesMultiSectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "sma.otherregistries"
+    FORM_MODEL = frm("Clinical Diagnoses")
+    SECTION_MODEL = sec("NMDOtherRegistries")
+
+
 class NMDClinicalTrialsMultisectionHandler(BaseMultiSectionHandler):
-    MODEL_NAME = "sma.nmdclinicaltrials"
+    MODEL_NAME = "sma.clinicaltrials"
     DIAGNOSIS_LINK = "diagnosis"
     FORM_MODEL = frm("Clinical Diagnoses")
     SECTION_MODEL = sec("NMDClinicalTrials")
 
     FIELD_MAP = {
+        "trial_name": cde("NMDTrialName"),
+        "drug_name": cde("NMDDrugName"),
+        "trial_sponsor": cde("NMDTrialSponsor"),
+        "trial_phase": cde("NMDTrialPhase"),
+    }
 
+
+class NMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "sma.otherregistries"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm("Clinical Diagnoses")
+    SECTION_MODEL = sec("NMDOtherRegistries")
+
+    FIELD_MAP = {
+        "registry": cde("NMDOtherRegistry"),
 
     }
+
+
+class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "genetic.variationsma"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm("Genetic Data")
+    SECTION_MODEL = sec("SMAMolecular")
+
+    # SMAExon7Sequencing
+    # SMADNAVariation
+
+    #{"pk": 1, "model": "genetic.moleculardata", "fields": {}}, {"pk": 1, "model": "genetic.moleculardatasma", "fields": {}},
+    #  {"pk": 1, "model": "genetic.variationsma",
+    # "fields": {"exon_7_smn1_deletion": 2, "exon_7_sequencing": true,
+    # "technique": "MLPA", "molecular_data": 1,
+    # "dna_variation": "a", "gene": 18}},
+
+    FIELD_MAP = {
+        "gene": cde("NMDGene"),
+        "technique": cde("NMDTechnique"),
+        "exon_7_smn1_deletion": cde("SMAExon7Deletion"),
+        "exon_7_sequencing": cde("SMAExon7Sequencing"),
+        "dna_variation": cde("SMADNAVariation"),
+    }
+
+    def is_appropriate_model(self, old_model):
+        # in sma the patient is one to one with molecular data and the primary key is
+        # the patient id ?
+        return old_model["fields"]["molecular_data"] == self.patient_id
+
+    def convert_value(self, form_model, section_model, cde_model, old_value):
+        if cde_model.code == "NMDGene":
+            old_gene_model = self.importer.get_old_model("genetic.gene", lambda m: m["pk"] == old_value)
+            if old_gene_model is not None:
+                old_value = old_gene_model["fields"]["symbol"]
+            else:
+                raise ConversionError("old patient id = %s cde model %s Missing gene pk = %s" % (self.patient_id, cde_model, old_value))
+
+        return super(SMAMolecularMultisectionHandler, self).convert_value(form_model, section_model, cde_model, old_value)
 
 
 def moniker(old_patient_dict):
@@ -328,7 +393,10 @@ class PatientImporter(object):
                     if item["model"] == model_name:
                         yield item
 
-
+    def get_old_model(self, model_name, predicate):
+        for old_model in self._old_models(model_name):
+            if predicate(old_model):
+                return old_model
 
     def _prelude(self):
         self.msg("*********************************************************")
@@ -337,7 +405,6 @@ class PatientImporter(object):
     def _endrun(self):
         self.msg("MIGRATION FINISHED")
         self.msg("*********************************************************")
-
 
     def _get_state(self, name):
         return State.objects.get(short_name=name)
@@ -595,6 +662,12 @@ class PatientImporter(object):
 
         if multisection_model.code == "SMAFamilyMember":
             return SMAFamilyMemberMultisectionHandler(self, self.src_system, self._data)
+        elif multisection_model.code == "NMDClinicalTrials":
+            return NMDClinicalTrialsMultisectionHandler(self, self.src_system, self._data)
+        elif multisection_model.code == "NMDOtherRegistries":
+            return NMDOtherRegistriesMultisectionHandler(self, self.src_system, self._data)
+        elif multisection_model.code == "SMAMolecular":
+            return SMAMolecularMultisectionHandler(self, self.src_system, self._data)
 
 
         return None
@@ -698,6 +771,16 @@ SMA_SEX_CHOICES = (
      ("X", "Other/Intersex", "X")
 )
 
+
+SMA_SMN1_CHOICES = (
+        (1, 'Homozygous', "SMAHomozygous"),
+        (2, 'Heterozygous', "SMAHeterozygous"),
+        (3, 'No', "SMANo"),
+)
+
+# {"pk": 1, "model": "genetic.variationsma", "fields": {"exon_7_smn1_deletion": 2, "exon_7_se
+# quencing": true, "technique": "MLPA", "molecular_data": 1, "dna_variation": "a", "gene": 18}},
+
 choice_map = {
     "sma.motorfunction.best_function": SMA_MOTOR_FUNCTION_CHOICES,
     "sma.motorfunction.wheelchair_use": SMA_WHEELCHAIR_USE_CHOICES,
@@ -709,6 +792,7 @@ choice_map = {
     "sma.diagnosis.classification": SMA_CLASSIFICATION_CHOICES,
     "sma.familymember.family_member_diagnosis": SMA_DIAGNOSIS_CHOICES,
     "sma.familymember.sex": SMA_SEX_CHOICES,
+    "genetic.variationsma.exon_7_smn1_deletion": SMA_SMN1_CHOICES,
 }
 
 if __name__ == '__main__':
