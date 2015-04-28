@@ -42,16 +42,17 @@
                 return Math.floor((utc2 - utc1) / _MS_PER_DAY);
             }
 
-            $("#full_form").hide();
+            $("#parent_guardian_form").hide();
             $("#underage_msg").hide();
             $("#form-other-clinician").hide();
+            $("#parent_guardian_form_btn").hide();
             
             var registry_code = "{{registry_code}}"
             $('#id_password1').pwstrength({
                 ui: { showVerdictsInsideProgressBar: true }
             });
             
-            $("#id_date_of_birth").datepicker({
+            var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
                 'showAnim': 'blind',
                 'changeMonth': true,
@@ -59,6 +60,31 @@
                 'minDate': '-100Y',
                 'maxDate': '0',
                 'yearRange': '-100:+0'
+            }
+            
+            $("#id_date_of_birth").datepicker(dateOptions);
+            $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
+            
+            $("#parent_guardian_check").click(function() {
+                if($(this).prop("checked")) {
+                    $("#parent_guardian_form").show();
+                    $("#patient_form").hide();
+                    $("#parent_guardian_form_btn").show();
+                } else {
+                    $("#parent_guardian_form").hide();
+                    $("#patient_form").show();
+                    $("#parent_guardian_form_btn").hide();
+                }
+            });
+            
+            $("#patient_form_btn").click(function() {
+                $("#patient_form").show();
+                $("#parent_guardian_form").hide();
+            });
+            
+            $("#parent_guardian_form_btn").click(function() {
+                $("#patient_form").hide();
+                $("#parent_guardian_form").show();
             });
             
             $.get("{% url 'clinician_lookup' %}", { 'registry_code': registry_code }, function(data) {
@@ -86,14 +112,17 @@
             });
             **/
             $("#id_date_of_birth").change(function() {
+                if ($("#parent_guardian_check").prop("checked")) {
+                    return;
+                }
                 date_str = $("#id_date_of_birth").val();
                 dob = new Date(date_str);
                 if (dateDiffInYears(new Date(),dob) >= 18 ) {
                     $("#underage_msg").hide("blind");
-                    $("#full_form").show("blind");
+                    $("#patient_form").show("blind");
                 } else {
-                    $("#underage_msg").show("blind");
-                    $("#full_form").hide("blind");
+                    $("#underage_msg").show();
+                    $("#patient_form").hide();
                 }
             });            
         });    
@@ -124,21 +153,70 @@
                     <input id="id_email" name="email" type="hidden" />
                     
                     <div class="form-group">
-                        <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
+                        <label><input type="checkbox" name="parent_guardian_check" id="parent_guardian_check"> I am a Parent/Guardian</label>
                     </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" required />
-                    </div>
-                    <div class="form-group">
-                        <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" required />
-                    </div>
-                    <div class="form-group">
-                        <div class="radio">
-                            <label><input type="radio" id="id_gender" name="gender" value="M">Male</label>
-                            <label><input type="radio" id="id_gender" name="gender" value="F">Female</label>
+                    
+                    <div id="parent_guardian_form">
+                        <div class="form-group top-separator">
+                            <input class="form-control" placeholder="Parent/Guardian First Name" id="id_parent_guardian_first_name" maxlength="30" name="parent_guardian_first_name" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Surname" id="id_parent_guardian_last_name" maxlength="30" name="parent_guardian_last_name" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Date of birth" id="id_parent_guardian_date_of_birth" name="parent_guardian_date_of_birth" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <div class="radio">
+                                <label><input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M">Male</label>
+                                <label><input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="F">Female</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Suburb/Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian State" id="id_parent_guardian_state" maxlength="30" name="parent_guardian_state" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Postcode" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
+                                <option value="-1">Country</option>
+                                {% countries as countries %}
+                                {% for con in countries %}
+                                    <option value="{{con.alpha2}}">{{con.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info" id="patient_form_btn">
+                                Patient Details <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+                            </button>
                         </div>
                     </div>
-                    <div id="full_form">
+
+                    <div id="patient_form">
+                        <div class="form-group top-separator">
+                            <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Date of birth" id="id_date_of_birth" name="date_of_birth" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <div class="radio">
+                                <label><input type="radio" id="id_gender" name="gender" value="M">Male</label>
+                                <label><input type="radio" id="id_gender" name="gender" value="F">Female</label>
+                            </div>
+                        </div>
+
                         <div class="form-group top-separator">
                             <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
                         </div>
@@ -190,6 +268,13 @@
                         <div class="form-group">
                             <input class="form-control" placeholder="Repeat password" id="id_password2" name="password2" type="password" required />
                         </div>
+                        
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info" id="parent_guardian_form_btn">
+                                <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Parent / Guardian Details
+                            </button>
+                        </div>
+                        
                         <div class="form-group">
                             <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
                         </div>

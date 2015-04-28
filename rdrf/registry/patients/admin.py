@@ -495,10 +495,24 @@ class AddressTypeAdmin(admin.ModelAdmin):
     list_display = ('type', 'description')
 
 
+class ParentGuardianAdmin(admin.ModelAdmin):
+    model = ParentGuardian
+    list_display = ('first_name', 'last_name', 'patients')
+    
+    def patients(self, obj):
+        patients_string = ""
+        patients = [p for p in obj.patient.all()]
+        for patient in patients:
+            patients_string += "%s %s<br>" % (patient.given_names, patient.family_name)
+        return patients_string
+    
+    patients.allow_tags = True
+
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
+admin.site.register(ParentGuardian, ParentGuardianAdmin)
 
 admin.site.disable_action('delete_selected')

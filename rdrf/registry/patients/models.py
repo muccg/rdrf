@@ -342,6 +342,21 @@ class Patient(models.Model):
         )
 
 
+class ParentGuardian(models.Model):
+    GENDER_CHOICES = (("M", "Male"), ("F", "Female"))
+    
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
+    date_of_birth = models.DateField()
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    address = models.TextField()
+    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=20)
+    patient = models.ManyToManyField(Patient)
+
+
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)

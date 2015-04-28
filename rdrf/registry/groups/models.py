@@ -98,7 +98,7 @@ class CustomUser(AbstractUser):
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
-    from registry.patients.models import Patient, PatientAddress, AddressType
+    from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian
 
     user.first_name = request.POST['first_name']
     user.last_name = request.POST['surname']
@@ -147,6 +147,22 @@ def user_registered_callback(sender, user, request, **kwargs):
         postcode = request.POST["postcode"],
         country = request.POST["country"]
     ).save()
+
+    if request.POST.has_key("parent_guardian_check"):
+        parent_guardian = ParentGuardian.objects.create(
+            first_name = request.POST["parent_guardian_first_name"],
+            last_name = request.POST["parent_guardian_last_name"],
+            date_of_birth = request.POST["parent_guardian_date_of_birth"],
+            gender = request.POST["parent_guardian_gender"],
+            address = request.POST["parent_guardian_address"],
+            suburb = request.POST["parent_guardian_suburb"],
+            state = request.POST["parent_guardian_state"],
+            postcode = request.POST["parent_guardian_postcode"],
+            country = request.POST["parent_guardian_country"]
+        )
+        parent_guardian.patient.add(patient)
+        parent_guardian.save()
+
 
 def _get_registry_object(registry_name):
     try:
