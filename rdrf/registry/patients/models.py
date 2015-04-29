@@ -286,6 +286,21 @@ class Patient(models.Model):
             else:
                 return False
 
+    @property
+    def has_guardian(self):
+        return ParentGuardian.objects.filter(patient=self).count() > 0
+
+    @property
+    def combined_name(self):
+        if self.has_guardian:
+            guardians = [pg for pg in ParentGuardian.objects.filter(patient=self)]
+            g = guardians[0]
+            name = "%s on behalf of %s" % (g, self)
+            return name
+        else:
+            return "%s" % self
+
+
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
