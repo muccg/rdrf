@@ -339,7 +339,7 @@ class ConsentQuestionAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {'fields': ('code', 'position', 'question_label')}),
+        (None, {'fields': ('position', 'question_label')}),
     )
 
 class ConsentSectionAdmin(admin.ModelAdmin):
