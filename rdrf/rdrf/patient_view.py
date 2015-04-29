@@ -44,8 +44,15 @@ class PatientView(View):
                 logger.error("Registry %s does not exist" % registry_code)
 
             try:
-                forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
-                context['forms'] = forms
+                #forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
+                forms = registry.forms
+                class FormLink(object):
+                    def __init__(self, form):
+                        self.form = form
+                        patient = Patient.objects.get(user=request.user)
+                        self.link = form.link(patient)
+
+                context['forms'] = [FormLink(form) for form in forms ]
             except RegistryForm.DoesNotExist:
                 logger.error("No questionnaire for %s registry" % registry_code)
 
@@ -180,7 +187,6 @@ class PatientEditView(View):
         # then add the remaining sections which are fixed
         patient_section_info = patient_form.get_all_consent_section_info(patient)
         patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
-
         
         form_sections = [
             (
