@@ -338,6 +338,7 @@ class Registry(models.Model):
 
         return s
 
+
     @structure.setter
     def structure(self, new_structure):
         """
@@ -1275,3 +1276,63 @@ class Notification(models.Model):
     message = models.TextField()
     link = models.CharField(max_length=100, default="")
     seen = models.BooleanField(default=False)
+
+
+class ConsentSection(models.Model):
+    code = models.CharField(max_length=20)
+    section_label = models.CharField(max_length=100)
+    registry = models.ForeignKey(Registry, related_name="consent_sections")
+    information_link = models.CharField(max_length=100)
+    applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
+
+    def applicable_to(self, patient):
+        print "checking applicability .."
+        if not patient.in_registry(self.registry.code):
+            return False
+        else:
+            # if no restriction return True
+            if not self.applicability_condition:
+                return True
+
+            function_context = {"patient": patient}
+
+            is_applicable = eval(self.applicability_condition, {"__builtins__": None}, function_context)
+
+            if is_applicable:
+                logger.debug("%s is spplicable to %s" % (self, patient))
+            else:
+                logger.debug("%s is NOT applicable to %s" % (self, patient))
+            return is_applicable
+
+    @property
+    def link(self):
+         return reverse('documents', args=(self.information_link,))
+
+    @property
+    def form_info(self):
+        from django.forms import BooleanField
+        info = {}
+        info["section_label"] = "%s %s" % (self.registry.code, self.section_label)
+        info["information_link"] = self.information_link
+        consent_fields = []
+        for consent_question_model in self.questions.all().order_by("position"):
+            consent_fields.append(BooleanField(label=consent_question_model.question_label))
+        info["consent_fields"] = consent_fields
+        return info
+
+
+class ConsentQuestion(models.Model):
+    code = models.CharField(max_length=20)
+    position = models.IntegerField(blank=True, null=True)
+    section = models.ForeignKey(ConsentSection, related_name="questions")
+    question_label = models.TextField()
+
+    def create_field(self):
+        from django.forms import BooleanField
+        return BooleanField(label=self.question_label, required=False)
+
+    @property
+    def field_key(self):
+        registry_model = self.section.registry
+        consent_section_model = self.section
+        return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)

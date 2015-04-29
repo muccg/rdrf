@@ -14,6 +14,9 @@ from models import Adjudication
 from models import CDEPermittedValueGroup
 from models import CommonDataElement
 from models import Section
+from models import ConsentSection
+from models import ConsentQuestion
+
 import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -331,6 +334,20 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('created', 'from_username', 'to_username', 'message')
 
 
+class ConsentQuestionAdmin(admin.StackedInline):
+    model = ConsentQuestion
+    extra = 0
+
+    fieldsets = (
+        (None, {'fields': ('position', 'code', 'question_label')}),
+    )
+
+
+class ConsentSectionAdmin(admin.ModelAdmin):
+    list_display = ('registry', 'section_label')
+    inlines = [ConsentQuestionAdmin]
+
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=[
@@ -342,6 +359,8 @@ admin.site.register(CommonDataElement, create_restricted_model_admin_class(Commo
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)
+
+admin.site.register(ConsentSection, ConsentSectionAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)

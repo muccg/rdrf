@@ -18,6 +18,7 @@ from rdrf.utils import mongo_db_name
 from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
+from rdrf.models import ConsentQuestion
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
 from django.db.models.signals import m2m_changed
@@ -240,6 +241,41 @@ class Patient(models.Model):
 
         return None
 
+    def set_consent(self, consent_model, answer=True, commit=True):
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        if consent_model.section.registry not in patient_registries:
+            return   # error?
+        cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
+        cv.answer = answer
+        if commit:
+            cv.save()
+        return cv
+
+    def get_consent(self, consent_model):
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        if consent_model.section.registry not in patient_registries:
+            return False    # ?
+        try:
+            cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)
+            return cv.answer
+        except ConsentValue.DoesNotExist:
+            return False    # ?
+
+
+    @property
+    def consent_questions_data(self):
+        d = {}
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            consent_question_model = consent_value.consent_question
+            d[consent_question_model.field_key] = consent_value.answer
+        return d
+
+    def clean_consents(self):
+        my_registries = [r for r in self.rdrf_registry.all() ]
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            if consent_value.consent_question.section.registry not in my_registries:
+                consent_value.delete()
+
     @property
     def is_index(self):
         if not self.in_registry("fh"):
@@ -438,6 +474,11 @@ def save_patient_mongo(sender, instance, **kwargs):
     _save_patient_mongo(patient_obj)
 
 
+@receiver(post_save, sender=Patient)
+def clean_consents(sender, instance, **kwargs):
+    instance.clean_consents()
+
+
 def _save_patient_mongo(patient_obj):
     client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
     patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
@@ -522,3 +563,12 @@ def registry_changed_on_patient(sender, **kwargs):
         run_hooks('registry_added', instance, registry_ids)
 
 
+
+
+class ConsentValue(models.Model):
+    patient = models.ForeignKey(Patient, related_name="consents")
+    consent_question = models.ForeignKey(ConsentQuestion)
+    answer = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)
