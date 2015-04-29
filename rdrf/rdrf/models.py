@@ -1279,6 +1279,7 @@ class Notification(models.Model):
 
 
 class ConsentSection(models.Model):
+    code = models.CharField(max_length=20)
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
     information_link = models.CharField(max_length=100)
@@ -1309,6 +1310,7 @@ class ConsentSection(models.Model):
 
 
 class ConsentQuestion(models.Model):
+    code = models.CharField(max_length=20)
     position = models.IntegerField()
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.CharField(max_length=100)
