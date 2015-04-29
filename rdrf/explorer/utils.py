@@ -9,7 +9,8 @@ from django.db import ProgrammingError
 from django.db import connection
 
 from models import Query
-from viewer import app_settings
+
+#from viewer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
 from models import Query
 from forms import QueryForm
