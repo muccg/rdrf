@@ -1305,6 +1305,10 @@ class ConsentSection(models.Model):
             return is_applicable
 
     @property
+    def link(self):
+         return reverse('documents', args=(self.information_link,))
+
+    @property
     def form_info(self):
         from django.forms import BooleanField
         info = {}
