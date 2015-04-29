@@ -227,7 +227,7 @@
                             <div class="panel panel-default">
                                 <div class="panel-heading"><strong>{{name}}</strong>
                                 {% with link=section|get_information_link %}
-                                {% with doc="/docs/"|add:link %}
+                                {% with doc="docs/"|add:link %}
                                     {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
                                 {% endwith %}
                                 {% endwith %}
