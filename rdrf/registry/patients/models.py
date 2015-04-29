@@ -18,6 +18,7 @@ from rdrf.utils import mongo_db_name
 from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
+from rdrf.models import ConsentQuestion
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
 from django.db.models.signals import m2m_changed
@@ -156,7 +157,6 @@ class Patient(models.Model):
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
     user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object")
-    consent_json = models.TextField(blank=True, null=True)
 
     @property
     def age(self):
@@ -241,50 +241,23 @@ class Patient(models.Model):
 
         return None
 
-    @property
-    def consent_info(self):
-        if not self.consent_json:
-            return {}
-
-        import json
-        return json.loads(self.consent_json)
-
-    @consent_info.setter
-    def consent_info(self, new_consent_info):
-        import json
-        self.consent_json = json.dumps(new_consent_info)
-
     def set_consent(self, consent_model, answer=False):
-        patient_registries = [ r for r in self.rdrf_registry.all()]
+        patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
             return   # error?
-
-        registry_code = consent_model.section.registry.code
-        section_code = consent_model.section.code
-        question_code = consent_model.code
-        consent_dict = self.consent_json    # deserialise old data
-        # update value in nested dict
-        if registry_code in consent_dict:
-            if section_code in consent_dict[registry_code]:
-                consent_dict[registry_code][section_code][question_code] = answer
-            else:
-                consent_dict[registry_code][section_code] = {question_code: answer}
-        else:
-            consent_dict[registry_code] = {section_code: {question_code: answer}}
-
-        self.consent_info = consent_dict
+        cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
+        cv.answer = answer
+        cv.save()
 
     def get_consent(self, consent_model):
-        reg_code = consent_model.section.registry.code
-        sec_code = consent_model.section.code
-        question_code = consent_model.code
-        consent_dict = self.consent_info
-        if reg_code in consent_dict:
-            if sec_code in consent_dict[reg_code]:
-                if question_code in consent_dict[reg_code][sec_code]:
-                    return consent_dict[reg_code][sec_code][question_code]
-        return False
-
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        if consent_model.section.registry not in patient_registries:
+            return False    # ?
+        try:
+            cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)
+            return cv.answer
+        except ConsentValue.DoesNotExist:
+            return False    # ?
 
 
     @property
@@ -569,3 +542,9 @@ def registry_changed_on_patient(sender, **kwargs):
         run_hooks('registry_added', instance, registry_ids)
 
 
+
+
+class ConsentValue(models.Model):
+    patient = models.ForeignKey(Patient, related_name="consents")
+    consent_question = models.ForeignKey(ConsentQuestion)
+    answer = models.BooleanField(default=False)
