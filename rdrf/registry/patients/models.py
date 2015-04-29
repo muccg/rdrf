@@ -241,13 +241,15 @@ class Patient(models.Model):
 
         return None
 
-    def set_consent(self, consent_model, answer=False):
+    def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
             return   # error?
         cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
         cv.answer = answer
-        cv.save()
+        if commit:
+            cv.save()
+        return cv
 
     def get_consent(self, consent_model):
         patient_registries = [r for r in self.rdrf_registry.all()]
@@ -259,6 +261,20 @@ class Patient(models.Model):
         except ConsentValue.DoesNotExist:
             return False    # ?
 
+
+    @property
+    def consent_questions_data(self):
+        d = {}
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            consent_question_model = consent_value.consent_question
+            d[consent_question_model.field_key] = consent_value.answer
+        return d
+
+    def clean_consents(self):
+        my_registries = [r for r in self.rdrf_registry.all() ]
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            if consent_value.consent_question.section.registry not in my_registries:
+                consent_value.delete()
 
     @property
     def is_index(self):
@@ -458,6 +474,11 @@ def save_patient_mongo(sender, instance, **kwargs):
     _save_patient_mongo(patient_obj)
 
 
+@receiver(post_save, sender=Patient)
+def clean_consents(sender, instance, **kwargs):
+    instance.clean_consents()
+
+
 def _save_patient_mongo(patient_obj):
     client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
     patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
@@ -548,3 +569,6 @@ class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")
     consent_question = models.ForeignKey(ConsentQuestion)
     answer = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)

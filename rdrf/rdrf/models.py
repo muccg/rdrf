@@ -1283,18 +1283,26 @@ class ConsentSection(models.Model):
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
     information_link = models.CharField(max_length=100)
-    applicability_condition = models.TextField()  # eg "patient.age > 6 and patient.age" < 10
+    applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
 
     def applicable_to(self, patient):
         print "checking applicability .."
         if not patient.in_registry(self.registry.code):
-            print "patient not in registry - so False"
             return False
         else:
-            function_context = { "patient": patient}
-            print function_context
+            # if no restriction return True
+            if not self.applicability_condition:
+                return True
 
-            return eval(self.applicability_condition, {"__builtins__": None}, function_context)
+            function_context = {"patient": patient}
+
+            is_applicable = eval(self.applicability_condition, {"__builtins__": None}, function_context)
+
+            if is_applicable:
+                logger.debug("%s is spplicable to %s" % (self, patient))
+            else:
+                logger.debug("%s is NOT applicable to %s" % (self, patient))
+            return is_applicable
 
     @property
     def form_info(self):
@@ -1314,3 +1322,13 @@ class ConsentQuestion(models.Model):
     position = models.IntegerField(blank=True, null=True)
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.CharField(max_length=100)
+
+    def create_field(self):
+        from django.forms import BooleanField
+        return BooleanField(label=self.question_label, required=False)
+
+    @property
+    def field_key(self):
+        registry_model = self.section.registry
+        consent_section_model = self.section
+        return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)

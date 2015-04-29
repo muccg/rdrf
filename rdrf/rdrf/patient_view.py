@@ -87,7 +87,8 @@ class PatientEditView(View):
         
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
-        
+
+
         if all([patient_form.is_valid(), doctors_to_save.is_valid(), address_to_save.is_valid()]):
             docs = doctors_to_save.save()
             address_to_save.save()
@@ -157,13 +158,15 @@ class PatientEditView(View):
              "next_of_kin_email",
              "next_of_kin_parent_place_of_birth"
         ])
-        
-        consent = ("Consent", [
-            "consent",
-            "consent_clinical_trials",
-            "consent_sent_information",
-        ])
-        
+
+        # consent = ("Consent", [
+        #     "consent",
+        #     "consent_clinical_trials",
+        #     "consent_sent_information",
+        # ])
+
+        #consent_sections = [patient_form.get_consent_section(r) for r in patient.rdrf_registry.all() ]
+
         rdrf_registry = ("Registry", [
             "rdrf_registry",
             "working_groups"
@@ -172,11 +175,18 @@ class PatientEditView(View):
         patient_address_section = ("Patient Address", None)
         
         patient_doctor_section = ("Patient Doctor", None)
+
+        # first get all the consents ( which could be different per registry -  _and_ per applicability conditions )
+        # then add the remaining sections which are fixed
+        patient_section_info = patient_form.get_all_consent_section_info(patient)
+        patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
+
         
         form_sections = [
             (
                 patient_form,
-                ( consent, rdrf_registry, personal_details_fields, next_of_kin )
+                patient_section_info
+                #( consent, consent, rdrf_registry, personal_details_fields, next_of_kin )
             ),(
                 patient_address_form, 
                 ( patient_address_section, )
