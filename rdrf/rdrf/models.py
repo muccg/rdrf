@@ -1309,13 +1309,6 @@ class ConsentSection(models.Model):
 
 
 class ConsentQuestion(models.Model):
-    code = models.CharField(max_length=20) # used in patient consent json
     position = models.IntegerField()
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.CharField(max_length=100)
-
-
-
-
-
-
