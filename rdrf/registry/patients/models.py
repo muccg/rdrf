@@ -142,10 +142,10 @@ class Patient(models.Model):
     email = models.EmailField(blank=True, null=True)
     next_of_kin_family_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="family name")
     next_of_kin_given_names = models.CharField(max_length=100, blank=True, null=True, verbose_name="given names")
-    next_of_kin_relationship = models.ForeignKey(NextOfKinRelationship, verbose_name="Relationship", blank=True, null=True)
+    next_of_kin_relationship = models.ForeignKey(NextOfKinRelationship, verbose_name="Relationship", blank=True, null=True, on_delete=models.SET_NULL)
     next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
     next_of_kin_suburb = models.CharField(max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
-    next_of_kin_state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="next_of_kin_set", blank=True, null=True)
+    next_of_kin_state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="next_of_kin_set", blank=True, null=True, on_delete=models.SET_NULL)
     next_of_kin_postcode = models.IntegerField(verbose_name="Postcode", blank=True, null=True)
     next_of_kin_home_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name="home phone")
     next_of_kin_mobile_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name="mobile phone")
@@ -156,7 +156,7 @@ class Patient(models.Model):
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
-    user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object")
+    user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object", on_delete=models.SET_NULL)
 
     @property
     def age(self):
