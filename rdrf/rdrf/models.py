@@ -1311,6 +1311,6 @@ class ConsentSection(models.Model):
 
 class ConsentQuestion(models.Model):
     code = models.CharField(max_length=20)
-    position = models.IntegerField()
+    position = models.IntegerField(blank=True, null=True)
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.CharField(max_length=100)

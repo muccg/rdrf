@@ -301,20 +301,19 @@ class Exporter(object):
     def _get_consent_sections(self):
         section_dicts = []
         for consent_section in self.registry.consent_sections.all():
-            section_dict = {"section_label": consent_section.section_label,
+            section_dict = {"code": consent_section.code,
+                            "section_label": consent_section.section_label,
                             "information_link": consent_section.information_link,
                             "applicability_condition": consent_section.applicability_condition,
                             "questions": []}
             for consent_model in consent_section.questions.all():
-                cm = {"position": consent_model.position,
-                       "question_label": consent_model.question_label}
+                cm = {"code": consent_model.code,
+                      "position": consent_model.position,
+                      "question_label": consent_model.question_label}
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)
 
         return section_dicts
-
-
-
 
     def _get_adjudication_cdes(self):
         adjudication_cdes = set([])
