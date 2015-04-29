@@ -9,7 +9,7 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 
-logger = logging.getLogger("registry")
+logger = logging.getLogger("registry_log")
 
 
 class InvalidStructureError(Exception):
@@ -637,6 +637,10 @@ class RegistryForm(models.Model):
     @property
     def has_progress_indicator(self):
         return True if len(self.complete_form_cdes.values_list()) > 0 else False
+
+    def link(self, patient_model):
+        from rdrf.utils import FormLink
+        return FormLink(patient_model.pk, self.registry, self).url
 
 
 class Wizard(models.Model):
@@ -1286,7 +1290,6 @@ class ConsentSection(models.Model):
     applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
 
     def applicable_to(self, patient):
-        print "checking applicability .."
         if not patient.in_registry(self.registry.code):
             return False
         else:
@@ -1303,6 +1306,9 @@ class ConsentSection(models.Model):
             else:
                 logger.debug("%s is NOT applicable to %s" % (self, patient))
             return is_applicable
+
+    def __unicode__(self):
+        return "Consent Section %s" % self.section_label
 
     @property
     def link(self):
