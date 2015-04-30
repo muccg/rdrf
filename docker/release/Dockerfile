@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN git clone --depth=1 --branch=0.8.17 https://bitbucket.org/ccgmurdoch/rdrf.git .
+RUN git clone --depth=1 --branch=0.8.18 https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 WORKDIR /app/rdrf
 RUN pip install --process-dependency-links .

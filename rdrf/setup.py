@@ -44,7 +44,7 @@ else:
 
 
 setup(name='django-rdrf',
-    version="0.8.17",
+    version="0.8.18",
     packages=packages,
     description='RDRF',
     long_description='Rare Disease Registry Framework',
@@ -95,15 +95,13 @@ setup(name='django-rdrf',
         'six==1.9.0',
         'python-gettext',
         'django-registration-redux',
-        'psycopg2==2.5.5',
-        'rdrf-explorer==stable'
+        'psycopg2==2.5.5'
     ],
     dependency_links=[
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.2.1.tar.gz",
         "https://bitbucket.org/ccgmurdoch/django-userlog/downloads/django_userlog-0.2.1.tar.gz",
         "https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/django-iprestrict-0.1.tar.gz",
         'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-auth-0.3.4.tar.gz',
-        'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz',
-        'git+https://github.com/muccg/rdrf-explorer.git@master#egg=rdrf-explorer-stable'
+        'https://bitbucket.org/ccgmurdoch/ccg-django-extras/downloads/ccg-extras-0.1.7.tar.gz'
     ],
 )

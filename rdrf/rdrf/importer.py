@@ -6,6 +6,9 @@ from models import CommonDataElement
 from models import CDEPermittedValueGroup
 from models import CDEPermittedValue
 from models import AdjudicationDefinition
+from models import ConsentSection
+from models import ConsentQuestion
+
 from registry.groups.models import WorkingGroup
 import yaml
 import json
@@ -469,6 +472,8 @@ class Importer(object):
                 pass
 
         self._create_working_groups(r)
+        # create consent sections if they exist
+        self._create_consent_sections(r)
         # generate the questionnaire for this reqistry
         try:
             r.generate_questionnaire()
@@ -523,3 +528,28 @@ class Importer(object):
                 logger.info("deleting delete()working group %s for %s registry import" % (wg.name, registry.name))
                 wg.registry = None  # if we delete the group the patients get deleted .. todo need to confirm behaviour
                 wg.save()
+
+
+    def _create_consent_sections(self, registry):
+        if "consent_sections" in self.data:
+            for section_dict in self.data["consent_sections"]:
+                code = section_dict["code"]
+                section_label = section_dict["section_label"]
+                information_link = section_dict["information_link"]
+                section_model, created = ConsentSection.objects.get_or_create(code=code, registry=registry)
+                section_model.information_link = information_link
+                section_model.section_label = section_label
+                section_model.applicability_condition = section_dict["applicability_condition"]
+                section_model.save()
+                for question_dict in section_dict["questions"]:
+                    question_code = question_dict["code"]
+                    question_position = question_dict["position"]
+                    question_label = question_dict["question_label"]
+
+                    question_model, created = ConsentQuestion.objects.get_or_create(code=question_code, section=section_model)
+                    question_model.position = question_position
+                    question_model.question_label = question_label
+                    question_model.save()
+
+
+

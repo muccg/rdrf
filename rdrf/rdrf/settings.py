@@ -101,7 +101,7 @@ INSTALLED_APPS = [
     'iprestrict',
     'ajax_select',
     'registration',
-    #'viewer'
+    'explorer'
 ]
 
 
@@ -327,7 +327,8 @@ SUIT_CONFIG = {
         {'app': 'rdrf', 'label': 'Registry'},
         {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
                 {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}
-        ]}
+        ]},
+        'explorer'
     )
 }
 

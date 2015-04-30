@@ -34,7 +34,7 @@
             
             <ul class="list-group">
             {% for form in forms %}
-                <li class="list-group-item">{{form.name}}<a target="_blank" href="{% url 'questionnaire' form.registry.code %}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
+                <li class="list-group-item">{{form.form.name}}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
             {% endfor %}
             </ul>
         {% elif is_admin %}

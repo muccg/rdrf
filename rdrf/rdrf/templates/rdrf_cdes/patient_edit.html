@@ -7,6 +7,7 @@
 {% load get_form_element %}
 {% load is_checkbox %}
 {% load is_formset_obj %}
+{% load get_information_link %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -224,7 +225,13 @@
                     {% else %}
                         {% for name, section in sections %}
                             <div class="panel panel-default">
-                                <div class="panel-heading"><strong>{{name}}</strong></div>
+                                <div class="panel-heading"><strong>{{name}}</strong>
+                                {% with link=section|get_information_link %}
+                                {% with doc="docs/"|add:link %}
+                                    {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
+                                {% endwith %}
+                                {% endwith %}
+                                </div>
                                 <div class="panel-body">
                                     {% for s in section %}
                                         {% get_form_element form s as element %}

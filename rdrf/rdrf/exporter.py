@@ -151,6 +151,8 @@ class Exporter(object):
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
         data["adjudication_definitions"] = self._get_adjudication_definitions()
+        data["consent_sections"] = self._get_consent_sections()
+
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
@@ -295,6 +297,23 @@ class Exporter(object):
         cdes = cdes.union(adjudication_cdes)
 
         return cdes
+
+    def _get_consent_sections(self):
+        section_dicts = []
+        for consent_section in self.registry.consent_sections.all():
+            section_dict = {"code": consent_section.code,
+                            "section_label": consent_section.section_label,
+                            "information_link": consent_section.information_link,
+                            "applicability_condition": consent_section.applicability_condition,
+                            "questions": []}
+            for consent_model in consent_section.questions.all():
+                cm = {"code": consent_model.code,
+                      "position": consent_model.position,
+                      "question_label": consent_model.question_label}
+                section_dict["questions"].append(cm)
+            section_dicts.append(section_dict)
+
+        return section_dicts
 
     def _get_adjudication_cdes(self):
         adjudication_cdes = set([])
