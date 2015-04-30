@@ -89,9 +89,9 @@ class PatientAdmin(admin.ModelAdmin):
     inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     if has_feature('adjudication'):
-        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'adjudications_btn']
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'adjudications_btn','user']
     else:
-        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'user']
 
     list_filter = [RegistryFilter]
     

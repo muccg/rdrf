@@ -180,6 +180,7 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
         self.custom_consents = []  # list of consent fields agreed to
+        self.orig_user = None
 
         if 'instance' in kwargs:
             instance = kwargs['instance']
@@ -258,6 +259,8 @@ class PatientForm(forms.ModelForm):
     def save(self,  commit=True):
         logger.debug("saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
+        patient_model.active = True
+        patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
         patient_registries = [r for r in patient_model.rdrf_registry.all()]
         logger.debug("patient registries = %s" % patient_registries)

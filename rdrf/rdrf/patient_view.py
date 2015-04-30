@@ -102,7 +102,7 @@ class PatientEditView(View):
             patient_form.save()
 
             patient, form_sections = self._get_forms(patient_id)
-            
+
             context = {
                 "forms": form_sections,
                 "patient": patient,
