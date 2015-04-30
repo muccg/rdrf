@@ -68,6 +68,14 @@ class PatientView(View):
         return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))
 
 
+def chk(place, p):
+    logger.debug("******************************************")
+    logger.debug("place = %s" % place)
+    logger.debug("patient active = %s" % p.active)
+    logger.debug("patient user = %s" % p.user)
+    logger.debug("******************************************")
+
+
 class PatientEditView(View):
 
     def get(self, request, patient_id):
@@ -77,6 +85,7 @@ class PatientEditView(View):
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
         patient, form_sections = self._get_forms(patient_id)
+        chk("in get method after get forms", patient)
         
         context = {
             "forms": form_sections,
@@ -87,7 +96,10 @@ class PatientEditView(View):
 
     def post(self, request, patient_id):
         patient = Patient.objects.get(id=patient_id)
+        orig_user = patient.user
+        chk("in post after get patient ", patient)
         patient_form = PatientForm(request.POST, instance=patient)
+        patient_form.orig_user = orig_user
 
         patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
         doctors_to_save = patient_doctor_form_set(request.POST, instance=patient, prefix="patient_doctor")
@@ -99,9 +111,11 @@ class PatientEditView(View):
         if all([patient_form.is_valid(), doctors_to_save.is_valid(), address_to_save.is_valid()]):
             docs = doctors_to_save.save()
             address_to_save.save()
-            patient_form.save()
+            x = patient_form.save()
+            chk("after patient.form save return value of save", x)
 
             patient, form_sections = self._get_forms(patient_id)
+            chk("after get forms", patient)
 
             context = {
                 "forms": form_sections,
@@ -110,6 +124,7 @@ class PatientEditView(View):
             }
         else:
             patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
+            chk("after patient invalid", patient)
             
             context = {
                 "forms": form_sections,
