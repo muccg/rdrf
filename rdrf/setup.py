@@ -24,6 +24,7 @@ else:
                  'registry.patients',
                  'registry.groups',
                  'registry.genetic',
+                 'explorer',
                ]
 
     for package in ['rdrf', 'registry.common', 'registry.genetic',
