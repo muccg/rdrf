@@ -18,6 +18,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
 from rdrf.utils import has_feature
+from registry.patients.models import ConsentValue
 
 logger = logging.getLogger("registry_log")
 
@@ -495,6 +496,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
     list_display = ('type', 'description')
 
 
+class ConsentValueAdmin(admin.ModelAdmin):
+    model = ConsentValue
+
+
 class ParentGuardianAdmin(admin.ModelAdmin):
     model = ParentGuardian
     list_display = ('first_name', 'last_name', 'patients')
@@ -514,5 +519,6 @@ admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
+admin.site.register(ConsentValue, ConsentValueAdmin)
 
 admin.site.disable_action('delete_selected')
