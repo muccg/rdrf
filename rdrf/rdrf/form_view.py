@@ -339,6 +339,7 @@ class FormView(View):
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
+            'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
             'registry': self.registry.code,
