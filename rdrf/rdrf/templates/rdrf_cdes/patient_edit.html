@@ -239,7 +239,7 @@
                                             <div class="form-group">
                                         {% endif %}
                                             {% if link %}
-                                                <label for="{{ element.id_for_label}}" class="col-sm-11 control-label">{{ element.label }}</label>
+                                                <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">{{ element.label }}</label>
                                                 <div class="col-sm-1">
                                             {% else %}
                                                 <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
