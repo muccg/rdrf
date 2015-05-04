@@ -14,6 +14,7 @@ from registry.genetic.models import Gene
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.file_upload import wrap_gridfs_data_for_form
 
+from datetime import date
 
 def mapkey(form_model, section_model, cde_model=None):
     if cde_model is not None:
@@ -637,7 +638,21 @@ class PatientImporter(object):
             else:
                 raise ConversionError("no choice tuple for %s" % m)
         else:
+            # check the datatype of the CDE - dates need to be converted for example
+            datatype = cde_model.datatype.lower()
+            if datatype == "date":
+                # source dates are strings in dump file like : 2015-01-07   YYYY-MM-DD
+                try:
+                    year, month, day = map(int, old_value.split("-"))
+                    new_value = date(year, month, day)
+                    return new_value
+                except Exception, ex:
+                    raise ConversionError("date conversion failed for %s old value %s: %s" % (m, old_value, ex))
+
+            # otherwise return the value as is
             return old_value
+
+
 
     def _create_multisections(self, form_model, section_model, old_patient_id, rdrf_patient_model):
         # INFO creating multisection data SMAFamilyMember
