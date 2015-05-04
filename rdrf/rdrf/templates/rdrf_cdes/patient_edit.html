@@ -230,7 +230,6 @@
                                 {% with doc="docs/"|add:link %}
                                     {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
                                 {% endwith %}
-                                {% endwith %}
                                 </div>
                                 <div class="panel-body">
                                     {% for s in section %}
@@ -240,8 +239,13 @@
                                         {% else %}
                                             <div class="form-group">
                                         {% endif %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
-                                            <div class="col-sm-9">
+                                            {% if link %}
+                                                <label for="{{ element.id_for_label}}" class="col-sm-11 control-label">{{ element.label }}</label>
+                                                <div class="col-sm-1">
+                                            {% else %}
+                                                <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                <div class="col-sm-9">
+                                            {% endif %}
                                                 {% if not element|is_checkbox %}
                                                     {{ element | add_attr:"class,form-control" }}
                                                 {% else %}
@@ -257,6 +261,7 @@
                                         </div>
                                     {% endfor %}
                                 </div>
+                                {% endwith %}
                             </div>
                         {% endfor %}
                     {% endif %}
