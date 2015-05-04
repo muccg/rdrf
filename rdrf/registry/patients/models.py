@@ -18,6 +18,7 @@ from rdrf.utils import mongo_db_name
 from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
+from rdrf.models import ConsentQuestion
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
 from django.db.models.signals import m2m_changed
@@ -141,10 +142,10 @@ class Patient(models.Model):
     email = models.EmailField(blank=True, null=True)
     next_of_kin_family_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="family name")
     next_of_kin_given_names = models.CharField(max_length=100, blank=True, null=True, verbose_name="given names")
-    next_of_kin_relationship = models.ForeignKey(NextOfKinRelationship, verbose_name="Relationship", blank=True, null=True)
+    next_of_kin_relationship = models.ForeignKey(NextOfKinRelationship, verbose_name="Relationship", blank=True, null=True, on_delete=models.SET_NULL)
     next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
     next_of_kin_suburb = models.CharField(max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
-    next_of_kin_state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="next_of_kin_set", blank=True, null=True)
+    next_of_kin_state = models.ForeignKey(State, verbose_name="State/Province/Territory", related_name="next_of_kin_set", blank=True, null=True, on_delete=models.SET_NULL)
     next_of_kin_postcode = models.IntegerField(verbose_name="Postcode", blank=True, null=True)
     next_of_kin_home_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name="home phone")
     next_of_kin_mobile_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name="mobile phone")
@@ -155,7 +156,7 @@ class Patient(models.Model):
     active = models.BooleanField(default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
-    user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object")
+    user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="user_object", on_delete=models.SET_NULL)
 
     @property
     def age(self):
@@ -240,6 +241,41 @@ class Patient(models.Model):
 
         return None
 
+    def set_consent(self, consent_model, answer=True, commit=True):
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        if consent_model.section.registry not in patient_registries:
+            return   # error?
+        cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
+        cv.answer = answer
+        if commit:
+            cv.save()
+        return cv
+
+    def get_consent(self, consent_model):
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        if consent_model.section.registry not in patient_registries:
+            return False    # ?
+        try:
+            cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)
+            return cv.answer
+        except ConsentValue.DoesNotExist:
+            return False    # ?
+
+
+    @property
+    def consent_questions_data(self):
+        d = {}
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            consent_question_model = consent_value.consent_question
+            d[consent_question_model.field_key] = consent_value.answer
+        return d
+
+    def clean_consents(self):
+        my_registries = [r for r in self.rdrf_registry.all() ]
+        for consent_value in ConsentValue.objects.filter(patient=self):
+            if consent_value.consent_question.section.registry not in my_registries:
+                consent_value.delete()
+
     @property
     def is_index(self):
         if not self.in_registry("fh"):
@@ -249,6 +285,21 @@ class Patient(models.Model):
                 return True
             else:
                 return False
+
+    @property
+    def has_guardian(self):
+        return ParentGuardian.objects.filter(patient=self).count() > 0
+
+    @property
+    def combined_name(self):
+        if self.has_guardian:
+            guardians = [pg for pg in ParentGuardian.objects.filter(patient=self)]
+            g = guardians[0]
+            name = "%s on behalf of %s" % (g, self)
+            return name
+        else:
+            return "%s" % self
+
 
 
     class Meta:
@@ -342,6 +393,21 @@ class Patient(models.Model):
         )
 
 
+class ParentGuardian(models.Model):
+    GENDER_CHOICES = (("M", "Male"), ("F", "Female"))
+    
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
+    date_of_birth = models.DateField()
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    address = models.TextField()
+    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=20)
+    patient = models.ManyToManyField(Patient)
+
+
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
@@ -421,6 +487,11 @@ class PatientRelative(models.Model):
 def save_patient_mongo(sender, instance, **kwargs):
     patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
     _save_patient_mongo(patient_obj)
+
+
+@receiver(post_save, sender=Patient)
+def clean_consents(sender, instance, **kwargs):
+    instance.clean_consents()
 
 
 def _save_patient_mongo(patient_obj):
@@ -507,3 +578,12 @@ def registry_changed_on_patient(sender, **kwargs):
         run_hooks('registry_added', instance, registry_ids)
 
 
+
+
+class ConsentValue(models.Model):
+    patient = models.ForeignKey(Patient, related_name="consents")
+    consent_question = models.ForeignKey(ConsentQuestion)
+    answer = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)

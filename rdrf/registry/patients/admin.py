@@ -18,6 +18,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
 from rdrf.utils import has_feature
+from registry.patients.models import ConsentValue
 
 logger = logging.getLogger("registry_log")
 
@@ -88,9 +89,9 @@ class PatientAdmin(admin.ModelAdmin):
     inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     if has_feature('adjudication'):
-        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'adjudications_btn']
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'adjudications_btn','user']
     else:
-        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
+        list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn', 'user']
 
     list_filter = [RegistryFilter]
     
@@ -182,8 +183,8 @@ class PatientAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         # NB. This method returns a form class
         user = get_user_model().objects.get(username=request.user)
-        registry_specific_fields = self._get_registry_specific_patient_fields(user)
-        self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
+        #registry_specific_fields = self._get_registry_specific_patient_fields(user)
+        #self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
         form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
         form.user = user
         form.is_superuser = request.user.is_superuser
@@ -302,7 +303,7 @@ class PatientAdmin(admin.ModelAdmin):
              )})
 
         fieldset = [consent, rdrf_registry, personal_details, next_of_kin]
-        fieldset.extend(self._get_registry_specific_fieldsets(user))
+        #fieldset.extend(self._get_registry_specific_fieldsets(user))
         return fieldset
 
     def save_form(self, request, form, change):
@@ -316,16 +317,16 @@ class PatientAdmin(admin.ModelAdmin):
         instance = form.save(commit=False)
         registry_specific_fields_dict = self._get_registry_specific_patient_fields(request.user)
 
-        for reg_code in registry_specific_fields_dict:
-            mongo_patient_data[reg_code] = {}
-            registry_specific_fields = registry_specific_fields_dict[reg_code]
-            for cde, field_object in registry_specific_fields:
-                field_name = cde.name
-                cde_code = cde.code
-                field_value = request.POST[cde.code]
-                mongo_patient_data[reg_code][cde_code] = field_value
+#        for reg_code in registry_specific_fields_dict:
+#            mongo_patient_data[reg_code] = {}
+#            registry_specific_fields = registry_specific_fields_dict[reg_code]
+#            for cde, field_object in registry_specific_fields:
+#                field_name = cde.name
+#                cde_code = cde.code
+#                field_value = request.POST[cde.code]
+#                mongo_patient_data[reg_code][cde_code] = field_value
 
-                logger.debug("specific field for %s %s = %s" % (reg_code, field_name, field_value))
+#                logger.debug("specific field for %s %s = %s" % (reg_code, field_name, field_value))
 
         if mongo_patient_data:
             instance.mongo_patient_data = mongo_patient_data
@@ -495,10 +496,29 @@ class AddressTypeAdmin(admin.ModelAdmin):
     list_display = ('type', 'description')
 
 
+class ConsentValueAdmin(admin.ModelAdmin):
+    model = ConsentValue
+
+
+class ParentGuardianAdmin(admin.ModelAdmin):
+    model = ParentGuardian
+    list_display = ('first_name', 'last_name', 'patients')
+    
+    def patients(self, obj):
+        patients_string = ""
+        patients = [p for p in obj.patient.all()]
+        for patient in patients:
+            patients_string += "%s %s<br>" % (patient.given_names, patient.family_name)
+        return patients_string
+    
+    patients.allow_tags = True
+
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
+admin.site.register(ParentGuardian, ParentGuardianAdmin)
+admin.site.register(ConsentValue, ConsentValueAdmin)
 
 admin.site.disable_action('delete_selected')

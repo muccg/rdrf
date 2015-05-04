@@ -13,12 +13,14 @@ import rdrf.rest_interface as rest_interface
 import rdrf.hgvs_view as hgvs_view
 import rdrf.patient_view as patient_view
 import rdrf.login_router as login_router
+import rdrf.report_view as report_view
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
 from ajax_select import urls as ajax_select_urls
 from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
+
 
 from rdrf.migration_view import MigrationView
 
@@ -121,9 +123,15 @@ urlpatterns = patterns('',
                        url(r'^api/clinitian/',
                             ClinitianLookup.as_view(), name="clinician_lookup"),
                        
-                      # url(r'^report/', include('viewer.urls'))
+                       url(r'^reports/',
+                            report_view.ReportView.as_view(), name="reports"),
+                        
+                       url(r'^explorer/', include('explorer.urls')),
+                       
                        url(r'^migration/',
                             MigrationView.as_view(), name="migration"),
+        
+                      # url(r'^report/', include('viewer.urls'))
                        )
 
 urlpatterns += patterns('',
