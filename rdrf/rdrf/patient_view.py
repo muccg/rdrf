@@ -77,10 +77,11 @@ class PatientEditView(View):
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
         patient, form_sections = self._get_forms(patient_id)
-        
+
         context = {
             "forms": form_sections,
-            "patient": patient
+            "patient": patient,
+            "registry_code": patient.rdrf_registry.all()[0].code
         }
     
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
