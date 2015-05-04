@@ -180,7 +180,7 @@ class DynamicDataWrapper(object):
                 return True
         except Exception as ex:
             # section forms have codes which are not CDEs
-            logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
+            #logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
 
     def _is_section_code(self, code):
