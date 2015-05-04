@@ -25,9 +25,9 @@ def mapkey(form_model, section_model, cde_model=None):
 
 def cde_moniker(form_model, section_model, cde_model=None):
     if cde_model is None:
-        return "%s.%s" % (form_model.name, section_model.display_name)
+        return "<<%s.%s>>" % (form_model.name, section_model.display_name)
 
-    return "%s.%s.%s" % (form_model.name, section_model.display_name, cde_model.name)
+    return "<<%s.%s.%s>>" % (form_model.name, section_model.display_name, cde_model.name)
 
 
 def frm(frm_name):
@@ -72,6 +72,23 @@ class PatientCouldNotBeCreated(MigrationError):
 
 class ConversionError(MigrationError):
     pass
+
+
+class WiringError(MigrationError):
+    pass
+
+
+class WiringType:
+    PATIENT_FIELD = "patient_field"
+    MONGO_FIELD = "mongo_field"
+    MULTISECTION_FIELD = "multisection"
+    OTHER = "other"
+
+
+class WiringTarget(object):
+    PATIENT = "patient"
+    WORKING_GROUP = "working_group"
+
 
 
 mapfile_misnamed = {
@@ -134,6 +151,7 @@ class BaseMultiSectionHandler(object):
     FORM_MODEL = None           # subclass - rdrf form model instance
     SECTION_MODEL = None        # subclass - rdrf section model instance
     FIELD_MAP = {}              # subclass resp map of old fields dump file to cde models in RDRF
+    WIRING_FIELDS = {}         # list of cde codes to wiring targets
 
     def __init__(self, importer, app, data):
         self.data = data
@@ -142,15 +160,25 @@ class BaseMultiSectionHandler(object):
         self.code = mapkey(self.FORM_MODEL, self.SECTION_MODEL)
         self.patient_id = None
         self.diagnosis_id = None
+        self.rdrf_patient =  None
+        self.missing_diagnosis = False
 
 
     def __call__(self, patient_id, rdrf_patient):
         # The model objects which RDRF represents as multisections
         # are related to diagnosis objects in the old system as objects themselves
         self.patient_id = patient_id
+        self.rdrf_patient = rdrf_patient
         original_models = []
         converted_sections = []
-        self.diagnosis_id = self.get_diagnosis_id(patient_id)
+        try:
+            self.diagnosis_id = self.get_diagnosis_id(patient_id)
+        except RetrievalError, rerr:
+            self.importer.info("no diagnosis could be retrieved for old patient %s" % patient_id)
+            self.diagnosis_id = None
+            self.missing_diagnosis = True
+            # this may not be an error , the data might not have been filled in
+
         # find the list of models which are now represented as multisections
 
         for old_model in self.importer._old_models(self.MODEL_NAME):
@@ -159,8 +187,8 @@ class BaseMultiSectionHandler(object):
                 original_models.append(old_model)
                 self.importer.msg("found %s so far" % len(original_models))
 
-        for original_model in original_models:
-            mongo_section_item = self._create_mongo_section(original_model)
+        for index, original_model in enumerate(original_models):
+            mongo_section_item = self._create_mongo_section(index, original_model)
             self.importer.success("converted old model: %s ---> member of multisection: %s" % (original_model,
                                                                                                mongo_section_item))
             converted_sections.append(mongo_section_item)
@@ -168,6 +196,9 @@ class BaseMultiSectionHandler(object):
         self._save_multisection_to_mongo(rdrf_patient, converted_sections)
 
     def is_appropriate_model(self, old_model):
+        if self.missing_diagnosis:
+            return False
+
         return old_model["fields"][self.DIAGNOSIS_LINK] == self.diagnosis_id
 
     def get_diagnosis_id(self, patient_id):
@@ -191,7 +222,7 @@ class BaseMultiSectionHandler(object):
         m = cde_moniker(self.FORM_MODEL, self.SECTION_MODEL)
         self.importer.success("saved multisection for %s: " % (m, ))
 
-    def _create_mongo_section(self, old_section_data):
+    def _create_mongo_section(self, index, old_section_data):
         self.importer.msg("creating mongo section for old section data: %s" % old_section_data)
         # we need to create a dictionary that looks like:
         # NB values may need to be converted
@@ -206,10 +237,27 @@ class BaseMultiSectionHandler(object):
             cde_model = self.FIELD_MAP[old_field]
             old_value = old_section_data["fields"][old_field]
             self.importer.msg("old value = %s" % old_value)
-            new_value = self.convert_value(self.FORM_MODEL, self.SECTION_MODEL, cde_model, old_value)
-            self.importer.msg("new value = %s" % new_value)
-            mongo_field_key = "%s____%s____%s" % (self.FORM_MODEL.name, self.SECTION_MODEL.code, cde_model.code)
-            d[mongo_field_key] = new_value
+            if cde_model.code in self.WIRING_FIELDS:
+                wiring_task = WiringTask()
+                wiring_task.importer = self.importer
+                wiring_task.patient_model = self.rdrf_patient
+                wiring_task.old_patient_id = self.patient_id
+                wiring_task.registry_model = self.importer.registry
+                wiring_task.form_model = self.FORM_MODEL
+                wiring_task.section_model = self.SECTION_MODEL
+                wiring_task.cde_model = cde_model
+                wiring_task.value_to_wire = old_value
+                wiring_task.wiring_target = self.WIRING_FIELDS[cde_model.code]
+                wiring_task.old_data = self.importer.data
+                wiring_task.object_type = WiringType.MULTISECTION_FIELD
+                wiring_task.multisection_index = index
+                self.importer.info("multisection field %s requires wiring - woring task = %s" % (cde_model.code, wiring_task))
+                self.importer.add_wiring_task(wiring_task)
+            else:
+                new_value = self.convert_value(self.FORM_MODEL, self.SECTION_MODEL, cde_model, old_value)
+                self.importer.msg("new value = %s" % new_value)
+                mongo_field_key = "%s____%s____%s" % (self.FORM_MODEL.name, self.SECTION_MODEL.code, cde_model.code)
+                d[mongo_field_key] = new_value
         return d
 
 
@@ -221,6 +269,7 @@ class SMAFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.familymember"
     FORM_MODEL = frm("Clinical Diagnoses")
     SECTION_MODEL = sec("SMAFamilyMember")
+    WIRING_FIELDS = {"NMDRegistryPatient": WiringTarget.PATIENT }
 
     FIELD_MAP = {
         "family_member_diagnosis": cde("SMAFamilyDiagnosis"),
@@ -272,11 +321,11 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
     # SMAExon7Sequencing
     # SMADNAVariation
 
-    #{"pk": 1, "model": "genetic.moleculardata", "fields": {}}, {"pk": 1, "model": "genetic.moleculardatasma", "fields": {}},
+    #  {"pk": 1, "model": "genetic.moleculardata", "fields": {}}, {"pk": 1, "model": "genetic.moleculardatasma", "fields": {}},
     #  {"pk": 1, "model": "genetic.variationsma",
-    # "fields": {"exon_7_smn1_deletion": 2, "exon_7_sequencing": true,
-    # "technique": "MLPA", "molecular_data": 1,
-    # "dna_variation": "a", "gene": 18}},
+    #  "fields": {"exon_7_smn1_deletion": 2, "exon_7_sequencing": true,
+    #  "technique": "MLPA", "molecular_data": 1,
+    #  "dna_variation": "a", "gene": 18}},
 
     FIELD_MAP = {
         "gene": cde("NMDGene"),
@@ -304,12 +353,12 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
 
 def moniker(old_patient_dict):
     try:
-            return "old patient pk %s %s %s %s" % (old_patient_dict["pk"],
+            return "<<old patient pk %s %s %s %s>>" % (old_patient_dict["pk"],
                                            old_patient_dict["fields"]["given_names"],
                                            old_patient_dict["fields"]["family_name"],
                                            old_patient_dict["fields"]["date_of_birth"])
     except:
-        return "??"
+        return "<<??>>"
 
 
 def logged(func):
@@ -321,18 +370,100 @@ def logged(func):
     return wrapper
 
 
+
+
+class WiringTask(object):
+    def __init__(self):
+        self.wiring_type = WiringType.MONGO_FIELD
+        self.wiring_target = WiringTarget.PATIENT # default
+        self.importer = None
+        self.data = None  # dump data
+        self.old_patient_id = None
+        self.value_to_wire = None
+        self.patient_field = None
+        self.primary_key_field = "pk"
+
+        # target
+        self.patient_model = None
+        self.registry_model = None
+        self.form_model = None
+        self.section_model = None
+        self.cde_model = None
+        self.multisection_index = None
+
+    def run(self):
+        self.importer.msg("running wiring task %s" % self)
+        try:
+            corresponding_value = self._get_corresponding_value()
+        except Exception, ex:
+            self.importer.error("could not retrieve corresponding value for wiring task %s: %s" % (self,
+                                                                                                   ex))
+
+            return
+
+        self.importer.msg("corresponding value in new db = %s" % corresponding_value)
+        self.importer.msg("about to update value ...")
+        try:
+            self.update(corresponding_value)
+            self.importer.success("wiring task %s succeeded updating value to %s" % (self, corresponding_value))
+        except Exception, ex:
+            self.importer.error("wiring task %s failed trying to update value to %s: %s" % (self, corresponding_value, ex))
+
+
+    def update(self, value):
+        if self.wiring_type == WiringType.MONGO_FIELD:
+            try:
+                self.patient_model.set_form_value(self.registry_model.code,
+                                                  self.form_model.name,
+                                                  self.section_model.code,
+                                                  self.cde_model.code,
+                                                  value)
+            except Exception, ex:
+                self.importer.error("wiring Error for %s: %s" % (self, ex))
+        elif self.wiring_type == WiringType.PATIENT_FIELD:
+            try:
+                setattr(self.patient_model, self.patient_field, value)
+            except Exception, ex:
+                self.importer.error("Wiring Error for %s: %s" % (self, ex))
+        elif self.wiring_type == WiringType.MULTISECTION_FIELD:
+            dyn_patient = DynamicDataWrapper(self.patient_model)
+            mongo_data = dyn_patient.load_dynamic_data(self.registry_model.code, "cdes")
+            self.importer.msg("mongo data for xxx: %s" % )
+
+    def _get_corresponding_value(self):
+        if self.wiring_target == WiringTarget.PATIENT:
+            corresponding_patient = self.importer.patient_map[self.value_to_wire]
+            return getattr(corresponding_patient, self.primary_key_field)
+
+        raise NotImplementedError("unknown wiring target %s" % self.wiring_target)
+
+    def __str__(self):
+        m = cde_moniker(self.form_model, self.section_model, self.cde_model)
+        return "Wiring Task: %s  old patient id %s new patient %s moniker %s value to wire %s ( index = %s )" % (self.wiring_type,
+                                                                                                                 self.old_patient_id,
+                                                                                                                 self.patient_model,
+                                                                                                                 m,
+                                                                                                                 self.value_to_wire,
+                                                                                                                 self.multisection_index)
+
+
 class PatientImporter(object):
     def __init__(self, target_registry_code, src_system, migration_map_file, dump_dir):
         self.suppress_success_msg = False
         self.src_system = src_system  # eg sma or dmd
         self.registry = Registry.objects.get(code=target_registry_code)
         self._dump_dir = dump_dir
-        self._data = []
+        self.data = []
         self._log_file = "%s_patient_import.log" % target_registry_code
         self._log = open(self._log_file, "w")
         self._migration_map = self._load_migration_map(migration_map_file)
         self._working_groups_map = {}
         self._states_map = {}
+        self._wiring_tasks = []
+        self.patient_map = {}
+
+        self._fields_to_wire = []
+
 
 
     # public interface
@@ -367,7 +498,19 @@ class PatientImporter(object):
                     else:
                         self._create_multisections(form_model, section_model, old_patient_id, rdrf_patient)
 
+        self._perform_wiring_tasks()
         self._endrun()
+
+    def add_wiring_task(self, wiring_task):
+        self.info("adding wiring task %s" % wiring_task)
+        self._wiring_tasks.append(wiring_task)
+
+    def _perform_wiring_tasks(self):
+        for wiring_task in self._wiring_tasks:
+            try:
+                wiring_task.run()
+            except WiringError, werr:
+                pass
 
     def rollback(self):
         pass
@@ -385,11 +528,11 @@ class PatientImporter(object):
 
     def _old_models(self, model_name=None):
         if model_name is None:
-            for item in self._data:
+            for item in self.data:
                 if "model" in item:
                     yield item
         else:
-            for item in self._data:
+            for item in self.data:
                 if "model" in item:
                     if item["model"] == model_name:
                         yield item
@@ -421,11 +564,12 @@ class PatientImporter(object):
         try:
             address_model = PatientAddress()
             address_model.address = patient_record["fields"]["address"]
-            address_model.suburb =  patient_record["fields"]["suburb"]
+            address_model.suburb = patient_record["fields"]["suburb"]
             address_model.state = get_state(address_data["state"])
             address_model.postcode = patient_record["fields"]["postcode"]
             address_model.country = "Australia"   #???
             address_model.patient = rdrf_patient_model
+
         except Exception, ex:
             self.error("could not set fields on address object for %s %s: %s" % (moniker(old_patient_id), rdrf_patient_model, ex))
             return
@@ -433,6 +577,7 @@ class PatientImporter(object):
         try:
             address_model.save()
             self.success("saved address for %s %s" % (moniker(patient_record), rdrf_patient_model))
+
         except Exception, ex:
             self.error("could not save address for %s (%s): %s" % (moniker(patient_record), rdrf_patient_model, ex))
 
@@ -522,6 +667,7 @@ class PatientImporter(object):
             p.rdrf_registry = [self.registry]
             p.save()
             self.success("created %s ( new pk = %s old pk = %s )" % (p, p.id, old_patient_data["pk"]))
+            self.patient_map[old_patient_id] = p
             return p
         except Exception, ex:
             raise PatientCouldNotBeCreated("%s: %s" % (m, ex))
@@ -535,7 +681,7 @@ class PatientImporter(object):
 
     def _get_old_patient(self, patient_id):
         patient_model_name = "patients.patient"
-        for item in self._data:
+        for item in self.data:
             if "model" in item:
                 if item["model"] == patient_model_name:
                     if item["pk"] == patient_id:
@@ -561,7 +707,7 @@ class PatientImporter(object):
         self.info("TODO %s" % msg)
 
     def _old_patient_ids(self):
-        for item in self._data:
+        for item in self.data:
             if "model" in item:
                 if item["model"] == "patients.patient":
                     if "pk" in item:
@@ -588,9 +734,10 @@ class PatientImporter(object):
     def _load_dumpfile(self, dump_filename):
         self.info("loading %s" % dump_filename)
         with open(os.path.join(self._dump_dir, dump_filename)) as dump_file:
-            self._data.extend(json.load(dump_file))
+            self.data.extend(json.load(dump_file))
 
     def _save_in_mongo(self, rdrf_patient_model, old_patient_id, form_model, section_model, cde_model):
+        m = cde_moniker(form_model, section_model, cde_model)
         try:
             old_name, old_value = self._get_old_data_value(old_patient_id, form_model, section_model, cde_model)
         except RetrievalError, rerr:
@@ -601,24 +748,40 @@ class PatientImporter(object):
             return
 
         try:
+            if m in self._fields_to_wire:
+                wiring_task = WiringTask()
+
+                wiring_task.cde_model = cde_model
+                wiring_task.section_model = section_model
+                wiring_task.form_model = form_model
+                wiring_task.importer = self
+                wiring_task.data = self.data
+                wiring_task.registry_model = self.registry
+                wiring_task.patient_model = rdrf_patient_model
+                wiring_task.old_patient_id = old_patient_id
+                wiring_task.wiring_type = WiringType.MONGO_FIELD
+                raise wiring_task
+
             new_value = self.get_new_data_value(form_model, section_model, cde_model, old_value)
+            rdrf_patient_model.set_form_value(self.registry.code, form_model.name, section_model.code, cde_model.code, new_value)
+            new_name = cde_moniker(form_model, section_model, cde_model)
+            self.success("RDR Patient %s with %s = %s ==> RDRF Patient %s with %s = %s" % (old_patient_id,
+                                                                                       old_name,
+                                                                                       old_value,
+                                                                                       rdrf_patient_model.id,
+                                                                                       new_name,
+                                                                                       new_value))
+
         except ConversionError, cerr:
             self.error("RDR Patient %s RDRF Patient %s - could not convert data for %s with value %s: %s" % (old_patient_id,
                                                                                                              rdrf_patient_model.id,
                                                                                                              cde_moniker(form_model, section_model, cde_model),
                                                                                                              old_value,
                                                                                                              cerr))
-
-            return
-
-        rdrf_patient_model.set_form_value(self.registry.code, form_model.name, section_model.code, cde_model.code, new_value)
-        new_name = cde_moniker(form_model, section_model, cde_model)
-        self.success("RDR Patient %s with %s = %s ==> RDRF Patient %s with %s = %s" % (old_patient_id,
-                                                                                       old_name,
-                                                                                       old_value,
-                                                                                       rdrf_patient_model.id,
-                                                                                       new_name,
-                                                                                       new_value))
+        except WiringTask, wiring_task:
+            # not an error -  some field values ( like family member existing patient ids in old registry )
+            # cannot be migrated until all  models have been created
+            self._add_wiring_task(wiring_task)
 
     def _get_old_data_value(self, old_patient_id, form_model, section_model, cde_model):
         retrieval_func = self._get_retrieval_function(form_model, section_model, cde_model)
@@ -676,13 +839,13 @@ class PatientImporter(object):
             return None
 
         if multisection_model.code == "SMAFamilyMember":
-            return SMAFamilyMemberMultisectionHandler(self, self.src_system, self._data)
+            return SMAFamilyMemberMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "NMDClinicalTrials":
-            return NMDClinicalTrialsMultisectionHandler(self, self.src_system, self._data)
+            return NMDClinicalTrialsMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "NMDOtherRegistries":
-            return NMDOtherRegistriesMultisectionHandler(self, self.src_system, self._data)
+            return NMDOtherRegistriesMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "SMAMolecular":
-            return SMAMolecularMultisectionHandler(self, self.src_system, self._data)
+            return SMAMolecularMultisectionHandler(self, self.src_system, self.data)
 
 
         return None
@@ -711,7 +874,7 @@ class PatientImporter(object):
             if code in item:
                 old_model_code = item[code]
                 app, model, field = old_model_code.split(".")
-                return Retriever(self, self._data, app, model, field)
+                return Retriever(self, self.data, app, model, field)
 
         raise RetrievalError("could not create retriever for %s" % cde_moniker(form_model, section_model, cde_model))
 
