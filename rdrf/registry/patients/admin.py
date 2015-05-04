@@ -498,7 +498,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 class ConsentValueAdmin(admin.ModelAdmin):
     model = ConsentValue
+    list_display = ("patient", "registry", "consent_question", "answer", "first_save", "last_update")
 
+    def registry(self, obj):
+        return obj.consent_question.section.registry
 
 class ParentGuardianAdmin(admin.ModelAdmin):
     model = ParentGuardian

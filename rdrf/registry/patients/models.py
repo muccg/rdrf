@@ -247,6 +247,10 @@ class Patient(models.Model):
             return   # error?
         cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
         cv.answer = answer
+        if cv.first_save:
+            cv.last_update = datetime.datetime.now()
+        else:
+            cv.first_save = datetime.datetime.now()
         if commit:
             cv.save()
         return cv
@@ -578,12 +582,12 @@ def registry_changed_on_patient(sender, **kwargs):
         run_hooks('registry_added', instance, registry_ids)
 
 
-
-
 class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")
     consent_question = models.ForeignKey(ConsentQuestion)
     answer = models.BooleanField(default=False)
+    first_save = models.DateField(null=True, blank=True)
+    last_update = models.DateField(null=True, blank=True)
 
     def __unicode__(self):
         return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)
