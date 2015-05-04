@@ -185,6 +185,7 @@ class PatientEditView(View):
         rdrf_registry = ("Registry", [
             "rdrf_registry",
             "working_groups",
+            "user",
         ])
 
         if registry.get_metadata_item("patient_form_clinician"):
