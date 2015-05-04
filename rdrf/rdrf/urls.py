@@ -111,7 +111,7 @@ urlpatterns = patterns('',
                        url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
-                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view()),
+                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(), name="patientslisting"),
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
                        url(r'^router/',

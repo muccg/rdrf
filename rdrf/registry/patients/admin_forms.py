@@ -262,7 +262,11 @@ class PatientForm(forms.ModelForm):
         patient_model.active = True
         patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
-        patient_registries = [r for r in patient_model.rdrf_registry.all()]
+        try:
+            patient_registries = [r for r in patient_model.rdrf_registry.all()]
+        except ValueError:
+            # If patient just created line above was erroring
+            patient_registries = []
         logger.debug("patient registries = %s" % patient_registries)
 
         logger.debug("persisting custom consents from form")
