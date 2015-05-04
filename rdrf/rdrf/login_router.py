@@ -16,7 +16,7 @@ class RouterView(View):
             if user.is_superuser:
                 redirect_url = reverse("admin:index")
             elif user.is_clinician:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("patientslisting")
             elif user.is_genetic:
                 redirect_url = reverse("admin:index")
             elif user.is_curator:
