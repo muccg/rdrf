@@ -145,7 +145,7 @@ Patient: <a href="{% url 'patient_edit' patient_id %}">{{ patient_name }}</a>
         {% if not forloop.last %}
             <span class="divider">»</span>
         {% endif %}
-    {% else %
+    {% else %}
     <a href="{{form_link.url}}">{{form_link.text}}</a>
         {% if not forloop.last %}
             <span class="divider">»</span>
