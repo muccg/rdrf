@@ -136,7 +136,7 @@ Patients: <a href="{% url 'admin:patients_patient_changelist' %}">{% trans 'Pati
 Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a>
 {% else %}
 Patients: <a href="{% url 'patientslisting' %}">{% trans 'Patients' %}</a>
-Patient: <a href="{% url 'patient_edit' patient_id %}">{{ patient_name }}</a>
+Patient: <a href="{% url 'patient_edit' registry patient_id %}">{{ patient_name }}</a>
 {% endif %}
 
 {% for form_link in form_links %}
