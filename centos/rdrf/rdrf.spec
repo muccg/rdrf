@@ -5,8 +5,8 @@
 %define pybasever 2.7
 
 %define name rdrf
-%define version 0.8.18
-%define unmangled_version 0.8.18
+%define version 0.8.19
+%define unmangled_version 0.8.19
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
