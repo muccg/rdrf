@@ -52,27 +52,38 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
-                       (r'^admin/', include(admin.site.urls)),
+
+                       (r'^admin/?', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
                        (r'', include(common_urls, namespace="registry")),
-                       
-                       # No loger used? i am leaving it just in case somthing is still using it
-                       #url(r"^patient/(\d+)$", views.patient_cdes),
-                       
-                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
-                           form_view.FormView.as_view(), name='registry_form'),
-                       url(r"^registry/(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
-                       
-                       url(r"^registry/(?P<registry_code>\w+)/patient/?$",
-                           patient_view.PatientView.as_view(), name='patient_page'),
-                       url(r"^patient/(?P<patient_id>\d+)/?$",
-                           patient_view.PatientEditView.as_view(), name='patient_edit'),
                        
                        url(r'^/?$', landing_view.LandingView.as_view(), name='landing'),
                        url(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
                        url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry'),
-                       url(r'^login/?$', 'django.contrib.auth.views.login',
-                           {'template_name': 'admin/login.html'}, name='login'),
+                       url(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
+                       url(r'^explorer/?', include('explorer.urls')),
+                       url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
+                       url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
+
+                       url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
+                       url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
+                       
+                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(), name="patientslisting"),
+                       url(r'^bootgridapi', form_view.BootGridApi.as_view()),
+
+                       
+                       url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}, name='login'),
+                       url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
+                       
+                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
+                           form_view.FormView.as_view(), name='registry_form'),
+                       url(r"^(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
+                       
+                       url(r"^(?P<registry_code>\w+)/patient/?$",
+                           patient_view.PatientView.as_view(), name='patient_page'),
+                       url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/?$",
+                           patient_view.PatientEditView.as_view(), name='patient_edit'),
+                       
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
                        url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireResponseView.as_view(),
@@ -89,11 +100,6 @@ urlpatterns = patterns('',
                            rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
                        (r'^admin/lookups/', include(ajax_select_urls)),
 
-                       url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
-                       url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
-
-                       url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
-                       url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
                        url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
                        (r'^api/', include(v1_api.urls)),
                        url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
@@ -111,20 +117,8 @@ urlpatterns = patterns('',
                        url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
-                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(), name="patientslisting"),
-                       url(r'^bootgridapi', form_view.BootGridApi.as_view()),
-
-                       url(r'^router/',
-                            login_router.RouterView.as_view(), name="login_router"),
-
                        url(r'^api/clinitian/',
-                            ClinitianLookup.as_view(), name="clinician_lookup"),
-
-                        url(r'^reports/',
-                            report_view.ReportView.as_view(), name="reports"),
-                        
-                       url(r'^explorer/', include('explorer.urls'))
-                       
+                            ClinitianLookup.as_view(), name="clinician_lookup"),                       
                        )
 
 urlpatterns += patterns('',

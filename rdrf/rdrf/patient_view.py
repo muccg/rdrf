@@ -70,9 +70,9 @@ class PatientView(View):
 
 class PatientEditView(View):
 
-    def get(self, request, patient_id):
+    def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
-            patient_edit_url = reverse('patient_edit', args=[patient_id,])
+            patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id,])
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
@@ -81,12 +81,12 @@ class PatientEditView(View):
         context = {
             "forms": form_sections,
             "patient": patient,
-            "registry_code": patient.rdrf_registry.all()[0].code
+            "registry_code": registry_code
         }
     
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
-    def post(self, request, patient_id):
+    def post(self, request, registry_code, patient_id):
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=patient.rdrf_registry.all()[0].code)
 
@@ -126,7 +126,7 @@ class PatientEditView(View):
                 "errors": True
             }
             
-        context["registry_code"] = patient.rdrf_registry.all()[0].code
+        context["registry_code"] = registry_code
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def _get_forms(self, patient_id, patient_form=None, patient_address_form=None, patient_doctor_form=None):
