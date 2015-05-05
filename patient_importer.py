@@ -409,7 +409,6 @@ class WiringTask(object):
         except Exception, ex:
             self.importer.error("wiring task %s failed trying to update value to %s: %s" % (self, corresponding_value, ex))
 
-
     def update(self, value):
         if self.wiring_type == WiringType.MONGO_FIELD:
             try:
@@ -426,9 +425,16 @@ class WiringTask(object):
             except Exception, ex:
                 self.importer.error("Wiring Error for %s: %s" % (self, ex))
         elif self.wiring_type == WiringType.MULTISECTION_FIELD:
+            self.importer.msg("wirding multisection %s" % self)
             dyn_patient = DynamicDataWrapper(self.patient_model)
             mongo_data = dyn_patient.load_dynamic_data(self.registry_model.code, "cdes")
-            self.importer.msg("mongo data for xxx: %s" % )
+            m = "Patient %s" % self.patient_model
+            self.importer.msg("mongo data for %s before multisection wiring: %s" % (m, mongo_data))
+            sections = mongo_data[self.section_model.code]
+            section = sections[self.multisection_index]
+            section[self.cde_model.code] = value
+            self.importer.msg("mongo data for %s after multisection wiring: %s" % (m, mongo_data))
+            dyn_patient.save_dynamic_data(self.registry_model.code, "cdes", mongo_data)
 
     def _get_corresponding_value(self):
         if self.wiring_target == WiringTarget.PATIENT:
