@@ -38,19 +38,25 @@
 
                     formatters: {
                         "id": function (column, row) {
-                            var link = "{% url 'patient_edit' 999 %}".replace("/999", "/" + row.id);
+                            var reg_div = $("<div>");
+                        
+                            row.reg_code.forEach(function(reg) {
+                                var link = "{% url 'patient_edit' 888 999 %}".replace("/999", "/" + row.id).replace("/888", "/" + reg);
+                                
+                                var edit_link = $("<a>");
+                                edit_link.attr("href", link);
+                                edit_link.attr("class", "btn btn-sm btn-warning btn-block");
+                                
+                                var pencil_icon = $("<span>").attr("class", "glyphicon glyphicon-pencil");
+                                pencil_icon.attr("aria-hidden", "true");
+                                
+                                edit_link.append(pencil_icon);
+                                edit_link.append(" Edit (" + reg + ")");
+                                
+                                reg_div.append(edit_link);
+                            });
                             
-                            var edit_link = $("<a>");
-                            edit_link.attr("href", link);
-                            edit_link.attr("class", "btn btn-sm btn-warning");
-                            
-                            var pencil_icon = $("<span>").attr("class", "glyphicon glyphicon-pencil");
-                            pencil_icon.attr("aria-hidden", "true");
-                            
-                            edit_link.append(pencil_icon);
-                            edit_link.append(" Edit Demographics");
-                            
-                            return edit_link.prop('outerHTML');
+                            return reg_div.prop('outerHTML');
                         },
 
                         "commands": function (column, row) {
