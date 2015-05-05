@@ -275,8 +275,10 @@ class PatientForm(forms.ModelForm):
         
         patient_model.working_groups = [wg for wg in self.cleaned_data["working_groups"]]
         patient_model.rdrf_registry = [reg for reg in self.cleaned_data["rdrf_registry"]]
-        patient_model.user = self.cleaned_data["user"]
         patient_model.clinician = self.cleaned_data["clinician"]
+        
+        if "user" in self.cleaned_data:
+            patient_model.user = self.cleaned_data["user"]
         
         if commit:
             patient_model.save()
