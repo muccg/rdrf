@@ -53,7 +53,7 @@ urlpatterns = patterns('',
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
 
-                       (r'^admin/?', include(admin.site.urls)),
+                       (r'^admin/', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
                        (r'', include(common_urls, namespace="registry")),
                        
