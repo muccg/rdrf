@@ -23,6 +23,13 @@ def mapkey(form_model, section_model, cde_model=None):
         return "%s__%s" % (form_model, section_model)
 
 
+def mongokey(form_model, section_model, cde_model=None):
+    if cde_model is not None:
+        return "%s____%s____%s" % (form_model.name, section_model.code, cde_model.code)
+    else:
+        return "%s____%s" % (form_model, section_model)
+
+
 def cde_moniker(form_model, section_model, cde_model=None):
     if cde_model is None:
         return "<<%s.%s>>" % (form_model.name, section_model.display_name)
@@ -160,7 +167,7 @@ class BaseMultiSectionHandler(object):
         self.code = mapkey(self.FORM_MODEL, self.SECTION_MODEL)
         self.patient_id = None
         self.diagnosis_id = None
-        self.rdrf_patient =  None
+        self.rdrf_patient = None
         self.missing_diagnosis = False
 
 
@@ -249,7 +256,7 @@ class BaseMultiSectionHandler(object):
                 wiring_task.value_to_wire = old_value
                 wiring_task.wiring_target = self.WIRING_FIELDS[cde_model.code]
                 wiring_task.old_data = self.importer.data
-                wiring_task.object_type = WiringType.MULTISECTION_FIELD
+                wiring_task.wiring_type = WiringType.MULTISECTION_FIELD
                 wiring_task.multisection_index = index
                 self.importer.info("multisection field %s requires wiring - woring task = %s" % (cde_model.code, wiring_task))
                 self.importer.add_wiring_task(wiring_task)
@@ -432,7 +439,8 @@ class WiringTask(object):
             self.importer.msg("mongo data for %s before multisection wiring: %s" % (m, mongo_data))
             sections = mongo_data[self.section_model.code]
             section = sections[self.multisection_index]
-            section[self.cde_model.code] = value
+            field_key = mongokey(self.form_model, self.section_model, self.cde_model)
+            section[field_key] = value
             self.importer.msg("mongo data for %s after multisection wiring: %s" % (m, mongo_data))
             dyn_patient.save_dynamic_data(self.registry_model.code, "cdes", mongo_data)
 
