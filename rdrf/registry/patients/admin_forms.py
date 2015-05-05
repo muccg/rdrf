@@ -180,7 +180,7 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
         self.custom_consents = []  # list of consent fields agreed to
-        self.orig_user = None
+        #self.orig_user = None
 
         if 'instance' in kwargs:
             instance = kwargs['instance']
@@ -226,6 +226,7 @@ class PatientForm(forms.ModelForm):
         widgets = {
             'next_of_kin_address': forms.Textarea(attrs={"rows": 3, "cols": 30}),
             'inactive_reason': forms.Textarea(attrs={"rows": 3, "cols": 30}),
+            'user': forms.HiddenInput()
         }
         exclude = ['doctors']
 
@@ -260,7 +261,7 @@ class PatientForm(forms.ModelForm):
         logger.debug("saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
-        patient_model.user = self.orig_user
+        #patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
         try:
             patient_registries = [r for r in patient_model.rdrf_registry.all()]
@@ -271,7 +272,14 @@ class PatientForm(forms.ModelForm):
 
         logger.debug("persisting custom consents from form")
         logger.debug("There are %s custom consents" % len(self.custom_consents.keys()))
-
+        
+        patient_model.working_groups = [wg for wg in self.cleaned_data["working_groups"]]
+        patient_model.rdrf_registry = [reg for reg in self.cleaned_data["rdrf_registry"]]
+        patient_model.clinician = self.cleaned_data["clinician"]
+        
+        if "user" in self.cleaned_data:
+            patient_model.user = self.cleaned_data["user"]
+        
         if commit:
             patient_model.save()
 

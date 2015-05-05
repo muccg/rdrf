@@ -118,7 +118,7 @@ def user_registered_callback(sender, user, request, **kwargs):
         user.working_groups = [ working_group, ]
     except ValueError:
         clinician = None
-        working_group = WorkingGroup.objects.get(name__icontains=_UNALLOCATED_GROUP)
+        working_group, status = WorkingGroup.objects.get_or_create(name=_UNALLOCATED_GROUP)
         user.working_groups = [ working_group, ]
     
     user.save()

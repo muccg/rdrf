@@ -15,7 +15,6 @@
     
     <script src={% static 'js/rpc_module.js' %}></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -230,7 +229,6 @@
                                 {% with doc="docs/"|add:link %}
                                     {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
                                 {% endwith %}
-                                {% endwith %}
                                 </div>
                                 <div class="panel-body">
                                     {% for s in section %}
@@ -240,8 +238,13 @@
                                         {% else %}
                                             <div class="form-group">
                                         {% endif %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">{{ element.label }}</label>
-                                            <div class="col-sm-9">
+                                            {% if link %}
+                                                <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">{{ element.label }}</label>
+                                                <div class="col-sm-1">
+                                            {% else %}
+                                                <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                <div class="col-sm-9">
+                                            {% endif %}
                                                 {% if not element|is_checkbox %}
                                                     {{ element | add_attr:"class,form-control" }}
                                                 {% else %}
@@ -257,6 +260,7 @@
                                         </div>
                                     {% endfor %}
                                 </div>
+                                {% endwith %}
                             </div>
                         {% endfor %}
                     {% endif %}
