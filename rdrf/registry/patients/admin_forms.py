@@ -316,12 +316,13 @@ class PatientForm(forms.ModelForm):
                         self.fields[field_key] = consent_field
                         logger.debug("added consent field %s = %s" % (field_key, consent_field))
 
-    def get_all_consent_section_info(self, patient_model):
+    def get_all_consent_section_info(self, patient_model, registry_code):
         section_tuples = []
-        for registry_model in patient_model.rdrf_registry.all():
-            for consent_section_model in registry_model.consent_sections.all():
-                if consent_section_model.applicable_to(patient_model):
-                    section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
+        registry_model = Registry.objects.get(code=registry_code)
+        
+        for consent_section_model in registry_model.consent_sections.all():
+            if consent_section_model.applicable_to(patient_model):
+                section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
         return section_tuples
 
     def get_consent_section_info(self, registry_model, consent_section_model):
