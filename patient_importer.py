@@ -1,20 +1,27 @@
 import sys
 import json
 import os
+from datetime import date
+
+from django.db import transaction
+
+from pymongo import MongoClient
+
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
+from rdrf.utils import mongo_db_name
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
 from registry.patients.models import State
+from registry.patients.models import Doctor
 from registry.groups.models import WorkingGroup
 from registry.genetic.models import Gene
+
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.file_upload import wrap_gridfs_data_for_form
-
-from datetime import date
 
 SMA = "SMA"
 DMD = "DMD"
@@ -215,9 +222,11 @@ class BaseMultiSectionHandler(object):
             self.importer.msg("%s has 0 sections - no need to save!" % self)
             return
 
-        self.importer.msg("saving multisection to mongo %s : converted sections = %s" % (self, converted_sections))
-
         self._save_multisection_to_mongo(rdrf_patient, converted_sections)
+
+
+        self.importer.success("saved multisection %s OK ( #old models = %s #new sections = %s" % (self,
+                                                                                                  len(original_models),                                                                                                 len(converted_sections)))
 
     def is_appropriate_model(self, old_model):
         if self.missing_diagnosis:
@@ -242,6 +251,7 @@ class BaseMultiSectionHandler(object):
         multisection_data = {self.SECTION_MODEL.code: gridfs_wrapped_sections}
         ddw = DynamicDataWrapper(rdrf_patient)
         ddw.save_dynamic_data(registry_code, "cdes", multisection_data)
+        self.importer.mongo_patient_ids.add(rdrf_patient.pk)
         m = cde_moniker(self.FORM_MODEL, self.SECTION_MODEL)
         self.importer.success("saved multisection for %s: " % (m, ))
 
@@ -404,25 +414,6 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
 # DMDExonTestMaleRelatives
 
 
-#{"pk": 1,
-# "model": "genetic.variation",
-# "fields": {
-# "exon_boundaries_known": true,
-# "protein_variation_validation_override": false,
-# "exon_validation_override": false,
-# "point_mutation_all_exons_sequenced": null,
-# "duplication_all_exons_tested": false,
-# "technique": "cDNA sequencing",
-# "deletion_all_exons_tested": null,
-# "rna_variation": "",
-# "molecular_data": 1,
-# "dna_variation": "g.1-100A>C",
-# "exon": "23", "protein_variation": "",
-# "rna_variation_validation_override": false,
-# "all_exons_in_male_relative": true,
-# "gene": 13,
-# "dna_variation_validation_override": false
-# }},
 class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "genetic.variation"
     DIAGNOSIS_LINK = "diagnosis"
@@ -431,8 +422,8 @@ class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
 
     FIELD_MAP = {
         "exon_boundaries_known": cde("DMDExonBoundaries"),
-        "exon_validation_override": None,
-        "protein_variation_validation_override": None,
+        "exon_validation_override": None,    # ????
+        "protein_variation_validation_override": None,   #????
         "point_mutation_all_exons_sequenced": cde("DMDExonSequenced"),
         "duplication_all_exons_tested": cde("DMDExonTestDuplication"),
         "technique": cde("NMDTechnique"),
@@ -441,10 +432,10 @@ class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
         "dna_variation": cde("DMDDNAVariation"),
         "exon": cde("CDE00033"),
         "protein_variation": cde("DMDProteinVariation"),
-        "rna_variation_validation_override": None,
+        "rna_variation_validation_override": None,    # ????
         "all_exons_in_male_relative": cde("DMDExonTestMaleRelatives"),
         "gene": cde("NMDGene"),
-        "dna_variation_validation_override": None,
+        "dna_variation_validation_override": None,     # ????
     }
 
     def is_appropriate_model(self, old_model):
@@ -452,14 +443,6 @@ class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
         # the patient id ?
         return old_model["fields"]["molecular_data"] == self.patient_id
 
-
-#{"pk": 1,
-# "model":
-# "dmd.heartmedication",
-# "fields": {
-# "status": "Current",
-# "drug": "lysergic acid diethylamide",
-# "diagnosis": 1}}
 
 class DMDHeartMedicationMultiSectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "dmd.heartmedication"
@@ -472,14 +455,6 @@ class DMDHeartMedicationMultiSectionHandler(BaseMultiSectionHandler):
        "status": cde("DMDStatus"),
     }
 
-#{"pk": 1,
-# "model": "dmd.familymember",
-# "fields": {
-# "registry_patient": null,
-# "family_member_diagnosis": "DMD",
-# "relationship": "Parent",
-# "diagnosis": 1,
-# "sex": "M"}},
 
 class DMDFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "dmd.familymember"
@@ -627,6 +602,7 @@ class WiringTask(object):
 
 class PatientImporter(object):
     def __init__(self, target_registry_code, src_system, migration_map_file, dump_dir):
+        self._current_patient_id = None
         self.suppress_success_msg = False
         self.src_system = src_system  # eg sma or dmd
         self.registry = Registry.objects.get(code=target_registry_code)
@@ -639,12 +615,25 @@ class PatientImporter(object):
         self._states_map = {}
         self._wiring_tasks = []
         self.patient_map = {}
-
         self._fields_to_wire = []
-
-
+        self.mongo_patient_ids = set([])
+        self.abort_on_todo = True
+        self._data_map = {}  # hold refs so we can rewire
 
     # public interface
+
+    def put_map(self, old_model_name, old_pk,  new_instance):
+        key = (old_model_name, old_pk)
+        if key in self._data_map:
+            raise MigrationError("%s already in data map?" % key)
+        else:
+            self._data_map[key] = new_instance
+
+    def get_map(self, old_model_name, pk):
+        key = (old_model_name, old_pk)
+        return self._data_map[k]
+
+
 
     def run(self):
         self._prelude()
@@ -653,10 +642,14 @@ class PatientImporter(object):
         self._create_countries()
         self._create_labs()
         self._create_states()
+        self._create_doctors()
+
 
         for old_patient_id in self._old_patient_ids():
+            self._current_patient_id = old_patient_id
             try:
                 rdrf_patient = self._create_rdrf_patient(old_patient_id)
+
             except PatientNotFound, pnf_err:
                 self.error(pnf_err)
                 continue
@@ -698,7 +691,14 @@ class PatientImporter(object):
         pass
 
     def rollback_mongo(self):
-        pass
+        self.msg("rolling back mongo ...")
+        from django.conf import settings
+        client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        db_name = mongo_db_name(self.registry.code)
+        self.msg("dropping mongo db %s .." % db_name)
+        client[db_name].connection.drop_database(db_name)
+        self.msg("database dropped")
+
 
     def load_data(self):
         for dump_file in os.listdir(self._dump_dir):
@@ -752,6 +752,7 @@ class PatientImporter(object):
             address_model.country = "Australia"   #???
             address_model.patient = rdrf_patient_model
 
+
         except Exception, ex:
             self.error("could not set fields on address object for %s %s: %s" % (moniker(old_patient_id), rdrf_patient_model, ex))
             return
@@ -762,6 +763,38 @@ class PatientImporter(object):
 
         except Exception, ex:
             self.error("could not save address for %s (%s): %s" % (moniker(patient_record), rdrf_patient_model, ex))
+
+
+    def _create_doctors(self):
+
+        #{"pk": 1, "model": "patients.doctor",
+        # "fields": {
+        # "family_name": "Example",
+        # "speciality": "General Practitioner",
+        # "surgery_name": "Example",
+        # "phone": "",
+        # "suburb": "Perth",
+        # "state": "WA",
+        # "address": "1 Smith St",
+        # "email": "",
+        # "given_names": "John"}},
+        for old_doctor_model in self._old_models("patients.doctor"):
+            d = old_doctor_model["fields"]
+            doctor = Doctor()
+            doctor.given_names = d["given_names"]
+            doctor.family_name = d["family_name"]
+            doctor.address = d["address"]
+            doctor.email = d["email"]
+            doctor.phone = d["phone"]
+            doctor.speciality = d["speciality"]
+            doctor.state = d["state"]
+            doctor.suburb = d["suburb"]
+            doctor.surgery_name = d["surgery_name"]
+            doctor.save()
+            self.put_map("patients.doctor", old_doctor_model["pk"], doctor)
+            self.success("created doctor %s %s" % (doctor.given_names, doctor.family_name))
+
+
 
 
     def _create_working_groups(self):
@@ -854,6 +887,7 @@ class PatientImporter(object):
             p.save()
             self.success("created %s ( new pk = %s old pk = %s )" % (p, p.id, old_patient_data["pk"]))
             self.patient_map[old_patient_id] = p
+            self.put_map("patients.patient", old_patient_id, p)
             return p
         except Exception, ex:
             raise PatientCouldNotBeCreated("%s: %s" % (m, ex))
@@ -876,6 +910,7 @@ class PatientImporter(object):
         raise PatientNotFound("patient id %s" % patient_id)
 
     def info(self, msg):
+        msg = "[P%s] %s" % (self._current_patient_id, msg)
         print msg
         self._log.write(msg + "\n")
 
@@ -890,6 +925,8 @@ class PatientImporter(object):
         self.info("FAIL %s" % msg)
 
     def to_do(self, msg):
+        if self.abort_on_todo:
+            raise AbortError("Still have todo!: %s" % msg)
         self.info("TODO %s" % msg)
 
     def _old_patient_ids(self):
@@ -950,6 +987,7 @@ class PatientImporter(object):
 
             new_value = self.get_new_data_value(form_model, section_model, cde_model, old_value)
             rdrf_patient_model.set_form_value(self.registry.code, form_model.name, section_model.code, cde_model.code, new_value)
+            self.mongo_patient_ids.add(rdrf_patient_model.pk)
             new_name = cde_moniker(form_model, section_model, cde_model)
             self.success("RDR Patient %s with %s = %s ==> RDRF Patient %s with %s = %s" % (old_patient_id,
                                                                                        old_name,
@@ -1184,9 +1222,6 @@ DMD_FAMILYMEMBER_DIAGNOSIS_CHOICES = (
 )
 
 
-
-
-
 DMD_WHEELCHAIR_USE_CHOICES = (
         ("permanent", "Yes (Permanent)", "permament"),
         ("intermittent", "Yes (Intermittent)", "intermittent"),
@@ -1206,7 +1241,6 @@ DMD_STATUS_CHOICES = (
         ("Current", "Current prescription", "DMDStatusChoicesCurrent"),
         ("Previous", "Previous prescription", "DMDStatusChoicesPrevious"),
 )
-
 
 # {"pk": 1, "model": "genetic.variationsma", "fields": {"exon_7_smn1_deletion": 2, "exon_7_se
 # quencing": true, "technique": "MLPA", "molecular_data": 1, "dna_variation": "a", "gene": 18}},
@@ -1248,21 +1282,28 @@ if __name__ == '__main__':
     dump_dir = sys.argv[2]
     target_registry_code = sys.argv[3]
     migration_map_file = sys.argv[4]
+    FAILED = True
 
-    importer = PatientImporter(target_registry_code, src_system, migration_map_file, dump_dir)
-    importer.load_data()
-    #try:
-    importer.run()
-    # except AbortError, aerr:
-    #     importer.error("Aborting error thrown : %s\nAborting..." % aerr)
-    #     importer.rollback()
-    #     importer.rollback_mongo()
-    #     importer.msg("rolled back!")
-    #
-    # except Exception, ex:
-    #     importer.error("Unhandled exception: %s" % ex)
-    #     importer.msg("Rolling back ...")
-    #     importer.rollback()
-    #     importer.rollback_mongo()
+    try:
+        importer = PatientImporter(target_registry_code, src_system, migration_map_file, dump_dir)
+        importer.load_data()
 
-    importer.msg("all done")
+        with transaction.atomic():
+            importer.run()
+            FAILED = False
+
+    except AbortError, aerr:
+        importer.error("Aborting error thrown : %s\nAborting..." % aerr)
+        importer.rollback_mongo()
+        importer.msg("rolled back!")
+
+
+    except Exception, ex:
+        importer.error("Unhandled exception: %s" % ex)
+        importer.msg("Rolling back ...")
+        importer.rollback_mongo()
+
+    if FAILED:
+        importer.msg("RUN FAILED AND WAS ROLLED BACK :(")
+    else:
+        importer.success("RUN SUCCEEDED!")
