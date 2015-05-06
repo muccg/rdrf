@@ -364,9 +364,9 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
 
 
 class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
-    MODEL_NAME = "dmd.otherregistries"
+    MODEL_NAME = "dmd."
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm(DMD, "Clinical Diagnoses")
+    FORM_MODEL = frm(DMD, "Genetic Data")
     SECTION_MODEL = sec("NMDOtherRegistries")
 
     FIELD_MAP = {
