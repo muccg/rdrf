@@ -15,6 +15,7 @@ from rdrf.utils import mongo_db_name
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
+from registry.patients.models import ParentGuardian
 from registry.patients.models import State
 from registry.patients.models import Doctor
 from registry.groups.models import WorkingGroup
@@ -80,8 +81,14 @@ class RetrievalError(MigrationError):
 class ChoicesError(MigrationError):
     pass
 
+class ChoiceNotMade(MigrationError):
+    pass
+
 
 class PatientNotFound(MigrationError):
+    pass
+
+class SubModelNotFound(MigrationError):
     pass
 
 
@@ -215,8 +222,6 @@ class BaseMultiSectionHandler(object):
 
         for index, original_model in enumerate(original_models):
             mongo_section_item = self._create_mongo_section(index, original_model)
-            self.importer.success("converted old model: %s ---> member of multisection: %s" % (original_model,
-                                                                                               mongo_section_item))
             converted_sections.append(mongo_section_item)
 
         if len(converted_sections) == 0:
@@ -224,8 +229,6 @@ class BaseMultiSectionHandler(object):
             return
 
         self._save_multisection_to_mongo(rdrf_patient, converted_sections)
-
-
         self.importer.success("saved multisection %s OK ( #old models = %s #new sections = %s" % (self,
                                                                                                   len(original_models),                                                                                                 len(converted_sections)))
 
@@ -241,7 +244,7 @@ class BaseMultiSectionHandler(object):
             if "model" in item:
                 if item["model"] == diagnosis_model_name:
                     if item["fields"]["patient"] == patient_id:
-                       return item["pk"]
+                        return item["pk"]
 
         raise RetrievalError("could not get diagnosis id for patient id: %s" % patient_id)
 
@@ -461,7 +464,7 @@ class DMDFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "dmd.familymember"
     FORM_MODEL = frm(DMD, "Clinical Diagnosis")
     SECTION_MODEL = sec("DMDFamilyMember")
-    WIRING_FIELDS = {"NMDRegistryPatient": WiringTarget.PATIENT }
+    WIRING_FIELDS = {"NMDRegistryPatient": WiringTarget.PATIENT}
 
     FIELD_MAP = {
         "family_member_diagnosis": cde("DMDFamilyDiagnosis"),
@@ -634,6 +637,16 @@ class PatientImporter(object):
         key = (old_model_name, pk)
         return self._data_map[key]
 
+    def _create_parents(self):
+        self.to_do("parents")
+        for parent_model in self._old_models("patients.parent"):
+            pass
+
+    def _create_consent_forms(self):
+        self.to_do("consent forms")
+
+    def _create_uploaded_consents(self):
+        self.to_do("uploaded consents")
 
 
     def run(self):
@@ -644,7 +657,9 @@ class PatientImporter(object):
         self._create_labs()
         self._create_states()
         self._create_doctors()
-
+        self._create_parents()
+        self._create_consent_forms()
+        self._create_uploaded_consents()
 
         for old_patient_id in self._old_patient_ids():
             self._current_patient_id = old_patient_id
@@ -956,8 +971,12 @@ class PatientImporter(object):
                     if "pk" in item:
                         yield item["pk"]
 
+    def _assign_medical_professionals(self, old_patient_id, rdrf_patient_model):
+        self.to_do("medical professionals")
+
     def _create_relationships(self, old_patient_id, rdrf_patient_model):
         self._assign_working_group(old_patient_id, rdrf_patient_model)
+        self._assign_medical_professionals(old_patient_id, rdrf_patient_model)
 
     def _assign_working_group(self, old_patient_id, rdrf_patient_model):
         for patient_model in self._old_models("patients.patient"):
@@ -1005,11 +1024,15 @@ class PatientImporter(object):
                 wiring_task.wiring_type = WiringType.MONGO_FIELD
                 raise wiring_task
 
-            new_value = self.get_new_data_value(form_model, section_model, cde_model, old_value)
-            rdrf_patient_model.set_form_value(self.registry.code, form_model.name, section_model.code, cde_model.code, new_value)
+            try:
+                new_value = self.get_new_data_value(form_model, section_model, cde_model, old_value)
+                rdrf_patient_model.set_form_value(self.registry.code, form_model.name, section_model.code, cde_model.code, new_value)
+            except ChoiceNotMade, cnm:
+                new_value = "NO OPTION SELECTED"
+
             self.mongo_patient_ids.add(rdrf_patient_model.pk)
             new_name = cde_moniker(form_model, section_model, cde_model)
-            self.success("RDR Patient %s with %s = %s ==> RDRF Patient %s with %s = %s" % (old_patient_id,
+            self.success("RDR Patient %s with %s = %s ==> RDRF Patient %s with %s = [%s]" % (old_patient_id,
                                                                                        old_name,
                                                                                        old_value,
                                                                                        rdrf_patient_model.id,
@@ -1042,6 +1065,8 @@ class PatientImporter(object):
             if not choices_tuple is None:
                 try:
                     return get_choice(choices_tuple, old_value)
+                except ChoiceNotMade, cnmerr:
+                    raise
                 except Exception, ex:
                     raise ConversionError("%s could not find corresponding choice value for %s in %s: %s" % (m, old_value, choices_tuple, ex))
             else:
@@ -1138,10 +1163,12 @@ class PatientImporter(object):
 
 
 def get_choice(choice_tuple, old_choice_value):
+    if old_choice_value == "":
+        raise ChoiceNotMade()
     for t in choice_tuple:
         if t[0] == old_choice_value:
             return t[2]
-    raise ConversionError("choices tuple %s does not contain %s" % (choice_tuple, old_choice_value))
+    raise ConversionError("choices tuple %s does not contain [%s]" % (choice_tuple, old_choice_value))
 
 # SMA Choices  taken from code of disease_registry
 # first two values are from the old system
