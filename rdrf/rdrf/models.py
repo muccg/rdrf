@@ -102,6 +102,12 @@ class Registry(models.Model):
         else:
             return {}
 
+    def get_metadata_item(self, item):
+        try:
+            return self.metadata[item]
+        except KeyError:
+            return True
+
     def shows(self, element):
         # does this registry make visible extra/custom functionality ( false by default)
         if "visibility" in self.metadata:

@@ -19,7 +19,8 @@ class RegistryView(View):
             return render_to_response('rdrf_cdes/splash.html', {'body': 'Oops, wrong registry code...'})
 
         context = {
-            'body': registry.splash_screen
+            'body': registry.splash_screen,
+            'registry_code': registry_code
         }
 
         context.update(csrf(request))
