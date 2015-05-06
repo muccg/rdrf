@@ -19,6 +19,7 @@ from registry.patients.models import State
 from registry.patients.models import Doctor
 from registry.groups.models import WorkingGroup
 from registry.genetic.models import Gene
+from registry.genetic.models import Laboratory
 
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.file_upload import wrap_gridfs_data_for_form
@@ -630,8 +631,8 @@ class PatientImporter(object):
             self._data_map[key] = new_instance
 
     def get_map(self, old_model_name, pk):
-        key = (old_model_name, old_pk)
-        return self._data_map[k]
+        key = (old_model_name, pk)
+        return self._data_map[key]
 
 
 
@@ -674,7 +675,12 @@ class PatientImporter(object):
         self._endrun()
 
     def _create_countries(self):
-        self.to_do("create countries")
+        # {"pk": "Australia", "model": "patients.country", "fields": {}}
+        for country_model in self._old_models("patients.country"):
+            self.put_map("patients.country", country_model["pk"], country_model["pk"])
+            self.success("storing country %s" % country_model["pk"])
+
+
 
     def add_wiring_task(self, wiring_task):
         self.info("adding wiring task %s" % wiring_task)
@@ -747,7 +753,7 @@ class PatientImporter(object):
             address_model = PatientAddress()
             address_model.address = patient_record["fields"]["address"]
             address_model.suburb = patient_record["fields"]["suburb"]
-            address_model.state = get_state(address_data["state"])
+            address_model.state = self.get_map("patients.state", patient_record["fields"]["state"])
             address_model.postcode = patient_record["fields"]["postcode"]
             address_model.country = "Australia"   #???
             address_model.patient = rdrf_patient_model
@@ -787,7 +793,7 @@ class PatientImporter(object):
             doctor.email = d["email"]
             doctor.phone = d["phone"]
             doctor.speciality = d["speciality"]
-            doctor.state = d["state"]
+            doctor.state = self.get_map("patients.state", d["state"])
             doctor.suburb = d["suburb"]
             doctor.surgery_name = d["surgery_name"]
             doctor.save()
@@ -841,18 +847,32 @@ class PatientImporter(object):
                 #self.msg("Gene %s already exists" % display(old_gene_model))
 
     def _create_labs(self):
-        self.to_do("create labs")
+        #{"pk": 4, "model": "genetic.laboratory", "fields": {
+        # "contact_phone": "08 8161 7107",
+        # "contact_name": "Kathie Friend",
+        # "contact_email": "kathryn.friend@adelaide.edu.au",
+        # "name": "Genetics and Molecular Pathology, SA Pathology (Women\u2019s and Children\u2019s Hospital) ",
+        # "address": ""}},
+
+        for lab in self._old_models("genetic.laboratory"):
+            rdrf_lab = Laboratory()
+            for field in lab["fields"]:
+                setattr(rdrf_lab, field, lab["fields"][field])
+            rdrf_lab.save()
+            self.put_map("genetic.laboratory", lab["pk"], rdrf_lab)
+
 
     def _create_states(self):
         for state_dict in self._old_models("patients.state"):
             self.msg("creating State %s" % state_dict["fields"]["name"])
             try:
-                rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"], country=state_dict["country"])
+                rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"], short_name=state_dict["pk"])
 
                 if created:
                     rdrf_state.save()
                     self.success("created State %s" % rdrf_state)
                 self._states_map[state_dict["pk"]] = rdrf_state
+                self.put_map("patients.state", state_dict["pk"], rdrf_state)
             except Exception, ex:
                 self.error("could not create State %s: %s" % (state_dict, ex))
 
