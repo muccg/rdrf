@@ -16,6 +16,9 @@ from rdrf.file_upload import wrap_gridfs_data_for_form
 
 from datetime import date
 
+SMA = "SMA"
+DMD = "DMD"
+
 def mapkey(form_model, section_model, cde_model=None):
     if cde_model is not None:
         return "%s__%s__%s" % (form_model.name, section_model.code, cde_model.code)
@@ -37,8 +40,9 @@ def cde_moniker(form_model, section_model, cde_model=None):
     return "<<%s.%s.%s>>" % (form_model.name, section_model.display_name, cde_model.name)
 
 
-def frm(frm_name):
-    return RegistryForm.objects.get(name=frm_name)
+def frm(registry_code, frm_name):
+    r = Registry.objects.get(code=registry_code)
+    return RegistryForm.objects.get(name=frm_name, registry=r)
 
 
 def sec(sec_code):
@@ -274,7 +278,7 @@ class BaseMultiSectionHandler(object):
 
 class SMAFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.familymember"
-    FORM_MODEL = frm("Clinical Diagnoses")
+    FORM_MODEL = frm(SMA, "Clinical Diagnoses")
     SECTION_MODEL = sec("SMAFamilyMember")
     WIRING_FIELDS = {"NMDRegistryPatient": WiringTarget.PATIENT }
 
@@ -287,16 +291,16 @@ class SMAFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
     }
 
 
-class NMDOtherRegistriesMultiSectionHandler(BaseMultiSectionHandler):
+class SMANMDOtherRegistriesMultiSectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.otherregistries"
-    FORM_MODEL = frm("Clinical Diagnoses")
+    FORM_MODEL = frm(SMA, "Clinical Diagnoses")
     SECTION_MODEL = sec("NMDOtherRegistries")
 
 
-class NMDClinicalTrialsMultisectionHandler(BaseMultiSectionHandler):
+class SMANMDClinicalTrialsMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.clinicaltrials"
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm("Clinical Diagnoses")
+    FORM_MODEL = frm(SMA, "Clinical Diagnoses")
     SECTION_MODEL = sec("NMDClinicalTrials")
 
     FIELD_MAP = {
@@ -307,10 +311,10 @@ class NMDClinicalTrialsMultisectionHandler(BaseMultiSectionHandler):
     }
 
 
-class NMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
+class SMANMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "sma.otherregistries"
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm("Clinical Diagnoses")
+    FORM_MODEL = frm(SMA, "Clinical Diagnoses")
     SECTION_MODEL = sec("NMDOtherRegistries")
 
     FIELD_MAP = {
@@ -322,7 +326,7 @@ class NMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
 class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "genetic.variationsma"
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm("Genetic Data")
+    FORM_MODEL = frm(SMA, "Genetic Data")
     SECTION_MODEL = sec("SMAMolecular")
 
     # SMAExon7Sequencing
@@ -356,6 +360,19 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
                 raise ConversionError("old patient id = %s cde model %s Missing gene pk = %s" % (self.patient_id, cde_model, old_value))
 
         return super(SMAMolecularMultisectionHandler, self).convert_value(form_model, section_model, cde_model, old_value)
+
+
+
+class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "dmd.otherregistries"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm(DMD, "Clinical Diagnoses")
+    SECTION_MODEL = sec("NMDOtherRegistries")
+
+    FIELD_MAP = {
+        "registry": cde("NMDOtherRegistry"),
+
+    }
 
 
 def moniker(old_patient_dict):
@@ -486,6 +503,7 @@ class PatientImporter(object):
         self._prelude()
         self._working_groups_map = self._create_working_groups()
         #self._create_genes()
+        self._create_countries()
         self._create_labs()
         self._create_states()
 
@@ -514,6 +532,9 @@ class PatientImporter(object):
 
         self._perform_wiring_tasks()
         self._endrun()
+
+    def _create_countries(self):
+        self.to_do("create countries")
 
     def add_wiring_task(self, wiring_task):
         self.info("adding wiring task %s" % wiring_task)
@@ -644,12 +665,16 @@ class PatientImporter(object):
 
     def _create_states(self):
         for state_dict in self._old_models("patients.state"):
-            rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"])
+            self.msg("creating State %s" % state_dict["fields"]["name"])
+            try:
+                rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"], country=state_dict["country"])
 
-            if created:
-                rdrf_state.save()
-                self.success("created State %s" % rdrf_state)
-            self._states_map[state_dict["pk"]] = rdrf_state
+                if created:
+                    rdrf_state.save()
+                    self.success("created State %s" % rdrf_state)
+                self._states_map[state_dict["pk"]] = rdrf_state
+            except Exception, ex:
+                self.error("could not ")
 
     def _family_members(self, old_patient_id, rdrf_patient_model):
         self.to_do("family members")
@@ -855,11 +880,13 @@ class PatientImporter(object):
         if multisection_model.code == "SMAFamilyMember":
             return SMAFamilyMemberMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "NMDClinicalTrials":
-            return NMDClinicalTrialsMultisectionHandler(self, self.src_system, self.data)
+            return SMANMDClinicalTrialsMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "NMDOtherRegistries":
-            return NMDOtherRegistriesMultisectionHandler(self, self.src_system, self.data)
+            return SMANMDOtherRegistriesMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "SMAMolecular":
             return SMAMolecularMultisectionHandler(self, self.src_system, self.data)
+        elif multisection_model.code == "DMDVariations":
+            return DMDVariationsMultisectionHandler(self, self.src_system, self.data)
 
 
         return None
