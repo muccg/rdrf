@@ -125,7 +125,7 @@ class Retriever(object):
             if "model" in item:
                 if item["model"] == self.full_model_name:
                     # check for special case of being on diagnosis
-                    if self.full_model_name in ["sma.diagnosis"]:
+                    if self.full_model_name in ["sma.diagnosis", "dmd.diagnosis"]:
                         if item["pk"] == diagnosis_id:
                             if "fields" in item:
                                 if self.field in item["fields"]:
@@ -142,14 +142,18 @@ class Retriever(object):
 
     def get_diagnosis_id(self, patient_id):
         diagnosis_model_name = self.app + "." + "diagnosis"
+        self.importer.msg("trying to get diagnosis %s for patient %s" % (diagnosis_model_name, patient_id))
         for item in self.data:
             if "model" in item:
                 if item["model"] == diagnosis_model_name:
                     if item["fields"]["patient"] == patient_id:
-                        if item["fields"]["diagnosis"].lower() == self.app: # diagnosis SMA etc
-                            return item["pk"]
+                        self.importer.msg("found it! patient id = %s diagnosis id = %s" % (patient_id, item["pk"]))
+                        return item["pk"]
 
-        raise RetrievalError("%s.%s.%s: could not get to diagnosis id for patient %s" % (self.app, self.model, self.field, patient_id))
+        raise RetrievalError("%s.%s.%s: could not get to diagnosis id for patient %s" % (self.app,
+                                                                                         self.model,
+                                                                                         self.field,
+                                                                                         patient_id))
 
     def __str__(self):
         return "%s.%s.%s retriever" % (self.app, self.model, self.field)
@@ -174,6 +178,9 @@ class BaseMultiSectionHandler(object):
         self.rdrf_patient = None
         self.missing_diagnosis = False
 
+    def __str__(self):
+        return "MultisectionHandler for %s %s (patient %s)" % (self.app, self.code, self.patient_id)
+
 
     def __call__(self, patient_id, rdrf_patient):
         # The model objects which RDRF represents as multisections
@@ -185,7 +192,7 @@ class BaseMultiSectionHandler(object):
         try:
             self.diagnosis_id = self.get_diagnosis_id(patient_id)
         except RetrievalError, rerr:
-            self.importer.info("no diagnosis could be retrieved for old patient %s" % patient_id)
+            self.importer.info("%s odd?: no diagnosis could be retrieved for old patient %s" % (self, patient_id))
             self.diagnosis_id = None
             self.missing_diagnosis = True
             # this may not be an error , the data might not have been filled in
@@ -204,6 +211,12 @@ class BaseMultiSectionHandler(object):
                                                                                                mongo_section_item))
             converted_sections.append(mongo_section_item)
 
+        if len(converted_sections) == 0:
+            self.importer.msg("%s has 0 sections - no need to save!" % self)
+            return
+
+        self.importer.msg("saving multisection to mongo %s : converted sections = %s" % (self, converted_sections))
+
         self._save_multisection_to_mongo(rdrf_patient, converted_sections)
 
     def is_appropriate_model(self, old_model):
@@ -218,8 +231,7 @@ class BaseMultiSectionHandler(object):
             if "model" in item:
                 if item["model"] == diagnosis_model_name:
                     if item["fields"]["patient"] == patient_id:
-                        if item["fields"]["diagnosis"].lower() == self.app:  # diagnosis SMA etc
-                            return item["pk"]
+                       return item["pk"]
 
         raise RetrievalError("could not get diagnosis id for patient id: %s" % patient_id)
 
@@ -248,6 +260,9 @@ class BaseMultiSectionHandler(object):
             cde_model = self.FIELD_MAP[old_field]
             old_value = old_section_data["fields"][old_field]
             self.importer.msg("old value = %s" % old_value)
+            if cde_model is None:
+                self.importer.msg("%s has no cde model skipping old value = %s" % (old_field, old_value))
+                continue
             if cde_model.code in self.WIRING_FIELDS:
                 wiring_task = WiringTask()
                 wiring_task.importer = self.importer
@@ -270,7 +285,6 @@ class BaseMultiSectionHandler(object):
                 mongo_field_key = "%s____%s____%s" % (self.FORM_MODEL.name, self.SECTION_MODEL.code, cde_model.code)
                 d[mongo_field_key] = new_value
         return d
-
 
     def convert_value(self, form_model, section_model, cde_model, old_value):
         return self.importer.get_new_data_value(form_model, section_model, cde_model, old_value)
@@ -362,11 +376,141 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
         return super(SMAMolecularMultisectionHandler, self).convert_value(form_model, section_model, cde_model, old_value)
 
 
+# "fields": {"exon_boundaries_known": true,
+# "protein_variation_validation_override": false,
+# "exon_validation_override": false,
+# "point_mutation_all_exons_sequenced": null,
+# "duplication_all_exons_tested": false,
+#  "technique": "cDNA sequencing",
+# "deletion_all_exons_tested": null,
+#  "rna_variation": "",
+# "molecular_data": 1,
+# "dna_variation": "g.1-100A>C",
+# "exon": "23", "protein_variation": "", "rna_variation_validation_override": false,
+# "all_exons_in_male_relative": true,
+# "gene": 13,
+# "dna_variation_validation_override": false}}
+#NMDGene
+# CDE00033,
+# DMDDNAVariation,
+# DMDRNAVariation,
+# DMDProteinVariation,
+# NMDTechnique,
+# DMDExonTestDeletion,
+# DMDExonTestDuplication,
+# DMDExonBoundaries,
+# DMDExonSequenced,
+# DMDExonSequenced,
+# DMDExonTestMaleRelatives
 
+
+#{"pk": 1,
+# "model": "genetic.variation",
+# "fields": {
+# "exon_boundaries_known": true,
+# "protein_variation_validation_override": false,
+# "exon_validation_override": false,
+# "point_mutation_all_exons_sequenced": null,
+# "duplication_all_exons_tested": false,
+# "technique": "cDNA sequencing",
+# "deletion_all_exons_tested": null,
+# "rna_variation": "",
+# "molecular_data": 1,
+# "dna_variation": "g.1-100A>C",
+# "exon": "23", "protein_variation": "",
+# "rna_variation_validation_override": false,
+# "all_exons_in_male_relative": true,
+# "gene": 13,
+# "dna_variation_validation_override": false
+# }},
 class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
-    MODEL_NAME = "dmd."
+    MODEL_NAME = "genetic.variation"
     DIAGNOSIS_LINK = "diagnosis"
     FORM_MODEL = frm(DMD, "Genetic Data")
+    SECTION_MODEL = sec("DMDVariations")
+
+    FIELD_MAP = {
+        "exon_boundaries_known": cde("DMDExonBoundaries"),
+        "exon_validation_override": None,
+        "protein_variation_validation_override": None,
+        "point_mutation_all_exons_sequenced": cde("DMDExonSequenced"),
+        "duplication_all_exons_tested": cde("DMDExonTestDuplication"),
+        "technique": cde("NMDTechnique"),
+        "deletion_all_exons_tested": cde("DMDExonTestDeletion"),
+        "rna_variation": cde("DMDRNAVariation"),
+        "dna_variation": cde("DMDDNAVariation"),
+        "exon": cde("CDE00033"),
+        "protein_variation": cde("DMDProteinVariation"),
+        "rna_variation_validation_override": None,
+        "all_exons_in_male_relative": cde("DMDExonTestMaleRelatives"),
+        "gene": cde("NMDGene"),
+        "dna_variation_validation_override": None,
+    }
+
+    def is_appropriate_model(self, old_model):
+        # in sma the patient is one to one with molecular data and the primary key is
+        # the patient id ?
+        return old_model["fields"]["molecular_data"] == self.patient_id
+
+
+#{"pk": 1,
+# "model":
+# "dmd.heartmedication",
+# "fields": {
+# "status": "Current",
+# "drug": "lysergic acid diethylamide",
+# "diagnosis": 1}}
+
+class DMDHeartMedicationMultiSectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "dmd.heartmedication"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm(DMD, "Clinical Diagnosis")
+    SECTION_MODEL = sec("DMDHeartMedication")
+
+    FIELD_MAP = {
+       "drug" : cde("DMDDrug"),
+       "status": cde("DMDStatus"),
+    }
+
+#{"pk": 1,
+# "model": "dmd.familymember",
+# "fields": {
+# "registry_patient": null,
+# "family_member_diagnosis": "DMD",
+# "relationship": "Parent",
+# "diagnosis": 1,
+# "sex": "M"}},
+
+class DMDFamilyMemberMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "dmd.familymember"
+    FORM_MODEL = frm(DMD, "Clinical Diagnosis")
+    SECTION_MODEL = sec("DMDFamilyMember")
+    WIRING_FIELDS = {"NMDRegistryPatient": WiringTarget.PATIENT }
+
+    FIELD_MAP = {
+        "family_member_diagnosis": cde("DMDFamilyDiagnosis"),
+        "sex":  cde("NMDSex"),
+        "relationship": cde("NMDRelationship"),
+        "registry_patient": cde("NMDRegistryPatient"),
+    }
+
+class DMDNMDClinicalTrialsMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "dmd.clinicaltrials"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm(DMD, "Clinical Diagnosis")
+    SECTION_MODEL = sec("NMDClinicalTrials")
+
+    FIELD_MAP = {
+        "trial_name": cde("NMDTrialName"),
+        "drug_name": cde("NMDDrugName"),
+        "trial_sponsor": cde("NMDTrialSponsor"),
+        "trial_phase": cde("NMDTrialPhase"),
+    }
+
+class DMDNMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
+    MODEL_NAME = "dmd.otherregistries"
+    DIAGNOSIS_LINK = "diagnosis"
+    FORM_MODEL = frm(DMD, "Clinical Diagnosis")
     SECTION_MODEL = sec("NMDOtherRegistries")
 
     FIELD_MAP = {
@@ -418,6 +562,9 @@ class WiringTask(object):
     def run(self):
         self.importer.msg("running wiring task %s" % self)
         try:
+            if self.value_to_wire is None:
+                self.importer.msg("%s value to wire is None - so not wiring!" % self)
+                return
             corresponding_value = self._get_corresponding_value()
         except Exception, ex:
             self.importer.error("could not retrieve corresponding value for wiring task %s: %s" % (self,
@@ -674,7 +821,7 @@ class PatientImporter(object):
                     self.success("created State %s" % rdrf_state)
                 self._states_map[state_dict["pk"]] = rdrf_state
             except Exception, ex:
-                self.error("could not ")
+                self.error("could not create State %s: %s" % (state_dict, ex))
 
     def _family_members(self, old_patient_id, rdrf_patient_model):
         self.to_do("family members")
@@ -824,7 +971,9 @@ class PatientImporter(object):
 
     def _get_old_data_value(self, old_patient_id, form_model, section_model, cde_model):
         retrieval_func = self._get_retrieval_function(form_model, section_model, cde_model)
+        self.msg("ret func = %s" % retrieval_func)
         old_name = retrieval_func.full_model_name
+        self.msg("old name = %s" % old_name)
         old_value = retrieval_func(old_patient_id)
         return old_name, old_value
 
@@ -879,21 +1028,28 @@ class PatientImporter(object):
 
         if multisection_model.code == "SMAFamilyMember":
             return SMAFamilyMemberMultisectionHandler(self, self.src_system, self.data)
-        elif multisection_model.code == "NMDClinicalTrials":
+        elif multisection_model.code == "NMDClinicalTrials" and self.src_system == "sma":
             return SMANMDClinicalTrialsMultisectionHandler(self, self.src_system, self.data)
-        elif multisection_model.code == "NMDOtherRegistries":
+        elif multisection_model.code == "NMDOtherRegistries" and self.src_system == "sma":
             return SMANMDOtherRegistriesMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "SMAMolecular":
             return SMAMolecularMultisectionHandler(self, self.src_system, self.data)
         elif multisection_model.code == "DMDVariations":
             return DMDVariationsMultisectionHandler(self, self.src_system, self.data)
-
+        elif multisection_model.code == "DMDHeartMedication":
+            return DMDHeartMedicationMultiSectionHandler(self, self.src_system, self.data)
+        elif multisection_model.code == "DMDFamilyMember":
+            return DMDFamilyMemberMultisectionHandler(self, self.src_system, self.data)
+        elif multisection_model.code == "NMDClinicalTrials" and self.src_system == "dmd":
+            return DMDNMDClinicalTrialsMultisectionHandler(self, self.src_system, self.data)
+        elif multisection_model.code == "NMDOtherRegistries" and self.src_system == "dmd":
+            return DMDNMDOtherRegistriesMultisectionHandler(self, self.src_system, self.data)
 
         return None
 
-
     def _get_choice_tuple(self, form_model, section_model, cde_model):
         source_field = self._get_source_field(form_model, section_model, cde_model)
+        self.msg("source field = %s" % source_field)
         if source_field:
             if source_field in choice_map:
                 return choice_map[source_field]
@@ -915,9 +1071,12 @@ class PatientImporter(object):
             if code in item:
                 old_model_code = item[code]
                 app, model, field = old_model_code.split(".")
+                self.msg("%s is in mapfile: app = %s model = %s field = %s" % (code, app, model, field))
                 return Retriever(self, self.data, app, model, field)
 
-        raise RetrievalError("could not create retriever for %s" % cde_moniker(form_model, section_model, cde_model))
+        raise RetrievalError("could not create retriever for %s (not in map file?)" % cde_moniker(form_model,
+                                                                                                  section_model,
+                                                                                                  cde_model))
 
 
 def get_choice(choice_tuple, old_choice_value):
@@ -991,11 +1150,63 @@ SMA_SEX_CHOICES = (
 )
 
 
+DMD_SEX_CHOICES = (
+     ("M", "Male", "M"),
+     ("F", "Female", "F"),
+     ("X", "Other/Intersex", "X")
+)
+
+
 SMA_SMN1_CHOICES = (
         (1, 'Homozygous', "SMAHomozygous"),
         (2, 'Heterozygous', "SMAHeterozygous"),
         (3, 'No', "SMANo"),
 )
+
+
+DMD_DIAGNOSIS_CHOICES = (
+        ("DMD", "Duchenne Muscular Dystrophy", "DMDDMD"),
+        ("BMD", "Becker Muscular Dystrophy", "DMDBMD"),
+        ("IMD", "Intermediate Muscular Dystrophy", "DMDIMD"),
+        ("Oth", "Non-Duchenne/Becker Muscular Dystrophy", "DMDOth"),
+        ("Car", "Non-Symptomatic Carrier", "DMDCar"),
+        ("Man", "Manifesting carrier", "DMDMan"),
+)
+
+DMD_FAMILYMEMBER_DIAGNOSIS_CHOICES = (
+        ("DMD", "Duchenne Muscular Dystrophy", "DMDFamilyDMD"),
+        ("BMD", "Becker Muscular Dystrophy", "DMDFamilyBMD"),
+        ("IMD", "Intermediate Muscular Dystrophy", "DMDFamilyIMD"),
+        ("Oth", "Non-Duchenne/Becker Muscular Dystrophy", "DMDFamilyOth"),
+        ("Car", "Non-Symptomatic Carrier", "DMDFamilyCar"),
+        ("Man", "Manifesting carrier", "DMDFamilyMan"),
+        ("Non", "Non-Carrier", "DMDFamilyNon"),
+)
+
+
+
+
+
+DMD_WHEELCHAIR_USE_CHOICES = (
+        ("permanent", "Yes (Permanent)", "permament"),
+        ("intermittent", "Yes (Intermittent)", "intermittent"),
+        ("never", "Never", "never"),
+        ("unknown", "Unknown", "unknown"),
+)
+
+
+DMD_VENTILATION_CHOICES = (
+        ("Y", "Yes", "DMDY"),
+        ("PT", "Yes (part-time)", "DMDPT"),
+        ("N", "No", "DMDN"),
+)
+
+
+DMD_STATUS_CHOICES = (
+        ("Current", "Current prescription", "DMDStatusChoicesCurrent"),
+        ("Previous", "Previous prescription", "DMDStatusChoicesPrevious"),
+)
+
 
 # {"pk": 1, "model": "genetic.variationsma", "fields": {"exon_7_smn1_deletion": 2, "exon_7_se
 # quencing": true, "technique": "MLPA", "molecular_data": 1, "dna_variation": "a", "gene": 18}},
@@ -1012,6 +1223,24 @@ choice_map = {
     "sma.familymember.family_member_diagnosis": SMA_DIAGNOSIS_CHOICES,
     "sma.familymember.sex": SMA_SEX_CHOICES,
     "genetic.variationsma.exon_7_smn1_deletion": SMA_SMN1_CHOICES,
+    "genetic.variation.exon_boundaries_known": NULL_BOOLEAN_FIELD,
+    "genetic.variation.all_exons_in_male_relative": NULL_BOOLEAN_FIELD,
+    "genetic.variation.duplication_all_exons_tested": NULL_BOOLEAN_FIELD,
+    "genetic.variation.point_mutation_all_exons_sequenced": NULL_BOOLEAN_FIELD,
+    "genetic.variation.deletion_all_exons_tested": NULL_BOOLEAN_FIELD,
+    "dmd.diagnosis.diagnosis": DMD_DIAGNOSIS_CHOICES,
+    "dmd.diagnosis.muscle_biopsy": NULL_BOOLEAN_FIELD,
+    "dmd.motorfunction.wheelchair_use": DMD_WHEELCHAIR_USE_CHOICES,
+    "dmd.steroids.current": NULL_BOOLEAN_FIELD,
+    "dmd.steroids.previous": NULL_BOOLEAN_FIELD,
+    "dmd.surgery.surgery": NULL_BOOLEAN_FIELD,
+    "dmd.heart.current": NULL_BOOLEAN_FIELD,
+    "dmd.heart.failure": NULL_BOOLEAN_FIELD,
+    "dmd.respiratory.non_invasive_ventilation": DMD_VENTILATION_CHOICES,
+    "dmd.respiratory.invasive_ventilation": DMD_VENTILATION_CHOICES,
+    "dmd.heartmedication.status": DMD_STATUS_CHOICES,
+    "dmd.familymember.family_member_diagnosis": DMD_FAMILYMEMBER_DIAGNOSIS_CHOICES,
+    "dmd.familymember.sex": DMD_SEX_CHOICES,
 }
 
 if __name__ == '__main__':
