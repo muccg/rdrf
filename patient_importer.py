@@ -28,6 +28,18 @@ from rdrf.file_upload import wrap_gridfs_data_for_form
 SMA = "SMA"
 DMD = "DMD"
 
+
+def convert_date_string(year_month_day_string):
+    try:
+        if not year_month_day_string:
+            return None
+        year, month, day = map(int, year_month_day_string.split("-"))
+        new_value = date(year, month, day)
+        return new_value
+    except Exception, ex:
+        raise ConversionError("could not convert date string %s to date: %s" % (year_month_day_string, ex))
+
+
 def mapkey(form_model, section_model, cde_model=None):
     if cde_model is not None:
         return "%s__%s__%s" % (form_model.name, section_model.code, cde_model.code)
@@ -73,6 +85,8 @@ class AbortError(MigrationError):
 class BadValueError(MigrationError):
     pass
 
+class NotInDataMap(MigrationError):
+    pass
 
 class RetrievalError(MigrationError):
     pass
@@ -115,7 +129,16 @@ class WiringTarget(object):
     PATIENT = "patient"
     WORKING_GROUP = "working_group"
 
+class Task(object):
+    def __init__(self, importer, func):
+        self.func = func
+        self.importer
 
+    def run(self):
+        try:
+            func(importer)
+        except Exception, ex:
+            self.importer.error("could not run task: %s" % ex)
 
 mapfile_misnamed = {
     # These cdes couldn't be found in map file so I created an exceptions dict
@@ -604,6 +627,7 @@ class WiringTask(object):
                                                                                                                  self.multisection_index)
 
 
+
 class PatientImporter(object):
     def __init__(self, target_registry_code, src_system, migration_map_file, dump_dir):
         self._current_patient_id = None
@@ -623,8 +647,14 @@ class PatientImporter(object):
         self.mongo_patient_ids = set([])
         self.abort_on_todo = True
         self._data_map = {}  # hold refs so we can rewire
+        self.tasks = []
 
     # public interface
+
+
+    def run_tasks(self):
+        for task in self.tasks:
+            task.run()
 
     def put_map(self, old_model_name, old_pk,  new_instance):
         key = (old_model_name, old_pk)
@@ -635,12 +665,42 @@ class PatientImporter(object):
 
     def get_map(self, old_model_name, pk):
         key = (old_model_name, pk)
-        return self._data_map[key]
+        try:
+            value = self._data_map[key]
+            return value
+        except KeyError:
+            raise NotInDataMap("%s" % key)
 
     def _create_parents(self):
-        self.to_do("parents")
+        # we no longer have parent models
+        # first_name = models.CharField(max_length=30)
+        # last_name = models.CharField(max_length=50)
+        # date_of_birth = models.DateField()
+        # gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+        # address = models.TextField()
+        # suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+        # state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
+        # postcode = models.CharField(max_length=20, blank=True)
+        # country = models.CharField(max_length=20)
+        # patient = models.ManyToManyField(Patient)
+
+        # {"pk": 2, "model": "patients.parent", "fields": {
+        # "parent_date_of_migration": "2015-05-06",
+        # "parent_given_names": "Mary",
+        # "parent_place_of_birth": "Papua New Guinea",
+        # "parent_family_name": "Midget"}},
+
         for parent_model in self._old_models("patients.parent"):
-            pass
+            p = parent_model["fields"]
+            pg = ParentGuardian()
+            pg.first_name = p["parent_given_names"]
+            pg.last_name =  p["parent_family_name"]
+            pg.date_of_migration = convert_date_string(p["parent_date_of_migration"])  # todo need to add to model
+            pg.place_of_birth = p["parent_place_of_birth"]       # ditto
+            pg.save()
+            self.put_map("patients.parent", parent_model["pk"], pg)
+
+
 
     def _create_consent_forms(self):
         self.to_do("consent forms")
@@ -687,6 +747,7 @@ class PatientImporter(object):
                         self._create_multisections(form_model, section_model, old_patient_id, rdrf_patient)
 
         self._perform_wiring_tasks()
+        self.run_tasks()
         self._endrun()
 
     def _create_countries(self):
@@ -707,6 +768,33 @@ class PatientImporter(object):
                 wiring_task.run()
             except WiringError, werr:
                 pass
+
+    def _wire_parents(self):
+        #{"pk": 2, "model": "patients.patientparent", "fields": {"patient": 1, "relationship": "M", "parent": 2}}
+        for patientparent in self._old_models("patientparent"):
+                try:
+                    patient_model = self.get_map("patients.patient", patientparent["fields"]["patient"])
+                except NotInDataMap, nidmerr:
+                    self.error("cannot connect patientparent as referenced patient missing patientparent = %s" % patientparent)
+                    continue
+
+                try:
+                    parent_guardian_model = self.get_map("patients.parent", patientparent["fields"]["parent"])
+                except NotInDataMap, nidmerr:
+                    self.error("cannot connect patientparent as referenced parent missing in patientparent = %s" % patientparent)
+                    continue
+                try:
+                    parent_guardian_model.patients.add(patient_model)
+                    parent_guardian_model.save()
+                    self.success("wired up patient %s to parent guardian %s" % (patient_model, parent_guardian_model))
+                except Exception, ex:
+                    self.error("Error wiring up patient %s to parent guardian %s: %s" % (patient_model,
+                                                                                         parent_guardian_model,
+                                                                                         ex))
+                    continue
+
+
+
 
     def rollback(self):
         pass
@@ -1077,15 +1165,13 @@ class PatientImporter(object):
             if datatype == "date":
                 # source dates are strings in dump file like : 2015-01-07   YYYY-MM-DD
                 try:
-                    year, month, day = map(int, old_value.split("-"))
-                    new_value = date(year, month, day)
+                    new_value = convert_date_string(old_value)
                     return new_value
                 except Exception, ex:
                     raise ConversionError("date conversion failed for %s old value %s: %s" % (m, old_value, ex))
 
             # otherwise return the value as is
             return old_value
-
 
 
     def _create_multisections(self, form_model, section_model, old_patient_id, rdrf_patient_model):
