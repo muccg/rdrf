@@ -34,20 +34,6 @@ from rdrf.file_upload import wrap_gridfs_data_for_form
 SMA = "SMA"
 DMD = "DMD"
 
-
-def memoize(f):
-    """ Memoization decorator for functions taking one or more arguments. """
-    class memodict(dict):
-        def __init__(self, f):
-            self.f = f
-        def __call__(self, *args):
-            return self[args]
-        def __missing__(self, key):
-            ret = self[key] = self.f(*key)
-            return ret
-    return memodict(f)
-
-
 def convert_date_string(year_month_day_string):
     try:
         if not year_month_day_string:
@@ -197,7 +183,6 @@ class Retriever(object):
 
         raise RetrievalError("%s.%s.%s : missing?" % (self.app, self.model, self.field))
 
-    @memoize
     def get_diagnosis_id(self, patient_id):
         diagnosis_model_name = self.app + "." + "diagnosis"
         self.importer.msg("trying to get diagnosis %s for patient %s" % (diagnosis_model_name, patient_id))
@@ -800,7 +785,6 @@ class PatientImporter(object):
                 rdrf_user.rdrf_registry.add(self.registry)
                 rdrf_user.save()
                 self.success("Added user %s to registry %s" % (rdrf_user, self.registry))
-
                 #rdrf_user.save()
                 self.put_map("auth.user", auth_user["pk"], rdrf_user)
             except Exception, ex:
@@ -846,6 +830,7 @@ class PatientImporter(object):
 
 
         for old_patient_id in self._old_patient_ids():
+            self.msg("working on old patient id = %s" % old_patient_id)
             self._current_patient_id = old_patient_id
             try:
                 rdrf_patient = self._create_rdrf_patient(old_patient_id)
@@ -898,7 +883,7 @@ class PatientImporter(object):
         self.run_tasks()
         self._create_uploaded_consents()
         self._assign_medical_professionals()
-        self._create_auth_groups_and_users()
+        #self._create_auth_groups_and_users()
         self._endrun()
 
     def _create_countries(self):
