@@ -1,0 +1,3 @@
+#!/bin/sh
+#python whack.py
+python patient_importer.py sma /data/testimport/dumpssma SMA /data/testimport/migration_map_sma.json
