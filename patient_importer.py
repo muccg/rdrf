@@ -14,6 +14,7 @@ from rdrf.models import CommonDataElement
 from rdrf.utils import mongo_db_name
 
 from registry.patients.models import Patient
+from registry.patients.models import PatientConsent
 from registry.patients.models import PatientAddress
 from registry.patients.models import ParentGuardian
 from registry.patients.models import State
@@ -703,11 +704,21 @@ class PatientImporter(object):
 
 
     def _create_consent_forms(self):
-        self.to_do("consent forms")
+        #self.to_do("consent forms")
+        pass
 
     def _create_uploaded_consents(self):
-        self.to_do("uploaded consents")
 
+        #{"pk": 1, "model": "patients.patientconsent", "fields": {"patient": 1, "form": "consents/fkrp.yaml"}},
+        for patient_consent in self._old_models("patients.patientconsent"):
+            try:
+                rdrf_patient_model = self.get_map("patients.patient", patient_consent["fields"]["patient"])
+                pc = PatientConsent()
+                pc.patient = rdrf_patient_model
+                pc.form = patient_consent["fields"]["form"]
+                pc.save()
+            except NotInDataMap:
+                self.error("could not assign uploaded consent %s as corresponding rdrf patient doesn't exist" % patient_consent)
 
     def run(self):
         self._prelude()
@@ -719,7 +730,7 @@ class PatientImporter(object):
         self._create_doctors()
         self._create_parents()
         self._create_consent_forms()
-        self._create_uploaded_consents()
+
 
         for old_patient_id in self._old_patient_ids():
             self._current_patient_id = old_patient_id
@@ -747,7 +758,9 @@ class PatientImporter(object):
                         self._create_multisections(form_model, section_model, old_patient_id, rdrf_patient)
 
         self._perform_wiring_tasks()
+
         self.run_tasks()
+        self._create_uploaded_consents()
         self._endrun()
 
     def _create_countries(self):
@@ -1060,7 +1073,8 @@ class PatientImporter(object):
                         yield item["pk"]
 
     def _assign_medical_professionals(self, old_patient_id, rdrf_patient_model):
-        self.to_do("medical professionals")
+        #self.to_do("medical professionals")
+        pass
 
     def _create_relationships(self, old_patient_id, rdrf_patient_model):
         self._assign_working_group(old_patient_id, rdrf_patient_model)
