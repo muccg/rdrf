@@ -17,6 +17,7 @@ from registry.patients.models import Patient
 from registry.patients.models import PatientConsent
 from registry.patients.models import PatientAddress
 from registry.patients.models import ParentGuardian
+from registry.patients.models import PatientDoctor
 from registry.patients.models import State
 from registry.patients.models import Doctor
 from registry.groups.models import WorkingGroup
@@ -761,6 +762,7 @@ class PatientImporter(object):
 
         self.run_tasks()
         self._create_uploaded_consents()
+        self._assign_medical_professionals()
         self._endrun()
 
     def _create_countries(self):
@@ -1072,13 +1074,32 @@ class PatientImporter(object):
                     if "pk" in item:
                         yield item["pk"]
 
-    def _assign_medical_professionals(self, old_patient_id, rdrf_patient_model):
-        #self.to_do("medical professionals")
-        pass
+    def _assign_medical_professionals(self):
+        # {"pk": 1, "model": "patients.patientdoctor", "fields": {"patient": 1, "relationship": "Primary Care", "doctor": 1}}
+        for patient_doctor in self._old_models("patients.patientdoctor"):
+            try:
+                rdrf_patient_model = self.get_map("patients.patient", patient_doctor["fields"]["patient"])
+            except NotInDataMap:
+                self.error("could not assign patient doctor %s - patient doesn't exist in rdrf" % patient_doctor)
+                continue
+
+            try:
+                rdrf_doctor = self.get_map("patients.doctor", patient_doctor["fields"]["doctor"])
+            except NotInDataMap:
+                self.error("could not locate doctor in  rdrf for %s" % patient_doctor)
+                continue
+
+            try:
+                pd = PatientDoctor()
+                pd.patient = rdrf_patient_model
+                pd.doctor = rdrf_doctor
+                pd.relationship = patient_doctor["fields"]["relationship"]
+                pd.save()
+            except Exception, ex:
+                self.error("could not assign doctor %s to patient %s: %s" % (rdrf_doctor, rdrf_patient_model, ex))
 
     def _create_relationships(self, old_patient_id, rdrf_patient_model):
         self._assign_working_group(old_patient_id, rdrf_patient_model)
-        self._assign_medical_professionals(old_patient_id, rdrf_patient_model)
 
     def _assign_working_group(self, old_patient_id, rdrf_patient_model):
         for patient_model in self._old_models("patients.patient"):
@@ -1089,7 +1110,7 @@ class PatientImporter(object):
                         if old_working_group_pk:
                             try:
                                 rdrf_working_group_model = self._working_groups_map[old_working_group_pk]
-                                rdrf_patient_model.working_groups = [ rdrf_working_group_model ]
+                                rdrf_patient_model.working_groups = [rdrf_working_group_model]
                                 rdrf_patient_model.save()
                                 self.success("%s assigned working group = %s" % (rdrf_patient_model, rdrf_working_group_model))
                             except KeyError:
