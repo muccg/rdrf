@@ -1428,6 +1428,12 @@ SMA_DIAGNOSIS_CHOICES = (
         ("Oth", "Other", "SMAOth"),
         ("Unk", "Unknown", "SMAUnk")
 )
+
+SMA_FAMILY_DIAGNOSIS_CHOICES = (
+        ("SMA", "Spinal Muscular Atrophy", "SMAFamilySMA"),
+        ("Oth", "Other", "SMAFamilyOth"),
+        ("Unk", "Unknown", "SMAFamilyUnk")
+)
 SMA_CLASSIFICATION_CHOICES = (
     ("SMA1", "SMA1 - onset between 0-6months, nevers sits, natural age of death <2 years "),
     ("SMA2", "SMA2 - onset between 7-18 months, never stands, natural age of death >2 years", "SMASMA2"),
@@ -1548,7 +1554,7 @@ choice_map = {
     "sma.respiratory.non_invasive_ventilation": SMA_VENTILATION_CHOICES,
     "sma.diagnosis.diagnosis" : SMA_DIAGNOSIS_CHOICES,
     "sma.diagnosis.classification": SMA_CLASSIFICATION_CHOICES,
-    "sma.familymember.family_member_diagnosis": SMA_DIAGNOSIS_CHOICES,
+    "sma.familymember.family_member_diagnosis": SMA_FAMILY_DIAGNOSIS_CHOICES,
     "sma.familymember.sex": SMA_SEX_CHOICES,
     "genetic.variationsma.exon_7_smn1_deletion": SMA_SMN1_CHOICES,
     "genetic.variation.exon_boundaries_known": NULL_BOOLEAN_FIELD,
