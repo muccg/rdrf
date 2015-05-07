@@ -724,7 +724,7 @@ class PatientImporter(object):
     def run(self):
         self._prelude()
         self._working_groups_map = self._create_working_groups()
-        #self._create_genes()
+        self._create_genes()
         self._create_countries()
         self._create_labs()
         self._create_states()
@@ -968,25 +968,23 @@ class PatientImporter(object):
             rdrf_gene_model, created = Gene.objects.get_or_create(accession_numbers=old_gene_model["fields"]["accession_numbers"],
                                                                   name=old_gene_model["fields"]["name"],
                                                                   symbol=old_gene_model["fields"]["symbol"])
-            if created:
-                for field in old_gene_model["fields"]:
-                    try:
-                        value = old_gene_model["fields"][field]
-                        setattr(rdrf_gene_model, field, old_gene_model["fields"][field])
-                    except Exception, ex:
-                        self.error("Gene Error: old gene %s - failed to set field %s value %s: %s" % (old_gene_model,
-                                                                                                      field,
-                                                                                                      value,
-                                                                                                      ex))
 
-                    try:
-                        rdrf_gene_model.save()
-                    except Exception, ex:
-                        self.error("Gene Error: could not save gene %s/%s: %s" % ( old_gene_model, rdrf_gene_model, ex))
+            for field in old_gene_model["fields"]:
+                try:
+                    value = old_gene_model["fields"][field]
+                    setattr(rdrf_gene_model, field, old_gene_model["fields"][field])
+                except Exception, ex:
+                    self.error("Gene Error: old gene %s - failed to set field %s value %s: %s" % (old_gene_model,
+                                                                                                  field,
+                                                                                                  value,
+                                                                                                  ex))
 
-            else:
-                pass
-                #self.msg("Gene %s already exists" % display(old_gene_model))
+                try:
+                    rdrf_gene_model.save()
+                except Exception, ex:
+                    self.error("Gene Error: could not save gene %s/%s: %s" % ( old_gene_model, rdrf_gene_model, ex))
+
+
 
     def _create_labs(self):
         #{"pk": 4, "model": "genetic.laboratory", "fields": {
