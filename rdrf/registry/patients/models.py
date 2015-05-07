@@ -426,10 +426,10 @@ class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
     address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
-    postcode = models.CharField(max_length=20, blank=True)
-    country = models.CharField(max_length=20)
+    suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+    state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=50, blank=True)
+    country = models.CharField(max_length=100)
     
     class Meta:
         verbose_name_plural = "Patient Addresses"
@@ -563,7 +563,7 @@ def send_notification(sender, instance, created, **kwargs):
                       [instance.email], fail_silently=False)
             logger.debug("sent email ok to %s" % instance.email)
         except Exception, ex:
-            logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
+            logger.error("Error sending welddcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
 
 
 
