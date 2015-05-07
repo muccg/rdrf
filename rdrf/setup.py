@@ -28,7 +28,7 @@ else:
                ]
 
     for package in ['rdrf', 'registry.common', 'registry.genetic',
-                'registry.groups', 'registry.patients']:
+                'registry.groups', 'registry.patients', 'explorer']:
         package_data[package] = []
         if "." in package:
             base_dir,package_dir = package.split(".")
