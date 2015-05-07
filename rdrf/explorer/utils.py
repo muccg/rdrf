@@ -93,7 +93,7 @@ class DatabaseUtils(object):
             else:
                 aggregation.append({"$match": {"django_id":{"$in":django_ids }} })
             results = collection.aggregate(aggregation)
-            results = results['result']
+            results = [ x for x in results['result']]
     
         for cur in results:
             row = {}
