@@ -746,17 +746,41 @@ class PatientImporter(object):
                 self.error(pc_error)
                 continue
 
-            self._create_address(old_patient_id, rdrf_patient)
-            self._create_relationships(old_patient_id, rdrf_patient)
+            try:
+                self._create_address(old_patient_id, rdrf_patient)
+            except Exception, ex:
+                self.error("could not create address for old patient id %s rdrf patient %s: %s" % (old_patient_id,
+                                                                                                   rdrf_patient,
+                                                                                                   ex))
+
+            try:
+                self._create_relationships(old_patient_id, rdrf_patient)
+            except Exception, ex:
+                self.error("could not assign working groups for old patient %s rdrf patient %s: %s" % (old_patient_id,
+                                                                                                       rdrf_patient,
+                                                                                                        ex))
 
             for form_model in self.registry.forms:
                 for section_model in form_model.section_models:
                     if not section_model.allow_multiple:
                         for cde_model in section_model.cde_models:
-                            self._save_in_mongo(rdrf_patient, old_patient_id, form_model, section_model, cde_model)
+                            try:
+                                self._save_in_mongo(rdrf_patient, old_patient_id, form_model, section_model, cde_model)
+                            except Exception, ex:
+                                self.error("error saving %s %s %s %s: %s" % (rdrf_patient,
+                                                                             form_model,
+                                                                             section_model,
+                                                                             cde_model,
+                                                                             ex))
 
                     else:
-                        self._create_multisections(form_model, section_model, old_patient_id, rdrf_patient)
+                        try:
+                            self._create_multisections(form_model, section_model, old_patient_id, rdrf_patient)
+                        except Exception, ex:
+                            self.error("error creating multisection for %s %s %s: %s" % (rdrf_patient,
+                                                                                         form_model,
+                                                                                         section_model,
+                                                                                         ex))
 
         self._perform_wiring_tasks()
 
@@ -1126,7 +1150,7 @@ class PatientImporter(object):
         try:
             old_name, old_value = self._get_old_data_value(old_patient_id, form_model, section_model, cde_model)
         except RetrievalError, rerr:
-            self.error("RDR Patient %s RDRF Patient %s - could not retrieve data for %s: %s" % (old_patient_id,
+            self.msg("RDR Patient %s RDRF Patient %s - could not retrieve data for %s: %s" % (old_patient_id,
                                                                                             rdrf_patient_model.pk,
                                                                                             cde_moniker(form_model, section_model, cde_model),
                                                                                             rerr))
