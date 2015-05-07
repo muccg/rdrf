@@ -2,6 +2,7 @@ import sys
 import json
 import os
 from datetime import date
+import traceback
 
 from django.db import transaction
 
@@ -12,6 +13,9 @@ from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
 from rdrf.utils import mongo_db_name
+
+from django.contrib.auth.models import Group
+from registry.groups.models import CustomUser
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientConsent
@@ -661,7 +665,7 @@ class PatientImporter(object):
     def put_map(self, old_model_name, old_pk,  new_instance):
         key = (old_model_name, old_pk)
         if key in self._data_map:
-            raise MigrationError("%s already in data map?" % key)
+            raise MigrationError("%s %s in data map already?" % (old_model_name, old_pk))
         else:
             self._data_map[key] = new_instance
 
@@ -671,7 +675,7 @@ class PatientImporter(object):
             value = self._data_map[key]
             return value
         except KeyError:
-            raise NotInDataMap("%s" % key)
+            raise NotInDataMap("%s" % str(key))
 
     def _create_parents(self):
         # we no longer have parent models
@@ -720,6 +724,98 @@ class PatientImporter(object):
                 pc.save()
             except NotInDataMap:
                 self.error("could not assign uploaded consent %s as corresponding rdrf patient doesn't exist" % patient_consent)
+
+    def _create_auth_groups_and_users(self):
+        #{"pk": 1, "model": "auth.group", "fields": {
+        # "name": "Working Group Curators",
+        # "permissions": []}},
+        #
+        #  {"pk": 2, "model": "auth.group", "fields": {"name": "Genetic Staff", "permissions": []}},
+        # {"pk": 3, "model": "auth.group", "fields": {"name": "Clinical Staff", "permissions": []}}
+        #{"pk": 1, "model": "auth.user", "fields": {"username": "admin",
+        # "first_name": "admin",
+        # "last_name": "admin", "is_active": true,
+        # "is_superuser": true, "is_staff": true,
+        # "last_login": "2015-05-07T11:51:26.350",
+        # "groups": [3, 2, 1], "user_permissions": [],
+        # "password": "pbkdf2_sha256$10000$eSMQw1fXKs4l$KxtJ2TtCQi9pk/WNnGIbj6bb7xliVFZQse++Mq7He40=",
+        # "email":
+        # "admin@example.com",
+        # "date_joined":
+        # "2010-08-18T16:28:19"}},
+
+        #{"pk": 1, "model": "groups.user", "fields": {"working_groups": [3], "title": ""}}
+
+        for auth_group in self._old_models("auth.group"):
+            try:
+                g, created = Group.objects.get_or_create(name=auth_group["fields"]["name"])
+
+                if created:
+                    g.save()
+                self.put_map("auth.group", auth_group["pk"], g)
+
+            except Exception, ex:
+                self.error("error creating group %s: %s" % (auth_group, ex))
+
+        for auth_user in self._old_models("auth.user"):
+            try:
+                self.msg("adding user %s %s ..." % (self.src_system,  auth_user["fields"]["username"]))
+                if auth_user["fields"]["username"] == "admin":
+                    continue
+
+                username = "%s%s" % (self.src_system, auth_user["fields"]["username"])
+                rdrf_user = CustomUser()
+
+                rdrf_user.first_name = auth_user["fields"]["first_name"]
+                rdrf_user.last_name = auth_user["fields"]["last_name"]
+                rdrf_user.is_superuser = False
+                rdrf_user.username = username
+                rdrf_user.password = "password" #auth_user["fields"]["password"]
+
+                rdrf_user.email = auth_user["fields"]["email"]
+                rdrf_user.date_joined = auth_user["fields"]["date_joined"]
+                rdrf_user.save()
+                self.success("saved %s OK" % rdrf_user)
+                for g in auth_user["fields"]["groups"]:
+                    our_group = self.get_map("auth.group", g)
+                    rdrf_user.groups.add(our_group)
+                    self.success("added %s group to %s OK" % (our_group, rdrf_user))
+
+
+                rdrf_user.rdrf_registry.add(self.registry)
+                self.success("Added user %s to registry %s" % (rdrf_user, self.registry))
+
+                #rdrf_user.save()
+                self.put_map("auth.user", auth_user["pk"], rdrf_user)
+            except Exception, ex:
+                self.error("could not create user %s: %s" % (auth_user, ex))
+
+        for groups_user in self._old_models("groups.user"):
+
+            try:
+                rdrf_user = self.get_map("auth.user", groups_user["pk"])
+
+                self.msg("trying to add user working groups for %s" % rdrf_user)
+            except NotInDataMap:
+                self.error("no auth user for group user %s" % groups_user)
+                continue
+            #   #{"pk": 1, "model": "groups.user", "fields": {"working_groups": [3], "title": ""}}
+            for g in groups_user["fields"]["working_groups"]:
+                try:
+                    self.msg("trying to find group %s" % g)
+                    our_group = self.get_map("groups.workinggroup", g)
+                    self.success("got a working group mentioned in groups.user")
+                    rdrf_user.working_groups.add(our_group)
+                    self.success("added group OK!")
+                    #rdrf_user.save()
+
+                except NotInDataMap:
+                    self.error("could not find working group %s" % g)
+                    continue
+                except Exception, ex:
+                    self.error("could add working group %s %s" % (groups_user, g))
+
+
 
     def run(self):
         self._prelude()
@@ -783,10 +879,10 @@ class PatientImporter(object):
                                                                                          ex))
 
         self._perform_wiring_tasks()
-
         self.run_tasks()
         self._create_uploaded_consents()
         self._assign_medical_professionals()
+        self._create_auth_groups_and_users()
         self._endrun()
 
     def _create_countries(self):
@@ -955,6 +1051,7 @@ class PatientImporter(object):
                 rdrf_working_group.save()
                 self.success("created working group %s" % rdrf_working_group.name)
             working_groups_id_map[old_pk] = rdrf_working_group
+            self.put_map("groups.workinggroup", old_pk, rdrf_working_group)
 
         self.msg("working groups map = %s" % working_groups_id_map)
         return working_groups_id_map
@@ -968,6 +1065,12 @@ class PatientImporter(object):
             rdrf_gene_model, created = Gene.objects.get_or_create(accession_numbers=old_gene_model["fields"]["accession_numbers"],
                                                                   name=old_gene_model["fields"]["name"],
                                                                   symbol=old_gene_model["fields"]["symbol"])
+
+
+            try:
+                self.msg("updating gene %s" % old_gene_model["fields"]["symbol"])
+            except:
+                pass
 
             for field in old_gene_model["fields"]:
                 try:
@@ -1487,13 +1590,15 @@ if __name__ == '__main__':
         importer.rollback_mongo()
         importer.msg("rolled back!")
 
-
     except Exception, ex:
         importer.error("Unhandled exception: %s" % ex)
+        importer.msg("*********** Stacktrace: *****************")
+        importer.error(traceback.format_exc())
+        importer.msg("*****************************************")
         importer.msg("Rolling back ...")
         importer.rollback_mongo()
 
     if FAILED:
         importer.msg("RUN FAILED AND WAS ROLLED BACK :(")
     else:
-        importer.success("RUN SUCCEEDED!")
+        importer.success("RUN SUCCEEDED :))")
