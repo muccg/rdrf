@@ -35,6 +35,19 @@ SMA = "SMA"
 DMD = "DMD"
 
 
+def memoize(f):
+    """ Memoization decorator for functions taking one or more arguments. """
+    class memodict(dict):
+        def __init__(self, f):
+            self.f = f
+        def __call__(self, *args):
+            return self[args]
+        def __missing__(self, key):
+            ret = self[key] = self.f(*key)
+            return ret
+    return memodict(f)
+
+
 def convert_date_string(year_month_day_string):
     try:
         if not year_month_day_string:
@@ -184,6 +197,7 @@ class Retriever(object):
 
         raise RetrievalError("%s.%s.%s : missing?" % (self.app, self.model, self.field))
 
+    @memoize
     def get_diagnosis_id(self, patient_id):
         diagnosis_model_name = self.app + "." + "diagnosis"
         self.importer.msg("trying to get diagnosis %s for patient %s" % (diagnosis_model_name, patient_id))
@@ -779,10 +793,12 @@ class PatientImporter(object):
                 for g in auth_user["fields"]["groups"]:
                     our_group = self.get_map("auth.group", g)
                     rdrf_user.groups.add(our_group)
+                    rdrf_user.save()
                     self.success("added %s group to %s OK" % (our_group, rdrf_user))
 
 
                 rdrf_user.rdrf_registry.add(self.registry)
+                rdrf_user.save()
                 self.success("Added user %s to registry %s" % (rdrf_user, self.registry))
 
                 #rdrf_user.save()
@@ -807,7 +823,7 @@ class PatientImporter(object):
                     self.success("got a working group mentioned in groups.user")
                     rdrf_user.working_groups.add(our_group)
                     self.success("added group OK!")
-                    #rdrf_user.save()
+                    rdrf_user.save()
 
                 except NotInDataMap:
                     self.error("could not find working group %s" % g)
