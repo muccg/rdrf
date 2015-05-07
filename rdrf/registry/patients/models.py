@@ -402,7 +402,7 @@ class ParentGuardian(models.Model):
     
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
