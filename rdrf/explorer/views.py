@@ -4,6 +4,7 @@ from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -137,6 +138,10 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
         
+        if not result:
+            messages.add_message(request, messages.WARNING, "No results")
+            return redirect(reverse("explorer_query_download", args=(query_id,)))            
+        
         return self._extract(result, query_model.title, query_id)
         
 
@@ -165,9 +170,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
         return self._extract(result, query_model.title, query_id)
 
     def _extract(self, result, title, query_id):
-        if not result:
-            return redirect(reverse("explorer_query_download", args=(query_id,)))
-
         result = _human_friendly(result)
 
         response = HttpResponse(content_type='text/csv')

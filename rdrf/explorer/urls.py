@@ -16,7 +16,7 @@ urlpatterns = patterns(
     url(r'^sql$',
         SqlQueryView.as_view(), name='explorer_sql_query'),
 
-    url(r'new$', NewQueryView.as_view(), name='explorer_new'),
+    url(r'^new$', NewQueryView.as_view(), name='explorer_new'),
 
     url(r'$', MainView.as_view(), name='explorer_main'),
 )

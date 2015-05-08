@@ -64,7 +64,7 @@ urlpatterns = patterns('',
                        url(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
                        url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry'),
                        url(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
-                       url(r'^explorer/?', include('explorer.urls')),
+                       url(r'^explorer/', include('explorer.urls')),
                        url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
                        url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
 
