@@ -98,7 +98,6 @@ class DatabaseUtils(object):
         for cur in results:
             row = {}
             for k in cur:
-                raise Exception(k)
                 if isinstance(cur[k], (dict)):
                     for key, value in cur[k].iteritems():
                         row[key] = value
