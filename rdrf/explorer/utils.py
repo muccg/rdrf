@@ -93,11 +93,12 @@ class DatabaseUtils(object):
             else:
                 aggregation.append({"$match": {"django_id":{"$in":django_ids }} })
             results = collection.aggregate(aggregation)
-            results = [ x for x in results['result']]
+            results = results['result']
     
         for cur in results:
             row = {}
             for k in cur:
+                raise Exception(k)
                 if isinstance(cur[k], (dict)):
                     for key, value in cur[k].iteritems():
                         row[key] = value
