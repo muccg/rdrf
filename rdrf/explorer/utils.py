@@ -17,6 +17,8 @@ from forms import QueryForm
 
 class DatabaseUtils(object):
 
+    result = None
+
     def __init__(self, form_object=None, verify=False):
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
@@ -120,6 +122,11 @@ class DatabaseUtils(object):
                     self.result.append(mr)
 
         return self
+
+    def run_full_query_split(self):
+        sql_result = self.run_sql().result
+        mongo_result = self.run_mongo().result
+        return sql_result, mongo_result
     
     def _string_to_json(self, string):
         try:
