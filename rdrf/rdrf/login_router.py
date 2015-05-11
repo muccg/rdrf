@@ -5,6 +5,12 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
 
 
+# todo update ophg registries to use new demographics and patients listing forms: we need to fix this properly
+def in_fkrp(user):
+    user_reg_codes = [ r.code for r in user.registry.all()]
+    return "fkrp" in user_reg_codes
+
+
 class RouterView(View):
 
     def get(self, request):
@@ -16,7 +22,11 @@ class RouterView(View):
             if user.is_superuser:
                 redirect_url = reverse("admin:index")
             elif user.is_clinician:
-                redirect_url = reverse("patientslisting")
+                if in_fkrp(user):
+                    redirect_url = reverse("patientslisting")
+                else:
+                    redirect_url = reverse("admin:index")
+
             elif user.is_genetic:
                 redirect_url = reverse("admin:index")
             elif user.is_curator:
