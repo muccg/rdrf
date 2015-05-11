@@ -484,6 +484,22 @@ class Importer(object):
             self._create_adjudication_definitions(r, self.data["adjudication_definitions"])
         logger.info("imported adjudication definitions OK")
 
+        self._create_form_permissions(r)
+
+    def _create_form_permissions(self, registry):
+        from registry.groups.models import Group
+        if "forms_allowed_groups" in self.data:
+            d = self.data["forms_allowed_groups"]
+            for form_name in d:
+                form_model = RegistryForm.objects.get(name=form_name, registry=registry)
+                groups_allowed = d[form_name]
+                for group_name in groups_allowed:
+                    g, created = Group.objects.get_or_create(name=group_name)
+                    if created:
+                        g.save()
+                    form_model.groups_allowed.add(g)
+                    form_model.save()
+
     def _create_adjudication_definitions(self, registry_model, adj_def_maps):
         for adj_def_map in adj_def_maps:
             result_fields_section_map = adj_def_map["sections_required"]["results_fields"]
