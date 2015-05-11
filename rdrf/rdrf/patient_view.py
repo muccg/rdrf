@@ -68,54 +68,47 @@ class PatientView(View):
         return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))
 
 
-def chk(place, p):
-    logger.debug("******************************************")
-    logger.debug("place = %s" % place)
-    logger.debug("patient active = %s" % p.active)
-    logger.debug("patient user = %s" % p.user)
-    logger.debug("******************************************")
-
-
 class PatientEditView(View):
 
-    def get(self, request, patient_id):
+    def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
-            patient_edit_url = reverse('patient_edit', args=[patient_id,])
+            patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id,])
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
-        patient, form_sections = self._get_forms(patient_id)
-        chk("in get method after get forms", patient)
-        
+        patient, form_sections = self._get_forms(patient_id, registry_code)
+
         context = {
             "forms": form_sections,
-            "patient": patient
+            "patient": patient,
+            "registry_code": registry_code
         }
     
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
-    def post(self, request, patient_id):
+    def post(self, request, registry_code, patient_id):
         patient = Patient.objects.get(id=patient_id)
-        orig_user = patient.user
-        chk("in post after get patient ", patient)
-        patient_form = PatientForm(request.POST, instance=patient)
-        patient_form.orig_user = orig_user
+        registry = Registry.objects.get(code=registry_code)
 
-        patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
-        doctors_to_save = patient_doctor_form_set(request.POST, instance=patient, prefix="patient_doctor")
-        
+        patient_form = PatientForm(request.POST, instance=patient)
+
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
 
+        valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
+        
+        if registry.get_metadata_item("patient_form_doctors"):
+            patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
+            doctors_to_save = patient_doctor_form_set(request.POST, instance=patient, prefix="patient_doctor")
+            valid_forms.append(doctors_to_save.is_valid())
 
-        if all([patient_form.is_valid(), doctors_to_save.is_valid(), address_to_save.is_valid()]):
-            docs = doctors_to_save.save()
+        if all(valid_forms):
+            if registry.get_metadata_item("patient_form_doctors"):
+                docs = doctors_to_save.save()
             address_to_save.save()
-            x = patient_form.save()
-            chk("after patient.form save return value of save", x)
+            patient_form.save()
 
-            patient, form_sections = self._get_forms(patient_id)
-            chk("after get forms", patient)
+            patient, form_sections = self._get_forms(patient_id, registry_code)
 
             context = {
                 "forms": form_sections,
@@ -123,26 +116,26 @@ class PatientEditView(View):
                 "message": "Patient's details saved successfully"
             }
         else:
-            patient, form_sections = self._get_forms(patient_id, patient_form, address_to_save, doctors_to_save)
-            chk("after patient invalid", patient)
+            if not registry.get_metadata_item("patient_form_doctors"):
+                doctors_to_save = None
+            patient, form_sections = self._get_forms(patient_id, registry_code, patient_form, address_to_save, doctors_to_save)
             
             context = {
                 "forms": form_sections,
                 "patient": patient,
                 "errors": True
             }
+            
+        context["registry_code"] = registry_code
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
-    def _get_forms(self, patient_id, patient_form=None, patient_address_form=None, patient_doctor_form=None):
+    def _get_forms(self, patient_id, registry_code, patient_form=None, patient_address_form=None, patient_doctor_form=None):
         patient = Patient.objects.get(id=patient_id)
+        registry = Registry.objects.get(code=registry_code)
     
         if not patient_form:
             patient_form = PatientForm(instance=patient)
 
-        if not patient_doctor_form:
-            patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
-            patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through, form=PatientDoctorForm, extra=0, can_delete=True)
-            patient_doctor_form = patient_doctor_formset(instance=patient, prefix="patient_doctor")
 
         if not patient_address_form:
             patient_address = PatientAddress.objects.filter(patient = patient).values()
@@ -191,16 +184,18 @@ class PatientEditView(View):
 
         rdrf_registry = ("Registry", [
             "rdrf_registry",
-            "working_groups"
+            "working_groups",
+            "user",
         ])
+
+        if registry.get_metadata_item("patient_form_clinician"):
+                rdrf_registry[1].append("clinician")
         
         patient_address_section = ("Patient Address", None)
-        
-        patient_doctor_section = ("Patient Doctor", None)
 
         # first get all the consents ( which could be different per registry -  _and_ per applicability conditions )
         # then add the remaining sections which are fixed
-        patient_section_info = patient_form.get_all_consent_section_info(patient)
+        patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
         patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
         
         form_sections = [
@@ -211,12 +206,22 @@ class PatientEditView(View):
             ),(
                 patient_address_form, 
                 ( patient_address_section, )
-            ),(
-                patient_doctor_form,
-                ( patient_doctor_section, )
             )
         ]
-        
+
+        if registry.get_metadata_item("patient_form_doctors"):
+            if not patient_doctor_form:
+                patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
+                patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through, form=PatientDoctorForm, extra=0, can_delete=True)
+                patient_doctor_form = patient_doctor_formset(instance=patient, prefix="patient_doctor")
+    
+            patient_doctor_section = ("Patient Doctor", None)
+            
+            form_sections.append( (
+                patient_doctor_form,
+                ( patient_doctor_section, )
+            ) )
+                
         return patient, form_sections
         
 

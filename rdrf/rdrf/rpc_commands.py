@@ -30,6 +30,7 @@ def rpc_dismiss_notification(request, notification_id):
         logger.error("could not mark notification with id %s as seen: %s" % (notification_id, ex))
     return status
 
+
 def rpc_fh_patient_is_index(request, patient_id):
     from registry.patients.models import Patient
     patient = Patient.objects.get(pk=patient_id)
@@ -38,3 +39,20 @@ def rpc_fh_patient_is_index(request, patient_id):
             return is_index
     else:
         return False
+
+
+# DMD Molecular Data Validation
+def rpc_dmd_validate_dna_variation(request, field_value):
+    return True  # todo dmd dna variation validation
+
+
+def rpc_dmd_validate_exon(request, field_value):
+    return True  # todo dmd exon validation
+
+
+def rpc_dmd_validate_rna(request, field_value):
+    return True  # todo dmd rna validation
+
+
+def rpc_dmd_validate_protein(request, field_value):
+    return True  # todo dmd protein validation

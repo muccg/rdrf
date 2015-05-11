@@ -12,6 +12,14 @@
         });
     </script>
 
+    {% if messages %}
+        <div class="alert alert-danger">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        </div>
+    {% endif %}
+    
     <blockquote>
         <p>Required parameters for <i>{{form.title.value}}</i> report</p>
     </blockquote>

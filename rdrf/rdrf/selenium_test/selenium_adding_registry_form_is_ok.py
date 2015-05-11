@@ -8,7 +8,7 @@ class SaveNewlyCreatedRegisterForm(Base):
 
     def test_adding_registry_form_is_ok(self):
         sel = self.selenium
-        sel.open("/admin")
+        sel.open("/login?next=/router/")
         sel.wait_for_page_to_load("30000")
         sel.type("id=id_password", "admin")
         sel.type("id=id_username", "admin")

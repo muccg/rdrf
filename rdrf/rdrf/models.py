@@ -8,6 +8,7 @@ import json
 from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
+from django.contrib.auth.models import Group
 
 logger = logging.getLogger("registry_log")
 
@@ -101,6 +102,12 @@ class Registry(models.Model):
                 return {}
         else:
             return {}
+
+    def get_metadata_item(self, item):
+        try:
+            return self.metadata[item]
+        except KeyError:
+            return True
 
     def shows(self, element):
         # does this registry make visible extra/custom functionality ( false by default)
@@ -591,6 +598,15 @@ class RegistryForm(models.Model):
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+
+    @property
+    def open(self):
+        return self.groups_allowed.count() == 0
+
+    @property
+    def restricted(self):
+        return not self.open
 
     @property
     def login_required(self):
@@ -1342,3 +1358,7 @@ class ConsentQuestion(models.Model):
         registry_model = self.section.registry
         consent_section_model = self.section
         return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+
+
+
+

@@ -141,6 +141,13 @@ class Exporter(object):
 
         return frm_map
 
+    def _get_forms_allowed_groups(self):
+        d = {}
+
+        for form in self.registry.forms:
+            d[form.name] = [g.name for g in form.groups_allowed.all()]
+        return d
+
     def _export(self, format, export_type):
         data = {}
         data["RDRF_VERSION"] = VERSION
@@ -152,7 +159,7 @@ class Exporter(object):
         data["metadata_json"] = self.registry.metadata_json
         data["adjudication_definitions"] = self._get_adjudication_definitions()
         data["consent_sections"] = self._get_consent_sections()
-
+        data["forms_allowed_groups"] = self._get_forms_allowed_groups()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)

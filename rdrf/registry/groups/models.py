@@ -94,7 +94,26 @@ class CustomUser(AbstractUser):
     def get_registries(self):
         return self.registry.all()
 
+    def can_view(self, registry_form_model):
+        if self.is_superuser:
+            return True
 
+        form_registry = registry_form_model.registry
+        my_registries = [ r for r in self.registry.all()]
+
+        if form_registry not in my_registries:
+            return False
+
+        if registry_form_model.open:
+            return True
+
+        form_allowed_groups = [g for g in registry_form_model.groups_allowed.all()]
+
+        for group in self.groups.all():
+            if group in form_allowed_groups:
+                return True
+
+        return False
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
@@ -118,7 +137,7 @@ def user_registered_callback(sender, user, request, **kwargs):
         user.working_groups = [ working_group, ]
     except ValueError:
         clinician = None
-        working_group = WorkingGroup.objects.get(name__icontains=_UNALLOCATED_GROUP)
+        working_group, status = WorkingGroup.objects.get_or_create(name=_UNALLOCATED_GROUP)
         user.working_groups = [ working_group, ]
     
     user.save()

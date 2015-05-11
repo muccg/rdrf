@@ -1,0 +1,89 @@
+[
+    {
+        "Genetic Data__SMAMolecular__NMDGene": "genetic.gene.id"
+    }, 
+    {
+        "Clinical Diagnoses__SMAClinicalDiagnosis__SMAClassification": "sma.diagnosis.classification"
+    }, 
+    {
+        "Clinical Diagnoses__SMAFamilyMember__NMDSex": "sma.familymember.sex"
+    }, 
+    {
+        "Clinical Diagnoses__NMDOtherRegistries__NMDOtherRegistry": "sma.otherregistries.registry"
+    }, 
+    {
+        "Clinical Diagnoses__NMDRespiratory__NMDfvcDate": "sma.respiratory.fvc_date"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__SMABestFunction": "sma.motorfunction.best_function"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__SMAAcquisitionAge": "sma.motorfunction.acquisition_age"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__NMDSit": "sma.motorfunction.sit"
+    }, 
+    {
+        "Clinical Diagnoses__NMDSurgery__NMDSurgery": "sma.surgery.surgery"
+    }, 
+    {
+        "Clinical Diagnoses__SMAClinicalDiagnosis__SMADiagnosis": "sma.diagnosis.diagnosis"
+    }, 
+    {
+        "Clinical Diagnoses__NMDRespiratory__NMDfvc": "sma.respiratory.fvc"
+    }, 
+    {
+        "Clinical Diagnoses__SMAFamilyMember__NMDRelationship": "sma.familymember.relationship"
+    }, 
+    {
+        "Clinical Diagnoses__NMDClinicalTrials__NMDTrialPhase": "sma.clinicaltrials.trial_phase"
+    }, 
+    {
+        "Clinical Diagnoses__SMAFeedingFunction__SMAGastricNasalTube": "sma.feedingfunction.gastric_nasal_tube"
+    }, 
+    {
+        "Clinical Diagnoses__NMDClinicalTrials__NMDTrialSponsor": "sma.clinicaltrials.trial_sponsor"
+    }, 
+    {
+        "Clinical Diagnoses__SMAFamilyMember__NMDRegistryPatient": "sma.familymember.registry_patient_id"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__NMDWheelchairAge": "sma.motorfunction.wheelchair_usage_age"
+    }, 
+    {
+        "Genetic Data__SMAMolecular__NMDTechnique": "genetic.variationsma.technique"
+    }, 
+    {
+        "Genetic Data__SMAMolecular__SMAExon7Sequencing": "genetic.variationsma.exon_7_sequencing"
+    }, 
+    {
+        "Clinical Diagnoses__NMDRespiratory__NMDNonInvasive": "sma.respiratory.non_invasive_ventilation"
+    }, 
+    {
+        "Clinical Diagnoses__NMDNotes__NMDNotes": "sma.notes.notes"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__NMDWalk": "sma.motorfunction.walk"
+    }, 
+    {
+        "Clinical Diagnoses__SMAMotorFunction__NMDWheelchairChoices": "sma.motorfunction.wheelchair_use"
+    }, 
+    {
+        "Genetic Data__SMAMolecular__SMADNAVariation": "genetic.variationsma.dna_variation"
+    }, 
+    {
+        "Clinical Diagnoses__SMAFamilyMember__SMAFamilyDiagnosis": "sma.familymember.family_member_diagnosis"
+    }, 
+    {
+        "Genetic Data__SMAMolecular__SMAExon7Deletion": "genetic.variationsma.exon_7_smn1_deletion"
+    }, 
+    {
+        "Clinical Diagnoses__NMDClinicalTrials__NMDDrugName": "sma.clinicaltrials.drug_name"
+    }, 
+    {
+        "Clinical Diagnoses__NMDRespiratory__NMDInvasiveVentilation": "sma.respiratory.invasive_ventilation"
+    }, 
+    {
+        "Clinical Diagnoses__NMDClinicalTrials__NMDTrialName": "sma.clinicaltrials.trial_name"
+    }
+]

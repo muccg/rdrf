@@ -28,7 +28,7 @@ else:
                ]
 
     for package in ['rdrf', 'registry.common', 'registry.genetic',
-                'registry.groups', 'registry.patients']:
+                'registry.groups', 'registry.patients', 'explorer']:
         package_data[package] = []
         if "." in package:
             base_dir,package_dir = package.split(".")
@@ -45,7 +45,7 @@ else:
 
 
 setup(name='django-rdrf',
-    version="0.8.18",
+    version="0.8.20",
     packages=packages,
     description='RDRF',
     long_description='Rare Disease Registry Framework',
@@ -56,7 +56,7 @@ setup(name='django-rdrf',
     scripts=package_scripts,
     install_requires=[
         'Django==1.6.10',
-        'pymongo',
+        'pymongo==2.8',
         'pyyaml',
         'South==0.8.2',
         'django-extensions>=0.7.1',

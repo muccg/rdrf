@@ -116,7 +116,7 @@ class FormView(View):
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
-        context = self._build_context()
+        context = self._build_context(user=request.user)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -219,6 +219,8 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
+
+
         context = {
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
@@ -236,7 +238,7 @@ class FormView(View):
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
-            "form_links": self._get_formlinks(),
+            "form_links": self._get_formlinks(request.user),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator
         }
@@ -278,15 +280,21 @@ class FormView(View):
         return create_form_class_for_section(
             registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
 
-    def _get_formlinks(self):
-        return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
-                for form in self.registry.forms if not form.is_questionnaire]
+    def _get_formlinks(self, user):
+
+        if user is not None:
+            return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
+                    for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
+        else:
+            return []
 
     def _build_context(self, **kwargs):
         """
         :param kwargs: extra key value pairs to be passed into the built context
         :return: a context dictionary to render the template ( all form generation done here)
         """
+        user = kwargs.get("user", None)
+
         sections, display_names, ids = self._get_sections(self.registry_form)
         form_section = {}
         section_element_map = {}
@@ -294,7 +302,7 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         section_field_ids_map = {}
-        form_links = self._get_formlinks()
+        form_links = self._get_formlinks(user)
         if self.dynamic_data:
             if 'questionnaire_context' in kwargs:
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
@@ -339,6 +347,7 @@ class FormView(View):
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
+            'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
             'registry': self.registry.code,

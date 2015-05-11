@@ -1,0 +1,122 @@
+[
+    {
+        "Genetic Data__DMDVariations__DMDExonBoundaries": "genetic.variation.exon_boundaries_known"
+    }, 
+    {
+        "Clinical Diagnosis__DMDFamilyMember__NMDRelationship": "dmd.familymember.relationship"
+    }, 
+    {
+        "Clinical Diagnosis__NMDRespiratory__NMDNonInvasive": "dmd.respiratory.non_invasive_ventilation"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeartMedication__DMDStatus": "dmd.heartmedication.status"
+    }, 
+    {
+        "Clinical Diagnosis__NMDClinicalTrials__NMDTrialSponsor": "dmd.clinicaltrials.trial_sponsor"
+    }, 
+    {
+        "Genetic Data__DMDVariations__CDE00033": "genetic.variation.exon"
+    }, 
+    {
+        "Genetic Data__DMDVariations__NMDGene": "genetic.variation.gene_id"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDExonTestMaleRelatives": "genetic.variation.all_exons_in_male_relative"
+    }, 
+    {
+        "Clinical Diagnosis__NMDRespiratory__NMDfvcDate": "dmd.respiratory.fvc_date"
+    }, 
+    {
+        "Clinical Diagnosis__NMDClinicalTrials__NMDDrugName": "dmd.clinicaltrials.drug_name"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeart__DMDHeartPrevious": "dmd.heart.failure"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDDNAVariation": "genetic.variation.dna_variation"
+    }, 
+    {
+        "Clinical Diagnosis__DMDMotorFunction__NMDWheelchairChoices": "dmd.motorfunction.wheelchair_use"
+    }, 
+    {
+        "Clinical Diagnosis__NMDOtherRegistries__NMDOtherRegistry": "dmd.otherregistries.registry"
+    }, 
+    {
+        "Clinical Diagnosis__NMDNotes__NMDNotes": "dmd.notes.notes"
+    }, 
+    {
+        "Clinical Diagnosis__NMDRespiratory__NMDfvc": "dmd.respiratory.fvc"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeart__DMDlvefDate": "dmd.heart.lvef_date"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeart__DMDlvef": "dmd.heart.lvef"
+    }, 
+    {
+        "Clinical Diagnosis__NMDRespiratory__NMDInvasiveVentilation": "dmd.respiratory.invasive_ventilation"
+    }, 
+    {
+        "Clinical Diagnosis__DMDFamilyMember__NMDSex": "dmd.familymember.sex"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDExonTestDuplication": "genetic.variation.duplication_all_exons_tested"
+    }, 
+    {
+        "Clinical Diagnosis__NMDSurgery__NMDSurgery": "dmd.surgery.surgery"
+    }, 
+    {
+        "Clinical Diagnosis__DMDFamilyMember__NMDRegistryPatient": "dmd.familymember.registry_patient_id"
+    }, 
+    {
+        "Clinical Diagnosis__DMDClinicalDiagnosis__DMDDiagnosis": "dmd.diagnosis.diagnosis"
+    }, 
+    {
+        "Genetic Data__DMDVariations__NMDTechnique": "genetic.variation.technique"
+    }, 
+    {
+        "Clinical Diagnosis__DMDMotorFunction__NMDSit": "dmd.motorfunction.sit"
+    }, 
+    {
+        "Clinical Diagnosis__DMDFamilyMember__DMDFamilyDiagnosis": "dmd.familymember.family_member_diagnosis"
+    }, 
+    {
+        "Clinical Diagnosis__NMDClinicalTrials__NMDTrialPhase": "dmd.clinicaltrials.trial_phase"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeart__DMDHeartCurrent": "dmd.heart.current"
+    }, 
+    {
+        "Clinical Diagnosis__NMDClinicalTrials__NMDTrialName": "dmd.clinicaltrials.trial_name"
+    }, 
+    {
+        "Clinical Diagnosis__DMDMotorFunction__NMDWheelchairAge": "dmd.motorfunction.wheelchair_usage_age"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDProteinVariation": "genetic.variation.protein_variation"
+    }, 
+    {
+        "Clinical Diagnosis__DMDHeartMedication__DMDDrug": "dmd.heartmedication.drug"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDExonSequenced": "genetic.variation.point_mutation_all_exons_sequenced"
+    }, 
+    {
+        "Clinical Diagnosis__DMDClinicalDiagnosis__DMDMuscleBiopsy": "dmd.diagnosis.muscle_biopsy"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDExonTestDeletion": "genetic.variation.deletion_all_exons_tested"
+    }, 
+    {
+        "Genetic Data__DMDVariations__DMDRNAVariation": "genetic.variation.rna_variation"
+    }, 
+    {
+        "Clinical Diagnosis__DMDSteroids__DMDSteroidCurrent": "dmd.steroids.current"
+    }, 
+    {
+        "Clinical Diagnosis__DMDSteroids__DMDSteroidPrevious": "dmd.steroids.previous"
+    }, 
+    {
+        "Clinical Diagnosis__DMDMotorFunction__NMDWalk": "dmd.motorfunction.walk"
+    }
+]

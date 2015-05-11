@@ -247,6 +247,10 @@ class Patient(models.Model):
             return   # error?
         cv, created = ConsentValue.objects.get_or_create(consent_question=consent_model, patient=self)
         cv.answer = answer
+        if cv.first_save:
+            cv.last_update = datetime.datetime.now()
+        else:
+            cv.first_save = datetime.datetime.now()
         if commit:
             cv.save()
         return cv
@@ -398,7 +402,9 @@ class ParentGuardian(models.Model):
     
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(blank=True, null=True)
+    place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
+    date_of_migration = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
@@ -420,10 +426,10 @@ class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
     address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
-    postcode = models.CharField(max_length=20, blank=True)
-    country = models.CharField(max_length=20)
+    suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+    state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=50, blank=True)
+    country = models.CharField(max_length=100)
     
     class Meta:
         verbose_name_plural = "Patient Addresses"
@@ -557,7 +563,7 @@ def send_notification(sender, instance, created, **kwargs):
                       [instance.email], fail_silently=False)
             logger.debug("sent email ok to %s" % instance.email)
         except Exception, ex:
-            logger.error("Error sending welcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
+            logger.error("Error sending welddcome email  to %s with email %s: %s" % (instance, instance.email,  ex))
 
 
 
@@ -578,12 +584,12 @@ def registry_changed_on_patient(sender, **kwargs):
         run_hooks('registry_added', instance, registry_ids)
 
 
-
-
 class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")
     consent_question = models.ForeignKey(ConsentQuestion)
     answer = models.BooleanField(default=False)
+    first_save = models.DateField(null=True, blank=True)
+    last_update = models.DateField(null=True, blank=True)
 
     def __unicode__(self):
         return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)

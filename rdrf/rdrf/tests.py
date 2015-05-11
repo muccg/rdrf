@@ -54,6 +54,41 @@ class RDRFTestCase(TestCase):
     fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
 
 
+class TestFormPermissions(RDRFTestCase):
+    def test_form_without_groups_restriction_is_open(self):
+        from registry.groups.models import CustomUser
+        fh = Registry.objects.get(code='fh')
+
+        for form in fh.forms:
+            assert form.open, "%s has no group restriction so should be open but is not" % form.name
+            for user in CustomUser.objects.all():
+                user.registry.add(fh)
+                user.save()
+                assert user.can_view(form)
+
+
+    def test_user_in_wrong_group_cant_view_form(self):
+        from registry.groups.models import CustomUser
+        from django.contrib.auth.models import Group
+        fh = Registry.objects.get(code='fh')
+        genetic_user = CustomUser.objects.get(username='genetic')
+        genetic_group, created = Group.objects.get_or_create(name="Genetic Staff")
+        if created:
+            genetic_group.save()
+
+
+        clinical_group, created = Group.objects.get_or_create(name="Clinical Staff")
+        if created:
+            clinical_group.save()
+        f = fh.forms[0]
+        f.groups_allowed = [clinical_group]
+        f.save()
+        assert not genetic_user.can_view(f), "A form set to be viewed "
+
+
+
+
+
 class ExporterTestCase(RDRFTestCase):
 
     def _get_cde_codes_from_registry_export_data(self, data):

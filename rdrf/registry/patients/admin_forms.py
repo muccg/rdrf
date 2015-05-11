@@ -180,7 +180,7 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
         self.custom_consents = []  # list of consent fields agreed to
-        self.orig_user = None
+        #self.orig_user = None
 
         if 'instance' in kwargs:
             instance = kwargs['instance']
@@ -226,6 +226,7 @@ class PatientForm(forms.ModelForm):
         widgets = {
             'next_of_kin_address': forms.Textarea(attrs={"rows": 3, "cols": 30}),
             'inactive_reason': forms.Textarea(attrs={"rows": 3, "cols": 30}),
+            'user': forms.HiddenInput()
         }
         exclude = ['doctors']
 
@@ -260,16 +261,31 @@ class PatientForm(forms.ModelForm):
         logger.debug("saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
-        patient_model.user = self.orig_user
+        #patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
-        patient_registries = [r for r in patient_model.rdrf_registry.all()]
+        try:
+            patient_registries = [r for r in patient_model.rdrf_registry.all()]
+        except ValueError:
+            # If patient just created line above was erroring
+            patient_registries = []
         logger.debug("patient registries = %s" % patient_registries)
 
         logger.debug("persisting custom consents from form")
         logger.debug("There are %s custom consents" % len(self.custom_consents.keys()))
-
+        
+        if "user" in self.cleaned_data:
+            patient_model.user = self.cleaned_data["user"]
+        
         if commit:
             patient_model.save()
+        
+            for wg in self.cleaned_data["working_groups"]:
+                patient_model.working_groups.add(wg)
+            
+            for reg in self.cleaned_data["rdrf_registry"]:
+                patient_model.rdrf_registry.add(reg)
+
+        patient_model.clinician = self.cleaned_data["clinician"]
 
         for consent_field in self.custom_consents:
             logger.debug("saving consent field %s ( value to save = %s)" % (consent_field, self.custom_consents[consent_field]))
@@ -304,12 +320,13 @@ class PatientForm(forms.ModelForm):
                         self.fields[field_key] = consent_field
                         logger.debug("added consent field %s = %s" % (field_key, consent_field))
 
-    def get_all_consent_section_info(self, patient_model):
+    def get_all_consent_section_info(self, patient_model, registry_code):
         section_tuples = []
-        for registry_model in patient_model.rdrf_registry.all():
-            for consent_section_model in registry_model.consent_sections.all():
-                if consent_section_model.applicable_to(patient_model):
-                    section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
+        registry_model = Registry.objects.get(code=registry_code)
+        
+        for consent_section_model in registry_model.consent_sections.all():
+            if consent_section_model.applicable_to(patient_model):
+                section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
         return section_tuples
 
     def get_consent_section_info(self, registry_model, consent_section_model):
