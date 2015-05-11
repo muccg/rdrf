@@ -601,6 +601,14 @@ class RegistryForm(models.Model):
     groups_allowed = models.ManyToManyField(Group, blank=True)
 
     @property
+    def open(self):
+        return self.groups_allowed.count() == 0
+
+    @property
+    def restricted(self):
+        return not self.open
+
+    @property
     def login_required(self):
         return self.is_questionnaire_login
     

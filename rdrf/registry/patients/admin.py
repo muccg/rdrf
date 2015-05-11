@@ -111,6 +111,8 @@ class PatientAdmin(admin.ModelAdmin):
             return "No registry assigned"
         
         rdrf_id = self.request.GET.get('registry')
+
+        user = self.request.user
         
         if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
@@ -123,7 +125,7 @@ class PatientAdmin(admin.ModelAdmin):
         
         rdrf = Registry.objects.get(pk=rdrf_id)
         not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
-        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f)]
+        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) and user.can_view(f)]
 
         content = ''
         
@@ -192,18 +194,20 @@ class PatientAdmin(admin.ModelAdmin):
 
     def render_change_form(self, *args, **kwargs):
         #return self.render_change_form(request, context, change=True, obj=obj, form_url=form_url)
+        request = args[0]
+        user = request.user
         context = args[1]
         if 'original' in context:
             patient = context['original']
-            context['form_links'] = self._get_formlinks(patient)
+            context['form_links'] = self._get_formlinks(patient, user)
         return super(PatientAdmin, self).render_change_form(*args, **kwargs)
 
-    def _get_formlinks(self, patient):
+    def _get_formlinks(self, patient, user):
         from rdrf.utils import FormLink
         links = []
         for registry_model in patient.rdrf_registry.all():
             for form_model in registry_model.forms:
-                if form_model.is_questionnaire:
+                if form_model.is_questionnaire or not user.can_view(form_model):
                     continue
                 form_link = FormLink(patient.id, registry_model, form_model)
                 links.append(form_link)
