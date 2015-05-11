@@ -23,6 +23,7 @@ import urllib2
 from bson.json_util import dumps
 from bson import json_util
 from datetime import datetime
+import collections
 
 
 class LoginRequiredMixin(object):
@@ -105,7 +106,26 @@ class QueryView(LoginRequiredMixin, View):
 
         if request.is_ajax():
             result = database_utils.run_full_query().result
-            result = _human_friendly(result)
+            cdes = _get_cdes(query_model.registry)
+            munged = []
+            for res in result:
+                munged_result = {}
+                for item in res:
+                    if isinstance(res[item], list):
+                        for i in res[item]:
+                            for doc in i:
+                                index_cde = "%s" % doc
+                                munged_result[index_cde] = i[doc]
+                    else:
+                        if res[item] is None:
+                            munged_result[item] = ""
+                        else:
+                            munged_result[item] = res[item]
+                munged.append(munged_result)
+
+            munged = _filler(munged, cdes)
+
+            result = _human_friendly(munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
         else:
@@ -134,15 +154,14 @@ class DownloadQueryView(LoginRequiredMixin, View):
         if "working_group" in query_params:
             query_model.working_group = WorkingGroup.objects.get(id=request.POST["working_group"])
 
-        
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query().result
-        
+        result = database_utils.run_full_query_split().result
+
         if not result:
             messages.add_message(request, messages.WARNING, "No results")
             return redirect(reverse("explorer_query_download", args=(query_id,)))            
         
-        return self._extract(result, query_model.title, query_id)
+        return self._extract(filler, query_model.title, query_id)
         
 
     def get(self, request, query_id):
@@ -165,9 +184,27 @@ class DownloadQueryView(LoginRequiredMixin, View):
             return render_to_response('explorer/query_download.html', params)
         
         database_utils = DatabaseUtils(query_model)        
-        result = database_utils.run_full_query().result
+        result = database_utils.run_full_query().result        
+        cdes = _get_cdes(query_model.registry)
+        munged = []
+        for res in result:
+            munged_result = {}
+            for item in res:
+                if isinstance(res[item], list):
+                    for i in res[item]:
+                        index = 0
+                        for doc in i:
+                            index_cde = "%s____%d" % (doc, index)
+                            munged_result[index_cde] = i[doc]
+                            cdes.append(index_cde)
+                        index = index + 1
+                else:
+                    munged_result[item] = res[item]
+            munged.append(munged_result)
 
-        return self._extract(result, query_model.title, query_id)
+        munged = _filler(munged, cdes)
+            
+        return self._extract(munged, query_model.title, query_id)
 
     def _extract(self, result, title, query_id):
         result = _human_friendly(result)
@@ -175,10 +212,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' %title.lower()
         writer = csv.writer(response)
-
+        
         header = _get_header(result)
         writer.writerow(header)
-
         for r in result:
             row = _get_content(r, header)
             writer.writerow(row)
@@ -261,3 +297,28 @@ def _lookup_cde_name(cde_string):
         return None
     except IndexError:
         return None
+
+def _get_cdes(registry_obj):
+    from rdrf.models import RegistryForm
+    from rdrf.models import Section
+    
+    cdes = []
+    forms = RegistryForm.objects.filter(registry__code=registry_obj.code)
+
+    for form in forms:
+        sections = Section.objects.filter(code__in=form.sections.split(","))
+        for section in sections:
+            for cde in section.get_elements():
+                cdes.append("%s____%s____%s" % (form.name, section.code, cde))
+
+    return cdes
+
+def _filler(result, cdes):
+    import collections
+    munged = []
+    for r in result:
+        for cde in cdes:
+            if cde not in r:
+                r[cde] = "?"
+        munged.append(collections.OrderedDict(sorted(r.items())))
+    return munged
