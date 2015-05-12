@@ -15,15 +15,26 @@ from rdrf.models import Registry
 _OTHER_CLINICIAN = "clinician-other"
 _UNALLOCATED_GROUP = "Unallocated"
 
+
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, null=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["registry__code"]
 
     def __unicode__(self):
-        return self.name
+        if self.registry:
+            return "%s %s" % (self.registry.code, self.name)
+        else:
+            return self.name
+
+    @property
+    def display_name(self):
+        if self.registry:
+            return "%s %s" % (self.registry.code, self.name)
+        else:
+            return self.name
 
 
 class CustomUser(AbstractUser):
