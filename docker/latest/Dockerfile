@@ -19,7 +19,7 @@ WORKDIR /app
 RUN git clone --depth=1 --branch=master https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 WORKDIR /app/rdrf
-RUN pip install --process-dependency-links .
+RUN pip install --process-dependency-links -e .
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
