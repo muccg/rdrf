@@ -26,8 +26,11 @@ class RouterView(View):
                     redirect_url = reverse("patientslisting")
                 else:
                     redirect_url = reverse("admin:index")
-
-            elif user.is_genetic:
+            elif user.is_genetic_staff:
+                redirect_url = reverse("admin:index")
+            elif user.is_working_group_staff:
+                redirect_url = reverse("admin:index")
+            elif user.is_genetic_curator:
                 redirect_url = reverse("admin:index")
             elif user.is_curator:
                 redirect_url = reverse("admin:index")
@@ -37,7 +40,7 @@ class RouterView(View):
                     if len(regs) == 1:
                         redirect_url = reverse("patient_page", args=[regs[0].code])
             else:
-                redirect_url = reverse("landing")
+                redirect_url = reverse("admin:index")
         else:
             redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
 

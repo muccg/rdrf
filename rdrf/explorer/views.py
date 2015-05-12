@@ -107,22 +107,7 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             result = database_utils.run_full_query().result
             cdes = _get_cdes(query_model.registry)
-            munged = []
-            for res in result:
-                munged_result = {}
-                for item in res:
-                    if isinstance(res[item], list):
-                        for i in res[item]:
-                            for doc in i:
-                                index_cde = "%s" % doc
-                                munged_result[index_cde] = i[doc]
-                    else:
-                        if res[item] is None:
-                            munged_result[item] = ""
-                        else:
-                            munged_result[item] = res[item]
-                munged.append(munged_result)
-
+            munged = _munge_docs(result, cdes)
             munged = _filler(munged, cdes)
 
             result = _human_friendly(munged)
@@ -155,13 +140,16 @@ class DownloadQueryView(LoginRequiredMixin, View):
             query_model.working_group = WorkingGroup.objects.get(id=request.POST["working_group"])
 
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query_split().result
+        result = database_utils.run_full_query().result
+        cdes = _get_cdes(query_model.registry)
+        munged = _munge_docs(result, cdes)
+        munged = _filler(munged, cdes)
 
         if not result:
             messages.add_message(request, messages.WARNING, "No results")
             return redirect(reverse("explorer_query_download", args=(query_id,)))            
         
-        return self._extract(filler, query_model.title, query_id)
+        return self._extract(munged, query_model.title, query_id)
         
 
     def get(self, request, query_id):
@@ -186,22 +174,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)        
         result = database_utils.run_full_query().result        
         cdes = _get_cdes(query_model.registry)
-        munged = []
-        for res in result:
-            munged_result = {}
-            for item in res:
-                if isinstance(res[item], list):
-                    for i in res[item]:
-                        index = 0
-                        for doc in i:
-                            index_cde = "%s____%d" % (doc, index)
-                            munged_result[index_cde] = i[doc]
-                            cdes.append(index_cde)
-                        index = index + 1
-                else:
-                    munged_result[item] = res[item]
-            munged.append(munged_result)
-
+        munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
             
         return self._extract(munged, query_model.title, query_id)
@@ -321,4 +294,20 @@ def _filler(result, cdes):
             if cde not in r:
                 r[cde] = "?"
         munged.append(collections.OrderedDict(sorted(r.items())))
+    return munged
+
+def _munge_docs(result, cdes):
+    munged = []
+    for res in result:
+        munged_result = {}
+        for item in res:
+            if isinstance(res[item], list):
+                for i in res[item]:
+                    index = 0
+                    for doc in i:
+                        munged_result[doc] = i[doc]
+                    index = index + 1
+            else:
+                munged_result[item] = res[item]
+        munged.append(munged_result)
     return munged
