@@ -20,7 +20,7 @@ from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
-
+from registry.groups.views import CustomUserView
 
 from rdrf.migration_view import MigrationView
 
@@ -55,6 +55,10 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
+                       url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
+
+                       url(r'^admin/groups/customuser/(?P<var>)[0-9]+/$',
+                            CustomUserView.as_view(), name="groups_customuser_change_custom"),
 
                        (r'^admin/', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
@@ -121,7 +125,7 @@ urlpatterns = patterns('',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
                        url(r'^api/clinitian/',
-                            ClinitianLookup.as_view(), name="clinician_lookup"),                       
+                            ClinitianLookup.as_view(), name="clinician_lookup"),
                        )
 
 urlpatterns += patterns('',
