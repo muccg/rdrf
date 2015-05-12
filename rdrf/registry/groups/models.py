@@ -52,7 +52,7 @@ class CustomUser(AbstractUser):
     @property
     def is_patient(self):
         try:
-            patient_group = Group.objects.get(name__icontains = "patients")
+            patient_group = Group.objects.get(name__icontains="patients")
             _is_patient = True if patient_group in self.groups.all() else False
             return _is_patient
         except Group.DoesNotExist:
@@ -61,25 +61,43 @@ class CustomUser(AbstractUser):
     @property
     def is_clinician(self):
         try:
-            clinical_group = Group.objects.get(name__icontains = "clinical")
+            clinical_group = Group.objects.get(name__icontains="clinical")
             _is_clinicial = True if clinical_group in self.groups.all() else False
             return _is_clinicial
         except Group.DoesNotExist:
             return False
 
     @property
-    def is_genetic(self):
+    def is_genetic_staff(self):
         try:
-            genetic_group = Group.objects.get(name__icontains = "genetic")
-            _is_genetic = True if genetic_group in self.groups.all() else False
+            genetic_staff_group = Group.objects.get(name__icontains="genetic staff")
+            _is_genetic = True if genetic_staff_group in self.groups.all() else False
             return _is_genetic
+        except Group.DoesNotExist:
+            return False
+
+    @property
+    def is_genetic_curator(self):
+        try:
+            genetic_curator_group = Group.objects.get(name__icontains="genetic curator")
+            _is_genetic = True if genetic_curator_group in self.groups.all() else False
+            return _is_genetic
+        except Group.DoesNotExist:
+            return False
+
+    @property
+    def is_working_group_staff(self):
+        try:
+            g = Group.objects.get(name__icontains="working group staff")
+            t = True if g in self.groups.all() else False
+            return t
         except Group.DoesNotExist:
             return False
 
     @property
     def is_curator(self):
         try:
-            curator_group = Group.objects.get(name__icontains = "curator")
+            curator_group = Group.objects.get(name__icontains="working group curator")
             _is_curator = True if curator_group in self.groups.all() else False
             return _is_curator
         except Group.DoesNotExist:
