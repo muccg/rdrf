@@ -184,13 +184,7 @@ class Patient(models.Model):
 
     @property
     def working_groups_display(self):
-        def display_group(working_group):
-            if working_group.registry:
-                return "%s:%s" % (working_group.registry.code.upper(), working_group.name)
-            else:
-                return working_group.name
-
-        return ",".join([display_group(wg) for wg in self.working_groups.all()])
+        return ",".join([wg.display_name for wg in self.working_groups.all()])
 
     def get_form_value(self, registry_code, form_name, section_code, data_element_code):
         from rdrf.dynamic_data import DynamicDataWrapper
