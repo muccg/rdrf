@@ -357,31 +357,65 @@ class ReadOnlySelect(widgets.Select):
             return html
 
 
-class GenericValidatorWidget(widgets.TextInput):
+class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     """
     presents a  textbox with a tick or cross ( valid/invalid)
     As the input is typed , an rpc call ( subclass ) is made to the server
     the result is checked and if the answer is valid , a tick
     is shown else a cross ( tne default )
-    NB incomplete 21/04/2015
+    If CONSTRUCTOR_TEMPLATE is not None - also display a popup form  and a + symbol next to the
+    validator to cause a constructor form to be displayed which "constructs" a value which is used
+    to populate the original field value on popup close.
     """
-    RPC_COMMAND_NAME = ""  # Subclass Responsibility
+    RPC_COMMAND_NAME = "foobar"                           # Subclass Responsibility
+    CONSTRUCTOR_TEMPLATE = None                           # ditto
 
     def render(self, name, value, attrs):
-        text_box_html = super(GenericValidatorWidget, self).render(name, value, attrs)
-        validity_indicator_html = self._validation_indicator_html(self._validation_indicator_id(attrs['id']))
-        script_html = self._create_script(name, value, attrs)
-        return text_box_html + validity_indicator_html + script_html
+        try:
+            control_id = attrs['id']
+            text_box_html = super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs)
+            indicator_id = self._validation_indicator_id(control_id)
+            logger.debug("indicator id = %s" % indicator_id)
+            validity_indicator_html = self._validation_indicator_html(indicator_id)
+            logger.debug("validity_indicator_html = %s" % validity_indicator_html)
+            script_html = self._create_script(name, value, attrs)
+            logger.debug("script_html = %s" % script_html)
+            if self.CONSTRUCTOR_TEMPLATE:
+                constructor_code = self._constructor_code()
+                logger.debug("constructor html = %s" % constructor_code)
+                final_html = text_box_html + validity_indicator_html + script_html + constructor_code
+            else:
+                final_html = text_box_html + validity_indicator_html + script_html
+
+            logger.debug("final_html = %s" % final_html)
+        except Exception, ex:
+            logger.debug("Error rendering widget!: %s" % ex)
+            return text_box_html
+
+    def _constructor_code(self):
+        return "<!-- zzz todo construct code zzz -->"
+
+    def _validation_indicator_html(self, id):
+        return """<span id="{0}" class="glyphicon-class">glyphicon glyphicon-remove</span>""".format(id)
+
+    def _validation_indicator_id(self, control_id):
+        return "validation_indicator_for_%s" % control_id
 
     def _create_script(self, name, value, attrs):
         id = attrs['id']
-        validation_id = self._validation_indicator_id(attrs['id'])
+        indicator_id = self._validation_indicator_id(id)
         rpc_endpoint = reverse_lazy("rpc")
+        csrf_token = "arghhh"
+
         return """
             <script>
                 $(document).ready(function() {
                         (function() { // closure
+                            var id = "{0}";
+                            var rpcEndpoint = "{1}";
+                            var rpcCommand = "{2}";
                             var indicatorId = "{3}";
+                            var csrfToken = "{4}";
 
                             function showTick() {
                                 $("#" + indicatorId).text("glyphicon glyphicon-ok");
@@ -389,10 +423,14 @@ class GenericValidatorWidget(widgets.TextInput):
                             function showCross() {
                                  $("#" + indicatorId).text("glyphicon glyphicon-remove");
                             }
-                            $("#{0}").change(function () {
-                                    var csrfToken = "{% csrf_token %}";
-                                    var rpc = new RPC("{1}", csrfToken);
-                                    rpc.send("{2}", [$(this).val()], function (response) {
+
+                            function activatePopup() {
+                                alert("todo");
+                            }
+
+                            $("#" + id).change(function () {
+                                    var rpc = new RPC(rpcEndpoint, csrfToken);
+                                    rpc.send(rpcCommand, [$(this).val()], function (response) {
                                         var isValid = response.result;
                                         if (isValid) {
                                             showTick();
@@ -402,30 +440,29 @@ class GenericValidatorWidget(widgets.TextInput):
                                         }
                                     }); // send
                             }); // change
+
+                            // wireup popup todo
+
+
                         })(); // closure
                 }); // ready
             </script>
-            """.format(id, rpc_endpoint, self.RPC_COMMAND_NAME, validation_id)
-
-    def _validation_indicator_html(id):
-        return """<span id="{0}" class="glyphicon-class">glyphicon glyphicon-remove</span>""".format(id)
-
-    def _validation_indicator_id(self, control_id):
-        return "validation_indicator_for_%s" % control_id
+            """.format(id, rpc_endpoint, self.RPC_COMMAND_NAME, indicator_id, csrf_token)
 
 
-class DMDDNAVariationValidator(GenericValidatorWidget):
+
+
+class DMDDNAVariationValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "dmd_validate_dna_variation"
 
 
-class DMDRNAValidator(GenericValidatorWidget):
+class DMDRNAValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "dmd_validate_rna"
 
 
-class DMDProteinValidator(GenericValidatorWidget):
+class DMDProteinValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "dmd_validate_protein"
 
 
-class DMDExonValidator(GenericValidatorWidget):
+class DMDExonValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "dmd_validate_exon"
-
