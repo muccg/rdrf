@@ -124,7 +124,7 @@ class Patient(models.Model):
     rdrf_registry = models.ManyToManyField(Registry)
     working_groups = models.ManyToManyField(registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
-    consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="Consent givent to be sent information on their condition.", verbose_name="consent to allow clinical trials given", default=False)
+    consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="Consent given to be sent information on their condition.", verbose_name="consent to allow clinical trials given", default=False)
     consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
     consent_provided_by_parent_guardian = models.BooleanField(null=False, blank=False, help_text="Parent/Guardian consent provided on behalf of the patient.", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
