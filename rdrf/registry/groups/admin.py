@@ -34,7 +34,7 @@ class CustomUserAdmin(UserAdmin):
         if request.user.is_superuser:
             return get_user_model().objects.all()
 
-        filtered = get_user_model().objects.filter(working_groups__in=request.user.working_groups.all()).filter(registry__in=request.user.registry.all()).distinct()
+        filtered = get_user_model().objects.filter(working_groups__in=request.user.working_groups.all()).filter(registry__in=request.user.registry.all()).distinct().filter(is_superuser = False)
         return filtered
     
     def get_working_groups(self, obj):
