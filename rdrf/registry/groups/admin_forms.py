@@ -30,14 +30,13 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserChangeForm(forms.ModelForm):
-    request = None
     model = get_user_model()
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
         super(UserChangeForm, self).__init__(*args, **kwargs)
-        #self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry__in = self.request.user.working_groups.all())
-        #self.fields['registry'].queryset = Registry.objects.filter(code__in = [reg.code for reg in self.request.user.registry.all()])
+        if not self.user.is_superuser:
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(id__in = [wg.id for wg in self.user.working_groups.all()])
+            self.fields['registry'].queryset = Registry.objects.filter(code__in = [reg.code for reg in self.user.registry.all()])
 
 
     password = ReadOnlyPasswordHashField(help_text=("Raw passwords are not stored, so there is no way to see "
