@@ -31,10 +31,17 @@ class CustomUserAdmin(UserAdmin):
         return form
 
     def queryset(self, request):
+        from itertools import chain
+        from django.db.models import Q
+    
         if request.user.is_superuser:
             return get_user_model().objects.all()
+            
+        filter1 = Q(working_groups__in=request.user.working_groups.all()) | Q(working_groups__isnull=True)
+        filter2 = Q(registry__in=request.user.registry.all()) | Q(registry__isnull=True)
+        
+        filtered = get_user_model().objects.filter(filter1).distinct().filter(is_superuser = False)
 
-        filtered = get_user_model().objects.filter(working_groups__in=request.user.working_groups.all()).filter(registry__in=request.user.registry.all()).distinct().filter(is_superuser = False)
         return filtered
     
     def get_working_groups(self, obj):
