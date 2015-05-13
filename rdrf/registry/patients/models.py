@@ -13,7 +13,7 @@ import registry.groups.models
 from registry.utils import get_working_groups, get_registries
 from rdrf.models import Registry
 from registry.utils import stripspaces
-from django.conf import settings 
+from django.conf import settings
 from rdrf.utils import mongo_db_name
 from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
@@ -83,7 +83,7 @@ class PatientManager(models.Manager):
 
     def get_filtered(self, user):
         return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_groups__in=get_working_groups(user)).distinct()
-    
+
     def get_filtered_unallocated(self, user):
         return self.model.objects.filter(working_groups__in=get_working_groups(user)).exclude(rdrf_registry__isnull=False)
 
@@ -319,7 +319,7 @@ class Patient(models.Model):
 
         if not self.pk:
             self.active = True
-            
+
         super(Patient, self).save(*args, **kwargs)
         #regs = self._save_patient_mongo()
 
@@ -335,24 +335,24 @@ class Patient(models.Model):
         else:
             logger.debug("Deleting patient record.")
             super(Patient, self).delete(*args, **kwargs)
-            
+
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
-    
+
     def form_progress(self, registry_form):
         if not registry_form.has_progress_indicator:
             return [], 0
-    
+
         dynamic_store = DynamicDataWrapper(self)
         cde_registry = registry_form.registry.code
         section_array = registry_form.sections.split(",")
-        
+
         cde_complete = registry_form.complete_form_cdes.values()
         set_count = 0
-        
+
         cdes_status = {}
-        
+
         for cde in cde_complete:
             for s in section_array:
                 if cde["code"] in Section.objects.get(code=s).elements.split(","):
@@ -366,9 +366,9 @@ class Patient(models.Model):
             if cde_value:
                 cdes_status[cde["name"]] = True
                 set_count += 1
-        
+
         return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
-    
+
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
         timestamp = dynamic_store.get_form_timestamp(registry_form)
@@ -381,7 +381,7 @@ class Patient(models.Model):
                 return True
         else:
             return False
-    
+
     def as_json(self):
         return dict(
             obj_id=self.id,
@@ -394,7 +394,7 @@ class Patient(models.Model):
 
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("M", "Male"), ("F", "Female"))
-    
+
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
     date_of_birth = models.DateField(blank=True, null=True)
@@ -412,7 +412,7 @@ class ParentGuardian(models.Model):
 class AddressType(models.Model):
     type = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    
+
     def __unicode__(self):
         return "%s" % (self.type)
 
@@ -425,10 +425,10 @@ class PatientAddress(models.Model):
     state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
     postcode = models.CharField(max_length=50, blank=True)
     country = models.CharField(max_length=100)
-    
+
     class Meta:
         verbose_name_plural = "Patient Addresses"
-    
+
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
@@ -499,10 +499,10 @@ def _save_patient_mongo(patient_obj):
     client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
     patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
-    
+
     json_str = serializers.serialize("json", [patient_obj])
     json_obj = json.loads(json_str)
-    
+
     mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
 
     if mongo_doc:
@@ -534,9 +534,9 @@ def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)
     json_str = serializers.serialize("json", registry_obj)
     json_obj = json.loads(json_str)
-    
+
     json_final = []
-    
+
     for reg in json_obj:
         reg['fields']['id'] = reg['pk']
         del reg['fields']['splash_screen']
