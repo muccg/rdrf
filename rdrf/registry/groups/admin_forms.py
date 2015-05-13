@@ -2,6 +2,9 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
+from models import WorkingGroup
+from rdrf.models import Registry
+
 
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -27,6 +30,15 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserChangeForm(forms.ModelForm):
+    model = get_user_model()
+
+    def __init__(self, *args, **kwargs):
+        super(UserChangeForm, self).__init__(*args, **kwargs)
+        if not self.user.is_superuser:
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(id__in = [wg.id for wg in self.user.working_groups.all()])
+            self.fields['registry'].queryset = Registry.objects.filter(code__in = [reg.code for reg in self.user.registry.all()])
+
+
     password = ReadOnlyPasswordHashField(help_text=("Raw passwords are not stored, so there is no way to see "
                     "this user's password, but you can change the password "
                     "using <a href=\"password/\">this form</a>."))
