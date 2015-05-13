@@ -24,6 +24,19 @@ class CustomUserAdmin(UserAdmin):
 
     list_display = ('username', 'email', 'get_working_groups', 'get_registries')
 
+    def get_form(self, request, obj=None, **kwargs):
+        user = get_user_model().objects.get(username=request.user)
+        form = super(CustomUserAdmin, self).get_form(request, obj, **kwargs)
+        form.user = user
+        return form
+
+    def queryset(self, request):
+        if request.user.is_superuser:
+            return get_user_model().objects.all()
+
+        filtered = get_user_model().objects.filter(working_groups__in=request.user.working_groups.all()).filter(registry__in=request.user.registry.all()).distinct()
+        return filtered
+    
     def get_working_groups(self, obj):
         works = ", ".join(reg.name for reg in obj.working_groups.all())
         return works

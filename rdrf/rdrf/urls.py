@@ -21,7 +21,6 @@ from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-
 from rdrf.migration_view import MigrationView
 
 from django.views.generic.base import TemplateView
@@ -55,6 +54,7 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
+                       url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
                        (r'^admin/', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
@@ -112,7 +112,6 @@ urlpatterns = patterns('',
                        url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
                        url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(),
                            name='rdrf_designer_registry_structure_endpoint'),
-                       url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
                        url(r'^adjudicationinitiation/(?P<def_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationInitiationView.as_view(), name='adjudication_initiation'),
                        url(r'^adjudicationrequest/(?P<adjudication_request_id>\d+)/?$',
@@ -121,7 +120,7 @@ urlpatterns = patterns('',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
                        url(r'^api/clinitian/',
-                            ClinitianLookup.as_view(), name="clinician_lookup"),                       
+                            ClinitianLookup.as_view(), name="clinician_lookup"),
                        )
 
 urlpatterns += patterns('',

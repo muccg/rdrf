@@ -172,7 +172,7 @@ Patient: <a href="{% url 'patient_edit' registry patient_id %}">{{ patient_name 
     
     <div class="inner-center-column">
 
-    {% if user.is_superuser and has_form_progress %}
+    {% if has_form_progress %}
         <div class="well">
             <h4>Data entry progress: <font color="green">{{form_progress|floatformat:"0"}}%</font> <input type="button" class="btn btn-info" id="show-cdes-btn" value="Required CDEs" /></h4>
             <div id="form-progress"></div>

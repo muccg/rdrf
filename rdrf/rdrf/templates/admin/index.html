@@ -33,11 +33,11 @@
       
       <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
         <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:patients_patient_changelist' %}">{% trans 'Patients' %}</a></th></tr>
-        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_questionnaireresponse_changelist' %}">{% trans 'Questionnaire Responses' %}</a></th></tr>
         {% if request.user.is_superuser %}
-        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registry_changelist' %}">{% trans 'Registries' %}</a></th></tr>
-        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registryform_changelist' %}">{% trans 'Registry Forms' %}</a></th></tr>
-        <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_commondataelement_changelist' %}">{% trans 'Data Elements' %}</a></th></tr>
+            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_questionnaireresponse_changelist' %}">{% trans 'Questionnaire Responses' %}</a></th></tr>
+            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registry_changelist' %}">{% trans 'Registries' %}</a></th></tr>
+            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registryform_changelist' %}">{% trans 'Registry Forms' %}</a></th></tr>
+            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_commondataelement_changelist' %}">{% trans 'Data Elements' %}</a></th></tr>
         {% endif %}
       </table>
       <div class="btn btn-success btn-block" id="full-menu-alert"><h4>{% trans "Show full list of links" %}</h4></div>

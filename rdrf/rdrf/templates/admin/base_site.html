@@ -32,6 +32,10 @@
                 form.appendTo("body").submit();
             });
             {% endif %}
+            $('#registry-list').change(function() {
+                url = $("#registry-list option:selected").val();
+                window.location.href = url;
+            });        
         })
     </script>
 {% endblock %}
@@ -40,6 +44,14 @@
 
 {% block userlinks %}
     {{ block.super }}
+    
+    <select id="registry-list">
+        <option>Go to Regsitry</option>
+        {% for registry in request.user.registry.all %}
+            <option value={% url 'registry' registry.code %}>{{registry.name}}</option>
+        {% endfor %}
+    </select>
+
     {% get_feature "notifications" as notifications_feature %}
     {% if notifications_feature %}
         <select id="notificationDropdown">

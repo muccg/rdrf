@@ -20,20 +20,20 @@ class RouterView(View):
 
         if user.is_authenticated():
             if user.is_superuser:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_clinician:
                 if in_fkrp(user):
                     redirect_url = reverse("patientslisting")
                 else:
-                    redirect_url = reverse("admin:index")
+                    redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_genetic_staff:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_working_group_staff:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_genetic_curator:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_curator:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse("admin:patients_patient_changelist")
             elif user.is_patient:
                 regs = user.get_registries()
                 if regs:
