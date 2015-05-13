@@ -21,7 +21,6 @@ from registry.patients.views import update_session
 from tastypie.api import Api
 from rdrf.api import PatientResource
 
-
 from rdrf.migration_view import MigrationView
 
 from django.views.generic.base import TemplateView
@@ -56,6 +55,7 @@ urlpatterns = patterns('',
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
                        url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
+
                        (r'^admin/', include(admin.site.urls)),
                        (r'', include('django.contrib.auth.urls')),
                        (r'', include(common_urls, namespace="registry")),
@@ -120,7 +120,7 @@ urlpatterns = patterns('',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
                        url(r'^api/clinitian/',
-                            ClinitianLookup.as_view(), name="clinician_lookup"),                       
+                            ClinitianLookup.as_view(), name="clinician_lookup"),
                        )
 
 urlpatterns += patterns('',
