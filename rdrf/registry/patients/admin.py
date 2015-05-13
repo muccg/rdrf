@@ -253,9 +253,10 @@ class PatientAdmin(admin.ModelAdmin):
         consent = ("Consent", {
             "fields": (
                 "consent",
+                "consent_provided_by_parent_guardian",
                 "consent_clinical_trials",
                 "consent_sent_information",
-                "consent_provided_by_parent_guardian",
+                
             )
         })
         
