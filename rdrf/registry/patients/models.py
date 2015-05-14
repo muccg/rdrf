@@ -429,6 +429,8 @@ class PatientAddress(models.Model):
     class Meta:
         verbose_name_plural = "Patient Addresses"
 
+    def __unicode__(self):
+        return ""
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
