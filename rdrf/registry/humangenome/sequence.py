@@ -558,4 +558,3 @@ class NoChange(Variation):
 
         if input != "=":
             raise Variation.Malformed("No change is not exactly =")
-
