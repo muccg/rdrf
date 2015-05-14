@@ -45,7 +45,7 @@ class GeneticValidator(object):
             return False
 
         except Exception, ex:
-            logger.debug("parse func %s on value %s threw error: %s" % (parse_func, value, ex))
+            logger.error("parse func %s on value %s threw error: %s" % (parse_func, value, ex))
 
         return False
 
