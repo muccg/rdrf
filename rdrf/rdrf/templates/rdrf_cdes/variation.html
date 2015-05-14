@@ -2,7 +2,7 @@
 <html>
     <head>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        <!--<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">-->
         <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'css/variation/entry.css' %}">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
@@ -169,6 +169,7 @@
                     };
 
                     var checkValidity = function (s) {
+
                         var xhr = XHR.create();
 
                         xhr.onreadystatechange = function (e) {
