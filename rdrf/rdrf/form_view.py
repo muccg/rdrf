@@ -1413,3 +1413,8 @@ class BootGridApi(View):
     def _run_search_command(self, command):
         return {}
 
+
+class ConstructorFormView(View):
+    def get(self, request, form_name):
+        return render_to_response('rdrf_cdes/%s.html' % form_name)
+

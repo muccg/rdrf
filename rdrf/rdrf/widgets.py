@@ -368,92 +368,35 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     to populate the original field value on popup close.
     """
     RPC_COMMAND_NAME = "foobar"                           # Subclass Responsibility
-    CONSTRUCTOR_TEMPLATE = None                           # ditto
+    CONSTRUCTOR_FORM_NAME = None                          # If None no popup needed
+    CONSTRUCTOR_NAME = None
+    class Media:
+        js = ("js/generic_validator.js",)
 
     def render(self, name, value, attrs):
-        try:
-            control_id = attrs['id']
-            text_box_html = super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs)
-            indicator_id = self._validation_indicator_id(control_id)
-            logger.debug("indicator id = %s" % indicator_id)
-            validity_indicator_html = self._validation_indicator_html(indicator_id)
-            logger.debug("validity_indicator_html = %s" % validity_indicator_html)
-            script_html = self._create_script(name, value, attrs)
-            logger.debug("script_html = %s" % script_html)
-            if self.CONSTRUCTOR_TEMPLATE:
-                constructor_code = self._constructor_code()
-                logger.debug("constructor html = %s" % constructor_code)
-                final_html = text_box_html + validity_indicator_html + script_html + constructor_code
-            else:
-                final_html = text_box_html + validity_indicator_html + script_html
+        rpc_endpoint_url = reverse_lazy('rpc')
+        attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
+        return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + self._validation_indicator_html() + self._constructor_button()
 
-            logger.debug("final_html = %s" % final_html)
-        except Exception, ex:
-            logger.debug("Error rendering widget!: %s" % ex)
-            return text_box_html
+    def _constructor_button(self):
+        if not self.CONSTRUCTOR_FORM_NAME:
+            return ""
+        else:
+            constructor_form_url = self._get_constructor_form_url(self.CONSTRUCTOR_FORM_NAME)
+            return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (self.CONSTRUCTOR_FORM_NAME,
+                                                                                                                                      constructor_form_url)
 
-    def _constructor_code(self):
-        return "<!-- zzz todo construct code zzz -->"
+    def _validation_indicator_html(self):
+        return """<span class="validationindicator"></span>"""
 
-    def _validation_indicator_html(self, id):
-        return """<span id="{0}" class="glyphicon-class">glyphicon glyphicon-remove</span>""".format(id)
-
-    def _validation_indicator_id(self, control_id):
-        return "validation_indicator_for_%s" % control_id
-
-    def _create_script(self, name, value, attrs):
-        id = attrs['id']
-        indicator_id = self._validation_indicator_id(id)
-        rpc_endpoint = reverse_lazy("rpc")
-        csrf_token = "arghhh"
-
-        return """
-            <script>
-                $(document).ready(function() {
-                        (function() { // closure
-                            var id = "{0}";
-                            var rpcEndpoint = "{1}";
-                            var rpcCommand = "{2}";
-                            var indicatorId = "{3}";
-                            var csrfToken = "{4}";
-
-                            function showTick() {
-                                $("#" + indicatorId).text("glyphicon glyphicon-ok");
-                            }
-                            function showCross() {
-                                 $("#" + indicatorId).text("glyphicon glyphicon-remove");
-                            }
-
-                            function activatePopup() {
-                                alert("todo");
-                            }
-
-                            $("#" + id).change(function () {
-                                    var rpc = new RPC(rpcEndpoint, csrfToken);
-                                    rpc.send(rpcCommand, [$(this).val()], function (response) {
-                                        var isValid = response.result;
-                                        if (isValid) {
-                                            showTick();
-                                        }
-                                        else {
-                                            showCross();
-                                        }
-                                    }); // send
-                            }); // change
-
-                            // wireup popup todo
-
-
-                        })(); // closure
-                }); // ready
-            </script>
-            """.format(id, rpc_endpoint, self.RPC_COMMAND_NAME, indicator_id, csrf_token)
-
-
+    def _get_constructor_form_url(self, form_name):
+        return reverse_lazy('constructors', kwargs={'form_name': form_name})
 
 
 class DMDDNAVariationValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "dmd_validate_dna_variation"
+    CONSTRUCTOR_FORM_NAME = "variation"
+    CONSTRUCTOR_NAME = "DNA Variation"
 
 
 class DMDRNAValidator(GenericValidatorWithConstructorPopupWidget):

@@ -43,16 +43,24 @@ def rpc_fh_patient_is_index(request, patient_id):
 
 # DMD Molecular Data Validation
 def rpc_dmd_validate_dna_variation(request, field_value):
-    return True  # todo dmd dna variation validation
+    from rdrf.genetic_validation import GeneticValidator, GeneticType
+    validator = GeneticValidator()
+    return validator.validate(field_value, GeneticType.DNA)
 
 
 def rpc_dmd_validate_exon(request, field_value):
-    return True  # todo dmd exon validation
+    from rdrf.genetic_validation import GeneticValidator, GeneticType
+    validator = GeneticValidator()
+    return validator.validate(field_value, GeneticType.EXON)
 
 
 def rpc_dmd_validate_rna(request, field_value):
-    return True  # todo dmd rna validation
+    from rdrf.genetic_validation import GeneticValidator, GeneticType
+    validator = GeneticValidator()
+    return validator.validate(field_value, GeneticType.RNA)
 
 
 def rpc_dmd_validate_protein(request, field_value):
-    return True  # todo dmd protein validation
+    from rdrf.genetic_validation import GeneticValidator, GeneticType
+    validator = GeneticValidator()
+    return validator.validate(field_value, GeneticType.PROTEIN)
