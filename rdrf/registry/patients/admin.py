@@ -133,10 +133,6 @@ class PatientAdmin(admin.ModelAdmin):
         if not forms:
             content = "No modules available"
 
-        # if len(forms) == 1:
-        #     url = reverse('registry_form', args=(rdrf.code, forms[0].id, obj.id))
-        #     return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % url
-
         for form in forms:
             if form.is_questionnaire:
                 continue
@@ -253,9 +249,10 @@ class PatientAdmin(admin.ModelAdmin):
         consent = ("Consent", {
             "fields": (
                 "consent",
+                "consent_provided_by_parent_guardian",
                 "consent_clinical_trials",
                 "consent_sent_information",
-                "consent_provided_by_parent_guardian",
+                
             )
         })
         

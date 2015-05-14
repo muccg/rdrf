@@ -42,6 +42,9 @@ nginx:
     - uwsgi
   ports:
     - "8443:443"
+    - "8080:80"
+  volumes:
+    - ./data/nginx:/data
 
 web:
   build: .
@@ -53,7 +56,7 @@ web:
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
   volumes_from:
-    - data      
+    - data
   ports:
     - "8000:8000"
   links:
@@ -75,7 +78,7 @@ uwsgi:
     - WAIT_FOR_WEB=1
     # note: important to wait for runserver in dev as both will attempt to syncdb etc
   volumes_from:
-    - data      
+    - data
   ports:
     - "9000:9000"
     - "9001:9001"
