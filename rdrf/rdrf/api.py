@@ -59,12 +59,21 @@ class PatientResource(ModelResource):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
         bundle.data["working_groups_display"] = p.working_groups_display
-        bundle.data["reg_list"] = p.get_reg_list()
-        bundle.data["reg_code"] = [reg.code for reg in p.rdrf_registry.all()]
-        bundle.data["forms_html"] = self._get_forms_html(p)
+        bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
+        bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
+        bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
         return bundle
 
-    def _get_forms_html(self, patient_model):
+    def _get_reg_list(self, patient, user):
+        if user.is_superuser:
+            return patient.get_reg_list()
+        regs = []
+        for patient_registry in patient.rdrf_registry.all():
+            if patient_registry in user.registry.all():
+                regs.append(patient_registry.name)
+        return ", ".join(regs)
+    
+    def _get_forms_html(self, patient_model, user):
         from rdrf.utils import FormLink
         #  return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
         #        for form in self.registry.forms if not form.is_questionnaire]
@@ -83,15 +92,16 @@ class PatientResource(ModelResource):
             return "No registry assigned!"
 
         for registry_model in patient_model.rdrf_registry.all():
-            for form_model in registry_model.forms:
-                if not form_model.is_questionnaire:
-                    form_link = FormLink(patient_model.pk, registry_model, form_model)
-                    text = "%s" % form_link.text
-                    link_html = """<a href="%s">%s</a><br>""" % (form_link.url, text)
-                    li = """<li role="presentation"><a role="menuitem" tabindex="-1" href="#">%s</a></li>""" % link_html
-                    lis.append(li)
-                    option = """<option value="%s">%s</option>""" % (form_link.url, form_link.text)
-                    select_html += option
+            if registry_model in user.registry.all():
+                for form_model in registry_model.forms:
+                    if not form_model.is_questionnaire:
+                        form_link = FormLink(patient_model.pk, registry_model, form_model)
+                        text = "%s" % form_link.text
+                        link_html = """<a href="%s">%s</a><br>""" % (form_link.url, text)
+                        li = """<li role="presentation"><a role="menuitem" tabindex="-1" href="#">%s</a></li>""" % link_html
+                        lis.append(li)
+                        option = """<option value="%s">%s</option>""" % (form_link.url, form_link.text)
+                        select_html += option
 
         select_html += "</select>"
 
@@ -108,12 +118,14 @@ class PatientResource(ModelResource):
         ]
 
     def get_search(self, request, **kwargs):
+        from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
         patients = Patient.objects.all()
 
         if not request.user.is_superuser:
             if request.user.is_curator:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=request.user.registry.all()) & Q(working_groups__in=request.user.working_groups.all())
+                patients = patients.filter(query_patients)
             elif request.user.is_genetic:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
             elif request.user.is_clinician:
