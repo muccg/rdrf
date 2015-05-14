@@ -186,7 +186,7 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
-    def get_form_value(self, registry_code, form_name, section_code, data_element_code):
+    def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
@@ -196,7 +196,15 @@ class Patient(models.Model):
             # no mongo data
             raise KeyError(key)
         else:
-            return mongo_data[key]
+            if multisection:
+                sections = mongo_data[section_code]
+                values = []
+                for section in sections:
+                    if key in section and section[key]:
+                        values.append(section[key])
+                return values
+            else:
+                return mongo_data[key]
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -355,10 +363,11 @@ class Patient(models.Model):
 
         for cde in cde_complete:
             for s in section_array:
-                if cde["code"] in Section.objects.get(code=s).elements.split(","):
+                section = Section.objects.get(code=s)
+                if cde["code"] in section.elements.split(","):
                     cde_section = s
             try:
-                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'])
+                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'], section.allow_multiple)
             except KeyError:
                 cde_value = None
 
