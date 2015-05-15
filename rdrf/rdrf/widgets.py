@@ -423,19 +423,22 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
             return ""
 
 
-class DMDDNAVariationValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "dmd_validate_dna_variation"
+class DNAValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_dna"
     CONSTRUCTOR_FORM_NAME = "variation"
     CONSTRUCTOR_NAME = "DNA Variation"
 
 
-class DMDRNAValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "dmd_validate_rna"
+class RNAValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_rna"
+    CONSTRUCTOR_FORM_NAME = "variation"
+    CONSTRUCTOR_NAME = "RNA Variation"
 
 
-class DMDProteinValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "dmd_validate_protein"
+class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_protein"
 
 
-class DMDExonValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "dmd_validate_exon"
+class ExonValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_exon"
+
