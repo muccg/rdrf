@@ -1,11 +1,21 @@
 // Plumbing code tp launch a constructor form for a DE value and return it back to the main form
 
+
+
 function goodValue(element) {
-    $(element).next(".validationindicator").html("<span class='validationindicator'>VALID</span>");
+    var indicator = $(element).next(".validationindicator");
+    if (indicator.hasClass("validity invalid")) {
+        indicator.removeClass('validity invalid');
+    }
+    indicator.addClass("validity valid");
 }
 
 function badValue(element) {
-    $(element).next(".validationindicator").html("<span class='validationindicator'>INVALID</span>");
+    var indicator = $(element).next(".validationindicator");
+    if (indicator.hasClass("validity valid")) {
+        indicator.removeClass('validity valid');
+    }
+    indicator.addClass("validity invalid");
 }
 
 function generic_constructor(element, constructorName, constructorFormUrl) {

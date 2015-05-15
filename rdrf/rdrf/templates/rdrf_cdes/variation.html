@@ -1,13 +1,14 @@
-{% load staticfiles %}
+{% load static %}
 <html>
     <head>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-        <!--<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">-->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
         <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'css/variation/entry.css' %}">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
         <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
         <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
 
         <script>
             var Entry = {
@@ -170,25 +171,26 @@
 
                     var checkValidity = function (s) {
 
-                        var xhr = XHR.create();
 
-                        xhr.onreadystatechange = function (e) {
-                            if (xhr.readyState == 4) {
-                                var validity = document.getElementById("validity");
-                                if (xhr.status == 1223 || (xhr.status >= 200 && xhr.status <= 299)) {
-                                    validity.className = "validity valid";
-                                }
-                                else if (xhr.status == 400 && xhr.getResponseHeader("Content-Type") == "application/json") {
-                                    validity.className = "validity invalid";
-                                }
-                                else {
-                                    validity.className = "validity hell-if-i-know";
-                                }
-                            }
-                        };
-
-                        xhr = prepare_xhr(xhr, {"method":"POST", "url" : validate_sequence_url});
-                        xhr.send(s);
+//                        var xhr = XHR.create();
+//
+//                        xhr.onreadystatechange = function (e) {
+//                            if (xhr.readyState == 4) {
+//                                var validity = document.getElementById("validity");
+//                                if (xhr.status == 1223 || (xhr.status >= 200 && xhr.status <= 299)) {
+//                                    validity.className = "validity valid";
+//                                }
+//                                else if (xhr.status == 400 && xhr.getResponseHeader("Content-Type") == "application/json") {
+//                                    validity.className = "validity invalid";
+//                                }
+//                                else {
+//                                    validity.className = "validity hell-if-i-know";
+//                                }
+//                            }
+//                        };
+//
+//                        xhr = prepare_xhr(xhr, {"method":"POST", "url" : validate_sequence_url});
+//                        xhr.send(s);
                     };
 
                     return function () {

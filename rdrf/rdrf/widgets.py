@@ -359,6 +359,7 @@ class ReadOnlySelect(widgets.Select):
 
 class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     """
+    If RPC_COMMAND_NAME is not None
     presents a  textbox with a tick or cross ( valid/invalid)
     As the input is typed , an rpc call ( subclass ) is made to the server
     the result is checked and if the answer is valid , a tick
@@ -367,16 +368,22 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     validator to cause a constructor form to be displayed which "constructs" a value which is used
     to populate the original field value on popup close.
     """
-    RPC_COMMAND_NAME = "foobar"                           # Subclass Responsibility
+    RPC_COMMAND_NAME = None                               # Subclass Responsibility
     CONSTRUCTOR_FORM_NAME = None                          # If None no popup needed
     CONSTRUCTOR_NAME = None
+
     class Media:
-        js = ("js/generic_validator.js",)
+        js = ("js/generic_validator.js",)                 # this include doesn't seem to work as advertised so I've
+                                                          # included the js on form template
 
     def render(self, name, value, attrs):
         rpc_endpoint_url = reverse_lazy('rpc')
-        attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
-        return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + self._validation_indicator_html() + self._constructor_button()
+        if self.RPC_COMMAND_NAME:
+            attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
+        return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + \
+               self._validation_indicator_html() + \
+               self._constructor_button() + \
+               self._on_page_load(attrs['id'])
 
     def _constructor_button(self):
         if not self.CONSTRUCTOR_FORM_NAME:
@@ -384,13 +391,36 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
         else:
             constructor_form_url = self._get_constructor_form_url(self.CONSTRUCTOR_FORM_NAME)
             return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (self.CONSTRUCTOR_FORM_NAME,
-                                                                                                                                      constructor_form_url)
+                                                                                                                       constructor_form_url)
 
     def _validation_indicator_html(self):
-        return """<span class="validationindicator"></span>"""
+        if self.RPC_COMMAND_NAME:
+            return """<span class="validationindicator"></span>"""
+        else:
+            return ""
 
     def _get_constructor_form_url(self, form_name):
         return reverse_lazy('constructors', kwargs={'form_name': form_name})
+
+    def _on_page_load(self, control_id):
+        # force validation on page load
+        rpc_endpoint_url = reverse_lazy('rpc')
+        if self.RPC_COMMAND_NAME:
+            onload_script = """
+                <script>
+                        $(document).ready(function() {{
+                            var controlId = "{control_id}";
+                            var element = $("#" + controlId);
+                            var rpcEndPoint = "{rpc_endpoint}";
+                            var rpcCommand =  "{rpc_command}";
+                            generic_validate(document.getElementById(controlId) ,rpcEndPoint, rpcCommand);
+                        }});
+
+                </script>
+                """.format(control_id=control_id, rpc_endpoint=rpc_endpoint_url, rpc_command=self.RPC_COMMAND_NAME)
+            return onload_script
+        else:
+            return ""
 
 
 class DMDDNAVariationValidator(GenericValidatorWithConstructorPopupWidget):
