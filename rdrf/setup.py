@@ -45,7 +45,7 @@ else:
 
 
 setup(name='django-rdrf',
-    version="0.8.24",
+    version="0.8.25",
     packages=packages,
     description='RDRF',
     long_description='Rare Disease Registry Framework',
