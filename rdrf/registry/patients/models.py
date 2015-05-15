@@ -124,8 +124,8 @@ class Patient(models.Model):
     rdrf_registry = models.ManyToManyField(Registry)
     working_groups = models.ManyToManyField(registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
-    consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="Consent given to be sent information on their condition.", verbose_name="consent to allow clinical trials given", default=False)
-    consent_sent_information = models.BooleanField(null=False, blank=False, help_text="The patient consents to be sent information on their condition.", verbose_name="consent to be sent information given", default=False)
+    consent_clinical_trials = models.BooleanField(null=False, blank=False, help_text="Consent given to be contacted about clinical trials or other studies related to their condition.", default=False)
+    consent_sent_information = models.BooleanField(null=False, blank=False, help_text="Consent given to be sent information on their condition", verbose_name="consent to be sent information given", default=False)
     consent_provided_by_parent_guardian = models.BooleanField(null=False, blank=False, help_text="Parent/Guardian consent provided on behalf of the patient.", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
@@ -186,7 +186,7 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
-    def get_form_value(self, registry_code, form_name, section_code, data_element_code):
+    def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
@@ -196,7 +196,15 @@ class Patient(models.Model):
             # no mongo data
             raise KeyError(key)
         else:
-            return mongo_data[key]
+            if multisection:
+                sections = mongo_data[section_code]
+                values = []
+                for section in sections:
+                    if key in section and section[key]:
+                        values.append(section[key])
+                return values
+            else:
+                return mongo_data[key]
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -355,10 +363,11 @@ class Patient(models.Model):
 
         for cde in cde_complete:
             for s in section_array:
-                if cde["code"] in Section.objects.get(code=s).elements.split(","):
+                section = Section.objects.get(code=s)
+                if cde["code"] in section.elements.split(","):
                     cde_section = s
             try:
-                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'])
+                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'], section.allow_multiple)
             except KeyError:
                 cde_value = None
 
@@ -429,6 +438,8 @@ class PatientAddress(models.Model):
     class Meta:
         verbose_name_plural = "Patient Addresses"
 
+    def __unicode__(self):
+        return ""
 
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)

@@ -18,7 +18,8 @@ from django.db import transaction
 from registry.groups.models import CustomUser
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
-
+from rdrf.models import DemographicFields
+from rdrf.widgets import ReadOnlySelect
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -196,6 +197,8 @@ class PatientForm(forms.ModelForm):
 
             clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
 
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
 
         if 'instance' in kwargs:
@@ -204,6 +207,28 @@ class PatientForm(forms.ModelForm):
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
+
+        user = self.user
+        if not user.is_superuser:
+            registry = user.registry.all()[0]
+            working_groups = user.groups.all()
+            for field in self.fields:
+                hidden = False
+                readonly = False
+                for wg in working_groups:
+                    try:
+                        field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
+                        hidden = hidden or field_config.hidden
+                        readonly = readonly or field_config.readonly
+                    except DemographicFields.DoesNotExist:
+                        pass
+
+                if hidden:
+                    self.fields[field].widget = forms.HiddenInput()
+                    self.fields[field].label = ""
+                if readonly and not hidden:
+                    self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
+
 
     def _get_registry_specific_data(self, patient_model):
         mongo_wrapper = DynamicDataWrapper(patient_model)

@@ -76,7 +76,7 @@ class PatientEditView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
-        patient, form_sections = self._get_forms(patient_id, registry_code)
+        patient, form_sections = self._get_forms(patient_id, registry_code, request)
 
         context = {
             "forms": form_sections,
@@ -90,7 +90,7 @@ class PatientEditView(View):
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
 
-        patient_form = PatientForm(request.POST, instance=patient)
+        patient_form = PatientForm(request.POST, instance=patient, user = request.user)
 
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
@@ -108,7 +108,7 @@ class PatientEditView(View):
             address_to_save.save()
             patient_form.save()
 
-            patient, form_sections = self._get_forms(patient_id, registry_code)
+            patient, form_sections = self._get_forms(patient_id, registry_code, request)
 
             context = {
                 "forms": form_sections,
@@ -118,7 +118,7 @@ class PatientEditView(View):
         else:
             if not registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
-            patient, form_sections = self._get_forms(patient_id, registry_code, patient_form, address_to_save, doctors_to_save)
+            patient, form_sections = self._get_forms(patient_id, registry_code, request, patient_form, address_to_save, doctors_to_save)
             
             context = {
                 "forms": form_sections,
@@ -129,13 +129,12 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
-    def _get_forms(self, patient_id, registry_code, patient_form=None, patient_address_form=None, patient_doctor_form=None):
+    def _get_forms(self, patient_id, registry_code, request, patient_form=None, patient_address_form=None, patient_doctor_form=None):
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
     
         if not patient_form:
-            patient_form = PatientForm(instance=patient)
-
+            patient_form = PatientForm(instance=patient, user=request.user)
 
         if not patient_address_form:
             patient_address = PatientAddress.objects.filter(patient = patient).values()
@@ -185,12 +184,9 @@ class PatientEditView(View):
         rdrf_registry = ("Registry", [
             "rdrf_registry",
             "working_groups",
-            "user",
+            "clinician"
         ])
 
-        if registry.get_metadata_item("patient_form_clinician"):
-                rdrf_registry[1].append("clinician")
-        
         patient_address_section = ("Patient Address", None)
 
         # first get all the consents ( which could be different per registry -  _and_ per applicability conditions )

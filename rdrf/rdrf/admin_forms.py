@@ -1,6 +1,7 @@
-from django.forms import ModelForm, SelectMultiple
+from django.forms import ModelForm, SelectMultiple, ChoiceField
 
-from models import RegistryForm, CommonDataElement, Section
+from models import RegistryForm, CommonDataElement, Section, DemographicFields
+from registry.patients.models import Patient
 
 
 class RegistryFormAdminForm(ModelForm):
@@ -19,3 +20,17 @@ class RegistryFormAdminForm(ModelForm):
         widgets = {
             'complete_form_cdes': SelectMultiple(attrs={'size': 20, 'style': 'width:50%'})
         }
+
+
+class DemographicFieldsAdminForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
+        
+        patient_fields = Patient._meta.fields
+        field_choices = []
+        for patient_field in patient_fields:
+            field_choices.append( (patient_field.name, patient_field.name) )
+
+        field_choices.sort()
+        self.fields['field'] = ChoiceField(choices=field_choices)
