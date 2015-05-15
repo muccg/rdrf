@@ -441,4 +441,3 @@ class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
 
 class ExonValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "validate_exon"
-
