@@ -54,6 +54,7 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
+                       url(r'^constructors/(?P<form_name>\w+)/?$', form_view.ConstructorFormView.as_view(), name="constructors"),
                        url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
                        (r'^admin/', include(admin.site.urls)),

@@ -357,75 +357,87 @@ class ReadOnlySelect(widgets.Select):
             return html
 
 
-class GenericValidatorWidget(widgets.TextInput):
+class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     """
+    If RPC_COMMAND_NAME is not None
     presents a  textbox with a tick or cross ( valid/invalid)
     As the input is typed , an rpc call ( subclass ) is made to the server
     the result is checked and if the answer is valid , a tick
     is shown else a cross ( tne default )
-    NB incomplete 21/04/2015
+    If CONSTRUCTOR_TEMPLATE is not None - also display a popup form  and a + symbol next to the
+    validator to cause a constructor form to be displayed which "constructs" a value which is used
+    to populate the original field value on popup close.
     """
-    RPC_COMMAND_NAME = ""  # Subclass Responsibility
+    RPC_COMMAND_NAME = None                               # Subclass Responsibility
+    CONSTRUCTOR_FORM_NAME = None                          # If None no popup needed
+    CONSTRUCTOR_NAME = None
+
+    class Media:
+        js = ("js/generic_validator.js",)                 # this include doesn't seem to work as advertised so I've
+                                                          # included the js on form template
 
     def render(self, name, value, attrs):
-        text_box_html = super(GenericValidatorWidget, self).render(name, value, attrs)
-        validity_indicator_html = self._validation_indicator_html(self._validation_indicator_id(attrs['id']))
-        script_html = self._create_script(name, value, attrs)
-        return text_box_html + validity_indicator_html + script_html
+        rpc_endpoint_url = reverse_lazy('rpc')
+        if self.RPC_COMMAND_NAME:
+            attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
+        return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + \
+               self._validation_indicator_html() + \
+               self._constructor_button() + \
+               self._on_page_load(attrs['id'])
 
-    def _create_script(self, name, value, attrs):
-        id = attrs['id']
-        validation_id = self._validation_indicator_id(attrs['id'])
-        rpc_endpoint = reverse_lazy("rpc")
-        return """
-            <script>
-                $(document).ready(function() {
-                        (function() { // closure
-                            var indicatorId = "{3}";
+    def _constructor_button(self):
+        if not self.CONSTRUCTOR_FORM_NAME:
+            return ""
+        else:
+            constructor_form_url = self._get_constructor_form_url(self.CONSTRUCTOR_FORM_NAME)
+            return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (self.CONSTRUCTOR_FORM_NAME,
+                                                                                                                       constructor_form_url)
 
-                            function showTick() {
-                                $("#" + indicatorId).text("glyphicon glyphicon-ok");
-                            }
-                            function showCross() {
-                                 $("#" + indicatorId).text("glyphicon glyphicon-remove");
-                            }
-                            $("#{0}").change(function () {
-                                    var csrfToken = "{% csrf_token %}";
-                                    var rpc = new RPC("{1}", csrfToken);
-                                    rpc.send("{2}", [$(this).val()], function (response) {
-                                        var isValid = response.result;
-                                        if (isValid) {
-                                            showTick();
-                                        }
-                                        else {
-                                            showCross();
-                                        }
-                                    }); // send
-                            }); // change
-                        })(); // closure
-                }); // ready
-            </script>
-            """.format(id, rpc_endpoint, self.RPC_COMMAND_NAME, validation_id)
+    def _validation_indicator_html(self):
+        if self.RPC_COMMAND_NAME:
+            return """<span class="validationindicator"></span>"""
+        else:
+            return ""
 
-    def _validation_indicator_html(id):
-        return """<span id="{0}" class="glyphicon-class">glyphicon glyphicon-remove</span>""".format(id)
+    def _get_constructor_form_url(self, form_name):
+        return reverse_lazy('constructors', kwargs={'form_name': form_name})
 
-    def _validation_indicator_id(self, control_id):
-        return "validation_indicator_for_%s" % control_id
+    def _on_page_load(self, control_id):
+        # force validation on page load
+        rpc_endpoint_url = reverse_lazy('rpc')
+        if self.RPC_COMMAND_NAME:
+            onload_script = """
+                <script>
+                        $(document).ready(function() {{
+                            var controlId = "{control_id}";
+                            var element = $("#" + controlId);
+                            var rpcEndPoint = "{rpc_endpoint}";
+                            var rpcCommand =  "{rpc_command}";
+                            generic_validate(document.getElementById(controlId) ,rpcEndPoint, rpcCommand);
+                        }});
 
-
-class DMDDNAVariationValidator(GenericValidatorWidget):
-    RPC_COMMAND_NAME = "dmd_validate_dna_variation"
+                </script>
+                """.format(control_id=control_id, rpc_endpoint=rpc_endpoint_url, rpc_command=self.RPC_COMMAND_NAME)
+            return onload_script
+        else:
+            return ""
 
 
-class DMDRNAValidator(GenericValidatorWidget):
-    RPC_COMMAND_NAME = "dmd_validate_rna"
+class DNAValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_dna"
+    CONSTRUCTOR_FORM_NAME = "variation"
+    CONSTRUCTOR_NAME = "DNA Variation"
 
 
-class DMDProteinValidator(GenericValidatorWidget):
-    RPC_COMMAND_NAME = "dmd_validate_protein"
+class RNAValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_rna"
+    CONSTRUCTOR_FORM_NAME = "variation"
+    CONSTRUCTOR_NAME = "RNA Variation"
 
 
-class DMDExonValidator(GenericValidatorWidget):
-    RPC_COMMAND_NAME = "dmd_validate_exon"
+class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_protein"
 
+
+class ExonValidator(GenericValidatorWithConstructorPopupWidget):
+    RPC_COMMAND_NAME = "validate_exon"
