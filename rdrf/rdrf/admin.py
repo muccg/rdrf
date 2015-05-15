@@ -16,6 +16,7 @@ from models import CommonDataElement
 from models import Section
 from models import ConsentSection
 from models import ConsentQuestion
+from models import DemographicFields
 
 import logging
 from django.http import HttpResponse
@@ -28,6 +29,7 @@ from django.contrib.auth import get_user_model
 
 from rdrf.utils import has_feature
 from admin_forms import RegistryFormAdminForm
+from admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
 logger = logging.getLogger("registry_log")
@@ -348,6 +350,12 @@ class ConsentSectionAdmin(admin.ModelAdmin):
     inlines = [ConsentQuestionAdmin]
 
 
+class DemographicFieldsAdmin(admin.ModelAdmin):
+    model = DemographicFields
+    form = DemographicFieldsAdminForm
+    list_display = ("registry", "group", "field", "hidden", "readonly")
+    
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=[
@@ -361,6 +369,8 @@ admin.site.register(RegistryForm, RegistryFormAdmin)
 admin.site.register(Section, SectionAdmin)
 
 admin.site.register(ConsentSection, ConsentSectionAdmin)
+
+admin.site.register(DemographicFields, DemographicFieldsAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)
