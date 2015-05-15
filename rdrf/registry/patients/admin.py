@@ -138,11 +138,19 @@ class PatientAdmin(admin.ModelAdmin):
                 continue
             is_current = obj.form_currency(form)
             flag = "images/%s.png" % ("tick" if is_current else "cross")
+            
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
+            link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
+            label = nice_name(form.name)
+            
+            to_form = link
+            if user.is_working_group_staff:
+                to_form = label
+            
             if form.has_progress_indicator:
-                content += "<img src=%s> <strong>%d%%</strong> <a href=%s>%s</a></br>" % (static(flag), obj.form_progress(form)[1] , url, nice_name(form.name))
+                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag), obj.form_progress(form)[1] , to_form)
             else:
-                content += "<img src=%s> <a href=%s>%s</a></br>" % (static(flag), url, nice_name(form.name))
+                content += "<img src=%s> <a href=%s>%s</a></br>" % (static(flag), to_form)
         
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
     

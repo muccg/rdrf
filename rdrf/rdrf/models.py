@@ -9,6 +9,7 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
+from django.utils.functional import lazy
 
 logger = logging.getLogger("registry_log")
 
@@ -1360,5 +1361,14 @@ class ConsentQuestion(models.Model):
         return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
 
 
+class DemographicFields(models.Model):
+    FIELD_CHOICES = []
 
-
+    registry = models.ForeignKey(Registry)
+    group = models.ForeignKey(Group)
+    field = models.CharField(max_length=50, choices=FIELD_CHOICES)
+    readonly = models.NullBooleanField(null=True, blank=True)
+    hidden = models.NullBooleanField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name_plural = "Demographic Fields"
