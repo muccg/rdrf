@@ -345,6 +345,7 @@ One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
     {'name': 'Import Registry Definition', 'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
+    {'name': 'Reports', 'url': '{0}/reports'.format(SCRIPT_NAME), 'superuser': True},
 ]
 
 AJAX_LOOKUP_CHANNELS = {
