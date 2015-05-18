@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
 from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse
 from django.forms.formsets import formset_factory
@@ -111,6 +112,9 @@ class FormView(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id):
+        if request.user.is_working_group_staff:
+            raise PermissionDenied()
+    
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
@@ -131,6 +135,9 @@ class FormView(View):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
+        if request.user.is_working_group_staff:
+            raise PermissionDenied()
+
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
