@@ -46,7 +46,9 @@
 
     <h2>Information we provided you:</h2>
 
+    {% if prelude  %}
     {% include prelude  %}
+    {% endif %}
 
     <h2>Information you provided us on {% now "D d M Y" %}:</h2>
 
