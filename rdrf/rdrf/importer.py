@@ -8,8 +8,10 @@ from models import CDEPermittedValue
 from models import AdjudicationDefinition
 from models import ConsentSection
 from models import ConsentQuestion
+from models import DemographicFields
 
 from registry.groups.models import WorkingGroup
+from django.contrib.auth.models import Group
 import yaml
 import json
 
@@ -485,6 +487,10 @@ class Importer(object):
         logger.info("imported adjudication definitions OK")
 
         self._create_form_permissions(r)
+        
+        if "demographic_fields" in self.data:
+            self._create_demographic_fields(self.data["demographic_fields"])
+        logger.info("demographic field definitions OK ")
 
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
@@ -567,5 +573,13 @@ class Importer(object):
                     question_model.question_label = question_label
                     question_model.save()
 
-
-
+    def _create_demographic_fields(self, data):
+        for d in data:
+            registry_obj = Registry.objects.get(id = d["registry"])
+            group_obj = Group.objects.get(id = d["group"])
+            demo_field, created = DemographicFields.objects.get_or_create(registry=registry_obj, group=group_obj, field=d["field"])
+            demo_field.hidden = d["hidden"]
+            demo_field.readonly = d["readonly"]
+            demo_field.save()
+        
+    

@@ -5,7 +5,7 @@ import json
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
-from rdrf.models import AdjudicationDefinition
+from rdrf.models import AdjudicationDefinition, DemographicFields
 
 logger = logging.getLogger("registry_log")
 
@@ -160,6 +160,7 @@ class Exporter(object):
         data["adjudication_definitions"] = self._get_adjudication_definitions()
         data["consent_sections"] = self._get_consent_sections()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
+        data["demographic_fields"] = self._get_demographic_fields()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
@@ -385,3 +386,17 @@ class Exporter(object):
             adj_def_maps.append(adj_def_map)
 
         return adj_def_maps
+
+    def _get_demographic_fields(self):
+        demographic_fields = []
+        
+        for demographic_field in DemographicFields.objects.filter(registry=self.registry):
+            fields = {}
+            fields['registry'] = demographic_field.registry.id
+            fields['group'] = demographic_field.group.id
+            fields['field'] = demographic_field.field
+            fields['hidden'] = demographic_field.hidden
+            fields['readonly'] = demographic_field.readonly
+            demographic_fields.append(fields)
+            
+        return demographic_fields
