@@ -575,7 +575,7 @@ class Importer(object):
 
     def _create_demographic_fields(self, data):
         for d in data:
-            registry_obj = Registry.objects.get(id = d["registry"])
+            registry_obj = Registry.objects.get(code = d["registry"])
             group_obj = Group.objects.get(id = d["group"])
             demo_field, created = DemographicFields.objects.get_or_create(registry=registry_obj, group=group_obj, field=d["field"])
             demo_field.hidden = d["hidden"]
