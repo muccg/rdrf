@@ -134,7 +134,7 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 {% if old_style_demographics %}
-Patients: <a href="{% url 'admin:patients_patient_changelist' %}">{% trans 'Patients' %}</a>
+Patients: <a href="{% url 'admin:patients_patient_changelist' %}">{% trans 'Patient List' %}</a>
 Patient: <a href="{% url 'admin:patients_patient_change' patient_id %}">{{ patient_name }}</a>
 {% else %}
 Patients: <a href="{% url 'patientslisting' %}">{% trans 'Patients' %}</a>
