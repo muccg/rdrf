@@ -146,11 +146,11 @@ class PatientAdmin(admin.ModelAdmin):
             to_form = link
             if user.is_working_group_staff:
                 to_form = label
-            
+                
             if form.has_progress_indicator:
                 content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag), obj.form_progress(form)[1] , to_form)
             else:
-                content += "<img src=%s> <a href=%s>%s</a></br>" % (static(flag), to_form)
+                content += "<img src=%s> %s</br>" % (static(flag), to_form)
         
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
     
