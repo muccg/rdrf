@@ -115,10 +115,14 @@
 &rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
 &rsaquo;&rsaquo;
 {% for form_link in form_links %}
-    <a href="{{form_link.url}}">{{form_link.text}}</a>
-        {% if not forloop.last %}
-            <span class="divider">»</span>
-        {% endif %}
+    {% if request.user.is_working_group_staff %}
+        {{form_link.text}}
+    {% else %}
+        <a href="{{form_link.url}}">{{form_link.text}}</a>
+    {% endif %}
+    {% if not forloop.last %}
+        <span class="divider">»</span>
+    {% endif %}
 
 {% endfor %}
 
