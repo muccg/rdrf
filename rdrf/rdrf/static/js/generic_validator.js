@@ -26,7 +26,8 @@ function generic_constructor(element, constructorName, constructorFormUrl) {
        textField.val(value);  // we assume that the DE is text input field
        textField.trigger("keyup");
    }
-   var w = window.open(constructorFormUrl, "Construct " + constructorName, "location=no,width=800,height=600,scrollbars=yes,top=100,left=700,resizable = no");
+   // NB IE 8 doesn't like spaces in window name
+   var w = window.open(constructorFormUrl, constructorName.replace(/ /g, ''), "location=no,width=800,height=600,scrollbars=yes,top=100,left=700,resizable = no");
    // NB this function is/must be called on the child form to allow the constructed data value to be passed back to the form
    w.updateParentForm = updateValue;
 

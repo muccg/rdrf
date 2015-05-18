@@ -426,13 +426,13 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
 class DNAValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "validate_dna"
     CONSTRUCTOR_FORM_NAME = "variation"
-    CONSTRUCTOR_NAME = "DNA Variation"
+    CONSTRUCTOR_NAME = "DNA"
 
 
 class RNAValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "validate_rna"
     CONSTRUCTOR_FORM_NAME = "variation"
-    CONSTRUCTOR_NAME = "RNA Variation"
+    CONSTRUCTOR_NAME = "RNA"
 
 
 class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
