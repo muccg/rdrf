@@ -12,6 +12,7 @@ def in_fkrp(user):
 
 _ADMIN_PATIENT_LISTING = "admin:patients_patient_changelist"
 _NEW_PATIENT_LISTING = "patientslisting"
+_HOME_PAGE = "admin:index"
 
 class RouterView(View):
 
@@ -38,7 +39,7 @@ class RouterView(View):
                 if in_fkrp(user):
                     redirect_url = reverse(_NEW_PATIENT_LISTING)
                 else:
-                    redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                    redirect_url = reverse(_HOME_PAGE)
             elif user.is_patient:
                 regs = user.get_registries()
                 if regs:
