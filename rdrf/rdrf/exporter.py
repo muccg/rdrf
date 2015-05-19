@@ -5,7 +5,8 @@ import json
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
-from rdrf.models import AdjudicationDefinition, DemographicFields
+from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
+from explorer.models import Query
 
 logger = logging.getLogger("registry_log")
 
@@ -161,6 +162,8 @@ class Exporter(object):
         data["consent_sections"] = self._get_consent_sections()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
         data["demographic_fields"] = self._get_demographic_fields()
+        data["complete_fields"] = self._get_complete_fields()
+        data["reports"] = self._get_reports()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
@@ -400,3 +403,38 @@ class Exporter(object):
             demographic_fields.append(fields)
             
         return demographic_fields
+
+    def _get_complete_fields(self):
+        forms = RegistryForm.objects.filter(registry=self.registry)
+        complete_fields = []
+        
+        for form in forms:
+            if form.complete_form_cdes.exists():
+                form_cdes = {}
+                form_cdes["form_name"] = form.name
+                form_cdes["cdes"] = [cde.code for cde in form.complete_form_cdes.all()]
+                complete_fields.append(form_cdes)
+
+        return complete_fields
+
+    def _get_reports(self):
+        registry_queries = Query.objects.filter(registry=self.registry)
+        
+        queries = []
+        for query in registry_queries:
+            q = {}
+            q["registry"] = query.registry.code
+            q["access_group"] = [ ag.id for ag in query.access_group.all()]
+            q["title"] = query.title
+            q["description"] = query.description
+            q["mongo_search_type"] = query.mongo_search_type
+            q["sql_query"] = query.sql_query
+            q["collection"] = query.collection
+            q["criteria"] = query.criteria
+            q["projection"] = query.projection
+            q["aggregation"] = query.aggregation
+            q["created_by"] = query.created_by
+            q["created_at"] = query.created_at
+            queries.append(q)
+        
+        return queries

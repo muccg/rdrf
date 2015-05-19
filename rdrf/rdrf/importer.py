@@ -11,6 +11,9 @@ from models import ConsentQuestion
 from models import DemographicFields
 
 from registry.groups.models import WorkingGroup
+
+from explorer.models import Query
+
 from django.contrib.auth.models import Group
 import yaml
 import json
@@ -492,6 +495,14 @@ class Importer(object):
             self._create_demographic_fields(self.data["demographic_fields"])
         logger.info("demographic field definitions OK ")
 
+        if "complete_fields" in self.data:
+            self._create_complete_form_fields(self.data["complete_fields"])
+        logger.info("complete field definitions OK ")
+
+        if "reports" in self.data:
+            self._create_reports(self.data["reports"])
+        logger.info("complete reports OK ")
+
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
         if "forms_allowed_groups" in self.data:
@@ -582,4 +593,27 @@ class Importer(object):
             demo_field.readonly = d["readonly"]
             demo_field.save()
         
+    def _create_complete_form_fields(self, data):
+        for d in data:
+            form = RegistryForm.objects.get(name = d["form_name"])
+            for cde_code in d["cdes"]:
+                form.complete_form_cdes.add(CommonDataElement.objects.get(code = cde_code))
+            form.save()
+
+    def _create_reports(self, data):
+        for d in data:
+            registry_obj = Registry.objects.get(code = d["registry"])
+            query, created = Query.objects.get_or_create(registry = registry_obj, title = d["title"])
+            for ag in d["access_group"]:
+                query.access_group.add(Group.objects.get(id=ag))
+            query.description = d["description"]
+            query.mongo_search_type = d["mongo_search_type"]
+            query.sql_query = d["sql_query"]
+            query.collection = d["collection"]
+            query.criteria = d["criteria"]
+            query.projection = d["projection"]
+            query.aggregation = d["aggregation"]
+            query.created_by = d["created_by"]
+            query.created_at = d["created_at"]
+            query.save()
     
