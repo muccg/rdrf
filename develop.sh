@@ -127,7 +127,10 @@ jslint() {
     JSFILES="rdrf/rdrf/static/js/*.js"
     for JS in $JSFILES
     do
-        ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
+        # Avoid minified files
+        if [[ "$f" != "*\.min\.*" ]]; then
+            ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
+        fi
     done
 }
 
