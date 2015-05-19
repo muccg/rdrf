@@ -13,7 +13,7 @@ class WorkingGroupAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return WorkingGroup.objects.all()
 
-        user = User.objects.get(user=request.user)
+        user = request.user
 
         return WorkingGroup.objects.filter(id__in=user.working_groups.all())
     
