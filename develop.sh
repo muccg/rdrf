@@ -124,13 +124,10 @@ jslint() {
     make_virtualenv
     ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13'
 
-    JSFILES="rdrf/rdrf/static/js/*.js"
+    JSFILES=`ls rdrf/rdrf/static/js/*.js | grep -v "\.min\."`
     for JS in $JSFILES
     do
-        # Avoid minified files
-        if [[ "$f" != "*\.min\.*" ]]; then
-            ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
-        fi
+        ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
 }
 
