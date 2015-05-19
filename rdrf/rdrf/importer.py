@@ -492,6 +492,10 @@ class Importer(object):
             self._create_demographic_fields(self.data["demographic_fields"])
         logger.info("demographic field definitions OK ")
 
+        if "complete_fields" in self.data:
+            self._create_complete_form_fields(self.data["complete_fields"])
+        logger.info("complete field definitions OK ")
+
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
         if "forms_allowed_groups" in self.data:
@@ -582,4 +586,10 @@ class Importer(object):
             demo_field.readonly = d["readonly"]
             demo_field.save()
         
-    
+    def _create_complete_form_fields(self, data):
+        for d in data:
+            form = RegistryForm.objects.get(name = d["form_name"])
+            for cde_code in d["cdes"]:
+                form.complete_form_cdes.add(CommonDataElement.objects.get(code = cde_code))
+            form.save()
+        
