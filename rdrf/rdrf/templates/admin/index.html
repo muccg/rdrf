@@ -28,57 +28,14 @@
   <div id="content-main">
     <div class="well">
       {% if app_list|length > 1 %}
-        
       <div class="alert alert-info"><h4>{% trans 'Quick access links' %}</h4></div>
       
       <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
-        <tr>
-            <th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:patients_patient_changelist' %}">{% trans 'Patients' %}</a></th></tr>
-            <th scope="row"><i class="icon-cog"></i> <a href="{% url 'reports' %}">{% trans 'Reports' %}</a></th></tr>
-        {% if request.user.is_superuser %}
-            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_questionnaireresponse_changelist' %}">{% trans 'Questionnaire Responses' %}</a></th></tr>
-            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registry_changelist' %}">{% trans 'Registries' %}</a></th></tr>
-            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_registryform_changelist' %}">{% trans 'Registry Forms' %}</a></th></tr>
-            <tr><th scope="row"><i class="icon-cog"></i> <a href="{% url 'admin:rdrf_commondataelement_changelist' %}">{% trans 'Data Elements' %}</a></th></tr>
-        {% endif %}
-      </table>
-      <div class="btn btn-success btn-block" id="full-menu-alert"><h4>{% trans "Show full list of links" %}</h4></div>
-      <br>
-
-      {% endif %}
-
-    <div id="full-menu">
-    {% if app_list %}
-      {% for app in app_list %}
-        <div class="module">
-          <table class="table-overview applist" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
-            <caption><a href="{{ app.app_url }}" class="section">{% trans app.name %}</a></caption>
-            {% for model in app.models %}
-              <tr>
-                <th scope="row">{{ model.name }}</th>
-                {% if model.admin_url %}
-                  <td>
-                    <a href="{{ model.admin_url }}" class="changelink icon">{% trans 'Change' %}</a>
-                  </td>
-                {% else %}
-                  <td>&nbsp;</td>
-                {% endif %}
-                {% if model.add_url %}
-                  <td><a href="{{ model.add_url }}" class="addlink icon"><i
-                          class="icon-plus-sign icon-alpha75"></i>{% trans 'Add' %}
-                  </a></td>
-                {% else %}
-                  <td>&nbsp;</td>
-                {% endif %}
-              </tr>
+            {% for quick_link in request.user.quick_links %}
+             <tr><th scope="row"><i class="icon-cog"></i> <a href="{{quick_link.url}}">{{quick_link.text}}</a></th></tr>
             {% endfor %}
-          </table>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p>{% trans "You don't have permission to edit anything." %}</p>
-    {% endif %}
-    </div>
+      </table>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

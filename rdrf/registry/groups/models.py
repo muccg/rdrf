@@ -143,6 +143,25 @@ class CustomUser(AbstractUser):
                 return True
 
         return False
+
+    @property
+    def quick_links(self):
+        from rdrf.quick_links import QuickLinks
+        if self.is_superuser:
+            return QuickLinks.ALL
+        if self.is_curator:
+            return QuickLinks.WORKING_GROUP_CURATORS
+        elif self.is_clinician:
+            return QuickLinks.CLINICIAN
+        elif self.is_patient:
+            return []
+        elif self.is_genetic_curator:
+            return QuickLinks.GENETIC_CURATORS
+        elif self.is_genetic_staff:
+            return QuickLinks.GENETIC_STAFF
+        else:
+            return []
+
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
