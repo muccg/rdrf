@@ -5,7 +5,7 @@ import json
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
-from rdrf.models import AdjudicationDefinition, DemographicFields
+from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
 
 logger = logging.getLogger("registry_log")
 
@@ -161,6 +161,7 @@ class Exporter(object):
         data["consent_sections"] = self._get_consent_sections()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
         data["demographic_fields"] = self._get_demographic_fields()
+        data["complete_fields"] = self._get_complete_fields()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
@@ -400,3 +401,16 @@ class Exporter(object):
             demographic_fields.append(fields)
             
         return demographic_fields
+
+    def _get_complete_fields(self):
+        forms = RegistryForm.objects.filter(registry=self.registry)
+        complete_fields = []
+        
+        for form in forms:
+            if form.complete_form_cdes.exists():
+                form_cdes = {}
+                form_cdes["form_name"] = form.name
+                form_cdes["cdes"] = [cde.code for cde in form.complete_form_cdes.all()]
+                complete_fields.append(form_cdes)
+
+        return complete_fields
