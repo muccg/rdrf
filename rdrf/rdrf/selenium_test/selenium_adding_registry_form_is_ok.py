@@ -13,6 +13,7 @@ class SaveNewlyCreatedRegisterForm(Base):
         sel.type("id=id_password", "admin")
         sel.type("id=id_username", "admin")
         sel.click("css=input.btn.btn-info")
+        sel.wait_for_page_to_load("30000")
         sel.open("/admin/rdrf/registryform/")
         sel.wait_for_page_to_load("30000")
         sel.click("link=Add registry form")
