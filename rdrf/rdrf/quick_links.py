@@ -17,6 +17,7 @@ class QuickLinks(object):
     Reports = QuickLink("reports", "Reports")
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
     QuestionnaireResponses = QuickLink("admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
+    Doctors = QuickLink("admin:patients_doctor_changelist", "Doctors")
     # Genetic Staff
     Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
@@ -30,18 +31,19 @@ class QuickLinks(object):
     PermissibleValues = QuickLink("admin:rdrf_cdepermittedvalue_changelist", "Permissible Values")
 
     DATA_ENTRY = oset([PatientsListing])
+    DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
                             PermissibleValues])
 
-    WORKING_GROUP_STAFF = DATA_ENTRY
-    WORKING_GROUP_CURATORS = DATA_ENTRY | REPORTING | USER_MANAGEMENT
+    WORKING_GROUP_STAFF = DATA_ENTRY | DOCTORS
+    WORKING_GROUP_CURATORS = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT
 
-    GENETIC_STAFF = DATA_ENTRY
-    GENETIC_CURATORS = DATA_ENTRY | REPORTING | GENETIC_BOOKKEEPING
+    GENETIC_STAFF = DATA_ENTRY | DOCTORS
+    GENETIC_CURATORS = DATA_ENTRY | DOCTORS | REPORTING | GENETIC_BOOKKEEPING
 
-    CLINICIAN = DATA_ENTRY
+    CLINICIAN = DATA_ENTRY | DOCTORS
 
-    ALL = DATA_ENTRY | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN
+    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN
