@@ -34,7 +34,9 @@
             {% endif %}
             $('#registry-list').change(function() {
                 url = $("#registry-list option:selected").val();
-                window.location.href = url;
+                if (url != -1) {
+                    window.location.href = url;
+                }
             });        
         })
     </script>
@@ -46,7 +48,7 @@
     {{ block.super }}
     
     <select id="registry-list">
-        <option>Go to Regsitry</option>
+        <option value=-1>Go to registry</option>
         {% for registry in request.user.registry.all %}
             <option value={% url 'registry' registry.code %}>{{registry.name}}</option>
         {% endfor %}

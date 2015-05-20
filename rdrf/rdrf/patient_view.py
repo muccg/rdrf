@@ -60,7 +60,7 @@ class PatientView(View):
                 try:
                     patient = Patient.objects.get(user__id=request.user.id)
                     context['patient_record'] = patient
-                    context['patient_form'] = PatientForm(instance=patient)
+                    context['patient_form'] = PatientForm(instance=patient, user=request.user)
                     context['patient_id'] = patient.id
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
