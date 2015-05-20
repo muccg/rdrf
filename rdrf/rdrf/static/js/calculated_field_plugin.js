@@ -2,7 +2,7 @@
     $.fn.add_calculation = function(options) {
         var settings = $.extend({
             // These are the defaults.
-            calculation: function (context) { context.result = "???"; },
+            calculation: function(context) { context.result = "???"; },
             subjects: '', // E.g. "CDE01,CDE02" comma separated list of inputs to the calculation
             prefix: '',//  formcode^^sectioncode^^
             target: "value",
@@ -10,7 +10,7 @@
             // Stuff below added to allow calculations to retrieve remote model properties
             injected_model: "",  // e.g. Patient  ( model class name)
             injected_model_id: null,  // the id of the injected model instance to retrieve
-            tastypie_url: ""  //the url to request model data on-includes resource eg /api/v1/patient/1
+            tastypie_url: ""  //the url to request model data on eg /api/v1/patient/1
 
         }, options);
 
@@ -52,19 +52,20 @@
                 context[subject_codes[i]] = $(subject_code_id_on_page).val();
             }
 
-            var model_promise = get_object(settings.injected_model.toLowerCase(), settings.injected_model_id);
+            var model_promise = get_object(settings.injected_model.toLowerCase(),
+                                           settings.injected_model_id);
 
             $.when(model_promise)
              .done(function(injected_models) {
                         try {
-                            settings.calculation.apply(null,[context].concat(injected_models));
+                            settings.calculation.apply(null, [context].concat(injected_models));
                         }
-                        catch(err) {
+                        catch (err) {
                             context.result = "ERROR";
                         }
                         $("#id_" + settings.prefix + settings.observer).val(context.result);
              });
-        }
+        };
 
         $(subject_codes_string).on("input, change",update_function);
 
