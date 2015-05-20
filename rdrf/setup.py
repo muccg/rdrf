@@ -95,7 +95,7 @@ setup(name='django-rdrf',
         'psycopg2==2.5.4',
         'six==1.9.0',
         'python-gettext',
-        'django-registration-redux=='1.1.0',
+        'django-registration-redux==1.1.0',
         'psycopg2==2.5.5'
     ],
     dependency_links=[
