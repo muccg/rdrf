@@ -67,13 +67,14 @@
              });
         };
 
-        $(subject_codes_string).on("input, change",update_function);
+        $(subject_codes_string).on("input, change", update_function);
 
         try {
             // call on initial page load
-            update_function(); // call it to ensure if calculation changes on server , we are always in sync ( RDR-426 )
+            update_function(); //call it to ensure if calculation changes on server
+                               // we are always in sync(RDR-426 )
         }
-        catch(err) {
+        catch (err) {
             //alert(err);
         }
     };
