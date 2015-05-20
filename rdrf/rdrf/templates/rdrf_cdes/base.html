@@ -39,6 +39,7 @@
           <ul class="nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
                 {% if not request.user.is_patient %}
+                    <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-list-alt"></span> Home</a></li>
                     <li><a href="{% url 'reports' %}"><span class="glyphicon glyphicon-list-alt"></span> Reports</a></li>
                 {% else %}
                     <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
