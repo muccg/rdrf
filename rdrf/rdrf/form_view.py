@@ -1384,6 +1384,9 @@ class PatientsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
         #tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': 'patient', "api_name": "v1", "pk": self.injected_model_id})
+        if request.user.is_patient:
+            raise PermissionDenied()
+
         context = {}
         context.update(csrf(request))
         return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
