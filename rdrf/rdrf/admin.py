@@ -354,7 +354,6 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
     model = DemographicFields
     form = DemographicFieldsAdminForm
     list_display = ("registry", "group", "field", "hidden", "readonly")
-    
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
