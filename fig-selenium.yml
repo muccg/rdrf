@@ -62,7 +62,8 @@ webselenium:
 # runs the lettuce tests against the stack above
 lettucehost:
   image: rdrf_webselenium
-  command: django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern="selenium_*.py" --with-xunit --xunit-file=/data/selenium/tests.xml
+  #command: django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern="selenium_*.py" --with-xunit --xunit-file=/data/selenium/tests.xml
+  command: nosetests /app/rdrf/rdrf/selenium_test/ --testmatch="selenium_.*\.py" --with-xunit --xunit-file=/data/selenium/seleniumtests.xml
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
