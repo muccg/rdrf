@@ -121,7 +121,6 @@ fi
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
     django-admin.py test rdrf 2>&1 | tee /data/runtests.log
-    #nosetests rdrf/rdrf/tests.py  --with-xunit --xunit-file=/data/unittests.xml 2>&1 | tee /data/runtests.log
     exit $?
 fi
 
