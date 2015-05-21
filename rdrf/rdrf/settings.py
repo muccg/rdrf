@@ -26,6 +26,8 @@ FORM_SECTION_DELIMITER = "____"
 
 ROOT_URLCONF = 'rdrf.urls'
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
 TIME_ZONE = env.get("time_zone", 'Australia/Perth')
