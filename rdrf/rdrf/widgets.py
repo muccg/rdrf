@@ -228,6 +228,8 @@ class CountryWidget(widgets.Select):
         countries = pycountry.countries
 
         output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
+        empty_option = "<option value='---'>---</option>"
+        output.append(empty_option)
         for country in countries:
             if value == country.alpha2:
                 output.append("<option value='%s' selected>%s</option>" % (country.alpha2, country.name))
@@ -251,6 +253,8 @@ class StateWidget(widgets.Select):
         country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
 
         output = ["<select id='%s' name='%s'>" % (name, name)]
+        empty_option = "<option value='---'>---</option>"
+        output.append(empty_option)
         for state in country_states:
             if value == state.code:
                 output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
