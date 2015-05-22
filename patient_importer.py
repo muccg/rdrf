@@ -31,6 +31,8 @@ from registry.genetic.models import Laboratory
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.file_upload import wrap_gridfs_data_for_form
 
+import pycountry
+
 SMA = "SMA"
 DMD = "DMD"
 
@@ -382,7 +384,7 @@ class SMANMDOtherRegistriesMultisectionHandler(BaseMultiSectionHandler):
 class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "genetic.variationsma"
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm(SMA, "Genetic Data")
+    FORM_MODEL = frm(SMA, "GeneticData")
     SECTION_MODEL = sec("SMAMolecular")
 
     # SMAExon7Sequencing
@@ -449,7 +451,7 @@ class SMAMolecularMultisectionHandler(BaseMultiSectionHandler):
 class DMDVariationsMultisectionHandler(BaseMultiSectionHandler):
     MODEL_NAME = "genetic.variation"
     DIAGNOSIS_LINK = "diagnosis"
-    FORM_MODEL = frm(DMD, "Genetic Data")
+    FORM_MODEL = frm(DMD, "GeneticData")
     SECTION_MODEL = sec("DMDVariations")
 
     FIELD_MAP = {
@@ -980,6 +982,7 @@ class PatientImporter(object):
     def _get_state(self, name):
         return State.objects.get(short_name=name)
 
+
     def _create_address(self, old_patient_id, rdrf_patient_model):
         patient_record = self._get_old_patient(old_patient_id)
         #  address = models.TextField()
@@ -992,9 +995,18 @@ class PatientImporter(object):
             address_model = PatientAddress()
             address_model.address = patient_record["fields"]["address"]
             address_model.suburb = patient_record["fields"]["suburb"]
-            address_model.state = self.get_map("patients.state", patient_record["fields"]["state"])
+            address_model.country = self._get_country_code(patient_record)
+            try:
+                state_model = self.get_map("patients.state", patient_record["fields"]["state"])
+            except Exception, ex:
+                self.error("could not locate state  %s" % patient_record["fields"]["state"])
+                state_model = None
+
+            if state_model is not None:
+                address_model.state = self._get_state_code(address_model.country, state_model.name)
+
             address_model.postcode = patient_record["fields"]["postcode"]
-            address_model.country = "Australia"   #???
+
             address_model.patient = rdrf_patient_model
 
 
@@ -1009,6 +1021,33 @@ class PatientImporter(object):
         except Exception, ex:
             self.error("could not save address for %s (%s): %s" % (moniker(patient_record), rdrf_patient_model, ex))
 
+    def _get_country_code(self, patient_record):
+        try:
+            old_patient_id = patient_record["pk"]
+            working_group = self._get_working_group(old_patient_id)
+            if working_group:
+                # heuristic!
+                if "zealand" in working_group.name.lower():
+                    return "NZ"
+                else:
+                    return "AU"
+
+        except Exception, ex:
+            self.error("could not retrieve country code for %s: %s" % (patient_record, ex))
+        return None
+
+    def _get_working_group(self, old_patient_id):
+        for patient_model in self._old_models("patients.patient"):
+            if patient_model["pk"] == old_patient_id:
+                if "fields" in patient_model:
+                    if "working_group" in patient_model["fields"]:
+                        old_working_group_pk = patient_model["fields"]["working_group"]
+                        if old_working_group_pk:
+                            try:
+                                rdrf_working_group_model = self._working_groups_map[old_working_group_pk]
+                                return rdrf_working_group_model
+                            except KeyError:
+                                return None
 
     def _create_doctors(self):
 
@@ -1105,12 +1144,23 @@ class PatientImporter(object):
             rdrf_lab.save()
             self.put_map("genetic.laboratory", lab["pk"], rdrf_lab)
 
+    def _get_country_code_for_country(self, country_name):
+        try:
+            country_object = pycountry.countries.get(name=country_name)
+            return country_object.alpha2
+
+        except Exception, ex:
+            self.error("could not locate pycountry for %s: %s" % (country_name, ex))
+            return None
 
     def _create_states(self):
         for state_dict in self._old_models("patients.state"):
             self.msg("creating State %s" % state_dict["fields"]["name"])
             try:
-                rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"], short_name=state_dict["pk"])
+                country_name = state_dict["fields"]["country"]
+                country_code = self._get_country_code_for_country(country_name)
+
+                rdrf_state, created = State.objects.get_or_create(name=state_dict["fields"]["name"], short_name=state_dict["pk"], country_code=country_code)
 
                 if created:
                     rdrf_state.save()
@@ -1119,6 +1169,20 @@ class PatientImporter(object):
                 self.put_map("patients.state", state_dict["pk"], rdrf_state)
             except Exception, ex:
                 self.error("could not create State %s: %s" % (state_dict, ex))
+
+    def _get_state_code(self, country_code, state_name):
+        try:
+            pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
+            for state in pycountry_states:
+                if state_name.lower() == state.name.lower():
+                    return state.code
+        except Exception, ex:
+            self.error("could not locate state code for country code %s state name %s: %s" % (country_code,
+                                                                                              state_name,
+                                                                                              ex))
+        return None
+
+
 
     def _family_members(self, old_patient_id, rdrf_patient_model):
         self.to_do("family members")
