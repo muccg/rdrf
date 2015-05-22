@@ -995,9 +995,19 @@ class PatientImporter(object):
             address_model = PatientAddress()
             address_model.address = patient_record["fields"]["address"]
             address_model.suburb = patient_record["fields"]["suburb"]
-            address_model.country = self._get_country_code(patient_record)
+
+            if patient_record["fields"]["state"] == "NZN":
+                # ugh
+                address_model.country = "NZ"
+            else:
+                address_model.country = self._get_country_code(patient_record)
+
             try:
-                state_model = self.get_map("patients.state", patient_record["fields"]["state"])
+                if patient_record["fields"]["state"] != "NZN":
+                    state_model = self.get_map("patients.state", patient_record["fields"]["state"])
+                else:
+                    state_model = None  # can't tell!
+
             except Exception, ex:
                 self.error("could not locate state  %s" % patient_record["fields"]["state"])
                 state_model = None
@@ -1008,7 +1018,6 @@ class PatientImporter(object):
             address_model.postcode = patient_record["fields"]["postcode"]
 
             address_model.patient = rdrf_patient_model
-
 
         except Exception, ex:
             self.error("could not set fields on address object for %s %s: %s" % (moniker(old_patient_id), rdrf_patient_model, ex))
