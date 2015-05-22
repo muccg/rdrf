@@ -37,6 +37,7 @@ _6MONTHS_IN_DAYS = 183
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
+    country_code = models.CharField(max_length=30, blank=True, null=True)
 
     class Meta:
         ordering = ["name"]
