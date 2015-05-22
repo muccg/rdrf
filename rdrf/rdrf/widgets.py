@@ -222,13 +222,11 @@ class DateWidget(widgets.TextInput):
 class CountryWidget(widgets.Select):
 
     def render(self, name, value, attrs):
-        if not value:
-            value = self.attrs['default']
 
         countries = pycountry.countries
 
         output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
-        empty_option = "<option value='---'>---</option>"
+        empty_option = "<option value=''>---</option>"
         output.append(empty_option)
         for country in countries:
             if value == country.alpha2:
@@ -242,15 +240,16 @@ class CountryWidget(widgets.Select):
 class StateWidget(widgets.Select):
 
     def render(self, name, value, attrs):
-        if not value:
-            value = self.attrs['default']
 
         try:
             state = pycountry.subdivisions.get(code=value)
         except KeyError:
-            state = pycountry.subdivisions.get(code=self.attrs['default'])
+            state = None
 
-        country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
+        if state is not None:
+            country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
+        else:
+            country_states = []
 
         output = ["<select id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value='---'>---</option>"

@@ -167,8 +167,8 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'suburb', 'state', 'postcode', 'country')
 
-    country = forms.ComboField(widget=CountryWidget(attrs={'default': 'AU', 'onChange': 'select_country(this);'}))
-    state = forms.ComboField(widget=StateWidget(attrs={'default': 'AU-WA'}))
+    country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    state = forms.ComboField(required=False, widget=StateWidget())
 
 
 class PatientForm(forms.ModelForm):
