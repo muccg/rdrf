@@ -59,6 +59,7 @@ class PatientResource(ModelResource):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
         bundle.data["working_groups_display"] = p.working_groups_display
+        bundle.data["diagnosis_progress"] = p.diagnosis_progress
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
         bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)

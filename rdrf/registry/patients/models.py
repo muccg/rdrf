@@ -187,6 +187,26 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
+    @property
+    def diagnosis_progress(self):
+        """
+        returns a map of reg code to an integer between 0-100 (%)
+        """
+        registry_diagnosis_progress = {}
+
+        for registry_model in self.rdrf_registry.all():
+            total_number_filled_in = 0
+            total_number_required_for_completion = 0
+            for form_model in registry_model.forms:
+                # hack
+                if not "genetic" in form_model.name.lower():
+                    number_filled_in, total_number_for_completion = self.form_progress(form_model, numbers_only=True)
+                    total_number_filled_in += number_filled_in
+                    total_number_required_for_completion += total_number_for_completion
+            registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+
+        return registry_diagnosis_progress
+
     def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
@@ -349,7 +369,7 @@ class Patient(models.Model):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
 
-    def form_progress(self, registry_form):
+    def form_progress(self, registry_form, numbers_only=False):
         if not registry_form.has_progress_indicator:
             return [], 0
 
@@ -376,6 +396,9 @@ class Patient(models.Model):
             if cde_value:
                 cdes_status[cde["name"]] = True
                 set_count += 1
+
+        if numbers_only:
+            return set_count, len(cde_complete)
 
         return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
 
