@@ -167,16 +167,12 @@ class CustomUser(AbstractUser):
 def user_registered_callback(sender, user, request, **kwargs):
     from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian
 
-    user.first_name = request.POST['first_name']
-    user.last_name = request.POST['surname']
-    user.is_staff = True
-    
-    patient_group = _get_group("Patients")
-    user.groups = [ patient_group, ] if patient_group else []
+    is_parent = request.POST.has_key("parent_guardian_check")
     
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
-    user.registry = [ registry, ] if registry else []
+    
+    user = _create_django_user(request, user, registry, is_parent)
 
     try:    
         clinician_id, working_group_id = request.POST['clinician'].split("_")
@@ -185,7 +181,7 @@ def user_registered_callback(sender, user, request, **kwargs):
         user.working_groups = [ working_group, ]
     except ValueError:
         clinician = None
-        working_group, status = WorkingGroup.objects.get_or_create(name=_UNALLOCATED_GROUP)
+        working_group, status = WorkingGroup.objects.get_or_create(name=_UNALLOCATED_GROUP, registry=registry)
         user.working_groups = [ working_group, ]
     
     user.save()
@@ -202,34 +198,61 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.working_groups.add(working_group.id)
     patient.clinician = clinician
     patient.home_phone = getattr(request.POST, "phone_number", None)
-    patient.user = user
+    if is_parent:
+        patient.user = None
     patient.save()
     
-    addres = PatientAddress.objects.create(
+    address = _create_patient_address(patient, request)
+    address.save()
+
+    if is_parent:
+        parent_guardian = _create_parent(request)
+        parent_guardian.patient.add(patient)
+        parent_guardian.user = user
+        parent_guardian.save()
+
+def _create_django_user(request, django_user, registry, is_parent):
+    if is_parent:
+        user_group = _get_group("Parents")
+    else:
+        user_group = _get_group("Patients")
+    
+    django_user.groups = [ user_group.id, ] if user_group else []
+
+    django_user.first_name = request.POST['first_name']
+    django_user.last_name = request.POST['surname']
+    django_user.registry = [ registry, ] if registry else []
+    django_user.is_staff = True
+    return django_user
+
+
+def _create_patient_address(patient, request, address_type="POST"):
+    from registry.patients.models import PatientAddress, AddressType
+    address = PatientAddress.objects.create(
         patient = patient,
-        address_type = AddressType.objects.get(description__icontains = "Post"),
+        address_type = AddressType.objects.get(description__icontains = address_type),
         address = request.POST["address"],
         suburb = request.POST["suburb"],
         state = request.POST["state"],
         postcode = request.POST["postcode"],
         country = request.POST["country"]
-    ).save()
+    )
+    return address
 
-    if request.POST.has_key("parent_guardian_check"):
-        parent_guardian = ParentGuardian.objects.create(
-            first_name = request.POST["parent_guardian_first_name"],
-            last_name = request.POST["parent_guardian_last_name"],
-            date_of_birth = request.POST["parent_guardian_date_of_birth"],
-            gender = request.POST["parent_guardian_gender"],
-            address = request.POST["parent_guardian_address"],
-            suburb = request.POST["parent_guardian_suburb"],
-            state = request.POST["parent_guardian_state"],
-            postcode = request.POST["parent_guardian_postcode"],
-            country = request.POST["parent_guardian_country"]
-        )
-        parent_guardian.patient.add(patient)
-        parent_guardian.save()
-
+def _create_parent(request):
+    from registry.patients.models import ParentGuardian
+    parent_guardian = ParentGuardian.objects.create(
+        first_name = request.POST["parent_guardian_first_name"],
+        last_name = request.POST["parent_guardian_last_name"],
+        date_of_birth = request.POST["parent_guardian_date_of_birth"],
+        gender = request.POST["parent_guardian_gender"],
+        address = request.POST["parent_guardian_address"],
+        suburb = request.POST["parent_guardian_suburb"],
+        state = request.POST["parent_guardian_state"],
+        postcode = request.POST["parent_guardian_postcode"],
+        country = request.POST["parent_guardian_country"]
+    )
+    return parent_guardian
 
 def _get_registry_object(registry_name):
     try:
@@ -240,7 +263,7 @@ def _get_registry_object(registry_name):
     
 def _get_group(group_name):
     try:
-        group = Group.objects.get(name__icontains = group_name)
+        group, created = Group.objects.get_or_create(name = group_name)
         return group
     except Group.DoesNotExist:
         return None
