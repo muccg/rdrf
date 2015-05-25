@@ -207,6 +207,24 @@ class Patient(models.Model):
 
         return registry_diagnosis_progress
 
+    @property
+    def genetic_data_map(self):
+        """
+        map of reg code to Boolean iff patient has some genetic data filled in
+        """
+        registry_genetic_progress = {}
+        for registry_model in self.rdrf_registry.all():
+            has_data = False
+            for form_model in registry_model.forms:
+                if "genetic" in form_model.name.lower():
+                    number_cdes_filled_in, total_number = self.form_progress(form_model, numbers_only=True)
+                    if number_cdes_filled_in > 0:
+                        has_data = True
+                        break
+            registry_genetic_progress[registry_model.code] = has_data
+        return registry_genetic_progress
+
+
     def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key

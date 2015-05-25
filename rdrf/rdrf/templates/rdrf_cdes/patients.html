@@ -5,7 +5,7 @@
  <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
 {% endblock %}
 {% block content %}
-        <table id="grid"   class="table table-condensed table-hover table-striped">
+        <table id="grid" class="table table-condensed table-hover table-striped" width="100%">
             <thead>
                 <tr>
                     <th data-column-id="id" data-formatter="id">Demographics</th>
@@ -15,6 +15,7 @@
                     <th data-column-id="reg_list">Registry</th>
                     <th data-column-id="date_of_birth">Date of Birth</th>
                     <th data-column-id="diagnosis_progress" data-formatter="diagnosis_progress_formatter">Diagnosis Progress</th>
+                    <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Has Genetic Data</th>
                     <th data-column-id="commands" data-formatter="commands" data-sortable="false">Forms</th>
 
                 </tr>
@@ -62,9 +63,16 @@
 
                         "diagnosis_progress_formatter": function(column, row) {
                             var html = "";
+                            var inOneRegistry = _.keys(row.diagnosis_progress).length == 1;
+
                             for (var regCode in row.diagnosis_progress) {
+                                var completionString;
                                 var percentage = row.diagnosis_progress[regCode].toString();
-                                var completionString = regCode.toUpperCase() + ":" + percentage + "%";
+                                if (!inOneRegistry) {
+                                    completionString = regCode.toUpperCase() + ":" + percentage + "%";
+                                } else {
+                                    completionString = percentage + "%";
+                                }
 
                                 var progressBarHtml =
                                         '<div id="progressbar" class="ui-progressbar ' +
@@ -82,6 +90,37 @@
                             }
 
 
+
+                            return html;
+                        },
+
+                        "genetic_data_formatter": function(column, row) {
+                            var html = "";
+                            var tickHTML =  '<span class="glyphicon glyphicon-ok"></span>';
+                            var crossHTML = '<span class="glyphicon glyphicon-remove"></span>';
+                            // If we are in just one registry don't display reg code prefix
+                            var inOneRegistry = _.keys(row.genetic_data_map).length == 1;
+
+                            for (var regCode in row.genetic_data_map) {
+                                var geneticDataIndicatorHTML;
+                                var regHTML;
+                                var hasGeneticData = row.genetic_data_map[regCode];
+                                if (hasGeneticData) {
+                                    geneticDataIndicatorHTML = tickHTML;
+                                }
+                                else {
+                                    geneticDataIndicatorHTML = crossHTML;
+                                }
+
+                                if (inOneRegistry) {
+                                    regHTML = geneticDataIndicatorHTML;
+                                }
+                                else {
+                                    regHTML = regCode.toUpperCase() + ":" + geneticDataIndicatorHTML;
+                                }
+
+                                html += regHTML;
+                            }
 
                             return html;
                         },
