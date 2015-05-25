@@ -70,6 +70,15 @@ class CustomUser(AbstractUser):
             return False
 
     @property
+    def is_parent(self):
+        try:
+            parent_group = Group.objects.get(name__icontains="parents")
+            _is_parent = True if parent_group in self.groups.all() else False
+            return _is_parent
+        except Group.DoesNotExist:
+            return False
+
+    @property
     def is_clinician(self):
         try:
             clinical_group = Group.objects.get(name__icontains="clinical")

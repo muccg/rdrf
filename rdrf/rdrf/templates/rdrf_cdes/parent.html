@@ -1,0 +1,20 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        <blockquote>
+            <h4><i>Welcome {{request.user.first_name}} {{request.user.last_name}}!</i></h4>
+            <small>List of patients under your supervision</small>
+        </blockquote>
+
+        <ul class="list-group">
+            {% for patient in patients %}
+                <li class="list-group-item">{{patient.given_names|title}} {{patient.family_name|title}}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Details</a></li>
+            {% endfor %}
+        </ul>
+
+        <button class="btn btn-success">Add new Patient</button>
+    {% else %}
+        <div class="alert alert-info">Please log in to access the registry.</div>
+    {% endif %}
+{% endblock %}

@@ -12,6 +12,7 @@ import rdrf.import_registry_view as import_registry_view
 import rdrf.rest_interface as rest_interface
 import rdrf.hgvs_view as hgvs_view
 import rdrf.patient_view as patient_view
+import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
 import rdrf.report_view as report_view
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
@@ -87,6 +88,9 @@ urlpatterns = patterns('',
                            patient_view.PatientView.as_view(), name='patient_page'),
                        url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/?$",
                            patient_view.PatientEditView.as_view(), name='patient_edit'),
+                       
+                       url(r"^(?P<registry_code>\w+)/parent/?$",
+                           parent_view.ParentView.as_view(), name='parent_page'),
                        
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),

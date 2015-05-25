@@ -45,6 +45,11 @@ class RouterView(View):
                 if regs:
                     if len(regs) == 1:
                         redirect_url = reverse("patient_page", args=[regs[0].code])
+            elif user.is_parent:
+                regs = user.get_registries()
+                if regs:
+                    if len(regs) == 1:
+                        redirect_url = reverse("parent_page", args=[regs[0].code])
             else:
                 redirect_url = reverse("admin:index")
         else:
