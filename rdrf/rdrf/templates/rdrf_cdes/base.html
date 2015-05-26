@@ -38,11 +38,13 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
+                {% block parent_menu %}
+                {% endblock %}
                 {% if not request.user.is_patient and not request.user.is_parent %}
                     <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-list-alt"></span> Home</a></li>
                     <li><a href="{% url 'reports' %}"><span class="glyphicon glyphicon-list-alt"></span> Reports</a></li>
                 {% else %}
-                    {% if registry_code %}
+                    {% if registry_code and request.user.is_patient %}
                         <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
                     {% endif %}
                 {% endif %}
@@ -67,13 +69,11 @@
     </nav>
 
     <div class="container">
-	{% if messages %}
-	    <ul class="messagelist">
-		{% for message in messages %}
-		    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-		{% endfor %}
-	    </ul>
-	{% endif %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
         {% block content%}
         {% endblock%}
