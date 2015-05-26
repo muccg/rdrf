@@ -24,7 +24,7 @@ from rdrf.hooking import run_hooks
 from django.db.models.signals import m2m_changed
 
 import logging
-logger = logging.getLogger('patient')
+logger = logging.getLogger('registry_log')
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -210,20 +210,58 @@ class Patient(models.Model):
 
         return registry_diagnosis_progress
 
+    def clinical_data_currency(self, days=365):
+        """
+        If some clinical form ( non genetic ) has been updated  in the window
+        then the data for that registry is considered "current" - this mirrors
+        """
+        time_window_start = datetime.datetime.now() - datetime.timedelta(days=days)
+        currency_map = {}
+        for registry_model in self.rdrf_registry.all():
+            last_updated_in_window = False
+            for form_model in registry_model.forms:
+                if "genetic" in form_model.name.lower():
+                    continue
+                form_timestamp = self.get_form_timestamp(form_model)
+                logger.debug("form timestamp %s = %s" % (form_model, form_timestamp))
+                if form_timestamp and form_timestamp >= time_window_start:
+                    last_updated_in_window = True
+                    break
+            currency_map[registry_model.code] = last_updated_in_window
+
+        return currency_map
+
     @property
     def genetic_data_map(self):
         """
         map of reg code to Boolean iff patient has some genetic data filled in
         """
         registry_genetic_progress = {}
+
+        class Sentinel(Exception):
+            pass
+
         for registry_model in self.rdrf_registry.all():
             has_data = False
-            for form_model in registry_model.forms:
-                if "genetic" in form_model.name.lower():
-                    number_cdes_filled_in, total_number = self.form_progress(form_model, numbers_only=True)
-                    if number_cdes_filled_in > 0:
-                        has_data = True
-                        break
+            try:
+                for form_model in registry_model.forms:
+                    if "genetic" in form_model.name.lower():
+                        for section_model in  form_model.section_models:
+                            for cde_model in section_model.cde_models:
+                                try:
+                                    value = self.get_form_value(registry_model.code,
+                                                                form_model.name,
+                                                                section_model.code,
+                                                                cde_model.code,
+                                                                section_model.allow_multiple)
+
+                                    # got value for at least one field
+                                    raise Sentinel()
+                                except KeyError:
+                                    pass
+            except Sentinel:
+                has_data = True
+
             registry_genetic_progress[registry_model.code] = has_data
         return registry_genetic_progress
 
@@ -426,6 +464,14 @@ class Patient(models.Model):
             return set_count, len(cde_complete)
 
         return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
+
+    def get_form_timestamp(self, registry_form):
+        dynamic_store = DynamicDataWrapper(self)
+        timestamp = dynamic_store.get_form_timestamp(registry_form)
+        if timestamp:
+            if "timestamp" in timestamp:
+                ts = timestamp["timestamp"]
+                return ts
 
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)

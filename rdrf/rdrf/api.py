@@ -64,6 +64,7 @@ class PatientResource(ModelResource):
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
         bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
+        bundle.data["diagnosis_currency"] = p.clinical_data_currency()
         return bundle
 
     def _get_reg_list(self, patient, user):

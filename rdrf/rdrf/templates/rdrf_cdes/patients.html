@@ -16,6 +16,7 @@
                     <th data-column-id="date_of_birth">Date of Birth</th>
                     <th data-column-id="diagnosis_progress" data-formatter="diagnosis_progress_formatter">Diagnosis Progress</th>
                     <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Has Genetic Data</th>
+                    <th data-column-id="diagnosis_currency" data-formatter="diagnosis_currency_formatter">Diagnosis Progress</th>
                     <th data-column-id="commands" data-formatter="commands" data-sortable="false">Forms</th>
 
                 </tr>
@@ -124,6 +125,38 @@
 
                             return html;
                         },
+
+                         "diagnosis_currency_formatter": function(column, row) {
+                            var html = "";
+                            var tickHTML =  '<span class="glyphicon glyphicon-ok"></span>';
+                            var crossHTML = '<span class="glyphicon glyphicon-remove"></span>';
+                            // If we are in just one registry don't display reg code prefix
+                            var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
+
+                            for (var regCode in row.diagnosis_currency) {
+                                var diagnosisCurrencyIndicatorHTML;
+                                var regHTML;
+                                var diagnosisCurrent = row.diagnosis_currency[regCode];
+                                if (diagnosisCurrent) {
+                                    diagnosisCurrencyIndicatorHTML = tickHTML;
+                                }
+                                else {
+                                    diagnosisCurrencyIndicatorHTML = crossHTML;
+                                }
+
+                                if (inOneRegistry) {
+                                    regHTML = diagnosisCurrencyIndicatorHTML;
+                                }
+                                else {
+                                    regHTML = regCode.toUpperCase() + ":" + diagnosisCurrencyIndicatorHTML;
+                                }
+
+                                html += regHTML;
+                            }
+
+                            return html;
+                        },
+
 
                         "commands": function (column, row) {
                             //return row.forms_html
