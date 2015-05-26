@@ -1383,7 +1383,6 @@ class AdjudicationResultsView(View):
 class PatientsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
-        #tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': 'patient', "api_name": "v1", "pk": self.injected_model_id})
         if request.user.is_patient:
             raise PermissionDenied()
 
@@ -1427,4 +1426,3 @@ class BootGridApi(View):
 class ConstructorFormView(View):
     def get(self, request, form_name):
         return render_to_response('rdrf_cdes/%s.html' % form_name)
-
