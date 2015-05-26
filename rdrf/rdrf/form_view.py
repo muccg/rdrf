@@ -1388,6 +1388,11 @@ class PatientsListingView(LoginRequiredMixin, View):
 
         context = {}
         context.update(csrf(request))
+
+        registries = [registry_model for registry_model in request.user.registry.all()]
+        context["num_registries"] = len(registries)  # if there are one do something special
+        context["registries"] = registries
+
         return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
 
 

@@ -5,6 +5,18 @@
  <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
 {% endblock %}
 {% block content %}
+
+        {% if num_registries > 1 %}
+            <select id="registry_select">
+                <option value="---">---</option>
+                 {% for registry_model in registries %}
+                    <option value="{{registry_model.code}}">{{registry_model.name}}</option>
+                 {% endfor %}
+            </select>
+        {% endif %}
+
+
+
         <table id="grid" class="table table-condensed table-hover table-striped" width="100%">
             <thead>
                 <tr>
@@ -35,6 +47,20 @@
                 var grid = $('#grid').bootgrid({
                     ajax: true,
                     url: "{% url 'api_get_search' 'v1' 'patient'  %}",
+
+                    requestHandler: function(request)
+                    {
+                        console.log(request);
+                        request.registry_code = null;
+
+                        {% if num_registries > 1 %}
+                            request.registry_code = $("#registry_select").val();
+                        {%  endif %}
+
+                        return request;
+
+                    },
+
                     responseHandler: function (response) {
                         return response;
                     },
@@ -172,7 +198,27 @@
                             window.location = $(this).val();
                         }
                     })
-                })
+                });
+
+
+
+                {% if num_registries > 1 %}
+
+                    // wire up  registry select
+                    $("#registry_select").change(function (){
+                         var registryCode = $(this).val();
+                         if(registryCode == '---') {
+                             $("#grid").hide();
+
+                         }
+                         else {
+                             // set registry????
+                             $("#grid").bootgrid("reload");
+                             $("#grid").show();
+                         }
+                    });
+
+                {% endif %}
 
                 });
 

@@ -123,11 +123,28 @@ class PatientResource(ModelResource):
     def get_search(self, request, **kwargs):
         from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
+        chosen_registry_code = request.GET.get("registry_code", None)
+
+        if chosen_registry_code:
+            try:
+                chosen_registry = Registry.objects.get(code=chosen_registry_code)
+            except Registry.DoesNotExist:
+                chosen_registry = None
+
+        else:
+            chosen_registry = None
+
+        if chosen_registry:
+            registry_queryset = [chosen_registry]
+        else:
+            registry_queryset = request.user.registry.all()
+
+
         patients = Patient.objects.all()
 
         if not request.user.is_superuser:
             if request.user.is_curator:
-                query_patients = Q(rdrf_registry__in=request.user.registry.all()) & Q(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
             elif request.user.is_genetic:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
