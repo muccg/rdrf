@@ -203,7 +203,10 @@ class Patient(models.Model):
                     number_filled_in, total_number_for_completion = self.form_progress(form_model, numbers_only=True)
                     total_number_filled_in += number_filled_in
                     total_number_required_for_completion += total_number_for_completion
-            registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+            try:
+                registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+            except ZeroDivisionError, zderr:
+                pass  # don't have progress? skip
 
         return registry_diagnosis_progress
 
@@ -389,6 +392,9 @@ class Patient(models.Model):
 
     def form_progress(self, registry_form, numbers_only=False):
         if not registry_form.has_progress_indicator:
+            if numbers_only:
+                return 0, 0
+
             return [], 0
 
         dynamic_store = DynamicDataWrapper(self)
@@ -401,6 +407,7 @@ class Patient(models.Model):
         cdes_status = {}
 
         for cde in cde_complete:
+            cde_section = ""
             for s in section_array:
                 section = Section.objects.get(code=s)
                 if cde["code"] in section.elements.split(","):
