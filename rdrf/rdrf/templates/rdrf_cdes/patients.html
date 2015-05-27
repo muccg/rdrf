@@ -8,7 +8,7 @@
 
         {% if num_registries > 1 %}
             <select id="registry_select">
-                <option value="---">---</option>
+                <option value="---">Select Registry ...</option>
                  {% for registry_model in registries %}
                     <option value="{{registry_model.code}}">{{registry_model.name}}</option>
                  {% endfor %}
