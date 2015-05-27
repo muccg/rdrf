@@ -44,15 +44,15 @@ class PatientView(View):
                 logger.error("Registry %s does not exist" % registry_code)
 
             try:
-                #forms = RegistryForm.objects.filter(registry__code=registry_code).filter(is_questionnaire=True)
                 forms = registry.forms
+
                 class FormLink(object):
                     def __init__(self, form):
                         self.form = form
                         patient = Patient.objects.get(user=request.user)
                         self.link = form.link(patient)
 
-                context['forms'] = [FormLink(form) for form in forms ]
+                context['forms'] = [FormLink(form) for form in forms]
             except RegistryForm.DoesNotExist:
                 logger.error("No questionnaire for %s registry" % registry_code)
 
@@ -173,14 +173,6 @@ class PatientEditView(View):
              "next_of_kin_parent_place_of_birth"
         ])
 
-        # consent = ("Consent", [
-        #     "consent",
-        #     "consent_clinical_trials",
-        #     "consent_sent_information",
-        # ])
-
-        #consent_sections = [patient_form.get_consent_section(r) for r in patient.rdrf_registry.all() ]
-
         rdrf_registry = ("Registry", [
             "rdrf_registry",
             "working_groups",
@@ -189,7 +181,8 @@ class PatientEditView(View):
 
         patient_address_section = ("Patient Address", None)
 
-        # first get all the consents ( which could be different per registry -  _and_ per applicability conditions )
+        # first get all the consents ( which could be different per registry -
+        # _and_ per applicability conditions )
         # then add the remaining sections which are fixed
         patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
         patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
@@ -198,10 +191,10 @@ class PatientEditView(View):
             (
                 patient_form,
                 patient_section_info
-                #( consent, consent, rdrf_registry, personal_details_fields, next_of_kin )
-            ),(
+            ),
+            (
                 patient_address_form, 
-                ( patient_address_section, )
+                (patient_address_section,)
             )
         ]
 
@@ -219,14 +212,12 @@ class PatientEditView(View):
             ) )
                 
         return patient, form_sections
-        
 
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
         additional_fields = SortedDict()
         for reg_code in registry_specific_fields_dict:
             field_pairs = registry_specific_fields_dict[reg_code]
             for cde, field_object in field_pairs:
-                logger.debug("xxxx %s" % cde.code)
                 additional_fields[cde.code] = field_object
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
