@@ -15,8 +15,6 @@
             </select>
         {% endif %}
 
-
-
         <table id="grid" class="table table-condensed table-hover table-striped" width="100%">
             <thead>
                 <tr>
@@ -28,8 +26,7 @@
                     <th data-column-id="diagnosis_progress" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
                     <th data-column-id="diagnosis_currency" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
                     <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Genetic Data</th>
-                    <th data-column-id="commands" data-formatter="commands" data-sortable="false">Forms</th>
-
+                    <th data-column-id="data_modules" data-formatter="data_modules" data-sortable="false">Modules</th>
                 </tr>
             </thead>
         </table>
@@ -168,64 +165,60 @@
                             return html;
                         },
 
-                         "diagnosis_currency_formatter": function(column, row) {
-                            var html = "";
-                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
-                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
-                            // If we are in just one registry don't display reg code prefix
-                            var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
+                     "diagnosis_currency_formatter": function(column, row) {
+                        var html = "";
+                        var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                        var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                        // If we are in just one registry don't display reg code prefix
+                        var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
 
-                            for (var regCode in row.diagnosis_currency) {
-                                var diagnosisCurrencyIndicatorHTML;
-                                var regHTML;
-                                var diagnosisCurrent = row.diagnosis_currency[regCode];
-                                if (diagnosisCurrent) {
-                                    diagnosisCurrencyIndicatorHTML = tickHTML;
-                                }
-                                else {
-                                    diagnosisCurrencyIndicatorHTML = crossHTML;
-                                }
-
-                                if (inOneRegistry) {
-                                    regHTML = diagnosisCurrencyIndicatorHTML;
-                                }
-                                else {
-                                    regHTML = regCode.toUpperCase() + ":" + diagnosisCurrencyIndicatorHTML;
-                                }
-
-                                html += regHTML;
+                        for (var regCode in row.diagnosis_currency) {
+                            var diagnosisCurrencyIndicatorHTML;
+                            var regHTML;
+                            var diagnosisCurrent = row.diagnosis_currency[regCode];
+                            if (diagnosisCurrent) {
+                                diagnosisCurrencyIndicatorHTML = tickHTML;
+                            }
+                            else {
+                                diagnosisCurrencyIndicatorHTML = crossHTML;
                             }
 
-                            return html;
-                        },
+                            if (inOneRegistry) {
+                                regHTML = diagnosisCurrencyIndicatorHTML;
+                            }
+                            else {
+                                regHTML = regCode.toUpperCase() + ":" + diagnosisCurrencyIndicatorHTML;
+                            }
 
-
-                        "commands": function (column, row) {
-                            //return row.forms_html
-                            return row.forms_html;
-
-
+                            html += regHTML;
                         }
 
+                        return html;
+                    },
+
+                        "data_modules": function(column, row) {
+                            //return row.forms_html
+                            return row.data_modules;
+                        }
                     }
                 }).on("loaded.rs.jquery.bootgrid", function() {
-                    $(".rdrflauncher").change(function () {
-                        if ($(this).val() != "---") {
-                            window.location = $(this).val();
-                        }
-                    })
+                    // Ensure that the data modules popovers are wired after
+                    // being rendered on grid load
+                    $('button[data-toggle=popover]').popover({
+                        'html': true,
+                        'title': 'Available Modules',
+                        'trigger': 'click',
+                        'placement': 'bottom'
+                    });
+
                 });
 
-
-
                 {% if num_registries > 1 %}
-
                     // wire up  registry select
                     $("#registry_select").change(function (){
                          var registryCode = $(this).val();
                          if(registryCode == '---') {
                              $("#grid").hide();
-
                          }
                          else {
                              // set registry????
@@ -235,9 +228,6 @@
                     });
 
                 {% endif %}
-
                 });
-
         </script>
-
 {% endblock %}
