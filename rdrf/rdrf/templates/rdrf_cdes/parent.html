@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     <script type="text/javascript">
+        function not_implemented() {
+            alert("This feature is coming soon...");
+        }
+    
         $(document).ready(function(){
             $("#id_date_of_birth").datepicker({
                 "dateFormat": "yy-mm-dd"
@@ -50,7 +54,6 @@
     {% if request.user.is_authenticated %}
         <blockquote>
             <h4><i>Welcome {{request.user.first_name}} {{request.user.last_name}}!</i></h4>
-            <small>List of patients under your supervision</small>
         </blockquote>
 
         <div class="modal fade" id="new_patient_modal" tabindex="-1" role="dialog" aria-labelledby="newPatientModal" aria-hidden="true">
@@ -159,11 +162,12 @@
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Given Names</th>
-                    <th>Surname</th>
-                    <th>Date of Birth</th>
-                    <th>Centre</th>
+                    <th class="col-md-2">#</th>
+                    <th class="col-md-2">Given Names</th>
+                    <th class="col-md-2">Surname</th>
+                    <th class="col-md-2">Date of Birth</th>
+                    <th class="col-md-2">Centre</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -177,6 +181,14 @@
                             {% for wg in patient.working_groups.all %}
                                 {{wg.name}}
                             {% endfor %}
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="not_implemented()">
+                                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Details
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="not_implemented()">
+                                <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                            </button>                            
                         </td>
                     </tr>
                 {% endfor %}
