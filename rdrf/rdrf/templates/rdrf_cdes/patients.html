@@ -67,8 +67,17 @@
                     formatters: {
                         "id": function (column, row) {
                             var reg_div = $("<div>");
+                            var restrict_registry;
+                            try {
+                                restrict_registry = $("#registry_select").val();
+                            }
+                            catch (err) {
+                                restrict_registry = null;
+                            }
                         
                             row.reg_code.forEach(function(reg) {
+
+
                                 var link = "{% url 'patient_edit' 888 999 %}".replace("/999", "/" + row.id).replace("/888", "/" + reg);
                                 
                                 var edit_link = $("<a>");
@@ -79,9 +88,17 @@
                                 pencil_icon.attr("aria-hidden", "true");
                                 
                                 edit_link.append(pencil_icon);
-                                edit_link.append(" Edit (" + reg + ")");
-                                
-                                reg_div.append(edit_link);
+                                edit_link.append("Edit");
+
+                                if (restrict_registry != null) {
+                                    if (reg == restrict_registry) {
+                                        reg_div.append(edit_link);
+                                    }
+                                }
+                                else {
+                                    reg_div.append(edit_link);
+                                }
+
                             });
                             
                             return reg_div.prop('outerHTML');
@@ -122,8 +139,8 @@
 
                         "genetic_data_formatter": function(column, row) {
                             var html = "";
-                            var tickHTML =  '<span class="glyphicon glyphicon-ok"></span>';
-                            var crossHTML = '<span class="glyphicon glyphicon-remove"></span>';
+                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                             // If we are in just one registry don't display reg code prefix
                             var inOneRegistry = _.keys(row.genetic_data_map).length == 1;
 
@@ -153,8 +170,8 @@
 
                          "diagnosis_currency_formatter": function(column, row) {
                             var html = "";
-                            var tickHTML =  '<span class="glyphicon glyphicon-ok"></span>';
-                            var crossHTML = '<span class="glyphicon glyphicon-remove"></span>';
+                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                             // If we are in just one registry don't display reg code prefix
                             var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
 
