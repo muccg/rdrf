@@ -313,7 +313,7 @@ class PatientAdmin(admin.ModelAdmin):
              )})
 
         fieldset = [consent, rdrf_registry, personal_details, next_of_kin]
-        #fieldset.extend(self._get_registry_specific_fieldsets(user))
+        #fieldset.extend(self._get_registry_specific_section_fields(user))
         return fieldset
 
     def save_form(self, request, form, change):
