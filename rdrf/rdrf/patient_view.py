@@ -24,7 +24,7 @@ class PatientView(View):
             'registry_code': registry_code,
             'access': False
         }
-        
+
         try:
             registry = Registry.objects.get(code=registry_code)
             context['splash_screen'] = registry.patient_splash_screen
@@ -118,7 +118,12 @@ class PatientEditView(View):
         else:
             if not registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
-            patient, form_sections = self._get_forms(patient_id, registry_code, request, patient_form, address_to_save, doctors_to_save)
+            patient, form_sections = self._get_forms(patient_id,
+                                                     registry_code,
+                                                     request,
+                                                     patient_form,
+                                                     address_to_save,
+                                                     doctors_to_save)
             
             context = {
                 "forms": form_sections,
@@ -129,18 +134,36 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
-    def _get_forms(self, patient_id, registry_code, request, patient_form=None, patient_address_form=None, patient_doctor_form=None):
+    def _get_forms(self,
+                   patient_id,
+                   registry_code,
+                   request,
+                   patient_form=None,
+                   patient_address_form=None,
+                   patient_doctor_form=None):
+
+        user = request.user
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
     
         if not patient_form:
-            patient_form = PatientForm(instance=patient, user=request.user)
+            if not registry.patient_fields:
+                patient_form = PatientForm(instance=patient, user=user)
+            else:
+                munged_patient_form_class = self._create_registry_specific_patient_form_class(user,
+                                                                                              PatientForm,
+                                                                                              registry)
+                patient_form = munged_patient_form_class(instance=patient, user=user)
 
         if not patient_address_form:
-            patient_address = PatientAddress.objects.filter(patient = patient).values()
-            patient_address_formset = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm, extra=0, can_delete=True)
-            patient_address_form = patient_address_formset(instance=patient, prefix="patient_address")
+            patient_address = PatientAddress.objects.filter(patient=patient).values()
+            patient_address_formset = inlineformset_factory(Patient,
+                                                            PatientAddress,
+                                                            form=PatientAddressForm,
+                                                            extra=0,
+                                                            can_delete=True)
 
+            patient_address_form = patient_address_formset(instance=patient, prefix="patient_address")
 
         personal_details_fields = ('Personal Details', [
             "family_name",
@@ -200,44 +223,52 @@ class PatientEditView(View):
 
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
-                patient_doctor = PatientDoctor.objects.filter(patient = patient).values()
-                patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through, form=PatientDoctorForm, extra=0, can_delete=True)
+                patient_doctor = PatientDoctor.objects.filter(patient=patient).values()
+                patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
+                                                               form=PatientDoctorForm,
+                                                               extra=0,
+                                                               can_delete=True)
+
                 patient_doctor_form = patient_doctor_formset(instance=patient, prefix="patient_doctor")
     
             patient_doctor_section = ("Patient Doctor", None)
             
-            form_sections.append( (
+            form_sections.append((
                 patient_doctor_form,
-                ( patient_doctor_section, )
-            ) )
+                (patient_doctor_section,)
+            ))
+
+        registry_specific_fieldsets = self._get_registry_specific_fieldsets(user, registry)
+        logger.debug("")
+        if registry_specific_fieldsets:
+            form_sections.append(registry_specific_fieldsets)
                 
         return patient, form_sections
 
-    def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
-        additional_fields = SortedDict()
-        for reg_code in registry_specific_fields_dict:
-            field_pairs = registry_specific_fields_dict[reg_code]
-            for cde, field_object in field_pairs:
-                additional_fields[cde.code] = field_object
+    def _get_registry_specific_fields(self, user, registry_model):
+        """
+        :param user:
+        :param registry_model:
+        :return: list of cde_model, field_object pairs
+        """
+        if not registry_model in user.registry.all():
+            return []
+        else:
+            return registry_model.patient_fields
 
+    def _create_registry_specific_patient_form_class(self, user, form_class, registry_model):
+        additional_fields = SortedDict()
+        field_pairs = self._get_registry_specific_fields(user, registry_model)
+
+        for cde, field_object in field_pairs:
+            additional_fields[cde.code] = field_object
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
 
-    def _get_registry_specific_patient_fields(self, user):
-        result_dict = SortedDict()
-        for registry in user.registry.all():
-            patient_cde_field_pairs = registry.patient_fields
-            if patient_cde_field_pairs:
-                result_dict[registry.code] = patient_cde_field_pairs
-
-        return result_dict
-
-    def _get_registry_specific_fieldsets(self, user):
-        reg_spec_field_defs = self._get_registry_specific_patient_fields(user)
+    def _get_registry_specific_fieldsets(self, user, registry_model):
+        field_pairs = self._get_registry_specific_fields(user, registry_model)
         fieldsets = []
-        for reg_code in reg_spec_field_defs:
-            cde_field_pairs = reg_spec_field_defs[reg_code]
-            fieldset_title = "%s Specific Fields" % reg_code.upper()
-            field_dict = [pair[0].code for pair in cde_field_pairs]  # pair up cde name and field object generated from that cde
-            fieldsets.append((fieldset_title, field_dict))
+        fieldset_title = "%s Specific Fields" % registry_model.code.upper()
+        field_dict = {"fields": [pair[0].code for pair in field_pairs]}
+        fieldsets.append((fieldset_title, field_dict))
         return fieldsets
