@@ -323,6 +323,8 @@ class PatientForm(forms.ModelForm):
                     cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
                     logger.debug("set consent value ok : cv = %s" % cv)
 
+
+
         return patient_model
 
     def _get_consent_field_models(self, consent_field):

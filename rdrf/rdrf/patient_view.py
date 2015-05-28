@@ -87,10 +87,20 @@ class PatientEditView(View):
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def post(self, request, registry_code, patient_id):
+        user = request.user
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
 
-        patient_form = PatientForm(request.POST, instance=patient, user = request.user)
+
+        if registry.patient_fields:
+            patient_form_class = self._create_registry_specific_patient_form_class(user,
+                                                                                   PatientForm,
+                                                                                   registry)
+
+        else:
+            patient_form_class = PatientForm
+
+        patient_form = patient_form_class(request.POST, instance=patient, user = request.user)
 
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
@@ -106,7 +116,19 @@ class PatientEditView(View):
             if registry.get_metadata_item("patient_form_doctors"):
                 docs = doctors_to_save.save()
             address_to_save.save()
+
             patient_form.save()
+
+            if registry.patient_fields:
+                mongo_patient_data[registry.code] = {}
+                for cde, field_object in registry.patient_fields:
+                    field_name = cde.name
+                    cde_code = cde.code
+                    field_value = request.POST[cde.code]
+                    mongo_patient_data[reg_code][cde_code] = field_value
+                self._save_registry_specific_data_in_mongo(patient, )
+
+
 
             patient, form_sections = self._get_forms(patient_id, registry_code, request)
 
@@ -209,6 +231,10 @@ class PatientEditView(View):
         # then add the remaining sections which are fixed
         patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
         patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
+
+        registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
+        patient_section_info.append(registry_specific_section_fields)
+
         
         form_sections = [
             (
@@ -237,11 +263,6 @@ class PatientEditView(View):
                 patient_doctor_form,
                 (patient_doctor_section,)
             ))
-
-        registry_specific_fieldsets = self._get_registry_specific_fieldsets(user, registry)
-        logger.debug("")
-        if registry_specific_fieldsets:
-            form_sections.append(registry_specific_fieldsets)
                 
         return patient, form_sections
 
@@ -262,13 +283,18 @@ class PatientEditView(View):
 
         for cde, field_object in field_pairs:
             additional_fields[cde.code] = field_object
+
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
 
-    def _get_registry_specific_fieldsets(self, user, registry_model):
+    def _get_registry_specific_section_fields(self, user, registry_model):
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldsets = []
         fieldset_title = "%s Specific Fields" % registry_model.code.upper()
-        field_dict = {"fields": [pair[0].code for pair in field_pairs]}
-        fieldsets.append((fieldset_title, field_dict))
-        return fieldsets
+        field_list = [pair[0].code for pair in field_pairs]
+        return fieldset_title, field_list
+
+    def _save_registry_specific_data_in_mongo(self, patient_model, registry_model, registry_specific_data):
+        mongo_wrapper = DynamicDataWrapper(patient_model)
+        data = {registry_model.code: registry_specific_data}
+        mongo_wrapper.save_registry_specific_data(data)
+
