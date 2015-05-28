@@ -207,8 +207,8 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.working_groups.add(working_group.id)
     patient.clinician = clinician
     patient.home_phone = getattr(request.POST, "phone_number", None)
-    if is_parent:
-        patient.user = None
+    patient.user = None if is_parent else user
+        
     patient.save()
     
     address = _create_patient_address(patient, request)
