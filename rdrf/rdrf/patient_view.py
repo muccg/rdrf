@@ -116,19 +116,8 @@ class PatientEditView(View):
             if registry.get_metadata_item("patient_form_doctors"):
                 docs = doctors_to_save.save()
             address_to_save.save()
-
-            patient_form.save()
-
-            if registry.patient_fields:
-                mongo_patient_data[registry.code] = {}
-                for cde, field_object in registry.patient_fields:
-                    field_name = cde.name
-                    cde_code = cde.code
-                    field_value = request.POST[cde.code]
-                    mongo_patient_data[reg_code][cde_code] = field_value
-                self._save_registry_specific_data_in_mongo(patient, )
-
-
+            patient_instance = patient_form.save()
+            self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
 
             patient, form_sections = self._get_forms(patient_id, registry_code, request)
 
@@ -293,8 +282,13 @@ class PatientEditView(View):
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
-    def _save_registry_specific_data_in_mongo(self, patient_model, registry_model, registry_specific_data):
-        mongo_wrapper = DynamicDataWrapper(patient_model)
-        data = {registry_model.code: registry_specific_data}
-        mongo_wrapper.save_registry_specific_data(data)
-
+    def _save_registry_specific_data_in_mongo(self, patient_model, registry, post_data):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        if registry.patient_fields:
+            mongo_patient_data = {registry.code: {}}
+            for cde, field_object in registry.patient_fields:
+                cde_code = cde.code
+                field_value = post_data[cde.code]
+                mongo_patient_data[registry.code][cde_code] = field_value
+            mongo_wrapper = DynamicDataWrapper(patient_model)
+            mongo_wrapper.save_registry_specific_data(mongo_patient_data)
