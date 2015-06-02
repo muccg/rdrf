@@ -181,9 +181,17 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
         self.custom_consents = []  # list of consent fields agreed to
-        #self.orig_user = None
 
-        if 'instance' in kwargs:
+        if 'registry_model' in kwargs:
+            self.registry_model = kwargs['registry_model']
+            logger.debug("set self.registry_model to %s" % self.registry_model)
+            del kwargs['registry_model']
+        else:
+            self.registry_model = None
+            logger.debug("self.registry_model is None")
+
+        if 'instance' in kwargs and kwargs['instance'] is not None:
+            logger.debug("instance in kwargs and not None = %s" % kwargs['instance'])
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
             logger.debug("registry specific data = %s" % registry_specific_data)
@@ -198,47 +206,82 @@ class PatientForm(forms.ModelForm):
             clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
+            logger.debug("user in kwargs")
             self.user = kwargs.pop("user")
+            logger.debug("set user on PatientForm to %s" % self.user)
+
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
 
-        if 'instance' in kwargs:
-            instance = kwargs['instance']
+        if 'instance' in kwargs and kwargs['instance'] is not None:
             self._add_custom_consent_fields(instance)
+            logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
 
-        user = self.user
-        if not user.is_superuser:
-            registry = user.registry.all()[0]
-            working_groups = user.groups.all()
-            for field in self.fields:
-                hidden = False
-                readonly = False
-                for wg in working_groups:
-                    try:
-                        field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
-                        hidden = hidden or field_config.hidden
-                        readonly = readonly or field_config.readonly
-                    except DemographicFields.DoesNotExist:
-                        pass
+        if hasattr(self, 'user'):
+            logger.debug("form has user attribute ...")
+            user = self.user
+            logger.debug("user = %s" % user)
+            if not user.is_superuser:
+                logger.debug("not superuser so updating field visibility")
+                registry = user.registry.all()[0]
+                logger.debug("registry = %s" % registry)
+                working_groups = user.groups.all()
+                logger.debug("user working groups = %s" % [wg.name for wg in working_groups])
 
-                if hidden:
-                    self.fields[field].widget = forms.HiddenInput()
-                    self.fields[field].label = ""
-                if readonly and not hidden:
-                    self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
+                for field in self.fields:
+                    hidden = False
+                    readonly = False
+                    for wg in working_groups:
+                        try:
+                            field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
+                            hidden = hidden or field_config.hidden
+                            readonly = readonly or field_config.readonly
+                        except DemographicFields.DoesNotExist:
+                            pass
 
+                    if hidden:
+                        logger.debug("field %s is hidden!" % field)
+                        self.fields[field].widget = forms.HiddenInput()
+                        self.fields[field].label = ""
+                    if readonly and not hidden:
+                        logger.debug("field %s is readonly" % field)
+                        self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
+
+
+        if self._is_adding_patient(kwargs):
+            self._setup_add_form()
 
     def _get_registry_specific_data(self, patient_model):
+        if patient_model is None:
+            return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
         return mongo_wrapper.load_registry_specific_data()
 
     def _update_initial_consent_data(self, patient_model, initial_data):
+        if patient_model is None:
+            return
         data = patient_model.consent_questions_data
         for consent_field_key in data:
             initial_data[consent_field_key] = data[consent_field_key]
             logger.debug("set initial data for %s to %s" % (consent_field_key, data[consent_field_key]))
+
+    def _is_adding_patient(self, kwargs):
+        return 'instance' in kwargs and kwargs['instance'] is None
+
+    def _setup_add_form(self):
+        logger.debug("in setup add form ...")
+        if hasattr(self, "user"):
+            user = self.user
+        else:
+            user = None
+        logger.debug("user is %s" % user)
+        logger.debug("form.registry_model = %s" % self.registry_model)
+        from registry.groups.models import WorkingGroup
+        initial_working_groups = user.working_groups.filter(registry=self.registry_model)
+        self.fields['working_groups'].queryset = initial_working_groups
+        logger.debug("restricted working groups choices to %s" % [wg.pk for wg in initial_working_groups])
 
     #consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
     #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
@@ -259,8 +302,12 @@ class PatientForm(forms.ModelForm):
     # Does not need a unique constraint on the DB
 
     def clean(self):
+        logger.debug("in PatientForm clean ...")
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
+
+        for k in cleaneddata:
+            logger.debug("cleaned field %s = %s" % (k, cleaneddata[k]))
 
         for k in cleaneddata:
             if k.startswith("customconsent_"):
@@ -286,7 +333,6 @@ class PatientForm(forms.ModelForm):
         logger.debug("saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
-        #patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
         try:
             patient_registries = [r for r in patient_model.rdrf_registry.all()]
@@ -322,8 +368,6 @@ class PatientForm(forms.ModelForm):
                     logger.debug("%s is applicable to %s" % (consent_section_model, patient_model))
                     cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
                     logger.debug("set consent value ok : cv = %s" % cv)
-
-
 
         return patient_model
 
