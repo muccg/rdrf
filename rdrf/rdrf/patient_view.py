@@ -344,7 +344,6 @@ class PatientFormMixin(PatientMixin):
 
 
 class AddPatientView(PatientFormMixin, CreateView):
-    success_url = '/'
     model = Patient
     form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
