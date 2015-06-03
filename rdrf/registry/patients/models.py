@@ -435,7 +435,6 @@ class Patient(models.Model):
 
             return [], 0
 
-        dynamic_store = DynamicDataWrapper(self)
         cde_registry = registry_form.registry.code
         section_array = registry_form.sections.split(",")
 
