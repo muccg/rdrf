@@ -388,11 +388,11 @@ class AddPatientView(PatientFormMixin, CreateView):
         self.address_formset = self._get_address_formset(request)
         forms.append(self.address_formset)
 
-        # if self._has_doctors_form():
-        #     self.doctor_formset = self._get_doctor_formset(request)
-        #     forms.append(self.doctor_formset)
+        if self._has_doctors_form():
+            self.doctor_formset = self._get_doctor_formset(request)
+            forms.append(self.doctor_formset)
 
-        if all([patient_form.is_valid(), self.address_formset.is_valid()]):
+        if all([form.is_valid() for form in forms]):
             logger.debug("all forms valid ... ")
             return self.form_valid(patient_form)
         else:
