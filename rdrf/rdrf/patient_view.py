@@ -356,16 +356,17 @@ class AddPatientView(PatientFormMixin, CreateView):
 
         self._set_registry_model(registry_code)
         self._set_user(request)
+        return super(AddPatientView, self).get(request, registry_code)
 
-        _, form_sections = self._get_forms(None, registry_code, request)
-
-        context = {
-            "forms": form_sections,
-            "patient": None,
-            "registry_code": registry_code
-        }
-
-        return render_to_response('rdrf_cdes/generic_patient.html', context, context_instance=RequestContext(request))
+        # _, form_sections = self._get_forms(None, registry_code, request)
+        #
+        # context = {
+        #     "forms": form_sections,
+        #     "patient": None,
+        #     "registry_code": registry_code
+        # }
+        #
+        # return render_to_response('rdrf_cdes/generic_patient.html', context, context_instance=RequestContext(request))
 
     def post(self, request, registry_code):
         logger.debug("starting POST of Add Patient")
