@@ -88,8 +88,6 @@ class PatientFormMixin(PatientMixin):
         self.patient_form = None # created via get_form
         self.patient_model = None
 
-
-
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
         """
@@ -161,6 +159,10 @@ class PatientFormMixin(PatientMixin):
         return form_instance
 
     def get_context_data(self, **kwargs):
+        """
+        :param kwargs: The kwargs supplied to render to response
+        :return:
+        """
         logger.debug("in get_context_data ..")
         # modify kwargs which is passed to render_to_response function
 
@@ -178,10 +180,13 @@ class PatientFormMixin(PatientMixin):
                                          self.request,
                                          self.patient_form)
 
+        error_messages = self._extract_error_messages(forms)
+        num_errors = len(error_messages)
         kwargs["forms"] = forms
         kwargs["patient"] = patient
-        kwargs["errors"] = any([not form[0].is_valid() for form in forms])
-        kwargs["error_messages"] = self._extract_error_messages(forms)
+        # Avoid spurious errors message when we first hit the Add screen:
+        kwargs["errors"] = True if num_errors > 0 and any([not form[0].is_valid() for form in forms]) else False
+        kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
