@@ -4,6 +4,7 @@ from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
+from django.http import HttpResponseRedirect
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -87,6 +88,9 @@ class PatientFormMixin(PatientMixin):
         self.registry_model = None
         self.patient_form = None # created via get_form
         self.patient_model = None
+        self.address_formset = None
+        self.doctor_formset = None
+        self.object = None
 
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
@@ -164,16 +168,6 @@ class PatientFormMixin(PatientMixin):
         :return:
         """
         logger.debug("in get_context_data ..")
-        # modify kwargs which is passed to render_to_response function
-
-        # context = {
-        #     "forms": form_sections,
-        #     "patient": patient,
-        #     "registry_code": registry_code
-        # }
-        #
-        # return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
-
         patient_id = self._get_patient_id()
         patient, forms = self._get_forms(patient_id,
                                          self.registry_model.code,
@@ -332,20 +326,39 @@ class PatientFormMixin(PatientMixin):
         return kwargs
 
     def form_valid(self, form):
-        logger.debug("form is valid!")
-        return super(PatientFormMixin, self).form_valid(form)
+        # called _after_ all form(s) validated
+        # save patient
+        self.object = form.save()
+        # save addresses
+        if self.address_formset:
+            self.address_formset.instance = self.object
+            addresses = self.address_formset.save()
+            logger.debug("saved addresses %s OK" % addresses)
+
+        # save doctors
+        if self.registry_model.get_metadata_item("patient_form_doctors"):
+            if self.doctor_formset:
+                self.doctor_formset.instance = self.object
+                doctors = self.doctor_formset.save()
+                logger.debug("saved doctors %s OK" % doctors)
+
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
-        logger.debug("form is invalid!")
-        if form.is_bound:
-            logger.debug('form is bound')
-        else:
-            logger.debug("form is unbound")
-
         for error in form.errors:
             logger.debug("Error in %s: %s" % (error, form.errors[error]))
-
         return super(PatientFormMixin, self).form_invalid(form)
+
+    def _get_address_formset(self, request):
+        patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
+        return patient_address_form_set(request.POST, prefix="patient_address")
+
+    def _get_doctor_formset(self, request):
+        patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
+        return patient_doctor_form_set(request.POST, prefix="patient_doctor")
+
+    def _has_doctors_form(self):
+        return self.registry_model.get_metadata_item("patient_form_doctors")
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -363,21 +376,28 @@ class AddPatientView(PatientFormMixin, CreateView):
         self._set_user(request)
         return super(AddPatientView, self).get(request, registry_code)
 
-        # _, form_sections = self._get_forms(None, registry_code, request)
-        #
-        # context = {
-        #     "forms": form_sections,
-        #     "patient": None,
-        #     "registry_code": registry_code
-        # }
-        #
-        # return render_to_response('rdrf_cdes/generic_patient.html', context, context_instance=RequestContext(request))
-
     def post(self, request, registry_code):
         logger.debug("starting POST of Add Patient")
         self._set_user(request)
         self._set_registry_model(registry_code)
-        return super(AddPatientView, self).post(request, registry_code)
+        forms = []
+        patient_form_class = self.get_form_class()
+        patient_form = self.get_form(patient_form_class)
+        forms.append(patient_form)
+
+        self.address_formset = self._get_address_formset(request)
+        forms.append(self.address_formset)
+
+        # if self._has_doctors_form():
+        #     self.doctor_formset = self._get_doctor_formset(request)
+        #     forms.append(self.doctor_formset)
+
+        if all([patient_form.is_valid(), self.address_formset.is_valid()]):
+            logger.debug("all forms valid ... ")
+            return self.form_valid(patient_form)
+        else:
+            logger.debug("some forms are invalid ...")
+            return self.form_invalid(patient_form)
 
 
 class PatientEditView(View):

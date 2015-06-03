@@ -40,6 +40,22 @@
             })
         }
 
+
+
+        function select_country(obj) {
+            state_id = obj.id.replace("country", "state");
+            state_select = $('#' + state_id);
+            state_select.find('option').remove();
+            $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
+                if (data) {
+                    $.each(JSON.parse(data), function(i, item) {
+                        state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
+                    })
+                }
+            });
+        }
+
+
         function remove_link(new_form_id, prefix) {
             var remove_link = $("<a/>");
             remove_link.attr("class", "btn btn-danger");
