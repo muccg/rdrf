@@ -6,6 +6,7 @@
 {% load has_feature %}
 {% load get_form_element %}
 {% load is_checkbox %}
+{% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
 
@@ -200,7 +201,11 @@
                                                             <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
                                                             <div class="col-sm-9">
                                                                 {% if not element|is_checkbox %}
-                                                                    {{ element | add_attr:"class,form-control" }}
+                                                                    {% if element|is_patient_relative_widget %}
+                                                                        {{ element | add_attr:"class,form-control" | safe}}
+                                                                    {% else %}
+                                                                         {{ element | add_attr:"class,form-control" }}
+                                                                    {% endif %}
                                                                 {% else %}
                                                                     {{ element }}
                                                                 {% endif %}
