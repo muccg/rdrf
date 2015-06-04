@@ -11,8 +11,8 @@ from rdrf.models import Registry
 
 from django.forms.models import inlineformset_factory
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor
-from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor, PatientRelative
+from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm
 
 import logging
 
@@ -90,6 +90,7 @@ class PatientFormMixin(PatientMixin):
         self.patient_model = None
         self.address_formset = None
         self.doctor_formset = None
+        self.patient_relative_formset = None
         self.object = None
 
     # common methods
@@ -326,8 +327,23 @@ class PatientFormMixin(PatientMixin):
                 (patient_doctor_section,)
             ))
 
-        return patient, form_sections
 
+        # PatientRelativeForm for FH (only)
+        if self.registry_model.has_feature('family_linkage'):
+            patient_relative_formset = inlineformset_factory(Patient,
+                                                             PatientRelative,
+                                                             fk_name='patient',
+                                                             form=PatientRelativeForm,
+                                                             extra=0,
+                                                             can_delete=True)
+
+            patient_relative_form = patient_relative_formset(instance=patient, prefix="patient_relative")
+
+            patient_relative_section = ("Patient Relative", None)
+
+            form_sections.append((patient_relative_form, (patient_relative_section,)))
+
+        return patient, form_sections
 
     def get_form_kwargs(self):
         kwargs = super(PatientFormMixin, self).get_form_kwargs()
@@ -355,6 +371,12 @@ class PatientFormMixin(PatientMixin):
                 doctors = self.doctor_formset.save()
                 logger.debug("saved doctors %s OK" % doctors)
 
+        # patient relatives
+        if self.patient_relative_formset:
+            self.patient_relative_formset.instance = self.object
+            prs = self.patient_relative_formset.save()
+            # handle patient relative logic
+
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
@@ -370,8 +392,21 @@ class PatientFormMixin(PatientMixin):
         patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
         return patient_doctor_form_set(request.POST, prefix="patient_doctor")
 
+    def _get_patient_relatives_formset(self, request):
+        patient_relatives_formset = inlineformset_factory(Patient,
+                                                          PatientRelative,
+                                                          fk_name='patient',
+                                                          form=PatientRelativeForm,
+                                                          extra=0,
+                                                          can_delete=True)
+
+        return patient_relatives_formset(request.POST, prefix="patient_relative")
+
     def _has_doctors_form(self):
         return self.registry_model.get_metadata_item("patient_form_doctors")
+
+    def _has_patient_relatives_form(self):
+        return self.registry_model.get_metadata_item("family_linkage")
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -405,11 +440,23 @@ class AddPatientView(PatientFormMixin, CreateView):
             self.doctor_formset = self._get_doctor_formset(request)
             forms.append(self.doctor_formset)
 
+        if self._has_patient_relatives_form():
+            self.patient_relative_formset = self._get_patient_relatives_formset(request)
+            forms.append(self.patient_relative_formset)
+
         if all([form.is_valid() for form in forms]):
             logger.debug("all forms valid ... ")
             return self.form_valid(patient_form)
         else:
             logger.debug("some forms are invalid ...")
+
+            for form in forms:
+                if not form.is_valid():
+                    logger.debug("INVALID FORM: %s" % form)
+                    for error_dict in form.errors:
+                        for field in error_dict:
+                            logger.debug("Error in form %s field %s: %s" % (form, field, error_dict[field]))
+
             return self.form_invalid(patient_form)
 
 
@@ -601,7 +648,21 @@ class PatientEditView(View):
                 patient_doctor_form,
                 (patient_doctor_section,)
             ))
-                
+
+        # PatientRelativeForm
+        if patient.is_index:
+            patient_relative_formset = inlineformset_factory(Patient,
+                                                             PatientRelative,
+                                                             fk_name='patient',
+                                                             form=PatientRelativeForm,
+                                                             extra=0,
+                                                             can_delete=True)
+            patient_relative_form = patient_relative_formset(instance=patient, prefix="patient_relative")
+
+            patient_relative_section = ("Patient Relative", None)
+
+            form_sections.append((patient_relative_form, (patient_relative_section,)))
+
         return patient, form_sections
 
     def _get_registry_specific_fields(self, user, registry_model):
