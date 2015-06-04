@@ -587,6 +587,35 @@ class PatientRelative(models.Model):
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
 
+    def create_patient_from_myself(self, registry_model, working_groups):
+        # Create the patient corresponding to this relative
+        logger.debug("creating a patient model from patient relative %s ..." % self)
+        patient_whose_relative_this_is = self.patient
+        p = Patient()
+        p.given_names = self.given_names
+        p.family_name = self.family_name
+        p.date_of_birth = self.date_of_birth
+        p.sex = self.sex
+        p.consent = True   # tricky ?
+        p.active = True
+
+        try:
+            p.save()
+        except Exception, ex:
+            raise ValidationError("Could not create patient from relative: %s" % ex)
+
+        p.rdrf_registry = [registry_model]
+        p.working_groups = working_groups
+        p.save()
+        logger.debug("saved created patient ok with pk = %s" % p.pk)
+        run_hooks('patient_created_from_relative', p)
+        logger.debug("ran hooks ok")
+
+        # set the patient relative model relative_patient field to point to this newly created patient
+        self.relative_patient = p
+        self.save()
+        logger.debug("updated %s relative_patient to %s" % (self, p))
+        return p
 
 
 @receiver(post_save, sender=Patient)
