@@ -374,8 +374,19 @@ class PatientFormMixin(PatientMixin):
         # patient relatives
         if self.patient_relative_formset:
             self.patient_relative_formset.instance = self.object
-            prs = self.patient_relative_formset.save()
-            # handle patient relative logic
+            patient_relative_models = self.patient_relative_formset.save()
+            for patient_relative_model in patient_relative_models:
+                patient_relative_model.patient = self.object
+                patient_relative_model.save()
+                tag = patient_relative_model.given_names + patient_relative_model.family_name
+                # The patient relative form has a checkbox to "create a patient from the relative"
+                for form in self.patient_relative_formset:
+                        if form.tag == tag:  # must be a better way to do this ...
+                            if form.create_patient_flag:
+                                logger.debug("creating patient from relative %s" % patient_relative_model)
+
+                                patient_relative_model.create_patient_from_myself(self.registry_model,
+                                                                                  self.object.working_groups.all())
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -452,10 +463,10 @@ class AddPatientView(PatientFormMixin, CreateView):
 
             for form in forms:
                 if not form.is_valid():
-                    logger.debug("INVALID FORM: %s" % form)
+                    logger.debug("INVALID FORM:")
                     for error_dict in form.errors:
                         for field in error_dict:
-                            logger.debug("Error in form %s field %s: %s" % (form, field, error_dict[field]))
+                            logger.debug("\tError in form field %s: %s" % (field, error_dict[field]))
 
             return self.form_invalid(patient_form)
 
