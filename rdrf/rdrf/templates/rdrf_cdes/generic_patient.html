@@ -161,7 +161,7 @@
                         </div>
                         <div class="panel-body">
                             {% if patient.my_index %}
-                                This patient is a relative of index <a href="{% url 'admin:patients_patient_change' patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                                This patient is a relative of index <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
                             {% else %}
                                 {% if patient.is_index %}
                                     This patient is an index
