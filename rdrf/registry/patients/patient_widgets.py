@@ -14,6 +14,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
     - checking it signals  that a patient should be created from the patient relative data supplied.
     There is also javascript to hide the green plus symbol to avoid the popup
     """
+    REGISTRY_CODE = 'fh'   # how to set!
     def render(self, name, value, attrs=None):
         script = """<script>
                         function setupCreatePatientCheckBox(id) {
@@ -39,7 +40,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
             html = """<input type="checkbox" id="%s" name="%s">""" % (attrs['id'], name)
             return html + script % (control_id, control_id)
         else:
-
+            reg_code = self.REGISTRY_CODE
             control_id = hashlib.sha1(str(random.random())).hexdigest()  # random guid for id ensures we can locate the link to hide the + easily
             script = """
             <script>
@@ -49,6 +50,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
             </script>
             """ % control_id
             hidden_field = """<input type=hidden id="%s" name="%s" value="%s">""" % (attrs['id'], name, value)  # ensure that the link to patient not lost on submission!
-            patient_url = reverse("admin:patients_patient_change", args=[value,])
+            patient_url = reverse("patient_edit", args=[reg_code, value])
+
             html = """<a id="%s" href='%s'>Patient in registry</a>%s""" % (control_id, patient_url, hidden_field)
             return html + script
