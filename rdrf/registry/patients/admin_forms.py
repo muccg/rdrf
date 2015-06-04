@@ -52,8 +52,11 @@ class PatientRelativeForm(forms.ModelForm):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
         self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
+        self.create_patient_flag = False
+        self.tag = None    # used to locate this form
 
-    def full_clean(self):
+    def _clean_fields(self):
+        logger.debug("in PatientRelatives clean fields")
         self._errors = ErrorDict()
         if not self.is_bound:  # Stop further processing.
             return
@@ -61,93 +64,28 @@ class PatientRelativeForm(forms.ModelForm):
         keys_to_update = []
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
-        for k in self.data.keys():
-            if k.startswith("relatives-") and k.endswith("-relative_patient"):
-                if self.data[k] == "on":  # checkbox  checked - create patient from this data
-                    patient_relative_index = k.split("-")[1]
-                    logger.debug("creating patient from relative %s" % patient_relative_index)
-                    self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
-                    try:
-                        with transaction.atomic():
-                            patient = self._create_patient()
-                    except ValidationError, verr:
-                        logger.info("validation error: %s" % verr)
-                        self.data[k] = None  # get rid of the 'on'
-                        self._errors[k] = ErrorList([verr.message])
-                        return
-                    except Exception, ex:
-                        logger.error("other error: %s" % ex)
-                        self.data[k] = None
-                        self._errors[k] = ErrorList([ex.message])
-                        return
+        for name, field in self.fields.items():
+            value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+            logger.debug("field %s = %s" % (name, value))
+            if name == "relative_patient":
+                if value == "on":
+                    logger.debug("on set for create patient - setting to None")
+                    self.cleaned_data[name] = None
+                    self.create_patient_flag = True
+                else:
+                    self.cleaned_data[name] = value
 
-                    keys_to_update.append((k, patient))
+            elif name == 'date_of_birth':
+                self.cleaned_data[name] = self._set_date_of_birth(value)
 
-        for k, patient_model in keys_to_update:
-            if patient_model is not None:
-                self.data[k] = str(patient_model.pk)
+            elif name == 'patient':
+                continue   # this was causing error in post clean - we set this ourselves
+            else:
+                self.cleaned_data[name] = value
 
-        super(PatientRelativeForm, self).full_clean()
+            logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
 
-
-
-    def _create_patient(self):
-        # Create the patient corresponding to this relative
-        if not self.create_patient_data:
-            return None
-
-        def grab_data(substring):
-            for k in self.create_patient_data:
-                if substring in k:
-                    return self.create_patient_data[k]
-
-        p = Patient()
-
-        logger.debug("data to create relative patient from = %s" % self.create_patient_data)
-
-        given_names = grab_data("given_names")
-        family_name = grab_data("family_name")
-        date_of_birth = grab_data("date_of_birth")
-        sex = grab_data("sex")
-        id_of_patient_relative = grab_data("id")
-        logger.debug("PatientRelativeId = %s" % id_of_patient_relative)
-        patient_relative_model = PatientRelative.objects.get(id=int(id_of_patient_relative))
-        logger.debug("patient relative model = %s" % patient_relative_model)
-        patient_whose_relative_this_is = patient_relative_model.patient
-        logger.debug("patient whose relative this is = %s" % patient_whose_relative_this_is)
-
-        if not all([given_names, family_name, date_of_birth]):
-            raise ValidationError(" Not all data supplied for relative : Patient not created")
-
-        logger.debug("setting values on created patient ...")
-        p.given_names = grab_data("given_names")
-        logger.debug("set given names")
-        p.family_name = grab_data("family_name")
-        logger.debug("set family name")
-        logger.debug(" date of birth to save to patient = %s" % date_of_birth)
-        p.date_of_birth = self._set_date_of_birth(date_of_birth)
-        logger.debug("set date of birth")
-        p.sex = sex
-        p.consent = True  # need to work out how to handle this
-        logger.debug("set consent")
-
-        p.active = True
-        logger.debug("set active")
-        try:
-            p.save()
-        except Exception, ex:
-            raise ValidationError("Could not create patient from relative: %s" % ex)
-
-        logger.debug("attempting to set rdrf registry")
-        p.rdrf_registry = [r for r in patient_whose_relative_this_is.rdrf_registry.all()]
-        logger.debug("set rdrf_registry")
-        p.working_groups = [wg for wg in patient_whose_relative_this_is.working_groups.all()]
-        logger.debug("set working groups")
-        p.save()
-        logger.debug("saved created patient ok with pk = %s" % p.pk)
-        run_hooks('patient_created_from_relative', p)
-        logger.debug("ran hooks ok")
-        return p
+        self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
 
     def _set_date_of_birth(self, dob):
         #todo figure  out why the correct input format is not being respected - the field for dob on PatientRelative is in aus format already
