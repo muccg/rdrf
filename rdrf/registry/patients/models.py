@@ -210,6 +210,31 @@ class Patient(models.Model):
 
         return registry_diagnosis_progress
 
+    @property
+    def diagnosis_progress_new(self):
+        """
+        returns a map of reg code to an integer between 0-100 (%)
+        """
+        registry_diagnosis_progress = {}
+
+        for registry_model in self.rdrf_registry.all():
+            forms = []
+            total_number_filled_in = 0
+            total_number_required_for_completion = 0
+            for form_model in registry_model.forms:
+                # hack
+                if not "genetic" in form_model.name.lower():
+                    forms.append(form_model)
+
+            total_number_filled_in, total_number_required_for_completion = self.forms_progress(registry_model, forms)
+
+            try:
+                registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+            except ZeroDivisionError, zderr:
+                pass  # don't have progress? skip
+
+        return registry_diagnosis_progress
+
     def clinical_data_currency(self, days=365):
         """
         If some clinical form ( non genetic ) has been updated  in the window
@@ -463,6 +488,38 @@ class Patient(models.Model):
             return set_count, len(cde_complete)
 
         return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
+
+    def forms_progress(self, registry_model, forms):
+        from rdrf.utils import mongo_key
+        mongo_data = DynamicDataWrapper(self).load_dynamic_data(registry_model.code, "cdes")
+        total_filled_in = 0
+        total_required_for_completion = 0
+
+        for registry_form in forms:
+            if not registry_form.has_progress_indicator:
+                continue
+
+            section_array = registry_form.sections.split(",")
+
+            cde_complete = registry_form.complete_form_cdes.values()
+            total_required_for_completion += len(registry_form.complete_form_cdes.values_list())
+
+            for cde in cde_complete:
+                cde_section = ""
+                for s in section_array:
+                    section = Section.objects.get(code=s)
+                    if cde["code"] in section.elements.split(","):
+                        cde_section = s
+                try:
+                    cde_key = mongo_key(registry_form.name, cde_section, cde["code"])
+                    cde_value = mongo_data[cde_key]
+                except KeyError:
+                    cde_value = None
+
+                if cde_value:
+                    total_filled_in += 1
+
+        return total_filled_in, total_required_for_completion
 
     def get_form_timestamp(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
