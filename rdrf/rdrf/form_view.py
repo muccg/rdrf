@@ -25,6 +25,7 @@ import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
+from rdrf.utils import FormLink
 from registry.groups.models import CustomUser
 import logging
 from registry.groups.models import WorkingGroup
@@ -40,21 +41,7 @@ class LoginRequiredMixin(object):
             request, *args, **kwargs)
 
 
-class FormLink(object):
 
-    def __init__(self, patient_id, registry, registry_form, selected=False):
-        self.registry = registry
-        self.patient_id = patient_id
-        self.form = registry_form
-        self.selected = selected
-
-    @property
-    def url(self):
-        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
-
-    @property
-    def text(self):
-        return de_camelcase(self.form.name)
 
 
 def log_context(when, context):
