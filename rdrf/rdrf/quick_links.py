@@ -3,9 +3,10 @@ from django.utils.translation import ugettext_lazy as _
 from rdrf.datastructures import OrderedSet as oset
 
 class QuickLink(object):
-    def __init__(self, url_name, text):
+    def __init__(self, url_name, text, glyph_icon="glyphicon-minus"):
         self.url = reverse(url_name)
         self.text = _(text)
+        self.glyph_icon = glyph_icon
 
 
 class QuickLinks(object):
@@ -13,7 +14,7 @@ class QuickLinks(object):
     A convenience class to make it easy to see what links are provided to
     users on the "Home" screen
     """
-    PatientsListing = QuickLink("admin:patients_patient_changelist", "Patient List")
+    PatientsListing = QuickLink("patientslisting", "Patient List")
     Reports = QuickLink("reports", "Reports")
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
     QuestionnaireResponses = QuickLink("admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
