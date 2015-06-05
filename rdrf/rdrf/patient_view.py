@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
+from rdrf.utils import FormLink
 
 from django.forms.models import inlineformset_factory
 
@@ -24,7 +25,8 @@ class PatientView(View):
     def get(self, request, registry_code):
         context = {
             'registry_code': registry_code,
-            'access': False
+            'access': False,
+            'registry': registry_code
         }
 
         try:
@@ -473,6 +475,14 @@ class AddPatientView(PatientFormMixin, CreateView):
 
 class PatientEditView(View):
 
+    def _get_formlinks(self, user, patient_id, registry_model):
+
+        if user is not None:
+            return [FormLink(patient_id, registry_model, form, selected=(form.name == ""))
+                    for form in registry_model.forms if not form.is_questionnaire and user.can_view(form)]
+        else:
+            return []
+
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id,])
@@ -480,11 +490,14 @@ class PatientEditView(View):
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
     
         patient, form_sections = self._get_forms(patient_id, registry_code, request)
+        registry_model = Registry.objects.get(code=registry_code)
 
         context = {
             "forms": form_sections,
             "patient": patient,
-            "registry_code": registry_code
+            "patient_id": patient.id,
+            "registry_code": registry_code,
+            "form_links": self._get_formlinks(request.user, patient.id, registry_model),
         }
     
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
