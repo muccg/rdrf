@@ -160,7 +160,10 @@ class PatientResource(ModelResource):
         if chosen_registry:
             registry_queryset = [chosen_registry]
         else:
-            registry_queryset = request.user.registry.all()
+            if request.user.is_superuser:
+                registry_queryset = Registry.objects.all()
+            else:
+                registry_queryset = request.user.registry.all()
 
         patients = Patient.objects.all()
 
@@ -168,14 +171,18 @@ class PatientResource(ModelResource):
             if request.user.is_curator:
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
-            elif request.user.is_genetic:
+            elif request.user.is_genetic_staff:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_genetic_curator:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_working_group_staff:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
             elif request.user.is_clinician:
                 patients = patients.filter(clinician=request.user)
             elif request.user.is_patient:
                 patients = patients.filter(user=request.user)
             else:
-                patients = patients.objects.none()
+                patients = patients.none()
         else:
             patients = patients.filter(rdrf_registry__in=registry_queryset)
 
