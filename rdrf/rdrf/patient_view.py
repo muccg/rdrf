@@ -521,7 +521,21 @@ class PatientEditView(View):
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
 
-        valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
+        patient_relatives_forms = None
+
+        if patient.is_index and registry.get_metadata_item("family_linkage"):
+            patient_relatives_formset = inlineformset_factory(Patient,
+                                                          PatientRelative,
+                                                          fk_name='patient',
+                                                          form=PatientRelativeForm,
+                                                          extra=0,
+                                                          can_delete=True)
+
+            patient_relatives_forms = patient_relatives_formset(request.POST, instance=patient, prefix="patient_relative")
+
+            valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
+        else:
+            valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
         
         if registry.get_metadata_item("patient_form_doctors"):
             patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
@@ -536,6 +550,9 @@ class PatientEditView(View):
             self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
 
             patient, form_sections = self._get_forms(patient_id, registry_code, request)
+
+            if patient_relatives_forms:
+                self.create_patient_relatives(patient_relatives_forms, patient, registry)
 
             context = {
                 "forms": form_sections,
@@ -561,6 +578,24 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+
+
+    def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
+        if patient_relative_formset:
+            patient_relative_formset.instance = patient_model
+            patient_relative_models = patient_relative_formset.save()
+            for patient_relative_model in patient_relative_models:
+                patient_relative_model.patient = patient_model
+                patient_relative_model.save()
+                tag = patient_relative_model.given_names + patient_relative_model.family_name
+                # The patient relative form has a checkbox to "create a patient from the relative"
+                for form in patient_relative_formset:
+                        if form.tag == tag:  # must be a better way to do this ...
+                            if form.create_patient_flag:
+                                logger.debug("creating patient from relative %s" % patient_relative_model)
+
+                                patient_relative_model.create_patient_from_myself(registry_model,
+                                                                                  patient_model.working_groups.all())
 
     def _get_forms(self,
                    patient_id,
