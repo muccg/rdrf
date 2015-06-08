@@ -559,6 +559,7 @@ class PatientEditView(View):
             }
             
         context["registry_code"] = registry_code
+        context["patient_id"] = patient.id
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def _get_forms(self,

@@ -15,6 +15,9 @@
             </select>
         {% endif %}
 
+
+        <button id="add_patient">Add patient</button>
+
         <table id="grid" class="table table-condensed table-hover table-striped" width="100%">
             <thead>
                 <tr>
@@ -35,9 +38,31 @@
             </thead>
         </table>
         <!-- Scripts -->
-
         <script>
             $(document).ready(function () {
+
+                $("#add_patient").click(function() {
+                    var registryCode = null;
+                    var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                    try {
+                        registryCode = $("#registry_select").val();
+                        if (registryCode=="---") {
+                            alert("Please select registry first");
+                            return;
+                        }
+
+                        if (registryCode == undefined) {
+                            registryCode = "{{registries.0.code}}";
+                        }
+                    }
+                    catch(err) {
+                        // one registry ?
+                        registryCode = "{{registries.0.code}}";
+                    }
+                    var location = addPatientUrl.replace("xxx", registryCode);
+                    window.location.replace(location);
+                });
+
 
                 $.ajaxSetup({beforeSend: function (xhr) {
                     var csrfToken = '{{ csrf_token }}';
@@ -219,18 +244,20 @@
 
                 {% if num_registries > 1 %}
                     // wire up  registry select
+                     $("#add_patient").hide();
+
                     $("#registry_select").change(function (){
                          var registryCode = $(this).val();
                          if(registryCode == '---') {
                              $("#grid").hide();
+                             $("#add_patient").hide();
                          }
                          else {
-                             // set registry????
                              $("#grid").bootgrid("reload");
                              $("#grid").show();
+                             $("#add_patient").show();
                          }
                     });
-
                 {% endif %}
                 });
         </script>
