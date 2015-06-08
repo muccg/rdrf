@@ -37,7 +37,14 @@
                 if (url != -1) {
                     window.location.href = url;
                 }
-            });        
+            });
+
+           $('#quick_links').change(function() {
+                url = $("#quick_links option:selected").val();
+                if (url != "") {
+                    window.location.href = url;
+                }
+            });
         })
     </script>
 {% endblock %}
@@ -46,7 +53,15 @@
 
 {% block userlinks %}
     {{ block.super }}
-    
+
+    <select id="quick_links">
+        <option value="">Quick Links</option>
+        {% for quick_link in request.user.quick_links %}
+
+             <option value="{{ quick_link.url}}">{{quick_link.text}}</option>
+        {% endfor %}
+    </select>
+
     <select id="registry-list">
         <option value=-1>Go to registry</option>
         {% for registry in request.user.registry.all %}
