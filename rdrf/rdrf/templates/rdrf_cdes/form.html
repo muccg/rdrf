@@ -244,7 +244,7 @@
 <script>
   $(document).ready(function () {
     $("label:not(li label)").addClass("col-sm-2 control-label");
-    $(":input").addClass("form-control");
+    $(":input").not(':input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
     $("label[for*='-clear']").removeClass();
   })
 </script>
