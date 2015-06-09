@@ -14,8 +14,8 @@ own Patient Registries, without the need for software development.
 The RDRF is unique in that data entry forms and questionnaires are based on reusable data element definitions 
 (called :ref:`cdes`), which can be created and/or loaded into the system at runtime. 
 This means that registries can be created and modified without changes to the source code. The RDRF has 
-been developed at the 'Centre of Comparative Genomics <http://ccg.murdoch.edu.au>', Murdoch University, 
-Western Australia in partnership with the Office of Population Health Genomics, Department of Health 
+been developed at the `Centre of Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia 
+in partnership with the Office of Population Health Genomics, Department of Health 
 Western Australia.
 
 
@@ -33,7 +33,7 @@ the following key features:
 Are you ready to create your own Patient Registry?
 ==================================================
 
-A `_Demo Site <https://rdrf.ccgapps.com.au/demo/>`_ is available for you to try out online:
+A `Demo Site <https://rdrf.ccgapps.com.au/demo/>`_ is available for you to try out online.
 Different levels of access are available, including admin, data curator, genetic staff and clinical staff
   - admin username and password: admin
   - data curator username and password: curator
@@ -41,9 +41,10 @@ Different levels of access are available, including admin, data curator, genetic
   - clinical staff username and password: clinical
 
 Screencasts are available to talk you through the creation of a Registry:
-  - `_Training videos (with audio) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lT-3emdPkc75uBt5aiX1Hn1>`_
-  - Training videos (with text) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lSWLUNTqrIpfBuUfHzidbfu>
-  - 'Training videos to add a Patient as a curator user <https://www.youtube.com/watch?v=O1se5ATJ9jU&list=PL_54ZaRad-lS5cImArcSaAZhnwISPrIOz>
+  - `Training videos (with audio) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lT-3emdPkc75uBt5aiX1Hn1>`_
+  - `Training videos (with text) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lSWLUNTqrIpfBuUfHzidbfu>`_
+  - `Training videos to add a Patient as a curator user <https://www.youtube.com/watch?v=O1se5ATJ9jU&list=PL_54ZaRad-lS5cImArcSaAZhnwISPrIOz>`_
+
 
 If you prefer to read:
   - Here's some text explaining how to create a :ref:`registry in 10 minutes <howtocreatearegistry>`
