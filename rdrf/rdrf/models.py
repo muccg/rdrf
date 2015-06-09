@@ -149,6 +149,30 @@ class Registry(models.Model):
         field_pairs.reverse()
         return field_pairs
 
+    def _progress_cdes(self, progress_type="diagnosis"):
+        # returns list of triples (form_model, section_model, cde_model)
+        results = []
+        for form_model in self.forms:
+            if progress_type == "diagnosis" and "genetic" in form_model.name.lower():
+                continue
+            elif progress_type == "genetic" and "genetic" not in form_model.name.lower():
+                continue
+            completion_cde_codes = [cde.code for cde in form_model.complete_form_cdes.all()]
+            for section_model in form_model.section_models:
+                for cde_model in section_model.cde_models:
+                    if cde_model.code in completion_cde_codes:
+                        results.append((form_model, section_model, cde_model))
+        return results
+
+    @property
+    def diagnosis_progress_cde_triples(self):
+        return self._progress_cdes()
+
+    @property
+    def genetic_progress_cde_triples(self):
+        return self._progress_cdes(progress_type="genetic")
+
+
     def get_adjudications(self):
         if not has_feature("adjudication"):
             return []
