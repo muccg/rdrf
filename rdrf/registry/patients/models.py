@@ -317,11 +317,15 @@ class Patient(models.Model):
         wrapper = DynamicDataWrapper(self)
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
+        timestamp = "%s_timestamp" % form_name
+        t = datetime.datetime.now()
+
         if mongo_data is None:
             # No dynamic data has been persisted yet
-            wrapper.save_dynamic_data(registry_code, "cdes", {key: value})
+            wrapper.save_dynamic_data(registry_code, "cdes", {key: value, timestamp: t})
         else:
             mongo_data[key] = value
+            mongo_data[timestamp] = t
             wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
 
     def in_registry(self, reg_code):
