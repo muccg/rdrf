@@ -24,11 +24,9 @@ RDRF's main features are:
 Screencast
 ==========
 
-    Traning videos `full playlist <https://www.youtube.com/playlist?list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_
-    
-    Single videos:
-        - `Add patient as a curator <https://www.youtube.com/watch?v=dWAg4F_QX2s&index=2&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK>`_
-        - `Assign a patient to a registry <https://www.youtube.com/watch?v=ZzKRQF9Zbcs&list=PL_54ZaRad-lRGGiwLRdZXMGCxvWh-mhfK&index=3>`_
+    Training videos for admin user `full playlist <https://www.youtube.com/playlist?list=PL_54ZaRad-lT-3emdPkc75uBt5aiX1Hn1>`_
+    Training videos for curator user `full playlist <https://www.youtube.com/watch?v=O1se5ATJ9jU&list=PL_54ZaRad-lS5cImArcSaAZhnwISPrIOz>`_
+   
 
 For the Impatient
 =================
