@@ -131,6 +131,7 @@ class FormView(View):
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
+        dyn_patient.current_form_model = form_obj # this allows form level timestamps to be saved
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
