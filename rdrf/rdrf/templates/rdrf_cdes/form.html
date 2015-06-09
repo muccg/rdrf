@@ -6,6 +6,7 @@
 {% load lookup %}
 {% load get_forms %}
 {% load get_form %}
+{% load get_form_object %}
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
 
@@ -56,6 +57,14 @@
         
         table {
             table-layout: fixed;
+        }
+        
+        .progress {
+            margin-bottom: 0px;
+        }
+        
+        .badge {
+            border-radius: 0px;
         }
     </style>
     
@@ -126,16 +135,16 @@
 
 
 {% block formlinks %}
-        <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    <span class="glyphicon glyphicon-list"></span>Modules<span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
-                    {% for form_link in form_links %}
-                    <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
-                    {% endfor %}
-                  </ul>
-                </li>
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
+            {% for form_link in form_links %}
+                <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
+            {% endfor %}
+        </ul>
+    </li>
 {% endblock %}
 
 {% block content %}
@@ -147,91 +156,118 @@
 
             {% if has_form_progress %}
                 <div class="well">
-                    <h4>Data entry progress: <font color="green">{{form_progress|floatformat:"0"}}%</font> <input type="button" class="btn btn-info" id="show-cdes-btn" value="Required CDEs" /></h4>
-                    <div id="form-progress"></div>
+                    <div id="form-progress">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <span class="badge" id="show-cdes-btn"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
+                                      {{form_progress|floatformat:"0"}}%
+                                    </div>
+                                </div>
+                          </li>
+                        </ul>
+                    </div>
                     <div id="form-progress-cdes">
                         </br>
-                        {% for fpc in form_progress_cdes.items %}
-                            <p>
-                                {% if fpc.1 %}
-                                    <img src='{% static 'images/tick.png'%}'>
-                                {% elif fpc.1 == False %}
-                                    <img src='{% static 'images/cross.png'%}'>
-                                {% endif %} {{fpc.0}}
-                            </p>
-                        {% endfor %}
+                        <ul class="list-group">
+                            {% for fpc in form_progress_cdes.items %}
+                                <li class="list-group-item">
+                                    {% if fpc.1 %}
+                                        <img src='{% static 'images/tick.png'%}'>
+                                    {% elif fpc.1 == False %}
+                                        <img src='{% static 'images/cross.png'%}'>
+                                    {% endif %}
+                                    {{fpc.0}}
+                                </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             {% endif %}
 
             {% for s in sections %}
-            <table class="table table-striped">
-
-                <thead>
-                    <tr>
+                <div class="panel panel-default">
+    
+                    <div class="panel-heading">
                         {% if request.user.is_superuser %}
-                            <th><a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}">{{display_names|get_display_name:s}}</a></th>
+                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
                         {% else %}
-                            <th>{{display_names|get_display_name:s}}</th>
+                            <strong>{{display_names|get_display_name:s}}</strong>
                         {% endif %}
-                    </tr>
-                </thead>
+                        {% if forms|is_formset:s %}
+                            <a class="btn btn-info btn-xs pull-right" id="add_button_for_section_{{s}}">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                            </a>
+                        {% endif %}
 
-                <tbody>
-                    <tr>
-                        <th>
-                            {% if forms|is_formset:s %}
-                            <!-- start management form for {{s}}-->
-                            {{ forms|get_management_form:s }}
-                            <!-- end management form for {{s}} -->
-                            <button type="button" id="add_button_for_section_{{s}}"  class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> Add</button>
-                            <table id="section_table_{{s}}">
-                            <script>
-                                $(document).ready(function() {
-                                    $("#section_table_{{s}}").allow_dynamic_formsets({
-                                        cde_codes: '{{section_field_ids_map|lookup:s}}',
-                                        add_button_id: "add_button_for_section_{{s}}",
-                                        remove_button_id: "remove_button_for_section_{{s}}",
-                                        table_id: "section_table_{{s}}",
-                                        total_forms_id: "{{total_forms_ids|lookup:s}}",
-                                        initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                                        formset_prefix: "{{formset_prefixes|lookup:s}}",
-                                        metadata_json: '{{metadata_json_for_sections|lookup:s|safe}}'
-                                    });
-                                });
-                            </script>
-
-                            {% for f in forms|get_forms:s %}
-                              {{ f.as_table }}
-                              <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                                <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><button type="button" class="btn btn-danger btn-small"><i class="icon-white icon-minus"></i> Remove</button>
-                                </td>
-                              </tr>
-                            {% endfor %}
-
-                            </table>
-                          {% else %}
-                            <table class="table table-condensed table-hover">
-                              {{forms|get_form:s}}
-                            </table>
-                          {% endif %}
-                        </th>
-                    </tr>
-                </tbody>
-            </table>
-            {% endfor %}
-  </div>
-
-  <div class="col-md-2">
-                    <div data-spy="affix" style="width: 150px;">
-                        <button type="submit" class="btn btn-success btn-block" value="Save">
-                            <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                        </button>
-                        <a href="" class="btn btn-danger btn-block">
-                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                        </a>
                     </div>
+    
+                    <div class="panel-body">
+                        {% if forms|is_formset:s %}
+                        <!-- start management form for {{s}}-->
+                        {{ forms|get_management_form:s }}
+                        <!-- end management form for {{s}} -->
+                        <table id="section_table_{{s}}">
+                        <script>
+                            $(document).ready(function() {
+                                $("#section_table_{{s}}").allow_dynamic_formsets({
+                                    cde_codes: '{{section_field_ids_map|lookup:s}}',
+                                    add_button_id: "add_button_for_section_{{s}}",
+                                    remove_button_id: "remove_button_for_section_{{s}}",
+                                    table_id: "section_table_{{s}}",
+                                    total_forms_id: "{{total_forms_ids|lookup:s}}",
+                                    initial_forms_id: "{{initial_forms_ids|lookup:s}}",
+                                    formset_prefix: "{{formset_prefixes|lookup:s}}",
+                                    metadata_json: '{{metadata_json_for_sections|lookup:s|safe}}'
+                                });
+                            });
+                        </script>
+                    
+                        {% for f in forms|get_forms:s %}
+                            <tbody>
+                            {% for field in f %}
+                                <tr>
+                                    <th class="col-md-4"><label for="{{field.id_for_label}}">{{field.label}}</label></th>
+                                    <td class="col-md-8">{{field}}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
+                                <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');">
+                                    <button type="button" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-minus"></span> Remove</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                      {% else %}
+                        {% for field in forms|get_form_object:s %}
+                            <div class="form-group">
+                                <label for="{{field.id_for_label}}" class="col-md-4 control-label">{{field.label}}</label>
+                                <div class="col-md-8">
+                                    {{field|safe}}
+                                    {% if field.errors %}
+                                        <span class="label label-danger">{{field.errors.as_text}}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                      {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-2">
+            <div data-spy="affix" style="width: 150px;">
+                <button type="submit" class="btn btn-success btn-block" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
             </div>
+        </div>
 
     </form>
 
@@ -243,8 +279,10 @@
 
 <script>
   $(document).ready(function () {
-    $("label:not(li label)").addClass("col-sm-2 control-label");
-    $(":input").addClass("form-control");
+    //$("label:not(li label)").addClass("col-sm-2 control-label");
+    $("input:not([type='checkbox'])").addClass("form-control");
+    $("textarea").addClass("form-control");
+    $("select").addClass("form-control");
     $("label[for*='-clear']").removeClass();
   })
 </script>

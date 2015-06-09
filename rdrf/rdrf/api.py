@@ -132,7 +132,7 @@ class PatientResource(ModelResource):
             else:
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+        return "<button type='button' class='btn btn-primary btn-xs' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
     
 
 

@@ -82,14 +82,12 @@
       </div><!-- /.container-fluid -->
     </nav>
 
-    <div class="colM row-fluid">
-	{% if messages %}
-	    <ul class="messagelist">
-		{% for message in messages %}
-		    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-		{% endfor %}
-	    </ul>
-	{% endif %}
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
         {% block content%}
         {% endblock%}
