@@ -36,6 +36,7 @@ class DynamicDataWrapper(object):
         # We inject these to allow unit testing
         self.client = client
         self.file_store_class = filestore_class
+        self.current_form_model = None   # when saving data to Mongo this field allows timestamp to be recorded
 
         self.patient_record = None  # holds reference to the complete data record for this object
 
@@ -267,7 +268,13 @@ class DynamicDataWrapper(object):
         self._convert_date_to_datetime(data)
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)
+
         data["timestamp"] = datetime.datetime.now()
+
+        if self.current_form_model:
+            form_timestamp_key = "%s_timestamp" % self.current_form_model.name
+            data[form_timestamp_key] = data["timestamp"]
+
         if record:
             mongo_id = record['_id']
             self._update_files_in_gridfs(record, registry, data)
