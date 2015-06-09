@@ -5,17 +5,32 @@
  <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
 {% endblock %}
 {% block content %}
-        <table id="grid"   class="table table-condensed table-hover table-striped">
+
+        {% if num_registries > 1 %}
+            <select id="registry_select">
+                <option value="---">Select Registry ...</option>
+                 {% for registry_model in registries %}
+                    <option value="{{registry_model.code}}">{{registry_model.name}}</option>
+                 {% endfor %}
+            </select>
+        {% endif %}
+
+        <table id="grid" class="table table-condensed table-hover table-striped" width="100%">
             <thead>
                 <tr>
                     <th data-column-id="id" data-formatter="id">Demographics</th>
                     <th data-column-id="given_names">Given Names</th>
                     <th data-column-id="family_name">Family Name</th>
                     <th data-column-id="working_groups_display">Working Groups</th>
-                    <th data-column-id="reg_list">Registry</th>
                     <th data-column-id="date_of_birth">Date of Birth</th>
-                    <th data-column-id="commands" data-formatter="commands" data-sortable="false">Forms</th>
-
+                    {% if request.user.is_clinical or request.user.is_curator or request.user.is_working_group_staff or request.user.is_superuser %}
+                    <th data-column-id="diagnosis_progress" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
+                    <th data-column-id="diagnosis_currency" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
+                    {% endif %}
+                    {% if request.user.is_genetic_staff or request.user.is_genetic_curator or request.user.is_superuser %}
+                    <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Genetic Data</th>
+                    {% endif %}
+                    <th data-column-id="data_modules" data-formatter="data_modules" data-sortable="false">Modules</th>
                 </tr>
             </thead>
         </table>
@@ -32,6 +47,20 @@
                 var grid = $('#grid').bootgrid({
                     ajax: true,
                     url: "{% url 'api_get_search' 'v1' 'patient'  %}",
+
+                    requestHandler: function(request)
+                    {
+                        console.log(request);
+                        request.registry_code = null;
+
+                        {% if num_registries > 1 %}
+                            request.registry_code = $("#registry_select").val();
+                        {%  endif %}
+
+                        return request;
+
+                    },
+
                     responseHandler: function (response) {
                         return response;
                     },
@@ -39,8 +68,17 @@
                     formatters: {
                         "id": function (column, row) {
                             var reg_div = $("<div>");
+                            var restrict_registry;
+                            try {
+                                restrict_registry = $("#registry_select").val();
+                            }
+                            catch (err) {
+                                restrict_registry = null;
+                            }
                         
                             row.reg_code.forEach(function(reg) {
+
+
                                 var link = "{% url 'patient_edit' 888 999 %}".replace("/999", "/" + row.id).replace("/888", "/" + reg);
                                 
                                 var edit_link = $("<a>");
@@ -51,32 +89,149 @@
                                 pencil_icon.attr("aria-hidden", "true");
                                 
                                 edit_link.append(pencil_icon);
-                                edit_link.append(" Edit (" + reg + ")");
-                                
-                                reg_div.append(edit_link);
+                                edit_link.append("Edit");
+
+                                if (restrict_registry != null) {
+                                    if (reg == restrict_registry) {
+                                        reg_div.append(edit_link);
+                                    }
+                                }
+                                else {
+                                    reg_div.append(edit_link);
+                                }
+
                             });
                             
                             return reg_div.prop('outerHTML');
                         },
 
-                        "commands": function (column, row) {
-                            //return row.forms_html
-                            return row.forms_html;
+                        "diagnosis_progress_formatter": function(column, row) {
+                            var html = "";
+                            var inOneRegistry = _.keys(row.diagnosis_progress).length == 1;
+
+                            for (var regCode in row.diagnosis_progress) {
+                                var completionString;
+                                var percentage = row.diagnosis_progress[regCode].toString();
+                                if (!inOneRegistry) {
+                                    completionString = regCode.toUpperCase() + ":" + percentage + "%";
+                                } else {
+                                    completionString = percentage + "%";
+                                }
+
+                                var progressBarHtml =
+                                        '<div id="progressbar" class="ui-progressbar ' +
+                                        'ui-widget ui-widget-content ui-corner-all" role="progressbar" ' +
+                                        'aria-valuemin="0" aria-valuemax="100" aria-valuenow="xxx">' +
+                                        '<div class="ui-progressbar-value ui-widget-header ' +
+                                        'ui-corner-left" style="width: xxx%;">' +
+                                                '<div class="progress-label"><b>yyy</b></div>' +
+                                                '</div>' +
+                                         '</div>';
+
+                                progressBarHtml = progressBarHtml.replace(/xxx/g, percentage).replace(/yyy/g, completionString);
+
+                                html += progressBarHtml + '<br>';
+                            }
 
 
+
+                            return html;
+                        },
+
+                        "genetic_data_formatter": function(column, row) {
+                            var html = "";
+                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                            // If we are in just one registry don't display reg code prefix
+                            var inOneRegistry = _.keys(row.genetic_data_map).length == 1;
+
+                            for (var regCode in row.genetic_data_map) {
+                                var geneticDataIndicatorHTML;
+                                var regHTML;
+                                var hasGeneticData = row.genetic_data_map[regCode];
+                                if (hasGeneticData) {
+                                    geneticDataIndicatorHTML = tickHTML;
+                                }
+                                else {
+                                    geneticDataIndicatorHTML = crossHTML;
+                                }
+
+                                if (inOneRegistry) {
+                                    regHTML = geneticDataIndicatorHTML;
+                                }
+                                else {
+                                    regHTML = regCode.toUpperCase() + ":" + geneticDataIndicatorHTML;
+                                }
+
+                                html += regHTML;
+                            }
+
+                            return html;
+                        },
+
+                     "diagnosis_currency_formatter": function(column, row) {
+                        var html = "";
+                        var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                        var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                        // If we are in just one registry don't display reg code prefix
+                        var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
+
+                        for (var regCode in row.diagnosis_currency) {
+                            var diagnosisCurrencyIndicatorHTML;
+                            var regHTML;
+                            var diagnosisCurrent = row.diagnosis_currency[regCode];
+                            if (diagnosisCurrent) {
+                                diagnosisCurrencyIndicatorHTML = tickHTML;
+                            }
+                            else {
+                                diagnosisCurrencyIndicatorHTML = crossHTML;
+                            }
+
+                            if (inOneRegistry) {
+                                regHTML = diagnosisCurrencyIndicatorHTML;
+                            }
+                            else {
+                                regHTML = regCode.toUpperCase() + ":" + diagnosisCurrencyIndicatorHTML;
+                            }
+
+                            html += regHTML;
                         }
 
+                        return html;
+                    },
+
+                        "data_modules": function(column, row) {
+                            //return row.forms_html
+                            return row.data_modules;
+                        }
                     }
                 }).on("loaded.rs.jquery.bootgrid", function() {
-                    $(".rdrflauncher").change(function () {
-                        if ($(this).val() != "---") {
-                            window.location = $(this).val();
-                        }
-                    })
-                })
+                    // Ensure that the data modules popovers are wired after
+                    // being rendered on grid load
+                    $('button[data-toggle=popover]').popover({
+                        'html': true,
+                        'title': 'Available Modules',
+                        'trigger': 'click',
+                        'placement': 'bottom'
+                    });
 
                 });
 
-        </script>
+                {% if num_registries > 1 %}
+                    // wire up  registry select
+                    $("#registry_select").change(function (){
+                         var registryCode = $(this).val();
+                         if(registryCode == '---') {
+                             $("#grid").hide();
+                         }
+                         else {
+                             // set registry????
+                             $("#grid").bootgrid("reload");
+                             $("#grid").show();
+                         }
+                    });
 
+                {% endif %}
+                });
+        </script>
 {% endblock %}

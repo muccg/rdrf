@@ -9,10 +9,13 @@ from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 #from haystack.query import SearchQuerySet
 from tastypie.utils import trailing_slash
-
+from django.core.urlresolvers import reverse
+from django.templatetags.static import static
 import urlparse
 from tastypie.serializers import Serializer
 from tastypie.authorization import DjangoAuthorization
+from rdrf.utils import de_camelcase
+from rdrf.models import RegistryForm
 
 import logging
 
@@ -58,10 +61,15 @@ class PatientResource(ModelResource):
     def dehydrate(self, bundle):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
+        registry_code = bundle.request.GET.get("registry_code", None)
         bundle.data["working_groups_display"] = p.working_groups_display
+        bundle.data["diagnosis_progress"] = p.diagnosis_progress
+        bundle.data["genetic_data_map"] = p.genetic_data_map
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
-        bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
+        #bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
+        bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        bundle.data["diagnosis_currency"] = p.clinical_data_currency()
         return bundle
 
     def _get_reg_list(self, patient, user):
@@ -72,43 +80,61 @@ class PatientResource(ModelResource):
             if patient_registry in user.registry.all():
                 regs.append(patient_registry.name)
         return ", ".join(regs)
-    
-    def _get_forms_html(self, patient_model, user):
-        from rdrf.utils import FormLink
-        #  return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
-        #        for form in self.registry.forms if not form.is_questionnaire]
-        select_html = "<select class='dropdown rdrflauncher' id='patientforms%s'><option value='---' selected>---<option>" % patient_model.id
-        dropdown = """<div class="dropdown"><button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="false">
-                        Forms
-                        <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">"""
 
-        rest_html = "</ul></div>"
-
-
-        lis = []
+    def _get_data_modules(self, patient_model, registry_code, user):
         if patient_model.rdrf_registry.count() == 0:
-            return "No registry assigned!"
+            return "No registry assigned"
 
-        for registry_model in patient_model.rdrf_registry.all():
-            if registry_model in user.registry.all():
-                for form_model in registry_model.forms:
-                    if not form_model.is_questionnaire:
-                        form_link = FormLink(patient_model.pk, registry_model, form_model)
-                        text = "%s" % form_link.text
-                        link_html = """<a href="%s">%s</a><br>""" % (form_link.url, text)
-                        li = """<li role="presentation"><a role="menuitem" tabindex="-1" href="#">%s</a></li>""" % link_html
-                        lis.append(li)
-                        option = """<option value="%s">%s</option>""" % (form_link.url, form_link.text)
-                        select_html += option
+        if not registry_code:
+            if user.registry.count() == 1:
+                registry_model = user.registry.get()
+            else:
+                registry_model = None    # user must filter registry first
+        else:
+            registry_model = Registry.objects.get(code=registry_code)
 
-        select_html += "</select>"
+        def nice_name(name):
+            try:
+                return de_camelcase(name)
+            except:
+                return name
 
+        if registry_model is None:
+            return "Filter registry first!"
 
-        html = select_html
-        logger.debug(html)
-        return html
+        not_generated = lambda frm: not frm.name.startswith(registry_model.generated_questionnaire_name)
+        forms = [f for f in RegistryForm.objects.filter(registry=registry_model).order_by('position')
+                 if not_generated(f) and user.can_view(f)]
+
+        content = ''
+
+        if not forms:
+            content = "No modules available"
+
+        for form in forms:
+            if form.is_questionnaire:
+                continue
+            is_current = patient_model.form_currency(form)
+            flag = "images/%s.png" % ("tick" if is_current else "cross")
+
+            url = reverse('registry_form', args=(registry_model.code, form.id, patient_model.id))
+            link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
+            label = nice_name(form.name)
+
+            to_form = link
+            if user.is_working_group_staff:
+                to_form = label
+
+            if form.has_progress_indicator:
+                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
+                                                                           patient_model.form_progress(form)[1],
+                                                                           to_form)
+            else:
+                content += "<img src=%s> %s</br>" % (static(flag), to_form)
+
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+    
+
 
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
@@ -120,25 +146,47 @@ class PatientResource(ModelResource):
     def get_search(self, request, **kwargs):
         from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
+        chosen_registry_code = request.GET.get("registry_code", None)
+
+        if chosen_registry_code:
+            try:
+                chosen_registry = Registry.objects.get(code=chosen_registry_code)
+            except Registry.DoesNotExist:
+                chosen_registry = None
+
+        else:
+            chosen_registry = None
+
+        if chosen_registry:
+            registry_queryset = [chosen_registry]
+        else:
+            if request.user.is_superuser:
+                registry_queryset = Registry.objects.all()
+            else:
+                registry_queryset = request.user.registry.all()
+
         patients = Patient.objects.all()
 
         if not request.user.is_superuser:
             if request.user.is_curator:
-                query_patients = Q(rdrf_registry__in=request.user.registry.all()) & Q(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
-            elif request.user.is_genetic:
+            elif request.user.is_genetic_staff:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_genetic_curator:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_working_group_staff:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
             elif request.user.is_clinician:
                 patients = patients.filter(clinician=request.user)
             elif request.user.is_patient:
                 patients = patients.filter(user=request.user)
             else:
-                patients = patients.objects.none()
-
-
+                patients = patients.none()
+        else:
+            patients = patients.filter(rdrf_registry__in=registry_queryset)
 
         # ] request.GET = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'], u'searchPhrase': [u'ffff']}>
-
 
         self.method_check(request, allowed=['get'])
         self.is_authenticated(request)

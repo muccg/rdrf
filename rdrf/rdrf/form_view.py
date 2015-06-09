@@ -25,6 +25,7 @@ import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
+from rdrf.utils import FormLink
 from registry.groups.models import CustomUser
 import logging
 from registry.groups.models import WorkingGroup
@@ -40,21 +41,7 @@ class LoginRequiredMixin(object):
             request, *args, **kwargs)
 
 
-class FormLink(object):
 
-    def __init__(self, patient_id, registry, registry_form, selected=False):
-        self.registry = registry
-        self.patient_id = patient_id
-        self.form = registry_form
-        self.selected = selected
-
-    @property
-    def url(self):
-        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
-
-    @property
-    def text(self):
-        return de_camelcase(self.form.name)
 
 
 def log_context(when, context):
@@ -1383,12 +1370,16 @@ class AdjudicationResultsView(View):
 class PatientsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
-        #tastypie_url = reverse('api_dispatch_detail', kwargs={'resource_name': 'patient', "api_name": "v1", "pk": self.injected_model_id})
         if request.user.is_patient:
             raise PermissionDenied()
 
         context = {}
         context.update(csrf(request))
+
+        registries = [registry_model for registry_model in request.user.registry.all()]
+        context["num_registries"] = len(registries)  # if there are one do something special
+        context["registries"] = registries
+
         return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
 
 
@@ -1427,4 +1418,3 @@ class BootGridApi(View):
 class ConstructorFormView(View):
     def get(self, request, form_name):
         return render_to_response('rdrf_cdes/%s.html' % form_name)
-

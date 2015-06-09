@@ -11,14 +11,17 @@
       <title>{% trans "Rare Disease Registry Framework" %}</title>
 
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+      <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
       
       {% block extrastyle %}
       {% endblock %}
@@ -38,16 +41,27 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
-                {% block parent_menu %}
-                {% endblock %}
-                {% if not request.user.is_patient and not request.user.is_parent %}
-                    <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-list-alt"></span> Home</a></li>
-                    <li><a href="{% url 'reports' %}"><span class="glyphicon glyphicon-list-alt"></span> Reports</a></li>
+                {% if not request.user.is_patient %}
                 {% else %}
                     {% if registry_code and request.user.is_patient %}
                         <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
                     {% endif %}
                 {% endif %}
+
+                 {% block formlinks %}
+                 {% endblock %}
+
+                 <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    <span class="glyphicon glyphicon-list"></span> Quick Links<span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    {% for quick_link in request.user.quick_links %}
+                    <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span>{{quick_link.text}}</a></li>
+                    {% endfor %}
+                  </ul>
+                </li>
+
+
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                     <span class="glyphicon glyphicon-user"></span> {{ request.user.first_name }} {{ request.user.last_name }} <span class="caret"></span></a>
@@ -68,12 +82,14 @@
       </div><!-- /.container-fluid -->
     </nav>
 
-    <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    <div class="colM row-fluid">
+	{% if messages %}
+	    <ul class="messagelist">
+		{% for message in messages %}
+		    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+		{% endfor %}
+	    </ul>
+	{% endif %}
 
         {% block content%}
         {% endblock%}

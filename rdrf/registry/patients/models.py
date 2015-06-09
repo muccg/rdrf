@@ -24,7 +24,7 @@ from rdrf.hooking import run_hooks
 from django.db.models.signals import m2m_changed
 
 import logging
-logger = logging.getLogger('patient')
+logger = logging.getLogger('registry_log')
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
@@ -186,6 +186,110 @@ class Patient(models.Model):
     @property
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
+
+    @property
+    def diagnosis_progress(self):
+        """
+        returns a map of reg code to an integer between 0-100 (%)
+        """
+        registry_diagnosis_progress = {}
+
+        for registry_model in self.rdrf_registry.all():
+            total_number_filled_in = 0
+            total_number_required_for_completion = 0
+            for form_model in registry_model.forms:
+                # hack
+                if not "genetic" in form_model.name.lower():
+                    number_filled_in, total_number_for_completion = self.form_progress(form_model, numbers_only=True)
+                    total_number_filled_in += number_filled_in
+                    total_number_required_for_completion += total_number_for_completion
+            try:
+                registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+            except ZeroDivisionError, zderr:
+                pass  # don't have progress? skip
+
+        return registry_diagnosis_progress
+
+    @property
+    def diagnosis_progress_new(self):
+        """
+        returns a map of reg code to an integer between 0-100 (%)
+        """
+        registry_diagnosis_progress = {}
+
+        for registry_model in self.rdrf_registry.all():
+            forms = []
+            total_number_filled_in = 0
+            total_number_required_for_completion = 0
+            for form_model in registry_model.forms:
+                # hack
+                if not "genetic" in form_model.name.lower():
+                    forms.append(form_model)
+
+            total_number_filled_in, total_number_required_for_completion = self.forms_progress(registry_model, forms)
+
+            try:
+                registry_diagnosis_progress[registry_model.code] = int(100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
+            except ZeroDivisionError, zderr:
+                pass  # don't have progress? skip
+
+        return registry_diagnosis_progress
+
+    def clinical_data_currency(self, days=365):
+        """
+        If some clinical form ( non genetic ) has been updated  in the window
+        then the data for that registry is considered "current" - this mirrors
+        """
+        time_window_start = datetime.datetime.now() - datetime.timedelta(days=days)
+        currency_map = {}
+        for registry_model in self.rdrf_registry.all():
+            last_updated_in_window = False
+            for form_model in registry_model.forms:
+                if "genetic" in form_model.name.lower():
+                    continue
+                form_timestamp = self.get_form_timestamp(form_model)
+                logger.debug("form timestamp %s = %s" % (form_model, form_timestamp))
+                if form_timestamp and form_timestamp >= time_window_start:
+                    last_updated_in_window = True
+                    break
+            currency_map[registry_model.code] = last_updated_in_window
+
+        return currency_map
+
+    @property
+    def genetic_data_map(self):
+        """
+        map of reg code to Boolean iff patient has some genetic data filled in
+        """
+        registry_genetic_progress = {}
+
+        class Sentinel(Exception):
+            pass
+
+        for registry_model in self.rdrf_registry.all():
+            has_data = False
+            try:
+                for form_model in registry_model.forms:
+                    if "genetic" in form_model.name.lower():
+                        for section_model in  form_model.section_models:
+                            for cde_model in section_model.cde_models:
+                                try:
+                                    value = self.get_form_value(registry_model.code,
+                                                                form_model.name,
+                                                                section_model.code,
+                                                                cde_model.code,
+                                                                section_model.allow_multiple)
+
+                                    # got value for at least one field
+                                    raise Sentinel()
+                                except KeyError:
+                                    pass
+            except Sentinel:
+                has_data = True
+
+            registry_genetic_progress[registry_model.code] = has_data
+        return registry_genetic_progress
+
 
     def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -349,11 +453,13 @@ class Patient(models.Model):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
 
-    def form_progress(self, registry_form):
+    def form_progress(self, registry_form, numbers_only=False):
         if not registry_form.has_progress_indicator:
+            if numbers_only:
+                return 0, 0
+
             return [], 0
 
-        dynamic_store = DynamicDataWrapper(self)
         cde_registry = registry_form.registry.code
         section_array = registry_form.sections.split(",")
 
@@ -363,6 +469,7 @@ class Patient(models.Model):
         cdes_status = {}
 
         for cde in cde_complete:
+            cde_section = ""
             for s in section_array:
                 section = Section.objects.get(code=s)
                 if cde["code"] in section.elements.split(","):
@@ -377,7 +484,50 @@ class Patient(models.Model):
                 cdes_status[cde["name"]] = True
                 set_count += 1
 
+        if numbers_only:
+            return set_count, len(cde_complete)
+
         return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
+
+    def forms_progress(self, registry_model, forms):
+        from rdrf.utils import mongo_key
+        mongo_data = DynamicDataWrapper(self).load_dynamic_data(registry_model.code, "cdes")
+        total_filled_in = 0
+        total_required_for_completion = 0
+
+        for registry_form in forms:
+            if not registry_form.has_progress_indicator:
+                continue
+
+            section_array = registry_form.sections.split(",")
+
+            cde_complete = registry_form.complete_form_cdes.values()
+            total_required_for_completion += len(registry_form.complete_form_cdes.values_list())
+
+            for cde in cde_complete:
+                cde_section = ""
+                for s in section_array:
+                    section = Section.objects.get(code=s)
+                    if cde["code"] in section.elements.split(","):
+                        cde_section = s
+                try:
+                    cde_key = mongo_key(registry_form.name, cde_section, cde["code"])
+                    cde_value = mongo_data[cde_key]
+                except KeyError:
+                    cde_value = None
+
+                if cde_value:
+                    total_filled_in += 1
+
+        return total_filled_in, total_required_for_completion
+
+    def get_form_timestamp(self, registry_form):
+        dynamic_store = DynamicDataWrapper(self)
+        timestamp = dynamic_store.get_form_timestamp(registry_form)
+        if timestamp:
+            if "timestamp" in timestamp:
+                ts = timestamp["timestamp"]
+                return ts
 
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
@@ -495,6 +645,35 @@ class PatientRelative(models.Model):
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
 
+    def create_patient_from_myself(self, registry_model, working_groups):
+        # Create the patient corresponding to this relative
+        logger.debug("creating a patient model from patient relative %s ..." % self)
+        patient_whose_relative_this_is = self.patient
+        p = Patient()
+        p.given_names = self.given_names
+        p.family_name = self.family_name
+        p.date_of_birth = self.date_of_birth
+        p.sex = self.sex
+        p.consent = True   # tricky ?
+        p.active = True
+
+        try:
+            p.save()
+        except Exception, ex:
+            raise ValidationError("Could not create patient from relative: %s" % ex)
+
+        p.rdrf_registry = [registry_model]
+        p.working_groups = working_groups
+        p.save()
+        logger.debug("saved created patient ok with pk = %s" % p.pk)
+        run_hooks('patient_created_from_relative', p)
+        logger.debug("ran hooks ok")
+
+        # set the patient relative model relative_patient field to point to this newly created patient
+        self.relative_patient = p
+        self.save()
+        logger.debug("updated %s relative_patient to %s" % (self, p))
+        return p
 
 
 @receiver(post_save, sender=Patient)
