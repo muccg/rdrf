@@ -67,25 +67,25 @@ class PatientResource(ModelResource):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
 
-        #progress_data = getattr(bundle, "progress_data")
+        progress_data = getattr(bundle, "progress_data")
 
-        registry_code = bundle.request.GET.get("registry_code", None)
+        registry_code = bundle.request.GET.get("registry_code", "fh")
         bundle.data["working_groups_display"] = p.working_groups_display
         start_progress = time.time()
-        bundle.data["diagnosis_progress"] = p.diagnosis_progress
+        bundle.data["diagnosis_progress"] = {registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
         end_progress = time.time()
         eprogress = end_progress - start_progress
         logger.debug("time to get progress = %s" % eprogress)
-        bundle.data["genetic_data_map"] = p.genetic_data_map
+        bundle.data["genetic_data_map"] = {registry_code: True}
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
         #bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
         start_data_modules = time.time()
-        bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        bundle.data["data_modules"] = "" #self._get_data_modules(p, registry_code, bundle.request.user)
         end_data_modules = time.time()
         edata = end_data_modules - start_data_modules
         logger.debug("getting data modules took %s" % edata)
-        bundle.data["diagnosis_currency"] = p.clinical_data_currency()
+        bundle.data["diagnosis_currency"] = {registry_code: progress_data["diagnosis_currency"].get(id, False)}
         finish = time.time()
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
@@ -162,19 +162,44 @@ class PatientResource(ModelResource):
             url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
         ]
 
-    def _precompute_data(self, page, registry_code):
-        from rdrf.form_progress import FormProgressCalculator
-        results = {}
-        registry_code = 'fh'
-        registry_model = Registry.objects.get(code=registry_code)
-        progress_calculator = FormProgressCalculator(registry_model)
-        patient_ids = [patient.id for patient in page.object_list]
+    def _bulk_compute_progress(self, page, user, registry_code,
+                               compute_progress=True,
+                               compute_diagnosis_currency=True,
+                               compute_has_genetic_data=True,
+                               compute_data_modules=True
+                               ):
         start = time.time()
-        diagnosis_progress_dict = progress_calculator.progress(patient_ids)
+        results = {}
+        from rdrf.form_progress import FormProgressCalculator
+        registry_model = Registry.objects.get(code=registry_code)
+        progress_calculator = FormProgressCalculator(registry_model, user)
+        patient_ids = [patient.id for patient in page.object_list]
+        progress_calculator.load_data(patient_ids)
+
+        if compute_progress:
+            results["diagnosis_progress"] = progress_calculator.diagnosis_progress()
+        else:
+            results["diagnosis_progress"] = None
+
+        if compute_diagnosis_currency:
+            results["diagnosis_currency"] = progress_calculator.diagnosis_currency()
+        else:
+            results["diagnosis_currency"] = None
+
+        if compute_has_genetic_data:
+            results["has_genetic_data"] = progress_calculator.has_genetic_data()
+        else:
+            results["has_genetic_data"] = None
+
+        if compute_data_modules:
+            results["data_modules"] = None # progress_calculator.data_modules()
+        else:
+            results["data_modules"] = None
+
         finish = time.time()
         time_taken = finish - start
         logger.debug("progress calculator time = %s" % time_taken)
-        return None
+        return results
 
     def get_search(self, request, **kwargs):
         from django.db.models import Q
@@ -193,10 +218,15 @@ class PatientResource(ModelResource):
         if chosen_registry:
             registry_queryset = [chosen_registry]
         else:
-            if request.user.is_superuser:
-                registry_queryset = Registry.objects.all()
+
+            if request.user.registry.count() == 1:
+                chosen_registry = request.user.registry.get()
+                registry_queryset = [chosen_registry]
+                chosen_registry_code = chosen_registry.code
+
             else:
-                registry_queryset = request.user.registry.all()
+                raise Exception("Need to filter registry")
+
 
         patients = Patient.objects.all()
 
@@ -258,11 +288,12 @@ class PatientResource(ModelResource):
 
         objects = []
 
-        #precomputed_data = self._precompute_data(page, chosen_registry_code)
+
+        bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
 
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
-            #setattr(bundle, 'progress_data', precomputed_data)
+            setattr(bundle, 'progress_data', bulk_progress_data)
             bundle = self.full_dehydrate(bundle)
             objects.append(bundle)
 
