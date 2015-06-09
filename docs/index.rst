@@ -30,16 +30,28 @@ the following key features:
   - Multiple levels of access are supported (e.g. patient, clinician, genetic, and curator roles)
 
 
-Are you ready to create your own patient registry?
+Are you ready to create your own Patient Registry?
 ==================================================
 
+*A 'Demo Site <https://rdrf.ccgapps.com.au/demo/>'_ is available for you to try out online:*
+  - Different levels of access are available, including admin, data curator, genetic staff and clinical staff
+    - admin username and password: admin
+    - data curator username and password: curator
+    - genetic staff username and password: genetic
+    - clinical staff username and password: clinical
+
+*Screencasts are available to talk you through the creation of a Registry:*
+  - `Training videos (with audio) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lT-3emdPkc75uBt5aiX1Hn1>'_
+  - 'Training videos (with text) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lSWLUNTqrIpfBuUfHzidbfu>'_
+  - 'Training videos to add a Patient as a curator user <https://www.youtube.com/watch?v=O1se5ATJ9jU&list=PL_54ZaRad-lS5cImArcSaAZhnwISPrIOz>'_
+
+*If you prefer to read:*
+  - Here's some text explaining how to create a :ref:`registry in 10 minutes <howtocreatearegistry>`
 
 
+Welcome to the Content List for the rdrf's documentation
+=========================================================
 
-Welcome to rdrf's documentation!!!
-================================
-
-Contents:
 
 .. toctree::
    :maxdepth: 3
