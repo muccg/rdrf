@@ -104,9 +104,9 @@ class FormProgressCalculator(object):
             except KeyError:
                 pass
         try:
-            percentage = 100.00 * (float(have_non_empty_data)/float(len(mongo_keys)))
+            percentage = int(100.00 * (float(have_non_empty_data)/float(len(mongo_keys))))
         except Exception:
-            percentage = 0.00
+            percentage = 0
 
         return have_non_empty_data, total, percentage
 
@@ -250,7 +250,7 @@ class FormProgressCalculator(object):
                         break  # we have at least one value for a cde in the multisection
 
         try:
-            percentage = 100 * (float(filled_in) / float(required))
+            percentage = int(100 * (float(filled_in) / float(required)))
         except ZeroDivisionError:
             percentage = 0
 
