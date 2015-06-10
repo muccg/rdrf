@@ -464,34 +464,39 @@ class Patient(models.Model):
 
             return [], 0
 
-        cde_registry = registry_form.registry.code
-        section_array = registry_form.sections.split(",")
-
-        cde_complete = registry_form.complete_form_cdes.values()
+        required = 0
         set_count = 0
-
         cdes_status = {}
+        registry_model = registry_form.registry
+        registry_code = registry_model.code
+        cde_codes_required = [cde.code for cde in registry_form.complete_form_cdes.all()]
+        for section_model in registry_form.section_models:
+            for cde_model in section_model.cde_models:
+                if cde_model.code in cde_codes_required:
+                    required += 1
+                    try:
+                        cde_value = self.get_form_value(registry_code,
+                                                        registry_form.name,
+                                                        section_model.code,
+                                                        cde_model.code,
+                                                        section_model.allow_multiple)
+                    except KeyError:
+                        cde_value = None
 
-        for cde in cde_complete:
-            cde_section = ""
-            for s in section_array:
-                section = Section.objects.get(code=s)
-                if cde["code"] in section.elements.split(","):
-                    cde_section = s
-            try:
-                cde_value = self.get_form_value(cde_registry, registry_form.name, cde_section, cde['code'], section.allow_multiple)
-            except KeyError:
-                cde_value = None
-
-            cdes_status[cde["name"]] = False
-            if cde_value:
-                cdes_status[cde["name"]] = True
-                set_count += 1
+                    cdes_status[cde_model.name] = False
+                    if cde_value:
+                        cdes_status[cde_model.name] = True
+                        set_count += 1
 
         if numbers_only:
-            return set_count, len(cde_complete)
+            return set_count, required
 
-        return cdes_status, (float(set_count) / float(len(registry_form.complete_form_cdes.values_list())) * 100)
+        try:
+            percentage = float(set_count) / float(required) * 100
+        except ZeroDivisionError:
+            percentage = 0
+
+        return cdes_status, percentage
 
     def forms_progress(self, registry_model, forms):
         from rdrf.utils import mongo_key
