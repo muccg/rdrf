@@ -9,10 +9,17 @@ from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 #from haystack.query import SearchQuerySet
 from tastypie.utils import trailing_slash
-
+from django.core.urlresolvers import reverse
+from django.templatetags.static import static
 import urlparse
 from tastypie.serializers import Serializer
 from tastypie.authorization import DjangoAuthorization
+from rdrf.utils import de_camelcase, mongo_db_name
+from rdrf.models import RegistryForm
+from django.conf import settings
+from pymongo import MongoClient
+
+import time
 
 import logging
 
@@ -56,12 +63,33 @@ class PatientResource(ModelResource):
         authorization = DjangoAuthorization()
 
     def dehydrate(self, bundle):
+        start = time.time()
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
+
+        progress_data = getattr(bundle, "progress_data")
+
+        registry_code = bundle.request.GET.get("registry_code", "fh")
         bundle.data["working_groups_display"] = p.working_groups_display
+
+        if progress_data["diagnosis_progress"]:
+            bundle.data["diagnosis_progress"] = {registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
+
+        if progress_data["has_genetic_data"]:
+            bundle.data["genetic_data_map"] = {registry_code: progress_data["has_genetic_data"].get(id, False)}
+
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
-        bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
+
+        if progress_data["data_modules"]:
+            bundle.data["data_modules"] = progress_data["data_modules"].get(id, "")
+
+        if progress_data["diagnosis_currency"]:
+            bundle.data["diagnosis_currency"] = {registry_code: progress_data["diagnosis_currency"].get(id, False)}
+
+        finish = time.time()
+        elapsed = finish - start
+        logger.debug("dehydrate took %s" % elapsed)
         return bundle
 
     def _get_reg_list(self, patient, user):
@@ -72,43 +100,61 @@ class PatientResource(ModelResource):
             if patient_registry in user.registry.all():
                 regs.append(patient_registry.name)
         return ", ".join(regs)
-    
-    def _get_forms_html(self, patient_model, user):
-        from rdrf.utils import FormLink
-        #  return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
-        #        for form in self.registry.forms if not form.is_questionnaire]
-        select_html = "<select class='dropdown rdrflauncher' id='patientforms%s'><option value='---' selected>---<option>" % patient_model.id
-        dropdown = """<div class="dropdown"><button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="false">
-                        Forms
-                        <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">"""
 
-        rest_html = "</ul></div>"
-
-
-        lis = []
+    def _get_data_modules(self, patient_model, registry_code, user):
         if patient_model.rdrf_registry.count() == 0:
-            return "No registry assigned!"
+            return "No registry assigned"
 
-        for registry_model in patient_model.rdrf_registry.all():
-            if registry_model in user.registry.all():
-                for form_model in registry_model.forms:
-                    if not form_model.is_questionnaire:
-                        form_link = FormLink(patient_model.pk, registry_model, form_model)
-                        text = "%s" % form_link.text
-                        link_html = """<a href="%s">%s</a><br>""" % (form_link.url, text)
-                        li = """<li role="presentation"><a role="menuitem" tabindex="-1" href="#">%s</a></li>""" % link_html
-                        lis.append(li)
-                        option = """<option value="%s">%s</option>""" % (form_link.url, form_link.text)
-                        select_html += option
+        if not registry_code:
+            if user.registry.count() == 1:
+                registry_model = user.registry.get()
+            else:
+                registry_model = None    # user must filter registry first
+        else:
+            registry_model = Registry.objects.get(code=registry_code)
 
-        select_html += "</select>"
+        def nice_name(name):
+            try:
+                return de_camelcase(name)
+            except:
+                return name
 
+        if registry_model is None:
+            return "Filter registry first!"
 
-        html = select_html
-        logger.debug(html)
-        return html
+        not_generated = lambda frm: not frm.name.startswith(registry_model.generated_questionnaire_name)
+        forms = [f for f in RegistryForm.objects.filter(registry=registry_model).order_by('position')
+                 if not_generated(f) and user.can_view(f)]
+
+        content = ''
+
+        if not forms:
+            content = "No modules available"
+
+        for form in forms:
+            if form.is_questionnaire:
+                continue
+            is_current = patient_model.form_currency(form)
+            flag = "images/%s.png" % ("tick" if is_current else "cross")
+
+            url = reverse('registry_form', args=(registry_model.code, form.id, patient_model.id))
+            link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
+            label = nice_name(form.name)
+
+            to_form = link
+            if user.is_working_group_staff:
+                to_form = label
+
+            if form.has_progress_indicator:
+                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
+                                                                           patient_model.form_progress(form)[1],
+                                                                           to_form)
+            else:
+                content += "<img src=%s> %s</br>" % (static(flag), to_form)
+
+        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+    
+
 
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
@@ -117,28 +163,95 @@ class PatientResource(ModelResource):
             url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
         ]
 
+    def _bulk_compute_progress(self, page, user, registry_code,
+                               compute_progress=True,
+                               compute_diagnosis_currency=True,
+                               compute_has_genetic_data=True,
+                               compute_data_modules=True
+                               ):
+        start = time.time()
+        results = {}
+        from rdrf.form_progress import FormProgressCalculator
+        registry_model = Registry.objects.get(code=registry_code)
+        progress_calculator = FormProgressCalculator(registry_model, user)
+        patient_ids = [patient.id for patient in page.object_list]
+        progress_calculator.load_data(patient_ids)
+
+        if compute_progress:
+            results["diagnosis_progress"] = progress_calculator.diagnosis_progress()
+        else:
+            results["diagnosis_progress"] = None
+
+        if compute_diagnosis_currency:
+            results["diagnosis_currency"] = progress_calculator.diagnosis_currency()
+        else:
+            results["diagnosis_currency"] = None
+
+        if compute_has_genetic_data:
+            results["has_genetic_data"] = progress_calculator.has_genetic_data()
+        else:
+            results["has_genetic_data"] = None
+
+        if compute_data_modules:
+            results["data_modules"] = progress_calculator.data_modules()
+        else:
+            results["data_modules"] = None
+
+        finish = time.time()
+        time_taken = finish - start
+        logger.debug("progress calculator time = %s" % time_taken)
+        return results
+
     def get_search(self, request, **kwargs):
         from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
+        chosen_registry_code = request.GET.get("registry_code", None)
+
+        if chosen_registry_code:
+            try:
+                chosen_registry = Registry.objects.get(code=chosen_registry_code)
+            except Registry.DoesNotExist:
+                chosen_registry = None
+
+        else:
+            chosen_registry = None
+
+        if chosen_registry:
+            registry_queryset = [chosen_registry]
+        else:
+
+            if request.user.registry.count() == 1:
+                chosen_registry = request.user.registry.get()
+                registry_queryset = [chosen_registry]
+                chosen_registry_code = chosen_registry.code
+
+            else:
+                raise Exception("Need to filter registry")
+
+
         patients = Patient.objects.all()
 
         if not request.user.is_superuser:
             if request.user.is_curator:
-                query_patients = Q(rdrf_registry__in=request.user.registry.all()) & Q(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
-            elif request.user.is_genetic:
+            elif request.user.is_genetic_staff:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_genetic_curator:
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+            elif request.user.is_working_group_staff:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
             elif request.user.is_clinician:
                 patients = patients.filter(clinician=request.user)
             elif request.user.is_patient:
                 patients = patients.filter(user=request.user)
             else:
-                patients = patients.objects.none()
+                patients = patients.none()
+        else:
 
-
+            patients = patients.filter(rdrf_registry__in=registry_queryset)
 
         # ] request.GET = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'], u'searchPhrase': [u'ffff']}>
-
 
         self.method_check(request, allowed=['get'])
         self.is_authenticated(request)
@@ -177,8 +290,12 @@ class PatientResource(ModelResource):
 
         objects = []
 
+
+        bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
+
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
+            setattr(bundle, 'progress_data', bulk_progress_data) # crap I know
             bundle = self.full_dehydrate(bundle)
             objects.append(bundle)
 
@@ -193,6 +310,10 @@ class PatientResource(ModelResource):
 
         self.log_throttled_access(request)
         return self.create_response(request, results)
+
+
+
+
 
     def _get_sorting(self, request):
         # boot grid uses this convention

@@ -168,6 +168,8 @@ class CustomUser(AbstractUser):
             return QuickLinks.GENETIC_CURATORS
         elif self.is_genetic_staff:
             return QuickLinks.GENETIC_STAFF
+        elif self.is_working_group_staff:
+            return QuickLinks.WORKING_GROUP_STAFF
         else:
             return []
 

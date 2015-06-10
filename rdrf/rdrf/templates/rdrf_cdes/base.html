@@ -11,14 +11,17 @@
       <title>{% trans "Rare Disease Registry Framework" %}</title>
 
       <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+      <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
       
       {% block extrastyle %}
       {% endblock %}
@@ -48,6 +51,21 @@
                         <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
                     {% endif %}
                 {% endif %}
+
+                 {% block formlinks %}
+                 {% endblock %}
+
+                 <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    <span class="glyphicon glyphicon-list"></span> Quick Links<span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    {% for quick_link in request.user.quick_links %}
+                    <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span>{{quick_link.text}}</a></li>
+                    {% endfor %}
+                  </ul>
+                </li>
+
+
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                     <span class="glyphicon glyphicon-user"></span> {{ request.user.first_name }} {{ request.user.last_name }} <span class="caret"></span></a>

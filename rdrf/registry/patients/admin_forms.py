@@ -52,8 +52,11 @@ class PatientRelativeForm(forms.ModelForm):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
         self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
+        self.create_patient_flag = False
+        self.tag = None    # used to locate this form
 
-    def full_clean(self):
+    def _clean_fields(self):
+        logger.debug("in PatientRelatives clean fields")
         self._errors = ErrorDict()
         if not self.is_bound:  # Stop further processing.
             return
@@ -61,93 +64,28 @@ class PatientRelativeForm(forms.ModelForm):
         keys_to_update = []
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
-        for k in self.data.keys():
-            if k.startswith("relatives-") and k.endswith("-relative_patient"):
-                if self.data[k] == "on":  # checkbox  checked - create patient from this data
-                    patient_relative_index = k.split("-")[1]
-                    logger.debug("creating patient from relative %s" % patient_relative_index)
-                    self.create_patient_data = self._get_patient_relative_data(patient_relative_index)
-                    try:
-                        with transaction.atomic():
-                            patient = self._create_patient()
-                    except ValidationError, verr:
-                        logger.info("validation error: %s" % verr)
-                        self.data[k] = None  # get rid of the 'on'
-                        self._errors[k] = ErrorList([verr.message])
-                        return
-                    except Exception, ex:
-                        logger.error("other error: %s" % ex)
-                        self.data[k] = None
-                        self._errors[k] = ErrorList([ex.message])
-                        return
+        for name, field in self.fields.items():
+            value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+            logger.debug("field %s = %s" % (name, value))
+            if name == "relative_patient":
+                if value == "on":
+                    logger.debug("on set for create patient - setting to None")
+                    self.cleaned_data[name] = None
+                    self.create_patient_flag = True
+                else:
+                    self.cleaned_data[name] = value
 
-                    keys_to_update.append((k, patient))
+            elif name == 'date_of_birth':
+                self.cleaned_data[name] = self._set_date_of_birth(value)
 
-        for k, patient_model in keys_to_update:
-            if patient_model is not None:
-                self.data[k] = str(patient_model.pk)
+            elif name == 'patient':
+                continue   # this was causing error in post clean - we set this ourselves
+            else:
+                self.cleaned_data[name] = value
 
-        super(PatientRelativeForm, self).full_clean()
+            logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
 
-
-
-    def _create_patient(self):
-        # Create the patient corresponding to this relative
-        if not self.create_patient_data:
-            return None
-
-        def grab_data(substring):
-            for k in self.create_patient_data:
-                if substring in k:
-                    return self.create_patient_data[k]
-
-        p = Patient()
-
-        logger.debug("data to create relative patient from = %s" % self.create_patient_data)
-
-        given_names = grab_data("given_names")
-        family_name = grab_data("family_name")
-        date_of_birth = grab_data("date_of_birth")
-        sex = grab_data("sex")
-        id_of_patient_relative = grab_data("id")
-        logger.debug("PatientRelativeId = %s" % id_of_patient_relative)
-        patient_relative_model = PatientRelative.objects.get(id=int(id_of_patient_relative))
-        logger.debug("patient relative model = %s" % patient_relative_model)
-        patient_whose_relative_this_is = patient_relative_model.patient
-        logger.debug("patient whose relative this is = %s" % patient_whose_relative_this_is)
-
-        if not all([given_names, family_name, date_of_birth]):
-            raise ValidationError(" Not all data supplied for relative : Patient not created")
-
-        logger.debug("setting values on created patient ...")
-        p.given_names = grab_data("given_names")
-        logger.debug("set given names")
-        p.family_name = grab_data("family_name")
-        logger.debug("set family name")
-        logger.debug(" date of birth to save to patient = %s" % date_of_birth)
-        p.date_of_birth = self._set_date_of_birth(date_of_birth)
-        logger.debug("set date of birth")
-        p.sex = sex
-        p.consent = True  # need to work out how to handle this
-        logger.debug("set consent")
-
-        p.active = True
-        logger.debug("set active")
-        try:
-            p.save()
-        except Exception, ex:
-            raise ValidationError("Could not create patient from relative: %s" % ex)
-
-        logger.debug("attempting to set rdrf registry")
-        p.rdrf_registry = [r for r in patient_whose_relative_this_is.rdrf_registry.all()]
-        logger.debug("set rdrf_registry")
-        p.working_groups = [wg for wg in patient_whose_relative_this_is.working_groups.all()]
-        logger.debug("set working groups")
-        p.save()
-        logger.debug("saved created patient ok with pk = %s" % p.pk)
-        run_hooks('patient_created_from_relative', p)
-        logger.debug("ran hooks ok")
-        return p
+        self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
 
     def _set_date_of_birth(self, dob):
         #todo figure  out why the correct input format is not being respected - the field for dob on PatientRelative is in aus format already
@@ -181,9 +119,17 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
         self.custom_consents = []  # list of consent fields agreed to
-        #self.orig_user = None
 
-        if 'instance' in kwargs:
+        if 'registry_model' in kwargs:
+            self.registry_model = kwargs['registry_model']
+            logger.debug("set self.registry_model to %s" % self.registry_model)
+            del kwargs['registry_model']
+        else:
+            self.registry_model = None
+            logger.debug("self.registry_model is None")
+
+        if 'instance' in kwargs and kwargs['instance'] is not None:
+            logger.debug("instance in kwargs and not None = %s" % kwargs['instance'])
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
             logger.debug("registry specific data = %s" % registry_specific_data)
@@ -198,47 +144,82 @@ class PatientForm(forms.ModelForm):
             clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
+            logger.debug("user in kwargs")
             self.user = kwargs.pop("user")
+            logger.debug("set user on PatientForm to %s" % self.user)
+
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
 
-        if 'instance' in kwargs:
-            instance = kwargs['instance']
+        if 'instance' in kwargs and kwargs['instance'] is not None:
             self._add_custom_consent_fields(instance)
+            logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
 
-        user = self.user
-        if not user.is_superuser:
-            registry = user.registry.all()[0]
-            working_groups = user.groups.all()
-            for field in self.fields:
-                hidden = False
-                readonly = False
-                for wg in working_groups:
-                    try:
-                        field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
-                        hidden = hidden or field_config.hidden
-                        readonly = readonly or field_config.readonly
-                    except DemographicFields.DoesNotExist:
-                        pass
+        if hasattr(self, 'user'):
+            logger.debug("form has user attribute ...")
+            user = self.user
+            logger.debug("user = %s" % user)
+            if not user.is_superuser:
+                logger.debug("not superuser so updating field visibility")
+                registry = user.registry.all()[0]
+                logger.debug("registry = %s" % registry)
+                working_groups = user.groups.all()
+                logger.debug("user working groups = %s" % [wg.name for wg in working_groups])
 
-                if hidden:
-                    self.fields[field].widget = forms.HiddenInput()
-                    self.fields[field].label = ""
-                if readonly and not hidden:
-                    self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
+                for field in self.fields:
+                    hidden = False
+                    readonly = False
+                    for wg in working_groups:
+                        try:
+                            field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
+                            hidden = hidden or field_config.hidden
+                            readonly = readonly or field_config.readonly
+                        except DemographicFields.DoesNotExist:
+                            pass
 
+                    if hidden:
+                        logger.debug("field %s is hidden!" % field)
+                        self.fields[field].widget = forms.HiddenInput()
+                        self.fields[field].label = ""
+                    if readonly and not hidden:
+                        logger.debug("field %s is readonly" % field)
+                        self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
+
+
+        if self._is_adding_patient(kwargs):
+            self._setup_add_form()
 
     def _get_registry_specific_data(self, patient_model):
+        if patient_model is None:
+            return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
         return mongo_wrapper.load_registry_specific_data()
 
     def _update_initial_consent_data(self, patient_model, initial_data):
+        if patient_model is None:
+            return
         data = patient_model.consent_questions_data
         for consent_field_key in data:
             initial_data[consent_field_key] = data[consent_field_key]
             logger.debug("set initial data for %s to %s" % (consent_field_key, data[consent_field_key]))
+
+    def _is_adding_patient(self, kwargs):
+        return 'instance' in kwargs and kwargs['instance'] is None
+
+    def _setup_add_form(self):
+        logger.debug("in setup add form ...")
+        if hasattr(self, "user"):
+            user = self.user
+        else:
+            user = None
+        logger.debug("user is %s" % user)
+        logger.debug("form.registry_model = %s" % self.registry_model)
+        from registry.groups.models import WorkingGroup
+        initial_working_groups = user.working_groups.filter(registry=self.registry_model)
+        self.fields['working_groups'].queryset = initial_working_groups
+        logger.debug("restricted working groups choices to %s" % [wg.pk for wg in initial_working_groups])
 
     #consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
     #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
@@ -259,8 +240,12 @@ class PatientForm(forms.ModelForm):
     # Does not need a unique constraint on the DB
 
     def clean(self):
+        logger.debug("in PatientForm clean ...")
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
+
+        for k in cleaneddata:
+            logger.debug("cleaned field %s = %s" % (k, cleaneddata[k]))
 
         for k in cleaneddata:
             if k.startswith("customconsent_"):
@@ -286,7 +271,6 @@ class PatientForm(forms.ModelForm):
         logger.debug("saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
-        #patient_model.user = self.orig_user
         logger.debug("patient instance = %s" % patient_model)
         try:
             patient_registries = [r for r in patient_model.rdrf_registry.all()]

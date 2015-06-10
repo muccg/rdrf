@@ -23,23 +23,17 @@ class RouterView(View):
 
         if user.is_authenticated():
             if user.is_superuser:
-                redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_clinician:
-                if in_fkrp(user):
-                    redirect_url = reverse(_NEW_PATIENT_LISTING)
-                else:
-                    redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_genetic_staff:
-                redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_working_group_staff:
-                redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_genetic_curator:
-                redirect_url = reverse(_ADMIN_PATIENT_LISTING)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_curator:
-                if in_fkrp(user):
-                    redirect_url = reverse(_NEW_PATIENT_LISTING)
-                else:
-                    redirect_url = reverse(_HOME_PAGE)
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_patient:
                 regs = user.get_registries()
                 if regs:
@@ -51,7 +45,8 @@ class RouterView(View):
                     if len(regs) == 1:
                         redirect_url = reverse("parent_page", args=[regs[0].code])
             else:
-                redirect_url = reverse("admin:index")
+                redirect_url = reverse(_NEW_PATIENT_LISTING)
+
         else:
             redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
 
