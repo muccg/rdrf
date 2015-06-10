@@ -71,21 +71,22 @@ class PatientResource(ModelResource):
 
         registry_code = bundle.request.GET.get("registry_code", "fh")
         bundle.data["working_groups_display"] = p.working_groups_display
-        start_progress = time.time()
-        bundle.data["diagnosis_progress"] = {registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
-        end_progress = time.time()
-        eprogress = end_progress - start_progress
-        logger.debug("time to get progress = %s" % eprogress)
-        bundle.data["genetic_data_map"] = {registry_code: True}
+
+        if progress_data["diagnosis_progress"]:
+            bundle.data["diagnosis_progress"] = {registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
+
+        if progress_data["has_genetic_data"]:
+            bundle.data["genetic_data_map"] = {registry_code: progress_data["has_genetic_data"].get(id, False)}
+
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
-        #bundle.data["forms_html"] = self._get_forms_html(p, bundle.request.user)
-        start_data_modules = time.time()
-        bundle.data["data_modules"] = "" #self._get_data_modules(p, registry_code, bundle.request.user)
-        end_data_modules = time.time()
-        edata = end_data_modules - start_data_modules
-        logger.debug("getting data modules took %s" % edata)
-        bundle.data["diagnosis_currency"] = {registry_code: progress_data["diagnosis_currency"].get(id, False)}
+
+        if progress_data["data_modules"]:
+            bundle.data["data_modules"] = progress_data["data_modules"].get(id, "")
+
+        if progress_data["diagnosis_currency"]:
+            bundle.data["diagnosis_currency"] = {registry_code: progress_data["diagnosis_currency"].get(id, False)}
+
         finish = time.time()
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
@@ -192,7 +193,7 @@ class PatientResource(ModelResource):
             results["has_genetic_data"] = None
 
         if compute_data_modules:
-            results["data_modules"] = None # progress_calculator.data_modules()
+            results["data_modules"] = progress_calculator.data_modules()
         else:
             results["data_modules"] = None
 
@@ -247,6 +248,7 @@ class PatientResource(ModelResource):
             else:
                 patients = patients.none()
         else:
+
             patients = patients.filter(rdrf_registry__in=registry_queryset)
 
         # ] request.GET = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'], u'searchPhrase': [u'ffff']}>
@@ -293,7 +295,7 @@ class PatientResource(ModelResource):
 
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
-            setattr(bundle, 'progress_data', bulk_progress_data)
+            setattr(bundle, 'progress_data', bulk_progress_data) # crap I know
             bundle = self.full_dehydrate(bundle)
             objects.append(bundle)
 

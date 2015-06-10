@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.templatetags.static import static
 from rdrf.utils import mongo_db_name, mongo_key, de_camelcase
 from rdrf.models import RegistryForm
 import logging
@@ -17,8 +19,14 @@ class ProgressCalculationError(Exception):
     pass
 
 
-class FormProgressCalculator(object):
+def nice_name(name):
+    try:
+        return de_camelcase(name)
+    except:
+        return name
 
+
+class FormProgressCalculator(object):
 
     def __init__(self, registry_model, user):
         self.user = user
@@ -33,6 +41,7 @@ class FormProgressCalculator(object):
         self.diagnosis_forms = self._get_diagnosis_forms()
         self.genetic_forms = self._get_genetic_forms()
         self.patient_ids = []
+        self.completion_keys_by_form = self._get_completion_keys_by_form() # do this once to save time
 
         self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         self.db_name = mongo_db_name(self.registry_model.code)
@@ -40,8 +49,18 @@ class FormProgressCalculator(object):
         self.cdes_collection = self.db["cdes"]
         self.mongo_data = []
         self.form_currency = {}  # {patient_id : {form name : bool}}
+        self.data_map = {}
 
-
+    def _get_completion_keys_by_form(self):
+        key_map = {}
+        for form_model in self.registry_model.forms:
+            key_map[form_model.name] = []
+            completion_codes = [cde_model.code for cde_model in form_model.complete_form_cdes.all()]
+            for section_model in form_model.section_models:
+                for cde_model in section_model.cde_models:
+                    if cde_model.code in completion_codes:
+                        key_map[form_model.name].append(mongo_key(form_model.name, section_model.code, cde_model.code))
+        return key_map
 
     def _get_genetic_keys(self):
         keys = []
@@ -112,7 +131,7 @@ class FormProgressCalculator(object):
     def _has_data(self, patient_data, cde_key):
         try:
             value = patient_data[cde_key]
-            if value is not None:
+            if value:
                 return True
             else:
                 return False
@@ -141,12 +160,13 @@ class FormProgressCalculator(object):
                                                                                 num_days)
         return results
 
+
+
     def data_currency_one_patient(self, patient_data, form_models, days=365):
         time_window_start = datetime.datetime.now() - datetime.timedelta(days=days)
         for form_model in form_models:
-            form_timestamp = self._get_form_timestamp(patient_data, form_model)
-            if form_timestamp and form_timestamp >= time_window_start:
-                    return True
+            if self._form_is_current(form_model, patient_data, time_window_start):
+                return True
 
         return False
 
@@ -163,40 +183,56 @@ class FormProgressCalculator(object):
     def _not_generated_form(self, form_model):
         return not form_model.name.startswith(self.registry_model.generated_questionnaire_name)
 
-    def data_modules(self, patient_data):
-        user = self.user
-        registry_code = self.registry_model.code
+    def data_modules(self):
+        results = {}
+        for patient_data in self.mongo_data:
+            content = ''
 
-        def nice_name(name):
-            try:
-                return de_camelcase(name)
-            except:
-                return name
+            if not self.viewable_forms:
+                content = "No modules available"
 
-        content = ''
+            for form in self.viewable_forms:
+                if form.is_questionnaire:
+                    continue
+                is_current = self._form_is_current(form, patient_data)
+                flag = "images/%s.png" % ("tick" if is_current else "cross")
 
-        if not forms:
-            content = "No modules available"
+                url = reverse('registry_form', args=(self.registry_model.code, form.id, patient_data['django_id']))
+                link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
+                label = nice_name(form.name)
 
-        for form in self.viewable_forms:
-            if form.is_questionnaire:
-                continue
-            is_current = patient_model.form_currency(form)
-            flag = "images/%s.png" % ("tick" if is_current else "cross")
+                to_form = link
+                if self.user.is_working_group_staff:
+                    to_form = label
 
-            url = reverse('registry_form', args=(registry_model.code, form.id, patient_model.id))
-            link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
-            label = nice_name(form.name)
+                if form.has_progress_indicator:
+                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
+                                                                               self._form_progress_one_form(form,
+                                                                                                            patient_data),
+                                                                                                            to_form)
+                else:
+                    content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
-            to_form = link
-            if user.is_working_group_staff:
-                to_form = label
+            html = "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+            results[patient_data["django_id"]] = html
+        return results
 
-            if form.has_progress_indicator:
-                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
-                                                                           patient_model.form_progress(form)[1],
-                                                                           to_form)
-            else:
-                content += "<img src=%s> %s</br>" % (static(flag), to_form)
+    def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now()-datetime.timedelta(days=365)):
+        form_timestamp = self._get_form_timestamp(patient_data, form_model)
+        if form_timestamp and form_timestamp >= time_window_start:
+                return True
+        return False
 
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+    def _form_progress_one_form(self, form_model, patient_data):
+        required_keys = self.completion_keys_by_form[form_model.name]
+        total = len(required_keys)
+        has_data = 0
+        for cde_key in required_keys:
+            if self._has_data(patient_data, cde_key):
+                has_data += 1
+        try:
+            percentage = 100.00 * (float(has_data) / float(total))
+        except:
+            percentage = 0.00
+
+        return percentage

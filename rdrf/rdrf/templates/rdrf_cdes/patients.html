@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 
-        {% if num_registries > 1 %}
+        {% if request.user.is_superuser or num_registries > 1  %}
             <select id="registry_select">
                 <option value="---">Select Registry ...</option>
                  {% for registry_model in registries %}
@@ -78,7 +78,7 @@
                         console.log(request);
                         request.registry_code = null;
 
-                        {% if num_registries > 1 %}
+                        {% if request.user.is_superuser or num_registries > 1 %}
                             request.registry_code = $("#registry_select").val();
                         {%  endif %}
 
@@ -242,7 +242,7 @@
 
                 });
 
-                {% if num_registries > 1 %}
+                {% if request.user.is_superuser or num_registries > 1  %}
                     // wire up  registry select
                      $("#add_patient").hide();
 

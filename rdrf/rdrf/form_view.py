@@ -1377,7 +1377,10 @@ class PatientsListingView(LoginRequiredMixin, View):
         context = {}
         context.update(csrf(request))
 
-        registries = [registry_model for registry_model in request.user.registry.all()]
+        if request.user.is_superuser:
+            registries = [ registry_model for registry_model in Registry.objects.all()]
+        else:
+            registries = [registry_model for registry_model in request.user.registry.all()]
         context["num_registries"] = len(registries)  # if there are one do something special
         context["registries"] = registries
 
