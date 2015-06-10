@@ -59,7 +59,16 @@ class FormProgressCalculator(object):
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
                     if cde_model.code in completion_codes:
-                        key_map[form_model.name].append(mongo_key(form_model.name, section_model.code, cde_model.code))
+                        if not section_model.allow_multiple:
+                            key_map[form_model.name].append((mongo_key(form_model.name,
+                                                                       section_model.code,
+                                                                       cde_model.code),
+                                                             None))
+                        else:
+                            key_map[form_model.name].append((mongo_key(form_model.name,
+                                                                       section_model.code,
+                                                                       cde_model.code),
+                                                             section_model.code))
         return key_map
 
     def _get_genetic_keys(self):
@@ -225,14 +234,25 @@ class FormProgressCalculator(object):
 
     def _form_progress_one_form(self, form_model, patient_data):
         required_keys = self.completion_keys_by_form[form_model.name]
-        total = len(required_keys)
-        has_data = 0
-        for cde_key in required_keys:
-            if self._has_data(patient_data, cde_key):
-                has_data += 1
+        required = len(required_keys)
+        filled_in = 0
+        for cde_key, section_code in required_keys:
+            if section_code is None:
+                # non-multiple
+                if self._has_data(patient_data, cde_key):
+                    filled_in += 1
+            else:
+                # multisection gets stored as a list of dictionaries -
+                section_items = patient_data.get(section_code,[])
+                for item_dict in section_items:
+                    if self._has_data(item_dict, cde_key):
+                        filled_in += 1
+                        break  # we have at least one value for a cde in the multisection
+
         try:
-            percentage = 100.00 * (float(has_data) / float(total))
-        except:
-            percentage = 0.00
+            percentage = 100 * (float(filled_in) / float(required))
+        except ZeroDivisionError:
+            percentage = 0
 
         return percentage
+
