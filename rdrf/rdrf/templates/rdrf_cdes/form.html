@@ -66,6 +66,10 @@
         .badge {
             border-radius: 0px;
         }
+        
+        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
+            border-top: 0;
+        }
     </style>
     
     <script>
@@ -208,7 +212,7 @@
                         <!-- start management form for {{s}}-->
                         {{ forms|get_management_form:s }}
                         <!-- end management form for {{s}} -->
-                        <table id="section_table_{{s}}">
+                        <table id="section_table_{{s}}" class="table" style="border-collapse: separate;">
                         <script>
                             $(document).ready(function() {
                                 $("#section_table_{{s}}").allow_dynamic_formsets({
@@ -226,15 +230,16 @@
                     
                         {% for f in forms|get_forms:s %}
                             <tbody>
-                            {% for field in f %}
-                                <tr>
-                                    <th class="col-md-4"><label for="{{field.id_for_label}}">{{field.label}}</label></th>
-                                    <td class="col-md-8">{{field}}</td>
-                                </tr>
-                            {% endfor %}
+                                {% for field in f %}
+                                    <tr>
+                                        <th class="col-md-4" style="text-align: right;"><label for="{{field.id_for_label}}">{{field.label}}</label></th>
+                                        <td class="col-md-8">{{field}}</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                             <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                                <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');">
+                                <th class="col-md-4" style="text-align: right;"></th>
+                                <td class="col-md-8" onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');">
                                     <button type="button" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-minus"></span> Remove</button>
                                 </td>
                             </tr>

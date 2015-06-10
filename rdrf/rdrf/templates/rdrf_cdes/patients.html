@@ -5,7 +5,7 @@
     <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
     
     <style>
-        .progress {background: rgba(255, 255, 255, 1); border: 0px solid rgba(245, 245, 245, 1); border-radius: 5px; height: 20px;}
+        .progress {background: rgba(255, 255, 255, 1); border: 0px solid rgba(245, 245, 245, 1); border-radius: 5px; height: 22px;}
         .progress-bar-custom {background: rgba(66, 139, 202, 1);}
     </style>
     
@@ -20,12 +20,11 @@
                  {% endfor %}
             </select>
         {% endif %}
-
-        <table id="grid" class="table table-hover table-striped" width="100%">
+        
+        <table id="grid" class="table table-hover" width="100%">
             <thead>
                 <tr>
-                    <th data-column-id="given_names">Given Names</th>
-                    <th data-column-id="family_name">Family Name</th>
+                    <th data-column-id="full_name" data-formatter="full_name_formatter">Patient</th>
                     <th data-column-id="working_groups_display">Working Groups</th>
                     <th data-column-id="date_of_birth">Date of Birth</th>
                     {% if request.user.is_clinical or request.user.is_curator or request.user.is_working_group_staff or request.user.is_superuser %}
@@ -35,7 +34,6 @@
                     {% if request.user.is_genetic_staff or request.user.is_genetic_curator or request.user.is_superuser %}
                         <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Genetic Data</th>
                     {% endif %}
-                    <th data-column-id="id" data-formatter="id">Demographics</th>
                     <th data-column-id="data_modules" data-formatter="data_modules" data-sortable="false">Modules</th>
                 </tr>
             </thead>
@@ -56,7 +54,6 @@
 
                     requestHandler: function(request)
                     {
-                        console.log(request);
                         request.registry_code = null;
 
                         {% if num_registries > 1 %}
@@ -72,7 +69,7 @@
                     },
 
                     formatters: {
-                        "id": function (column, row) {
+                        "full_name_formatter": function (column, row) {
                             var reg_div = $("<div>");
                             var restrict_registry;
                             try {
@@ -89,13 +86,7 @@
                                 
                                 var edit_link = $("<a>");
                                 edit_link.attr("href", link);
-                                edit_link.attr("class", "btn btn-xs btn-warning");
-                                
-                                //var pencil_icon = $("<span>").attr("class", "glyphicon glyphicon-pencil");
-                                //pencil_icon.attr("aria-hidden", "true");
-                                
-                                //edit_link.append(pencil_icon);
-                                edit_link.append("Edit");
+                                edit_link.append(row.full_name);
 
                                 if (restrict_registry != null) {
                                     if (reg == restrict_registry) {
