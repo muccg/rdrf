@@ -285,7 +285,7 @@
 <script>
   $(document).ready(function () {
     $(":input").not(':input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-    $("input:not([type='checkbox'])").addClass("form-control");
+    $("input:[type=checkbox]").removeClass();
     $("textarea").addClass("form-control");
     $("select").addClass("form-control");
     $("label[for*='-clear']").removeClass();
