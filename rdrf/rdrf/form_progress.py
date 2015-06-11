@@ -99,7 +99,7 @@ class FormProgressCalculator(object):
         for mongo_key in mongo_keys:
             try:
                 value = patient_mongo_data[mongo_key]
-                if value is not None:
+                if value:
                     have_non_empty_data += 1
             except KeyError:
                 pass
