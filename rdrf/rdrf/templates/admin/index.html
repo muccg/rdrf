@@ -8,8 +8,6 @@
 {% block content %}
     <div class="well">
       {% if app_list|length > 1 %}
-      <div class="alert alert-info"><h4>{% trans 'Quick access links' %}</h4></div>
-      
       <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
             {% for quick_link in request.user.quick_links %}
              <tr><th scope="row"><i class="icon-cog"></i> <a href="{{quick_link.url}}">{{quick_link.text}}</a></th></tr>
