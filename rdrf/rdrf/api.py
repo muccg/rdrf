@@ -71,6 +71,8 @@ class PatientResource(ModelResource):
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
+        bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
+
         if hasattr(bundle, "progress_data"):
             progress_data = getattr(bundle, "progress_data")
 
@@ -90,9 +92,9 @@ class PatientResource(ModelResource):
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
 
-        bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
-        bundle.data["diagnosis_currency"] = p.clinical_data_currency()
-        bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
+        #bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        #bundle.data["diagnosis_currency"] = p.clinical_data_currency()
+
         return bundle
 
     def _get_reg_list(self, patient, user):
@@ -176,8 +178,10 @@ class PatientResource(ModelResource):
         results = {}
         from rdrf.form_progress import FormProgressCalculator
         registry_model = Registry.objects.get(code=registry_code)
-        progress_calculator = FormProgressCalculator(registry_model, user)
+        logger.debug("reg code = %s" % registry_code)
+        progress_calculator = FormProgressCalculator(registry_model, user, self)
         patient_ids = [patient.id for patient in page.object_list]
+        logger.debug("patient ids = %s" % patient_ids)
         progress_calculator.load_data(patient_ids)
 
         if compute_progress:
@@ -294,7 +298,12 @@ class PatientResource(ModelResource):
         objects = []
 
 
+        logger.debug("reg code = %s" % chosen_registry_code)
+        logger.debug("user = %s" % request.user)
+
         bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
+
+        logger.debug("xxxx bulk data = %s" % bulk_progress_data)
 
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
@@ -303,12 +312,18 @@ class PatientResource(ModelResource):
             objects.append(bundle)
 
         # Adapt the results to fit what jquery bootgrid expects
+
+
+
+
         results = {
             "current": current,
             "rowCount": row_count,
             "searchPhrase": search_phrase,
             "rows": objects,
-            "total": total
+            "total": total,
+            "show_diagnosis_progress": chosen_registry.has_diagnosis_progress_defined,
+
         }
 
         self.log_throttled_access(request)

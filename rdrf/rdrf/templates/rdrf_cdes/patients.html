@@ -89,6 +89,9 @@
                     },
 
                     responseHandler: function (response) {
+
+
+
                         return response;
                     },
 
@@ -128,6 +131,11 @@
 
                         "diagnosis_progress_formatter": function(column, row) {
                             var html = "";
+
+                            if (row.diagnosis_progress === undefined) {
+                                return "";
+
+                            }
                             var inOneRegistry = _.keys(row.diagnosis_progress).length == 1;
 
                             for (var regCode in row.diagnosis_progress) {
@@ -161,7 +169,14 @@
                             var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
                             var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                             // If we are in just one registry don't display reg code prefix
+
+                            if (row.genetic_data_map === undefined) {
+                                return "";
+
+                            }
+
                             var inOneRegistry = _.keys(row.genetic_data_map).length == 1;
+
 
                             for (var regCode in row.genetic_data_map) {
                                 var geneticDataIndicatorHTML;
@@ -192,6 +207,10 @@
                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                            // If we are in just one registry don't display reg code prefix
+                           if (row.diagnosis_currency === undefined) {
+                               return "";
+
+                           }
                            var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
    
                            for (var regCode in row.diagnosis_currency) {
