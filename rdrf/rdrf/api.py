@@ -71,7 +71,6 @@ class PatientResource(ModelResource):
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
-
         if hasattr(bundle, "progress_data"):
             progress_data = getattr(bundle, "progress_data")
 
@@ -90,6 +89,10 @@ class PatientResource(ModelResource):
         finish = time.time()
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
+
+        bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        bundle.data["diagnosis_currency"] = p.clinical_data_currency()
+        bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
         return bundle
 
     def _get_reg_list(self, patient, user):
@@ -152,7 +155,7 @@ class PatientResource(ModelResource):
             else:
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
+        return "<button type='button' class='btn btn-primary btn-xs' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
     
 
 
