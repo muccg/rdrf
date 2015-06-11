@@ -173,6 +173,15 @@ class Registry(models.Model):
         return self._progress_cdes(progress_type="genetic")
 
 
+    @property
+    def has_diagnosis_progress_defined(self):
+        return len(self.diagnosis_progress_cde_triples) > 0
+
+    @property
+    def has_genetic_progress_defined(self):
+        return len(self.genetic_progress_cde_triples) > 0
+
+
     def get_adjudications(self):
         if not has_feature("adjudication"):
             return []

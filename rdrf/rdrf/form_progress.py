@@ -4,6 +4,8 @@ from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from rdrf.utils import mongo_db_name, mongo_key, de_camelcase
 from rdrf.models import RegistryForm
+from registry.patients.models import Patient
+
 import logging
 import datetime
 
@@ -28,18 +30,22 @@ def nice_name(name):
 
 class FormProgressCalculator(object):
 
-    def __init__(self, registry_model, user):
+    def __init__(self, registry_model, user, patient_resource):
         self.user = user
         self.registry_model = registry_model
+        self.patient_resource = patient_resource
 
         self.viewable_forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by('position')
                  if self._not_generated_form(f) and self.user.can_view(f)]
 
         # List of (form_model, section_model, cde_model) triples
         self.diagnosis_triples = self.registry_model.diagnosis_progress_cde_triples
+        logger.debug("xx diagnosis triples = %s" % self.diagnosis_triples)
         self.genetic_triples = self.registry_model.genetic_progress_cde_triples
         self.diagnosis_forms = self._get_diagnosis_forms()
+        logger.debug("xx diagnosis forms = %s" % self.diagnosis_forms)
         self.genetic_forms = self._get_genetic_forms()
+        logger.debug("xx genetic forms = %s" % self.genetic_forms)
         self.patient_ids = []
         self.completion_keys_by_form = self._get_completion_keys_by_form() # do this once to save time
 
@@ -50,6 +56,7 @@ class FormProgressCalculator(object):
         self.mongo_data = []
         self.form_currency = {}  # {patient_id : {form name : bool}}
         self.data_map = {}
+        self.patient_ids_not_in_mongo = []
 
     def _get_completion_keys_by_form(self):
         key_map = {}
@@ -99,7 +106,7 @@ class FormProgressCalculator(object):
         for mongo_key in mongo_keys:
             try:
                 value = patient_mongo_data[mongo_key]
-                if value is not None:
+                if value:
                     have_non_empty_data += 1
             except KeyError:
                 pass
@@ -115,6 +122,7 @@ class FormProgressCalculator(object):
 
     def load_data(self, patient_ids):
         self.mongo_data = self._get_mongo_data(patient_ids)
+        self.patient_ids_not_in_mongo = set(self.patient_ids) - set([mongo_record["django_id"] for mongo_record in self.mongo_data])
 
     def _progress(self, progress_type=ProgressType.DIAGNOSIS):
 
@@ -125,12 +133,18 @@ class FormProgressCalculator(object):
         else:
             triples = self.genetic_triples
 
+        total = len(triples)
+
         mongo_keys = self._get_mongo_keys_for_triples(triples)
 
         for patient_data in self.mongo_data:
             patient_id = patient_data["django_id"]
             results[patient_id] = self._progress_for_keys(patient_data, mongo_keys)[2]
             logger.debug("diagnosis progress for patient %s = %s" % (patient_id, results[patient_id]))
+
+        for patient_id in self.patient_ids_not_in_mongo:
+            results[patient_id] = 0, total, 0
+
 
         return results
 
@@ -156,6 +170,9 @@ class FormProgressCalculator(object):
                 if self._has_data(patient_data, key):
                     results[patient_data["django_id"]] = True
                     break
+
+        for patient_id in self.patient_ids_not_in_mongo:
+            results[patient_id] = False
         return results
 
     def genetic_progress(self):
@@ -163,13 +180,16 @@ class FormProgressCalculator(object):
 
     def diagnosis_currency(self, num_days=365):
         results = {}
+        logger.debug("mongo data %s" % self.mongo_data)
         for patient_data in self.mongo_data:
             results[patient_data["django_id"]] = self.data_currency_one_patient(patient_data,
                                                                                 self.diagnosis_forms,
                                                                                 num_days)
+
+        for patient_id in self.patient_ids_not_in_mongo:
+            results[patient_id] = False
+
         return results
-
-
 
     def data_currency_one_patient(self, patient_data, form_models, days=365):
         time_window_start = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -224,6 +244,13 @@ class FormProgressCalculator(object):
 
             html = "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
             results[patient_data["django_id"]] = html
+
+
+        for patient_id in self.patient_ids_not_in_mongo:
+            p = Patient.objects.get(id=patient_id)
+            results[patient_id] = self.patient_resource._get_data_modules(p, self.registry_model.code, self.user)
+
+
         return results
 
     def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now()-datetime.timedelta(days=365)):
