@@ -70,7 +70,10 @@ class PatientResource(ModelResource):
 
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
-        bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
+        if bundle.request.user.is_superuser:
+            bundle.data["reg_code"] = [reg.code for reg in Registry.objects.all()]
+        else:
+            bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
         bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
 
         if hasattr(bundle, "progress_data"):
