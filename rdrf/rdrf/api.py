@@ -70,7 +70,10 @@ class PatientResource(ModelResource):
 
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
-        bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
+        if bundle.request.user.is_superuser:
+            bundle.data["reg_code"] = [reg.code for reg in Registry.objects.all()]
+        else:
+            bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
         bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
 
         if hasattr(bundle, "progress_data"):
@@ -178,8 +181,9 @@ class PatientResource(ModelResource):
         results = {}
         from rdrf.form_progress import FormProgressCalculator
         registry_model = Registry.objects.get(code=registry_code)
-        logger.debug("reg code = %s" % registry_code)
-        progress_calculator = FormProgressCalculator(registry_model, user, self)
+        logger.debug("about to set patient_instance_resource to self ..")
+        patient_resource_instance = self
+        progress_calculator = FormProgressCalculator(registry_model, user, patient_resource_instance)
         patient_ids = [patient.id for patient in page.object_list]
         logger.debug("patient ids = %s" % patient_ids)
         progress_calculator.load_data(patient_ids)
@@ -231,9 +235,9 @@ class PatientResource(ModelResource):
                 chosen_registry = request.user.registry.get()
                 registry_queryset = [chosen_registry]
                 chosen_registry_code = chosen_registry.code
-
             else:
-                raise Exception("Need to filter registry - count = %s" % request.user.num_registries)
+                registry_queryset = []
+
 
 
         patients = Patient.objects.all()

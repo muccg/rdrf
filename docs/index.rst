@@ -6,9 +6,10 @@
 About the Rare Disease Registry Framework
 =========================================
 
-The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient 
-registries, which delivers the features needed to support improved health outcomes for patients and patient 
-organisations. The RDRF empowers Patient Organisations, Clinicians and Researchers to create and manage their 
+The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based Patient 
+Registries, which delivers the features that you and/or your organisation currently require. The RDRF is
+flexible, and your Registry can be customised and enhanced to evolve as your needs change. 
+The RDRF empowers Patient Organisations, Clinicians and Researchers to create and manage their 
 own Patient Registries, without the need for software development. 
 
 The RDRF is unique in that data entry forms and questionnaires are based on reusable data element definitions 

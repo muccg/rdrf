@@ -1340,6 +1340,9 @@ class ConsentSection(models.Model):
     applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
 
     def applicable_to(self, patient):
+        if patient is None:
+            return False
+
         if not patient.in_registry(self.registry.code):
             return False
         else:
