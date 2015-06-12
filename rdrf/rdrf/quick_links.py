@@ -3,10 +3,11 @@ from django.utils.translation import ugettext_lazy as _
 from rdrf.datastructures import OrderedSet as oset
 
 class QuickLink(object):
-    def __init__(self, url_name, text, glyph_icon="glyphicon-minus"):
+    def __init__(self, url_name, text, admin_link=False, glyph_icon="glyphicon-minus"):
         self.url = reverse(url_name)
         self.text = _(text)
         self.glyph_icon = glyph_icon
+        self.admin_link = admin_link
 
 
 class QuickLinks(object):
@@ -24,12 +25,12 @@ class QuickLinks(object):
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
 
     # Admin only
-    Registries = QuickLink("admin:rdrf_registry_changelist", "Registries")
-    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", "Registry Form")
-    Sections = QuickLink("admin:rdrf_section_changelist", "Sections")
-    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", "Data Elements")
-    PermissibleValueGroups = QuickLink("admin:rdrf_cdepermittedvaluegroup_changelist", "Permissible Value Groups")
-    PermissibleValues = QuickLink("admin:rdrf_cdepermittedvalue_changelist", "Permissible Values")
+    Registries = QuickLink("admin:rdrf_registry_changelist", "Registries", True)
+    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", "Registry Form", True)
+    Sections = QuickLink("admin:rdrf_section_changelist", "Sections", True)
+    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", "Data Elements", True)
+    PermissibleValueGroups = QuickLink("admin:rdrf_cdepermittedvaluegroup_changelist", "Permissible Value Groups", True)
+    PermissibleValues = QuickLink("admin:rdrf_cdepermittedvalue_changelist", "Permissible Values", True)
 
     DATA_ENTRY = oset([PatientsListing])
     DOCTORS = oset([Doctors])

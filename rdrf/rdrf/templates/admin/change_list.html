@@ -13,7 +13,14 @@
   {{ media.css }}
   {% if not actions_on_top and not actions_on_bottom %}
     <style>
-      #changelist table thead th:first-child {width: inherit}
+       #changelist table thead th:first-child {width: inherit}
+        #changelist .paginator {
+          color: #666;
+          border-top: 1px solid #eee;
+          border-bottom: 1px solid #eee;
+          /* background: white url(../img/nav-bg.gif) 0 180% repeat-x; */
+          overflow: hidden;
+        }
     </style>
   {% endif %}
 {% endblock %}
@@ -50,12 +57,15 @@
 
 {% block content %}
   <div id="content-main">
+    <blockquote>
+        <h4><i class="text-muted">{% blocktrans with cl.opts.verbose_name_plural as name %}{{ name }}{% endblocktrans %}</i></h4>
+    </blockquote>
     {% block object-tools %}
       {% if has_add_permission %}
           {% block object-tools-items %}
               {% url cl.opts|admin_urlname:'add' as add_url %}
-              <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" id="add_button">
-                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+              <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
               </a>
           {% endblock %}
       {% endif %}
@@ -81,6 +91,8 @@
           {% result_list cl %}
           {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
       {% endblock %}
+      
+      {% block pagination %}{% pagination cl %}{% endblock %}
       </form>
     </div>
   </div>
