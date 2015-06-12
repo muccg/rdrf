@@ -7,11 +7,18 @@
     <style>
         .progress {background: rgba(255, 255, 255, 1); border: 0px solid rgba(245, 245, 245, 1); border-radius: 5px; height: 22px;}
         .progress-bar-custom {background: rgba(66, 139, 202, 1);}
+        
+        .spacer {
+            margin-left: 20px; /* define margin as you see fit */
+        }
     </style>
     
 {% endblock %}
 {% block content %}
-
+        <blockquote>
+            <h4><i class="text-muted">Patients</i></h4>
+        </blockquote>
+    
         {% if request.user.is_superuser or num_registries > 1  %}
             <div class="col-md-4" id="registry_select_div">
                 <select id="registry_select" class="form-control">
@@ -23,7 +30,7 @@
             </div>
         {% endif %}
 
-        <button id="add_patient" class="btn btn-success">
+        <button id="add_patient" class="btn btn-success spacer">
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
         </button>
 
@@ -287,7 +294,7 @@
 
                     $(document).ready(function() {
                         $("#registry_select_div").insertBefore($("div[class='search form-group']"));
-                        $("#add_patient").insertAfter($("button[title='Refresh']"));
+                        $("#add_patient").insertAfter($("div[class='actions btn-group']"));
                     });
                 {% endif %}
                 });
