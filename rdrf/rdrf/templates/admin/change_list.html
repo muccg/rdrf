@@ -26,6 +26,8 @@
 (function($) {
     $(document).ready(function($) {
         $("tr input.action-select").actions();
+        console.log("sdf");
+        $("#add_button").insertAfter($("input[value='Search']"));
     });
 })(django.jQuery);
 </script>
@@ -52,7 +54,7 @@
       {% if has_add_permission %}
           {% block object-tools-items %}
               {% url cl.opts|admin_urlname:'add' as add_url %}
-              <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-sm">
+              <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" id="add_button">
                 {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
               </a>
           {% endblock %}
@@ -82,4 +84,11 @@
       </form>
     </div>
   </div>
+
+    <script>
+        $(document).ready(function($) {
+            $("#add_button").insertAfter($("input[value='Search']"));
+            $("#toolbar").attr("style", "text-align:right");
+        });
+    </script>
 {% endblock %}

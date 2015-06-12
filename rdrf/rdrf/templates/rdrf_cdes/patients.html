@@ -13,15 +13,19 @@
 {% block content %}
 
         {% if request.user.is_superuser or num_registries > 1  %}
-            <select id="registry_select">
-                <option value="---">Select Registry ...</option>
-                 {% for registry_model in registries %}
-                    <option value="{{registry_model.code}}">{{registry_model.name}}</option>
-                 {% endfor %}
-            </select>
+            <div class="col-md-4" id="registry_select_div">
+                <select id="registry_select" class="form-control">
+                    <option value="---">Select Registry ...</option>
+                     {% for registry_model in registries %}
+                        <option value="{{registry_model.code}}">{{registry_model.name}}</option>
+                     {% endfor %}
+                </select>
+            </div>
         {% endif %}
 
-        <button id="add_patient" class="btn btn-success">Add patient</button>
+        <button id="add_patient" class="btn btn-success">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
 
         <table id="grid" class="table table-hover" width="100%">
             <thead>
@@ -40,10 +44,10 @@
                 </tr>
             </thead>
         </table>
+        
         <!-- Scripts -->
         <script>
             $(document).ready(function () {
-
                 $("#add_patient").click(function() {
                     var registryCode = null;
                     var addPatientUrl = '{% url "patient_add" "xxx" %}';
@@ -281,6 +285,10 @@
 
                     $("#registry_select").val("---");
 
+                    $(document).ready(function() {
+                        $("#registry_select_div").insertBefore($("div[class='search form-group']"));
+                        $("#add_patient").insertAfter($("button[title='Refresh']"));
+                    });
                 {% endif %}
                 });
         </script>
