@@ -178,8 +178,9 @@ class PatientResource(ModelResource):
         results = {}
         from rdrf.form_progress import FormProgressCalculator
         registry_model = Registry.objects.get(code=registry_code)
-        logger.debug("reg code = %s" % registry_code)
-        progress_calculator = FormProgressCalculator(registry_model, user, self)
+        logger.debug("about to set patient_instance_resource to self ..")
+        patient_resource_instance = self
+        progress_calculator = FormProgressCalculator(registry_model, user, patient_resource_instance)
         patient_ids = [patient.id for patient in page.object_list]
         logger.debug("patient ids = %s" % patient_ids)
         progress_calculator.load_data(patient_ids)
@@ -231,9 +232,9 @@ class PatientResource(ModelResource):
                 chosen_registry = request.user.registry.get()
                 registry_queryset = [chosen_registry]
                 chosen_registry_code = chosen_registry.code
-
             else:
-                raise Exception("Need to filter registry - count = %s" % request.user.num_registries)
+                registry_queryset = []
+
 
 
         patients = Patient.objects.all()
