@@ -84,6 +84,10 @@
                             request.registry_code = $("#registry_select").val();
                         {%  endif %}
 
+                        {% if not request.user.is_superuser and num_registries == 1 %}
+                            request.registry_code = "{{the_one_registry_code}}";
+                        {% endif %}
+
                         return request;
 
                     },
