@@ -1336,12 +1336,12 @@ class ConsentSection(models.Model):
     code = models.CharField(max_length=20)
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
-    information_link = models.CharField(max_length=100)
+    information_link = models.CharField(max_length=100, blank=True, null=True)
     applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
 
     def applicable_to(self, patient):
         if patient is None:
-            return False
+            return True
 
         if not patient.in_registry(self.registry.code):
             return False
@@ -1365,7 +1365,10 @@ class ConsentSection(models.Model):
 
     @property
     def link(self):
-         return reverse('documents', args=(self.information_link,))
+        if self.information_link:
+            return reverse('documents', args=(self.information_link,))
+        else:
+            return ""
 
     @property
     def form_info(self):

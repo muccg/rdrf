@@ -150,9 +150,12 @@ class PatientForm(forms.ModelForm):
 
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
 
-        if 'instance' in kwargs and kwargs['instance'] is not None:
-            self._add_custom_consent_fields(instance)
-            logger.debug("added custom consent fields")
+        #if 'instance' in kwargs and kwargs['instance'] is not None:
+        if not 'instance' in kwargs:
+            self._add_custom_consent_fields(None)
+        else:
+            self._add_custom_consent_fields(kwargs['instance'])
+        #logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
@@ -320,7 +323,12 @@ class PatientForm(forms.ModelForm):
         return registry_model, consent_section_model, consent_question_model
 
     def _add_custom_consent_fields(self, patient_model):
-        for registry_model in patient_model.rdrf_registry.all():
+        if patient_model is None:
+            registries = [self.registry_model]
+        else:
+            registries = patient_model.rdrf_registry.all()
+
+        for registry_model in registries:
             for consent_section_model in registry_model.consent_sections.all():
                 if consent_section_model.applicable_to(patient_model):
                     for consent_question_model in consent_section_model.questions.all().order_by("position"):
