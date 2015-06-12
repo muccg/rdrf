@@ -44,7 +44,6 @@
                 {% block parent_menu %}
                 {% endblock %}
                 {% if not request.user.is_patient and not request.user.is_parent %}
-                    <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-list-alt"></span> Home</a></li>
                     <li><a href="{% url 'reports' %}"><span class="glyphicon glyphicon-list-alt"></span> Reports</a></li>
                 {% else %}
                     {% if registry_code and request.user.is_patient %}
