@@ -1,0 +1,93 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/login.css" %}" />
+{% endblock %}
+
+{% block bodyclass %}login{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+{% if form.errors and not form.non_field_errors and not form.this_is_the_login_form.errors %}
+<p class="errornote">
+<div class="alert alert-danger">
+{% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+</div>
+</p>
+{% endif %}
+
+{% if form.non_field_errors or form.this_is_the_login_form.errors %}
+{% for error in form.non_field_errors|add:form.this_is_the_login_form.errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+<div id="content-main">
+
+<form action="{{ app_path }}" method="post" id="login-form" class="form-horizontal">{% csrf_token %}
+    <div class="row">
+    
+        <div class="col-md-6 col-md-offset-3">
+    
+            <div class="panel panel-default">
+            
+                <div class="panel-heading">
+                    <strong>Welcome</strong>
+                </div>
+                
+                <div class="panel-body">
+                      <div class="form-group">
+                        <label for="id_username" class="required col-md-3 control-label">{{ form.username.label }}:</label>
+                        <div class="col-md-9">
+                            {{ form.username }}
+                            {% if not form.this_is_the_login_form.errors %}{{ form.username.errors.as_text }}{% endif %}
+                        </span>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="id_password" class="required col-md-3 control-label">{% trans 'Password:' %}</label>
+                        <div class="col-md-9">
+                            {{ form.password }}
+                            {% if not form.this_is_the_login_form.errors %}{{ form.password.errors.as_text }}{% endif %}
+                            <input type="hidden" name="this_is_the_login_form" value="1" />
+                            <input type="hidden" name="next" value="{{ next }}" />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        {% url 'admin_password_reset' as password_reset_url %}
+                        {% if password_reset_url %}
+                        <div class="password-reset-link">
+                          <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
+                        </div>
+                        {% endif %}
+                      </div>
+                </div>
+                
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-success pull-right" value="{% trans 'Log in' %}" />
+                    <div class="clearfix"></div>
+                </div>
+            
+            </div>
+        
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+document.getElementById('id_username').focus()
+$(document).ready(function() {
+    $(":input").not(":input[type='submit']").addClass("form-control");
+});
+</script>
+</div>
+{% endblock %}
