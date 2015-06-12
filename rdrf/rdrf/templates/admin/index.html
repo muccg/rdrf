@@ -6,13 +6,11 @@
 {% block title %}{{ section.title }}{% endblock %}
 
 {% block content %}
-    <div class="well">
       {% if app_list|length > 1 %}
-      <table class="table table-hover" summary="{% blocktrans with name=app.name %}Models available in the {{ name }} application.{% endblocktrans %}">
-            {% for quick_link in request.user.quick_links %}
-             <tr><th scope="row"><i class="icon-cog"></i> <a href="{{quick_link.url}}">{{quick_link.text}}</a></th></tr>
-            {% endfor %}
-      </table>
-      {% endif %}
-    </div>
+      <ul class="list-group">
+        {% for quick_link in request.user.quick_links %}
+            <li class="list-group-item"><a href="{{quick_link.url}}">{{quick_link.text}}</a></li>
+        {% endfor %}
+      </ul>
+  {% endif %}
 {% endblock %}
