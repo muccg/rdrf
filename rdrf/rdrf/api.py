@@ -227,13 +227,13 @@ class PatientResource(ModelResource):
             registry_queryset = [chosen_registry]
         else:
 
-            if request.user.registry.count() == 1:
+            if request.user.num_registries == 1:
                 chosen_registry = request.user.registry.get()
                 registry_queryset = [chosen_registry]
                 chosen_registry_code = chosen_registry.code
 
             else:
-                raise Exception("Need to filter registry")
+                raise Exception("Need to filter registry - count = %s" % request.user.num_registries)
 
 
         patients = Patient.objects.all()
@@ -303,7 +303,6 @@ class PatientResource(ModelResource):
 
         bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
 
-        logger.debug("xxxx bulk data = %s" % bulk_progress_data)
 
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
@@ -313,17 +312,13 @@ class PatientResource(ModelResource):
 
         # Adapt the results to fit what jquery bootgrid expects
 
-
-
-
         results = {
             "current": current,
             "rowCount": row_count,
             "searchPhrase": search_phrase,
             "rows": objects,
             "total": total,
-            "show_diagnosis_progress": chosen_registry.has_diagnosis_progress_defined,
-
+            "show_add_patient": not chosen_registry.has_feature("no_add_patient_button"),
         }
 
         self.log_throttled_access(request)

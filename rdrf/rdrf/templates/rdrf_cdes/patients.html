@@ -89,8 +89,12 @@
                     },
 
                     responseHandler: function (response) {
-
-
+                        if(!response.show_add_patient) {
+                            $("#add_patient").hide();
+                        }
+                        else {
+                            $("#add_patient").show();
+                        }
 
                         return response;
                     },
@@ -270,6 +274,9 @@
                              $("#add_patient").show();
                          }
                     });
+
+                    $("#registry_select").val("---");
+
                 {% endif %}
                 });
         </script>
