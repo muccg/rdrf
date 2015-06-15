@@ -316,6 +316,7 @@ class Exporter(object):
                             "section_label": consent_section.section_label,
                             "information_link": consent_section.information_link,
                             "applicability_condition": consent_section.applicability_condition,
+                            "validation_rule": consent_section.validation_rule,
                             "questions": []}
             for consent_model in consent_section.questions.all():
                 cm = {"code": consent_model.code,
