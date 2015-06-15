@@ -23,6 +23,7 @@ class QuickLinks(object):
     # Genetic Staff
     Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
+    WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", "Working Groups")
 
     # Admin only
     Registries = QuickLink("admin:rdrf_registry_changelist", "Registries", True)
@@ -35,6 +36,7 @@ class QuickLinks(object):
     Importer = QuickLink("import_registry", "Importer", True)
     
     DATA_ENTRY = oset([PatientsListing])
+    WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
     USER_MANAGEMENT = oset([Users])
@@ -50,4 +52,4 @@ class QuickLinks(object):
 
     CLINICIAN = DATA_ENTRY | DOCTORS
 
-    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN
+    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS
