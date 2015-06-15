@@ -1361,6 +1361,53 @@ class ConsentSection(models.Model):
                 logger.debug("%s is NOT applicable to %s" % (self, patient))
             return is_applicable
 
+    def is_valid(self, answer_dict):
+        """
+        does the supplied question_code --> answer map
+        satisfy the validation rule for this section
+        :param answer_dict: map of question codes to bool
+        :return: True or False depending on validation rule
+        """
+
+
+        if not self.validation_rule:
+            logger.debug("no validation rule - returning True")
+            return True
+
+        function_context = {}
+
+        for consent_question_code in answer_dict:
+            answer = answer_dict[consent_question_code]
+            function_context[consent_question_code] = answer
+
+
+        # codes not in dict are set to false ..
+
+        for question_model in self.questions.all():
+            if question_model.code not in answer_dict:
+                function_context[question_model.code] = False
+
+        try:
+            result = eval(self.validation_rule, {"__builtins__": None}, function_context)
+            if not result in [True, False, None]:
+                logger.info("validation rule for %s returned %s - returning False!" % (self.code, result))
+                return False
+
+            if result:
+                logger.debug("validation rule for %s passed!" % self)
+            else:
+                logger.debug("validation rule for %s failed" % self)
+
+            return result
+        except Exception, ex:
+            logger.error("Error evaluating consent section %s rule %s context %s error %s" % (self.code,
+                                                                                              self.validation_rule,
+                                                                                              function_context,
+                                                                                              ex))
+
+            return False
+
+
     def __unicode__(self):
         return "Consent Section %s" % self.section_label
 

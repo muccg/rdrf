@@ -268,11 +268,46 @@ class PatientForm(forms.ModelForm):
 
         self._check_working_groups(cleaneddata)
 
+        self._validate_custom_consents()
+
         return super(PatientForm, self).clean()
 
-    def save(self,  commit=True):
+    def _validate_custom_consents(self):
+        logger.debug("custom consents = %s" % self.custom_consents)
+        data = {}
+        for field_key in self.custom_consents:
+            parts = field_key.split("_")
+            reg_pk = int(parts[1])
+            registry_model = Registry.objects.get(id=reg_pk)
+            if registry_model not in data:
+                data[registry_model] = {}
 
-        logger.debug("XXXXX saving patient data")
+            consent_section_pk = int(parts[2])
+            consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
+
+            if consent_section_model not in data[registry_model]:
+                data[registry_model] = {consent_section_model : {}}
+
+            consent_question_pk = int(parts[3])
+            consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
+            answer = self.custom_consents[field_key]
+
+            data[registry_model][consent_section_model][consent_question_model.code] = answer
+
+        validation_errors = []
+
+        for registry_model in data:
+            for consent_section_model in data[registry_model]:
+                answer_dict = data[registry_model][consent_section_model]
+                if not consent_section_model.is_valid(answer_dict):
+                    error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
+                                                                              consent_section_model.section_label)
+                    validation_errors.append(error_message)
+
+        if len(validation_errors) > 0:
+            raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
+
+    def save(self,  commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
         logger.debug("patient instance = %s" % patient_model)
