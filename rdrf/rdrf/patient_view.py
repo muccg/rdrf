@@ -390,7 +390,23 @@ class PatientFormMixin(PatientMixin):
                                 patient_relative_model.create_patient_from_myself(self.registry_model,
                                                                                   self.object.working_groups.all())
 
+        patient_model = self.object
+        if hasattr(patient_model, 'add_registry_closures'):
+            registry_ids = [reg.id for reg in patient_model.rdrf_registry.all()]
+            self._run_consent_closures(patient_model, registry_ids)
+        else:
+            logger.debug("self.object has no closures")
+
         return HttpResponseRedirect(self.get_success_url())
+
+    def _run_consent_closures(self, patient_model, registry_ids):
+        logger.debug("reg ids = %s" % registry_ids)
+        if hasattr(patient_model, "add_registry_closures"):
+            for closure in patient_model.add_registry_closures:
+                closure(patient_model, registry_ids)
+            delattr(patient_model, 'add_registry_closures')
+        else:
+            logger.debug("patient model does not have closure list")
 
     def form_invalid(self, form):
         for error in form.errors:

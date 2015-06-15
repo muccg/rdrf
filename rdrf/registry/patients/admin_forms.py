@@ -271,7 +271,8 @@ class PatientForm(forms.ModelForm):
         return super(PatientForm, self).clean()
 
     def save(self,  commit=True):
-        logger.debug("saving patient data")
+
+        logger.debug("XXXXX saving patient data")
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
         logger.debug("patient instance = %s" % patient_model)
@@ -302,6 +303,7 @@ class PatientForm(forms.ModelForm):
         for consent_field in self.custom_consents:
             logger.debug("saving consent field %s ( value to save = %s)" % (consent_field, self.custom_consents[consent_field]))
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(consent_field)
+
             if registry_model in patient_registries:
                 logger.debug("saving consents for %s %s" % (registry_model, consent_section_model))
                 # are we still applicable?! - maybe some field on patient changed which means not so any longer?
@@ -309,8 +311,39 @@ class PatientForm(forms.ModelForm):
                     logger.debug("%s is applicable to %s" % (consent_section_model, patient_model))
                     cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
                     logger.debug("set consent value ok : cv = %s" % cv)
+                else:
+                    logger.debug("%s is not applicable to model %s" % (consent_section_model, patient_model))
+
+            else:
+                logger.debug("patient not in %s ?? no consents added here" % registry_model)
+
+            if not patient_registries:
+                logger.debug("No registries yet - Adding patient consent closure")
+                closure = self._make_consent_closure(registry_model, consent_section_model, consent_question_model, consent_field)
+                if hasattr(patient_model, 'add_registry_closures'):
+                    logger.debug("appending to closure list")
+                    patient_model.add_registry_closures.append(closure)
+                else:
+                    logger.debug("settng new closure list")
+                    setattr(patient_model,'add_registry_closures', [closure])
+
 
         return patient_model
+
+    def _make_consent_closure(self, registry_model, consent_section_model, consent_question_model, consent_field):
+        def closure(patient_model, registry_ids):
+            logger.debug("running consent closure")
+            if registry_model.id in registry_ids:
+                if consent_section_model.applicable_to(patient_model):
+                    logger.debug("%s is applicable to %s" % (consent_section_model, patient_model))
+                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
+                    logger.debug("set consent value ok : cv = %s" % cv)
+                else:
+                    logger.debug("%s is not applicable to model %s" % (consent_section_model, patient_model))
+            else:
+                pass
+        return closure
+
 
     def _get_consent_field_models(self, consent_field):
         logger.debug("getting consent field models for %s" % consent_field)
