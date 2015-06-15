@@ -1338,6 +1338,7 @@ class ConsentSection(models.Model):
     registry = models.ForeignKey(Registry, related_name="consent_sections")
     information_link = models.CharField(max_length=100, blank=True, null=True)
     applicability_condition = models.TextField(blank=True)  # eg "patient.age > 6 and patient.age" < 10
+    validation_rule = models.TextField(blank=True)
 
     def applicable_to(self, patient):
         if patient is None:
