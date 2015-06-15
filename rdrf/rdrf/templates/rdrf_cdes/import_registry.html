@@ -32,26 +32,20 @@
     </div>
     
     <form enctype="multipart/form-data" method="post" id="import-form">{% csrf_token %}
-        <table class="table table-striped table-bordered table-hover table-condensed">
-            <thead>
-            <tr>
-                <th>Registry YAML</th>
-            </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th>
-                        <input type="file" id="id_registry_yaml_file" name="registry_yaml_file" accept=".yaml"></input>
-                    </th>
-                </tr>
-                <tr>
-                    <th>
-                        <textarea cols="100" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>
-                    </th>
-                </tr>
-            </tbody>
-        </table>
-        <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="Submit" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Registry YAML
+            </div>
+            <div class="panel-body">
+                <input type="file" class="form-control" id="id_registry_yaml_file" name="registry_yaml_file" accept=".yaml"></input>
+                <p></p>
+                <textarea cols="100" class="form-control" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>
+            </div>
+            <div class="panel-footer">
+                <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="Submit" />
+                <div class="clearfix"></div>
+            </div>
+        </div>
     </form>
     
     <h2 class="muted" id="import-msg">Importing, please wait...</h2>
