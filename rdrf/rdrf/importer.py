@@ -573,6 +573,8 @@ class Importer(object):
                 section_model.information_link = information_link
                 section_model.section_label = section_label
                 section_model.applicability_condition = section_dict["applicability_condition"]
+                if "validation_rule" in section_dict:
+                    section_model.validation_rule = section_dict['validation_rule']
                 section_model.save()
                 for question_dict in section_dict["questions"]:
                     question_code = question_dict["code"]
