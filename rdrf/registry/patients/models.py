@@ -771,13 +771,18 @@ def save_patient_hooks(sender, instance, created, **kwargs):
         run_hooks('existing_patient_saved', instance)
 
 
+
 @receiver(m2m_changed, sender=Patient.rdrf_registry.through)
 def registry_changed_on_patient(sender, **kwargs):
     logger.debug("registry changed on patient %s: kwargs = %s" % (kwargs['instance'], kwargs))
     if kwargs["action"] == "post_add":
+        logger.debug("XXXXXX  post add patient running")
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         run_hooks('registry_added', instance, registry_ids)
+        #run_consent_closures(instance, registry_ids)
+
+
 
 
 class ConsentValue(models.Model):
