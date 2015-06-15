@@ -233,7 +233,7 @@
                                 {% for field in f %}
                                     <tr>
                                         <th class="col-md-4" style="text-align: right;"><label for="{{field.id_for_label}}">{{field.label}}</label></th>
-                                        <td class="col-md-8">{{field}}</td>
+                                        <td class="col-md-8">{{field|safe}}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
