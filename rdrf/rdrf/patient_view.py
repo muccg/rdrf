@@ -20,6 +20,18 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
+def get_error_messages(forms):
+    messages = []
+    for form in forms:
+        for field in form.errors:
+            for error in form.errors[field]:
+                if "This field is required" in error:
+                    # these errors are indicated next to the field
+                    continue
+                messages.append(error)
+    return messages
+
+
 class PatientView(View):
 
     def get(self, request, registry_code):
@@ -409,8 +421,6 @@ class PatientFormMixin(PatientMixin):
             logger.debug("patient model does not have closure list")
 
     def form_invalid(self, form):
-        for error in form.errors:
-            logger.debug("Error in %s: %s" % (error, form.errors[error]))
         return super(PatientFormMixin, self).form_invalid(form)
 
     def _get_address_formset(self, request):
@@ -478,14 +488,6 @@ class AddPatientView(PatientFormMixin, CreateView):
             return self.form_valid(patient_form)
         else:
             logger.debug("some forms are invalid ...")
-
-            for form in forms:
-                if not form.is_valid():
-                    logger.debug("INVALID FORM:")
-                    for error_dict in form.errors:
-                        for field in error_dict:
-                            logger.debug("\tError in form field %s: %s" % (field, error_dict[field]))
-
             return self.form_invalid(patient_form)
 
 
@@ -523,7 +525,6 @@ class PatientEditView(View):
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
 
-
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
                                                                                    PatientForm,
@@ -549,10 +550,22 @@ class PatientEditView(View):
 
             patient_relatives_forms = patient_relatives_formset(request.POST, instance=patient, prefix="patient_relative")
 
-            valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
+            forms = [patient_form, address_to_save]
         else:
-            valid_forms = [patient_form.is_valid(), address_to_save.is_valid()]
-        
+            forms = [patient_form, address_to_save]
+
+        valid_forms = []
+        error_messages = []
+
+        for form in forms:
+            if not form.is_valid():
+                valid_forms.append(False)
+                for field in form.errors:
+                    for error in form.errors[field]:
+                        error_messages.append(error)
+            else:
+                valid_forms.append(True)
+
         if registry.get_metadata_item("patient_form_doctors"):
             patient_doctor_form_set = inlineformset_factory(Patient, PatientDoctor, form=PatientDoctorForm)
             doctors_to_save = patient_doctor_form_set(request.POST, instance=patient, prefix="patient_doctor")
@@ -576,6 +589,12 @@ class PatientEditView(View):
                 "message": "Patient's details saved successfully"
             }
         else:
+
+
+
+            error_messages = get_error_messages(forms)
+
+            logger.debug("error messages = %s" % error_messages)
             if not registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
             patient, form_sections = self._get_forms(patient_id,
@@ -588,7 +607,8 @@ class PatientEditView(View):
             context = {
                 "forms": form_sections,
                 "patient": patient,
-                "errors": True
+                "errors": True,
+                "error_messages": error_messages,
             }
             
         context["registry_code"] = registry_code

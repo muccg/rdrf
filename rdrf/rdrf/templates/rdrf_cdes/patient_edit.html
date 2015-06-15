@@ -187,6 +187,9 @@
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
                         Please correct errors below
+                        {% for error_message in error_messages %}
+                        {{ error_message }}<br>
+                        {% endfor %}
                     </div>
                 {% endif %}
                 
