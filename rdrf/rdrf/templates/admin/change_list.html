@@ -33,8 +33,9 @@
 (function($) {
     $(document).ready(function($) {
         $("tr input.action-select").actions();
-        console.log("sdf");
-        $("#add_button").insertAfter($("input[value='Search']"));
+        if ($("input[value='Search']")) {
+            $("#add_button").insertAfter($("input[value='Search']"));
+        }
     });
 })(django.jQuery);
 </script>
@@ -57,16 +58,17 @@
 
 {% block content %}
   <div id="content-main">
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
+      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+    </a>
     <blockquote>
         <h4><i class="text-muted">{% blocktrans with cl.opts.verbose_name_plural as name %}{{ name }}{% endblocktrans %}</i></h4>
     </blockquote>
     {% block object-tools %}
       {% if has_add_permission %}
           {% block object-tools-items %}
-              {% url cl.opts|admin_urlname:'add' as add_url %}
-              <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
-                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-              </a>
+
           {% endblock %}
       {% endif %}
     {% endblock %}
