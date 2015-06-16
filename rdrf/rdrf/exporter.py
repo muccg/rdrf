@@ -397,7 +397,7 @@ class Exporter(object):
         for demographic_field in DemographicFields.objects.filter(registry=self.registry):
             fields = {}
             fields['registry'] = demographic_field.registry.code
-            fields['group'] = demographic_field.group.id
+            fields['group'] = demographic_field.group.name
             fields['field'] = demographic_field.field
             fields['hidden'] = demographic_field.hidden
             fields['readonly'] = demographic_field.readonly
