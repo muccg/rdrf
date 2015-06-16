@@ -160,6 +160,8 @@ class PatientForm(forms.ModelForm):
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
 
+        self.fields["rdrf_registry"].queryset = Registry.objects.filter(id__in=[self.registry_model.id])
+
         if hasattr(self, 'user'):
             logger.debug("form has user attribute ...")
             user = self.user
