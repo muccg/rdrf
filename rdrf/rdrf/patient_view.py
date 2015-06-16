@@ -120,10 +120,12 @@ class PatientFormMixin(PatientMixin):
             return registry_model.patient_fields
 
     def get_form_class(self):
+        if not self.registry_model.patient_fields:
+            return self.original_form_class
+
         form_class = self._create_registry_specific_patient_form_class(self.user,
                                                                        self.original_form_class,
                                                                        self.registry_model)
-        logger.debug("created form class OK")
         return form_class
 
     def _set_registry_model(self, registry_code):
@@ -309,8 +311,9 @@ class PatientFormMixin(PatientMixin):
         patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
         patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
 
-        registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
-        patient_section_info.append(registry_specific_section_fields)
+        if registry.patient_fields:
+            registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
+            patient_section_info.append(registry_specific_section_fields)
 
 
         form_sections = [
@@ -340,7 +343,6 @@ class PatientFormMixin(PatientMixin):
                 patient_doctor_form,
                 (patient_doctor_section,)
             ))
-
 
         # PatientRelativeForm for FH (only)
         if self.registry_model.has_feature('family_linkage'):
@@ -445,7 +447,7 @@ class PatientFormMixin(PatientMixin):
         return self.registry_model.get_metadata_item("patient_form_doctors")
 
     def _has_patient_relatives_form(self):
-        return self.registry_model.get_metadata_item("family_linkage")
+        return self.registry_model.has_feature("family_linkage")
 
 
 class AddPatientView(PatientFormMixin, CreateView):
