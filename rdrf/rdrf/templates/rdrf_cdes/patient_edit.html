@@ -229,8 +229,14 @@
                                                                     {% else %}
                                                                          {{ element | add_attr:"class,form-control" }}
                                                                     {% endif %}
+                                                                    {% if element.field.required %}
+                                                                        <span class="label label-danger">This field is required</span>
+                                                                    {% endif %}
                                                                 {% else %}
                                                                     {{ element }}
+                                                                    {% if element.field.required %}
+                                                                        <span class="label label-danger">This field is required</span>
+                                                                    {% endif %}
                                                                 {% endif %}
                                                                 <small class="text-muted">
                                                                     {{ element.help_text }}
@@ -275,8 +281,14 @@
                                             {% endif %}
                                                 {% if not element|is_checkbox %}
                                                     {{ element | add_attr:"class,form-control" }}
+                                                    {% if element.field.required %}
+                                                        <span class="label label-danger">This field is required</span>
+                                                    {% endif %}
                                                 {% else %}
                                                     {{ element }}
+                                                    {% if element.field.required %}
+                                                        <span class="label label-danger">This field is required</span>
+                                                    {% endif %}
                                                 {% endif %}
                                                 <small class="text-muted">
                                                     {{ element.help_text }}
