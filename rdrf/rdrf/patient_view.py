@@ -20,15 +20,22 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
+
+
 def get_error_messages(forms):
     messages = []
     for form in forms:
-        for field in form.errors:
-            for error in form.errors[field]:
-                if "This field is required" in error:
-                    # these errors are indicated next to the field
-                    continue
-                messages.append(error)
+        if type(form.errors) is list:
+            for error_dict in form.errors:
+                for field in error_dict:
+                    messages.append("Error in %s: %s" % (field, error_dict[field]))
+        else:
+            for field in form.errors:
+                for error in form.errors[field]:
+                    if "This field is required" in error:
+                        # these errors are indicated next to the field
+                        continue
+                    messages.append(error)
     return messages
 
 
@@ -552,7 +559,7 @@ class PatientEditView(View):
 
             patient_relatives_forms = patient_relatives_formset(request.POST, instance=patient, prefix="patient_relative")
 
-            forms = [patient_form, address_to_save]
+            forms = [patient_form, address_to_save, patient_relatives_forms]
         else:
             forms = [patient_form, address_to_save]
 
@@ -562,9 +569,14 @@ class PatientEditView(View):
         for form in forms:
             if not form.is_valid():
                 valid_forms.append(False)
-                for field in form.errors:
-                    for error in form.errors[field]:
-                        error_messages.append(error)
+                if type(form.errors) is list:
+                    for error_dict in form.errors:
+                        for field in error_dict:
+                            error_messages.append("%s: %s" % (field, error_dict[field]))
+                else:
+                    for field in form.errors:
+                        for error in form.errors[field]:
+                            error_messages.append(error)
             else:
                 valid_forms.append(True)
 
