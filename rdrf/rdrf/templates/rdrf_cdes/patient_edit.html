@@ -137,7 +137,10 @@
             setupPatientRelativeForm();
             $( "input[id*='date']").datepicker({
                 "dateFormat": "dd-mm-yy",
-                "maxDate": 0
+                "yearRange": "-120:+0",
+                "maxDate": 0,
+                "changeMonth": true,
+                "changeYear": true
             });
         });
     </script>
@@ -145,7 +148,15 @@
 {% endblock %}
 
 {% block formlinks %}
-
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+            {% for form in form_links %}
+                <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
+            {% endfor %}
+        </ul>
+    </li>
 {% endblock %}
 
 
@@ -226,8 +237,14 @@
                                                                     {% else %}
                                                                          {{ element | add_attr:"class,form-control" }}
                                                                     {% endif %}
+                                                                    {% if element.field.required %}
+                                                                        <span class="label label-danger">This field is required</span>
+                                                                    {% endif %}
                                                                 {% else %}
                                                                     {{ element }}
+                                                                    {% if element.field.required %}
+                                                                        <span class="label label-danger">This field is required</span>
+                                                                    {% endif %}
                                                                 {% endif %}
                                                                 <small class="text-muted">
                                                                     {{ element.help_text }}
@@ -272,8 +289,14 @@
                                             {% endif %}
                                                 {% if not element|is_checkbox %}
                                                     {{ element | add_attr:"class,form-control" }}
+                                                    {% if element.field.required %}
+                                                        <span class="label label-danger">This field is required</span>
+                                                    {% endif %}
                                                 {% else %}
                                                     {{ element }}
+                                                    {% if element.field.required %}
+                                                        <span class="label label-danger">This field is required</span>
+                                                    {% endif %}
                                                 {% endif %}
                                                 <small class="text-muted">
                                                     {{ element.help_text }}
