@@ -137,7 +137,10 @@
             setupPatientRelativeForm();
             $( "input[id*='date']").datepicker({
                 "dateFormat": "dd-mm-yy",
-                "maxDate": 0
+                "yearRange": "-120:+0",
+                "maxDate": 0,
+                "changeMonth": true,
+                "changeYear": true
             });
         });
     </script>
