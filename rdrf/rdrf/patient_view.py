@@ -515,7 +515,7 @@ class PatientEditView(View):
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id,])
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
-    
+
         patient, form_sections = self._get_forms(patient_id, registry_code, request)
         registry_model = Registry.objects.get(code=registry_code)
 
@@ -542,7 +542,7 @@ class PatientEditView(View):
         else:
             patient_form_class = PatientForm
 
-        patient_form = patient_form_class(request.POST, instance=patient, user = request.user)
+        patient_form = patient_form_class(request.POST, instance=patient, user = request.user, registry_model=registry)
 
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
         address_to_save = patient_address_form_set(request.POST, instance=patient, prefix="patient_address")
@@ -665,12 +665,12 @@ class PatientEditView(View):
     
         if not patient_form:
             if not registry.patient_fields:
-                patient_form = PatientForm(instance=patient, user=user)
+                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
             else:
                 munged_patient_form_class = self._create_registry_specific_patient_form_class(user,
                                                                                               PatientForm,
                                                                                               registry)
-                patient_form = munged_patient_form_class(instance=patient, user=user)
+                patient_form = munged_patient_form_class(instance=patient, user=user, registry_model=registry)
 
         if not patient_address_form:
             patient_address = PatientAddress.objects.filter(patient=patient).values()
