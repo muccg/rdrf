@@ -601,7 +601,7 @@ class Importer(object):
             logger.info("creating demographic fields ..")
             logger.info("d = %s" % d)
             registry_obj = Registry.objects.get(code=d["registry"])
-            group_obj, created = Group.objects.get_or_create(name=d["name"])
+            group_obj, created = Group.objects.get_or_create(name=d["group"])
             if created:
                 logger.info("created Group %s" % group_obj)
                 group_obj.save()
