@@ -487,21 +487,31 @@ class Importer(object):
 
         if "adjudication_definitions" in self.data:
             self._create_adjudication_definitions(r, self.data["adjudication_definitions"])
-        logger.info("imported adjudication definitions OK")
+            logger.info("imported adjudication definitions OK")
+        else:
+            logger.info("no adjudications to import")
 
         self._create_form_permissions(r)
+        logger.debug("created form permissions OK")
         
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
-        logger.info("demographic field definitions OK ")
+            logger.info("demographic field definitions OK ")
+        else:
+            logger.info("no demographic_fields to import")
 
         if "complete_fields" in self.data:
             self._create_complete_form_fields(self.data["complete_fields"])
-        logger.info("complete field definitions OK ")
+            logger.info("complete field definitions OK ")
+        else:
+            logger.info("no complete field definitions to import")
 
         if "reports" in self.data:
             self._create_reports(self.data["reports"])
-        logger.info("complete reports OK ")
+            logger.info("complete reports OK ")
+        else:
+            logger.info("no reports to import")
+        logger.info("end of import registry objects!")
 
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
@@ -588,8 +598,14 @@ class Importer(object):
 
     def _create_demographic_fields(self, data):
         for d in data:
-            registry_obj = Registry.objects.get(code = d["registry"])
-            group_obj = Group.objects.get(id = d["group"])
+            logger.info("creating demographic fields ..")
+            logger.info("d = %s" % d)
+            registry_obj = Registry.objects.get(code=d["registry"])
+            group_obj, created = Group.objects.get_or_create(name=d["name"])
+            if created:
+                logger.info("created Group %s" % group_obj)
+                group_obj.save()
+
             demo_field, created = DemographicFields.objects.get_or_create(registry=registry_obj, group=group_obj, field=d["field"])
             demo_field.hidden = d["hidden"]
             demo_field.readonly = d["readonly"]
