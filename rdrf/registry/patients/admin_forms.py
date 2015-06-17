@@ -411,7 +411,7 @@ class PatientForm(forms.ModelForm):
         section_tuples = []
         registry_model = Registry.objects.get(code=registry_code)
         
-        for consent_section_model in registry_model.consent_sections.all():
+        for consent_section_model in registry_model.consent_sections.all().order_by("code"):
             if consent_section_model.applicable_to(patient_model):
                 section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
         return section_tuples
