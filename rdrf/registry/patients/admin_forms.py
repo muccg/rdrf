@@ -308,6 +308,8 @@ class PatientForm(forms.ModelForm):
                     error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
                                                                               consent_section_model.section_label)
                     validation_errors.append(error_message)
+                else:
+                    logger.debug("Consent section %s is valid!" % consent_section_model.section_label)
 
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
