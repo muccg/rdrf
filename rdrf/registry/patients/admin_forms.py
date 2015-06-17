@@ -281,21 +281,28 @@ class PatientForm(forms.ModelForm):
         logger.debug("custom consents = %s" % self.custom_consents)
         data = {}
         for field_key in self.custom_consents:
+            logger.debug("field key = %s" % field_key)
             parts = field_key.split("_")
             reg_pk = int(parts[1])
             registry_model = Registry.objects.get(id=reg_pk)
+            logger.debug("reg = %s" % registry_model)
             if registry_model not in data:
                 data[registry_model] = {}
 
             consent_section_pk = int(parts[2])
             consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
+            logger.debug("section model = %s" % consent_section_model)
 
             if consent_section_model not in data[registry_model]:
-                data[registry_model] = {consent_section_model : {}}
+                data[registry_model][consent_section_model] = {}
+
+
 
             consent_question_pk = int(parts[3])
             consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
+            logger.debug("consent question = %s" % consent_question_model)
             answer = self.custom_consents[field_key]
+            logger.debug("answer = %s" % answer)
 
             data[registry_model][consent_section_model][consent_question_model.code] = answer
 
@@ -303,6 +310,7 @@ class PatientForm(forms.ModelForm):
 
         for registry_model in data:
             for consent_section_model in data[registry_model]:
+
                 answer_dict = data[registry_model][consent_section_model]
                 if not consent_section_model.is_valid(answer_dict):
                     error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
