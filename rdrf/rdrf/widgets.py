@@ -233,7 +233,7 @@ class CountryWidget(widgets.Select):
 
         countries = pycountry.countries
 
-        output = ["<select onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
+        output = ["<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value=''>---</option>"
         output.append(empty_option)
         for country in countries:
@@ -259,7 +259,7 @@ class StateWidget(widgets.Select):
         else:
             country_states = []
 
-        output = ["<select id='%s' name='%s'>" % (name, name)]
+        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value='---'>---</option>"
         output.append(empty_option)
         for state in country_states:
