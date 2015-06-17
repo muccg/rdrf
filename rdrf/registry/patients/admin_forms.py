@@ -103,7 +103,7 @@ class PatientRelativeForm(forms.ModelForm):
 class PatientAddressForm(forms.ModelForm):
     class Meta:
         model = PatientAddress
-        fields = ('address_type', 'address', 'suburb', 'state', 'postcode', 'country')
+        fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
     country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
     state = forms.ComboField(required=False, widget=StateWidget())
@@ -115,6 +115,9 @@ class PatientForm(forms.ModelForm):
         "rows": 3,
         "cols": 30,
     }
+    
+    next_of_kin_country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    next_of_kin_state = forms.ComboField(required=False, widget=StateWidget())
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()

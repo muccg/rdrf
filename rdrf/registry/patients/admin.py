@@ -302,6 +302,7 @@ class PatientAdmin(admin.ModelAdmin):
              "next_of_kin_given_names",
              "next_of_kin_relationship",
              "next_of_kin_address",
+             "next_of_kin_country",
              "next_of_kin_suburb",
              "next_of_kin_state",
              "next_of_kin_postcode",
