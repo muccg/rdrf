@@ -238,7 +238,10 @@ class PatientResource(ModelResource):
             else:
                 registry_queryset = []
 
-
+        if chosen_registry:
+            clinicians_have_patients = chosen_registry.has_feature("clinicians_have_patients")
+        else:
+            clinicians_have_patients = False
 
         patients = Patient.objects.all()
 
@@ -252,8 +255,11 @@ class PatientResource(ModelResource):
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
             elif request.user.is_working_group_staff:
                 patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
-            elif request.user.is_clinician:
+            elif request.user.is_clinician and clinicians_have_patients:
                 patients = patients.filter(clinician=request.user)
+            elif request.user.is_clinician and not clinicians_have_patients:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
+                patients = patients.filter(query_patients)
             elif request.user.is_patient:
                 patients = patients.filter(user=request.user)
             else:
