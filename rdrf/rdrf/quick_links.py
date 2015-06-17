@@ -35,6 +35,7 @@ class QuickLinks(object):
     ConsentSections = QuickLink("admin:rdrf_consentsection_changelist", "Consent Sections", True)
     DemographicsFields = QuickLink("admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
     Importer = QuickLink("import_registry", "Importer", True)
+    Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
@@ -43,7 +44,7 @@ class QuickLinks(object):
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
-                            PermissibleValues, ConsentSections, Importer, DemographicsFields])
+                            PermissibleValues, ConsentSections, Groups, Importer, DemographicsFields])
 
     WORKING_GROUP_STAFF = DATA_ENTRY
     WORKING_GROUP_CURATORS = DATA_ENTRY | REPORTING | USER_MANAGEMENT
