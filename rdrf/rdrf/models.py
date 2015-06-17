@@ -1368,10 +1368,8 @@ class ConsentSection(models.Model):
         :param answer_dict: map of question codes to bool
         :return: True or False depending on validation rule
         """
-
-
         if not self.validation_rule:
-            logger.debug("no validation rule - returning True")
+            logger.debug("no validation rule for %s - returning True" % self.section_label)
             return True
 
         function_context = {}
@@ -1388,6 +1386,7 @@ class ConsentSection(models.Model):
                 function_context[question_model.code] = False
 
         try:
+
             result = eval(self.validation_rule, {"__builtins__": None}, function_context)
             if not result in [True, False, None]:
                 logger.info("validation rule for %s returned %s - returning False!" % (self.code, result))
