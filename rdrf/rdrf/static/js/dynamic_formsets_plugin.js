@@ -96,7 +96,7 @@
                 // complex fields ( multiwidgets ) will modify the id so we use settings to pass metadata about overrides to the plugin to allow location
                 var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + get_row_selector(cde_code) + "'])";
                 $(row_selector)
-                    .clone()            // create a copy
+                    .clone(true)            // create a copy
                     .find("label")      // update the clone's for attr to the new value
                     .each(function() {
                         $(this).attr({
@@ -125,7 +125,7 @@
 
             var remove_button_selector = "#" + settings.table_id + " > tbody > tr[id^='remove_" + settings.formset_prefix + "']";
             $(remove_button_selector + ":last")
-                .clone()
+                .clone(true)
                 .attr({
                         'id' : function (_,old_id) {
                                 var parts = old_id.split("_");
