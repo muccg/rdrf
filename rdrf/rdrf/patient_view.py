@@ -11,6 +11,7 @@ from rdrf.models import Registry
 from rdrf.utils import FormLink
 
 from django.forms.models import inlineformset_factory
+from django.utils.html import strip_tags
 
 from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor, PatientRelative
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm
@@ -20,23 +21,37 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
-
-
 def get_error_messages(forms):
+    from rdrf.utils import de_camelcase
     messages = []
+
+    def display(form_or_formset, field, error):
+        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
+        return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
+
     for form in forms:
-        if type(form.errors) is list:
-            for error_dict in form.errors:
+        if type(form._errors) is list:
+            logger.debug("checking formset _errors")
+            if len(form._errors) == 0:
+                logger.debug("form._errors = []")
+            for error_dict in form._errors:
                 for field in error_dict:
-                    messages.append("Error in %s: %s" % (field, error_dict[field]))
+
+                    messages.append(display(form, field, error_dict[field]))
         else:
-            for field in form.errors:
-                for error in form.errors[field]:
-                    if "This field is required" in error:
-                        # these errors are indicated next to the field
-                        continue
-                    messages.append(error)
-    return messages
+            if form._errors is None:
+                logger.debug("form._errors is None - skipping")
+                continue
+            else:
+                for field in form._errors:
+                    for error in form._errors[field]:
+                        if "This field is required" in error:
+                            # these errors are indicated next to the field
+                            continue
+                        messages.append(display(form, field, error))
+    results = map(strip_tags, messages)
+
+    return results
 
 
 class PatientView(View):
@@ -202,20 +217,41 @@ class PatientFormMixin(PatientMixin):
         :param kwargs: The kwargs supplied to render to response
         :return:
         """
-        logger.debug("in get_context_data ..")
-        patient_id = self._get_patient_id()
-        patient, forms = self._get_forms(patient_id,
-                                         self.registry_model.code,
-                                         self.request,
-                                         self.patient_form)
+        if self.request.method == "GET":
+            logger.debug("get_context_data called by GET")
+        else:
+            logger.debug("get_context_data called by POST")
 
-        error_messages = self._extract_error_messages(forms)
+        logger.debug("in get_context_data ..")
+        logger.debug("supplied kwargs = %s" % kwargs)
+        patient_id = self._get_patient_id()
+
+        patient_address_formset = kwargs.get("patient_address_formset", None)
+        patient_doctor_formset = kwargs.get("patient_doctor_formset", None)
+        patient_relative_formset = kwargs.get("patient_relative_formset", None)
+
+        patient, forms_sections = self._get_patient_and_forms_sections(patient_id,
+                                                                       self.registry_model.code,
+                                                                       self.request,
+                                                                       self.patient_form,
+                                                                       patient_address_form=patient_address_formset,
+                                                                       patient_doctor_form=patient_doctor_formset,
+                                                                       patient_relative_form=patient_relative_formset)
+
+
+        error_messages = get_error_messages([pair[0] for pair in forms_sections])
+
         num_errors = len(error_messages)
-        kwargs["forms"] = forms
+        kwargs["forms"] = forms_sections
         kwargs["patient"] = patient
         # Avoid spurious errors message when we first hit the Add screen:
-        kwargs["errors"] = True if num_errors > 0 and any([not form[0].is_valid() for form in forms]) else False
-        kwargs["error_messages"] = error_messages
+        kwargs["errors"] = True if num_errors > 0 and any([not form[0].is_valid() for form in forms_sections]) else False
+
+        if "all_errors" in kwargs:
+            kwargs["errors"] = True
+            kwargs["error_messages"] = kwargs["all_errors"]
+        else:
+            kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
@@ -228,7 +264,7 @@ class PatientFormMixin(PatientMixin):
             if not form.is_valid():
                 for error in form.errors:
                     error_messages.append(form.errors[error])
-        return error_messages
+        return map(strip_tags, error_messages)
 
     def _get_patient_id(self):
         if self.object:
@@ -236,13 +272,14 @@ class PatientFormMixin(PatientMixin):
         else:
             return None
 
-    def _get_forms(self,
+    def _get_patient_and_forms_sections(self,
                    patient_id,
                    registry_code,
                    request,
                    patient_form=None,
                    patient_address_form=None,
-                   patient_doctor_form=None):
+                   patient_doctor_form=None,
+                   patient_relative_form=None):
 
         user = request.user
         if patient_id is None:
@@ -354,14 +391,15 @@ class PatientFormMixin(PatientMixin):
 
         # PatientRelativeForm for FH (only)
         if self.registry_model.has_feature('family_linkage'):
-            patient_relative_formset = inlineformset_factory(Patient,
-                                                             PatientRelative,
-                                                             fk_name='patient',
-                                                             form=PatientRelativeForm,
-                                                             extra=0,
-                                                             can_delete=True)
+            if not patient_relative_form:
+                patient_relative_formset = inlineformset_factory(Patient,
+                                                                 PatientRelative,
+                                                                 fk_name='patient',
+                                                                 form=PatientRelativeForm,
+                                                                 extra=0,
+                                                                 can_delete=True)
 
-            patient_relative_form = patient_relative_formset(instance=patient, prefix="patient_relative")
+                patient_relative_form = patient_relative_formset(instance=patient, prefix="patient_relative")
 
             patient_relative_section = ("Patient Relative", None)
 
@@ -430,8 +468,19 @@ class PatientFormMixin(PatientMixin):
         else:
             logger.debug("patient model does not have closure list")
 
-    def form_invalid(self, form):
-        return super(PatientFormMixin, self).form_invalid(form)
+    def form_invalid(self, patient_form,
+                     patient_address_formset,
+                     patient_doctor_formset,
+                     patient_relative_formset,
+                     errors):
+        logger.debug("errors = %s" % errors)
+        has_errors = len(errors) > 0
+        return self.render_to_response(self.get_context_data(form=patient_form,
+                                                             all_errors=errors,
+                                                             errors=has_errors,
+                                                             patient_address_formset=patient_address_formset,
+                                                             patient_doctor_formset=patient_doctor_formset,
+                                                             patient_relative_formset=patient_relative_formset))
 
     def _get_address_formset(self, request):
         patient_address_form_set = inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm)
@@ -498,7 +547,14 @@ class AddPatientView(PatientFormMixin, CreateView):
             return self.form_valid(patient_form)
         else:
             logger.debug("some forms are invalid ...")
-            return self.form_invalid(patient_form)
+            errors = get_error_messages(forms)
+            logger.debug(errors)
+
+            return self.form_invalid(patient_form=patient_form,
+                                     patient_address_formset=self.address_formset,
+                                     patient_doctor_formset=self.doctor_formset,
+                                     patient_relative_formset=self.patient_relative_formset,
+                                     errors=errors)
 
 
 class PatientEditView(View):
@@ -517,7 +573,7 @@ class PatientEditView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
-        patient, form_sections = self._get_forms(patient_id, registry_code, request)
+        patient, form_sections = self._get_patient_and_forms_sections(patient_id, registry_code, request)
         registry_model = Registry.objects.get(code=registry_code)
 
         context = {
@@ -593,7 +649,7 @@ class PatientEditView(View):
             patient_instance = patient_form.save()
             self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
 
-            patient, form_sections = self._get_forms(patient_id, registry_code, request)
+            patient, form_sections = self._get_patient_and_forms_sections(patient_id, registry_code, request)
 
             if patient_relatives_forms:
                 self.create_patient_relatives(patient_relatives_forms, patient, registry)
@@ -612,7 +668,7 @@ class PatientEditView(View):
             logger.debug("error messages = %s" % error_messages)
             if not registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
-            patient, form_sections = self._get_forms(patient_id,
+            patient, form_sections = self._get_patient_and_forms_sections(patient_id,
                                                      registry_code,
                                                      request,
                                                      patient_form,
@@ -648,7 +704,7 @@ class PatientEditView(View):
                                 patient_relative_model.create_patient_from_myself(registry_model,
                                                                                   patient_model.working_groups.all())
 
-    def _get_forms(self,
+    def _get_patient_and_forms_sections(self,
                    patient_id,
                    registry_code,
                    request,
