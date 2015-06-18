@@ -170,7 +170,6 @@
     }
 
     function delete_form(form_div, prefix) {
-        console.log(prefix);
         var mgmt_form = $("#mgmt_" + prefix);
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
         var total_forms_dec = parseInt(total_forms.val()) - 1;
