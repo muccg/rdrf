@@ -166,6 +166,7 @@
         total_forms.attr("value", total_forms_inc);
 
         delete_button(prefix).appendTo(new_form);
+        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
     }
 
@@ -261,6 +262,7 @@
                                     <div>
                                         {{ f }}
                                         <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">Delete</a>
+                                        <p><hr style="border: solid 1px gray"></p>
                                     </div>
                                 {% endfor %}
                                 </div>
