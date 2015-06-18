@@ -135,6 +135,50 @@
             $("#form-progress-cdes").toggle("fast");
         });
     });
+    
+    function delete_button(prefix) {
+        var delete_button = $("<a>");
+        delete_button.attr("class", "btn btn-danger btn-xs pull-right");
+        delete_button.html("Delete");
+
+        delete_button.click(function() {
+            delete_form(this, prefix);
+        });
+        
+        return delete_button;
+    }
+    
+    function add_form(prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var empty_form = $("#empty_" + prefix);
+        var forms = $("#forms_" + prefix);
+        
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        
+        var total_forms_inc = parseInt(total_forms.val()) + 1;
+        total_forms.attr("value", total_forms_inc);
+        
+        var new_form = empty_form.clone();
+        
+        new_form.children("input").each(function() {
+            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms_inc));
+            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms_inc));
+        });
+
+        delete_button(prefix).appendTo(new_form);
+        new_form.appendTo(forms).show("fast");
+    }
+
+    function delete_form(form_div, prefix) {
+        console.log(prefix);
+        var mgmt_form = $("#mgmt_" + prefix);
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        var total_forms_dec = parseInt(total_forms.val()) - 1;
+        total_forms.attr("value", total_forms_dec);
+
+        $(form_div).parent().remove();
+    }
+
     </script>
 {% endblock %}
 
@@ -201,65 +245,40 @@
                         {% else %}
                             <strong>{{display_names|get_display_name:s}}</strong>
                         {% endif %}
-                        {% if forms|is_formset:s %}
-                            <a class="btn btn-info btn-xs pull-right" id="add_button_for_section_{{s}}">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                            </a>
-                        {% endif %}
-
                     </div>
     
                     <div class="panel-body">
                         {% if forms|is_formset:s %}
-                        <!-- start management form for {{s}}-->
-                        {{ forms|get_management_form:s }}
-                        <!-- end management form for {{s}} -->
-                        <table id="section_table_{{s}}" class="table" style="border-collapse: separate;">
-                        <script>
-                            $(document).ready(function() {
-                                $("#section_table_{{s}}").allow_dynamic_formsets({
-                                    cde_codes: '{{section_field_ids_map|lookup:s}}',
-                                    add_button_id: "add_button_for_section_{{s}}",
-                                    remove_button_id: "remove_button_for_section_{{s}}",
-                                    table_id: "section_table_{{s}}",
-                                    total_forms_id: "{{total_forms_ids|lookup:s}}",
-                                    initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                                    formset_prefix: "{{formset_prefixes|lookup:s}}",
-                                    metadata_json: '{{metadata_json_for_sections|lookup:s|safe}}'
-                                });
-                            });
-                        </script>
-                    
-                        {% for f in forms|get_forms:s %}
-                            <tbody>
-                                {% for field in f %}
-                                    <tr>
-                                        <th class="col-md-4" style="text-align: right;"><label for="{{field.id_for_label}}">{{field.label}}</label></th>
-                                        <td class="col-md-8">{{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p></td>
-                                    </tr>
+                            {% with formset=forms|get_form_object:s %}
+                                <a class="btn btn-warning btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                </a>
+
+                                <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
+                                <div style="display: none;" id="empty_{{formset.prefix}}">{{formset.empty_form}}</div>
+                                
+                                <div id="forms_{{formset.prefix}}">
+                                {% for f in formset.forms %}
+                                    <div>
+                                        {{ f }}
+                                        <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">Delete</a>
+                                    </div>
                                 {% endfor %}
-                            </tbody>
-                            <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                                <th class="col-md-4" style="text-align: right;"></th>
-                                <td class="col-md-8" onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');">
-                                    <button type="button" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-minus"></span> Remove</button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </table>
-                      {% else %}
-                        {% for field in forms|get_form_object:s %}
-                            <div class="form-group">
-                                <label for="{{field.id_for_label}}" class="col-md-4 control-label">{{field.label}}</label>
-                                <div class="col-md-8">
-                                    {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
-                                    {% if field.errors %}
-                                        <span class="label label-danger">{{field.errors.as_text}}</span>
-                                    {% endif %}
                                 </div>
-                            </div>
-                        {% endfor %}
-                      {% endif %}
+                            {% endwith%}
+                        {% else %}
+                            {% for field in forms|get_form_object:s %}
+                                <div class="form-group">
+                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">{{field.label}}</label>
+                                    <div class="col-md-8">
+                                        {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
+                                        {% if field.errors %}
+                                            <span class="label label-danger">{{field.errors.as_text}}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -285,29 +304,28 @@
 
 
 <script>
-  $(document).ready(function () {
-    $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-    $("textarea").addClass("form-control");
-    $("select").addClass("form-control");
-    $("label[for*='-clear']").removeClass();
-  })
+    $(document).ready(function () {
+        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+        $("textarea").addClass("form-control");
+        $("select").addClass("form-control");
+        $("label[for*='-clear']").removeClass();
+    })
 </script>
 
-
-
-        {% if form.errors %}
-  {% for field in form %}
-    {% for error in field.errors %}
-      <div class="alert alert-error">
-        <strong>{{ error|escape }}</strong>
-      </div>
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-error">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
     {% endfor %}
-  {% endfor %}
-  {% for error in form.non_field_errors %}
-    <div class="alert alert-error">
-      <strong>{{ error|escape }}</strong>
-    </div>
-  {% endfor %}
+    
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-error">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
 {% endif %}
 
 {% endblock %}
