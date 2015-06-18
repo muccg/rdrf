@@ -65,25 +65,34 @@ class PatientRelativeForm(forms.ModelForm):
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
         for name, field in self.fields.items():
-            value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
-            logger.debug("field %s = %s" % (name, value))
-            if name == "relative_patient":
-                if value == "on":
-                    logger.debug("on set for create patient - setting to None")
-                    self.cleaned_data[name] = None
-                    self.create_patient_flag = True
+            try:
+                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+                logger.debug("field %s = %s" % (name, value))
+                if name == "relative_patient":
+                    if value == "on":
+                        logger.debug("on set for create patient - setting to None")
+                        self.cleaned_data[name] = None
+                        self.create_patient_flag = True
+                    else:
+                        self.cleaned_data[name] = value
+
+                elif name == 'date_of_birth':
+                    try:
+                        self.cleaned_data[name] = self._set_date_of_birth(value)
+                    except Exception, ex:
+                        raise ValidationError("date of birth must be dd-mm-yyyy")
+
+                elif name == 'patient':
+                    continue   # this was causing error in post clean - we set this ourselves
                 else:
                     self.cleaned_data[name] = value
 
-            elif name == 'date_of_birth':
-                self.cleaned_data[name] = self._set_date_of_birth(value)
+                logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
 
-            elif name == 'patient':
-                continue   # this was causing error in post clean - we set this ourselves
-            else:
-                self.cleaned_data[name] = value
-
-            logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
+            except ValidationError as e:
+                self._errors[name] = self.error_class(e.messages)
+                if name in self.cleaned_data:
+                    del self.cleaned_data[name]
 
         self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
 
