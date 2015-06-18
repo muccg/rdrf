@@ -155,7 +155,7 @@
         
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
         
-        var new_form = empty_form.clone();
+        var new_form = empty_form.clone(true, true);
         
         new_form.find(":input").each(function() {
             $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
