@@ -204,10 +204,11 @@ class LaboratoryLookupWidget(LookupWidget2):
     def render(self, name, value, attrs):
         widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
         link_to_labs = reverse_lazy("admin:genetic_laboratory_changelist")
-        link_html = """<a class="btn btn-info btn-xs pull-right" href="%s">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                            </a>""" % link_to_labs
-        return widget_html + "&nbsp;" + link_html
+    
+        link_html = """<span class="input-group-btn">
+                            <a class="btn btn-info" href="%s" >Add</a>
+                        </span>""" % link_to_labs
+        return "<div class='input-group'>" + widget_html + link_html + "</div>"
 
 
 class DateWidget(widgets.TextInput):
