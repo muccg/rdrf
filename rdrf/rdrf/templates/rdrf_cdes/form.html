@@ -155,15 +155,15 @@
         
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
         
-        var total_forms_inc = parseInt(total_forms.val()) + 1;
-        total_forms.attr("value", total_forms_inc);
-        
         var new_form = empty_form.clone();
         
-        new_form.children("input").each(function() {
-            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms_inc));
-            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms_inc));
+        new_form.find(":input").each(function() {
+            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
         });
+
+        var total_forms_inc = parseInt(total_forms.val()) + 1;
+        total_forms.attr("value", total_forms_inc);
 
         delete_button(prefix).appendTo(new_form);
         new_form.appendTo(forms).show("fast");
