@@ -21,7 +21,7 @@ class DynamicFormsetTest(Base):
         sel.open("/admin/")
         sel.type("id=id_username", "admin")
         sel.type("id=id_password", "admin")
-        sel.click("css=input.btn.btn-info")
+        sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         sel.open("/admin/patients/patient/")
         sel.wait_for_page_to_load("30000")
@@ -45,7 +45,7 @@ class DynamicFormsetTest(Base):
 
         sel.wait_for_page_to_load("30000")
         sel.select("name=registry", "value=3")
-        sel.click("css=input.btn.btn-info")
+        sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         sel.click("id=data-modules-btn")
         sel.click("link=Clinical Data")

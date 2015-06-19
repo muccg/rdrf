@@ -9,7 +9,8 @@ class AddPatient(Base):
         sel.open("/admin/")
         sel.type("id=id_username", "admin")
         sel.type("id=id_password", "admin")
-        sel.click("css=input.btn.btn-info")
+        # btn btn-success pull-right
+        sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         self.assertEqual("Quick access links", sel.get_text("css=h4"))
         sel.click("xpath=(//a[contains(text(),'Patients')])[4]")

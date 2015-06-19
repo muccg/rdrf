@@ -12,7 +12,7 @@ class SaveNewlyCreatedRegisterForm(Base):
         sel.wait_for_page_to_load("30000")
         sel.type("id=id_password", "admin")
         sel.type("id=id_username", "admin")
-        sel.click("css=input.btn.btn-info")
+        sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         sel.open("/admin/rdrf/registryform/")
         sel.wait_for_page_to_load("30000")

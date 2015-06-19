@@ -10,7 +10,7 @@ class AdminLogin(Base):
         sel.open("/admin/")
         sel.type("id=id_username", "admin")
         sel.type("id=id_password", "admin")
-        sel.click("css=input.btn.btn-info")
+        sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         try:
             self.assertEqual("Home", sel.get_text("css=li.active"))
