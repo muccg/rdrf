@@ -183,12 +183,17 @@ class FormView(View):
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
-                form_set_class = formset_factory(form_class, extra=extra)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
                 formset = form_set_class(request.POST, files=request.FILES, prefix=prefix)
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
+                    
+                    for dd in dynamic_data:
+                        if dd['DELETE']:
+                            dynamic_data.remove(dd)
+                    
                     logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
                     section_dict[s] = wrap_gridfs_data_for_form(self.registry.code, dynamic_data)
@@ -327,7 +332,7 @@ class FormView(View):
                     extra = section_model.extra
                 else:
                     extra = 0
-                form_set_class = formset_factory(form_class, extra=extra)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
@@ -514,7 +519,7 @@ class QuestionnaireView(FormView):
                     extra = 0
 
                 prefix = "formset_%s" % section
-                form_set_class = formset_factory(form_class, extra=extra)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
                 form_section[section] = form_set_class(request.POST, request.FILES, prefix=prefix)
                 formset_prefixes[section] = prefix
                 total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
