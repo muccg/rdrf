@@ -132,6 +132,12 @@ class CustomUser(AbstractUser):
     def get_registries(self):
         return self.registry.all()
 
+    def has_feature(self, feature):
+        if not self.is_superuser:
+            return any([r.has_feature(feature) for r in self.registry.all()])
+        else:
+            return any([r.has_feature(feature) for r in Registry.objects.all()])
+
     def can_view(self, registry_form_model):
         if self.is_superuser:
             return True
@@ -157,22 +163,26 @@ class CustomUser(AbstractUser):
     def quick_links(self):
         from rdrf.quick_links import QuickLinks
         if self.is_superuser:
-            return QuickLinks.ALL
-        if self.is_curator:
-            return QuickLinks.WORKING_GROUP_CURATORS
+            links = QuickLinks.ALL
+        elif self.is_curator:
+            links = QuickLinks.WORKING_GROUP_CURATORS
         elif self.is_clinician:
-            return QuickLinks.CLINICIAN
+            links = QuickLinks.CLINICIAN
         elif self.is_patient:
             return []
         elif self.is_genetic_curator:
-            return QuickLinks.GENETIC_CURATORS
+            links = QuickLinks.GENETIC_CURATORS
         elif self.is_genetic_staff:
             return QuickLinks.GENETIC_STAFF
         elif self.is_working_group_staff:
-            return QuickLinks.WORKING_GROUP_STAFF
+            links = QuickLinks.WORKING_GROUP_STAFF
         else:
-            return []
+            links = []
 
+        if not self.has_feature("questionnaires"):
+            links = links - QuickLinks.QUESTIONNAIRE_HANDLING
+
+        return links
     
 @receiver(user_registered) 
 def user_registered_callback(sender, user, request, **kwargs):
