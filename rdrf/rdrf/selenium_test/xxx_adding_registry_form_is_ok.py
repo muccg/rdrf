@@ -22,7 +22,7 @@ class SaveNewlyCreatedRegisterForm(Base):
         sel.type("id=id_name", "testingformforfshd")
         sel.click("name=_save")
         sel.wait_for_page_to_load("30000")
-        try: self.assertEqual("Please correct the error below.", sel.get_text("css=div.alert.alert-error"))
+        try: self.assertEqual("Please correct the errors below.", sel.get_text("css=p.errornote"))
         except AssertionError, e: self.verificationErrors.append(str(e))
         sel.type("id=id_sections", "adummysection")
         sel.click("name=_save")

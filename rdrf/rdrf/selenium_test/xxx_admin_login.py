@@ -13,7 +13,7 @@ class AdminLogin(Base):
         sel.click("css=input.btn.btn-success")
         sel.wait_for_page_to_load("30000")
         try:
-            self.assertEqual("Home", sel.get_text("css=li.active"))
+            self.assertEqual("Patients", sel.get_text("css=text-muted"))
         except AssertionError, e:
             self.verificationErrors.append(str(e))
         sel.click("link=Log out")
