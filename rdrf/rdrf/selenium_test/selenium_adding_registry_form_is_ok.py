@@ -16,7 +16,7 @@ class SaveNewlyCreatedRegisterForm(Base):
         sel.wait_for_page_to_load("30000")
         sel.open("/admin/rdrf/registryform/")
         sel.wait_for_page_to_load("30000")
-        sel.click("link=Add registry form")
+        sel.click("link=Add")
         sel.wait_for_page_to_load("30000")
         sel.select("id=id_registry", "label=Facioscapulohumeral Muscular Dystrophy (fshd)")
         sel.type("id=id_name", "testingformforfshd")
