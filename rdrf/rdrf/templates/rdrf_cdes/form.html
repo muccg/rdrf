@@ -83,20 +83,6 @@
     </script>
     
     <script>
-    $(function() {
-        $( ".datepicker" ).datepicker({
-            showOn: "button",
-            buttonImage: '{% static 'images/calendar.gif' %}',
-            buttonImageOnly: true,
-            showButtonPanel: true,
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'dd-mm-yy',
-            yearRange: '-100:+0',
-        });
-    });
-
-
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
@@ -134,19 +120,18 @@
         $("#show-cdes-btn").click(function() {
             $("#form-progress-cdes").toggle("fast");
         });
-    });
-    
-    function delete_button(prefix) {
-        var delete_button = $("<a>");
-        delete_button.attr("class", "btn btn-danger btn-xs pull-right");
-        delete_button.html("Delete");
-
-        delete_button.click(function() {
-            delete_form(this, prefix);
-        });
         
-        return delete_button;
-    }
+        $(document).find( ".datepicker" ).each(function() {
+            $(this).on("mouseover", function() {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                });
+            });
+        });
+    });
     
     function add_form(prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
@@ -160,12 +145,20 @@
         new_form.find(":input").each(function() {
             $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
             $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+            
+            if ($(this).hasClass("datepicker")) {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                });
+            }
         });
 
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
 
-        delete_button(prefix).appendTo(new_form);
         $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
     }
@@ -176,7 +169,7 @@
         var total_forms_dec = parseInt(total_forms.val()) - 1;
         total_forms.attr("value", total_forms_dec);
 
-        $(form_div).parent().remove();
+        $(form_div).parent().parent().parent().remove();
     }
 
     </script>
@@ -201,8 +194,6 @@
 <div class="row">
 <div class="col-md-10">
         <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
-
-
             {% if has_form_progress %}
                 <div class="well">
                     <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>
@@ -245,23 +236,74 @@
                         {% else %}
                             <strong>{{display_names|get_display_name:s}}</strong>
                         {% endif %}
-                    </div>
-    
-                    <div class="panel-body">
+                        
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <a class="btn btn-warning btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
                                 </a>
-
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+    
+                    <div class="panel-body">
+                        {% if forms|is_formset:s %}
+                            {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
-                                <div style="display: none;" id="empty_{{formset.prefix}}">{{formset.empty_form}}</div>
+                                <div style="display: none;" id="empty_{{formset.prefix}}">
+                                    {% for element in formset.empty_form %}
+                                        {% if element.errors %}
+                                            <div class="form-group has-error">
+                                        {% else %}
+                                            <div class="form-group">
+                                        {% endif %}
+                                                {% if element.label == "Delete" %}
+                                                    <div class="col-sm-9 col-sm-offset-3">
+                                                        <a class="btn btn-danger btn-sm" onclick="delete_form(this, '{{formset.prefix}}')">Remove</a>
+                                                    </div>
+                                                {% else %}
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                    <div class="col-sm-9">
+                                                        {{ element|safe }}
+                                                        {% if element.field.required %}
+                                                            <span class="label label-danger">This field is required</span>
+                                                        {% endif %}
+                                                        <small class="text-muted">
+                                                            {{ element.help_text }}
+                                                        </small>
+                                                        {% if element.errors %}
+                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                    {% endfor %}
+                                </div>
                                 
                                 <div id="forms_{{formset.prefix}}">
                                 {% for f in formset.forms %}
                                     <div>
-                                        {{ f }}
-                                        <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">Delete</a>
+                                        {% for element in f %}
+                                            {% if element.errors %}
+                                                <div class="form-group has-error">
+                                            {% else %}
+                                                <div class="form-group">
+                                            {% endif %}
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                    <div class="col-sm-9">
+                                                        {{ element|safe }}
+                                                        {% if element.field.required %}
+                                                            <span class="label label-danger">This field is required</span>
+                                                        {% endif %}
+                                                        <small class="text-muted">
+                                                            {{ element.help_text }}
+                                                        </small>
+                                                        {% if element.errors %}
+                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                        {% endfor %}
                                         <p><hr style="border: solid 1px gray"></p>
                                     </div>
                                 {% endfor %}
@@ -297,9 +339,6 @@
         </div>
 
     </form>
-
-
-
 
  </div>
 
