@@ -191,7 +191,7 @@ class FormView(View):
                     dynamic_data = formset.cleaned_data  # a list of values
                     
                     for dd in dynamic_data:
-                        if dd['DELETE']:
+                        if 'DELETE' in dd and dd['DELETE']:
                             dynamic_data.remove(dd)
                     
                     logger.debug("cleaned data = %s" % dynamic_data)
