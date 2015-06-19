@@ -83,20 +83,6 @@
     </script>
     
     <script>
-    $(function() {
-        $( ".datepicker" ).datepicker({
-            showOn: "button",
-            buttonImage: '{% static 'images/calendar.gif' %}',
-            buttonImageOnly: true,
-            showButtonPanel: true,
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'dd-mm-yy',
-            yearRange: '-100:+0',
-        });
-    });
-
-
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
@@ -134,6 +120,17 @@
         $("#show-cdes-btn").click(function() {
             $("#form-progress-cdes").toggle("fast");
         });
+        
+        $(document).find( ".datepicker" ).each(function() {
+            $(this).on("mouseover", function() {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                });
+            });
+        });
     });
     
     function delete_button(prefix) {
@@ -160,6 +157,15 @@
         new_form.find(":input").each(function() {
             $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
             $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+            
+            if ($(this).hasClass("datepicker")) {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                });
+            }
         });
 
         var total_forms_inc = parseInt(total_forms.val()) + 1;
