@@ -1435,10 +1435,11 @@ class ConsentQuestion(models.Model):
     position = models.IntegerField(blank=True, null=True)
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.TextField()
+    instructions = models.TextField(blank=True)
 
     def create_field(self):
         from django.forms import BooleanField
-        return BooleanField(label=self.question_label, required=False)
+        return BooleanField(label=self.question_label, required=False, help_text=self.instructions)
 
     @property
     def field_key(self):
