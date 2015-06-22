@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
-
+import pycountry
 
 logger = logging.getLogger("registry_log")
 
@@ -69,11 +69,6 @@ class QuestionnaireReverseMapper(object):
                     logger.debug("getcde %s = %s" % (code, address_map[k]))
                     return address_map[k]
 
-        address = PatientAddress()
-        logger.debug("created address object")
-        address.patient = patient_model
-        logger.debug("set patient")
-
         def get_address_type(address_map):
             value = getcde(address_map, "AddressType")
             logger.debug("address type = %s" % value)
@@ -84,6 +79,11 @@ class QuestionnaireReverseMapper(object):
                 address_type_obj = AddressType.objects.get(type="Home")
             return address_type_obj
 
+        address = PatientAddress()
+        logger.debug("created address object")
+        address.patient = patient_model
+        logger.debug("set patient")
+
         address.address_type = get_address_type(address_map)
         logger.debug("set address type")
 
@@ -91,19 +91,40 @@ class QuestionnaireReverseMapper(object):
         logger.debug("set address")
         address.suburb = getcde(address_map, "SuburbTown")
         logger.debug("set suburb")
-        address.state = getcde(address_map, "State")
-        logger.debug("set state")
+
         address_postcode = getcde(address_map, "postcode")
         if address_postcode:
             address.postcode = getcde(address_map, "postcode")
         else:
             address.postcode = ""
-
         logger.debug("set postcode")
-        address.country = getcde(address_map, "Country")
+
+        address.country = self._get_country(getcde(address_map, "Country"))
         logger.debug("set country")
 
+        address.state = self._get_state(getcde(address_map, "State"), address.country)
+        logger.debug("set state")
+
         return address
+
+    def _get_country(self, cde_value):
+        # cde value for country already is country code not name AU etc
+        return cde_value
+
+    def _get_state(self, cde_value, country_code):
+        try:
+            logger.debug("country_code = %s" % country_code)
+            state_code = "%s-%s" % (country_code.lower(), cde_value.lower())
+            country_object = pycountry.countries.get(alpha2=country_code)
+            pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
+            for state in pycountry_states:
+                logger.debug("checking state code %s" % state.code.lower())
+                if state.code.lower() == state_code:
+                    return state.code
+            logger.debug("could not find state - returning None")
+        except Exception, ex:
+            self.error("could not find state code for for %s %s" % (country_code, cde_value))
+
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -144,6 +165,9 @@ class QuestionnaireReverseMapper(object):
             for k in item_dict:
                 logger.debug("k = %s" % k)
                 if k is None:
+                    continue
+                if k == "DELETE":
+                    logger.debug("skipping DELETE key: not applicable in questionnaire response ...")
                     continue
                 value = item_dict[k]
                 logger.debug("value = %s" % value)
