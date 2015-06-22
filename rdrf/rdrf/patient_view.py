@@ -13,8 +13,8 @@ from rdrf.utils import FormLink
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor, PatientRelative
-from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor, PatientRelative, PatientConsent
+from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 import logging
 
@@ -128,6 +128,7 @@ class PatientFormMixin(PatientMixin):
         self.doctor_formset = None
         self.patient_relative_formset = None
         self.object = None
+        self.patient_consent_file_formset = None
 
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
@@ -360,11 +361,21 @@ class PatientFormMixin(PatientMixin):
             registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
             patient_section_info.append(registry_specific_section_fields)
 
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+                                                               form=PatientConsentFileForm,
+                                                               extra=0,
+                                                               can_delete=True)
+        patient_consent_file_form = patient_consent_file_formset(instance=patient)
 
         form_sections = [
             (
                 patient_form,
                 patient_section_info
+            ),
+            (
+                patient_consent_file_form,
+                (("Patient Consent File", None),)
+
             ),
             (
                 patient_address_form,
@@ -388,7 +399,7 @@ class PatientFormMixin(PatientMixin):
                 patient_doctor_form,
                 (patient_doctor_section,)
             ))
-
+        
         # PatientRelativeForm for FH (only)
         if self.registry_model.has_feature('family_linkage'):
             if not patient_relative_form:
@@ -533,6 +544,11 @@ class AddPatientView(PatientFormMixin, CreateView):
 
         self.address_formset = self._get_address_formset(request)
         forms.append(self.address_formset)
+        
+        #patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent)
+        #patient_consent_file_to_save = patient_consent_file_formset(request.POST, request.FILES, prefix="patient_consent_file")
+        #patient_consent_file_to_save.is_valid()
+        #patient_consent_file_to_save.save()
 
         if self._has_doctors_form():
             self.doctor_formset = self._get_doctor_formset(request)
@@ -590,6 +606,11 @@ class PatientEditView(View):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         registry = Registry.objects.get(code=registry_code)
+        
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent)
+        patient_consent_file_to_save = patient_consent_file_formset(request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
+        patient_consent_file_to_save.is_valid()
+        patient_consent_file_to_save.save()
 
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
@@ -830,6 +851,16 @@ class PatientEditView(View):
             patient_relative_section = ("Patient Relative", None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
+            
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+                                                               form=PatientConsentFileForm,
+                                                               extra=0,
+                                                               can_delete=True)
+        patient_consent_file_form = patient_consent_file_formset(instance=patient, prefix="patient_consent_file")
+        form_sections.append((
+            patient_consent_file_form,
+            (("Patient Consent File", None),)
+        ))
 
         return patient, form_sections
 

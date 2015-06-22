@@ -2,6 +2,7 @@ from django import forms
 from registry.utils import get_static_url
 from django_countries import countries
 from models import *
+from models import PatientConsent
 from rdrf.widgets import CountryWidget, StateWidget
 from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
@@ -118,6 +119,11 @@ class PatientAddressForm(forms.ModelForm):
     state = forms.ComboField(required=False, widget=StateWidget())
 
 
+class PatientConsentFileForm(forms.ModelForm):
+    class Meta:
+        model = PatientConsent
+    
+
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {
@@ -203,8 +209,7 @@ class PatientForm(forms.ModelForm):
                     if readonly and not hidden:
                         logger.debug("field %s is readonly" % field)
                         self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
-
-
+        
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
 
