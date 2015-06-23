@@ -55,7 +55,7 @@ ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
     ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
-    ccg ${AWS_STAGING_INSTANCE} drun:'docker-untagged || true'
+    ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
 }
 
 lettuce() {
