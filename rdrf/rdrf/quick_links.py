@@ -17,6 +17,7 @@ class QuickLinks(object):
     """
     PatientsListing = QuickLink("patientslisting", "Patient List")
     Reports = QuickLink("reports", "Reports")
+    Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
     QuestionnaireResponses = QuickLink("admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
     Doctors = QuickLink("admin:patients_doctor_changelist", "Doctors")
@@ -44,7 +45,7 @@ class QuickLinks(object):
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
-                            PermissibleValues, ConsentSections, Groups, Importer, DemographicsFields])
+                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 
