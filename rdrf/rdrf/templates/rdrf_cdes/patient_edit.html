@@ -164,6 +164,11 @@
     <br>
     <div class="row">
         <div class="col-md-10">
+            {% if message %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
         
             {% if patient %}
                 {% if patient|has_feature:"family_linkage" %}
@@ -186,14 +191,7 @@
     
             <form class="form-horizontal" method="post" enctype="multipart/form-data">
             
-                {% csrf_token %}
-                
-                {% if message %}
-                    <div class="alert alert-success" role="alert">
-                        {{ message }}
-                    </div>
-                {% endif %}
-        
+                {% csrf_token %}        
                 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
