@@ -354,36 +354,38 @@ class PatientFormMixin(PatientMixin):
 
         patient_address_section = ("Patient Address", None)
 
-        # first get all the consents ( which could be different per registry -
-        # _and_ per applicability conditions )
-        # then add the remaining sections which are fixed
-        patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
-        patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
-
-        if registry.patient_fields:
-            registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
-            patient_section_info.append(registry_specific_section_fields)
-
-        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
-                                                               form=PatientConsentFileForm,
-                                                               extra=0,
-                                                               can_delete=True)
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True)
         patient_consent_file_form = patient_consent_file_formset(instance=patient, prefix="patient_consent_file")
 
+
+        patient_section_consent = patient_form.get_all_consent_section_info(patient, registry_code)
+        patient_section_consent_file = ("Upload Consent File", None)
+        
         form_sections = [
             (
                 patient_form,
-                patient_section_info
+                patient_section_consent
             ),
             (
                 patient_consent_file_form,
-                (("Patient Consent File", None),)
-
+                (patient_section_consent_file,)
+            ),
+            (
+                patient_form,
+                (rdrf_registry,)
+            ),
+            (
+                patient_form,
+                (personal_details_fields,)
             ),
             (
                 patient_address_form,
                 (patient_address_section,)
-            )
+            ),
+            (
+                patient_form,
+                (next_of_kin,)
+            ),
         ]
 
         if registry.get_metadata_item("patient_form_doctors"):
@@ -418,6 +420,12 @@ class PatientFormMixin(PatientMixin):
             patient_relative_section = ("Patient Relative", None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
+            
+        if registry.patient_fields:
+            registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
+            form_sections.append(
+                (patient_form, (registry_specific_section_fields,))
+            )
 
         return patient, form_sections
 
@@ -807,25 +815,38 @@ class PatientEditView(View):
 
         patient_address_section = ("Patient Address", None)
 
-        # first get all the consents ( which could be different per registry -
-        # _and_ per applicability conditions )
-        # then add the remaining sections which are fixed
-        patient_section_info = patient_form.get_all_consent_section_info(patient, registry_code)
-        patient_section_info.extend([rdrf_registry, personal_details_fields, next_of_kin])
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True)
+        patient_consent_file_form = patient_consent_file_formset(instance=patient, prefix="patient_consent_file")
 
-        registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
-        patient_section_info.append(registry_specific_section_fields)
 
+        patient_section_consent = patient_form.get_all_consent_section_info(patient, registry_code)
+        patient_section_consent_file = ("Upload Consent File", None)
         
         form_sections = [
             (
                 patient_form,
-                patient_section_info
+                patient_section_consent
             ),
             (
-                patient_address_form, 
+                patient_consent_file_form,
+                (patient_section_consent_file,)
+            ),
+            (
+                patient_form,
+                (rdrf_registry,)
+            ),
+            (
+                patient_form,
+                (personal_details_fields,)
+            ),
+            (
+                patient_address_form,
                 (patient_address_section,)
-            )
+            ),
+            (
+                patient_form,
+                (next_of_kin,)
+            ),
         ]
 
         if registry.get_metadata_item("patient_form_doctors"):
@@ -858,16 +879,12 @@ class PatientEditView(View):
             patient_relative_section = ("Patient Relative", None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
-            
-        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
-                                                               form=PatientConsentFileForm,
-                                                               extra=0,
-                                                               can_delete=True)
-        patient_consent_file_form = patient_consent_file_formset(instance=patient, prefix="patient_consent_file")
-        form_sections.append((
-            patient_consent_file_form,
-            (("Patient Consent File", None),)
-        ))
+
+        if registry.patient_fields:
+            registry_specific_section_fields = self._get_registry_specific_section_fields(user, registry)
+            form_sections.append(
+                (patient_form, (registry_specific_section_fields,))
+            )
 
         return patient, form_sections
 
