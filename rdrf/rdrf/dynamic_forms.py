@@ -53,3 +53,21 @@ def create_form_class_for_section(registry, registry_form, section, questionnair
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
     return type(form_class_name, (BaseForm,), form_class_dict)
+
+
+def create_form_class_for_consent_section(registry_model, consent_section_model, questionnaire_context=None, is_superuser=None):
+    # This function is used by the _questionnaire_, to provide a form for filling in custom consent info
+    # It differs from the "normal" form class creation function above which takes a RDRF Section model, in that it takes
+    # a ConsentSection model ( which is NOT CDE based )
+    from django.forms import BooleanField
+    form_class_name = "CustomConsentSectionForm"
+    base_fields = SortedDict()
+
+    for question_model in consent_section_model.questions.order_by("position"):
+        field = BooleanField(label=question_model.question_label, help_text=question_model.instructions)
+        field_key = question_model.field_key
+        base_fields[field_key] = field
+
+    form_class_dict = {"base_fields": base_fields, "auto_id": True}
+
+    return type(form_class_name, (BaseForm,), form_class_dict)
