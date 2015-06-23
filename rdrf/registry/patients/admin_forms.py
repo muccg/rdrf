@@ -12,6 +12,7 @@ from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict
 from django.forms.widgets import TextInput, DateInput
+from django.contrib.admin.widgets import AdminFileWidget
 from rdrf.hooking import run_hooks
 from registry.patients.models import Patient, PatientRelative
 from django.forms.widgets import Select
@@ -123,6 +124,8 @@ class PatientConsentFileForm(forms.ModelForm):
     class Meta:
         model = PatientConsent
     
+    form = forms.FileField(widget=AdminFileWidget)
+
 
 class PatientForm(forms.ModelForm):
 
