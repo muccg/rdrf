@@ -25,14 +25,21 @@ from rdrf.widgets import ReadOnlySelect
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
-        (1, "GP ( Primary Care)"),
-        (2, "Specialist ( Lipid)"),
+        (1, "GP (Primary Care)"),
+        (2, "Specialist (Lipid)"),
         (3, "Primary Care"),
         (4, "Paediatric Neurologist"),
         (5, "Neurologist"),
         (6, "Geneticist"),
         (7, "Specialist - Other"),
+        (8,	"Cardiologist"),
+        (9, "Nurse Practitioner"),
+        (10, "Paediatrician"),
     )
+    
+    # Sorting of options
+    OPTIONS = tuple(sorted(OPTIONS, key=lambda item: item[1]))
+    
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
