@@ -626,23 +626,40 @@ def get_countries():
 class PatientRelative(models.Model):
 
     RELATIVE_TYPES = (
-        ("1st Degree", "1st Degree"),
-        ("2nd Degree", "2nd Degree"),
-        ("3rd Degree", "3rd Degree"),
+        ("Parent", "Parent"),
+        ("Sibling", "Sibling"),
+        ("Child", "Child"),
+        ("Identical Twin", "Identical Twin"),
+        ("Half Sibling", "Half Sibling"),
+        ("Niece/Nephew", "Niece/Nephew"),
+        ("1st Cousin", "1st Cousin"),
+        ("Grandchild", "Grandchild"),
+        ("Uncle/Aunty", "Uncle/Aunty"),
+        ("Spouse", "pouse"),
+        ("Non-identical twin", "Non-identical twin"),
+        ("Grandparent", "Grandparent"),
+        ("1st cousin once removed", "1st cousin once removed"),
+        ("Great Grandparent", "Great Grandparent"),
+        ("Great Grandchild", "Great Grandchild"),
+        ("Great Uncle/Aunt", "Great Uncle/Aunt"),
+        ("Great Niece/Nephew", "Great Niece/Nephew"),
+        ("Unknown", "Unknown"),
+        ("Other", "Other")
     )
 
     RELATIVE_LOCATIONS = [
-        ("AU - WA", "AU - WA"),
-        ("AU - SA", "AU - SA"),
-        ("AU - NSW", "AU - NSW"),
-        ("AU - QLD", "AU - QLD"),
-        ("AU - NT", "AU - NT"),
-        ("AU - VIC", "AU - VIC"),
-        ("AU - TAS", "AU - TAS"),
+        ("AU - WA", "Australia - WA"),
+        ("AU - SA", "Australia - SA"),
+        ("AU - NSW", "Australia - NSW"),
+        ("AU - QLD", "Australia - QLD"),
+        ("AU - NT", "Australia - NT"),
+        ("AU - VIC", "Australia - VIC"),
+        ("AU - TAS", "Australia - TAS"),
+        ("NZ", "New Zealand")
 
     ]
 
-    LIVING_STATES = (('Alive', 'Alive'), ('Deceased', 'Deceased'))
+    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
     SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
     patient = models.ForeignKey(Patient, related_name="relatives")

@@ -2,6 +2,7 @@ from django import forms
 from registry.utils import get_static_url
 from django_countries import countries
 from models import *
+from models import PatientConsent
 from rdrf.widgets import CountryWidget, StateWidget
 from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
@@ -11,6 +12,7 @@ from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict
 from django.forms.widgets import TextInput, DateInput
+from django.contrib.admin.widgets import AdminFileWidget
 from rdrf.hooking import run_hooks
 from registry.patients.models import Patient, PatientRelative
 from django.forms.widgets import Select
@@ -23,14 +25,21 @@ from rdrf.widgets import ReadOnlySelect
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
-        (1, "GP ( Primary Care)"),
-        (2, "Specialist ( Lipid)"),
+        (1, "GP (Primary Care)"),
+        (2, "Specialist (Lipid)"),
         (3, "Primary Care"),
         (4, "Paediatric Neurologist"),
         (5, "Neurologist"),
         (6, "Geneticist"),
         (7, "Specialist - Other"),
+        (8,	"Cardiologist"),
+        (9, "Nurse Practitioner"),
+        (10, "Paediatrician"),
     )
+    
+    # Sorting of options
+    OPTIONS = tuple(sorted(OPTIONS, key=lambda item: item[1]))
+    
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
@@ -118,6 +127,13 @@ class PatientAddressForm(forms.ModelForm):
     state = forms.ComboField(required=False, widget=StateWidget())
 
 
+class PatientConsentFileForm(forms.ModelForm):
+    class Meta:
+        model = PatientConsent
+    
+    form = forms.FileField(widget=AdminFileWidget)
+
+
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {
@@ -203,8 +219,7 @@ class PatientForm(forms.ModelForm):
                     if readonly and not hidden:
                         logger.debug("field %s is readonly" % field)
                         self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
-
-
+        
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
 
