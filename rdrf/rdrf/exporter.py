@@ -191,7 +191,7 @@ class Exporter(object):
         if format == ExportFormat.YAML:
             logger.debug("About to yaml dump the export: data = %s" % data)
             try:
-                export_data = yaml.dump(data)
+                export_data = yaml.safe_dump(data, allow_unicode=True)
             except Exception as ex:
                 logger.error("Error yaml dumping: %s" % ex)
                 export_data = None
