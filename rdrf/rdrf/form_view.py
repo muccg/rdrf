@@ -447,6 +447,7 @@ class QuestionnaireView(FormView):
 
             self.registry_form = form
             context = self._build_context(questionnaire_context=questionnaire_context)
+            context["custom_consent_errors"] = {}
             context["custom_consent_wrappers"] = self._create_custom_consents_wrappers()
             context["registry"] = self.registry
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
@@ -491,6 +492,7 @@ class QuestionnaireView(FormView):
                 self.form = form
                 self.consent_section_model = consent_section_model # handly
 
+
             def is_valid(self):
                 return self.form.is_valid()
 
@@ -500,7 +502,7 @@ class QuestionnaireView(FormView):
                 for field in self.form.errors:
                     for message in self.form.errors[field]:
                         logger.debug("consent error for %s: %s" % (self.label, message))
-                        messages.append(message)
+                        messages.append("Consent Section Invalid")
 
                 return messages
 
@@ -740,6 +742,7 @@ class QuestionnaireView(FormView):
             section_map = get_completed_questions(questionnaire_form, data_map, custom_consent_data, custom_consent_wrappers)
 
             context = {}
+            context["custom_consent_errors"] = {}
             context["completed_sections"] = section_map
             context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
 
@@ -748,6 +751,8 @@ class QuestionnaireView(FormView):
             logger.debug("Error count non-zero!:  %s" % error_count)
 
             context = {
+                'custom_consent_wrappers': custom_consent_wrappers,
+                'custom_consent_errors' : custom_consent_errors,
                 'registry': registry_code,
                 'form_name': 'questionnaire',
                 'form_display_name': registry.questionnaire.name,

@@ -65,6 +65,11 @@
                 <div class="panel-heading">
                     <b>{{consent_wrapper.label}}</b>
                 </div>
+                {% with consent_error_messages=custom_consent_errors|lookup:consent_wrapper.label  %}
+                {% for consent_error_message in consent_error_messages %}
+                   <div class="alert alert-danger">{{ consent_error_message }}</div><br>
+                {% endfor %}
+                {% endwith %}
                 <div class="panel-body">
                      <table class="table table-bordered table-hover table-condensed">
                             {% autoescape off %}
