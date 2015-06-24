@@ -418,6 +418,12 @@ class FormView(View):
         return json_dict
 
 
+class ConsentQuestionWrapper(object):
+    def __init__(self):
+        self.label = ""
+        self.answer = "No"
+
+
 class QuestionnaireView(FormView):
 
     def __init__(self, *args, **kwargs):
@@ -441,8 +447,8 @@ class QuestionnaireView(FormView):
 
             self.registry_form = form
             context = self._build_context(questionnaire_context=questionnaire_context)
+            context["custom_consent_wrappers"] = self._create_custom_consents_wrappers()
             context["registry"] = self.registry
-            # context["questionnaire_context"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
@@ -477,11 +483,79 @@ class QuestionnaireView(FormView):
         else:
             return "au"
 
+    def _create_custom_consents_wrappers(self, post_data=None):
+
+        class ConsentFormWrapper(object):
+            def __init__(self, label, form, consent_section_model):
+                self.label = label
+                self.form = form
+                self.consent_section_model = consent_section_model # handly
+
+            def is_valid(self):
+                return self.form.is_valid()
+
+            @property
+            def errors(self):
+                messages = []
+                for field in self.form.errors:
+                    for message in self.form.errors[field]:
+                        logger.debug("consent error for %s: %s" % (self.label, message))
+                        messages.append(message)
+
+                return messages
+
+            @property
+            def num_errors(self):
+                return len(self.errors)
+
+        consent_form_wrappers = []
+
+        from rdrf.dynamic_forms import create_form_class_for_consent_section
+
+        for consent_section_model in self.registry.consent_sections.order_by("code"):
+            consent_form_class = create_form_class_for_consent_section(self.registry, consent_section_model)
+            consent_form = consent_form_class(data=post_data)
+            consent_form_wrapper = ConsentFormWrapper(consent_section_model.section_label, consent_form, consent_section_model)
+            consent_form_wrappers.append(consent_form_wrapper)
+
+        return consent_form_wrappers
+
     @method_decorator(patient_has_access)
     def post(self, request, registry_code, **kwargs):
-        self.questionnaire_context = self._get_questionnaire_context(request)
         error_count = 0
         registry = self._get_registry(registry_code)
+        self.registry = registry
+
+        # RDR-871 Allow "custom consents"
+        custom_consent_data = {}
+        custom_consent_keys = []
+        custom_consent_errors = {}
+
+        for key in request.POST:
+            logger.debug("checking key %s" % key)
+            if key.startswith("customconsent_"):
+                custom_consent_data[key] = request.POST[key]
+                custom_consent_keys.append(key)
+
+        for key in custom_consent_keys:
+            del request.POST[key]
+
+        custom_consent_wrappers = self._create_custom_consents_wrappers(custom_consent_data)
+
+        for custom_consent_wrapper in custom_consent_wrappers:
+            if not custom_consent_wrapper.is_valid():
+
+                custom_consent_errors[custom_consent_wrapper.label] = [error_message for error_message in
+                                                                           custom_consent_wrapper.errors]
+
+                error_count += custom_consent_wrapper.num_errors
+            else:
+                logger.debug("CUSTOM CONSENT %s is valid" % custom_consent_wrapper.label)
+
+        logger.debug("Error count after checking custom consents = %s" % error_count)
+
+        self.questionnaire_context = self._get_questionnaire_context(request)
+
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
         sections, display_names, ids = self._get_sections(registry.questionnaire)
@@ -495,6 +569,7 @@ class QuestionnaireView(FormView):
         section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
 
         for section in sections:
+            logger.debug("processing section %s" % section)
             section_model = Section.objects.get(code=section)
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
@@ -506,13 +581,15 @@ class QuestionnaireView(FormView):
                 form = form_class(request.POST, request.FILES)
                 form_section[section] = form
                 if form.is_valid():
+                    logger.debug("section %s is valid" % section_model.display_name)
                     dynamic_data = form.cleaned_data
                     data_map[section] = dynamic_data
                 else:
+                    logger.debug("section %s is NOT valid" % section_model.display_name)
                     for e in form.errors:
+                        logger.debug("Error in %s: %s" % (section_model.display_name, e))
                         error_count += 1
             else:
-                logger.debug("MULTISECTION %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:
@@ -527,30 +604,33 @@ class QuestionnaireView(FormView):
                 formset = form_set_class(request.POST, prefix=prefix)
 
                 if formset.is_valid():
-                    logger.debug("formset %s is valid" % formset)
-                    logger.debug("POST data = %s" % request.POST)
+                    logger.debug("section %s is valid" % section_model.display_name)
                     dynamic_data = formset.cleaned_data  # a list of values
                     section_dict = {}
                     section_dict[section] = dynamic_data
                     data_map[section] = section_dict
                 else:
+                    logger.debug("section %s is NOT valid" % section_model.display_name)
                     for e in formset.errors:
+                        logger.debug("Error in %s: %s" % (section_model.display_name, e))
                         error_count += 1
 
         if error_count == 0:
-            # persist the data for this response
+            logger.debug("All forms are valid")
+
             questionnaire_response = QuestionnaireResponse()
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
+            questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", {"custom_consent_data": custom_consent_data})
+
             if self.testing:
                 questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
-                logger.debug("data_map qc = %s" % self.questionnaire_context)
                 questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
 
-            def get_completed_questions(questionnaire_form_model, data_map):
+            def get_completed_questions(questionnaire_form_model, data_map, custom_consent_data, consent_wrappers):
                 from django.utils.datastructures import SortedDict
                 section_map = SortedDict()
 
@@ -560,6 +640,21 @@ class QuestionnaireView(FormView):
                         self.is_multi = False
                         self.subsections = []
                         self.questions = []
+
+                    def load_consents(self, consent_section_model, custom_consent_data):
+                        for consent_question_model in consent_section_model.questions.order_by("position"):
+                            question_wrapper = ConsentQuestionWrapper()
+                            question_wrapper.label = consent_question_model.question_label
+                            field_key = consent_question_model.field_key
+                            try:
+                                value = custom_consent_data[field_key]
+                                logger.debug("%s = %s" % (field_key, value))
+                                if value == "on":
+                                    question_wrapper.answer = "Yes"
+                            except KeyError:
+                                pass
+                            self.questions.append(question_wrapper)
+
 
                 class Question(object):
                     def __init__(self, delimited_key, value):
@@ -613,6 +708,13 @@ class QuestionnaireView(FormView):
                         value = None
                     return Question(delimited_key, value)
 
+                # Add custom consents first so they appear on top
+                for consent_wrapper in consent_wrappers:
+                    sw = SectionWrapper(consent_wrapper.label)
+                    consent_section_model = consent_wrapper.consent_section_model
+                    sw.load_consents(consent_section_model, custom_consent_data)
+                    section_map[sw.label] = sw
+
                 for section_model in questionnaire_form_model.section_models:
                     section_label = section_model.questionnaire_display_name or section_model.display_name
                     if not section_map.has_key(section_label):
@@ -633,16 +735,17 @@ class QuestionnaireView(FormView):
                                 subsection.append(question)
                             section_map[section_label].subsections.append(subsection)
 
-
                 return section_map
 
-            section_map = get_completed_questions(questionnaire_form, data_map)
-            context = {"completed_sections": section_map}
+            section_map = get_completed_questions(questionnaire_form, data_map, custom_consent_data, custom_consent_wrappers)
 
+            context = {}
+            context["completed_sections"] = section_map
             context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
 
             return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
+            logger.debug("Error count non-zero!:  %s" % error_count)
 
             context = {
                 'registry': registry_code,
