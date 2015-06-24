@@ -29,6 +29,7 @@ from rdrf.utils import FormLink
 from registry.groups.models import CustomUser
 import logging
 from registry.groups.models import WorkingGroup
+from rdrf.dynamic_forms import create_form_class_for_consent_section
 
 logger = logging.getLogger("registry_log")
 
@@ -40,6 +41,43 @@ class LoginRequiredMixin(object):
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
+
+class CustomConsentHelper(object):
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+        self.custom_consent_errors = {}
+        self.custom_consent_data = None
+        self.custom_consent_keys = []
+        self.custom_consent_wrappers = []
+        self.error_count = 0
+
+    def create_custom_consent_wrappers(self):
+
+        for consent_section_model in self.registry_model.consent_sections.order_by("code"):
+            consent_form_class = create_form_class_for_consent_section(self.registry_model, consent_section_model)
+            consent_form = consent_form_class(data=self.custom_consent_data)
+            consent_form_wrapper = ConsentFormWrapper(consent_section_model.section_label,
+                                                      consent_form,
+                                                      consent_section_model)
+
+            self.custom_consent_wrappers.append(consent_form_wrapper)
+
+    def get_custom_consent_keys_from_request(self, request):
+        self.custom_consent_data = {}
+        for key in request.POST:
+            if key.startswith("customconsent_"):
+                self.custom_consent_data[key] = request.POST[key]
+                self.custom_consent_keys.append(key)
+
+        for key in self.custom_consent_keys:
+            del request.POST[key]
+
+    def check_for_errors(self):
+        for custom_consent_wrapper in self.custom_consent_wrappers:
+            if not custom_consent_wrapper.is_valid():
+                self.custom_consent_errors[custom_consent_wrapper.label] = [error_message for error_message in
+                                                                           custom_consent_wrapper.errors]
+                self.error_count += custom_consent_wrapper.num_errors
 
 
 
@@ -418,6 +456,30 @@ class FormView(View):
         return json_dict
 
 
+class ConsentFormWrapper(object):
+    def __init__(self, label, form, consent_section_model):
+        self.label = label
+        self.form = form
+        self.consent_section_model = consent_section_model # handly
+
+
+    def is_valid(self):
+        return self.form.is_valid()
+
+    @property
+    def errors(self):
+        messages = []
+        for field in self.form.errors:
+            for message in self.form.errors[field]:
+                logger.debug("consent error for %s: %s" % (self.label, message))
+                messages.append("Consent Section Invalid")
+
+        return messages
+
+    @property
+    def num_errors(self):
+        return len(self.errors)
+
 class ConsentQuestionWrapper(object):
     def __init__(self):
         self.label = ""
@@ -447,8 +509,12 @@ class QuestionnaireView(FormView):
 
             self.registry_form = form
             context = self._build_context(questionnaire_context=questionnaire_context)
+
+            custom_consent_helper = CustomConsentHelper(self.registry)
+            custom_consent_helper.create_custom_consent_wrappers()
+
             context["custom_consent_errors"] = {}
-            context["custom_consent_wrappers"] = self._create_custom_consents_wrappers()
+            context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
             context["registry"] = self.registry
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
@@ -485,34 +551,7 @@ class QuestionnaireView(FormView):
             return "au"
 
     def _create_custom_consents_wrappers(self, post_data=None):
-
-        class ConsentFormWrapper(object):
-            def __init__(self, label, form, consent_section_model):
-                self.label = label
-                self.form = form
-                self.consent_section_model = consent_section_model # handly
-
-
-            def is_valid(self):
-                return self.form.is_valid()
-
-            @property
-            def errors(self):
-                messages = []
-                for field in self.form.errors:
-                    for message in self.form.errors[field]:
-                        logger.debug("consent error for %s: %s" % (self.label, message))
-                        messages.append("Consent Section Invalid")
-
-                return messages
-
-            @property
-            def num_errors(self):
-                return len(self.errors)
-
         consent_form_wrappers = []
-
-        from rdrf.dynamic_forms import create_form_class_for_consent_section
 
         for consent_section_model in self.registry.consent_sections.order_by("code"):
             consent_form_class = create_form_class_for_consent_section(self.registry, consent_section_model)
@@ -529,30 +568,12 @@ class QuestionnaireView(FormView):
         self.registry = registry
 
         # RDR-871 Allow "custom consents"
-        custom_consent_data = {}
-        custom_consent_keys = []
-        custom_consent_errors = {}
+        custom_consent_helper = CustomConsentHelper(self.registry)
+        custom_consent_helper.get_custom_consent_keys_from_request(request)
+        custom_consent_helper.create_custom_consent_wrappers()
+        custom_consent_helper.check_for_errors()
 
-        for key in request.POST:
-            logger.debug("checking key %s" % key)
-            if key.startswith("customconsent_"):
-                custom_consent_data[key] = request.POST[key]
-                custom_consent_keys.append(key)
-
-        for key in custom_consent_keys:
-            del request.POST[key]
-
-        custom_consent_wrappers = self._create_custom_consents_wrappers(custom_consent_data)
-
-        for custom_consent_wrapper in custom_consent_wrappers:
-            if not custom_consent_wrapper.is_valid():
-
-                custom_consent_errors[custom_consent_wrapper.label] = [error_message for error_message in
-                                                                           custom_consent_wrapper.errors]
-
-                error_count += custom_consent_wrapper.num_errors
-            else:
-                logger.debug("CUSTOM CONSENT %s is valid" % custom_consent_wrapper.label)
+        error_count += custom_consent_helper.error_count
 
         logger.debug("Error count after checking custom consents = %s" % error_count)
 
@@ -624,7 +645,7 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
-            questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", {"custom_consent_data": custom_consent_data})
+            questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", {"custom_consent_data": custom_consent_helper.custom_consent_data})
 
             if self.testing:
                 questionnaire_response_wrapper.testing = True
@@ -711,10 +732,10 @@ class QuestionnaireView(FormView):
                     return Question(delimited_key, value)
 
                 # Add custom consents first so they appear on top
-                for consent_wrapper in consent_wrappers:
+                for consent_wrapper in custom_consent_helper.custom_consent_wrappers:
                     sw = SectionWrapper(consent_wrapper.label)
                     consent_section_model = consent_wrapper.consent_section_model
-                    sw.load_consents(consent_section_model, custom_consent_data)
+                    sw.load_consents(consent_section_model, custom_consent_helper.custom_consent_data)
                     section_map[sw.label] = sw
 
                 for section_model in questionnaire_form_model.section_models:
@@ -739,7 +760,10 @@ class QuestionnaireView(FormView):
 
                 return section_map
 
-            section_map = get_completed_questions(questionnaire_form, data_map, custom_consent_data, custom_consent_wrappers)
+            section_map = get_completed_questions(questionnaire_form,
+                                                  data_map,
+                                                  custom_consent_helper.custom_consent_data,
+                                                  custom_consent_helper.custom_consent_wrappers)
 
             context = {}
             context["custom_consent_errors"] = {}
@@ -751,8 +775,8 @@ class QuestionnaireView(FormView):
             logger.debug("Error count non-zero!:  %s" % error_count)
 
             context = {
-                'custom_consent_wrappers': custom_consent_wrappers,
-                'custom_consent_errors' : custom_consent_errors,
+                'custom_consent_wrappers': custom_consent_helper.custom_consent_wrappers,
+                'custom_consent_errors' : custom_consent_helper.custom_consent_errors,
                 'registry': registry_code,
                 'form_name': 'questionnaire',
                 'form_display_name': registry.questionnaire.name,
@@ -803,6 +827,7 @@ class QuestionnaireResponseView(FormView):
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
+        context["custom_consent_wrappers"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
         return self._render_context(request, context)
 
