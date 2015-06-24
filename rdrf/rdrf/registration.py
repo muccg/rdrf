@@ -296,7 +296,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_patient_fields()
-        except Exception as ex:
+        except Exception, ex:
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
@@ -309,12 +309,23 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-        except ValidationError as verr:
+        except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             return
-        except Exception as ex:
+        except Exception, ex:
+            self.error = ex
+            self.state = PatientCreatorState.FAILED
+            return
+
+        # set custom consents here as these need access to the patients registr(y|ies)
+        try:
+            logger.debug("creating custom consents")
+            custom_consent_data = questionnaire_data["custom_consent_data"]
+            logger.debug("custom_consent_data = %s" % custom_consent_data)
+            self._create_custom_consents(patient, custom_consent_data)
+        except Exception, ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             return
@@ -326,14 +337,14 @@ class PatientCreator(object):
 
         try:
             mapper.save_dynamic_fields()
-        except Exception as ex:
+        except Exception, ex:
             self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
                 return
-            except Exception as ex:
+            except Exception, ex:
                 logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
                 return
 
@@ -344,3 +355,20 @@ class PatientCreator(object):
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
         wrapper.delete_patient_data(registry, patient)
+
+    def _create_custom_consents(self, patient_model, custom_consent_dict):
+        from rdrf.models import ConsentQuestion
+        # dictionary looks like: ( only the "on"s will exist if false it won't have a key
+        # 	"customconsent_9_1_3" : "on",
+
+        for field_key in custom_consent_dict:
+            logger.debug(field_key)
+            value = custom_consent_dict[field_key]
+            answer = value == "on"
+            _, registry_pk, consent_section_pk, consent_question_pk = field_key.split("_")
+            consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
+            patient_model.set_consent(consent_question_model, answer)
+
+
+
+

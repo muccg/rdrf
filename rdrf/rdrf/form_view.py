@@ -79,6 +79,11 @@ class CustomConsentHelper(object):
                                                                            custom_consent_wrapper.errors]
                 self.error_count += custom_consent_wrapper.num_errors
 
+    def load_dynamic_data(self, dynamic_data):
+        # load data from Mongo
+        self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
+
+
 
 
 
@@ -827,7 +832,13 @@ class QuestionnaireResponseView(FormView):
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
-        context["custom_consent_wrappers"] = {}
+
+        custom_consent_helper = CustomConsentHelper(self.registry)
+        custom_consent_helper.load_dynamic_data(self.dynamic_data)
+        custom_consent_helper.create_custom_consent_wrappers()
+
+        context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
+        context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
         return self._render_context(request, context)
 
