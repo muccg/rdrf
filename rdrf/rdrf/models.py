@@ -283,17 +283,13 @@ class Registry(models.Model):
                 if k in section_ordering_map:
                     ordered_codes.append(section_ordering_map[k])
 
-        consent_section = self._get_consent_section()
         patient_info_section = self._get_patient_info_section()
 
-        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + \
+        generated_questionnaire_form.sections = patient_info_section + \
             "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
-
-    def _get_consent_section(self):
-        return "GenericPatientConsent"
 
     def _get_patient_info_section(self):
         return "PatientData"
@@ -303,7 +299,7 @@ class Registry(models.Model):
 
     @property
     def generic_sections(self):
-        return [self._get_consent_section(), self._get_patient_info_section(), self._get_patient_address_section()]
+        return [self._get_patient_info_section(), self._get_patient_address_section()]
 
     @property
     def generic_cdes(self):
