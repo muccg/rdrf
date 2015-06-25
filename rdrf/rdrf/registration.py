@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
-
+import pycountry
 
 logger = logging.getLogger("registry_log")
 
@@ -69,11 +69,6 @@ class QuestionnaireReverseMapper(object):
                     logger.debug("getcde %s = %s" % (code, address_map[k]))
                     return address_map[k]
 
-        address = PatientAddress()
-        logger.debug("created address object")
-        address.patient = patient_model
-        logger.debug("set patient")
-
         def get_address_type(address_map):
             value = getcde(address_map, "AddressType")
             logger.debug("address type = %s" % value)
@@ -84,6 +79,11 @@ class QuestionnaireReverseMapper(object):
                 address_type_obj = AddressType.objects.get(type="Home")
             return address_type_obj
 
+        address = PatientAddress()
+        logger.debug("created address object")
+        address.patient = patient_model
+        logger.debug("set patient")
+
         address.address_type = get_address_type(address_map)
         logger.debug("set address type")
 
@@ -91,19 +91,40 @@ class QuestionnaireReverseMapper(object):
         logger.debug("set address")
         address.suburb = getcde(address_map, "SuburbTown")
         logger.debug("set suburb")
-        address.state = getcde(address_map, "State")
-        logger.debug("set state")
+
         address_postcode = getcde(address_map, "postcode")
         if address_postcode:
             address.postcode = getcde(address_map, "postcode")
         else:
             address.postcode = ""
-
         logger.debug("set postcode")
-        address.country = getcde(address_map, "Country")
+
+        address.country = self._get_country(getcde(address_map, "Country"))
         logger.debug("set country")
 
+        address.state = self._get_state(getcde(address_map, "State"), address.country)
+        logger.debug("set state")
+
         return address
+
+    def _get_country(self, cde_value):
+        # cde value for country already is country code not name AU etc
+        return cde_value
+
+    def _get_state(self, cde_value, country_code):
+        try:
+            logger.debug("country_code = %s" % country_code)
+            state_code = "%s-%s" % (country_code.lower(), cde_value.lower())
+            country_object = pycountry.countries.get(alpha2=country_code)
+            pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
+            for state in pycountry_states:
+                logger.debug("checking state code %s" % state.code.lower())
+                if state.code.lower() == state_code:
+                    return state.code
+            logger.debug("could not find state - returning None")
+        except Exception, ex:
+            self.error("could not find state code for for %s %s" % (country_code, cde_value))
+
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -144,6 +165,9 @@ class QuestionnaireReverseMapper(object):
             for k in item_dict:
                 logger.debug("k = %s" % k)
                 if k is None:
+                    continue
+                if k == "DELETE":
+                    logger.debug("skipping DELETE key: not applicable in questionnaire response ...")
                     continue
                 value = item_dict[k]
                 logger.debug("value = %s" % value)
@@ -272,7 +296,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_patient_fields()
-        except Exception as ex:
+        except Exception, ex:
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
@@ -285,12 +309,23 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-        except ValidationError as verr:
+        except ValidationError, verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             return
-        except Exception as ex:
+        except Exception, ex:
+            self.error = ex
+            self.state = PatientCreatorState.FAILED
+            return
+
+        # set custom consents here as these need access to the patients registr(y|ies)
+        try:
+            logger.debug("creating custom consents")
+            custom_consent_data = questionnaire_data["custom_consent_data"]
+            logger.debug("custom_consent_data = %s" % custom_consent_data)
+            self._create_custom_consents(patient, custom_consent_data)
+        except Exception, ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             return
@@ -302,14 +337,14 @@ class PatientCreator(object):
 
         try:
             mapper.save_dynamic_fields()
-        except Exception as ex:
+        except Exception, ex:
             self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
                 return
-            except Exception as ex:
+            except Exception, ex:
                 logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
                 return
 
@@ -320,3 +355,20 @@ class PatientCreator(object):
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
         wrapper.delete_patient_data(registry, patient)
+
+    def _create_custom_consents(self, patient_model, custom_consent_dict):
+        from rdrf.models import ConsentQuestion
+        # dictionary looks like: ( only the "on"s will exist if false it won't have a key
+        # 	"customconsent_9_1_3" : "on",
+
+        for field_key in custom_consent_dict:
+            logger.debug(field_key)
+            value = custom_consent_dict[field_key]
+            answer = value == "on"
+            _, registry_pk, consent_section_pk, consent_question_pk = field_key.split("_")
+            consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
+            patient_model.set_consent(consent_question_model, answer)
+
+
+
+

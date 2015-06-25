@@ -59,6 +59,33 @@
     <div class="alert alert-danger" id="msg-box">Red fields are required</div>
 
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
+
+        {% for consent_wrapper in custom_consent_wrappers %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <b>{{consent_wrapper.label}}</b>
+                </div>
+                {% with consent_error_messages=custom_consent_errors|lookup:consent_wrapper.label  %}
+                {% for consent_error_message in consent_error_messages %}
+                   <div class="alert alert-danger">{{ consent_error_message }}</div><br>
+                {% endfor %}
+                {% endwith %}
+                <div class="panel-body">
+                     <table class="table table-bordered table-hover table-condensed">
+                            {% autoescape off %}
+                                {% for field in consent_wrapper.form %}
+                                    <tr class="">
+                                        <td style="width: 40%; vertical-align: middle;">{{ field.label }}</td>
+                                        <td>
+                                                {{field}}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endautoescape %}
+                        </table>
+                </div>
+            </div>
+        {% endfor %}
     
         {% for s in sections %}
             <div class="panel panel-default">
