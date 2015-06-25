@@ -54,7 +54,8 @@
             $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
                 if (data) {
                     $.each(JSON.parse(data), function(i, item) {
-                        state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
+                        var option_html = "<option value='" + item.code + "'>" + item.name + "</option>";
+                        state_select.append(option_html);
                     })
                 }
             });
