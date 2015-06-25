@@ -30,13 +30,14 @@ the following key features:
   - Patients can be defined once, and belong to several registries
   - Multiple levels of access are supported (e.g. patient, clinician, genetic, and curator roles)
 
-The RDRF can be used to create different types of registries, such as a Contact Registry or a more complex registry with the ability to restrict Forms to certain groups of users.
-<iframe width="560" height="315" src="https://www.youtube.com/embed/hsqpvLIbmNA" frameborder="0" allowfullscreen></iframe>
+The RDRF can be used to create different types of registries, such as a Contact Registry or a more complex registry with the ability to restrict 
+Forms to certain groups of users. Please see this `video <https://www.youtube.com/watch?v=hsqpvLIbmNA>`_ for a quick demonstration.
 
 Are you ready to create your own Patient Registry?
 ==================================================
 
-A `Demo Site <https://rdrf.ccgapps.com.au/demo/>`_ is available for you to try out online. Different levels of access are available, including admin, data curator, genetic staff and clinical staff:
+A `Demo Site <https://rdrf.ccgapps.com.au/demo/>`_ is available for you to try out online. Different levels of access are available, including admin, 
+data curator, genetic staff and clinical staff:
   - admin username and password: admin
   - data curator username and password: curator
   - genetic staff username and password: genetic
