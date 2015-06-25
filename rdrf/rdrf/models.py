@@ -1448,6 +1448,12 @@ class ConsentQuestion(models.Model):
         consent_section_model = self.section
         return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
 
+    def label(self, on_questionnaire=False):
+        if on_questionnaire and self.questionnaire_label:
+            return self.questionnaire_label
+        else:
+            return self.question_label
+
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []

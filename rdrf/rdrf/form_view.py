@@ -679,7 +679,7 @@ class QuestionnaireView(FormView):
                     def load_consents(self, consent_section_model, custom_consent_data):
                         for consent_question_model in consent_section_model.questions.order_by("position"):
                             question_wrapper = ConsentQuestionWrapper()
-                            question_wrapper.label = consent_question_model.question_label
+                            question_wrapper.label = consent_question_model.label(on_questionnaire=True)
                             field_key = consent_question_model.field_key
                             try:
                                 value = custom_consent_data[field_key]
