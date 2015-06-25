@@ -322,7 +322,8 @@ class Exporter(object):
                 cm = {"code": consent_model.code,
                       "position": consent_model.position,
                       "question_label": consent_model.question_label,
-                      "questionnaire_label": consent_model.questionnaire_label}
+                      "questionnaire_label": consent_model.questionnaire_label,
+                      "instructions": consent_model.instructions}
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)
 
