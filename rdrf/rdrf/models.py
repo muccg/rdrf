@@ -1436,6 +1436,7 @@ class ConsentQuestion(models.Model):
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
+    questionnaire_label = models.TextField(blank=True)
 
     def create_field(self):
         from django.forms import BooleanField
