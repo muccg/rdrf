@@ -77,7 +77,7 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
         return answer_dict
 
     for question_model in consent_section_model.questions.order_by("position"):
-        field = BooleanField(label=question_model.question_label, required=False, help_text=question_model.instructions)
+        field = BooleanField(label=question_model.questionnaire_label, required=False, help_text=question_model.instructions)
         field_key = question_model.field_key
         base_fields[field_key] = field
 
