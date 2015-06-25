@@ -442,7 +442,7 @@ class QuestionnaireView(FormView):
             self.registry_form = form
             context = self._build_context(questionnaire_context=questionnaire_context)
             context["registry"] = self.registry
-            # context["questionnaire_context"] = questionnaire_context
+            context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
