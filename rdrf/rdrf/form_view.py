@@ -485,6 +485,7 @@ class ConsentFormWrapper(object):
     def num_errors(self):
         return len(self.errors)
 
+
 class ConsentQuestionWrapper(object):
     def __init__(self):
         self.label = ""
@@ -520,7 +521,13 @@ class QuestionnaireView(FormView):
 
             context["custom_consent_errors"] = {}
             context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
+            
+            
+            
+            
+            
             context["registry"] = self.registry
+            context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
