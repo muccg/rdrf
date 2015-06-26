@@ -159,9 +159,9 @@ Modelling
    work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules 
    for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, 
    the maximum length or pattern. Decide if any :ref:`calculated fields <datatypecalculated>` are required.
-4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
-5. Portion related sections into :ref:`forms`.
-6. If a questionnaire is required for the registry, nominate a single form as a questionnaire.
+4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple
+5. Portion related sections into :ref:`forms`
+6. If a questionnaire is required for the registry, nominate a single form as a questionnaire
 
 
 Creating a Registry
@@ -169,7 +169,7 @@ Creating a Registry
 Assuming all CDEs have already been created
 
 1. Admin logs in and navigates to "Registries" from "Settings"
-2. Admin clicks on green "Add" button.
+2. Admin clicks on green "Add" button
 3. Admin fills in Name, code and description of registry (code must be unique and not contain spaces)
 4. Admin pastes a html splash screen into the Splash screen field (this will be linked to on the main page)
 5. Admin navigates to "Registry Forms" from "Settings" and for each desired form in the registry, clicks the green "Add" button.
