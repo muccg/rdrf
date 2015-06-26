@@ -103,7 +103,7 @@ Approving/Rejecting a Questionnaire response
 1. Curator or clinician logs in.
 2. Click "Questionnaire Responses" under "Menu"
 3. Click "Review" under "Process Questionnaire" to approve/reject a questionanaire
-4. User reviews information in the submitted form and clicks approve (or reject):
+4. User reviews information in the submitted form and clicks approve (or reject)
     * If approve is clicked, a new patient will be created in the registry and working group indicated in the form
     * If reject is clicked, no patient record will be created
 
@@ -155,13 +155,13 @@ Modelling
 ---------
 1. Do this first on pen and paper!
 2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required:
-3. For each data field required , decide its :ref:`datatype <cdedatatype>`
-If a field is logically a :ref:`range <permittedvaluegroup>` , work out the allowed :ref:`permitted values <permittedvalue>`.
-Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, the maximum length or pattern.
-Decide if any :ref:`calculated fields <datatypecalculated>` are required.
+3. For each data field required, decide its :ref:`datatype <cdedatatype>`. If a field is logically a :ref:`range <permittedvaluegroup>`, 
+work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules 
+for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, 
+the maximum length or pattern. Decide if any :ref:`calculated fields <datatypecalculated>` are required.
 4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
 5. Portion related sections into :ref:`forms`.
-If a questionnaire is required for the registry, nominate a single form as a questionnaire.
+6. If a questionnaire is required for the registry, nominate a single form as a questionnaire.
 
 
 Creating a Registry
