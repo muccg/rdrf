@@ -1,7 +1,7 @@
 .. _workflows:
 
-Workflows
-=========
+Creation of a Registry: Workflows for Design and User Modes
+===========================================================
 
 Overview
 --------
@@ -187,7 +187,3 @@ Assuming all CDEs have already been created:
 13. Enter the CDE codes of any fields required in the elements list (as a comma-separated list) E.g. "CDEName,CDEAge,CDEHeight"
       * Note: The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code 
       cannot be found in the system, the section object will not be created
-
-
-
-
