@@ -123,7 +123,8 @@ class QuestionnaireReverseMapper(object):
                     return state.code
             logger.debug("could not find state - returning None")
         except Exception, ex:
-            self.error("could not find state code for for %s %s" % (country_code, cde_value))
+            logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
+            logger.error("could not find state code for for %s %s" % (country_code, cde_value))
 
 
     def save_dynamic_fields(self):
@@ -290,6 +291,7 @@ class PatientCreator(object):
 
     @transaction.atomic
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
+        before_creation = transaction.savepoint()
         patient = Patient()
         patient.consent = True
         mapper = QuestionnaireReverseMapper(self.registry, patient, questionnaire_data)
@@ -313,10 +315,12 @@ class PatientCreator(object):
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
+            transaction.savepoint_rollback(before_creation)
             return
         except Exception, ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
+            transaction.savepoint_rollback(before_creation)
             return
 
         # set custom consents here as these need access to the patients registr(y|ies)
@@ -328,6 +332,7 @@ class PatientCreator(object):
         except Exception, ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
+            transaction.savepoint_rollback(before_creation)
             return
 
         logger.info("created patient %s" % patient.pk)
@@ -343,13 +348,17 @@ class PatientCreator(object):
             try:
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
+                transaction.savepoint_rollback(before_creation)
                 return
             except Exception, ex:
                 logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
+                transaction.savepoint_rollback(before_creation)
                 return
 
         self.state = PatientCreatorState.CREATED_OK
         # RDR-667 we don't need to preserve the approved QRs once patient created
+        transaction.savepoint_commit(before_creation)
+
         questionnaire_response.delete()
 
     def _remove_mongo_data(self, registry, patient):

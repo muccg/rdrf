@@ -880,6 +880,7 @@ class QuestionnaireResponseView(FormView):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):
+        from django.db import transaction
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
         if 'reject' in request.POST:
@@ -893,7 +894,9 @@ class QuestionnaireResponseView(FormView):
             questionnaire_data = self._get_dynamic_data(
                 id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
             logger.debug("questionnaire data = %s" % questionnaire_data)
+
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
+
             if patient_creator.state == PatientCreatorState.CREATED_OK:
                 messages.info(request, "Questionnaire approved - A patient record has now been created")
             elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
