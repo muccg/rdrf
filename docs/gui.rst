@@ -73,3 +73,10 @@ Demographics Fields
 -------------------
 Configure Demographics fields to be hidden or readonly by registry and group
 
+Working Groups
+--------------
+Add or edit working groups (e.g. States, Hospitals, CLinics)
+
+Questionnaire Responses
+-----------------------
+Questionnaire responses are stored here when submitted by a patient, awaiting validation or rejection by an admin or curator
