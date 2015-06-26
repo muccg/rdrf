@@ -154,11 +154,12 @@ Design Mode Workflow
 Modelling
 ---------
 1. Do this first on pen and paper!
-2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required:
+2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required
 3. For each data field required, decide its :ref:`datatype <cdedatatype>`. If a field is logically a :ref:`range <permittedvaluegroup>`, 
 work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules 
 for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, 
 the maximum length or pattern. Decide if any :ref:`calculated fields <datatypecalculated>` are required.
+
 4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
 5. Portion related sections into :ref:`forms`.
 6. If a questionnaire is required for the registry, nominate a single form as a questionnaire.
