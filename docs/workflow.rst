@@ -1,7 +1,7 @@
 .. _workflows:
 
-Workflows
-=========
+Creation of a Registry: Workflows for Design and User Modes
+===========================================================
 
 Overview
 --------
@@ -42,7 +42,7 @@ Enter and view data on patients in a working group within a registry
 User Mode Workflows
 ===================
 
-Adding a user ( curator or clinician, or genetic staff)
+Adding a user (curator or clinician, or genetic staff)
 -------------------------------------
 
 1. Admin logs in
@@ -103,7 +103,7 @@ Approving/Rejecting a Questionnaire response
 1. Curator or clinician logs in.
 2. Click "Questionnaire Responses" under "Menu"
 3. Click "Review" under "Process Questionnaire" to approve/reject a questionanaire
-4. User reviews information in the submitted form and clicks approve (or reject):
+4. User reviews information in the submitted form and clicks approve (or reject)
     * If approve is clicked, a new patient will be created in the registry and working group indicated in the form
     * If reject is clicked, no patient record will be created
 
@@ -148,8 +148,39 @@ Adding Laboratory
 4. Click Save
 
 
+Design Mode Workflow
+--------------------
+
+Modelling
+---------
+1. Do this first on pen and paper!
+2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required
+3. For each data field required, decide its :ref:`datatype <cdedatatype>`. If a field is logically a :ref:`range <permittedvaluegroup>`, 
+work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules 
+for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, 
+the maximum length or pattern. Decide if any :ref:`calculated fields <datatypecalculated>` are required.
+
+4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
+5. Portion related sections into :ref:`forms`.
+6. If a questionnaire is required for the registry, nominate a single form as a questionnaire.
 
 
+Creating a Registry
+-------------------
+Assuming all CDEs have already been created
 
-
-
+1. Admin logs in and navigates to "Registries" from "Settings"
+2. Admin clicks on green "Add" button.
+3. Admin fills in Name, code and description of registry (code must be unique and not contain spaces)
+4. Admin pastes a html splash screen into the Splash screen field (this will be linked to on the main page)
+5. Admin navigates to "Registry Forms" from "Settings" and for each desired form in the registry, clicks the green "Add" button.
+6. Admin Selects the registry just created from the drop down list
+7. Admin enters a name into the name field (this name will appear on the form, eg "Physical Info")
+8. Admin enters a comma-separated list of form section codes (E.g. "FHPhysicalSection,FHPersonalitySection,FHAmbulatorySection" (Note: The codes  should be unique and have no spaces - no quotes! - prefixing with registry code is conventional but
+   advised). If the form is intended to be a public questionnaire form, check the questionnaire checkbox
+9. Save the form definition
+10. For each section referred to in the comma separated list, add a section object by navigating to "Sections" from "Settings"
+11. Click the green "Add" button and enter the section code (used in the form definition)
+12. Enter a display name for the section (this will appear on the form above the fields defined for the section)
+13. Enter the CDE codes of any fields required in the elements list (as a comma-separated list) E.g. "CDEName,CDEAge,CDEHeight"
+   * Note- The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code cannot be found in the system, the section object will not be created
