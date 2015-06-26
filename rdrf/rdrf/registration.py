@@ -113,14 +113,24 @@ class QuestionnaireReverseMapper(object):
 
     def _get_state(self, cde_value, country_code):
         try:
-            logger.debug("country_code = %s" % country_code)
+            logger.debug("_get_state cde_value = %s" % cde_value)
+            logger.debug("_get_state country_code = %s" % country_code)
             state_code = "%s-%s" % (country_code.lower(), cde_value.lower())
+            if "-" in cde_value:
+                state_code = cde_value
+            else:
+                state_code = "%s-%s" % (country_code, state_code)
+
+            logger.debug("state_code to check = %s" % state_code)
+
             country_object = pycountry.countries.get(alpha2=country_code)
             pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
                 logger.debug("checking state code %s" % state.code.lower())
-                if state.code.lower() == state_code:
+                if state.code.lower() == state_code.lower():
+                    logger.debug("found state!: %s" % state.code)
                     return state.code
+
             logger.debug("could not find state - returning None")
         except Exception, ex:
             logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
