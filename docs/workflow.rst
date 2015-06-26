@@ -153,17 +153,14 @@ Design Mode Workflow
 
 Modelling
 ---------
-Do this first on pen and paper!
-
-Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required:
-For each data field required , decide its :ref:`datatype <cdedatatype>`
+1. Do this first on pen and paper!
+2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required:
+3. For each data field required , decide its :ref:`datatype <cdedatatype>`
 If a field is logically a :ref:`range <permittedvaluegroup>` , work out the allowed :ref:`permitted values <permittedvalue>`.
 Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, the maximum length or pattern.
 Decide if any :ref:`calculated fields <datatypecalculated>` are required.
-
-Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
-
-Portion related sections into :ref:`forms`.
+4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple.
+5. Portion related sections into :ref:`forms`.
 If a questionnaire is required for the registry, nominate a single form as a questionnaire.
 
 
@@ -185,5 +182,4 @@ Assuming all CDEs have already been created
 11. Click the green "Add" button and enter the section code (used in the form definition)
 12. Enter a display name for the section (this will appear on the form above the fields defined for the section)
 13. Enter the CDE codes of any fields required in the elements list (as a comma-separated list) E.g. "CDEName,CDEAge,CDEHeight"
-   * Note: The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code 
-cannot be found in the system, the section object will not be created
+   * Note- The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code cannot be found in the system, the section object will not be created
