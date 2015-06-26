@@ -26,7 +26,7 @@ Do this first on pen and paper!
 Creation
 --------
 
-* Login as an admin and :ref:`navigate <navigation>` to "Home >> Rdrf"
+* Login as an admin and :ref:`navigate <navigation>` to "Registries" via the "Settings" button
 * Create a :ref:`registry <registries>` object and give it a name and code 
 * Create any :ref:`permitted value groups <permittedvaluegroup>` required ( adding
   any :ref:`permitted values <permittedvalue>` to the range.
@@ -53,10 +53,12 @@ Patients can be assigned to a registry by using the :ref:`patient registry admin
 Demo Site
 ---------
 
-* A demo site is up and running at: https://ccgapps.com.au/demo-rdrf/
-* Logins Provided ( username/password):
-    * admin/admin ( for definition of new registries.)
-    * curator/curator ( for data entry.)
-* Demo registries for Myotonic Dystrophy and Familial Hypercholesterolaemia are provided.
+* A demo site is up and running at: https://rdrf.ccgapps.com.au/demo/
+* Logins Provided (username/password):
+    * admin/admin (for definition of new registries)
+    * curator/curator (for data entry)
+    * clinical/clinical (for data entry on clinical forms)
+    * genetic/genetic (for data entry on genetic forms)
+* A Demo Contact Registry and Demo Clinical Registry for Myotonic Dystrophy are provided.
 
 
