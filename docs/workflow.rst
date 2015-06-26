@@ -166,7 +166,7 @@ Modelling
 
 Creating a Registry
 -------------------
-Assuming all CDEs have already been created
+Assuming all :ref:`cdes`have already been created
 
 1. Admin logs in and navigates to "Registries" from "Settings"
 2. Admin clicks on green "Add" button
