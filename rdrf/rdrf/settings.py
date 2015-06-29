@@ -16,8 +16,15 @@ WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
 PRODUCTION = env.get("production", False)
-SSL_ENABLED = PRODUCTION
-SSL_FORCE = PRODUCTION
+
+# django-secure
+SECURE_SSL_REDIRECT = env.get("secure_ssl_redirect", PRODUCTION)
+SECURE_FRAME_DENY = env.get("secure_frame_deny", PRODUCTION)
+SECURE_CONTENT_TYPE_NOSNIFF = env.get("secure_content_type_nosniff", PRODUCTION)
+SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
+SECURE_HSTS_SECONDS = env.get("secure_hsts_seconds", 10)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.get("secure_hsts_include_subdomains", PRODUCTION)
+
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
@@ -79,13 +86,13 @@ MESSAGE_TAGS = {
 }
 
 MIDDLEWARE_CLASSES = (
+    'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'ccg.middleware.ssl.SSLRedirect',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
@@ -98,7 +105,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
-    #'suit',
     'south',
     'messages_ui',
     'userlog',
@@ -111,7 +117,8 @@ INSTALLED_APPS = [
     'iprestrict',
     'ajax_select',
     'registration',
-    'explorer'
+    'explorer',
+    'djangosecure',
 ]
 
 
