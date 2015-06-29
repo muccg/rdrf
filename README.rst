@@ -51,6 +51,7 @@ All the development tasks can be done by using the ``develop.sh`` shell script i
 Please run it without any arguments for help on its usage.
 
 Some typical usages are:
+
 - ./develop.sh start
         To start up all the docker containers needed for dev. 
         You can access the RDRF application on http://localhost:8000
