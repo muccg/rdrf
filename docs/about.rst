@@ -1,7 +1,7 @@
 .. _about:
 
-About RDRF
-=========
+About the RDRF
+==============
 RDRF (Rare Disease Registry Framework) is a tool for 
 the creation of web-based data entry forms and questionnaires based
 on reusable data element definitions ("Data Elements") which
@@ -16,7 +16,7 @@ Key Features
 RDRF's main features are:
 
   - Dynamic creation of :ref:`registries` ( :ref:`forms` , :ref:`sections`, :ref:`fields` ) at *runtime*.
-  - Reusable Components ( :ref:`cdes` )
+  - Reusable Components ( :ref:`des` )
   - Standard Django Admin Interface ( :ref:`gui` )
   - Demo Site (`<https://rdrf.ccgapps.com.au/demo/>`_)
 
@@ -49,8 +49,8 @@ Links
 `Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
 
 
-Citation
-========
+Citations
+=========
 
 Bellgard, M.I., et al., Second generation registry framework, Source Code for Biology and Medicine, 2014. 9:14.
 
