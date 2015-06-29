@@ -66,6 +66,8 @@ lettuce() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
+    fig --project-name rdrf -f fig-lettuce.yml rm --force
+    fig --project-name rdrf -f fig-lettuce.yml build
     fig --project-name rdrf -f fig-lettuce.yml up
 }
 
@@ -77,6 +79,8 @@ selenium() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
+    fig --project-name rdrf -f fig-selenium.yml rm --force
+    fig --project-name rdrf -f fig-selenium.yml build
     fig --project-name rdrf -f fig-selenium.yml up
 }
 
