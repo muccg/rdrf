@@ -94,7 +94,8 @@ setup(name='django-rdrf',
         'six==1.9.0',
         'python-gettext',
         'django-registration-redux==1.1.0',
-        'psycopg2==2.5.5'
+        'psycopg2==2.5.5',
+        'django-secure==1.0.1',
     ],
     dependency_links=[
         "https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.3.1.tar.gz",
