@@ -38,10 +38,7 @@ RUN INSTALL_ONLY_DEPENDENCIES=True pip install --trusted-host github.com --allow
 COPY . /app
 RUN pip install --process-dependency-links --no-deps -e .
 
-# now that we have installed everything globally purge /app
-# /app gets added as a volume at run time
 WORKDIR /app
-RUN rm -rf ..?* .[!.]* *
 
 EXPOSE 8000 9000 9001 9100 9101
 VOLUME ["/app", "/data"]
