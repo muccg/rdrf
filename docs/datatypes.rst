@@ -1,10 +1,10 @@
-.. _datatypes:
+
 
 Datatypes
 =========
 
+There are multiple data types, including:
 
-.. _datatypestring:
 String Datatype
 ---------------
 
@@ -25,7 +25,7 @@ Examples
 * The string 123 
 * ^^%%$^%$ff  ( non alphanumeric characters )
 
-.. _datatypeinteger:
+
 Integer Dataype
 ---------------
 
@@ -37,7 +37,7 @@ Examples
 12, -1,0 etc.
 
 
-.. _datatypefloat:
+
 Float Datatype
 --------------
 
@@ -55,7 +55,7 @@ Examples
 * 0.0
 
 
-.. _datatypealphanumeric:
+
 Alphanumeric Datatype
 ---------------------
 
@@ -71,7 +71,7 @@ Examples
 * 234
 * h4x0r
 
-.. _datatypeboolean:
+
 Boolean Datatype
 ----------------
 
@@ -85,7 +85,7 @@ Examples
 * True
 * False
 
-.. _datatyperange:
+
 Range Datatype
 --------------
 
@@ -101,19 +101,19 @@ Examples
 * colour:  red, blue , green
 
 
-.. _datatypecalculated:
-Calculated Datatype
--------------------
+
+Calculated (Derived Date Element)
+---------------------------------
 
 Definition
 ^^^^^^^^^^
 A value which is computed *client-side* from other values on the form.
 
-To created a calculated CDE enter "calculated" as the datatype and then fill in the calculation field of the CDE.
+To created a calculated DE enter "calculated" as the datatype and then fill in the calculation field of the DE.
 
 Examples
 ^^^^^^^^
-A calculation( for BMI ) could be coded as::
+A calculation (for BMI) could be coded as::
    
    var height = parseFloat(context.CDEHeight);
    var mass = parseFloat(context.CDEMass); 
@@ -121,17 +121,17 @@ A calculation( for BMI ) could be coded as::
 
 
 The "context" here is an abstraction representing the *other* cdes on the containing form.
-( Hence these other CDEs must be present in some section of same form as the form containing
-the calculated field, else an error will result.)
+(Hence these other DEs must be present in some section of same form as the form containing
+the calculated field, else an error will result).
 
-.. _datatypefile:
+
 File Datatype
 -------------
 
 Definition
 ^^^^^^^^^^
 
-A file cde presents a file chooser widget to the user, allowing upload ( and download ) of a file from the user's 
+A file cde presents a file chooser widget to the user, allowing upload (and download) of a file from the user's 
 local file system. NB. Only the uploaded file name is displayed - not the content.
 
 Examples
@@ -139,7 +139,7 @@ Examples
 
 A consent form field.
 
-.. _datatypedate:
+
 Date Datatype
 -------------
 
@@ -154,7 +154,7 @@ Examples
 * 4th Jan 2008
 * 8 Dec 2078
 
-.. _datatypecomplexfield:
+
 ComplexField Datatype
 ---------------------
 
