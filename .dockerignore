@@ -10,5 +10,6 @@ puppet
 sql
 tmp
 centos
+data
 */log/*
 */scratch/*
