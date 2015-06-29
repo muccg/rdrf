@@ -154,9 +154,9 @@ Design Mode Workflow
 Modelling
 ---------
 1. Do this first on pen and paper!
-2. Gather requirements of the data fields ( :ref:`"CDEs" <cdes>` ) required
+2. Gather requirements of the data fields ( :ref:`"DEs" <des>` ) required
 3. For each data field required, decide its :ref:`datatype <cdedatatype>`. If a field is logically a :ref:`range <permittedvaluegroup>`, 
-   work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <cdedatatype>`, decide any validation rules 
+   work out the allowed :ref:`permitted values <permittedvalue>`. Depending on the :ref:`datatype <dedatatype>`, decide any validation rules 
    for a numeric (:ref:`integer <datatypeinteger>` or :ref:`float <datatypefloat>`) field max and/or min, for a :ref:`string <datatypestring>` field, 
    the maximum length or pattern. Decide if any :ref:`calculated fields <datatypecalculated>` are required.
 4. Split them into logical groups (:ref:`sections`). Decide whether a section might be multiple
@@ -166,7 +166,7 @@ Modelling
 
 Creating a Registry
 -------------------
-Assuming all :ref:`cdes`have already been created
+Assuming all :ref:`des`have already been created
 
 1. Admin logs in and navigates to "Registries" from "Settings"
 2. Admin clicks on green "Add" button
@@ -181,4 +181,4 @@ Assuming all :ref:`cdes`have already been created
 10. For each section referred to in the comma separated list, add a section object by navigating to "Sections" from "Settings"
 11. Click the green "Add" button and enter the section code (used in the form definition)
 12. Enter a display name for the section (this will appear on the form above the fields defined for the section)
-13. Enter the CDE codes of any fields required in the elements list (as a comma-separated list) E.g. "CDEName,CDEAge,CDEHeight" (Note- The system will check whether any entered CDE codes exist when the section object is saved - if any CDE code cannot be found in the system, the section object will not be created)
+13. Enter the DE codes of any fields required in the elements list (as a comma-separated list) E.g. "CDEName,CDEAge,CDEHeight" (Note- The system will check whether any entered DE codes exist when the section object is saved - if any DE code cannot be found in the system, the section object will not be created)
