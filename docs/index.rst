@@ -13,7 +13,7 @@ The RDRF empowers Patient Organisations, Clinicians and Researchers to create an
 own Patient Registries, without the need for software development. 
 
 The RDRF is unique in that data entry forms and questionnaires are based on reusable data element definitions 
-(called :ref:`cdes`), which can be created and/or loaded into the system at runtime. 
+(called :ref:`des`), which can be created and/or loaded into the system at runtime. 
 This means that registries can be created and modified without changes to the source code. The RDRF has 
 been developed at the `Centre for Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia 
 in partnership with the Office of Population Health Genomics, Department of Health 
@@ -25,8 +25,8 @@ Do you need a patient registry for your department, clinic or community?
 
 The RDRF enables the rapid creation of Registries without the need for software development through 
 the following key features:
-  - Dynamic creation of :ref:`registries` (comprised of :ref:`forms`, :ref:`sections`, and :ref:`cdes`,) at *runtime*
-  - Reusable Components (:ref:`cdes`) allows CDEs to be used in multiple registries
+  - Dynamic creation of :ref:`registries` (comprised of :ref:` forms <registriesforms>`, :ref:`sections <registriessections>', and :ref:`des`,) at *runtime*
+  - Reusable Components (:ref:`des`) allows CDEs to be used in multiple registries
   - Patients can be defined once, and belong to several registries
   - Multiple levels of access are supported (e.g. patient, clinician, genetic, and curator roles)
 
@@ -63,14 +63,11 @@ Documentation Content List:
    designmode
    gui
    registries
-   howtocreatearegistry
-   forms
-   sections
    cdes
+   datatypes
+   howtocreatearegistry
    permittedvaluegroups
    permittedvalue
-   datatypes
-   export
    import
    questionnaires
    interfacing
