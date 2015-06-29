@@ -1,19 +1,19 @@
 .. _des:
 
-Data Elements (DES)
+Data Elements (DEs)
 ===========================
 
 RDRF allows creation of resusable fields, which can be dropped into the definition of  :ref:`sections` of :ref:`forms`, simply by entering their code into the elements field of the section definition ( in a comma separated list).
 
 A DE is created by an admin user :ref:`navigating <navigation>` to "Data Elements"  in "Settings"
 
-A DE definition consists of:
+DEs can be shared by all registries created within the framework. A DE definition consists of:
 
 
 Code
 ----
 
-A CDE must have a *globally unique code* (e.g. CDEAge, CDEInsulinLevel) which must not contain a space.
+A DE must have a *globally unique code* (e.g. CDEAge, CDEInsulinLevel) which must not contain a space.
 
 A meaningful code prefixed with CDE or the Registry Code is recommended. 
 
@@ -32,7 +32,6 @@ Desc
 Origin of the field if externally loaded.
 
 
-:
 Datatype
 --------
 
@@ -107,8 +106,8 @@ will be used, which should be good enough in 99% per cent of cases.
 
 
 
-Calculation
------------
+Derived Data Element (DDE)
+--------------------------
 
 *IF* a calculated field, a fragment of javascript outlined in :ref:`calculated fields <calculatedfields>`.
 Leave blank if not a calculated field.
