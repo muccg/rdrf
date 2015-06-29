@@ -79,12 +79,12 @@ Elements
 --------
 The :ref:`DEs <des>` codes of any fields comprising that section.
 
-This *must* be a comma-demlited list of :ref:`DE codes <decode>`.
+This *must* be a comma-demlited list of :ref:`DE codes <des>`.
 
 Example: "CDEName, CDEAge" 
 
 (This would mean that the section would consist of two
-data input fields - one defined by the :ref:`Data Element <des>` with :ref:`code <decode>` "CDEName"
+data input fields - one defined by the :ref:`Data Element <des>` with :ref:`code <des>` "CDEName"
 and one defined by the Common Data Element with code "CDEAge")
 
 NB. Spaces between codes is *not* significant.
@@ -100,9 +100,9 @@ Example
 
 A friends section might be defined with cdes for name and email address etc.
 Marking the section as "allow multiple" would cause an "Add" and "Remove" button
-to be added to the form so multiple friends could be added ( or deleted.)
+to be added to the form so multiple friends could be added (or deleted.)
 
 Extra
 -----
-If allow multiple is checked, this causes extra ( blank) copies of the initial section to be displayed.
+If allow multiple is checked, this causes extra (blank) copies of the initial section to be displayed.
  
