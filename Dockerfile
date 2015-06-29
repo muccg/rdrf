@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  git \
   libpcre3 \
   libpcre3-dev \
   libpq-dev \
@@ -13,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libyaml-dev \
   python-tk \
   sendmail \
-  git \
   zlib1g-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
