@@ -38,9 +38,9 @@ class CustomUserAdmin(UserAdmin):
             return get_user_model().objects.all()
             
         filter1 = Q(working_groups__in=request.user.working_groups.all()) | Q(working_groups__isnull=True)
-        filter2 = Q(registry__in=request.user.registry.all()) | Q(registry__isnull=True)
+        filter2 = Q(registry__in=request.user.registry.all())
         
-        filtered = get_user_model().objects.filter(filter1).distinct().filter(is_superuser = False)
+        filtered = get_user_model().objects.filter(filter1).filter(filter2).distinct().filter(is_superuser=False)
 
         return filtered
     
