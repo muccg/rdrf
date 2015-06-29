@@ -20,18 +20,22 @@ RUN env --unset=DEBIAN_FRONTEND
 WORKDIR /app
 RUN git clone --depth=1 --branch=master https://bitbucket.org/ccgmurdoch/rdrf.git .
 
-WORKDIR /app/rdrf
-RUN pip install --process-dependency-links -e .
+# install python deps
+# hgvs was failing due to lack of nose, hence the order
+RUN pip install nose
+RUN pip install -r rdrf/runtime-requirements.txt
+RUN pip install -e rdrf
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
 
-RUN chmod +x /app/docker-entrypoint.sh
+RUN cp docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Drop privileges, set home for ccg-user
 USER ccg-user
 ENV HOME /data
 WORKDIR /data
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["uwsgi"]

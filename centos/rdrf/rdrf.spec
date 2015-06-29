@@ -81,7 +81,10 @@ pip --version
 export PATH=$PATH:/usr/pgsql-9.4/bin
 
 # Install package into the prefix
-pip install --process-dependency-links .
+# hgvs was failing due to lack of nose, hence the order
+pip install nose
+pip install -r runtime-requirements.txt
+pip install .
 
 # Fix up paths in virtualenv, enable use of global site-packages
 virtualenv-%{pybasever} --relocatable %{buildinstalldir}

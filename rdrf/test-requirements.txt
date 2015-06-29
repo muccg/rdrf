@@ -1,0 +1,7 @@
+sure==1.2.12
+nose
+nose-timer
+lettuce
+lettuce_webdriver
+pyvirtualdisplay
+selenium

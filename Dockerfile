@@ -19,32 +19,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN env --unset=DEBIAN_FRONTEND
 
-# Deps for tests
-RUN pip install \
-  lettuce \
-  lettuce_webdriver \
-  pyvirtualdisplay \
-  nose \
-  selenium
-
-# Install dependencies only (not the app itself) to use the build cache more efficiently
-# This will be redone only if setup.py changes
-# INSTALL_ONLY_DEPENDENCIES stops the app installing inside setup.py (pip --deps-only ??)
-COPY rdrf/setup.py /app/rdrf/setup.py
-WORKDIR /app/rdrf
-RUN INSTALL_ONLY_DEPENDENCIES=True pip install --trusted-host github.com --allow-all-external --process-dependency-links .
-
-# Copy code and install the app
-COPY . /app
-RUN pip install --process-dependency-links --no-deps -e .
-
+# install python deps
+COPY rdrf/*requirements.txt /app/rdrf/
 WORKDIR /app
-
-EXPOSE 8000 9000 9001 9100 9101
-VOLUME ["/app", "/data"]
+# hgvs was failing due to lack of nose, hence the order
+RUN pip install -r rdrf/dev-requirements.txt
+RUN pip install -r rdrf/test-requirements.txt
+RUN pip install -r rdrf/runtime-requirements.txt
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
+
+# Copy code and install the app
+COPY . /app
+RUN pip install -e rdrf
+
+EXPOSE 8000 9000 9001 9100 9101
+VOLUME ["/app", "/data"]
 
 ENV HOME /data
 WORKDIR /data
