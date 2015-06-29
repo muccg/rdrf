@@ -3,6 +3,7 @@
 Creation of a Registry: Workflows for Design and User Modes
 ===========================================================
 
+
 Overview
 --------
 
@@ -79,7 +80,7 @@ User Mode Workflows
 -------------------
 
 Adding a user (curator or clinician, or genetic staff)
--------------------------------------
+------------------------------------------------------
 
 1. Admin logs in
 2. Clicks on "Users" from the "Menu" button
