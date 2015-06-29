@@ -109,7 +109,8 @@ class QueryView(LoginRequiredMixin, View):
             cdes = _get_cdes(query_model.registry)
             munged = _munge_docs(result, cdes)
             munged = _filler(munged, cdes)
-
+            munged = _final_cleanup(munged)
+    
             result = _human_friendly(munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
@@ -176,6 +177,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         cdes = _get_cdes(query_model.registry)
         munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
+        munged = _final_cleanup(munged)
             
         return self._extract(munged, query_model.title, query_id)
 
@@ -228,14 +230,14 @@ def _get_header(result):
     header = []
     if result:
         for key in result[0].keys():
-            header.append(key)
+            header.append(key.encode("utf8"))
         return header
 
 
 def _get_content(result, header):
     row = []
     for h in header:
-        row.append(result[h])
+        row.append(result[h.decode("utf8")])
     return row
 
 def _human_friendly(result):
@@ -302,12 +304,18 @@ def _munge_docs(result, cdes):
         munged_result = {}
         for item in res:
             if isinstance(res[item], list):
+                res_list = []
                 for i in res[item]:
-                    index = 0
-                    for doc in i:
-                        munged_result[doc] = i[doc]
-                    index = index + 1
+                    res_list.append(i)
+                munged_result[item] = res_list
             else:
                 munged_result[item] = res[item]
         munged.append(munged_result)
     return munged
+
+def _final_cleanup(results):
+    for res in results:
+        for key, value in res.iteritems():
+            if key.endswith('timestamp'):
+                del res[key]
+    return results
