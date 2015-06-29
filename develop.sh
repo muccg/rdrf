@@ -105,6 +105,8 @@ unit_tests() {
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
+    fig --project-name rdrf -f fig-test.yml rm --force
+    fig --project-name rdrf -f fig-test.yml build
     fig --project-name rdrf -f fig-test.yml up
 }
 
