@@ -28,8 +28,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
-BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel
-Requires: python%{pyver} zlib
+BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel libyaml-devel
+Requires: python%{pyver} zlib libyaml postgresql94-libs
 
 %description
 Registry rdrf
@@ -77,7 +77,7 @@ pip install --force-reinstall --upgrade 'pip>=1.5,<1.6'
 
 # The app has a python dependency (HGVS) that specifically pulls in psycopg2
 # Make pg_config available on the path so it can build
-export PATH=$PATH:/usr/pgsql-9.3/bin
+export PATH=$PATH:/usr/pgsql-9.4/bin
 
 # Install package into the prefix
 pip install --process-dependency-links .
