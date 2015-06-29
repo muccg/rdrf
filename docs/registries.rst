@@ -1,11 +1,11 @@
 .. _registries:
 
-Registriesm Forms and Sections
+Registries, Forms and Sections
 ==============================
 
 
 In RDRF, a "registry" is just a named collection of forms. A Registry is created by an admin user
-by selecting "Registrys" from "Settings" and clicking "Add".
+by selecting "Registries" from "Settings" and clicking "Add".
 
 A Registry must have a non-blank name and a code (which should not contain spaces).
 
