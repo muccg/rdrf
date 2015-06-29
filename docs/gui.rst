@@ -3,13 +3,15 @@
 RDRF Graphical User Interface
 =============================
 
-RDRF is a Django web application and accessed via any web browser ( E.g. Chrome or Firefox.)
+RDRF is a Django web application and accessed via any web browser (f.g. Chrome or Firefox).
 
 The system uses the standard Django views (generic class-based views) with bootstrap-styling to provide access to the application.
 
+As an admin user, regularly used links are  links are accessed via "Settings", while the "Admin Page" contains the complete list of links.
+
 
 Admin Page
-==========
+----------
 
 The Admin Page consists of:
 
