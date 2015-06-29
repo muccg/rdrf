@@ -3,7 +3,7 @@
 Data Elements (DEs)
 ===================
 
-RDRF allows creation of resusable fields, which can be dropped into the definition of sections of :ref:'forms <registries>', simply by entering their code into the elements field of the section definition (in a comma separated list).
+RDRF allows creation of resusable fields, which can be dropped into the definition of sections of :ref:`forms <registries>`, simply by entering their code into the elements field of the section definition (in a comma separated list).
 
 A DE is created by an admin user navigating to "Data Elements"  in "Settings"
 
@@ -38,8 +38,7 @@ Datatype
 Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.
 
 
-The allowed :ref:'datatypes'
-:ref:`datatypes' are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
+The allowed :ref:`datatypes` are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
 
 
 * string
@@ -110,7 +109,7 @@ will be used, which should be good enough in 99% per cent of cases.
 Derived Data Element (DDE)
 --------------------------
 
-*IF* a calculated field, a fragment of javascript outlined in :ref:`calculated fields <calculatedfields>`.
+*IF* a calculated field, a fragment of javascript outlined in :ref:`Derived Data Elements <datatypes>`.
 Leave blank if not a calculated field.
 
 
