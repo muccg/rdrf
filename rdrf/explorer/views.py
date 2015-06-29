@@ -230,16 +230,14 @@ def _get_header(result):
     header = []
     if result:
         for key in result[0].keys():
-            key = key.replace(u'\u2018', "'")
-            key = key.replace(u'\u2019', "'")
-            header.append(key)
+            header.append(key.encode("utf8"))
         return header
 
 
 def _get_content(result, header):
     row = []
     for h in header:
-        row.append(result[h])
+        row.append(result[h.decode("utf8")])
     return row
 
 def _human_friendly(result):
