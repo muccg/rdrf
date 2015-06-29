@@ -105,7 +105,7 @@ Examples
 
 
 
-Calculated (Derived Date Element)
+Calculated (Derived Data Element)
 ---------------------------------
 
 Definition
