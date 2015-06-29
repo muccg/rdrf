@@ -38,19 +38,19 @@ Datatype
 Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.
 
 
-The allowed datatypes are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
+The allowed :ref:'datatypes' are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
 
 
-* :ref:`string <datatypestring>`
-* :ref:`integer <datatypeinteger>`   
-* :ref:`alphanumeric <datatypealphanumeric>`
-* :ref:`boolean <datatypeboolean>`
-* :ref:`float <datatypeboolean>`
-* :ref:`range <datatyperange>`
-* :ref:`calculated <datatypecalculated>`
-* :ref:`file <datatypefile>`
-* :ref:`date <datatypedate>`
-* :ref:`ComplexField <datatypecomplexfield>`
+* string
+* integer
+* alphanumeric
+* boolean
+* float
+* range
+* calculated
+* file
+* date
+* ComplexField
 
 
 
