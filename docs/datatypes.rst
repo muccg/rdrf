@@ -3,8 +3,8 @@
 Datatypes
 =========
 
+There are multiple data types, including:
 
-.. _datatypestring:
 String Datatype
 ---------------
 
@@ -25,11 +25,11 @@ Examples
 * The string 123 
 * ^^%%$^%$ff  ( non alphanumeric characters )
 
-.. _datatypeinteger:
+
 Integer Dataype
 ---------------
 
-A whole number. Integer cdes can have a max or min value entered.
+A whole number. Integer DEs can have a max or min value entered.
 
 Examples
 ^^^^^^^^
@@ -37,7 +37,7 @@ Examples
 12, -1,0 etc.
 
 
-.. _datatypefloat:
+
 Float Datatype
 --------------
 
@@ -55,7 +55,7 @@ Examples
 * 0.0
 
 
-.. _datatypealphanumeric:
+
 Alphanumeric Datatype
 ---------------------
 
@@ -71,7 +71,7 @@ Examples
 * 234
 * h4x0r
 
-.. _datatypeboolean:
+
 Boolean Datatype
 ----------------
 
@@ -85,13 +85,16 @@ Examples
 * True
 * False
 
-.. _datatyperange:
+
+
+
 Range Datatype
 --------------
+For more sophisticated DEs, a DE can incorporate Permitted Value Groups (PVG). 
 
 Definition
 ^^^^^^^^^^
-A set of allowed values ( usually represented as drop down list)
+A set of allowed values (usually represented as drop down list)
 
 Ranges in RDRF are specified by the datatype keyword "range" and then selecting the appropriate :ref:`Permitted Value Group <permittedvaluegroup>` This entails that permitted value groups be created first.
 
@@ -101,19 +104,19 @@ Examples
 * colour:  red, blue , green
 
 
-.. _datatypecalculated:
-Calculated Datatype
--------------------
+
+Calculated (Derived Data Element)
+---------------------------------
 
 Definition
 ^^^^^^^^^^
 A value which is computed *client-side* from other values on the form.
 
-To created a calculated CDE enter "calculated" as the datatype and then fill in the calculation field of the CDE.
+To created a calculated DE enter "calculated" as the datatype and then fill in the calculation field of the DE.
 
 Examples
 ^^^^^^^^
-A calculation( for BMI ) could be coded as::
+A calculation (for BMI) could be coded as::
    
    var height = parseFloat(context.CDEHeight);
    var mass = parseFloat(context.CDEMass); 
@@ -121,17 +124,17 @@ A calculation( for BMI ) could be coded as::
 
 
 The "context" here is an abstraction representing the *other* cdes on the containing form.
-( Hence these other CDEs must be present in some section of same form as the form containing
-the calculated field, else an error will result.)
+(Hence these other DEs must be present in some section of same form as the form containing
+the calculated field, else an error will result).
 
-.. _datatypefile:
+
 File Datatype
 -------------
 
 Definition
 ^^^^^^^^^^
 
-A file cde presents a file chooser widget to the user, allowing upload ( and download ) of a file from the user's 
+A file DE presents a file chooser widget to the user, allowing upload (and download) of a file from the user's 
 local file system. NB. Only the uploaded file name is displayed - not the content.
 
 Examples
@@ -139,14 +142,14 @@ Examples
 
 A consent form field.
 
-.. _datatypedate:
+
 Date Datatype
 -------------
 
 Definition
 ^^^^^^^^^^
 
-A day , month , year combination
+A day, month, year combination
 
 Examples
 ^^^^^^^^
@@ -154,14 +157,14 @@ Examples
 * 4th Jan 2008
 * 8 Dec 2078
 
-.. _datatypecomplexfield:
+
 ComplexField Datatype
 ---------------------
 
 Definition
 ^^^^^^^^^^
 
-A CDE used to aggregate other cdes horizontally on the page.
+A DE used to aggregate other DEs horizontally on the page.
 
 The intent is mainly stylistic
 

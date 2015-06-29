@@ -5,8 +5,8 @@
 %define pybasever 2.7
 
 %define name rdrf
-%define version 0.8.31
-%define unmangled_version 0.8.31
+%define version 0.8.33
+%define unmangled_version 0.8.33
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
@@ -28,8 +28,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
-BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel
-Requires: python%{pyver} zlib
+BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel libyaml-devel
+Requires: python%{pyver} zlib libyaml postgresql94-libs
 
 %description
 Registry rdrf
@@ -73,15 +73,15 @@ virtualenv-%{pybasever} %{buildinstalldir}
 
 # Use specific version of pip -- avoids surprises with deprecated
 # options, etc.
-pip install --force-reinstall --upgrade 'pip>=1.5,<1.6'
+pip install --force-reinstall --upgrade 'pip>=7.0,<8.0'
+pip --version
 
 # The app has a python dependency (HGVS) that specifically pulls in psycopg2
 # Make pg_config available on the path so it can build
-export PATH=$PATH:/usr/pgsql-9.3/bin
+export PATH=$PATH:/usr/pgsql-9.4/bin
 
 # Install package into the prefix
 pip install --process-dependency-links .
-#pip uninstall -y Cython
 
 # Fix up paths in virtualenv, enable use of global site-packages
 virtualenv-%{pybasever} --relocatable %{buildinstalldir}

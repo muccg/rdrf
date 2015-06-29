@@ -596,10 +596,21 @@ class Importer(object):
                     question_code = question_dict["code"]
                     question_position = question_dict["position"]
                     question_label = question_dict["question_label"]
+                    if "questionnaire_label" in question_dict:
+                        questionnaire_label = question_dict["questionnaire_label"]
+                    else:
+                        questionnaire_label = ""
+
+                    if "instructions" in question_dict:
+                        instructions = question_dict["instructions"]
+                    else:
+                        instructions = ""
 
                     question_model, created = ConsentQuestion.objects.get_or_create(code=question_code, section=section_model)
                     question_model.position = question_position
                     question_model.question_label = question_label
+                    question_model.instructions = instructions
+                    question_model.questionnaire_label = questionnaire_label
                     question_model.save()
 
     def _create_demographic_fields(self, data):

@@ -98,7 +98,7 @@ class PatientView(View):
                 try:
                     patient = Patient.objects.get(user__id=request.user.id)
                     context['patient_record'] = patient
-                    context['patient_form'] = PatientForm(instance=patient, user=request.user)
+                    context['patient_form'] = PatientForm(instance=patient, user=request.user, registry_model=registry)
                     context['patient_id'] = patient.id
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
@@ -620,6 +620,16 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+
+        logger.debug("Edit patient pk before save %s" % patient.pk)
+
+        if patient.user:
+            logger.debug("patient user before save = %s" % patient.user)
+            patient_user = patient.user
+        else:
+            patient_user = None
+            logger.debug("patient user before save is None")
+
         registry = Registry.objects.get(code=registry_code)
         
         patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent)
@@ -683,6 +693,14 @@ class PatientEditView(View):
                 docs = doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
+            logger.debug("patient pk after valid forms save = %s" % patient_instance.pk)
+
+            # For some reason for FKRP , the patient.user was being clobbered
+            logger.debug("patient.user after all valid forms saved = %s" % patient.user)
+            if patient_user and not patient_instance.user:
+                patient_instance.user = patient_user
+                patient_instance.save()
+
             self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
 
             patient, form_sections = self._get_patient_and_forms_sections(patient_id, registry_code, request)

@@ -206,7 +206,7 @@ class LaboratoryLookupWidget(LookupWidget2):
         link_to_labs = reverse_lazy("admin:genetic_laboratory_changelist")
     
         link_html = """<span class="input-group-btn">
-                            <a class="btn btn-info" href="%s" >Add</a>
+                            <a class="btn btn-info" href="#" onclick="window.open('%s');" >Add</a>
                         </span>""" % link_to_labs
         return "<div class='input-group'>" + widget_html + link_html + "</div>"
 

@@ -283,17 +283,13 @@ class Registry(models.Model):
                 if k in section_ordering_map:
                     ordered_codes.append(section_ordering_map[k])
 
-        consent_section = self._get_consent_section()
         patient_info_section = self._get_patient_info_section()
 
-        generated_questionnaire_form.sections = consent_section + "," + patient_info_section + \
+        generated_questionnaire_form.sections = patient_info_section + \
             "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
         logger.info("finished generating questionnaire for registry %s" % self.code)
-
-    def _get_consent_section(self):
-        return "GenericPatientConsent"
 
     def _get_patient_info_section(self):
         return "PatientData"
@@ -303,7 +299,7 @@ class Registry(models.Model):
 
     @property
     def generic_sections(self):
-        return [self._get_consent_section(), self._get_patient_info_section(), self._get_patient_address_section()]
+        return [self._get_patient_info_section(), self._get_patient_address_section()]
 
     @property
     def generic_cdes(self):
@@ -1435,16 +1431,24 @@ class ConsentQuestion(models.Model):
     position = models.IntegerField(blank=True, null=True)
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.TextField()
+    instructions = models.TextField(blank=True)
+    questionnaire_label = models.TextField(blank=True)
 
     def create_field(self):
         from django.forms import BooleanField
-        return BooleanField(label=self.question_label, required=False)
+        return BooleanField(label=self.question_label, required=False, help_text=self.instructions)
 
     @property
     def field_key(self):
         registry_model = self.section.registry
         consent_section_model = self.section
         return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+
+    def label(self, on_questionnaire=False):
+        if on_questionnaire and self.questionnaire_label:
+            return self.questionnaire_label
+        else:
+            return self.question_label
 
 
 class DemographicFields(models.Model):
