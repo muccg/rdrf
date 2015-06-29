@@ -3,9 +3,9 @@
 Data Elements (DEs)
 ===================
 
-RDRF allows creation of resusable fields, which can be dropped into the definition of  :ref:`sections` of :ref:`forms`, simply by entering their code into the elements field of the section definition ( in a comma separated list).
+RDRF allows creation of resusable fields, which can be dropped into the definition of sections of :ref:'forms <registries>', simply by entering their code into the elements field of the section definition (in a comma separated list).
 
-A DE is created by an admin user :ref:`navigating <navigation>` to "Data Elements"  in "Settings"
+A DE is created by an admin user navigating to "Data Elements"  in "Settings"
 
 DEs can be shared by all registries created within the framework. A DE definition consists of:
 
@@ -38,7 +38,8 @@ Datatype
 Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.
 
 
-The allowed :ref:'datatypes' are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
+The allowed :ref:'datatypes'
+:ref:`datatypes' are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
 
 
 * string
@@ -60,7 +61,7 @@ Pv group
 *IF* a range, select the desired :ref:`permitted value group <permittedvaluegroup>` here.
 
 
-Allow multple
+Allow multiple
 -------------
 *IF* a range, checking this box will allow multple selections to be chosen from the range.
 
