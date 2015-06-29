@@ -77,7 +77,7 @@ Configure Demographics fields to be hidden or readonly by registry and group
 
 Working Groups
 --------------
-Add or edit working groups (e.g. States, Hospitals, CLinics)
+Add or edit working groups (e.g. States, Hospitals, Clinics)
 
 Questionnaire Responses
 -----------------------
