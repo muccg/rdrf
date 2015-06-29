@@ -29,7 +29,7 @@ Examples
 Integer Dataype
 ---------------
 
-A whole number. Integer cdes can have a max or min value entered.
+A whole number. Integer DEs can have a max or min value entered.
 
 Examples
 ^^^^^^^^
@@ -86,12 +86,15 @@ Examples
 * False
 
 
+
+
 Range Datatype
 --------------
+For more sophisticated DEs, a DE can incorporate Permitted Value Groups (PVG). 
 
 Definition
 ^^^^^^^^^^
-A set of allowed values ( usually represented as drop down list)
+A set of allowed values (usually represented as drop down list)
 
 Ranges in RDRF are specified by the datatype keyword "range" and then selecting the appropriate :ref:`Permitted Value Group <permittedvaluegroup>` This entails that permitted value groups be created first.
 
@@ -131,7 +134,7 @@ File Datatype
 Definition
 ^^^^^^^^^^
 
-A file cde presents a file chooser widget to the user, allowing upload (and download) of a file from the user's 
+A file DE presents a file chooser widget to the user, allowing upload (and download) of a file from the user's 
 local file system. NB. Only the uploaded file name is displayed - not the content.
 
 Examples
@@ -146,7 +149,7 @@ Date Datatype
 Definition
 ^^^^^^^^^^
 
-A day , month , year combination
+A day, month, year combination
 
 Examples
 ^^^^^^^^
@@ -161,7 +164,7 @@ ComplexField Datatype
 Definition
 ^^^^^^^^^^
 
-A CDE used to aggregate other cdes horizontally on the page.
+A DE used to aggregate other DEs horizontally on the page.
 
 The intent is mainly stylistic
 
