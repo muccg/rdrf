@@ -1,4 +1,4 @@
-
+.. _datatypes:
 
 Datatypes
 =========
