@@ -1,7 +1,7 @@
 .. _des:
 
 Data Elements (DEs)
-===========================
+===================
 
 RDRF allows creation of resusable fields, which can be dropped into the definition of  :ref:`sections` of :ref:`forms`, simply by entering their code into the elements field of the section definition ( in a comma separated list).
 
