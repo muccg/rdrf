@@ -2,14 +2,13 @@
 
 About RDRF
 =========
-RDRF ( Rare Disease Registry Framework ) is a tool for 
+RDRF (Rare Disease Registry Framework) is a tool for 
 the creation of web-based data entry forms and questionnaires based
-on reusable data element definitions ( "Common Data Elements" ) which
+on reusable data element definitions ("Data Elements") which
 can be created and/or loaded into the system at runtime without changes
 to the source code. RDRF has been developed at the `Centre of Comparative
 Genomics <http://ccg.murdoch.edu.au>`_
 
-.. _mainfeatures:
 
 Key Features
 ============
@@ -52,6 +51,10 @@ Links
 
 Citation
 ========
+
+Bellgard, M.I., et al., Second generation registry framework, Source Code for Biology and Medicine, 2014. 9:14.
+
+Bellgard, M., et al., Dispelling myths about rare disease registry system development, Source Code for Biology and Medicine, 2013. 8: 21. 
 
 Bellgard, M.I., et al., A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat, 2012. 33(10): p. E2356-66.
 Other related citations
