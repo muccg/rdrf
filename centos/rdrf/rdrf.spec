@@ -73,7 +73,8 @@ virtualenv-%{pybasever} %{buildinstalldir}
 
 # Use specific version of pip -- avoids surprises with deprecated
 # options, etc.
-pip install --force-reinstall --upgrade 'pip>=1.5,<1.6'
+pip install --force-reinstall --upgrade 'pip>=7.0,<8.0'
+pip --version
 
 # The app has a python dependency (HGVS) that specifically pulls in psycopg2
 # Make pg_config available on the path so it can build
@@ -81,7 +82,6 @@ export PATH=$PATH:/usr/pgsql-9.4/bin
 
 # Install package into the prefix
 pip install --process-dependency-links .
-#pip uninstall -y Cython
 
 # Fix up paths in virtualenv, enable use of global site-packages
 virtualenv-%{pybasever} --relocatable %{buildinstalldir}
