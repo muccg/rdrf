@@ -35,7 +35,7 @@ Origin of the field if externally loaded.
 Datatype
 --------
 
-Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text  although this may change.
+Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.
 
 
 The allowed datatypes are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
@@ -85,12 +85,12 @@ Min value
 ---------
 *IF* an integer or a float value, the minimum magnitude allowed.
 
-.. _cdeisrequired:
+
 Is required
 -----------
 A check box indicating whether this field is mandatory (any datatype)
 
-.. _cdepattern:
+
 Pattern
 -------
 *IF* a string value, a regular expression used to indicate admissible values
