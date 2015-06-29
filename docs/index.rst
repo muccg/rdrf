@@ -25,7 +25,7 @@ Do you need a patient registry for your department, clinic or community?
 
 The RDRF enables the rapid creation of Registries without the need for software development through 
 the following key features:
-  - Dynamic creation of :ref:`registries` (comprised of :ref:` forms <registriesforms>`, :ref:`sections <registriessections>', and :ref:`des`,) at *runtime*
+  - Dynamic creation of :ref:`registries` (comprised of forms, sections, and :ref:`des`) at *runtime*
   - Reusable Components (:ref:`des`) allows DEs to be used in multiple registries
   - Patients can be defined once, and belong to several registries
   - Multiple levels of access are supported (e.g. patient, clinician, genetic, and curator roles)
