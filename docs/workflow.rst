@@ -9,9 +9,9 @@ Overview
 There are two basic modes in which RDRF is intended to be used: Design mode (for creating new registries)
 and User Mode (for adding/editing and viewing patient data in a registry that has been created).
 
-Only administrators can add new registries, forms, sections or common data elements.
+Only administrators can add new registries, forms, sections or data elements.
 
-Important Point: Once Common Data elements and sections  are created they can be used by more than one registry.
+Important Point: Once data elements and sections  are created they can be used by more than one registry.
 But altering a data element or section that is in use will immediately affect any registries which use it.
 
 Additionally, a public interface is provided when a registry form is nominated to be a questionnaire.
@@ -19,7 +19,7 @@ See :ref:`questionnaires <questionnaires>`.
 
 
 Roles
-=====
+-----
 
 Each workflow in RDRF is intended to be performed by a user with a distinct role.
 
@@ -50,14 +50,14 @@ Modelling
    work out the allowed :ref:`permitted values <permittedvaluegroup>`. Depending on the :ref:`datatype <datatype>`, decide any validation rules 
    for a numeric or float data type (max and/or min), and for a string data type, 
    the maximum length or pattern. Decide if any Derived Data Elements (calculated data type) are required.
-4. Split them into logical groups (:ref:`sections <registriessections>`). Decide whether a section might be multiple
-5. Portion related sections into :ref:`forms <registriesforms>`
+4. Split them into logical groups (:ref:`sections <registries>`). Decide whether a section might be multiple
+5. Portion related sections into :ref:`forms <registries>`
 6. If a questionnaire is required for the registry, nominate a single form as a questionnaire
 
 
 Creating a Registry
 -------------------
-Assuming all :ref:`des`have already been created
+Assuming all :ref:`des` have already been created
 
 1. Admin logs in and navigates to "Registries" from "Settings"
 2. Admin clicks on green "Add" button
@@ -76,13 +76,13 @@ Assuming all :ref:`des`have already been created
 
 
 User Mode Workflows
-===================
+-------------------
 
 Adding a user (curator or clinician, or genetic staff)
 -------------------------------------
 
 1. Admin logs in
-2. Clicks on "Users" from th "Menu" button
+2. Clicks on "Users" from the "Menu" button
 3. Clicks Add User button on right
 4. Enters Username and password
 5. Clicks Next
