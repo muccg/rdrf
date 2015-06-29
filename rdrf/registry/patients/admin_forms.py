@@ -22,6 +22,7 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import DemographicFields
 from rdrf.widgets import ReadOnlySelect
+from registry.groups.models import WorkingGroup
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
@@ -194,9 +195,14 @@ class PatientForm(forms.ModelForm):
             logger.debug("form has user attribute ...")
             user = self.user
             logger.debug("user = %s" % user)
+            # working groups shown should be only related to the groups avail to the user in the registry being edited
+            self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
             if not user.is_superuser:
                 logger.debug("not superuser so updating field visibility")
-                registry = user.registry.all()[0]
+                if not self.registry_model:
+                    registry = user.registry.all()[0]
+                else:
+                    registry = self.registry_model
                 logger.debug("registry = %s" % registry)
                 working_groups = user.groups.all()
                 logger.debug("user working groups = %s" % [wg.name for wg in working_groups])
