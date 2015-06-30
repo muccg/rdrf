@@ -119,3 +119,6 @@ def get_site_url(request, path="/"):
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # this part !
     return request.build_absolute_uri(path)
+
+def location_name(registry_form):
+    return de_camelcase(registry_form.name)
