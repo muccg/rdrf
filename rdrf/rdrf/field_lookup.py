@@ -60,6 +60,7 @@ class FieldFactory(object):
         "date": (django.forms.DateField, {"help_text": "DD-MM-YYYY", "input_formats": ['%d-%m-%Y']}),
         "boolean": django.forms.BooleanField,
         "float": django.forms.FloatField,
+        "email": django.forms.EmailField,
     }
 
     UNSET_CHOICE = ""
