@@ -6,7 +6,6 @@ Creation of a Registry: Workflows for Design and User Modes
 
 Overview
 --------
-
 There are two basic modes in which RDRF is intended to be used: Design mode (for creating new registries)
 and User Mode (for adding/editing and viewing patient data in a registry that has been created).
 
@@ -21,7 +20,6 @@ See :ref:`questionnaires <questionnaires>`.
 
 Roles
 -----
-
 Each workflow in RDRF is intended to be performed by a user with a distinct role.
 
 Admin
@@ -81,7 +79,6 @@ User Mode Workflows
 
 Adding a user (curator or clinician, or genetic staff)
 ------------------------------------------------------
-
 1. Admin logs in
 2. Clicks on "Users" from the "Menu" button
 3. Clicks Add User button on right
@@ -107,7 +104,6 @@ Adding a Patient to a Registry
 
 Entering (and viewing existing) Demographic Data for a Patient
 ----------------------------------------------------------------
-
 1. Login as a clinician
 2. Click the Patient's name in the Patient column of the Patient List
 3. Edit contact details for the patient
@@ -123,7 +119,6 @@ Changing Working Group for a Patient
 
 Entering / editing existing Clinical Data for a Patient
 -------------------------------------------------------
-
 1. Login in as a clinician
 2. If clinician has access to more than one registry a drop down of registries is shown in the search area, otherwise no
    registry dropdown will appear and all operations will occur in the one registry
@@ -136,7 +131,6 @@ Entering / editing existing Clinical Data for a Patient
 
 Approving/Rejecting a Questionnaire response
 ----------------------------------
-
 1. Curator or clinician logs in.
 2. Click "Questionnaire Responses" under "Menu"
 3. Click "Review" under "Process Questionnaire" to approve/reject a questionanaire
@@ -147,7 +141,6 @@ Approving/Rejecting a Questionnaire response
 
 Adding a new working group
 --------------------------
-
 1. Admin logs in
 2. Click on "Working Groups" under the "Menu" button
 3. Click the green "Add" button
@@ -155,7 +148,6 @@ Adding a new working group
 
 Changing the Working Groups of a Curator
 ----------------------------------------
-
 1. As an admin, click on "Users" under the "Menu" button
 2. Click on the username of the curator required
 3. Control-click (command-click for Mac) on each working group in the combo box required for that user (a curator in 2 working groups will see patients in both groups)
@@ -163,7 +155,6 @@ Changing the Working Groups of a Curator
 
 Assigning a curator (or clinician) to a registry
 --------------------------------------------------
-
 1. As an admin, login and then click on "Users" under the "Menu" button
 2. Click on the username of the user required
 3. Control-click (command-click for Mac) on each registry the user is meant to have access to
@@ -171,7 +162,6 @@ Assigning a curator (or clinician) to a registry
 
 Adding Genes
 ------------
-
 1. Admin logs in
 2. Click on "Genes" under the "Menu" button
 3. Click on "Add" and add details
