@@ -258,6 +258,7 @@ class PatientFormMixin(PatientMixin):
         kwargs["registry_code"] = self.registry_model.code
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
+        kwargs["location"] = "Demographics"
         return kwargs
 
     def _extract_error_messages(self, form_pairs):
@@ -608,13 +609,14 @@ class PatientEditView(View):
         registry_model = Registry.objects.get(code=registry_code)
 
         context = {
+            "location": "Demographics",
             "forms": form_sections,
             "patient": patient,
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": self._get_formlinks(request.user, patient.id, registry_model),
         }
-    
+
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def post(self, request, registry_code, patient_id):
@@ -738,6 +740,7 @@ class PatientEditView(View):
             
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
+        context["location"] = "Demographics"
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
 
