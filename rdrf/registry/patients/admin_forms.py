@@ -90,7 +90,7 @@ class PatientRelativeForm(forms.ModelForm):
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
                     except Exception, ex:
-                        raise ValidationError("date of birth must be dd-mm-yyyy")
+                        raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
                     continue   # this was causing error in post clean - we set this ourselves
