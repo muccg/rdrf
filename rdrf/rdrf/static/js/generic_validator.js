@@ -39,7 +39,7 @@ function generic_validate(element, rpcEndPoint, rpcCommand) {
     var csrfToken = $("input[name='csrfmiddlewaretoken']").val(); // this will/must appear on our django form
 
     var rpc = new RPC.RPC(rpcEndPoint, csrfToken);
-    rpc.send(rpcCommand, [value], function (response) {
+    rpc.send(rpcCommand, [value], function(response) {
         var isValid = response.result;
         if (isValid) {
             goodValue(element);
