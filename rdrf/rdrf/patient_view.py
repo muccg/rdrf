@@ -13,7 +13,7 @@ from rdrf.utils import FormLink
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, Doctor, PatientRelative, PatientConsent
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 import logging

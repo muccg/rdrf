@@ -3,6 +3,8 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render_to_response
+from django.views.generic.base import TemplateView
+
 import registry.urls as common_urls
 import rdrf.views as views
 import rdrf.form_view as form_view
@@ -15,20 +17,18 @@ import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
 import rdrf.report_view as report_view
-from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
-from ajax_select import urls as ajax_select_urls
-from rdrf.views import RegistryList
-from registry.patients.views import update_session
-from tastypie.api import Api
-from rdrf.api import PatientResource
-
-from rdrf.migration_view import MigrationView
-
-from django.views.generic.base import TemplateView
-from registration.backends.default.views import ActivationView
-
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
+from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
+from rdrf.views import RegistryList
+from rdrf.api import PatientResource
+from rdrf.migration_view import MigrationView
+from registry.patients.views import update_session
+from registration.backends.default.views import ActivationView
+
+from ajax_select import urls as ajax_select_urls
+from tastypie.api import Api
+
 
 admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
 

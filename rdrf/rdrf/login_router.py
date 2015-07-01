@@ -1,8 +1,6 @@
-from django.shortcuts import render_to_response, RequestContext
 from django.shortcuts import redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import Group
 
 
 # todo update ophg registries to use new demographics and patients listing forms: we need to fix this properly

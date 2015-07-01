@@ -1,6 +1,5 @@
 from django import template
 from registry.patients.models import Patient
-from rdrf.hooking import run_hooks
 
 
 register = template.Library()

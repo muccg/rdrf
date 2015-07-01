@@ -1,6 +1,5 @@
 from django.forms import ModelForm, SelectMultiple, ChoiceField
-
-from models import RegistryForm, CommonDataElement, Section, DemographicFields
+from models import RegistryForm, CommonDataElement, Section
 from registry.patients.models import Patient
 
 

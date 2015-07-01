@@ -1,7 +1,5 @@
-from django.shortcuts import render_to_response, RequestContext, redirect
+from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from django.core.urlresolvers import reverse
-
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 

@@ -9,7 +9,6 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
-from django.utils.functional import lazy
 
 logger = logging.getLogger("registry_log")
 

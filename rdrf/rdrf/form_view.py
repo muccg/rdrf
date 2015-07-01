@@ -868,7 +868,6 @@ class QuestionnaireResponseView(FormView):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):
-        from django.db import transaction
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
         if 'reject' in request.POST:

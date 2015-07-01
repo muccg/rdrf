@@ -1,26 +1,22 @@
-from tastypie.resources import ModelResource
-from tastypie import fields
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-from rdrf.models import Registry
+from rdrf.models import Registry, RegistryForm
+from rdrf.utils import de_camelcase
 
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
-# from haystack.query import SearchQuerySet
-from tastypie.utils import trailing_slash
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
-import urlparse
+
 from tastypie.serializers import Serializer
 from tastypie.authorization import DjangoAuthorization
-from rdrf.utils import de_camelcase, mongo_db_name
-from rdrf.models import RegistryForm
-from django.conf import settings
-from pymongo import MongoClient
+from tastypie.utils import trailing_slash
+from tastypie.resources import ModelResource
+from tastypie import fields
 
+import urlparse
 import time
-
 import logging
 
 logger = logging.getLogger("registry_log")
