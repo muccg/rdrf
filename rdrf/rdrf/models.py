@@ -172,7 +172,6 @@ class Registry(models.Model):
     def genetic_progress_cde_triples(self):
         return self._progress_cdes(progress_type="genetic")
 
-
     @property
     def has_diagnosis_progress_defined(self):
         return len(self.diagnosis_progress_cde_triples) > 0
@@ -180,7 +179,6 @@ class Registry(models.Model):
     @property
     def has_genetic_progress_defined(self):
         return len(self.genetic_progress_cde_triples) > 0
-
 
     def get_adjudications(self):
         if not has_feature("adjudication"):
@@ -264,7 +262,6 @@ class Registry(models.Model):
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
             else:
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.questionnaire_display_name
-
 
             qsection.allow_multiple = original_section.allow_multiple
             qsection.extra = 0
@@ -374,7 +371,6 @@ class Registry(models.Model):
             s["forms"].append(form_dict)
 
         return s
-
 
     @structure.setter
     def structure(self, new_structure):
@@ -641,7 +637,7 @@ class RegistryForm(models.Model):
     @property
     def login_required(self):
         return self.is_questionnaire_login
-    
+
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
@@ -1374,7 +1370,6 @@ class ConsentSection(models.Model):
             answer = answer_dict[consent_question_code]
             function_context[consent_question_code] = answer
 
-
         # codes not in dict are set to false ..
 
         for question_model in self.questions.all():
@@ -1384,7 +1379,7 @@ class ConsentSection(models.Model):
         try:
 
             result = eval(self.validation_rule, {"__builtins__": None}, function_context)
-            if not result in [True, False, None]:
+            if result not in [True, False, None]:
                 logger.info("validation rule for %s returned %s - returning False!" % (self.code, result))
                 return False
 
@@ -1401,7 +1396,6 @@ class ConsentSection(models.Model):
                                                                                               ex))
 
             return False
-
 
     def __unicode__(self):
         return "Consent Section %s" % self.section_label
@@ -1459,6 +1453,6 @@ class DemographicFields(models.Model):
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
     readonly = models.NullBooleanField(null=True, blank=True)
     hidden = models.NullBooleanField(null=True, blank=True)
-    
+
     class Meta:
         verbose_name_plural = "Demographic Fields"

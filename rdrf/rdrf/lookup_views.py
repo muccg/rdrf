@@ -66,12 +66,12 @@ class StateLookup(View):
 
 
 class ClinitianLookup(View):
-    
+
     def get(self, request):
         registry_code = request.GET['registry_code']
-        all_users = CustomUser.objects.filter(registry__code = registry_code)
+        all_users = CustomUser.objects.filter(registry__code=registry_code)
         filtered = [user for user in all_users if user.is_clinician and not user.is_superuser]
-        
+
         json_result = []
         for clinician in filtered:
             for wg in clinician.working_groups.all():
@@ -79,5 +79,5 @@ class ClinitianLookup(View):
                 json_['full_name'] = "%s %s (%s)" % (clinician.first_name, clinician.last_name, wg.name)
                 json_['id'] = "%d_%d" % (clinician.id, wg.id)
                 json_result.append(json_)
-        
+
         return HttpResponse(json.dumps(json_result))

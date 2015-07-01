@@ -36,7 +36,7 @@ class FormProgressCalculator(object):
         self.patient_resource = patient_resource
 
         self.viewable_forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by('position')
-                 if self._not_generated_form(f) and self.user.can_view(f)]
+                               if self._not_generated_form(f) and self.user.can_view(f)]
 
         # List of (form_model, section_model, cde_model) triples
         self.diagnosis_triples = self.registry_model.diagnosis_progress_cde_triples
@@ -47,7 +47,7 @@ class FormProgressCalculator(object):
         self.genetic_forms = self._get_genetic_forms()
         logger.debug("xx genetic forms = %s" % self.genetic_forms)
         self.patient_ids = []
-        self.completion_keys_by_form = self._get_completion_keys_by_form() # do this once to save time
+        self.completion_keys_by_form = self._get_completion_keys_by_form()  # do this once to save time
 
         self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         self.db_name = mongo_db_name(self.registry_model.code)
@@ -83,7 +83,7 @@ class FormProgressCalculator(object):
         for form_model in self.genetic_forms:
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
-                    key = mongo_key(form_model.name, section_model.code,cde_model.code)
+                    key = mongo_key(form_model.name, section_model.code, cde_model.code)
                     keys.append(key)
         return keys
 
@@ -111,7 +111,7 @@ class FormProgressCalculator(object):
             except KeyError:
                 pass
         try:
-            percentage = int(100.00 * (float(have_non_empty_data)/float(len(mongo_keys))))
+            percentage = int(100.00 * (float(have_non_empty_data) / float(len(mongo_keys))))
         except Exception:
             percentage = 0
 
@@ -143,7 +143,7 @@ class FormProgressCalculator(object):
             logger.debug("diagnosis progress for patient %s = %s" % (patient_id, results[patient_id]))
 
         for patient_id in self.patient_ids_not_in_mongo:
-            results[patient_id] = 0  #, total, 0
+            results[patient_id] = 0  # , total, 0
 
         return results
 
@@ -244,15 +244,13 @@ class FormProgressCalculator(object):
             html = "<button type='button' class='btn btn-primary btn-xs' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
             results[patient_data["django_id"]] = html
 
-
         for patient_id in self.patient_ids_not_in_mongo:
             p = Patient.objects.get(id=patient_id)
             results[patient_id] = self.patient_resource._get_data_modules(p, self.registry_model.code, self.user)
 
-
         return results
 
-    def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now()-datetime.timedelta(days=365)):
+    def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now() - datetime.timedelta(days=365)):
         form_timestamp = self._get_form_timestamp(patient_data, form_model)
         if form_timestamp and form_timestamp >= time_window_start:
                 return True
@@ -269,7 +267,7 @@ class FormProgressCalculator(object):
                     filled_in += 1
             else:
                 # multisection gets stored as a list of dictionaries -
-                section_items = patient_data.get(section_code,[])
+                section_items = patient_data.get(section_code, [])
                 for item_dict in section_items:
                     if self._has_data(item_dict, cde_key):
                         filled_in += 1
@@ -281,4 +279,3 @@ class FormProgressCalculator(object):
             percentage = 0
 
         return percentage
-

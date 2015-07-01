@@ -7,18 +7,19 @@ from django.contrib.auth.models import Group
 
 # todo update ophg registries to use new demographics and patients listing forms: we need to fix this properly
 def in_fkrp(user):
-    user_reg_codes = [ r.code for r in user.registry.all()]
+    user_reg_codes = [r.code for r in user.registry.all()]
     return "fkrp" in user_reg_codes
 
 _ADMIN_PATIENT_LISTING = "admin:patients_patient_changelist"
 _NEW_PATIENT_LISTING = "patientslisting"
 _HOME_PAGE = "admin:index"
 
+
 class RouterView(View):
 
     def get(self, request):
         user = request.user
-        
+
         redirect_url = None
 
         if user.is_authenticated():

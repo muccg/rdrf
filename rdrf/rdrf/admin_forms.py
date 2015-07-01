@@ -26,11 +26,11 @@ class DemographicFieldsAdminForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
-        
+
         patient_fields = Patient._meta.fields
         field_choices = []
         for patient_field in patient_fields:
-            field_choices.append( (patient_field.name, patient_field.name) )
+            field_choices.append((patient_field.name, patient_field.name))
 
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)

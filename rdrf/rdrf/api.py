@@ -7,7 +7,7 @@ from rdrf.models import Registry
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
-#from haystack.query import SearchQuerySet
+# from haystack.query import SearchQuerySet
 from tastypie.utils import trailing_slash
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
@@ -36,20 +36,21 @@ class UrlEncodeSerializer(Serializer):
         'html': 'text/html',
         'plist': 'application/x-plist',
         'urlencode': 'application/x-www-form-urlencoded',
-        }
+    }
 
-    def from_urlencode(self, data,options=None):
+    def from_urlencode(self, data, options=None):
         """ handles basic formencoded url posts """
-        qs = dict((k, v if len(v)>1 else v[0] )
-            for k, v in urlparse.parse_qs(data).iteritems())
+        qs = dict((k, v if len(v) > 1 else v[0])
+                  for k, v in urlparse.parse_qs(data).iteritems())
         return qs
 
-    def to_urlencode(self,content):
+    def to_urlencode(self, content):
         pass
 
 
 class WorkingGroupResource(ModelResource):
     name = fields.CharField(attribute='name')
+
     class Meta:
         queryset = WorkingGroup.objects.all()
 
@@ -95,8 +96,8 @@ class PatientResource(ModelResource):
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
 
-        #bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
-        #bundle.data["diagnosis_currency"] = p.clinical_data_currency()
+        # bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        # bundle.data["diagnosis_currency"] = p.clinical_data_currency()
 
         return bundle
 
@@ -161,9 +162,6 @@ class PatientResource(ModelResource):
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
         return "<button type='button' class='btn btn-primary btn-xs' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
-    
-
-
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
@@ -250,11 +248,11 @@ class PatientResource(ModelResource):
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
             elif request.user.is_genetic_staff:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
             elif request.user.is_genetic_curator:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
             elif request.user.is_working_group_staff:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  #unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
             elif request.user.is_clinician and clinicians_have_patients:
                 patients = patients.filter(clinician=request.user)
             elif request.user.is_clinician and not clinicians_have_patients:
@@ -307,16 +305,14 @@ class PatientResource(ModelResource):
 
         objects = []
 
-
         logger.debug("reg code = %s" % chosen_registry_code)
         logger.debug("user = %s" % request.user)
 
         bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
 
-
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
-            setattr(bundle, 'progress_data', bulk_progress_data) # crap I know
+            setattr(bundle, 'progress_data', bulk_progress_data)  # crap I know
             bundle = self.full_dehydrate(bundle)
             objects.append(bundle)
 
@@ -334,13 +330,9 @@ class PatientResource(ModelResource):
         self.log_throttled_access(request)
         return self.create_response(request, results)
 
-
-
-
-
     def _get_sorting(self, request):
         # boot grid uses this convention
-        #sort[given_names]': [u'desc']
+        # sort[given_names]': [u'desc']
         for k in request.GET:
             if k.startswith("sort["):
                 import re

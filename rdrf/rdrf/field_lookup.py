@@ -25,8 +25,6 @@ mark_safe_lazy = lazy(mark_safe, six.text_type)
 logger = logging.getLogger('registry_log')
 
 
-
-
 class FieldContext:
 
     """

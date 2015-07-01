@@ -18,4 +18,3 @@ def get_information_link(fields):
                 return consent_section_model.information_link
         except:
             return None
-
