@@ -775,7 +775,6 @@ class PatientEditView(View):
                 patient_form = munged_patient_form_class(instance=patient, user=user, registry_model=registry)
 
         if not patient_address_form:
-            patient_address = PatientAddress.objects.filter(patient=patient).values()
             patient_address_formset = inlineformset_factory(Patient,
                                                             PatientAddress,
                                                             form=PatientAddressForm,
