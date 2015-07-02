@@ -232,10 +232,9 @@ class FormProgressCalculator(object):
                     to_form = label
 
                 if form.has_progress_indicator:
-                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
-                                                                               self._form_progress_one_form(form,
-                                                                                                            patient_data),
-                                                                                                            to_form)
+                    src = static(flag)
+                    percentage = self._form_progress_one_form(form, patient_data)
+                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (src, percentage, to_form)
                 else:
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
