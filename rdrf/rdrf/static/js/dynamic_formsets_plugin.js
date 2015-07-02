@@ -1,7 +1,7 @@
 // JQuery plugin to allow dynamic formset creation in the section form
 
-(function ( $ ) {
-    $.fn.allow_dynamic_formsets = function( options ) {
+(function($) {
+    $.fn.allow_dynamic_formsets = function(options) {
         var settings = $.extend({
             // These are the defaults.
            table_id: '',
@@ -11,12 +11,12 @@
            initial_forms_id: 'id_form_INITIAL_FORMS',
            formset_prefix: 'form',
            metadata_json: '' // easier to pass a string in the template
-        }, options );
+        }, options);
 
        var metadata = {};
        try {
 
-           metadata = jQuery.parseJSON(settings.metadata_json)
+           metadata = jQuery.parseJSON(settings.metadata_json);
        }
 
        catch (err) {
@@ -30,7 +30,7 @@
            complication is that a remove button is included when we add - hence
            the + 1 to the num_cdes
            */
-           var form_number = Math.floor(new_row_index / ( num_cdes + 1));
+           var form_number = Math.floor(new_row_index / (num_cdes + 1));
            var new_form_string = "-" + form_number.toString() + "-";
            var s = old_value.replace(/-\d+-/, new_form_string);
            return s;
@@ -58,7 +58,7 @@
        var cdes = [];
        var added_cdes = [];
 
-       _.map(settings.cde_codes.split(","), function(code){cdes.push(code);});
+       _.map(settings.cde_codes.split(","), function(code) {cdes.push(code);});
 
        // bind the add button
        function get_row_count() {
@@ -86,22 +86,23 @@
            console.log("****************************************************");
        }
        // current length of table
-       $("#"+settings.add_button_id).on("click", function (){
+       $("#" + settings.add_button_id).on("click", function() {
             dump_state("before add");
-            for (var i=0;i<cdes.length;i++){
+            for (var i = 0; i < cdes.length; i++) {
                 var cde_code = cdes[i];
                 // locate the first row with this code, clone it , modify it and add to table
 
                 // Most cdes use standard input widgets which are locatable with cde code directly
-                // complex fields ( multiwidgets ) will modify the id so we use settings to pass metadata about overrides to the plugin to allow location
-                var row_selector = "#"+ settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + get_row_selector(cde_code) + "'])";
+                // complex fields ( multiwidgets ) will modify the id so we use settings to pass
+                // metadata about overrides to the plugin to allow location
+                var row_selector = "#" + settings.table_id + " > tbody > tr:has(label[for='id_" + settings.formset_prefix + "-0-" + get_row_selector(cde_code) + "'])";
                 $(row_selector)
                     .clone(true)            // create a copy
                     .find("label")      // update the clone's for attr to the new value
                     .each(function() {
                         $(this).attr({
                             'for': function(_, old_for) { return new_specifier(cdes.length, old_for, get_row_count())}
-                        })
+                        });
                     })
                     .end()
                     .find(":input")     // change the ids of inputs
@@ -127,18 +128,18 @@
             $(remove_button_selector + ":last")
                 .clone(true)
                 .attr({
-                        'id' : function (_,old_id) {
+                        'id' : function(_, old_id) {
                                 var parts = old_id.split("_");
                                 var last_el = parts[parts.length - 1];
                                 var new_num = parseInt(last_el) + 1;
-                                return "remove_button_"+ settings.formset_prefix + "_" + new_num.toString();
+                                return "remove_button_" + settings.formset_prefix + "_" + new_num.toString();
                         }
                     })
                 .find("td")
-                .each(function () {
+                .each(function() {
                     $(this).attr({
                         "onclick" : function(_, old_onclick) { return old_onclick;}
-                    })
+                    });
                 })
                 .end()
                 .insertAfter("#" + settings.table_id + " tr:last");
@@ -146,5 +147,5 @@
             dump_state("after add");
         });
 
-    }
-}( jQuery ));
+    };
+}(jQuery));

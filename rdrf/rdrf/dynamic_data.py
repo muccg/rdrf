@@ -131,7 +131,6 @@ class DynamicDataWrapper(object):
         if isinstance(data, unicode):
             return
 
-        replacements = {}
         for key, value in data.items():
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
@@ -179,9 +178,9 @@ class DynamicDataWrapper(object):
             if cde.datatype == 'file':
                 logger.debug("CDE %s is a file!" % cde.code)
                 return True
-        except Exception as ex:
+        except Exception, ex:
             # section forms have codes which are not CDEs
-            #logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
+            logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
 
     def _is_section_code(self, code):
@@ -264,7 +263,6 @@ class DynamicDataWrapper(object):
                     self._update_files_in_gridfs(existing_section_dict, registry, section_data_dict)
 
     def save_dynamic_data(self, registry, collection_name, data):
-        file_store = self._get_filestore(registry)
         self._convert_date_to_datetime(data)
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)

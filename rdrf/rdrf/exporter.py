@@ -1,4 +1,4 @@
-from models import RegistryForm, Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 import logging
 import yaml
 import json
@@ -351,7 +351,7 @@ class Exporter(object):
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist as ex:
+                    except CommonDataElement.DoesNotExist:
                         logger.error("No CDE with code: %s" % cde_code)
 
             except Section.DoesNotExist:
@@ -395,7 +395,7 @@ class Exporter(object):
 
     def _get_demographic_fields(self):
         demographic_fields = []
-        
+
         for demographic_field in DemographicFields.objects.filter(registry=self.registry):
             fields = {}
             fields['registry'] = demographic_field.registry.code
@@ -404,13 +404,13 @@ class Exporter(object):
             fields['hidden'] = demographic_field.hidden
             fields['readonly'] = demographic_field.readonly
             demographic_fields.append(fields)
-            
+
         return demographic_fields
 
     def _get_complete_fields(self):
         forms = RegistryForm.objects.filter(registry=self.registry)
         complete_fields = []
-        
+
         for form in forms:
             if form.complete_form_cdes.exists():
                 form_cdes = {}
@@ -422,12 +422,12 @@ class Exporter(object):
 
     def _get_reports(self):
         registry_queries = Query.objects.filter(registry=self.registry)
-        
+
         queries = []
         for query in registry_queries:
             q = {}
             q["registry"] = query.registry.code
-            q["access_group"] = [ ag.id for ag in query.access_group.all()]
+            q["access_group"] = [ag.id for ag in query.access_group.all()]
             q["title"] = query.title
             q["description"] = query.description
             q["mongo_search_type"] = query.mongo_search_type
@@ -439,5 +439,5 @@ class Exporter(object):
             q["created_by"] = query.created_by
             q["created_at"] = query.created_at
             queries.append(q)
-        
+
         return queries

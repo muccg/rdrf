@@ -67,7 +67,7 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
         # This allows the custom validation rule to be applied
         from rdrf.models import ConsentQuestion
         answer_dict = {}
-        #NB customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+        # NB customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
         for field_key in form_cleaned_data:
             key_parts = field_key.split("_")
             question_pk = int(key_parts[3])
@@ -93,7 +93,7 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
         from django.core.exceptions import ValidationError
 
         logger.debug("in clean method of custom consent form")
-        #NB super class has : return self.cleaned_data
+        # NB super class has : return self.cleaned_data
 
         answer_dict = get_answer_dict_from_form_data(consent_section_model, self.cleaned_data)
 

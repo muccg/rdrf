@@ -13,14 +13,14 @@ from lettuce_webdriver.webdriver import contains_content
 
 
 @step('I fill in "(.*)" with "(.*)" year')
-def fill_in_year_type(step, field, value):
+def fill_in_year_type1(step, field, value):
     year_field = world.browser.find_element_by_xpath('.//input[@id="%s"][@type="year"]' % field)
     year_field.clear()
     year_field.send_keys(value)
 
 
 @step('I fill in "(.*)" with random text')
-def fill_in_year_type(step, field):
+def fill_in_year_type2(step, field):
     field = find_field_only(field)
     value = generate_random_str(8)
     field.clear()

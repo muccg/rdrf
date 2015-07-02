@@ -4,9 +4,9 @@ function hgvsValidation(element) {
         $.get(window.HGVS_URL, { 'code': element.val() }, function(data) {
             result = data['parse_result'];
             if (result == true) {
-                result_text = "<img src='"+ window.IMAGES_URL +"tick.png'>";
+                result_text = "<img src='" + window.IMAGES_URL + "tick.png'>";
             } else {
-                result_text = "<img src='"+ window.IMAGES_URL +"cross.png'>";
+                result_text = "<img src='" + window.IMAGES_URL + "cross.png'>";
             }
             $('#result_' + element.attr('id')).html(result_text);
         });

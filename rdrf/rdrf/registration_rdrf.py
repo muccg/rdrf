@@ -1,7 +1,5 @@
 from __future__ import absolute_import
 from registration.backends.default.views import RegistrationView
-import datetime
-import dateutil
 
 
 class RdrfRegistrationView(RegistrationView):
