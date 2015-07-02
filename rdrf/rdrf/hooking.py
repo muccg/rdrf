@@ -19,7 +19,7 @@ def hook(hook_name):
 def _registry_exists_for_hook_module(hook_module_file_name):
     registry_code, rest_of_name = hook_module_file_name.split("_")
     try:
-        registry_model = Registry.objects.get(code=registry_code)
+        Registry.objects.get(code=registry_code)
         return True
     except Registry.DoesNotExist:
         return False

@@ -9,4 +9,3 @@ class RegistryListView(View):
         context = {}
         context['registrys'] = [r for r in Registry.objects.all()]
         return render_to_response('rdrf_cdes/portfolio.html', context, context_instance=RequestContext(request))
-

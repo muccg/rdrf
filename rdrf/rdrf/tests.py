@@ -66,7 +66,6 @@ class TestFormPermissions(RDRFTestCase):
                 user.save()
                 assert user.can_view(form)
 
-
     def test_user_in_wrong_group_cant_view_form(self):
         from registry.groups.models import CustomUser
         from django.contrib.auth.models import Group
@@ -76,7 +75,6 @@ class TestFormPermissions(RDRFTestCase):
         if created:
             genetic_group.save()
 
-
         clinical_group, created = Group.objects.get_or_create(name="Clinical Staff")
         if created:
             clinical_group.save()
@@ -84,9 +82,6 @@ class TestFormPermissions(RDRFTestCase):
         f.groups_allowed = [clinical_group]
         f.save()
         assert not genetic_user.can_view(f), "A form set to be viewed "
-
-
-
 
 
 class ExporterTestCase(RDRFTestCase):

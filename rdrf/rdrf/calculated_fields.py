@@ -51,7 +51,7 @@ class CalculatedFieldParser(object):
             self.subjects = self._parse_subjects(self.calculation)
 
         calculation_result = self.context_indicator + "." + self.result_name
-        if not calculation_result in self.calculation:
+        if calculation_result not in self.calculation:
             raise CalculatedFieldParseError("Calculation does not contain %s" % calculation_result)
         if not self.subjects:
             raise CalculatedFieldParseError("Calculation does not depend on any fields")

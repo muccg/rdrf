@@ -122,8 +122,6 @@ class QuestionnaireReverseMapper(object):
                 state_code = "%s-%s" % (country_code, state_code)
 
             logger.debug("state_code to check = %s" % state_code)
-
-            country_object = pycountry.countries.get(alpha2=country_code)
             pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
                 logger.debug("checking state code %s" % state.code.lower())
@@ -135,7 +133,6 @@ class QuestionnaireReverseMapper(object):
         except Exception, ex:
             logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
-
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -387,7 +384,3 @@ class PatientCreator(object):
             _, registry_pk, consent_section_pk, consent_question_pk = field_key.split("_")
             consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
             patient_model.set_consent(consent_question_model, answer)
-
-
-
-

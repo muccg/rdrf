@@ -37,7 +37,7 @@ class GeneticValidator(object):
 
         try:
             parsed_value = parse_func(value)
-            logger.debug("parsed OK")
+            logger.debug("value %s parsed as: %s" (value, parsed_value))
             return True
 
         except GeneticValidationError, gv_err:

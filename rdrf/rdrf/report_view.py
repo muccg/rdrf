@@ -1,7 +1,5 @@
-from django.shortcuts import render_to_response, RequestContext, redirect
+from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from django.core.urlresolvers import reverse
-
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -17,17 +15,17 @@ class LoginRequiredMixin(object):
 
 
 class ReportView(LoginRequiredMixin, View):
-    
+
     def get(self, request):
         user = request.user
-        
+
         reports = None
-        
+
         if user.is_superuser:
             reports = Query.objects.all()
         elif user.is_curator:
-            reports = Query.objects.filter(registry__in = [reg.id for reg in user.get_registries()]).filter(access_group__in = [g.id for g in user.get_groups()])
-        
+            reports = Query.objects.filter(registry__in=[reg.id for reg in user.get_registries()]).filter(access_group__in=[g.id for g in user.get_groups()])
+
         context = {}
         context['reports'] = reports
         context["location"] = 'Reports'
