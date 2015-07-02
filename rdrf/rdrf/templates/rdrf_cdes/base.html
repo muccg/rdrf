@@ -37,12 +37,6 @@
           <a class="navbar-brand" href="#">{% trans "Rare Disease Registry Framework" %}</a>
         </div>
 
-        {% if location %}
-        <div class="navbar-header">
-             <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-edit"></span> {% trans location %}</a>
-        </div>
-        {% endif %}
-    
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
@@ -109,9 +103,18 @@
             {% for message in messages %}
                 <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</div>
             {% endfor %}
-        {% endif %}
+        {% endif %}    
 
         {% block content%}
+            {% if location %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans location %}</h3></p>
+                        <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
+                    </div>
+                </div>
+            {% endif %}
+
         {% endblock%}
     </div>
 
