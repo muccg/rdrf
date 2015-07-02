@@ -23,6 +23,11 @@
       <script src="{% static 'js/rpc_module.js' %}"></script>
       <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
       {% block extrastyle %}
+        <style>
+            body {
+                padding-top: 60px;
+            }
+        </style>
       {% endblock %}
       {% block extrahead %}{% endblock %}
   
@@ -31,7 +36,7 @@
 
 
 <div id="wrap">
-    <nav class="navbar navbar-inverse">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
           <a class="navbar-brand" href="#">{% trans "Rare Disease Registry Framework" %}</a>
