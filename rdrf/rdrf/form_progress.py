@@ -103,9 +103,9 @@ class FormProgressCalculator(object):
     def _progress_for_keys(self, patient_mongo_data, mongo_keys):
         total = len(mongo_keys)
         have_non_empty_data = 0
-        for mongo_key in mongo_keys:
+        for key in mongo_keys:
             try:
-                value = patient_mongo_data[mongo_key]
+                value = patient_mongo_data[key]
                 if value:
                     have_non_empty_data += 1
             except KeyError:
