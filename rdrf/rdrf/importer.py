@@ -549,7 +549,7 @@ class Importer(object):
             try:
                 adj_def_model.adjudicating_users = adj_def_map["adjudicating_users"]
             except Exception, ex:
-                logger.error("adjudicating_users not in definition")
+                logger.error("adjudicating_users not in definition: %s" % ex)
 
             adj_def_model.save()
             logger.info("created Adjudication Definition %s OK" % adj_def_model)
