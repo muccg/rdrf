@@ -254,13 +254,11 @@ class Importer(object):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
-            # logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
                 existing_value_codes = set([pv.code for pv in existing_values])
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
-                import_extra = import_value_codes - existing_value_codes
                 import_missing = existing_value_codes - import_value_codes
                 # ensure applied import "wins" - this potentially could affect other
                 # registries though
@@ -295,7 +293,6 @@ class Importer(object):
                     value.position = value_map['position']
 
                 value.save()
-                # logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
