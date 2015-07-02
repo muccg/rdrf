@@ -20,10 +20,12 @@ class ImportRegistryView(View):
     def get(self, request):
         state = request.GET.get("state", "ready")
         user = get_user_model().objects.get(username=request.user)
+        error_message = request.GET.get("error_message", None)
 
         context = {
             'user_obj': user,
             'state': state,
+            'error_message': error_message,
         }
 
         return render_to_response('rdrf_cdes/import_registry.html', context, context_instance=RequestContext(request))
@@ -47,6 +49,13 @@ class ImportRegistryView(View):
 
         except Exception as ex:
             logger.error("Import failed: %s" % ex)
-            return HttpResponseRedirect(reverse('import_registry') + "?state=fail")
+            url_params = {
+                "state": "fail",
+                "error_message": ex.message
+            }
+            import urllib
+            url_string = urllib.urlencode(url_params)
+
+            return HttpResponseRedirect(reverse('import_registry') + "?" + url_string)
 
         return HttpResponseRedirect(reverse('import_registry') + "?state=success")

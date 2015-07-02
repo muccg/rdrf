@@ -37,6 +37,7 @@ class QuickLinks(object):
     DemographicsFields = QuickLink("admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
+    NextOfKinRelationship = QuickLink("admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
     
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
@@ -45,7 +46,7 @@ class QuickLinks(object):
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
-                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields])
+                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields, NextOfKinRelationship])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

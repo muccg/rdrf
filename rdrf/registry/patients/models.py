@@ -90,10 +90,8 @@ class PatientManager(models.Manager):
 
 
 class Patient(models.Model):
-    if settings.INSTALL_NAME == 'dm1':   # Trac #16 item 9
-        SEX_CHOICES = (("M", "Male"), ("F", "Female"))
-    else:
-        SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
+
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
     ETHNIC_ORIGIN = (
         ("New Zealand European", "New Zealand European"),
