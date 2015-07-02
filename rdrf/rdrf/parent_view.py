@@ -36,7 +36,7 @@ class ParentView(View):
         patient.save()
 
         if "use_parent_address" in request.POST:
-            address = PatientAddress.objects.create(
+            PatientAddress.objects.create(
                 patient=patient,
                 address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
                 address=parent.address,
@@ -46,7 +46,7 @@ class ParentView(View):
                 country=parent.country
             )
         else:
-            address = PatientAddress.objects.create(
+            PatientAddress.objects.create(
                 patient=patient,
                 address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
                 address=request.POST["address"],
@@ -58,6 +58,5 @@ class ParentView(View):
 
         parent.patient.add(patient)
         parent.save()
-        address.save()
         messages.add_message(request, messages.SUCCESS, 'Patient added successfully')
         return redirect(reverse("parent_page", args={registry_code: registry_code}))
