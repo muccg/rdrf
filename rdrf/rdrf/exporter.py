@@ -1,4 +1,4 @@
-from models import RegistryForm, Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 import logging
 import yaml
 import json
