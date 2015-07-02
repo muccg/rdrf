@@ -817,7 +817,6 @@ class AdjudicationDefinition(models.Model):
                 yield form_name, section_code, cde_code
 
     def create_form(self):
-        from field_lookup import FieldFactory
         adjudication_section = Section.objects.get(code=self.result_fields)
         from dynamic_forms import create_form_class_for_section
 
@@ -831,7 +830,6 @@ class AdjudicationDefinition(models.Model):
         return form_class()
 
     def create_decision_form(self):
-        from field_lookup import FieldFactory
         decision_section = Section.objects.get(code=self.decision_field)
         from dynamic_forms import create_form_class_for_section
 
