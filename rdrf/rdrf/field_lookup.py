@@ -3,7 +3,6 @@ import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.datastructures import SortedDict
-from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
