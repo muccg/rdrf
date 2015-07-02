@@ -178,9 +178,9 @@ class DynamicDataWrapper(object):
             if cde.datatype == 'file':
                 logger.debug("CDE %s is a file!" % cde.code)
                 return True
-        except Exception as ex:
+        except Exception, ex:
             # section forms have codes which are not CDEs
-            # logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
+            logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
 
     def _is_section_code(self, code):
