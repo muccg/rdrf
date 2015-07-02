@@ -21,8 +21,9 @@ function badValue(element) {
 function generic_constructor(element, constructorName, constructorFormUrl) {
    // element here is the constructor button next to the input field - we have
    // to use navigate via jquery traversal as the field may be in a multisection and have been cloned
+
    function updateValue(value) {
-       var textField = $(element).closest("td").find("input[type='text']");
+       var textField = $(element).closest("div").find("input[type='text']");
        textField.val(value);  // we assume that the DE is text input field
        textField.trigger("keyup");
    }

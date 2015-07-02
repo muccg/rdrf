@@ -507,7 +507,7 @@ class Importer(object):
             logger.info("no demographic_fields to import")
 
         if "complete_fields" in self.data:
-            self._create_complete_form_fields(self.data["complete_fields"])
+            self._create_complete_form_fields(r, self.data["complete_fields"])
             logger.info("complete field definitions OK ")
         else:
             logger.info("no complete field definitions to import")
@@ -628,17 +628,17 @@ class Importer(object):
             demo_field.readonly = d["readonly"]
             demo_field.save()
         
-    def _create_complete_form_fields(self, data):
+    def _create_complete_form_fields(self, registry_model, data):
         for d in data:
-            form = RegistryForm.objects.get(name = d["form_name"])
+            form = RegistryForm.objects.get(name=d["form_name"], registry=registry_model)
             for cde_code in d["cdes"]:
-                form.complete_form_cdes.add(CommonDataElement.objects.get(code = cde_code))
+                form.complete_form_cdes.add(CommonDataElement.objects.get(code=cde_code))
             form.save()
 
     def _create_reports(self, data):
         for d in data:
-            registry_obj = Registry.objects.get(code = d["registry"])
-            query, created = Query.objects.get_or_create(registry = registry_obj, title = d["title"])
+            registry = Registry.objects.get(code = d["registry"])
+            query, created = Query.objects.get_or_create(registry = registry, title = d["title"])
             for ag in d["access_group"]:
                 query.access_group.add(Group.objects.get(id=ag))
             query.description = d["description"]
@@ -651,4 +651,3 @@ class Importer(object):
             query.created_by = d["created_by"]
             query.created_at = d["created_at"]
             query.save()
-    

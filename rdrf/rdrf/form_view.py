@@ -20,6 +20,8 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
+from rdrf.utils import location_name
+
 import json
 import os
 from django.conf import settings
@@ -151,6 +153,7 @@ class FormView(View):
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
+        context["location"] = location_name(self.registry_form)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -283,7 +286,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(request.user),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "has_form_progress": self.registry_form.has_progress_indicator
+            "has_form_progress": self.registry_form.has_progress_indicator,
+            "location": location_name(self.registry_form),
         }
 
         if not self.registry_form.is_questionnaire:
@@ -1544,6 +1548,8 @@ class PatientsListingView(LoginRequiredMixin, View):
         context["registries"] = registries
         if len(registries) == 1:
             context["the_one_registry_code"] = registries[0].code
+
+        context["location"] = "Patient List"
 
         return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
 
