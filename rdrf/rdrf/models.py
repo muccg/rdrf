@@ -893,7 +893,6 @@ class AdjudicationDefinition(models.Model):
                 label = "Form %s  Field %s" % (form_name, cde_code)
                 display_value = str(value)
             else:
-                form_model = RegistryForm.objects.get(name=form_name)
                 section_model = Section.objects.get(code=section_code)
                 cde_model = CommonDataElement.objects.get(code=cde_code)
                 label = "Form %s Section %s Field %s" % (form_name, section_model.display_name, cde_model.name)
