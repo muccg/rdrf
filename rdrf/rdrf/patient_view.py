@@ -386,7 +386,6 @@ class PatientFormMixin(PatientMixin):
 
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
-                patient_doctor = PatientDoctor.objects.filter(patient=patient).values()
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
                                                                form=PatientDoctorForm,
                                                                extra=0,
