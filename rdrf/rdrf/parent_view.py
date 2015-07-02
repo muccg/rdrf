@@ -58,6 +58,6 @@ class ParentView(View):
 
         parent.patient.add(patient)
         parent.save()
-
+        address.save()
         messages.add_message(request, messages.SUCCESS, 'Patient added successfully')
         return redirect(reverse("parent_page", args={registry_code: registry_code}))
