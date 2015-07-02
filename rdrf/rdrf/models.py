@@ -1070,7 +1070,6 @@ class AdjudicationRequest(models.Model):
                 try:
                     frm, sec, code = get_form_section_code(k)
                     if code in adjudication_codes:
-                        cde_model = CommonDataElement.objects.get(code=code)
                         # todo for now we assume integers
                         field_data[code] = int(data[k])
                 except:
