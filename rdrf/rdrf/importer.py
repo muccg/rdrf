@@ -623,7 +623,7 @@ class Importer(object):
             demo_field.hidden = d["hidden"]
             demo_field.readonly = d["readonly"]
             demo_field.save()
-        
+
     def _create_complete_form_fields(self, registry_model, data):
         for d in data:
             form = RegistryForm.objects.get(name=d["form_name"], registry=registry_model)
