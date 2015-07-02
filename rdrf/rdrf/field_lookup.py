@@ -3,7 +3,6 @@ import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.datastructures import SortedDict
-from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
@@ -387,7 +386,6 @@ class FieldFactory(object):
             return field(**options)
 
     def _create_file_field(self, options):
-        # options['widget'] = AdminFileWidget
         field = FileField(**options)
         return field
 
