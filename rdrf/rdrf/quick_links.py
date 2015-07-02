@@ -39,7 +39,7 @@ class QuickLinks(object):
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     NextOfKinRelationship = QuickLink("admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
-    
+
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
