@@ -76,7 +76,6 @@ class FieldFactory(object):
 
         self.validator_factory = ValidatorFactory(self.cde)
         self.complex_field_factory = ComplexFieldFactory(self.cde)
-        self.list_field_factory = ListFieldFactory(self.cde)
         self.primary_model = injected_model
         self.primary_id = injected_model_id
         self.is_superuser = is_superuser
@@ -332,10 +331,6 @@ class FieldFactory(object):
             else:
                 if self._is_complex():
                     return self.complex_field_factory.create(options)
-
-                if self.list_field_factory.is_list():
-                    return self.list_field_factory.create(options)
-
                 # File Field
                 if self._get_datatype() == 'file':
                     return self._create_file_field(options)
@@ -489,33 +484,3 @@ class ComplexFieldFactory(object):
         complex_field_class = type(str(complex_field_class_name), (MultiValueField,), class_dict)
 
         return complex_field_class(**options_dict)
-
-
-class ListFieldParseError(Exception):
-    pass
-
-
-class ListFieldFactory(object):
-
-    """
-    A class to create formsets for CDEs ( Allowing multiple values to added )
-
-    """
-    DATATYPE_PATTERN = "^ListField\((.*)\)$"
-
-    def is_list(self):
-        return re.match(self.DATATYPE_PATTERN, self.cde.datatype)
-
-    def __init__(self, cde):
-        self.cde = cde
-
-    def create(self, options_dict):
-
-        m = self.is_list()
-        if m:
-            inner_cde_code = m.groups(0)[0]
-            inner_cde = CommonDataElement.objects.get(code=inner_cde_code)
-            field_factory = FieldFactory(inner_cde)
-            inner_field = field_factory.create_field()
-        else:
-            raise ListFieldParseError("%s is not a ListField" % self.cde)
