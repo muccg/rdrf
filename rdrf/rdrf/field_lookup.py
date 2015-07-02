@@ -2,7 +2,6 @@ import re
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
-from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
 from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import AdminFileWidget
