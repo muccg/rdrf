@@ -122,8 +122,6 @@ class QuestionnaireReverseMapper(object):
                 state_code = "%s-%s" % (country_code, state_code)
 
             logger.debug("state_code to check = %s" % state_code)
-
-            country_object = pycountry.countries.get(alpha2=country_code)
             pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
                 logger.debug("checking state code %s" % state.code.lower())
