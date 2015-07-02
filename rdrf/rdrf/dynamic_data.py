@@ -263,7 +263,6 @@ class DynamicDataWrapper(object):
                     self._update_files_in_gridfs(existing_section_dict, registry, section_data_dict)
 
     def save_dynamic_data(self, registry, collection_name, data):
-        file_store = self._get_filestore(registry)
         self._convert_date_to_datetime(data)
         collection = self._get_collection(registry, collection_name)
         record = self.load_dynamic_data(registry, collection_name)
