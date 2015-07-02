@@ -303,7 +303,6 @@ class PatientFormMixin(PatientMixin):
         patient_form.user = user
 
         if not patient_address_form:
-            patient_address = PatientAddress.objects.filter(patient=patient).values()
             patient_address_formset = inlineformset_factory(Patient,
                                                             PatientAddress,
                                                             form=PatientAddressForm,
