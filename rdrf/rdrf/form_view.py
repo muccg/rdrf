@@ -740,7 +740,7 @@ class QuestionnaireView(FormView):
 
                 for section_model in questionnaire_form_model.section_models:
                     section_label = section_model.questionnaire_display_name or section_model.display_name
-                    if not section_map.has_key(section_label):
+                    if not section_label in section_map:
                         section_map[section_label] = SectionWrapper(section_label)
                     if not section_model.allow_multiple:
 
