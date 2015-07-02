@@ -6,7 +6,6 @@ from django.shortcuts import render_to_response
 from django.views.generic.base import TemplateView
 
 import registry.urls as common_urls
-import rdrf.views as views
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
