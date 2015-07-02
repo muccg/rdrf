@@ -21,7 +21,6 @@ from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
 from rdrf.views import RegistryList
 from rdrf.api import PatientResource
-from rdrf.migration_view import MigrationView
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 
