@@ -29,5 +29,4 @@ class ReportView(LoginRequiredMixin, View):
         context = {}
         context['reports'] = reports
         context["location"] = 'Reports'
-    
         return render_to_response('rdrf_cdes/reports.html', context, context_instance=RequestContext(request))
