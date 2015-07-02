@@ -127,7 +127,9 @@ class PatientResource(ModelResource):
         if registry_model is None:
             return "Filter registry first!"
 
-        not_generated = lambda frm: not frm.name.startswith(registry_model.generated_questionnaire_name)
+        def not_generated(frm):
+            return not frm.name.startswith(registry_model.generated_questionnaire_name)
+
         forms = [f for f in RegistryForm.objects.filter(registry=registry_model).order_by('position')
                  if not_generated(f) and user.can_view(f)]
 
