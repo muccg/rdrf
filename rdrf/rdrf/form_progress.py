@@ -133,8 +133,6 @@ class FormProgressCalculator(object):
         else:
             triples = self.genetic_triples
 
-        total = len(triples)
-
         mongo_keys = self._get_mongo_keys_for_triples(triples)
 
         for patient_data in self.mongo_data:
@@ -143,7 +141,7 @@ class FormProgressCalculator(object):
             logger.debug("diagnosis progress for patient %s = %s" % (patient_id, results[patient_id]))
 
         for patient_id in self.patient_ids_not_in_mongo:
-            results[patient_id] = 0  # , total, 0
+            results[patient_id] = 0
 
         return results
 
