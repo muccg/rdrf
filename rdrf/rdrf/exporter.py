@@ -351,7 +351,7 @@ class Exporter(object):
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist as ex:
+                    except CommonDataElement.DoesNotExist:
                         logger.error("No CDE with code: %s" % cde_code)
 
             except Section.DoesNotExist:
