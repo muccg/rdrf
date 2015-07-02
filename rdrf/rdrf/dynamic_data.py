@@ -131,7 +131,6 @@ class DynamicDataWrapper(object):
         if isinstance(data, unicode):
             return
 
-        replacements = {}
         for key, value in data.items():
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
