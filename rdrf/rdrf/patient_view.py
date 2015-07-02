@@ -2,7 +2,6 @@ from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
-from django.forms.formsets import formset_factory
 from django.utils.datastructures import SortedDict
 from django.http import HttpResponseRedirect
 
