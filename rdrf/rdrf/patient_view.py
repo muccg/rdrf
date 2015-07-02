@@ -685,7 +685,7 @@ class PatientEditView(View):
 
         if all(valid_forms):
             if registry.get_metadata_item("patient_form_doctors"):
-                docs = doctors_to_save.save()
+                doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
             logger.debug("patient pk after valid forms save = %s" % patient_instance.pk)
