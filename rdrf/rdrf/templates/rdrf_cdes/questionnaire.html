@@ -49,8 +49,16 @@
         
         function select_country(obj) {
             state_id = obj.id.replace("Country", "State");
-            state_select = $('#id_' + state_id);
+            if (state_id.match(/formset/)) {
+                // CDEs using this widget are named diferently in formsets
+                state_select = $('#id_' + state_id);
+            }
+            else {
+                state_select = $("#" + state_id);
+            }
+
             state_select.find('option').remove();
+
             $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
                 if (data) {
                     $.each(JSON.parse(data), function(i, item) {
