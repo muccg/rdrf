@@ -11,6 +11,7 @@
 {% load i18n admin_urls admin_static admin_modify %}
 
 {% block extrastyle %}
+    {{ block.super }}
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
@@ -128,6 +129,8 @@
                     changeYear: true,
                     dateFormat: 'dd-mm-yy',
                     yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
                 });
             });
         });
@@ -152,6 +155,8 @@
                     changeYear: true,
                     dateFormat: 'dd-mm-yy',
                     yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
                 });
             }
         });
