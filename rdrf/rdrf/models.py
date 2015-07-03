@@ -9,7 +9,6 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
-from django.utils.functional import lazy
 
 logger = logging.getLogger("registry_log")
 
@@ -172,7 +171,6 @@ class Registry(models.Model):
     def genetic_progress_cde_triples(self):
         return self._progress_cdes(progress_type="genetic")
 
-
     @property
     def has_diagnosis_progress_defined(self):
         return len(self.diagnosis_progress_cde_triples) > 0
@@ -180,7 +178,6 @@ class Registry(models.Model):
     @property
     def has_genetic_progress_defined(self):
         return len(self.genetic_progress_cde_triples) > 0
-
 
     def get_adjudications(self):
         if not has_feature("adjudication"):
@@ -264,7 +261,6 @@ class Registry(models.Model):
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.display_name
             else:
                 qsection.display_name = original_form.questionnaire_name + " - " + original_section.questionnaire_display_name
-
 
             qsection.allow_multiple = original_section.allow_multiple
             qsection.extra = 0
@@ -374,7 +370,6 @@ class Registry(models.Model):
             s["forms"].append(form_dict)
 
         return s
-
 
     @structure.setter
     def structure(self, new_structure):
@@ -641,7 +636,7 @@ class RegistryForm(models.Model):
     @property
     def login_required(self):
         return self.is_questionnaire_login
-    
+
     @property
     def questionnaire_name(self):
         from rdrf.utils import de_camelcase
@@ -822,7 +817,6 @@ class AdjudicationDefinition(models.Model):
                 yield form_name, section_code, cde_code
 
     def create_form(self):
-        from field_lookup import FieldFactory
         adjudication_section = Section.objects.get(code=self.result_fields)
         from dynamic_forms import create_form_class_for_section
 
@@ -836,7 +830,6 @@ class AdjudicationDefinition(models.Model):
         return form_class()
 
     def create_decision_form(self):
-        from field_lookup import FieldFactory
         decision_section = Section.objects.get(code=self.decision_field)
         from dynamic_forms import create_form_class_for_section
 
@@ -900,7 +893,6 @@ class AdjudicationDefinition(models.Model):
                 label = "Form %s  Field %s" % (form_name, cde_code)
                 display_value = str(value)
             else:
-                form_model = RegistryForm.objects.get(name=form_name)
                 section_model = Section.objects.get(code=section_code)
                 cde_model = CommonDataElement.objects.get(code=cde_code)
                 label = "Form %s Section %s Field %s" % (form_name, section_model.display_name, cde_model.name)
@@ -1078,7 +1070,6 @@ class AdjudicationRequest(models.Model):
                 try:
                     frm, sec, code = get_form_section_code(k)
                     if code in adjudication_codes:
-                        cde_model = CommonDataElement.objects.get(code=code)
                         # todo for now we assume integers
                         field_data[code] = int(data[k])
                 except:
@@ -1374,7 +1365,6 @@ class ConsentSection(models.Model):
             answer = answer_dict[consent_question_code]
             function_context[consent_question_code] = answer
 
-
         # codes not in dict are set to false ..
 
         for question_model in self.questions.all():
@@ -1384,7 +1374,7 @@ class ConsentSection(models.Model):
         try:
 
             result = eval(self.validation_rule, {"__builtins__": None}, function_context)
-            if not result in [True, False, None]:
+            if result not in [True, False, None]:
                 logger.info("validation rule for %s returned %s - returning False!" % (self.code, result))
                 return False
 
@@ -1401,7 +1391,6 @@ class ConsentSection(models.Model):
                                                                                               ex))
 
             return False
-
 
     def __unicode__(self):
         return "Consent Section %s" % self.section_label
@@ -1459,6 +1448,6 @@ class DemographicFields(models.Model):
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
     readonly = models.NullBooleanField(null=True, blank=True)
     hidden = models.NullBooleanField(null=True, blank=True)
-    
+
     class Meta:
         verbose_name_plural = "Demographic Fields"

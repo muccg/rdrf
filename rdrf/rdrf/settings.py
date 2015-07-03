@@ -192,7 +192,9 @@ CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
-# TEST_RUNNER = 'rdrf.rdrf.tests.PatchedNoseTestSuiteRunner'
+
+TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+
 SOUTH_TESTS_MIGRATE = True
 NOSE_ARGS = [
     '--with-coverage',

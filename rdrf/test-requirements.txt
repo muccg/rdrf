@@ -5,3 +5,4 @@ lettuce
 lettuce_webdriver
 pyvirtualdisplay
 selenium
+unittest-xml-reporting

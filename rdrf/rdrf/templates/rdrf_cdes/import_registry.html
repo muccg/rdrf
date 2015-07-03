@@ -20,7 +20,7 @@
 
 {% block content %}
     {% if state == "fail" %}
-        <div class="alert alert-danger">Import Failed</div>
+        <div class="alert alert-danger">Import Failed: {{error_message}}</div>
     {% endif %}
     {% if state == "success" %}
         <div class="alert alert-success">Import Succeeded</div>

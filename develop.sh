@@ -131,9 +131,10 @@ jslint() {
     ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13'
 
     JSFILES=`ls rdrf/rdrf/static/js/*.js | grep -v "\.min\."`
+    EXCLUDES='-x rdrf/rdrf/static/js/gallery.js,rdrf/rdrf/static/js/ie_select.js,rdrf/rdrf/static/js/jquery.bootgrid.js,rdrf/rdrf/static/js/nv.d3.js'
     for JS in $JSFILES
     do
-        ${VIRTUALENV}/bin/gjslint --disable 0131 --max_line_length 100 --nojsdoc $JS
+        ${VIRTUALENV}/bin/gjslint ${EXCLUDES} --disable 0131,0110 --max_line_length 100 --nojsdoc $JS
     done
 }
 

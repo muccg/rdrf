@@ -254,13 +254,11 @@ class Importer(object):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
-            # logger.info("imported permissible value group %s" % pvg)
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
                 existing_value_codes = set([pv.code for pv in existing_values])
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
-                import_extra = import_value_codes - existing_value_codes
                 import_missing = existing_value_codes - import_value_codes
                 # ensure applied import "wins" - this potentially could affect other
                 # registries though
@@ -295,7 +293,6 @@ class Importer(object):
                     value.position = value_map['position']
 
                 value.save()
-                # logger.info("imported value %s" % value)
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
@@ -499,7 +496,7 @@ class Importer(object):
 
         self._create_form_permissions(r)
         logger.debug("created form permissions OK")
-        
+
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
             logger.info("demographic field definitions OK ")
@@ -507,7 +504,7 @@ class Importer(object):
             logger.info("no demographic_fields to import")
 
         if "complete_fields" in self.data:
-            self._create_complete_form_fields(self.data["complete_fields"])
+            self._create_complete_form_fields(r, self.data["complete_fields"])
             logger.info("complete field definitions OK ")
         else:
             logger.info("no complete field definitions to import")
@@ -539,7 +536,7 @@ class Importer(object):
             decision_fields_section_map = adj_def_map["sections_required"]["decision_fields_section"]
             self._create_section_model(result_fields_section_map)
             self._create_section_model(decision_fields_section_map)
-            adj_def_model, created = AdjudicationDefinition.objects.get_or_create(registry=registry_model, display_name= adj_def_map["display_name"])
+            adj_def_model, created = AdjudicationDefinition.objects.get_or_create(registry=registry_model, display_name=adj_def_map["display_name"])
             try:
                 adj_def_model.display_name = adj_def_map["display_name"]
             except Exception, ex:
@@ -552,7 +549,7 @@ class Importer(object):
             try:
                 adj_def_model.adjudicating_users = adj_def_map["adjudicating_users"]
             except Exception, ex:
-                logger.error("adjudicating_users not in definition")
+                logger.error("adjudicating_users not in definition: %s" % ex)
 
             adj_def_model.save()
             logger.info("created Adjudication Definition %s OK" % adj_def_model)
@@ -577,7 +574,6 @@ class Importer(object):
                 logger.info("deleting delete()working group %s for %s registry import" % (wg.name, registry.name))
                 wg.registry = None  # if we delete the group the patients get deleted .. todo need to confirm behaviour
                 wg.save()
-
 
     def _create_consent_sections(self, registry):
         if "consent_sections" in self.data:
@@ -627,18 +623,18 @@ class Importer(object):
             demo_field.hidden = d["hidden"]
             demo_field.readonly = d["readonly"]
             demo_field.save()
-        
-    def _create_complete_form_fields(self, data):
+
+    def _create_complete_form_fields(self, registry_model, data):
         for d in data:
-            form = RegistryForm.objects.get(name = d["form_name"])
+            form = RegistryForm.objects.get(name=d["form_name"], registry=registry_model)
             for cde_code in d["cdes"]:
-                form.complete_form_cdes.add(CommonDataElement.objects.get(code = cde_code))
+                form.complete_form_cdes.add(CommonDataElement.objects.get(code=cde_code))
             form.save()
 
     def _create_reports(self, data):
         for d in data:
-            registry_obj = Registry.objects.get(code = d["registry"])
-            query, created = Query.objects.get_or_create(registry = registry_obj, title = d["title"])
+            registry_obj = Registry.objects.get(code=d["registry"])
+            query, created = Query.objects.get_or_create(registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
                 query.access_group.add(Group.objects.get(id=ag))
             query.description = d["description"]
@@ -651,4 +647,3 @@ class Importer(object):
             query.created_by = d["created_by"]
             query.created_at = d["created_at"]
             query.save()
-    

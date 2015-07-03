@@ -2,6 +2,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.datastructures import OrderedSet as oset
 
+
 class QuickLink(object):
     def __init__(self, url_name, text, admin_link=False, glyph_icon="glyphicon-minus"):
         self.url = reverse(url_name)
@@ -37,7 +38,8 @@ class QuickLinks(object):
     DemographicsFields = QuickLink("admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
-    
+    NextOfKinRelationship = QuickLink("admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
+
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
@@ -45,7 +47,7 @@ class QuickLinks(object):
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
-                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields])
+                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields, NextOfKinRelationship])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

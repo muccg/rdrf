@@ -7,6 +7,7 @@ logger = logging.getLogger("registry_log")
 def mongo_db_name(registry):
     return settings.MONGO_DB_PREFIX + registry
 
+
 def mongo_db_name_reg_id(registry_id):
     from models import Registry
     reg = Registry.objects.get(id=registry_id)
@@ -119,3 +120,7 @@ def get_site_url(request, path="/"):
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # this part !
     return request.build_absolute_uri(path)
+
+
+def location_name(registry_form):
+    return de_camelcase(registry_form.name)

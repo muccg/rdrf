@@ -36,11 +36,19 @@
         $(document).ready(function() {
             $("glyphicon-question-sign").tooltip({placement: 'top'});
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-             
-            var country_code = '{{country_code}}';
-             
             var country_selects = $(document).find("select[onchange*='select_country']");
-             
+            var country_code = '{{country_code}}';
+
+            var on_approval = '{{on_approval}}';
+            if (on_approval=='yes') {
+                // if viewing no empty filled out questionnaire
+                // don't initialise the country selects - they're already initialised
+                $.each(country_selects, function() {
+                    $(this).change();
+                });
+                return;
+            }
+
             $.each(country_selects, function() {
                $(this).val(country_code.toUpperCase());
                $(this).change();
@@ -49,16 +57,26 @@
         
         function select_country(obj) {
             state_id = obj.id.replace("Country", "State");
-            state_select = $('#id_' + state_id);
+            if (state_id.match(/formset/)) {
+                // CDEs using this widget are named diferently in formsets
+                state_select = $('#id_' + state_id);
+            }
+            else {
+                state_select = $("#" + state_id);
+            }
+
             state_select.find('option').remove();
-            $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
+
+            if (obj.value != "") {
+                $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
                 if (data) {
                     $.each(JSON.parse(data), function(i, item) {
                         var option_html = "<option value='" + item.code + "'>" + item.name + "</option>";
                         state_select.append(option_html);
-                    })
-                }
-            });
+                        })
+                    }
+                });
+            }
         }
     </script>
 {% endblock %}
@@ -170,7 +188,7 @@
 
         <div class="panel panel-default">
             <div class="panel-body">
-                Thank you for completing the {{ registry.name }} questionnaire. The information you have provided wil be reviewed by your clinician and downloaded into the registry.
+                Thank you for completing the {{ registry.name }} questionnaire. The information you have provided will be reviewed by your clinician and downloaded into the registry.
             </div>
         </div>
 

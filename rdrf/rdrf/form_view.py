@@ -20,6 +20,8 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
+from rdrf.utils import location_name
+
 import json
 import os
 from django.conf import settings
@@ -76,15 +78,12 @@ class CustomConsentHelper(object):
         for custom_consent_wrapper in self.custom_consent_wrappers:
             if not custom_consent_wrapper.is_valid():
                 self.custom_consent_errors[custom_consent_wrapper.label] = [error_message for error_message in
-                                                                           custom_consent_wrapper.errors]
+                                                                            custom_consent_wrapper.errors]
                 self.error_count += custom_consent_wrapper.num_errors
 
     def load_dynamic_data(self, dynamic_data):
         # load data from Mongo
         self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
-
-
-
 
 
 def log_context(when, context):
@@ -144,13 +143,14 @@ class FormView(View):
     def get(self, request, registry_code, form_id, patient_id):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
-    
+
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
+        context["location"] = location_name(self.registry_form)
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -174,7 +174,7 @@ class FormView(View):
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
-        dyn_patient.current_form_model = form_obj # this allows form level timestamps to be saved
+        dyn_patient.current_form_model = form_obj  # this allows form level timestamps to be saved
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
@@ -226,17 +226,17 @@ class FormView(View):
                 formset_prefixes[s] = prefix
                 total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
-                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
                 formset = form_set_class(request.POST, files=request.FILES, prefix=prefix)
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
-                    
+
                     for dd in dynamic_data:
                         if 'DELETE' in dd and dd['DELETE']:
                             dynamic_data.remove(dd)
-                    
+
                     logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
                     section_dict[s] = wrap_gridfs_data_for_form(self.registry.code, dynamic_data)
@@ -262,8 +262,6 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
-
-
         context = {
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
@@ -283,7 +281,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(request.user),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "has_form_progress": self.registry_form.has_progress_indicator
+            "has_form_progress": self.registry_form.has_progress_indicator,
+            "location": location_name(self.registry_form),
         }
 
         if not self.registry_form.is_questionnaire:
@@ -375,7 +374,7 @@ class FormView(View):
                     extra = section_model.extra
                 else:
                     extra = 0
-                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
@@ -462,11 +461,11 @@ class FormView(View):
 
 
 class ConsentFormWrapper(object):
+
     def __init__(self, label, form, consent_section_model):
         self.label = label
         self.form = form
-        self.consent_section_model = consent_section_model # handly
-
+        self.consent_section_model = consent_section_model  # handly
 
     def is_valid(self):
         return self.form.is_valid()
@@ -521,11 +520,6 @@ class QuestionnaireView(FormView):
 
             context["custom_consent_errors"] = {}
             context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
-            
-            
-            
-            
-            
             context["registry"] = self.registry
             context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
@@ -631,7 +625,7 @@ class QuestionnaireView(FormView):
                     extra = 0
 
                 prefix = "formset_%s" % section
-                form_set_class = formset_factory(form_class, extra=extra, can_delete = True)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
                 form_section[section] = form_set_class(request.POST, request.FILES, prefix=prefix)
                 formset_prefixes[section] = prefix
                 total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
@@ -690,7 +684,6 @@ class QuestionnaireView(FormView):
                                 pass
                             self.questions.append(question_wrapper)
 
-
                 class Question(object):
                     def __init__(self, delimited_key, value):
                         self.delimited_key = delimited_key              # in Mongo
@@ -732,7 +725,6 @@ class QuestionnaireView(FormView):
                         _, _, cde_code = self.delimited_key.split("____")
                         return CommonDataElement.objects.get(code=cde_code)
 
-
                 def get_question(form_model, section_model, cde_model, data_map):
                     from rdrf.utils import mongo_key_from_models
                     delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
@@ -752,7 +744,7 @@ class QuestionnaireView(FormView):
 
                 for section_model in questionnaire_form_model.section_models:
                     section_label = section_model.questionnaire_display_name or section_model.display_name
-                    if not section_map.has_key(section_label):
+                    if section_label not in section_map:
                         section_map[section_label] = SectionWrapper(section_label)
                     if not section_model.allow_multiple:
 
@@ -764,7 +756,7 @@ class QuestionnaireView(FormView):
 
                         for multisection_map in data_map[section_model.code][section_model.code]:
                             subsection = []
-                            section_wrapper = {section_model.code : multisection_map}
+                            section_wrapper = {section_model.code: multisection_map}
                             for cde_model in section_model.cde_models:
                                 question = get_question(questionnaire_form_model, section_model, cde_model, section_wrapper)
                                 subsection.append(question)
@@ -788,7 +780,7 @@ class QuestionnaireView(FormView):
 
             context = {
                 'custom_consent_wrappers': custom_consent_helper.custom_consent_wrappers,
-                'custom_consent_errors' : custom_consent_helper.custom_consent_errors,
+                'custom_consent_errors': custom_consent_helper.custom_consent_errors,
                 'registry': registry_code,
                 'form_name': 'questionnaire',
                 'form_display_name': registry.questionnaire.name,
@@ -839,6 +831,7 @@ class QuestionnaireResponseView(FormView):
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
+        self._fix_state_and_country_dropdowns(context)
 
         custom_consent_helper = CustomConsentHelper(self.registry)
         custom_consent_helper.load_dynamic_data(self.dynamic_data)
@@ -847,6 +840,7 @@ class QuestionnaireResponseView(FormView):
         context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
         context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
+        context["on_approval"] = 'yes'
         return self._render_context(request, context)
 
     def _get_questionnaire_context(self):
@@ -867,6 +861,21 @@ class QuestionnaireResponseView(FormView):
                 if hasattr(field_object.widget, "_widget_context"):
                     field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
 
+            if 'CDEPatientNextOfKinState' in field_key:
+                if hasattr(field_object.widget, "_widget_context"):
+                    field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
+
+    def _fix_state_and_country_dropdowns(self, context):
+        from django.forms.widgets import TextInput
+        for key, field_object in context["forms"]['PatientData'].fields.items():
+            if "CDEPatientNextOfKinState" in key:
+                field_object.widget = TextInput()
+
+        for address_form in context["forms"]["PatientDataAddressSection"].forms:
+            for key, field_object in address_form.fields.items():
+                if "State" in key:
+                    field_object.widget = TextInput()
+
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
 
@@ -880,7 +889,6 @@ class QuestionnaireResponseView(FormView):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, questionnaire_response_id):
-        from django.db import transaction
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
         if 'reject' in request.POST:
@@ -1537,13 +1545,15 @@ class PatientsListingView(LoginRequiredMixin, View):
         context.update(csrf(request))
 
         if request.user.is_superuser:
-            registries = [ registry_model for registry_model in Registry.objects.all()]
+            registries = [registry_model for registry_model in Registry.objects.all()]
         else:
             registries = [registry_model for registry_model in request.user.registry.all()]
         context["num_registries"] = len(registries)  # if there are one do something special
         context["registries"] = registries
         if len(registries) == 1:
             context["the_one_registry_code"] = registries[0].code
+
+        context["location"] = "Patient List"
 
         return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
 
@@ -1559,10 +1569,10 @@ class BootGridApi(View):
         search_command = self._get_search_command(post_data)
         command_result = self._run_search_command(search_command)
         rows = [{"id": p.id,
-                            "name": p.given_names,
-                            "working_groups": "to do",
-                            "date_of_birth": p.date_of_birth,
-                            "registry": "to do"} for p in Patient.objects.all()]
+                 "name": p.given_names,
+                 "working_groups": "to do",
+                 "date_of_birth": p.date_of_birth,
+                 "registry": "to do"} for p in Patient.objects.all()]
 
         command_result = {"current": 1,
                           "rowCount": len(rows),

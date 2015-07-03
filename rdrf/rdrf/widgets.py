@@ -3,7 +3,6 @@ from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
-from django.utils.safestring import mark_safe
 
 import logging
 from models import CommonDataElement
@@ -204,7 +203,7 @@ class LaboratoryLookupWidget(LookupWidget2):
     def render(self, name, value, attrs):
         widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
         link_to_labs = reverse_lazy("admin:genetic_laboratory_changelist")
-    
+
         link_html = """<span class="input-group-btn">
                             <a class="btn btn-info" href="#" onclick="window.open('%s');" >Add</a>
                         </span>""" % link_to_labs
@@ -224,7 +223,7 @@ class DateWidget(widgets.TextInput):
             else:
                 return value
         return """
-            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker" readonly>
+            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker">
         """ % (name, name, just_date(value) or '')
 
 
@@ -249,7 +248,6 @@ class CountryWidget(widgets.Select):
 class StateWidget(widgets.Select):
 
     def render(self, name, value, attrs):
-
         try:
             state = pycountry.subdivisions.get(code=value)
         except KeyError:
@@ -306,6 +304,21 @@ class ParametrisedSelectWidget(widgets.Select):
         raise NotImplementedError("subclass responsibility - it should return a list of pairs: [(code, display), ...]")
 
 
+class StateListWidget(ParametrisedSelectWidget):
+    def render(self, name, value, attrs):
+        country_states = pycountry.subdivisions.get(country_code=self._widget_context['questionnaire_context'].upper())
+        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        empty_option = "<option value='---'>---</option>"
+        output.append(empty_option)
+        for state in country_states:
+            if value == state.code:
+                output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
+            else:
+                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))
+
+
 class DataSourceSelect(ParametrisedSelectWidget):
 
     """
@@ -339,6 +352,7 @@ class PositiveIntegerInput(widgets.TextInput):
         max_value = cde.max_value if cde.max_value else 2147483647
         min_value = cde.min_value if cde.min_value else 0
         return min_value, max_value
+
 
 class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
     def render(self):
@@ -385,17 +399,18 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     CONSTRUCTOR_NAME = None
 
     class Media:
-        js = ("js/generic_validator.js",)                 # this include doesn't seem to work as advertised so I've
-                                                          # included the js on form template
+        # this include doesn't seem to work as advertised so I've
+        # included the js on form template
+        js = ("js/generic_validator.js",)
 
     def render(self, name, value, attrs):
         rpc_endpoint_url = reverse_lazy('rpc')
         if self.RPC_COMMAND_NAME:
             attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
         return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + \
-               self._validation_indicator_html() + \
-               self._constructor_button() + \
-               self._on_page_load(attrs['id'])
+            self._validation_indicator_html() + \
+            self._constructor_button() + \
+            self._on_page_load(attrs['id'])
 
     def _constructor_button(self):
         if not self.CONSTRUCTOR_FORM_NAME:

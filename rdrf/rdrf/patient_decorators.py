@@ -17,10 +17,10 @@ def patient_has_access(function):
         user = args[0].user
         registry_code = kwargs['registry_code']
         registry = Registry.objects.get(code=registry_code)
-        
+
         if not registry.questionnaire:
             return function(*args, **kwargs)
-        
+
         if not registry.questionnaire.login_required:
             return function(*args, **kwargs)
 

@@ -59,10 +59,10 @@ webselenium:
     - mongoselenium:mongo
     - seleniumsmtp:smtp
 
-# runs the lettuce tests against the stack above
-lettucehost:
+# runs the selenium tests against the stack above
+seleniumtesthost:
   image: rdrf_webselenium
-  command: django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern="selenium_*.py"
+  command: selenium
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp

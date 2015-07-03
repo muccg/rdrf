@@ -122,8 +122,6 @@ class QuestionnaireReverseMapper(object):
                 state_code = "%s-%s" % (country_code, state_code)
 
             logger.debug("state_code to check = %s" % state_code)
-
-            country_object = pycountry.countries.get(alpha2=country_code)
             pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
                 logger.debug("checking state code %s" % state.code.lower())
@@ -135,7 +133,6 @@ class QuestionnaireReverseMapper(object):
         except Exception, ex:
             logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
-
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -230,15 +227,6 @@ class QuestionnaireReverseMapper(object):
             except:
                 return None
 
-        def set_next_of_kin_state(state_abbrev):
-            # State model objects must match the range of states in the Data Element
-            from registry.patients.models import State
-            try:
-                state = State.objects.get(short_name=state_abbrev)
-            except:
-                state = None
-            return state
-
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
             "CDEPatientFamilyName": ("family_name", None),
@@ -257,7 +245,8 @@ class QuestionnaireReverseMapper(object):
             "CDEPatientNOKRelationship": ("next_of_kin_relationship", set_next_of_kin_relationship),
             "CDEPatientNextOfKinAddress": ("next_of_kin_address", None),
             "CDEPatientNextOfKinSuburb": ("next_of_kin_suburb", None),
-            "CDEPatientNextOfKinState": ("next_of_kin_state", set_next_of_kin_state),
+            "CDEPatientNextOfKinCountry": ("next_of_kin_country", None),
+            "CDEPatientNextOfKinState": ("next_of_kin_state", None),
             "CDEPatientNextOfKinPostCode": ("next_of_kin_postcode", None),
             "PatientConsentByGuardian": ("consent_provided_by_parent_guardian", None),
             # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
@@ -387,7 +376,3 @@ class PatientCreator(object):
             _, registry_pk, consent_section_pk, consent_question_pk = field_key.split("_")
             consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
             patient_model.set_consent(consent_question_model, answer)
-
-
-
-
