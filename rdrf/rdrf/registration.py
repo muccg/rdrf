@@ -227,15 +227,6 @@ class QuestionnaireReverseMapper(object):
             except:
                 return None
 
-        def set_next_of_kin_state(state_abbrev):
-            # State model objects must match the range of states in the Data Element
-            from registry.patients.models import State
-            try:
-                state = State.objects.get(short_name=state_abbrev)
-            except:
-                state = None
-            return state
-
         key_map = {
             "CDEPatientGivenNames": ("given_names", None),
             "CDEPatientFamilyName": ("family_name", None),
@@ -254,7 +245,8 @@ class QuestionnaireReverseMapper(object):
             "CDEPatientNOKRelationship": ("next_of_kin_relationship", set_next_of_kin_relationship),
             "CDEPatientNextOfKinAddress": ("next_of_kin_address", None),
             "CDEPatientNextOfKinSuburb": ("next_of_kin_suburb", None),
-            "CDEPatientNextOfKinState": ("next_of_kin_state", set_next_of_kin_state),
+            "CDEPatientNextOfKinCountry": ("next_of_kin_country", None),
+            "CDEPatientNextOfKinState": ("next_of_kin_state", None),
             "CDEPatientNextOfKinPostCode": ("next_of_kin_postcode", None),
             "PatientConsentByGuardian": ("consent_provided_by_parent_guardian", None),
             # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
