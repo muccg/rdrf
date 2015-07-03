@@ -223,7 +223,7 @@ class DateWidget(widgets.TextInput):
             else:
                 return value
         return """
-            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker" readonly>
+            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker">
         """ % (name, name, just_date(value) or '')
 
 
