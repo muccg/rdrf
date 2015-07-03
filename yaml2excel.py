@@ -15,7 +15,33 @@ FILE = "FILE"
 RANGE = "DROPDOWN"
 BOOL = _l("True/False")
 SEXES = _l("M/F/I")
+COUNTRIES = _l("AU/NZ")
 STATES = _l("WA/NSW/NT/SA/VIC/TAS/QLD/ACT")
+# not sure if we need these
+# Name = Taranaki   CODE = NZ-TKI
+# Name = Chatham Islands Territory   CODE = NZ-CIT
+# Name = Nelson City   CODE = NZ-NSN
+# Name = Bay of Plenty   CODE = NZ-BOP
+# Name = West Coast   CODE = NZ-WTC
+# Name = Gisborne District   CODE = NZ-GIS
+# Name = Canterbury   CODE = NZ-CAN
+# Name = Marlborough District   CODE = NZ-MBH
+# Name = Hawke's Bay   CODE = NZ-HKB
+# Name = Wellington   CODE = NZ-WGN
+# Name = Southland   CODE = NZ-STL
+# Name = Manawatu-Wanganui   CODE = NZ-MWT
+# Name = North Island   CODE = NZ-N
+# Name = Waikato   CODE = NZ-WKO
+# Name = Otago   CODE = NZ-OTA
+# Name = South Island   CODE = NZ-S
+# Name = Tasman District   CODE = NZ-TAS
+# Name = Auckland   CODE = NZ-AUK
+# Name = Northland   CODE = NZ-NTL
+
+NZ_STATES =_l("NZ-TKI/NZ-CIT/NZ-NSN/NZ-BOP/NZ-WTC/NZ-GIS/NZ-CAN/NZ-MBH/NZ-HKB/NZ-WGN/NZ-STL/NZ-MWT/NZ-N/NZ-WKO/NZ-OTA/NZ-S/NZ-TAS/NZ-AUK/NZ-NTL")
+
+STATES.extend(NZ_STATES)
+
 ETHNICITIES = sorted(["Aboriginal",
                             "Person from Torres Strait Islands",
                             "Black African/African American",
@@ -29,6 +55,7 @@ ETHNICITIES = sorted(["Aboriginal",
                             "Other Asian",
                             "Other",
                             "Decline to Answer"])
+
 
 class SpreadSheetCreator(object):
     def __init__(self, registry_dict, output_filename, nrows=300, excludes=[]):
@@ -46,12 +73,17 @@ class SpreadSheetCreator(object):
         self.workbook.close()
 
     def _patient_demographics_spec(self):
-        return [ ("Family Name", TEXT),
+        return [("Family Name", TEXT),
                  ("Given Names",TEXT),
                  ("Maiden Name",TEXT),
                  ("Consent", BOOL),
-                 ("Consent Clinical Trials", BOOL),
-                 ("Consent Sent Info", BOOL),
+                 # DM1 consents - will need to add FH consents
+                 ("Consent given to store data only while individual is living", BOOL),
+                 ("Consent given to store data for the duration of the registry", BOOL),
+                 ("Consent provided by Parent/Guardian only while individual is living", BOOL),
+                 ("Consent provided by Parent/Guardian for the duration of the registry", BOOL),
+                 ("Consent to allow for clinical trials given", BOOL),
+                 ("Consent to be sent information given", BOOL),
                  ("Centre", TEXT),
                  ("HOSPITAL/Clinic ID", TEXT),
                  ("DOB", DATE),
@@ -65,7 +97,8 @@ class SpreadSheetCreator(object):
                  ("Email", TEXT),
                  ("Address", TEXT),
                  ("Suburb/Town", TEXT),
-                 ("State", STATES)]
+                 ("State", STATES),
+                 ("Country", COUNTRIES)]
 
 
 
