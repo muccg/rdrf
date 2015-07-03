@@ -244,6 +244,7 @@ class CountryWidget(widgets.Select):
         output.append("</select>")
         return mark_safe('\n'.join(output))
 
+
 class StateWidget(widgets.Select):
 
     def render(self, name, value, attrs):
