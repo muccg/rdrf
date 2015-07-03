@@ -305,7 +305,6 @@ class ParametrisedSelectWidget(widgets.Select):
 
 
 class StateListWidget(ParametrisedSelectWidget):
-    
     def render(self, name, value, attrs):
         country_states = pycountry.subdivisions.get(country_code=self._widget_context['questionnaire_context'].upper())
         output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
