@@ -317,7 +317,6 @@ class StateListWidget(ParametrisedSelectWidget):
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
         return mark_safe('\n'.join(output))
-        return "%s" % (self._widget_parameter)
 
 
 class DataSourceSelect(ParametrisedSelectWidget):
