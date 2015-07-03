@@ -244,11 +244,9 @@ class CountryWidget(widgets.Select):
         output.append("</select>")
         return mark_safe('\n'.join(output))
 
-
 class StateWidget(widgets.Select):
 
     def render(self, name, value, attrs):
-
         try:
             state = pycountry.subdivisions.get(code=value)
         except KeyError:
@@ -303,6 +301,23 @@ class ParametrisedSelectWidget(widgets.Select):
 
     def _get_items(self):
         raise NotImplementedError("subclass responsibility - it should return a list of pairs: [(code, display), ...]")
+
+
+class StateListWidget(ParametrisedSelectWidget):
+    
+    def render(self, name, value, attrs):
+        country_states = pycountry.subdivisions.get(country_code=self._widget_context['questionnaire_context'].upper())
+        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        empty_option = "<option value='---'>---</option>"
+        output.append(empty_option)
+        for state in country_states:
+            if value == state.code:
+                output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
+            else:
+                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
+        output.append("</select>")
+        return mark_safe('\n'.join(output))
+        return "%s" % (self._widget_parameter)
 
 
 class DataSourceSelect(ParametrisedSelectWidget):
