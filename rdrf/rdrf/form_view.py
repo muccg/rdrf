@@ -831,6 +831,7 @@ class QuestionnaireResponseView(FormView):
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
+        self._fix_state_and_country_dropdowns(context)
 
         custom_consent_helper = CustomConsentHelper(self.registry)
         custom_consent_helper.load_dynamic_data(self.dynamic_data)
@@ -839,6 +840,7 @@ class QuestionnaireResponseView(FormView):
         context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
         context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
+        context["on_approval"] = 'yes'
         return self._render_context(request, context)
 
     def _get_questionnaire_context(self):
@@ -862,6 +864,17 @@ class QuestionnaireResponseView(FormView):
             if 'CDEPatientNextOfKinState' in field_key:
                 if hasattr(field_object.widget, "_widget_context"):
                     field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
+
+    def _fix_state_and_country_dropdowns(self, context):
+        from django.forms.widgets import TextInput
+        for key, field_object in context["forms"]['PatientData'].fields.items():
+            if "CDEPatientNextOfKinState" in key:
+                field_object.widget = TextInput()
+
+        for address_form in context["forms"]["PatientDataAddressSection"].forms:
+            for key, field_object in address_form.fields.items():
+                if "State" in key:
+                    field_object.widget = TextInput()
 
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
