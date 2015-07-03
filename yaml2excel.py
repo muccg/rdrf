@@ -76,7 +76,6 @@ class SpreadSheetCreator(object):
         return [("Family Name", TEXT),
                  ("Given Names",TEXT),
                  ("Maiden Name",TEXT),
-                 ("Consent", BOOL),
                  # DM1 consents - will need to add FH consents
                  ("Consent given to store data only while individual is living", BOOL),
                  ("Consent given to store data for the duration of the registry", BOOL),
