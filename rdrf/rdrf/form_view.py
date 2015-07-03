@@ -859,6 +859,10 @@ class QuestionnaireResponseView(FormView):
                 if hasattr(field_object.widget, "_widget_context"):
                     field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
 
+            if 'CDEPatientNextOfKinState' in field_key:
+                if hasattr(field_object.widget, "_widget_context"):
+                    field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
+
     def _get_working_groups(self, auth_user):
         class WorkingGroupOption:
 
