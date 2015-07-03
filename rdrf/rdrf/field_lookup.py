@@ -315,7 +315,7 @@ class FieldFactory(object):
                         if "RadioSelect" in str(widget):
                             options["choices"] = options['choices'][1:]     # get rid of the unset choice
 
-                    if self.cde.code in ["State", "Country"]:
+                    if self.cde.code in ["State", "Country", "CDEPatientNextOfKinState"]:
                         # These are dynamic now and alter their reange lists dynamically so have to switch off validation
                         from rdrf.fields import ChoiceFieldNoValidation
                         return ChoiceFieldNoValidation(**options)
