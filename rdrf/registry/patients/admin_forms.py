@@ -132,7 +132,7 @@ class PatientConsentFileForm(forms.ModelForm):
     class Meta:
         model = PatientConsent
     
-    form = forms.FileField(widget=AdminFileWidget)
+    form = forms.FileField(widget=AdminFileWidget, required=False)
 
 
 class PatientForm(forms.ModelForm):
