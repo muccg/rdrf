@@ -95,9 +95,9 @@ Documentation Content List:
    registries
    cdes
    datatypes
-   howtocreatearegistry
    permittedvaluegroups
    permittedvalue
+   howtocreatearegistry
    import
    questionnaires
    interfacing
