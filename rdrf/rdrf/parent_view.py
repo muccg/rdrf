@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
-from models import Registry
+from models import Registry, RegistryForm
 
 
 class ParentView(View):
@@ -15,9 +15,13 @@ class ParentView(View):
         context = {}
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
+            registry = Registry.objects.get(code=registry_code)
+            forms = RegistryForm.objects.filter(registry=registry)
+            
             context['parent'] = parent
             context['patients'] = parent.patient.all()
             context['registry_code'] = registry_code
+            context['registry_forms'] = forms
 
         return render_to_response('rdrf_cdes/parent.html', context, context_instance=RequestContext(request))
 
