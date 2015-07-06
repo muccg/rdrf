@@ -89,6 +89,9 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",
                            parent_view.ParentView.as_view(), name='parent_page'),
+                       
+                       url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
+                           parent_view.ParentEditView.as_view(), name='parent_edit'),
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),

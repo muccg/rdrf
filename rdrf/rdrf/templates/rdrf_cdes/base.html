@@ -103,6 +103,9 @@
                         <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span> Admin Page</a></li>
                         <li class="divider"></li>
                     {% endif %}
+                    {% if request.user.is_parent %}
+                        <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span> Account</a></li>
+                    {% endif %}
                     <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> Password Reset</a></li>
                     <li><a href="{% url 'logout' %}?next={{request.path}}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                   </ul>
