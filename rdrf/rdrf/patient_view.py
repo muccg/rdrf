@@ -733,6 +733,7 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
+        context["form_links"] = self._get_formlinks(request.user, patient.id, registry)
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
