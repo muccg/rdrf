@@ -151,10 +151,10 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
-        
+
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
-        
+
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -289,7 +289,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form),
         }
-        
+
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 

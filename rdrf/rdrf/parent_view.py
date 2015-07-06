@@ -7,6 +7,7 @@ from registry.patients.models import ParentGuardian, Patient, PatientAddress, Ad
 from models import Registry, RegistryForm
 from registry.patients.admin_forms import ParentGuardianForm
 
+
 class ParentView(View):
 
     _ADDRESS_TYPE = "Postal"
@@ -17,7 +18,7 @@ class ParentView(View):
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
             forms = RegistryForm.objects.filter(registry=registry)
-            
+
             context['parent'] = parent
             context['patients'] = parent.patient.all()
             context['registry_code'] = registry_code
@@ -72,7 +73,7 @@ class ParentEditView(View):
         context = {}
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
-            
+
             context['parent'] = parent
             context['registry_code'] = registry_code
             context['parent_form'] = ParentGuardianForm(instance=parent)
