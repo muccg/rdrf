@@ -71,11 +71,27 @@ class ParentEditView(View):
 
     def get(self, request, registry_code, parent_id):
         context = {}
-        if request.user.is_authenticated():
-            parent = ParentGuardian.objects.get(user=request.user)
+        parent = ParentGuardian.objects.get(user=request.user)
 
-            context['parent'] = parent
-            context['registry_code'] = registry_code
-            context['parent_form'] = ParentGuardianForm(instance=parent)
+        context['parent'] = parent
+        context['registry_code'] = registry_code
+        context['parent_form'] = ParentGuardianForm(instance=parent)
+
+        return render_to_response("rdrf_cdes/parent_edit.html", context, context_instance=RequestContext(request))
+
+    def post(self, request, registry_code, parent_id):
+        context = {}
+        parent = ParentGuardian.objects.get(id=parent_id)
+        
+        parent_form = ParentGuardianForm(request.POST, instance=parent)
+        if parent_form.is_valid():
+            parent_form.save()
+            messages.add_message(request, messages.SUCCESS, "Details saved")
+        else:
+            messages.add_message(request, messages.ERROR, "Please correct the errors bellow")
+
+        context['parent'] = parent
+        context['registry_code'] = registry_code
+        context['parent_form'] = parent_form
 
         return render_to_response("rdrf_cdes/parent_edit.html", context, context_instance=RequestContext(request))

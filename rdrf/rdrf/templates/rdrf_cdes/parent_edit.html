@@ -1,5 +1,60 @@
 {% extends "rdrf_cdes/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script>
+        $(document).ready(function() {
+            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+            
+            $(document).find("input[name*='date']").each(function() {
+                var cal_group = $("<label for='"+$(this).prop("id")+"' class='input-group-addon btn'><span class='glyphicon glyphicon-calendar'></span></label>");
+                $(this).wrap("<div class='input-group'></div>");
+                cal_group.insertAfter($(this));
+                
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'yy-mm-dd',
+                    yearRange: '-100:+0',
+                });
+            });
+        });
+        
+        function select_country(obj) {
+            state_id = obj.id.replace("country", "state");
+            state_select = $('#' + state_id);
+            state_select.find('option').remove();
+            $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
+                if (data) {
+                    $.each(JSON.parse(data), function(i, item) {
+                        state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
+                    })
+                }
+            });
+        }
+    </script>
+{% endblock %}
 
 {% block content %}
-    {{parent_form.as_p}}
+    <br>
+    <form class="form-horizontal date-form" method="POST">
+        {% csrf_token %}
+        {% for field in parent_form %}
+            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                <label for="{{field.id_for_label}}" class="col-md-3 col-md-offset-1 control-label">{% if field.field.required %}<span class="glyphicon glyphicon-asterisk" style="color: red" aria-hidden="true"></span>{% endif %} {{field.label}}</label>
+                <div class="col-md-6">
+                    {{ field }}
+                </div>
+                <div class="col-md-2">
+                    {% if field.errors %}<span class="label label-danger">{{field.errors.as_text}}</span>{% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <div class="col-md-10">
+                <input type="submit" class="btn btn-success pull-right" value="Save">
+            </div>
+        </div>
+    </form>
 {% endblock %}

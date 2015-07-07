@@ -505,3 +505,25 @@ class ParentGuardianForm(forms.ModelForm):
 
     class Meta:
         model = ParentGuardian
+        fields = [
+            'first_name',
+            'last_name',
+            'date_of_birth',
+            'place_of_birth',
+            'date_of_migration',
+            'gender',
+            'address',
+            'country',
+            'state',
+            'suburb',
+            'postcode'
+        ]
+        exclude = [
+            'user',
+            'patient'
+        ]
+        
+        widgets = {
+            'state': StateWidget(),
+            'country': CountryWidget()
+        }
