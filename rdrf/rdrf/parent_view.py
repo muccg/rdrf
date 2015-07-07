@@ -2,13 +2,23 @@ from django.views.generic.base import View
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
 from models import Registry, RegistryForm
 from registry.patients.admin_forms import ParentGuardianForm
 
 
-class ParentView(View):
+class LoginRequiredMixin(object):
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(
+            request, *args, **kwargs)
+
+
+class ParentView(LoginRequiredMixin, View):
 
     _ADDRESS_TYPE = "Postal"
 
@@ -58,7 +68,7 @@ class ParentView(View):
         return redirect(reverse("parent_page", args={registry_code: registry_code}))
 
 
-class ParentEditView(View):
+class ParentEditView(LoginRequiredMixin, View):
     _ADDRESS_TYPE = "Postal"
 
     def get(self, request, registry_code, parent_id):
