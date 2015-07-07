@@ -41,7 +41,7 @@ class ParentView(View):
         patient.save()
 
         use_parent_address = "use_parent_address" in request.POST
-        
+
         PatientAddress.objects.create(
             patient=patient,
             address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
@@ -104,7 +104,7 @@ class ParentEditView(View):
 
             patient.rdrf_registry.add(registry)
             patient.save()
-            
+
             parent.patient.add(patient)
             parent.self_patient = patient
             parent.save()
