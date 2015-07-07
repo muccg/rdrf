@@ -40,26 +40,17 @@ class ParentView(View):
         patient.rdrf_registry.add(registry)
         patient.save()
 
-        if "use_parent_address" in request.POST:
-            PatientAddress.objects.create(
-                patient=patient,
-                address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
-                address=parent.address,
-                suburb=parent.suburb,
-                state=parent.state,
-                postcode=parent.postcode,
-                country=parent.country
-            )
-        else:
-            PatientAddress.objects.create(
-                patient=patient,
-                address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
-                address=request.POST["address"],
-                suburb=request.POST["suburb"],
-                state=request.POST["state"],
-                postcode=request.POST["postcode"],
-                country=request.POST["country"]
-            )
+        use_parent_address = "use_parent_address" in request.POST
+        
+        PatientAddress.objects.create(
+            patient=patient,
+            address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
+            address=parent.address if use_parent_address else request.POST["address"],
+            suburb=parent.suburb if use_parent_address else request.POST["suburb"],
+            state=parent.state if use_parent_address else request.POST["state"],
+            postcode=parent.postcode if use_parent_address else request.POST["postcode"],
+            country=parent.country if use_parent_address else request.POST["country"]
+        )
 
         parent.patient.add(patient)
         parent.save()
@@ -68,6 +59,7 @@ class ParentView(View):
 
 
 class ParentEditView(View):
+    _ADDRESS_TYPE = "Postal"
 
     def get(self, request, registry_code, parent_id):
         context = {}
@@ -89,6 +81,33 @@ class ParentEditView(View):
             messages.add_message(request, messages.SUCCESS, "Details saved")
         else:
             messages.add_message(request, messages.ERROR, "Please correct the errors bellow")
+
+        if "self_patient_flag" in request.POST:
+            registry = Registry.objects.get(code=registry_code)
+            patient = Patient.objects.create(
+                consent=True,
+                family_name=request.POST["last_name"],
+                given_names=request.POST["first_name"],
+                date_of_birth=request.POST["date_of_birth"],
+                sex=request.POST["gender"],
+            )
+
+            PatientAddress.objects.create(
+                patient=patient,
+                address_type=AddressType.objects.get(description__icontains=self._ADDRESS_TYPE),
+                address=parent.address,
+                suburb=parent.suburb,
+                state=parent.state,
+                postcode=parent.postcode,
+                country=parent.country
+            )
+
+            patient.rdrf_registry.add(registry)
+            patient.save()
+            
+            parent.patient.add(patient)
+            parent.self_patient = patient
+            parent.save()
 
         context['parent'] = parent
         context['registry_code'] = registry_code

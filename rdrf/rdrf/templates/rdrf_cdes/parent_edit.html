@@ -19,6 +19,14 @@
                     yearRange: '-100:+0'
                 });
             });
+            
+            $.get("{% url 'clinician_lookup' %}", { 'registry_code': "{{registry_code}}" }, function(data) {
+                clinician_drop = $("#id_clinician");
+                $.each($.parseJSON(data), function(i, item){
+                    clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
+                });
+                clinician_drop.append($('<option>', { value : 'clinician-other' }).text('Other - not listed'));
+            });
         });
         
         function select_country(obj) {
@@ -51,6 +59,24 @@
                 </div>
             </div>
         {% endfor %}
+        {% if not parent.self_patient %}
+            <hr>
+            <div class="form-group">
+                <div class="col-md-3 col-md-offset-1 control-label"><strong>I am a patient</strong></div>
+                <div class="col-md-6">
+                    <input type="checkbox" name="self_patient_flag" id="self_patient_flag">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="clinitian" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="id_clinician" name="clinician" required>
+                        <option value="-1">Choose your preferred Clinician</option>
+                    </select>
+                </div>
+            </div>
+        {% endif %}
         <div class="form-group">
             <div class="col-md-10">
                 <input type="submit" class="btn btn-success pull-right" value="Save">

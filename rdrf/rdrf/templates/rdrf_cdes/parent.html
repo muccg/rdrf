@@ -123,12 +123,6 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label">State</label>
-                                    <div class="col-sm-10">
-                                        <input class="form-control" id="id_state" maxlength="30" name="state" type="text" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
                                     <label class="col-sm-2 control-label">Postcode</label>
                                     <div class="col-sm-10">
                                         <input class="form-control" id="id_postcode" maxlength="30" name="postcode" type="text" />
@@ -144,6 +138,12 @@
                                                 <option value="{{con.alpha2}}">{{con.name}}</option>
                                             {% endfor %}
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">State</label>
+                                    <div class="col-sm-10">
+                                        <input class="form-control" id="id_state" maxlength="30" name="state" type="text" />
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +171,12 @@
             <tbody>
                 {% for patient in patients %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {{ forloop.counter }}
+                            {% if patient.id = parent.self_patient.id %}
+                                <span class="label label-primary">Self Patient</span>
+                            {% endif %}
+                        </td>
                         <td>{{patient.given_names|title}}</td>
                         <td>{{patient.family_name|title}}</td>
                         <td>{{patient.date_of_birth|date:"jS F Y"}}</td>

@@ -51,10 +51,10 @@
 
                 
                 {% if registry_code %}
-                    {% if request.user.is_patient %}
-                        <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
-                    {% elif request.user.is_parent  %}
+                    {% if request.user.is_parent  %}
                         <li><a href="{% url 'parent_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Parent Page</a></li>
+                    {% elif request.user.is_patient %}
+                        <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Patient Page</a></li>
                     {% endif %}
                 {% endif %}
 

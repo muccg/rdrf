@@ -509,8 +509,6 @@ class ParentGuardianForm(forms.ModelForm):
             'first_name',
             'last_name',
             'date_of_birth',
-            'place_of_birth',
-            'date_of_migration',
             'gender',
             'address',
             'country',
@@ -520,7 +518,9 @@ class ParentGuardianForm(forms.ModelForm):
         ]
         exclude = [
             'user',
-            'patient'
+            'patient',
+            'place_of_birth',
+            'date_of_migration'
         ]
         
         widgets = {
