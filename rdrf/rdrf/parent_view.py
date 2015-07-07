@@ -82,7 +82,7 @@ class ParentEditView(View):
     def post(self, request, registry_code, parent_id):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
-        
+
         parent_form = ParentGuardianForm(request.POST, instance=parent)
         if parent_form.is_valid():
             parent_form.save()
