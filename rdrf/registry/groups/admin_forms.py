@@ -7,7 +7,44 @@ from rdrf.models import Registry
 from django.core.exceptions import ValidationError
 
 
-class RDRFUserCreationForm(forms.ModelForm):
+class UserValidationMixin(object):
+    def clean(self):
+        # Need to prevent adding a user who:
+        # a) has been assigned a registry but not assigned to a working group of that registry
+        # b) has been assigned to a working group but not assigned to the owning registry of that
+        #    of that working group.
+        if "registry" in self.cleaned_data:
+            registry_models = [registry_model for registry_model in self.cleaned_data["registry"].all()]
+        else:
+            registry_models = []
+
+        if "working_groups" in self.cleaned_data:
+            working_group_models = [working_group_model for working_group_model
+                                    in self.cleaned_data["working_groups"].all()]
+        else:
+            working_group_models = []
+
+        for working_group_model in working_group_models:
+            if working_group_model.registry not in registry_models:
+                msg = "Working Group '%s' not in any of the assigned registries" % working_group_model.display_name
+                raise ValidationError(msg)
+
+        for registry_model in registry_models:
+            if registry_model not in [working_group_model.registry for working_group_model in working_group_models]:
+                msg = "You have added the user into registry %s but not assigned the user " \
+                      "to working group of that registry" % registry_model
+                raise ValidationError(msg)
+
+        if not registry_models:
+            raise ValidationError("Please choose a registry")
+
+        if not working_group_models:
+            raise ValidationError("Please choose a working group")
+
+        return self.cleaned_data
+
+
+class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
     CREATING_USER = None  # set by admin class - used to restrict registry and workign group choices
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
@@ -48,41 +85,6 @@ class RDRFUserCreationForm(forms.ModelForm):
             user.save()
         return user
 
-    def clean(self):
-        # Need to prevent adding a user who:
-        # a) has been assigned a registry but not assigned to a working group of that registry
-        # b) has been assigned to a working group but not assigned to the owning registry of that
-        #    of that working group.
-        if "registry" in self.cleaned_data:
-            registry_models = [registry_model for registry_model in self.cleaned_data["registry"].all()]
-        else:
-            registry_models = []
-
-        if "working_groups" in self.cleaned_data:
-            working_group_models = [working_group_model for working_group_model
-                                    in self.cleaned_data["working_groups"].all()]
-        else:
-            working_group_models = []
-
-        for working_group_model in working_group_models:
-            if working_group_model.registry not in registry_models:
-                msg = "Working Group '%s' not in any of the assigned registries" % working_group_model.display_name
-                raise ValidationError(msg)
-
-        for registry_model in registry_models:
-            if registry_model not in [working_group_model.registry for working_group_model in working_group_models]:
-                msg = "You have added the user into registry %s but not assigned the user " \
-                      "to working group of that registry" % registry_model
-                raise ValidationError(msg)
-
-
-        if not registry_models:
-            raise ValidationError("Please choose a registry")
-
-        if not working_group_models:
-            raise ValidationError("Please choose a working group")
-
-        return self.cleaned_data
 
     def _restrict_registry_and_working_groups_choices(self, creating_user):
         if not creating_user.is_superuser:
@@ -92,7 +94,7 @@ class RDRFUserCreationForm(forms.ModelForm):
                 Registry.objects.filter(code__in=[reg.code for reg in creating_user.registry.all()])
 
 
-class UserChangeForm(forms.ModelForm):
+class UserChangeForm(UserValidationMixin, forms.ModelForm):
     model = get_user_model()
 
     def __init__(self, *args, **kwargs):
@@ -108,7 +110,6 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-
 
     def clean_password(self):
         return self.initial["password"]
