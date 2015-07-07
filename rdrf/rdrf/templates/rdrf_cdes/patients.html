@@ -288,11 +288,13 @@
                          if(registryCode == '---') {
                              $("#grid").hide();
                              $("#add_patient").hide();
+                             localStorage['selected_reg'] = "";
                          }
                          else {
                              $("#grid").bootgrid("reload");
                              $("#grid").show();
                              $("#add_patient").show();
+                             localStorage['selected_reg'] = registryCode;
                          }
                     });
 
@@ -301,6 +303,10 @@
                     $(document).ready(function() {
                         $("#registry_select_div").insertBefore($("div[class='search form-group']"));
                         $("#add_patient").insertAfter($("div[class='actions btn-group']"));
+                        
+                        if (localStorage['selected_reg'] != "") {
+                            $("#registry_select").val(localStorage['selected_reg']).change();
+                        }
                     });
                 {% endif %}
                 });
