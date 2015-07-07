@@ -2,8 +2,13 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
-from admin_forms import UserChangeForm, UserCreationForm
+from admin_forms import UserChangeForm, RDRFUserCreationForm
 from models import WorkingGroup
+from django.core.exceptions import ValidationError
+
+import logging
+
+logger = logging.getLogger('registry_log')
 
 
 class WorkingGroupAdmin(admin.ModelAdmin):
@@ -20,15 +25,46 @@ class WorkingGroupAdmin(admin.ModelAdmin):
 
 class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
-    add_form = UserCreationForm
+    add_form = RDRFUserCreationForm
 
     list_display = ('username', 'email', 'get_working_groups', 'get_registries')
 
     def get_form(self, request, obj=None, **kwargs):
         user = get_user_model().objects.get(username=request.user)
+        creating_user_is_superuser = user.is_superuser
         form = super(CustomUserAdmin, self).get_form(request, obj, **kwargs)
         form.user = user
-        return form
+        # User creation is in two stages in Django admin
+        if obj is None:
+            # First stage: Ensure that the registry and working group selections are restricted
+            form.CREATING_USER = request.user
+            return form
+        else:
+            #  Second stage: Prevent user from adding a superuser now that we've given
+            #  curators the ability to create users: To do this create a custom form which
+            #  overrides clean based on the creating user
+
+            if not creating_user_is_superuser:
+                def modified_clean(myself):
+                    cleaned_data = super(myself.__class__, myself).clean()
+                    if "is_superuser" in cleaned_data:
+                        if not creating_user_is_superuser and cleaned_data["is_superuser"]:
+                            raise ValidationError("can't create a superuser unless you are one!")
+                    return cleaned_data
+
+                method_dict = {"clean": modified_clean}
+                return type("LockedDownUserEditForm", (form,), method_dict)
+            else:
+                return form
+
+    def get_fieldsets(self, request, obj=None):
+        if not obj:
+            return self.add_fieldsets
+
+        if not request.user.is_superuser:
+            return self.curator_fieldsets
+        else:
+            return super(UserAdmin, self).get_fieldsets(request, obj)
 
     def queryset(self, request):
         from itertools import chain
@@ -58,10 +94,16 @@ class CustomUserAdmin(UserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
     )
 
+    # curators shouldn't see checkbox to create super user
+    curator_fieldsets = ((None, {'fields': ('username', 'password')}),
+                         ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email')}),
+                         ('Permissions', {'fields':
+                         ('is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2')}
+            'fields': ('username', 'password1', 'password2', 'registry', 'working_groups')}
         ),
     )
     

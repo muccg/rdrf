@@ -738,6 +738,7 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
+        context["form_links"] = self._get_formlinks(request.user, patient.id, registry)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
