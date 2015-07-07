@@ -12,7 +12,7 @@ from rdrf.utils import FormLink
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 import logging
@@ -257,6 +257,8 @@ class PatientFormMixin(PatientMixin):
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
         kwargs["location"] = "Demographics"
+        if self.request.user.is_parent:
+            kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
         return kwargs
 
     def _extract_error_messages(self, form_pairs):
@@ -612,6 +614,9 @@ class PatientEditView(View):
             "form_links": self._get_formlinks(request.user, patient.id, registry_model),
         }
 
+        if request.user.is_parent:
+            context['parent'] = ParentGuardian.objects.get(user=request.user)
+
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def post(self, request, registry_code, patient_id):
@@ -733,6 +738,8 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
+        if request.user.is_parent:
+            context['parent'] = ParentGuardian.objects.get(user=request.user)
         return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):

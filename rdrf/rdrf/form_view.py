@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from models import RegistryForm, Registry, QuestionnaireResponse
 from models import Section, CommonDataElement
-from registry.patients.models import Patient
+from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
@@ -151,6 +151,10 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
+
+        if request.user.is_parent:
+            context['parent'] = ParentGuardian.objects.get(user=request.user)
+
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -266,6 +270,7 @@ class FormView(View):
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
             'registry': registry_code,
+            'registry_code': registry_code,
             'form_name': form_id,
             'form_display_name': form_display_name,
             'patient_id': patient_id,
@@ -284,6 +289,9 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form),
         }
+
+        if request.user.is_parent:
+            context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         if not self.registry_form.is_questionnaire:
             cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
@@ -393,6 +401,7 @@ class FormView(View):
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
             'registry': self.registry.code,
+            'registry_code': self.registry.code,
             'form_name': self.form_id,
             'form_display_name': self.registry_form.name,
             'patient_id': self._get_patient_id(),

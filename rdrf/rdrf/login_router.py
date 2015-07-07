@@ -33,6 +33,11 @@ class RouterView(View):
                 redirect_url = reverse(_NEW_PATIENT_LISTING)
             elif user.is_curator:
                 redirect_url = reverse(_NEW_PATIENT_LISTING)
+            elif user.is_parent and user.is_patient:
+                regs = user.get_registries()
+                if regs:
+                    if len(regs) == 1:
+                        redirect_url = reverse("parent_page", args=[regs[0].code])
             elif user.is_patient:
                 regs = user.get_registries()
                 if regs:

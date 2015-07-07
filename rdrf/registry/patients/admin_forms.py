@@ -2,7 +2,7 @@ from django import forms
 from registry.utils import get_static_url
 from django_countries import countries
 from models import *
-from models import PatientConsent
+from models import PatientConsent, ParentGuardian
 from rdrf.widgets import CountryWidget, StateWidget
 from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
@@ -499,3 +499,31 @@ class PatientForm(forms.ModelForm):
         if bad:
             bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
             raise forms.ValidationError("Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad_regs))
+
+
+class ParentGuardianForm(forms.ModelForm):
+
+    class Meta:
+        model = ParentGuardian
+        fields = [
+            'first_name',
+            'last_name',
+            'date_of_birth',
+            'gender',
+            'address',
+            'country',
+            'state',
+            'suburb',
+            'postcode'
+        ]
+        exclude = [
+            'user',
+            'patient',
+            'place_of_birth',
+            'date_of_migration'
+        ]
+        
+        widgets = {
+            'state': StateWidget(),
+            'country': CountryWidget()
+        }
