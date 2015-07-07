@@ -6,6 +6,7 @@
 {% load get_display_name %}
 
 {% block extrastyle %}
+    {{ block.super }}
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script>
     $(document).ready(function(){
@@ -19,6 +20,15 @@
 {% endblock %}
 
 {% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Import Registry</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+    
+    <br>
+
     {% if state == "fail" %}
         <div class="alert alert-danger">Import Failed: {{error_message}}</div>
     {% endif %}

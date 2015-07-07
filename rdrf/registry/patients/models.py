@@ -575,6 +575,7 @@ class ParentGuardian(models.Model):
     postcode = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=20)
     patient = models.ManyToManyField(Patient)
+    self_patient = models.ForeignKey(Patient, blank=True, null=True, related_name="self_patient")
     user = models.ForeignKey(CustomUser, blank=True, null=True, related_name="parent_user_object", on_delete=models.SET_NULL)
 
 

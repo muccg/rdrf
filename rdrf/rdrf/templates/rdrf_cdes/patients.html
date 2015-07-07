@@ -1,6 +1,7 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load staticfiles %}
 {% block extrastyle %}
+    {{ block.super }}
     <link href="{% static 'css/jquery.bootgrid.css' %}" rel="stylesheet">
     <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
     
@@ -15,10 +16,15 @@
     
 {% endblock %}
 {% block content %}
-        <blockquote>
-            <h4><i class="text-muted">Patient List</i></h4>
-        </blockquote>
-    
+        <div class="row">
+            <div class="col-md-12">
+                <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
+                <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+            </div>
+        </div>
+
+        <hr>
+            
         {% if request.user.is_superuser or num_registries > 1  %}
             <div class="col-md-4" id="registry_select_div">
                 <select id="registry_select" class="form-control">
@@ -282,11 +288,13 @@
                          if(registryCode == '---') {
                              $("#grid").hide();
                              $("#add_patient").hide();
+                             localStorage['selected_reg'] = "";
                          }
                          else {
                              $("#grid").bootgrid("reload");
                              $("#grid").show();
                              $("#add_patient").show();
+                             localStorage['selected_reg'] = registryCode;
                          }
                     });
 
@@ -295,6 +303,10 @@
                     $(document).ready(function() {
                         $("#registry_select_div").insertBefore($("div[class='search form-group']"));
                         $("#add_patient").insertAfter($("div[class='actions btn-group']"));
+                        
+                        if (localStorage['selected_reg'] != "") {
+                            $("#registry_select").val(localStorage['selected_reg']).change();
+                        }
                     });
                 {% endif %}
                 });
