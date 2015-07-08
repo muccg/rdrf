@@ -21,6 +21,10 @@ class LoginRequiredMixin(object):
 class ParentView(LoginRequiredMixin, View):
 
     _ADDRESS_TYPE = "Postal"
+    _GENDER_CODE = {
+        "M": 1,
+        "F": 2
+    }
 
     def get(self, request, registry_code):
         context = {}
@@ -45,7 +49,7 @@ class ParentView(LoginRequiredMixin, View):
             family_name=request.POST["surname"],
             given_names=request.POST["first_name"],
             date_of_birth=request.POST["date_of_birth"],
-            sex=request.POST["gender"],
+            sex=self._GENDER_CODE[request.POST["gender"]],
         )
         patient.rdrf_registry.add(registry)
         patient.save()
@@ -70,6 +74,10 @@ class ParentView(LoginRequiredMixin, View):
 
 class ParentEditView(LoginRequiredMixin, View):
     _ADDRESS_TYPE = "Postal"
+    _GENDER_CODE = {
+        "M": 1,
+        "F": 2
+    }
 
     def get(self, request, registry_code, parent_id):
         context = {}
@@ -99,7 +107,7 @@ class ParentEditView(LoginRequiredMixin, View):
                 family_name=request.POST["last_name"],
                 given_names=request.POST["first_name"],
                 date_of_birth=request.POST["date_of_birth"],
-                sex=request.POST["gender"],
+                sex=self._GENDER_CODE[request.POST["gender"]],
             )
 
             PatientAddress.objects.create(
