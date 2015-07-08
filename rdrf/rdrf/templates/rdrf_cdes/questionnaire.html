@@ -56,6 +56,7 @@
         });
         
         function select_country(obj) {
+            var state_select;
             state_id = obj.id.replace("Country", "State");
             if (state_id.match(/formset/)) {
                 // CDEs using this widget are named diferently in formsets
