@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load countries %}
+{% load de_camelcase %}
 
 {% block extrastyle %}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -181,16 +182,20 @@
                         <td>{{patient.family_name|title}}</td>
                         <td>{{patient.date_of_birth|date:"jS F Y"}}</td>
                         <td>
-                            {% for wg in patient.working_groups.all %}
-                                {{wg.name}}
-                            {% endfor %}
+                            {% if patient.clinician %}
+                                {% for wg in patient.clinician.working_groups.all %}
+                                    {{wg.name}}
+                                {% endfor %}
+                            {% else %}
+                                Unallocated
+                            {% endif %}
                         </td>
                         <td>
                             <select onchange="go_to_page(this);">
                                 <option>-----</option>
                                 <option value="{% url 'patient_edit' registry_code patient.id %}">Demographics</option>
                                 {% for form in registry_forms %}
-                                    <option value="{% url 'registry_form' registry_code form.id patient.id %}">{{form.name}}</a></option>
+                                    <option value="{% url 'registry_form' registry_code form.id patient.id %}">{{form.name|de_camelcase}}</a></option>
                                 {% endfor %}
                             </select>                        
                         </td>
