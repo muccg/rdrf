@@ -55,9 +55,9 @@ class PatientAddressAdmin(admin.StackedInline):
 class RegistryFilter(admin.SimpleListFilter):
     title = "Registry"
     parameter_name = 'registry'
-    
+
     def lookups(self, request, model_admin):
-        
+
         if request.user.is_superuser:
             reg_list = Registry.objects.all()
         else:
@@ -66,18 +66,19 @@ class RegistryFilter(admin.SimpleListFilter):
         regs = []
         for reg in reg_list:
             regs.append((reg.id, reg.name))
-            
+
         return regs
 
     def queryset(self, request, queryset):
         if request.GET.__contains__('registry'):
             reg = request.GET.__getitem__('registry')
             return queryset.filter(rdrf_registry__id__exact=reg)
-        
+
         return queryset
 
 
 class PatientAdmin(admin.ModelAdmin):
+
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
@@ -86,16 +87,17 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientAddressAdmin, PatientConsentAdmin, PatientDoctorAdmin, PatientRelativeAdmin]
+    inlines = [PatientAddressAdmin, PatientConsentAdmin,
+               PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
-    list_display = ['full_name', 'working_groups_display', 'get_reg_list', 'date_of_birth', 'demographic_btn', 'data_modules_btn']
-    
+    list_display = ['full_name', 'working_groups_display', 'get_reg_list',
+                    'date_of_birth', 'demographic_btn', 'data_modules_btn']
+
     if has_feature('adjudication'):
         list_display.append('adjudications_btn')
-        
 
     list_filter = [RegistryFilter]
-    
+
     def full_name(self, obj):
         return obj.__unicode__()
 
@@ -103,18 +105,18 @@ class PatientAdmin(admin.ModelAdmin):
 
     def demographic_btn(self, obj):
         return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % reverse('admin:patients_patient_change', args=(obj.id,))
-    
+
     demographic_btn.allow_tags = True
     demographic_btn.short_description = 'Demographics'
 
     def data_modules_btn(self, obj):
         if obj.rdrf_registry.count() == 0:
             return "No registry assigned"
-        
+
         rdrf_id = self.request.GET.get('registry')
 
         user = self.request.user
-        
+
         if not rdrf_id and Registry.objects.count() > 1:
             return "Please filter registry"
 
@@ -123,13 +125,14 @@ class PatientAdmin(admin.ModelAdmin):
                 return de_camelcase(name)
             except:
                 return name
-        
+
         rdrf = Registry.objects.get(pk=rdrf_id)
         not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
-        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by('position') if not_generated(f) and user.can_view(f)]
+        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by(
+            'position') if not_generated(f) and user.can_view(f)]
 
         content = ''
-        
+
         if not forms:
             content = "No modules available"
 
@@ -138,22 +141,23 @@ class PatientAdmin(admin.ModelAdmin):
                 continue
             is_current = obj.form_currency(form)
             flag = "images/%s.png" % ("tick" if is_current else "cross")
-            
+
             url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
             link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
             label = nice_name(form.name)
-            
+
             to_form = link
             if user.is_working_group_staff:
                 to_form = label
-                
+
             if form.has_progress_indicator:
-                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag), obj.form_progress(form)[1] , to_form)
+                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
+                    static(flag), obj.form_progress(form)[1], to_form)
             else:
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
-        
+
         return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
-    
+
     data_modules_btn.allow_tags = True
     data_modules_btn.short_description = 'Data Modules'
 
@@ -198,7 +202,8 @@ class PatientAdmin(admin.ModelAdmin):
         return form
 
     def render_change_form(self, *args, **kwargs):
-        #return self.render_change_form(request, context, change=True, obj=obj, form_url=form_url)
+        # return self.render_change_form(request, context, change=True, obj=obj,
+        # form_url=form_url)
         request = args[0]
         user = request.user
         context = args[1]
@@ -217,7 +222,6 @@ class PatientAdmin(admin.ModelAdmin):
                 form_link = FormLink(patient.id, registry_model, form_model)
                 links.append(form_link)
         return links
-
 
     def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
         additional_fields = {}
@@ -248,7 +252,8 @@ class PatientAdmin(admin.ModelAdmin):
         for reg_code in reg_spec_field_defs:
             cde_field_pairs = reversed(reg_spec_field_defs[reg_code])
             fieldset_title = "%s Specific Fields" % reg_code.upper()
-            field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}  # pair up cde name and field object generated from that cde
+            # pair up cde name and field object generated from that cde
+            field_dict = {"fields": [pair[0].code for pair in cde_field_pairs]}
             fieldsets.append((fieldset_title, field_dict))
         return fieldsets
 
@@ -260,10 +265,10 @@ class PatientAdmin(admin.ModelAdmin):
                 "consent_provided_by_parent_guardian",
                 "consent_clinical_trials",
                 "consent_sent_information",
-                
+
             )
         })
-        
+
         rdrf_registry = ("Registry", {
             "fields": (
                 "rdrf_registry",
@@ -290,7 +295,8 @@ class PatientAdmin(admin.ModelAdmin):
             "email"
         ]
 
-        # fix for Trac #3, the field is now always displayed, but readonly for not superuser users, see get_readonly_fields below
+        # fix for Trac #3, the field is now always displayed, but readonly for not
+        # superuser users, see get_readonly_fields below
         personal_details_fields.append("active")
         personal_details_fields.append("inactive_reason")
 
@@ -314,7 +320,7 @@ class PatientAdmin(admin.ModelAdmin):
              )})
 
         fieldset = [consent, rdrf_registry, personal_details, next_of_kin]
-        #fieldset.extend(self._get_registry_specific_section_fields(user))
+        # fieldset.extend(self._get_registry_specific_section_fields(user))
         return fieldset
 
     def save_form(self, request, form, change):
@@ -377,7 +383,8 @@ class PatientAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return []
         else:
-            #return ['active'] # NB this seems to run into a mango bug that prevents Add Patient being used by non-superuser
+            # return ['active'] # NB this seems to run into a mango bug that prevents
+            # Add Patient being used by non-superuser
             return []
 
     def formfield_for_dbfield(self, dbfield, *args, **kwargs):
@@ -387,18 +394,21 @@ class PatientAdmin(admin.ModelAdmin):
         user = request.user
         # Restrict normal users to their own working group.
         if dbfield.name == "working_groups" and not user.is_superuser:
-            user = get_user_model().objects.get(username=user)  # get the user's associated objects
+            # get the user's associated objects
+            user = get_user_model().objects.get(username=user)
             kwargs["queryset"] = WorkingGroup.objects.filter(id__in=get_working_groups(user))
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
-            kwargs["queryset"] = Registry.objects.filter(id__in=[reg.id for reg in user.registry.all()])   
+            kwargs["queryset"] = Registry.objects.filter(
+                id__in=[reg.id for reg in user.registry.all()])
 
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
     def get_urls(self):
         urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns("", url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search"))
+        local_urls = patterns(
+            "", url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search"))
         return local_urls + urls
 
     def queryset(self, request):
@@ -420,8 +430,10 @@ class PatientAdmin(admin.ModelAdmin):
             response = [[patient.id, unicode(patient), unicode(patient.date_of_birth)]]
         except ValueError:
             # Guess not.
-            patients = queryset.filter(Q(family_name__icontains=term) | Q(given_names__icontains=term)).order_by("family_name", "given_names")
-            response = [[patient.id, unicode(patient), unicode(patient.date_of_birth)] for patient in patients]
+            patients = queryset.filter(Q(family_name__icontains=term) | Q(
+                given_names__icontains=term)).order_by("family_name", "given_names")
+            response = [
+                [patient.id, unicode(patient), unicode(patient.date_of_birth)] for patient in patients]
         except Patient.DoesNotExist:
             response = []
 
@@ -436,7 +448,8 @@ class PatientAdmin(admin.ModelAdmin):
     def progress_graph(self, obj):
         if not hasattr(obj, 'patient_diagnosis'):
             return ''
-        graph_html = '<a href="%s">' % urlresolvers.reverse('admin:{0}_diagnosis_change'.format(obj.patient_diagnosis._meta.app_label), args=(obj.id,))
+        graph_html = '<a href="%s">' % urlresolvers.reverse(
+            'admin:{0}_diagnosis_change'.format(obj.patient_diagnosis._meta.app_label), args=(obj.id,))
         graph_html += obj.patient_diagnosis.progress_graph()
         graph_html += '</a>'
         return graph_html
@@ -450,7 +463,8 @@ class PatientAdmin(admin.ModelAdmin):
 
         imagefile = 'tick.png'
 
-        genetic_url = '<a href="%s">' % urlresolvers.reverse('admin:genetic_moleculardatasma_change', args=(obj.id,))
+        genetic_url = '<a href="%s">' % urlresolvers.reverse(
+            'admin:genetic_moleculardatasma_change', args=(obj.id,))
         genetic_url += '<img src="%s"/>' % get_static_url("images/" + imagefile)
         genetic_url += '</a>'
         return genetic_url
@@ -509,22 +523,24 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 class ConsentValueAdmin(admin.ModelAdmin):
     model = ConsentValue
-    list_display = ("patient", "registry", "consent_question", "answer", "first_save", "last_update")
+    list_display = (
+        "patient", "registry", "consent_question", "answer", "first_save", "last_update")
 
     def registry(self, obj):
         return obj.consent_question.section.registry
 
+
 class ParentGuardianAdmin(admin.ModelAdmin):
     model = ParentGuardian
     list_display = ('first_name', 'last_name', 'patients')
-    
+
     def patients(self, obj):
         patients_string = ""
         patients = [p for p in obj.patient.all()]
         for patient in patients:
             patients_string += "%s %s<br>" % (patient.given_names, patient.family_name)
         return patients_string
-    
+
     patients.allow_tags = True
 
 admin.site.register(Doctor, DoctorAdmin)

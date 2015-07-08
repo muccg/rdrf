@@ -131,18 +131,21 @@ class QuestionnaireReverseMapper(object):
 
             logger.debug("could not find state - returning None")
         except Exception, ex:
-            logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
+            logger.debug("Error setting state: state = %s country code = %s error = %s" % (
+                cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
         dynamic_data_dict = {}
         for reg_code, form_name, section_code, cde_code, value in self._get_dynamic_data():
-            delimited_key = settings.FORM_SECTION_DELIMITER.join([form_name, section_code, cde_code])
+            delimited_key = settings.FORM_SECTION_DELIMITER.join(
+                [form_name, section_code, cde_code])
             dynamic_data_dict[delimited_key] = value
 
         for original_multiple_section, element_list in self._get_multiple_sections():
-            logger.debug("updating multisection %s with %s" % (original_multiple_section, element_list))
+            logger.debug("updating multisection %s with %s" %
+                         (original_multiple_section, element_list))
             if original_multiple_section in dynamic_data_dict:
                 dynamic_data_dict[original_multiple_section].extend(element_list)
             else:
@@ -166,7 +169,8 @@ class QuestionnaireReverseMapper(object):
         # "GenQxyfooFoobarSection" : [ 	{ 	"GeneratedQuestionnaireForxy____GenQxyfooFoobarSection____CDEHeight" : 1, ..
         # to
         # "FoobarSection" : [ 	{ 	"foo____FoobarSection____CDEHeight" : 1
-        original_form, original_multisection = self._parse_generated_section_code(generated_multisectionkey)
+        original_form, original_multisection = self._parse_generated_section_code(
+            generated_multisectionkey)
         new_items = []
         for item_dict in item_dicts:
             new_item_dict = {}
@@ -175,13 +179,17 @@ class QuestionnaireReverseMapper(object):
                 if k is None:
                     continue
                 if k == "DELETE":
-                    logger.debug("skipping DELETE key: not applicable in questionnaire response ...")
+                    logger.debug(
+                        "skipping DELETE key: not applicable in questionnaire response ...")
                     continue
                 value = item_dict[k]
                 logger.debug("value = %s" % value)
-                generated_item_form, generated_item_section, cde_code = k.split(settings.FORM_SECTION_DELIMITER)
-                orig_item_form, orig_item_section = self._parse_generated_section_code(generated_item_section)
-                new_item_key = settings.FORM_SECTION_DELIMITER.join([orig_item_form, orig_item_section, cde_code])
+                generated_item_form, generated_item_section, cde_code = k.split(
+                    settings.FORM_SECTION_DELIMITER)
+                orig_item_form, orig_item_section = self._parse_generated_section_code(
+                    generated_item_section)
+                new_item_key = settings.FORM_SECTION_DELIMITER.join(
+                    [orig_item_form, orig_item_section, cde_code])
                 new_item_dict[new_item_key] = value
             new_items.append(new_item_dict)
 
@@ -198,14 +206,17 @@ class QuestionnaireReverseMapper(object):
 
             if dynamic and is_a_dynamic_field:
                 logger.debug("yielding dynamic %s" % k)
-                generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
-                original_form_name, original_section_code = self._parse_generated_section_code(generated_section_code)
+                generated_form_name, generated_section_code, cde_code = self._get_key_components(
+                    k)
+                original_form_name, original_section_code = self._parse_generated_section_code(
+                    generated_section_code)
 
                 yield self.registry.code, original_form_name, original_section_code, cde_code, self.questionnaire_data[k]
 
             if not dynamic and not is_a_dynamic_field:
                 logger.debug("yield non-dynamic %s" % k)
-                patient_attribute, converter = self._get_patient_attribute_and_converter(cde_code)
+                patient_attribute, converter = self._get_patient_attribute_and_converter(
+                    cde_code)
                 if converter is None:
                     yield patient_attribute, self.questionnaire_data[k]
                 else:
@@ -220,7 +231,8 @@ class QuestionnaireReverseMapper(object):
         def set_next_of_kin_relationship(relationship_name):
             from registry.patients.models import NextOfKinRelationship
             try:
-                rel, created = NextOfKinRelationship.objects.get_or_create(relationship=relationship_name)
+                rel, created = NextOfKinRelationship.objects.get_or_create(
+                    relationship=relationship_name)
                 if created:
                     rel.save()
                 return rel
@@ -346,11 +358,13 @@ class PatientCreator(object):
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
-                logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
+                logger.info("removed dynamic data for %s for registry %s" %
+                            (patient.pk, self.registry))
                 transaction.savepoint_rollback(before_creation)
                 return
             except Exception, ex:
-                logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
+                logger.error("could not remove dynamic data for patient %s: %s" %
+                             (patient.pk, ex))
                 transaction.savepoint_rollback(before_creation)
                 return
 

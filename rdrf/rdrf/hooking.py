@@ -32,7 +32,8 @@ def run_hooks(hook_name, *args, **kwargs):
     for _, defined_hook_module_name, _ in pkgutil.iter_modules(path=[defined_hooks_package_path]):
         if not _registry_exists_for_hook_module(defined_hook_module_name):
             continue
-        defined_hook_module = __import__("rdrf.hooks." + defined_hook_module_name, fromlist=['rdrf.hooks'])
+        defined_hook_module = __import__(
+            "rdrf.hooks." + defined_hook_module_name, fromlist=['rdrf.hooks'])
         for thing_name, thing in inspect.getmembers(defined_hook_module):
             if callable(thing) and hasattr(thing, "rdrf_hook") and thing.rdrf_hook == hook_name:
                 logger.debug("found hook %s for %s" % (thing_name, hook_name))

@@ -45,6 +45,7 @@ class LoginRequiredMixin(object):
 
 
 class CustomConsentHelper(object):
+
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.custom_consent_errors = {}
@@ -56,7 +57,8 @@ class CustomConsentHelper(object):
     def create_custom_consent_wrappers(self):
 
         for consent_section_model in self.registry_model.consent_sections.order_by("code"):
-            consent_form_class = create_form_class_for_consent_section(self.registry_model, consent_section_model)
+            consent_form_class = create_form_class_for_consent_section(
+                self.registry_model, consent_section_model)
             consent_form = consent_form_class(data=self.custom_consent_data)
             consent_form_wrapper = ConsentFormWrapper(consent_section_model.section_label,
                                                       consent_form,
@@ -104,13 +106,15 @@ def log_context(when, context):
         for field_name, field_object in form.fields.items():
             field_object = form.fields[field_name]
             for attr in field_object.__dict__:
-                logger.debug("field %s.%s = %s" % (field_name, attr, getattr(field_object, attr)))
+                logger.debug("field %s.%s = %s" %
+                             (field_name, attr, getattr(field_object, attr)))
 
 
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
-        self.testing = False    # when set to True in integration testing, switches off unsupported messaging middleware
+        # when set to True in integration testing, switches off unsupported messaging middleware
+        self.testing = False
         self.template = 'rdrf_cdes/form.html'
         self.registry = None
         self.dynamic_data = {}
@@ -178,7 +182,8 @@ class FormView(View):
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
-        dyn_patient.current_form_model = form_obj  # this allows form level timestamps to be saved
+        # this allows form level timestamps to be saved
+        dyn_patient.current_form_model = form_obj
         self.registry_form = form_obj
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
@@ -191,7 +196,8 @@ class FormView(View):
         formset_prefixes = {}
         error_count = 0
         # this is used by formset plugin:
-        section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        section_field_ids_map = {}
 
         for section_index, s in enumerate(sections):
             section_model = Section.objects.get(code=s)
@@ -243,7 +249,8 @@ class FormView(View):
 
                     logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
-                    section_dict[s] = wrap_gridfs_data_for_form(self.registry.code, dynamic_data)
+                    section_dict[s] = wrap_gridfs_data_for_form(
+                        self.registry.code, dynamic_data)
 
                     logger.debug("after wrapping for gridfs = %s" % section_dict)
 
@@ -262,7 +269,8 @@ class FormView(View):
                         logger.debug("Validation error on form: %s" % e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
-        dyn_patient.save_snapshot(registry_code, "cdes")  # Save one snapshot after all sections have being persisted
+        # Save one snapshot after all sections have being persisted
+        dyn_patient.save_snapshot(registry_code, "cdes")
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -301,10 +309,12 @@ class FormView(View):
         context.update(csrf(request))
         if error_count == 0:
             if not self.testing:
-                messages.add_message(request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+                messages.add_message(
+                    request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
         else:
             if not self.testing:
-                messages.add_message(request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
+                messages.add_message(
+                    request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
 
         return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
 
@@ -361,7 +371,8 @@ class FormView(View):
 
         for s in sections:
             section_model = Section.objects.get(code=s)
-            form_class = self._get_form_class_for_section(self.registry, self.registry_form, section_model)
+            form_class = self._get_form_class_for_section(
+                self.registry, self.registry_form, section_model)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -386,9 +397,11 @@ class FormView(View):
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
-                        initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data[s])
+                        initial_data = wrap_gridfs_data_for_form(
+                            self.registry, self.dynamic_data[s])
                     except KeyError as ke:
-                        logger.error("patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
+                        logger.error(
+                            "patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
                         initial_data = [""]  # * len(section_elements)
                 else:
                     # initial_data = [""] * len(section_elements)
@@ -495,6 +508,7 @@ class ConsentFormWrapper(object):
 
 
 class ConsentQuestionWrapper(object):
+
     def __init__(self):
         self.label = ""
         self.answer = "No"
@@ -569,9 +583,11 @@ class QuestionnaireView(FormView):
         consent_form_wrappers = []
 
         for consent_section_model in self.registry.consent_sections.order_by("code"):
-            consent_form_class = create_form_class_for_consent_section(self.registry, consent_section_model)
+            consent_form_class = create_form_class_for_consent_section(
+                self.registry, consent_section_model)
             consent_form = consent_form_class(data=post_data)
-            consent_form_wrapper = ConsentFormWrapper(consent_section_model.section_label, consent_form, consent_section_model)
+            consent_form_wrapper = ConsentFormWrapper(
+                consent_section_model.section_label, consent_form, consent_section_model)
             consent_form_wrappers.append(consent_form_wrapper)
 
         return consent_form_wrappers
@@ -597,14 +613,17 @@ class QuestionnaireView(FormView):
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
         sections, display_names, ids = self._get_sections(registry.questionnaire)
-        data_map = {}           # section --> dynamic data for questionnaire response object if no errors
-        form_section = {}       # section --> form instances if there are errors and form needs to be redisplayed
+        # section --> dynamic data for questionnaire response object if no errors
+        data_map = {}
+        # section --> form instances if there are errors and form needs to be redisplayed
+        form_section = {}
         formset_prefixes = {}
         total_forms_ids = {}
         initial_forms_ids = {}
         section_element_map = {}
         # this is used by formset plugin:
-        section_field_ids_map = {}  # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
+        section_field_ids_map = {}
 
         for section in sections:
             logger.debug("processing section %s" % section)
@@ -635,7 +654,8 @@ class QuestionnaireView(FormView):
 
                 prefix = "formset_%s" % section
                 form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
-                form_section[section] = form_set_class(request.POST, request.FILES, prefix=prefix)
+                form_section[section] = form_set_class(
+                    request.POST, request.FILES, prefix=prefix)
                 formset_prefixes[section] = prefix
                 total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
                 initial_forms_ids[section] = "id_%s-INITIAL_FORMS" % prefix
@@ -660,19 +680,22 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
-            questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", {"custom_consent_data": custom_consent_helper.custom_consent_data})
+            questionnaire_response_wrapper.save_dynamic_data(
+                registry_code, "cdes", {"custom_consent_data": custom_consent_helper.custom_consent_data})
 
             if self.testing:
                 questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
-                questionnaire_response_wrapper.save_dynamic_data(registry_code, "cdes", data_map[section])
+                questionnaire_response_wrapper.save_dynamic_data(
+                    registry_code, "cdes", data_map[section])
 
             def get_completed_questions(questionnaire_form_model, data_map, custom_consent_data, consent_wrappers):
                 from django.utils.datastructures import SortedDict
                 section_map = SortedDict()
 
                 class SectionWrapper(object):
+
                     def __init__(self, label):
                         self.label = label
                         self.is_multi = False
@@ -682,7 +705,8 @@ class QuestionnaireView(FormView):
                     def load_consents(self, consent_section_model, custom_consent_data):
                         for consent_question_model in consent_section_model.questions.order_by("position"):
                             question_wrapper = ConsentQuestionWrapper()
-                            question_wrapper.label = consent_question_model.label(on_questionnaire=True)
+                            question_wrapper.label = consent_question_model.label(
+                                on_questionnaire=True)
                             field_key = consent_question_model.field_key
                             try:
                                 value = custom_consent_data[field_key]
@@ -694,11 +718,14 @@ class QuestionnaireView(FormView):
                             self.questions.append(question_wrapper)
 
                 class Question(object):
+
                     def __init__(self, delimited_key, value):
                         self.delimited_key = delimited_key              # in Mongo
                         self.value = value                              # value in Mongo
-                        self.label = self._get_label(delimited_key)     # label looked up via cde code
-                        self.answer = self._get_answer()                # display value if a range
+                        # label looked up via cde code
+                        self.label = self._get_label(delimited_key)
+                        # display value if a range
+                        self.answer = self._get_answer()
                         self.is_multi = False
 
                     def _get_label(self, delimited_key):
@@ -748,7 +775,8 @@ class QuestionnaireView(FormView):
                 for consent_wrapper in custom_consent_helper.custom_consent_wrappers:
                     sw = SectionWrapper(consent_wrapper.label)
                     consent_section_model = consent_wrapper.consent_section_model
-                    sw.load_consents(consent_section_model, custom_consent_helper.custom_consent_data)
+                    sw.load_consents(
+                        consent_section_model, custom_consent_helper.custom_consent_data)
                     section_map[sw.label] = sw
 
                 for section_model in questionnaire_form_model.section_models:
@@ -758,7 +786,8 @@ class QuestionnaireView(FormView):
                     if not section_model.allow_multiple:
 
                         for cde_model in section_model.cde_models:
-                            question = get_question(questionnaire_form_model, section_model, cde_model, data_map)
+                            question = get_question(
+                                questionnaire_form_model, section_model, cde_model, data_map)
                             section_map[section_label].questions.append(question)
                     else:
                         section_map[section_label].is_multi = True
@@ -767,7 +796,8 @@ class QuestionnaireView(FormView):
                             subsection = []
                             section_wrapper = {section_model.code: multisection_map}
                             for cde_model in section_model.cde_models:
-                                question = get_question(questionnaire_form_model, section_model, cde_model, section_wrapper)
+                                question = get_question(
+                                    questionnaire_form_model, section_model, cde_model, section_wrapper)
                                 subsection.append(question)
                             section_map[section_label].subsections.append(subsection)
 
@@ -868,11 +898,13 @@ class QuestionnaireResponseView(FormView):
         for field_key, field_object in context['forms']['PatientData'].fields.items():
             if 'CDEPatientCentre' in field_key:
                 if hasattr(field_object.widget, "_widget_context"):
-                    field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
+                    field_object.widget._widget_context[
+                        'questionnaire_context'] = self._get_questionnaire_context()
 
             if 'CDEPatientNextOfKinState' in field_key:
                 if hasattr(field_object.widget, "_widget_context"):
-                    field_object.widget._widget_context['questionnaire_context'] = self._get_questionnaire_context()
+                    field_object.widget._widget_context[
+                        'questionnaire_context'] = self._get_questionnaire_context()
 
     def _fix_state_and_country_dropdowns(self, context):
         from django.forms.widgets import TextInput
@@ -903,10 +935,12 @@ class QuestionnaireResponseView(FormView):
         if 'reject' in request.POST:
             # delete from Mongo first todo !
             qr.delete()
-            logger.debug("deleted rejected questionnaire response %s" % questionnaire_response_id)
+            logger.debug("deleted rejected questionnaire response %s" %
+                         questionnaire_response_id)
             messages.error(request, "Questionnaire rejected")
         else:
-            logger.debug("attempting to create patient from questionnaire response %s" % questionnaire_response_id)
+            logger.debug(
+                "attempting to create patient from questionnaire response %s" % questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(
                 id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
@@ -915,10 +949,12 @@ class QuestionnaireResponseView(FormView):
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
 
             if patient_creator.state == PatientCreatorState.CREATED_OK:
-                messages.info(request, "Questionnaire approved - A patient record has now been created")
+                messages.info(
+                    request, "Questionnaire approved - A patient record has now been created")
             elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
                 error = patient_creator.error
-                messages.error(request, "Patient failed to be created due to validation errors: %s" % error)
+                messages.error(
+                    request, "Patient failed to be created due to validation errors: %s" % error)
             elif patient_creator.state == PatientCreatorState.FAILED:
                 error = patient_creator.error
                 messages.error(request, "Patient failed to be created: %s" % error)
@@ -992,7 +1028,8 @@ class QuestionnaireConfigurationView(View):
 
             @property
             def questionnaire(self):
-                return self.cde_model.questionnaire_text  # The text configured at the cde level for the questionnaire
+                # The text configured at the cde level for the questionnaire
+                return self.cde_model.questionnaire_text
 
             @property
             def section(self):
@@ -1080,7 +1117,8 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         try:
             registry_structure = json.loads(registry_structure_json)
         except Exception as ex:
-            message = {"message": "Error: Could not load registry structure: %s" % ex, "message_type": "error"}
+            message = {"message": "Error: Could not load registry structure: %s" %
+                       ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=400, content_type="application/json")
 
@@ -1096,12 +1134,14 @@ class RDRFDesignerRegistryStructureEndPoint(View):
             registry.generate_questionnaire()
             reg_pk = registry.pk
 
-            message = {"message": "Saved registry %s OK" % registry, "message_type": "info", "reg_pk": reg_pk}
+            message = {"message": "Saved registry %s OK" %
+                       registry, "message_type": "info", "reg_pk": reg_pk}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=200, content_type="application/json")
 
         except Exception as ex:
-            message = {"message": "Error: Could not save registry: %s" % ex, "message_type": "error"}
+            message = {"message": "Error: Could not save registry: %s" %
+                       ex, "message_type": "error"}
             message_json = json.dumps(message)
             return HttpResponse(message_json, status=400, content_type="application/json")
 
@@ -1160,7 +1200,8 @@ class AdjudicationInitiationView(View):
                                              adjudication_state)
         else:
             # no requests have been adjudication requests created for this patient
-            sent_ok, errors = self._create_adjudication_requests(request, adj_def, patient, request.user)
+            sent_ok, errors = self._create_adjudication_requests(
+                request, adj_def, patient, request.user)
             if errors:
                 return StandardView.render_error(
                     request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
@@ -1174,11 +1215,13 @@ class AdjudicationInitiationView(View):
         try:
             adjudication = Adjudication.objects.get(
                 definition=adjudication_definition, patient_id=patient.pk, requesting_username=requesting_user.username)
-            raise AdjudicationError("Adjudication already created for this patient and definition")
+            raise AdjudicationError(
+                "Adjudication already created for this patient and definition")
 
         except Adjudication.DoesNotExist:
             # this is good
-            # adjudication object created as bookkeeping object so adjudicator can launch from admin and decide result
+            # adjudication object created as bookkeeping object so adjudicator can
+            # launch from admin and decide result
             adjudication = Adjudication(definition=adjudication_definition, patient_id=patient.pk,
                                         requesting_username=requesting_user.username)
 
@@ -1204,10 +1247,12 @@ class AdjudicationInitiationView(View):
                 continue
             else:
                 try:
-                    adjudication_definition.create_adjudication_request(request, requesting_user, patient, target_user)
+                    adjudication_definition.create_adjudication_request(
+                        request, requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
                 except Exception as ex:
-                    errors.append("Could not create adjudication request object for %s: %s" % (target_user, ex))
+                    errors.append(
+                        "Could not create adjudication request object for %s: %s" % (target_user, ex))
 
         for target_working_group_name in target_working_group_names:
             try:
@@ -1218,7 +1263,8 @@ class AdjudicationInitiationView(View):
 
             for target_user in target_working_group.users:
                 try:
-                    adjudication_definition.create_adjudication_request(requesting_user, patient, target_user)
+                    adjudication_definition.create_adjudication_request(
+                        requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append("could not create adjudication request for %s in group %s:%s" % (target_user,
@@ -1243,7 +1289,8 @@ class AdjudicationRequestView(View):
             return StandardView.render_error(request, msg)
 
         if adj_req.decided:
-            # The adjudicator has already acted on the information from other requests for this patient
+            # The adjudicator has already acted on the information from other requests
+            # for this patient
             return StandardView.render_information(
                 request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
 
@@ -1319,7 +1366,8 @@ class AdjudicationResultsView(View):
 
             return StandardView.render_error(request, msg)
 
-        stats, adj_responses = self._get_stats_and_responses(patient_id, requesting_user.username, adj_def)
+        stats, adj_responses = self._get_stats_and_responses(
+            patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
             msg = "No one has responded to the adjudication request yet!- stats are %s" % stats
             return StandardView.render_information(request, msg)
@@ -1401,7 +1449,8 @@ class AdjudicationResultsView(View):
             def _create_histogram(self):
                 h = {}
                 if self.cde.datatype == "range":
-                    discrete_values = sorted(self._munge_type(self.cde.get_range_members(get_code=False)))
+                    discrete_values = sorted(
+                        self._munge_type(self.cde.get_range_members(get_code=False)))
                     for value in discrete_values:
                         h[value] = 0
 
@@ -1568,11 +1617,13 @@ class PatientsListingView(LoginRequiredMixin, View):
 
 
 class BootGridApi(View):
+
     def post(self, request):
         # jquery b
         import json
         post_data = request.POST
-        #    request data  = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'], u'searchPhrase': [u'']}>
+        # request data  = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'],
+        # u'searchPhrase': [u'']}>
 
         logger.debug("post data = %s" % post_data)
         search_command = self._get_search_command(post_data)
@@ -1600,5 +1651,6 @@ class BootGridApi(View):
 
 
 class ConstructorFormView(View):
+
     def get(self, request, form_name):
         return render_to_response('rdrf_cdes/%s.html' % form_name)

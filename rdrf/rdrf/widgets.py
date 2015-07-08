@@ -233,12 +233,14 @@ class CountryWidget(widgets.Select):
 
         countries = pycountry.countries
 
-        output = ["<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
+        output = [
+            "<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value=''>---</option>"
         output.append(empty_option)
         for country in countries:
             if value == country.alpha2:
-                output.append("<option value='%s' selected>%s</option>" % (country.alpha2, country.name))
+                output.append("<option value='%s' selected>%s</option>" %
+                              (country.alpha2, country.name))
             else:
                 output.append("<option value='%s'>%s</option>" % (country.alpha2, country.name))
         output.append("</select>")
@@ -263,7 +265,8 @@ class StateWidget(widgets.Select):
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
-                output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
+                output.append("<option value='%s' selected>%s</option>" %
+                              (state.code, state.name))
             else:
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
@@ -301,18 +304,22 @@ class ParametrisedSelectWidget(widgets.Select):
         return mark_safe('\n'.join(output))
 
     def _get_items(self):
-        raise NotImplementedError("subclass responsibility - it should return a list of pairs: [(code, display), ...]")
+        raise NotImplementedError(
+            "subclass responsibility - it should return a list of pairs: [(code, display), ...]")
 
 
 class StateListWidget(ParametrisedSelectWidget):
+
     def render(self, name, value, attrs):
-        country_states = pycountry.subdivisions.get(country_code=self._widget_context['questionnaire_context'].upper())
+        country_states = pycountry.subdivisions.get(
+            country_code=self._widget_context['questionnaire_context'].upper())
         output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value='---'>---</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
-                output.append("<option value='%s' selected>%s</option>" % (state.code, state.name))
+                output.append("<option value='%s' selected>%s</option>" %
+                              (state.code, state.name))
             else:
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
@@ -355,6 +362,7 @@ class PositiveIntegerInput(widgets.TextInput):
 
 
 class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
+
     def render(self):
         return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
 
@@ -364,6 +372,7 @@ class RadioSelect(widgets.RadioSelect):
 
 
 class ReadOnlySelect(widgets.Select):
+
     def render(self, name, value, attrs, choices=()):
         html = super(ReadOnlySelect, self).render(name, value, attrs, choices)
         return self._make_label(html) + self._make_hidden_field(name, value, attrs)
@@ -384,6 +393,7 @@ class ReadOnlySelect(widgets.Select):
 
 
 class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
+
     """
     If RPC_COMMAND_NAME is not None
     presents a  textbox with a tick or cross ( valid/invalid)
@@ -406,7 +416,8 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
     def render(self, name, value, attrs):
         rpc_endpoint_url = reverse_lazy('rpc')
         if self.RPC_COMMAND_NAME:
-            attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (rpc_endpoint_url, self.RPC_COMMAND_NAME)
+            attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (
+                rpc_endpoint_url, self.RPC_COMMAND_NAME)
         return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + \
             self._validation_indicator_html() + \
             self._constructor_button() + \

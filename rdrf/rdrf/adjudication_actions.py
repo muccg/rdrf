@@ -16,13 +16,15 @@ class AdjudicationAction(object):
         try:
             self._send_notification()
         except Exception as ex:
-            logger.error("Could not send system notification for %s: %s" % (self.adjudication, ex))
+            logger.error("Could not send system notification for %s: %s" %
+                         (self.adjudication, ex))
             self.system_notify_failed = True
 
         try:
             self._send_email(request)
         except Exception as ex:
-            logger.error("could not send email notification for %s back to requestor: %s" % (self.adjudication, ex))
+            logger.error(
+                "could not send email notification for %s back to requestor: %s" % (self.adjudication, ex))
             self.email_notify_failed = True
 
     def _send_notification(self):
@@ -39,7 +41,8 @@ class AdjudicationAction(object):
         patient_id = self.adjudication.patient_id
         patient = Patient.objects.get(pk=patient_id)
         patient_link = get_full_link(request,
-                                     reverse('admin:patients_patient_change', args=(patient_id,)),
+                                     reverse(
+                                         'admin:patients_patient_change', args=(patient_id,)),
                                      login_link=True)
         email_body = """
             Dear %s user %s,

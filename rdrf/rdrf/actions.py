@@ -29,7 +29,8 @@ class ActionExecutor(object):
             client_response['status'] = 'fail'
             client_response['error'] = 'could not locate command: %s' % rpc_command
 
-        logger.info("rpm command: %s args: %s result: %s" % (rpc_command, rpc_args, client_response))
+        logger.info("rpm command: %s args: %s result: %s" %
+                    (rpc_command, rpc_args, client_response))
         return client_response
 
     def _locate_command_function(self, rpc_command):

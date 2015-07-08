@@ -47,7 +47,8 @@ class FormProgressCalculator(object):
         self.genetic_forms = self._get_genetic_forms()
         logger.debug("xx genetic forms = %s" % self.genetic_forms)
         self.patient_ids = []
-        self.completion_keys_by_form = self._get_completion_keys_by_form()  # do this once to save time
+        # do this once to save time
+        self.completion_keys_by_form = self._get_completion_keys_by_form()
 
         self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
         self.db_name = mongo_db_name(self.registry_model.code)
@@ -62,7 +63,8 @@ class FormProgressCalculator(object):
         key_map = {}
         for form_model in self.registry_model.forms:
             key_map[form_model.name] = []
-            completion_codes = [cde_model.code for cde_model in form_model.complete_form_cdes.all()]
+            completion_codes = [
+                cde_model.code for cde_model in form_model.complete_form_cdes.all()]
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
                     if cde_model.code in completion_codes:
@@ -122,7 +124,8 @@ class FormProgressCalculator(object):
 
     def load_data(self, patient_ids):
         self.mongo_data = self._get_mongo_data(patient_ids)
-        self.patient_ids_not_in_mongo = set(self.patient_ids) - set([mongo_record["django_id"] for mongo_record in self.mongo_data])
+        self.patient_ids_not_in_mongo = set(
+            self.patient_ids) - set([mongo_record["django_id"] for mongo_record in self.mongo_data])
 
     def _progress(self, progress_type=ProgressType.DIAGNOSIS):
 
@@ -138,7 +141,8 @@ class FormProgressCalculator(object):
         for patient_data in self.mongo_data:
             patient_id = patient_data["django_id"]
             results[patient_id] = self._progress_for_keys(patient_data, mongo_keys)[2]
-            logger.debug("diagnosis progress for patient %s = %s" % (patient_id, results[patient_id]))
+            logger.debug("diagnosis progress for patient %s = %s" %
+                         (patient_id, results[patient_id]))
 
         for patient_id in self.patient_ids_not_in_mongo:
             results[patient_id] = 0
@@ -223,7 +227,8 @@ class FormProgressCalculator(object):
                 is_current = self._form_is_current(form, patient_data)
                 flag = "images/%s.png" % ("tick" if is_current else "cross")
 
-                url = reverse('registry_form', args=(self.registry_model.code, form.id, patient_data['django_id']))
+                url = reverse('registry_form', args=(
+                    self.registry_model.code, form.id, patient_data['django_id']))
                 link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
                 label = nice_name(form.name)
 
@@ -234,7 +239,8 @@ class FormProgressCalculator(object):
                 if form.has_progress_indicator:
                     src = static(flag)
                     percentage = self._form_progress_one_form(form, patient_data)
-                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (src, percentage, to_form)
+                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
+                        src, percentage, to_form)
                 else:
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
@@ -243,14 +249,15 @@ class FormProgressCalculator(object):
 
         for patient_id in self.patient_ids_not_in_mongo:
             p = Patient.objects.get(id=patient_id)
-            results[patient_id] = self.patient_resource._get_data_modules(p, self.registry_model.code, self.user)
+            results[patient_id] = self.patient_resource._get_data_modules(
+                p, self.registry_model.code, self.user)
 
         return results
 
     def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now() - datetime.timedelta(days=365)):
         form_timestamp = self._get_form_timestamp(patient_data, form_model)
         if form_timestamp and form_timestamp >= time_window_start:
-                return True
+            return True
         return False
 
     def _form_progress_one_form(self, form_model, patient_data):

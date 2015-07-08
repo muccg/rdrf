@@ -45,7 +45,8 @@ def wrap_gridfs_data_for_form(registry, data):
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
                     wrapper = FileUpload(registry, key, value)
-                    logger.debug("munging gridfs %s data dict (before): %s -> (after) %s" % (key, value, wrapper))
+                    logger.debug(
+                        "munging gridfs %s data dict (before): %s -> (after) %s" % (key, value, wrapper))
                     data[key] = wrapper
 
     if data is None:

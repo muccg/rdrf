@@ -12,6 +12,7 @@ import json
 from models import *
 from registry.utils import get_static_url, get_working_groups
 
+
 class GeneAdmin(admin.ModelAdmin):
     list_display = ["symbol", "name", "status", "chromosome"]
     search_fields = ["symbol", "name"]
@@ -19,12 +20,14 @@ class GeneAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(GeneAdmin, self).get_urls()
         local_urls = patterns("",
-            url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="gene_search")
-        )
+                              url(r"search/(.*)$", self.admin_site.admin_view(self.search),
+                                  name="gene_search")
+                              )
         return local_urls + urls
 
     def search(self, request, term):
-        genes = Gene.objects.filter(Q(name__icontains=term) | Q(symbol__icontains=term)).order_by("symbol")
+        genes = Gene.objects.filter(
+            Q(name__icontains=term) | Q(symbol__icontains=term)).order_by("symbol")
         response = [[gene.id, gene.symbol, gene.name] for gene in genes]
 
         return HttpResponse(json.dumps(response), mimetype="application/json")
@@ -33,16 +36,17 @@ class GeneAdmin(admin.ModelAdmin):
 class LaboratoryAdmin(admin.ModelAdmin):
     list_display = ("name", "address", "contact_name",
                     "contact_email", "contact_phone")
-    fieldsets = ((None, { "fields": ("name", "address") }),
-                 ("Contact", { "fields": ("contact_name",
-                                          "contact_email",
-                                          "contact_phone") }))
+    fieldsets = ((None, {"fields": ("name", "address")}),
+                 ("Contact", {"fields": ("contact_name",
+                                         "contact_email",
+                                         "contact_phone")}))
 
     def get_urls(self):
         urls = super(LaboratoryAdmin, self).get_urls()
         local_urls = patterns("",
-            url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="laboratory_search")
-        )
+                              url(r"search/(.*)$", self.admin_site.admin_view(self.search),
+                                  name="laboratory_search")
+                              )
         return local_urls + urls
 
     def queryset(self, request):

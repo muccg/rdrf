@@ -8,13 +8,15 @@ from django.core.exceptions import ValidationError
 
 
 class UserValidationMixin(object):
+
     def clean(self):
         # Need to prevent adding a user who:
         # a) has been assigned a registry but not assigned to a working group of that registry
         # b) has been assigned to a working group but not assigned to the owning registry of that
         #    of that working group.
         if "registry" in self.cleaned_data:
-            registry_models = [registry_model for registry_model in self.cleaned_data["registry"].all()]
+            registry_models = [
+                registry_model for registry_model in self.cleaned_data["registry"].all()]
         else:
             registry_models = []
 
@@ -45,7 +47,8 @@ class UserValidationMixin(object):
 
 
 class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
-    CREATING_USER = None  # set by admin class - used to restrict registry and workign group choices
+    # set by admin class - used to restrict registry and workign group choices
+    CREATING_USER = None
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
 
@@ -85,13 +88,14 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
             user.save()
         return user
 
-
     def _restrict_registry_and_working_groups_choices(self, creating_user):
         if not creating_user.is_superuser:
             self.fields['working_groups'].queryset = \
-                WorkingGroup.objects.filter(id__in=[wg.id for wg in creating_user.working_groups.all()])
+                WorkingGroup.objects.filter(
+                    id__in=[wg.id for wg in creating_user.working_groups.all()])
             self.fields['registry'].queryset = \
-                Registry.objects.filter(code__in=[reg.code for reg in creating_user.registry.all()])
+                Registry.objects.filter(
+                    code__in=[reg.code for reg in creating_user.registry.all()])
 
 
 class UserChangeForm(UserValidationMixin, forms.ModelForm):
@@ -100,13 +104,14 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
         if not self.user.is_superuser:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(id__in = [wg.id for wg in self.user.working_groups.all()])
-            self.fields['registry'].queryset = Registry.objects.filter(code__in = [reg.code for reg in self.user.registry.all()])
-
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(
+                id__in=[wg.id for wg in self.user.working_groups.all()])
+            self.fields['registry'].queryset = Registry.objects.filter(
+                code__in=[reg.code for reg in self.user.registry.all()])
 
     password = ReadOnlyPasswordHashField(help_text=("Raw passwords are not stored, so there is no way to see "
-                    "this user's password, but you can change the password "
-                    "using <a href=\"password/\">this form</a>."))
+                                                    "this user's password, but you can change the password "
+                                                    "using <a href=\"password/\">this form</a>."))
 
     class Meta:
         model = get_user_model()

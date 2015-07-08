@@ -42,7 +42,8 @@ class BaseParentView(LoginRequiredMixin, View):
             working_group = WorkingGroup.objects.get(id=working_group_id)
         except ValueError:
             clinician = None
-            working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP, registry=registry)
+            working_group, status = WorkingGroup.objects.get_or_create(
+                name=self._UNALLOCATED_GROUP, registry=registry)
 
         return clinician, working_group
 

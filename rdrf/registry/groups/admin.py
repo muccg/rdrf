@@ -21,7 +21,7 @@ class WorkingGroupAdmin(admin.ModelAdmin):
         user = request.user
 
         return WorkingGroup.objects.filter(id__in=user.working_groups.all())
-    
+
 
 class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
@@ -49,7 +49,8 @@ class CustomUserAdmin(UserAdmin):
                     cleaned_data = super(myself.__class__, myself).clean()
                     if "is_superuser" in cleaned_data:
                         if not creating_user_is_superuser and cleaned_data["is_superuser"]:
-                            raise ValidationError("can't create a superuser unless you are one!")
+                            raise ValidationError(
+                                "can't create a superuser unless you are one!")
                     return cleaned_data
 
                 method_dict = {"clean": modified_clean}
@@ -69,17 +70,19 @@ class CustomUserAdmin(UserAdmin):
     def queryset(self, request):
         from itertools import chain
         from django.db.models import Q
-    
+
         if request.user.is_superuser:
             return get_user_model().objects.all()
-            
-        filter1 = Q(working_groups__in=request.user.working_groups.all()) | Q(working_groups__isnull=True)
+
+        filter1 = Q(working_groups__in=request.user.working_groups.all()) | Q(
+            working_groups__isnull=True)
         filter2 = Q(registry__in=request.user.registry.all())
-        
-        filtered = get_user_model().objects.filter(filter1).filter(filter2).distinct().filter(is_superuser=False)
+
+        filtered = get_user_model().objects.filter(filter1).filter(
+            filter2).distinct().filter(is_superuser=False)
 
         return filtered
-    
+
     def get_working_groups(self, obj):
         works = ", ".join(reg.name for reg in obj.working_groups.all())
         return works
@@ -91,22 +94,24 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
+        ('Permissions', {
+         'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
     )
 
     # curators shouldn't see checkbox to create super user
     curator_fieldsets = ((None, {'fields': ('username', 'password')}),
-                         ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email')}),
+                         ('Personal information', {
+                          'fields': ('first_name', 'last_name', 'title', 'email')}),
                          ('Permissions', {'fields':
-                         ('is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
+                                          ('is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('username', 'password1', 'password2', 'registry', 'working_groups')}
-        ),
+         ),
     )
-    
+
     get_working_groups.short_description = "Working Groups"
     get_registries.short_description = "Registries"
 

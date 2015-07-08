@@ -24,6 +24,7 @@ from rdrf.models import DemographicFields
 from rdrf.widgets import ReadOnlySelect
 from registry.groups.models import WorkingGroup
 
+
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
         (1, "GP (Primary Care)"),
@@ -37,10 +38,10 @@ class PatientDoctorForm(forms.ModelForm):
         (9, "Nurse Practitioner"),
         (10, "Paediatrician"),
     )
-    
+
     # Sorting of options
     OPTIONS = tuple(sorted(OPTIONS, key=lambda item: item[1]))
-    
+
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
@@ -48,9 +49,11 @@ class PatientDoctorForm(forms.ModelForm):
 
 
 class PatientRelativeForm(forms.ModelForm):
+
     class Meta:
         model = PatientRelative
-        date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), input_formats=['%d-%m-%Y'])
+        date_of_birth = forms.DateField(widget=forms.DateInput(
+            attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), input_formats=['%d-%m-%Y'])
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
             'sex': Select(attrs={"style": "width:90px"}),
@@ -76,7 +79,8 @@ class PatientRelativeForm(forms.ModelForm):
         # this 'on' value from widget is replaced by the pk of the created patient
         for name, field in self.fields.items():
             try:
-                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+                value = field.widget.value_from_datadict(
+                    self.data, self.files, self.add_prefix(name))
                 logger.debug("field %s = %s" % (name, value))
                 if name == "relative_patient":
                     if value == "on":
@@ -107,7 +111,8 @@ class PatientRelativeForm(forms.ModelForm):
         self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
 
     def _set_date_of_birth(self, dob):
-        #todo figure  out why the correct input format is not being respected - the field for dob on PatientRelative is in aus format already
+        # todo figure  out why the correct input format is not being respected -
+        # the field for dob on PatientRelative is in aus format already
         parts = dob.split("-")
         return "-".join([parts[2], parts[1], parts[0]])
 
@@ -120,18 +125,21 @@ class PatientRelativeForm(forms.ModelForm):
 
 
 class PatientAddressForm(forms.ModelForm):
+
     class Meta:
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    country = forms.ComboField(
+        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     state = forms.ComboField(required=False, widget=StateWidget())
 
 
 class PatientConsentFileForm(forms.ModelForm):
+
     class Meta:
         model = PatientConsent
-    
+
     form = forms.FileField(widget=AdminFileWidget, required=False)
 
 
@@ -141,8 +149,9 @@ class PatientForm(forms.ModelForm):
         "rows": 3,
         "cols": 30,
     }
-    
-    next_of_kin_country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+
+    next_of_kin_country = forms.ComboField(
+        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     next_of_kin_state = forms.ComboField(required=False, widget=StateWidget())
 
     def __init__(self, *args, **kwargs):
@@ -170,7 +179,8 @@ class PatientForm(forms.ModelForm):
 
             kwargs['initial'] = initial_data
 
-            clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
+            clinicians = CustomUser.objects.filter(
+                registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
             logger.debug("user in kwargs")
@@ -179,7 +189,7 @@ class PatientForm(forms.ModelForm):
 
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
 
-        #if 'instance' in kwargs and kwargs['instance'] is not None:
+        # if 'instance' in kwargs and kwargs['instance'] is not None:
         if not 'instance' in kwargs:
             self._add_custom_consent_fields(None)
         else:
@@ -187,16 +197,20 @@ class PatientForm(forms.ModelForm):
         #logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
-        self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
+        self.fields["clinician"].queryset = CustomUser.objects.filter(
+            id__in=clinicians_filtered)
 
-        self.fields["rdrf_registry"].queryset = Registry.objects.filter(id__in=[self.registry_model.id])
+        self.fields["rdrf_registry"].queryset = Registry.objects.filter(
+            id__in=[self.registry_model.id])
 
         if hasattr(self, 'user'):
             logger.debug("form has user attribute ...")
             user = self.user
             logger.debug("user = %s" % user)
-            # working groups shown should be only related to the groups avail to the user in the registry being edited
-            self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
+            # working groups shown should be only related to the groups avail to the
+            # user in the registry being edited
+            self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
             if not user.is_superuser:
                 logger.debug("not superuser so updating field visibility")
                 if not self.registry_model:
@@ -212,7 +226,8 @@ class PatientForm(forms.ModelForm):
                     readonly = False
                     for wg in working_groups:
                         try:
-                            field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
+                            field_config = DemographicFields.objects.get(
+                                registry=registry, group=wg, field=field)
                             hidden = hidden or field_config.hidden
                             readonly = readonly or field_config.readonly
                         except DemographicFields.DoesNotExist:
@@ -224,8 +239,9 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].label = ""
                     if readonly and not hidden:
                         logger.debug("field %s is readonly" % field)
-                        self.fields[field].widget = forms.TextInput(attrs={'readonly':'readonly'})
-        
+                        self.fields[field].widget = forms.TextInput(
+                            attrs={'readonly': 'readonly'})
+
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
 
@@ -241,7 +257,8 @@ class PatientForm(forms.ModelForm):
         data = patient_model.consent_questions_data
         for consent_field_key in data:
             initial_data[consent_field_key] = data[consent_field_key]
-            logger.debug("set initial data for %s to %s" % (consent_field_key, data[consent_field_key]))
+            logger.debug("set initial data for %s to %s" %
+                         (consent_field_key, data[consent_field_key]))
 
     def _is_adding_patient(self, kwargs):
         return 'instance' in kwargs and kwargs['instance'] is None
@@ -257,13 +274,15 @@ class PatientForm(forms.ModelForm):
         from registry.groups.models import WorkingGroup
         initial_working_groups = user.working_groups.filter(registry=self.registry_model)
         self.fields['working_groups'].queryset = initial_working_groups
-        logger.debug("restricted working groups choices to %s" % [wg.pk for wg in initial_working_groups])
+        logger.debug("restricted working groups choices to %s" %
+                     [wg.pk for wg in initial_working_groups])
 
     #consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
     #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
     #consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
     #consent_provided_by_parent_guardian = forms.BooleanField(required=False, help_text="The parent/guardian of the patient has provided consent", label="Parent/Guardian consent provided on behalf of the patient")
-    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'), help_text="DD-MM-YYYY", input_formats=['%d-%m-%Y'])
+    date_of_birth = forms.DateField(widget=forms.DateInput(
+        attrs={'class': 'datepicker'}, format='%d-%m-%Y'), help_text="DD-MM-YYYY", input_formats=['%d-%m-%Y'])
 
     class Meta:
         model = Patient
@@ -326,8 +345,6 @@ class PatientForm(forms.ModelForm):
             if consent_section_model not in data[registry_model]:
                 data[registry_model][consent_section_model] = {}
 
-
-
             consent_question_pk = int(parts[3])
             consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
             logger.debug("consent question = %s" % consent_question_model)
@@ -347,7 +364,8 @@ class PatientForm(forms.ModelForm):
                                                                               consent_section_model.section_label)
                     validation_errors.append(error_message)
                 else:
-                    logger.debug("Consent section %s is valid!" % consent_section_model.section_label)
+                    logger.debug("Consent section %s is valid!" %
+                                 consent_section_model.section_label)
 
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
@@ -365,48 +383,55 @@ class PatientForm(forms.ModelForm):
 
         logger.debug("persisting custom consents from form")
         logger.debug("There are %s custom consents" % len(self.custom_consents.keys()))
-        
+
         if "user" in self.cleaned_data:
             patient_model.user = self.cleaned_data["user"]
-        
+
         if commit:
             patient_model.save()
-        
+
             for wg in self.cleaned_data["working_groups"]:
                 patient_model.working_groups.add(wg)
-            
+
             for reg in self.cleaned_data["rdrf_registry"]:
                 patient_model.rdrf_registry.add(reg)
 
         patient_model.clinician = self.cleaned_data["clinician"]
 
         for consent_field in self.custom_consents:
-            logger.debug("saving consent field %s ( value to save = %s)" % (consent_field, self.custom_consents[consent_field]))
-            registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(consent_field)
+            logger.debug("saving consent field %s ( value to save = %s)" %
+                         (consent_field, self.custom_consents[consent_field]))
+            registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
+                consent_field)
 
             if registry_model in patient_registries:
-                logger.debug("saving consents for %s %s" % (registry_model, consent_section_model))
-                # are we still applicable?! - maybe some field on patient changed which means not so any longer?
+                logger.debug("saving consents for %s %s" %
+                             (registry_model, consent_section_model))
+                # are we still applicable?! - maybe some field on patient changed which
+                # means not so any longer?
                 if consent_section_model.applicable_to(patient_model):
-                    logger.debug("%s is applicable to %s" % (consent_section_model, patient_model))
-                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
+                    logger.debug("%s is applicable to %s" %
+                                 (consent_section_model, patient_model))
+                    cv = patient_model.set_consent(
+                        consent_question_model, self.custom_consents[consent_field], commit)
                     logger.debug("set consent value ok : cv = %s" % cv)
                 else:
-                    logger.debug("%s is not applicable to model %s" % (consent_section_model, patient_model))
+                    logger.debug("%s is not applicable to model %s" %
+                                 (consent_section_model, patient_model))
 
             else:
                 logger.debug("patient not in %s ?? no consents added here" % registry_model)
 
             if not patient_registries:
                 logger.debug("No registries yet - Adding patient consent closure")
-                closure = self._make_consent_closure(registry_model, consent_section_model, consent_question_model, consent_field)
+                closure = self._make_consent_closure(
+                    registry_model, consent_section_model, consent_question_model, consent_field)
                 if hasattr(patient_model, 'add_registry_closures'):
                     logger.debug("appending to closure list")
                     patient_model.add_registry_closures.append(closure)
                 else:
                     logger.debug("settng new closure list")
-                    setattr(patient_model,'add_registry_closures', [closure])
-
+                    setattr(patient_model, 'add_registry_closures', [closure])
 
         return patient_model
 
@@ -415,15 +440,17 @@ class PatientForm(forms.ModelForm):
             logger.debug("running consent closure")
             if registry_model.id in registry_ids:
                 if consent_section_model.applicable_to(patient_model):
-                    logger.debug("%s is applicable to %s" % (consent_section_model, patient_model))
-                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
+                    logger.debug("%s is applicable to %s" %
+                                 (consent_section_model, patient_model))
+                    cv = patient_model.set_consent(
+                        consent_question_model, self.custom_consents[consent_field])
                     logger.debug("set consent value ok : cv = %s" % cv)
                 else:
-                    logger.debug("%s is not applicable to model %s" % (consent_section_model, patient_model))
+                    logger.debug("%s is not applicable to model %s" %
+                                 (consent_section_model, patient_model))
             else:
                 pass
         return closure
-
 
     def _get_consent_field_models(self, consent_field):
         logger.debug("getting consent field models for %s" % consent_field)
@@ -453,20 +480,20 @@ class PatientForm(forms.ModelForm):
     def get_all_consent_section_info(self, patient_model, registry_code):
         section_tuples = []
         registry_model = Registry.objects.get(code=registry_code)
-        
+
         for consent_section_model in registry_model.consent_sections.all().order_by("code"):
             if consent_section_model.applicable_to(patient_model):
-                section_tuples.append(self.get_consent_section_info(registry_model, consent_section_model))
+                section_tuples.append(
+                    self.get_consent_section_info(registry_model, consent_section_model))
         return section_tuples
 
     def get_consent_section_info(self, registry_model, consent_section_model):
         # return something like this for custom consents
-        #consent = ("Consent", [
+        # consent = ("Consent", [
         #     "consent",
         #     "consent_clinical_trials",
         #     "consent_sent_information",
         # ])
-
 
         questions = []
 
@@ -477,7 +504,8 @@ class PatientForm(forms.ModelForm):
                 if reg_pk == registry_model.pk:
                     consent_section_pk = int(parts[2])
                     if consent_section_pk == consent_section_model.pk:
-                        consent_section_model = ConsentSection.objects.get(pk=consent_section_pk)
+                        consent_section_model = ConsentSection.objects.get(
+                            pk=consent_section_pk)
                         questions.append(field)
 
         return ("%s %s" % (registry_model.code.upper(), consent_section_model.section_label), questions)
@@ -498,7 +526,8 @@ class PatientForm(forms.ModelForm):
 
         if bad:
             bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
-            raise forms.ValidationError("Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad_regs))
+            raise forms.ValidationError(
+                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad_regs))
 
 
 class ParentGuardianForm(forms.ModelForm):
@@ -522,7 +551,7 @@ class ParentGuardianForm(forms.ModelForm):
             'place_of_birth',
             'date_of_migration'
         ]
-        
+
         widgets = {
             'state': StateWidget(),
             'country': CountryWidget()

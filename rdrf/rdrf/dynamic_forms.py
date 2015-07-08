@@ -16,7 +16,8 @@ def create_form_class(owner_class_name):
     for cde in CommonDataElement.objects.all().filter(owner=owner_class_name):
         cde_field = FieldFactory(cde).create_field()
         field_name = cde.code
-        cde_map[field_name] = cde           # e.g.  "CDE0023" --> the cde element corresponding to this code
+        # e.g.  "CDE0023" --> the cde element corresponding to this code
+        cde_map[field_name] = cde
         base_fields[field_name] = cde_field   # a django field object
 
     class Media:
@@ -77,7 +78,8 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
         return answer_dict
 
     for question_model in consent_section_model.questions.order_by("position"):
-        field = BooleanField(label=question_model.questionnaire_label, required=False, help_text=question_model.instructions)
+        field = BooleanField(
+            label=question_model.questionnaire_label, required=False, help_text=question_model.instructions)
         field_key = question_model.field_key
         base_fields[field_key] = field
 
@@ -98,7 +100,8 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
         answer_dict = get_answer_dict_from_form_data(consent_section_model, self.cleaned_data)
 
         if not consent_section_model.is_valid(answer_dict):
-            logger.debug("*********** CUSTOM CONSENT VALIDATION ERROR!  %s" % consent_section_model.section_label)
+            logger.debug("*********** CUSTOM CONSENT VALIDATION ERROR!  %s" %
+                         consent_section_model.section_label)
             raise ValidationError("%s is invalid" % consent_section_model.section_label)
 
         logger.debug("All good: cleaned data = %s" % self.cleaned_data)

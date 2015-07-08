@@ -1,9 +1,12 @@
 from selenium import selenium
-import unittest, time, re
+import unittest
+import time
+import re
 from base import Base
 
+
 class AddPatient(Base):
-    
+
     def todo_add_patient(self):
         sel = self.selenium
         sel.open("/admin/")
@@ -28,6 +31,7 @@ class AddPatient(Base):
         sel.select("id=id_sex", "label=Male")
         sel.click("name=_save")
         sel.wait_for_page_to_load("30000")
-        self.assertEqual(u"\xd7 The patient \"JOHN Doe\" was added successfully.", sel.get_text("//div[@id='suit-center']/div"))
+        self.assertEqual(u"\xd7 The patient \"JOHN Doe\" was added successfully.", sel.get_text(
+            "//div[@id='suit-center']/div"))
         sel.click("link=Log out")
         sel.wait_for_page_to_load("30000")

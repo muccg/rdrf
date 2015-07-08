@@ -6,6 +6,7 @@ from django.utils.encoding import smart_str
 
 logger = logging.getLogger(__name__)
 
+
 class TimeLogMiddleware(object):
 
     def process_request(self, request):

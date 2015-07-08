@@ -13,7 +13,8 @@ class ChartNode(template.Node):
         self.data_variable = template.Variable(data_variable)
 
     def render(self, context):
-        data = self.data_variable.resolve(context)  # the data to written as json for the chart wrapper
+        # the data to written as json for the chart wrapper
+        data = self.data_variable.resolve(context)
         chart_data_json = escapejs(json.dumps(data))
         canvas_id = self.chart_id.resolve(context)
         chart_method = "Bar"

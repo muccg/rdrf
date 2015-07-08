@@ -4,6 +4,7 @@ from rdrf.datastructures import OrderedSet as oset
 
 
 class QuickLink(object):
+
     def __init__(self, url_name, text, admin_link=False, glyph_icon="glyphicon-minus"):
         self.url = reverse(url_name)
         self.text = _(text)
@@ -12,6 +13,7 @@ class QuickLink(object):
 
 
 class QuickLinks(object):
+
     """
     A convenience class to make it easy to see what links are provided to
     users on the "Home" screen
@@ -20,7 +22,8 @@ class QuickLinks(object):
     Reports = QuickLink("reports", "Reports")
     Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
-    QuestionnaireResponses = QuickLink("admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
+    QuestionnaireResponses = QuickLink(
+        "admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
     Doctors = QuickLink("admin:patients_doctor_changelist", "Doctors")
     # Genetic Staff
     Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
@@ -32,13 +35,18 @@ class QuickLinks(object):
     RegistryForms = QuickLink("admin:rdrf_registryform_changelist", "Registry Form", True)
     Sections = QuickLink("admin:rdrf_section_changelist", "Sections", True)
     DataElements = QuickLink("admin:rdrf_commondataelement_changelist", "Data Elements", True)
-    PermissibleValueGroups = QuickLink("admin:rdrf_cdepermittedvaluegroup_changelist", "Permissible Value Groups", True)
-    PermissibleValues = QuickLink("admin:rdrf_cdepermittedvalue_changelist", "Permissible Values", True)
-    ConsentSections = QuickLink("admin:rdrf_consentsection_changelist", "Consent Sections", True)
-    DemographicsFields = QuickLink("admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
+    PermissibleValueGroups = QuickLink(
+        "admin:rdrf_cdepermittedvaluegroup_changelist", "Permissible Value Groups", True)
+    PermissibleValues = QuickLink(
+        "admin:rdrf_cdepermittedvalue_changelist", "Permissible Values", True)
+    ConsentSections = QuickLink(
+        "admin:rdrf_consentsection_changelist", "Consent Sections", True)
+    DemographicsFields = QuickLink(
+        "admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
-    NextOfKinRelationship = QuickLink("admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
+    NextOfKinRelationship = QuickLink(
+        "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
 
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])

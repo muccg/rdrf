@@ -84,7 +84,8 @@ class REST(object):
 
         if self.form_name:
             try:
-                self.registry_form = RegistryForm.objects.get(registry=self.registry, name=self.form_name)
+                self.registry_form = RegistryForm.objects.get(
+                    registry=self.registry, name=self.form_name)
             except RegistryForm.DoesNotExist:
                 raise RESTInterfaceError("Registry Form %s does not in exist in registry %s" %
                                          (self.form_name, self.registry_code))
@@ -112,7 +113,8 @@ class REST(object):
                     raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (
                         self.cde_code, self.registry_code, self.form_name, self.section_code))
             except CommonDataElement.DoesNotExist:
-                raise RESTInterfaceError("Data Elemement with code %s doesn't exist" % self.cde_code)
+                raise RESTInterfaceError(
+                    "Data Elemement with code %s doesn't exist" % self.cde_code)
 
         if self.patient_id is None:
             self.error_message = 'No patient id supplied'
@@ -165,7 +167,8 @@ class REST(object):
         if self.dyn_data_wrapper is None:
             raise Http404("No Patient with %s exists" % self.patient_id)
 
-        existing_patient_data = self.dyn_data_wrapper.load_dynamic_data(registry=self.registry_code, collection_name="cdes")
+        existing_patient_data = self.dyn_data_wrapper.load_dynamic_data(
+            registry=self.registry_code, collection_name="cdes")
 
         if self.cde_code:
             retrieved_data = self._retrieve("cde", existing_patient_data)
@@ -239,7 +242,8 @@ class REST(object):
         elif "yaml" in accept_header:
             return ResourceFormat.YAML
         else:
-            raise RESTInterfaceError("Unknown HTTP_ACCEPT Header: %s" % self.request.META["HTTP_ACCEPT"])
+            raise RESTInterfaceError("Unknown HTTP_ACCEPT Header: %s" %
+                                     self.request.META["HTTP_ACCEPT"])
 
     def _create_delimited_key(self):
         from django.conf import settings
@@ -262,7 +266,8 @@ class REST(object):
             for delimited_key in data:
                 logger.debug("checking key %s" % delimited_key)
                 try:
-                    form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                    form_name, section_code, cde_code = delimited_key.split(
+                        settings.FORM_SECTION_DELIMITER)
                 except ValueError:
                     # this means there's bad data in there - saved with diff delimiter
                     continue
@@ -283,7 +288,8 @@ class REST(object):
                 section_map = {}
                 for delimited_key in data:
                     try:
-                        form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                        form_name, section_code, cde_code = delimited_key.split(
+                            settings.FORM_SECTION_DELIMITER)
                     except ValueError:
                         # this means there's bad data in there - saved with diff delimiter
                         continue
@@ -297,7 +303,8 @@ class REST(object):
             registry_map = {}
             for delimited_key in data:
                 try:
-                    form_name, section_code, cde_code = delimited_key.split(settings.FORM_SECTION_DELIMITER)
+                    form_name, section_code, cde_code = delimited_key.split(
+                        settings.FORM_SECTION_DELIMITER)
                 except ValueError:
                     continue
 

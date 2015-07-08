@@ -3,6 +3,7 @@ def open(url_or_file):
 
 
 class HGNC:
+
     def __init__(self, url_or_file):
         from urlparse import urlparse
 

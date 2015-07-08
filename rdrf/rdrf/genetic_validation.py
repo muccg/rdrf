@@ -20,7 +20,8 @@ class GeneticValidationError(Exception):
 class GeneticValidator(object):
 
     def validate(self, value, genetic_type):
-        logger.debug("genetic registry about to validate value: %s genetic type: %s" % (value, genetic_type))
+        logger.debug("genetic registry about to validate value: %s genetic type: %s" %
+                     (value, genetic_type))
         parse_func = None
         if genetic_type == GeneticType.DNA:
             parse_func = self.validate_sequence
@@ -40,7 +41,8 @@ class GeneticValidator(object):
             return True
 
         except GeneticValidationError, gv_err:
-            logger.debug("%s could not parse %s: parser error = %s" % (parse_func, value, gv_err))
+            logger.debug("%s could not parse %s: parser error = %s" %
+                         (parse_func, value, gv_err))
             return False
 
         except Exception, ex:
@@ -48,7 +50,8 @@ class GeneticValidator(object):
 
         return False
 
-    # The following methods are taken from the old framework code - later we should use hgvs parser?
+    # The following methods are taken from the old framework code - later we
+    # should use hgvs parser?
     def validate_exon(self, value):
         try:
             return ExonVariation(value)

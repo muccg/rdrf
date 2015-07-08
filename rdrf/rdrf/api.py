@@ -77,16 +77,19 @@ class PatientResource(ModelResource):
             progress_data = getattr(bundle, "progress_data")
 
             if progress_data["diagnosis_progress"]:
-                bundle.data["diagnosis_progress"] = {registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
+                bundle.data["diagnosis_progress"] = {
+                    registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
 
             if progress_data["has_genetic_data"]:
-                bundle.data["genetic_data_map"] = {registry_code: progress_data["has_genetic_data"].get(id, False)}
+                bundle.data["genetic_data_map"] = {
+                    registry_code: progress_data["has_genetic_data"].get(id, False)}
 
             if progress_data["data_modules"]:
                 bundle.data["data_modules"] = progress_data["data_modules"].get(id, "")
 
             if progress_data["diagnosis_currency"]:
-                bundle.data["diagnosis_currency"] = {registry_code: progress_data["diagnosis_currency"].get(id, False)}
+                bundle.data["diagnosis_currency"] = {
+                    registry_code: progress_data["diagnosis_currency"].get(id, False)}
 
         finish = time.time()
         elapsed = finish - start
@@ -144,7 +147,8 @@ class PatientResource(ModelResource):
             is_current = patient_model.form_currency(form)
             flag = "images/%s.png" % ("tick" if is_current else "cross")
 
-            url = reverse('registry_form', args=(registry_model.code, form.id, patient_model.id))
+            url = reverse(
+                'registry_form', args=(registry_model.code, form.id, patient_model.id))
             link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
             label = nice_name(form.name)
 
@@ -154,7 +158,8 @@ class PatientResource(ModelResource):
 
             if form.has_progress_indicator:
                 content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
-                                                                           patient_model.form_progress(form)[1],
+                                                                           patient_model.form_progress(
+                                                                               form)[1],
                                                                            to_form)
             else:
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
@@ -164,7 +169,8 @@ class PatientResource(ModelResource):
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
+            url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name,
+                                                       trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
         ]
 
     def _bulk_compute_progress(self, page, user, registry_code,
@@ -179,7 +185,8 @@ class PatientResource(ModelResource):
         registry_model = Registry.objects.get(code=registry_code)
         logger.debug("about to set patient_instance_resource to self ..")
         patient_resource_instance = self
-        progress_calculator = FormProgressCalculator(registry_model, user, patient_resource_instance)
+        progress_calculator = FormProgressCalculator(
+            registry_model, user, patient_resource_instance)
         patient_ids = [patient.id for patient in page.object_list]
         logger.debug("patient ids = %s" % patient_ids)
         progress_calculator.load_data(patient_ids)
@@ -243,18 +250,23 @@ class PatientResource(ModelResource):
 
         if not request.user.is_superuser:
             if request.user.is_curator:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
             elif request.user.is_genetic_staff:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
+                # unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())
             elif request.user.is_genetic_curator:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
+                # unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())
             elif request.user.is_working_group_staff:
-                patients = patients.filter(working_groups__in=request.user.working_groups.all())  # unclear what to do here
+                # unclear what to do here
+                patients = patients.filter(working_groups__in=request.user.working_groups.all())
             elif request.user.is_clinician and clinicians_have_patients:
                 patients = patients.filter(clinician=request.user)
             elif request.user.is_clinician and not clinicians_have_patients:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=request.user.working_groups.all())
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=request.user.working_groups.all())
                 patients = patients.filter(query_patients)
             elif request.user.is_patient:
                 patients = patients.filter(user=request.user)
@@ -287,7 +299,8 @@ class PatientResource(ModelResource):
 
         if search_phrase:
             from django.db.models import Q
-            query_set = query_set.filter(Q(given_names__icontains=search_phrase) | Q(family_name__icontains=search_phrase))
+            query_set = query_set.filter(
+                Q(given_names__icontains=search_phrase) | Q(family_name__icontains=search_phrase))
 
         total = query_set.count()
         if row_count == -1:
@@ -306,7 +319,8 @@ class PatientResource(ModelResource):
         logger.debug("reg code = %s" % chosen_registry_code)
         logger.debug("user = %s" % request.user)
 
-        bulk_progress_data = self._bulk_compute_progress(page, request.user, chosen_registry_code)
+        bulk_progress_data = self._bulk_compute_progress(
+            page, request.user, chosen_registry_code)
 
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)

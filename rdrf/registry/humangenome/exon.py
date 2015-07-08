@@ -2,6 +2,7 @@ import sequence
 
 
 class ExonVariation(sequence.SequenceVariation):
+
     def __str__(self):
         if self.gene:
             output = str(self.gene) + ":"
@@ -31,6 +32,7 @@ class ExonVariation(sequence.SequenceVariation):
 
 
 class Variation(sequence.Variation):
+
     @staticmethod
     def create(input):
         # This is far simpler than the parent parse method, since we only have
@@ -57,6 +59,7 @@ class Variation(sequence.Variation):
 
 
 class Position(sequence.Position):
+
     def __init__(self, input=None):
         self.position = None
         self.intron = False
@@ -100,30 +103,36 @@ class Position(sequence.Position):
 
 
 class Range(sequence.Range):
+
     @staticmethod
     def create_position(position):
         return Position(position)
 
 
 class Deletion(sequence.Deletion):
+
     def parse(self, input):
         (location, deletion) = input.split("del", 1)
         self.location = Variation.create_position_or_range(location)
 
         if deletion:
-            raise Variation.Malformed("Exon deletions do not support the specification of the deleted nucleotides")
+            raise Variation.Malformed(
+                "Exon deletions do not support the specification of the deleted nucleotides")
 
 
 class Duplication(sequence.Duplication):
+
     def parse(self, input):
         (location, duplication) = input.split("dup", 1)
         self.location = Variation.create_position_or_range(location)
 
         if duplication:
-            raise Variation.Malformed("Exon duplications do not support the specification of the duplicated nucleotides")
+            raise Variation.Malformed(
+                "Exon duplications do not support the specification of the duplicated nucleotides")
 
 
 class NoChange(sequence.NoChange):
+
     def __str__(self):
         return str(self.location)
 

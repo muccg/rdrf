@@ -93,7 +93,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
                 logger.error("Error(s) exporting %s:" % registry.name)
                 for error in errors:
                     logger.error("Export Error: %s" % error)
-                    messages.error(request, "Error in export of %s: %s" % (registry.name, error))
+                    messages.error(request, "Error in export of %s: %s" %
+                                   (registry.name, error))
                 return None
             else:
                 logger.info("Exported YAML Data for %s OK" % registry.name)
@@ -139,7 +140,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         zippedfile.seek(0)
 
         response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_" + reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
+        name = "export_" + export_time + "_" + \
+            reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
         response['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         return response
@@ -295,7 +297,8 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
 
 
 class AdjudicationAdmin(admin.ModelAdmin):
-    list_display = ('requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
+    list_display = (
+        'requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
     ordering = ['requesting_username', 'definition']
     list_filter = ['requesting_username', 'definition']
 
@@ -341,7 +344,8 @@ class ConsentQuestionAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {'fields': ('position', 'code', 'question_label', 'questionnaire_label', 'instructions')}),
+        (None, {
+         'fields': ('position', 'code', 'question_label', 'questionnaire_label', 'instructions')}),
     )
 
 

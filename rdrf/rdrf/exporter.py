@@ -21,10 +21,13 @@ class ExportFormat:
 
 
 class ExportType:
-    REGISTRY_ONLY = "REGISTRY_ONLY"                     # Only registry, forms , sections - No CDEs
-    REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"           # As above with cdes used by the registry
+    # Only registry, forms , sections - No CDEs
+    REGISTRY_ONLY = "REGISTRY_ONLY"
+    # As above with cdes used by the registry
+    REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"
     REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES"   # registry + all cdes in the site
-    REGISTRY_CDES = "REGISTRY_CDES"                     # only the cdes in the supplied registry ( no forms)
+    # only the cdes in the supplied registry ( no forms)
+    REGISTRY_CDES = "REGISTRY_CDES"
     ALL_CDES = "ALL_CDES"                               # All CDEs in the site
 
 
@@ -166,7 +169,8 @@ class Exporter(object):
         data["reports"] = self._get_reports()
 
         if self.registry.patient_data_section:
-            data["patient_data_section"] = self._create_section_map(self.registry.patient_data_section.code)
+            data["patient_data_section"] = self._create_section_map(
+                self.registry.patient_data_section.code)
         else:
             data["patient_data_section"] = {}
 
