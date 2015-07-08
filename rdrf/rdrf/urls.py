@@ -41,7 +41,8 @@ def handler500(request):
 
 
 def handlerApplicationError(request):
-    return render_to_response("rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
+    return render_to_response(
+        "rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
 
 
 # TastyPie API
@@ -142,16 +143,20 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',
-                            RdrfRegistrationView.as_view(), name='registration_register'),
-                        url(r'^register/complete/$', TemplateView.as_view(
-                            template_name='registration/registration_complete.html'), name='registration_complete'),
-                        url(r'^register/closed/$', TemplateView.as_view(
-                            template_name='registration/registration_closed.html'), name='registration_disallowed'),
-
-                        url(r'^activate/complete/$', TemplateView.as_view(
-                            template_name='registration/activation_complete.html'), name='registration_activation_complete'),
+                            RdrfRegistrationView.as_view(),
+                            name='registration_register'),
+                        url(r'^register/complete/$',
+                            TemplateView.as_view(template_name='registration/registration_complete.html'),
+                            name='registration_complete'),
+                        url(r'^register/closed/$',
+                            TemplateView.as_view(template_name='registration/registration_closed.html'),
+                            name='registration_disallowed'),
+                        url(r'^activate/complete/$',
+                            TemplateView.as_view(template_name='registration/activation_complete.html'),
+                            name='registration_activation_complete'),
                         url(r'^activate/(?P<activation_key>\w+)/$',
-                            ActivationView.as_view(), name='registration_activate'),
+                            ActivationView.as_view(),
+                            name='registration_activate'),
                         )
 
 urlpatterns += patterns('',

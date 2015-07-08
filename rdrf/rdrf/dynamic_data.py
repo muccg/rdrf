@@ -28,7 +28,13 @@ class DynamicDataWrapper(object):
     """
     REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION = "registry_specific_patient_data"
 
-    def __init__(self, obj, client=MongoClient(settings.MONGOSERVER, settings.MONGOPORT), filestore_class=gridfs.GridFS):
+    def __init__(
+            self,
+            obj,
+            client=MongoClient(
+                settings.MONGOSERVER,
+                settings.MONGOPORT),
+            filestore_class=gridfs.GridFS):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False
         self.obj = obj
@@ -92,8 +98,10 @@ class DynamicDataWrapper(object):
         for reg_code in self._get_registry_codes():
             # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
             # ( already prefixed db names from Mongo
-            collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
-                                              add_mongo_prefix=False)
+            collection = self._get_collection(
+                reg_code,
+                self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
+                add_mongo_prefix=False)
             registry_data = collection.find_one(record_query)
             if registry_data:
                 for k in ['django_id', '_id', 'django_model']:
@@ -144,7 +152,9 @@ class DynamicDataWrapper(object):
                             self.gridfs_dict = gridfs_dict
                             from django.core.urlresolvers import reverse
                             self.url = reverse(
-                                "file_upload", args=[registry, str(self.gridfs_dict['gridfs_file_id'])])
+                                "file_upload", args=[
+                                    registry, str(
+                                        self.gridfs_dict['gridfs_file_id'])])
 
                         def __unicode__(self):
                             """
@@ -162,9 +172,19 @@ class DynamicDataWrapper(object):
                     self._wrap_gridfs_files_from_mongo(registry, section_dict)
 
     def _get_gridfs_filename(self, registry, data_record, cde_code, original_file_name):
-        return "%s****%s****%s****%s****%s" % (registry, self.django_model, self.django_id, cde_code, original_file_name)
+        return "%s****%s****%s****%s****%s" % (registry,
+                                               self.django_model,
+                                               self.django_id,
+                                               cde_code,
+                                               original_file_name)
 
-    def _store_file_in_gridfs(self, registry, patient_record, cde_code, in_memory_file, dynamic_data):
+    def _store_file_in_gridfs(
+            self,
+            registry,
+            patient_record,
+            cde_code,
+            in_memory_file,
+            dynamic_data):
         fs = self._get_filestore(registry)
         original_file_name = in_memory_file.name
         file_name = self._get_gridfs_filename(
@@ -172,8 +192,13 @@ class DynamicDataWrapper(object):
         gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
         # _alter_ the dyamic data to store reference to gridfs + the original file name
         dynamic_data[cde_code] = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
-        logger.debug("UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
-                     (cde_code, original_file_name, registry, gridfs_id, dynamic_data[cde_code]))
+        logger.debug(
+            "UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
+            (cde_code,
+             original_file_name,
+             registry,
+             gridfs_id,
+             dynamic_data[cde_code]))
         return gridfs_id
 
     def _is_file_cde(self, code):
@@ -183,7 +208,7 @@ class DynamicDataWrapper(object):
             if cde.datatype == 'file':
                 logger.debug("CDE %s is a file!" % cde.code)
                 return True
-        except Exception, ex:
+        except Exception as ex:
             # section forms have codes which are not CDEs
             logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
@@ -254,7 +279,8 @@ class DynamicDataWrapper(object):
                                              gridfs_file_id)
                             else:
                                 logger.debug(
-                                    "file id %s in existing_record didn't exist?" % gridfs_file_id)
+                                    "file id %s in existing_record didn't exist?" %
+                                    gridfs_file_id)
                             if value is not None:
                                 logger.debug("updating %s -> %s" % (key, value))
                                 self._store_file_in_gridfs(

@@ -19,4 +19,7 @@ class Base(unittest.TestCase):
         self.assertEqual([], self.verificationErrors)
 
     def random_string(self, size):
-        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
+        return ''.join(
+            random.choice(
+                string.ascii_uppercase +
+                string.digits) for _ in range(size))

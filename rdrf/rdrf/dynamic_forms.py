@@ -33,8 +33,14 @@ def create_form_class(owner_class_name):
     return form_class
 
 
-def create_form_class_for_section(registry, registry_form, section, questionnaire_context=None, injected_model=None,
-                                  injected_model_id=None, is_superuser=None):
+def create_form_class_for_section(
+        registry,
+        registry_form,
+        section,
+        questionnaire_context=None,
+        injected_model=None,
+        injected_model_id=None,
+        is_superuser=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
     base_fields = SortedDict()
@@ -42,11 +48,20 @@ def create_form_class_for_section(registry, registry_form, section, questionnair
     for s in section.elements.split(","):
         try:
             cde = CommonDataElement.objects.get(code=s.strip())
-            cde_field = FieldFactory(registry, registry_form, section, cde, questionnaire_context,
-                                     injected_model=injected_model,
-                                     injected_model_id=injected_model_id, is_superuser=is_superuser).create_field()
-            field_code_on_form = "%s%s%s%s%s" % (registry_form.name, settings.FORM_SECTION_DELIMITER, section.code,
-                                                 settings.FORM_SECTION_DELIMITER, cde.code)
+            cde_field = FieldFactory(
+                registry,
+                registry_form,
+                section,
+                cde,
+                questionnaire_context,
+                injected_model=injected_model,
+                injected_model_id=injected_model_id,
+                is_superuser=is_superuser).create_field()
+            field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
+                                                 settings.FORM_SECTION_DELIMITER,
+                                                 section.code,
+                                                 settings.FORM_SECTION_DELIMITER,
+                                                 cde.code)
             base_fields[field_code_on_form] = cde_field
         except CommonDataElement.DoesNotExist:
             continue
@@ -56,7 +71,11 @@ def create_form_class_for_section(registry, registry_form, section, questionnair
     return type(form_class_name, (BaseForm,), form_class_dict)
 
 
-def create_form_class_for_consent_section(registry_model, consent_section_model, questionnaire_context=None, is_superuser=None):
+def create_form_class_for_consent_section(
+        registry_model,
+        consent_section_model,
+        questionnaire_context=None,
+        is_superuser=None):
     # This function is used by the _questionnaire_, to provide a form for filling in custom consent info
     # It differs from the "normal" form class creation function above which takes a RDRF Section model, in that it takes
     # a ConsentSection model ( which is NOT CDE based )
@@ -79,7 +98,9 @@ def create_form_class_for_consent_section(registry_model, consent_section_model,
 
     for question_model in consent_section_model.questions.order_by("position"):
         field = BooleanField(
-            label=question_model.questionnaire_label, required=False, help_text=question_model.instructions)
+            label=question_model.questionnaire_label,
+            required=False,
+            help_text=question_model.instructions)
         field_key = question_model.field_key
         base_fields[field_key] = field
 

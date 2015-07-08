@@ -101,7 +101,14 @@ class TestProteinVariation(unittest.TestCase):
             unicode(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_position(self):
-        def assertPosition(string, acid, position, intron_offset, uncertain, stop_codon, unknown):
+        def assertPosition(
+                string,
+                acid,
+                position,
+                intron_offset,
+                uncertain,
+                stop_codon,
+                unknown):
             location = ProteinVariation("p.%sdel" % string).alleles[0].variations[0].location
 
             self.assertTrue(isinstance(location, Position), "Location is not a Position")

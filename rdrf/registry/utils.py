@@ -9,7 +9,7 @@ def stripspaces(s):
     converts multiple whitespace chars into 1 space char returns an empty
     string if input is None or anything else than a string or unicode.
     """
-    if s == None or not isinstance(s, basestring):
+    if s is None or not isinstance(s, basestring):
         return ""
     return " ".join(s.strip().split())
 

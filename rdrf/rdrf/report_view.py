@@ -24,10 +24,16 @@ class ReportView(LoginRequiredMixin, View):
         if user.is_superuser:
             reports = Query.objects.all()
         elif user.is_curator:
-            reports = Query.objects.filter(registry__in=[reg.id for reg in user.get_registries()]).filter(
-                access_group__in=[g.id for g in user.get_groups()])
+            reports = Query.objects.filter(
+                registry__in=[
+                    reg.id for reg in user.get_registries()]).filter(
+                access_group__in=[
+                    g.id for g in user.get_groups()])
 
         context = {}
         context['reports'] = reports
         context["location"] = 'Reports'
-        return render_to_response('rdrf_cdes/reports.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/reports.html',
+            context,
+            context_instance=RequestContext(request))

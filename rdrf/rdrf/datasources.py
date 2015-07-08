@@ -33,7 +33,8 @@ class PatientCentres(DataSource):
         else:
             from registry.groups.models import WorkingGroup
             items = []
-            for working_group in WorkingGroup.objects.filter(registry=registry_model).order_by('name'):
+            for working_group in WorkingGroup.objects.filter(
+                    registry=registry_model).order_by('name'):
                 items.append((working_group.name, working_group.name))
 
             return items

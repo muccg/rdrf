@@ -32,7 +32,8 @@ class UserValidationMixin(object):
                 raise ValidationError(msg)
 
         for registry_model in registry_models:
-            if registry_model not in [working_group_model.registry for working_group_model in working_group_models]:
+            if registry_model not in [
+                    working_group_model.registry for working_group_model in working_group_models]:
                 msg = "You have added the user into registry %s but not assigned the user " \
                       "to working group of that registry" % registry_model
                 raise ValidationError(msg)
@@ -109,9 +110,11 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
             self.fields['registry'].queryset = Registry.objects.filter(
                 code__in=[reg.code for reg in self.user.registry.all()])
 
-    password = ReadOnlyPasswordHashField(help_text=("Raw passwords are not stored, so there is no way to see "
-                                                    "this user's password, but you can change the password "
-                                                    "using <a href=\"password/\">this form</a>."))
+    password = ReadOnlyPasswordHashField(
+        help_text=(
+            "Raw passwords are not stored, so there is no way to see "
+            "this user's password, but you can change the password "
+            "using <a href=\"password/\">this form</a>."))
 
     class Meta:
         model = get_user_model()

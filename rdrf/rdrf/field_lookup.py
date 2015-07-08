@@ -110,7 +110,8 @@ class FieldFactory(object):
 
     def _get_field_name(self):
         if self.context == FieldContext.CLINICAL_FORM:
-            return self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
+            return self._get_cde_link(
+                _(self.cde.name)) if self.is_superuser else _(self.cde.name)
         else:
             q_field_text = self.cde.questionnaire_text
             if not q_field_text:
@@ -180,21 +181,42 @@ class FieldFactory(object):
         return getattr(widgets, self.WIDGET_OVERRIDE_TEMPLATE % self.cde.code)
 
     def _has_widget_for_datatype(self):
-        return hasattr(widgets, self.DATATYPE_WIDGET_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return hasattr(
+            widgets,
+            self.DATATYPE_WIDGET_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_widget_for_datatype(self):
-        return getattr(widgets, self.DATATYPE_WIDGET_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return getattr(
+            widgets,
+            self.DATATYPE_WIDGET_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _has_field_for_dataype(self):
-        return hasattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return hasattr(
+            fields,
+            self.DATATYPE_FIELD_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_field_for_datatype(self):
-        return getattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return getattr(
+            fields,
+            self.DATATYPE_FIELD_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
+            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by(
+                    'position'):
                 value = _(permitted_value.value)
                 if self.context == FieldContext.QUESTIONNAIRE:
                     q_value = getattr(permitted_value, 'questionnaire_value')
@@ -243,7 +265,9 @@ class FieldFactory(object):
         widget_class_name, widget_parameter = widget_string.split(":")
         if hasattr(widgets, widget_class_name):
             widget_class = getattr(widgets, widget_class_name)
-            return widget_class(widget_parameter=widget_parameter, widget_context=widget_context)
+            return widget_class(
+                widget_parameter=widget_parameter,
+                widget_context=widget_context)
         else:
             logger.info("could not locate widget from widget string: %s" % widget_string)
 
@@ -292,15 +316,24 @@ class FieldFactory(object):
                     try:
                         widget_class = getattr(widgets, self.cde.widget_name)
                         widget = widget_class(
-                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                            main_choices=choices,
+                            other_please_specify_value=other_please_specify_value,
+                            unset_value=self.UNSET_CHOICE)
                     except:
                         widget = widgets.OtherPleaseSpecifyWidget(
-                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                            main_choices=choices,
+                            other_please_specify_value=other_please_specify_value,
+                            unset_value=self.UNSET_CHOICE)
                 else:
                     widget = widgets.OtherPleaseSpecifyWidget(
-                        main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                        main_choices=choices,
+                        other_please_specify_value=other_please_specify_value,
+                        unset_value=self.UNSET_CHOICE)
 
-                return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
+                return fields.CharField(
+                    max_length=80,
+                    help_text=self.cde.instructions,
+                    widget=widget)
             else:
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde.widget_name)
@@ -322,7 +355,11 @@ class FieldFactory(object):
                             # get rid of the unset choice
                             options["choices"] = options['choices'][1:]
 
-                    if self.cde.code in ["State", "Country", "CDEPatientNextOfKinState", "CDEPatientNextOfKinCountry"]:
+                    if self.cde.code in [
+                            "State",
+                            "Country",
+                            "CDEPatientNextOfKinState",
+                            "CDEPatientNextOfKinCountry"]:
                         # These are dynamic now and alter their reange lists dynamically so have
                         # to switch off validation
                         from rdrf.fields import ChoiceFieldNoValidation
@@ -347,7 +384,12 @@ class FieldFactory(object):
                 if self._is_calculated_field():
                     try:
                         parser = CalculatedFieldParser(
-                            self.registry, self.registry_form, self.section, self.cde, injected_model=self.primary_model, injected_model_id=self.primary_id)
+                            self.registry,
+                            self.registry_form,
+                            self.section,
+                            self.cde,
+                            injected_model=self.primary_model,
+                            injected_model_id=self.primary_id)
                         script = parser.get_script()
                         from widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)

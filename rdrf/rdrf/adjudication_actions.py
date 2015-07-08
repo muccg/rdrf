@@ -24,14 +24,16 @@ class AdjudicationAction(object):
             self._send_email(request)
         except Exception as ex:
             logger.error(
-                "could not send email notification for %s back to requestor: %s" % (self.adjudication, ex))
+                "could not send email notification for %s back to requestor: %s" %
+                (self.adjudication, ex))
             self.email_notify_failed = True
 
     def _send_notification(self):
         message = self.adjudication.decision.summary
-        self.notifier.send_system_notification(self.adjudication.definition.adjudicator_username,
-                                               self.adjudication.requesting_username,
-                                               message)
+        self.notifier.send_system_notification(
+            self.adjudication.definition.adjudicator_username,
+            self.adjudication.requesting_username,
+            message)
 
     def _send_email(self, request):
         from django.core.urlresolvers import reverse

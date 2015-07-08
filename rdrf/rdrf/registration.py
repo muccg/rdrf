@@ -130,7 +130,7 @@ class QuestionnaireReverseMapper(object):
                     return state.code
 
             logger.debug("could not find state - returning None")
-        except Exception, ex:
+        except Exception as ex:
             logger.debug("Error setting state: state = %s country code = %s error = %s" % (
                 cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
@@ -287,7 +287,8 @@ class QuestionnaireReverseMapper(object):
         for form_model in self.registry.forms:
             for section_model in form_model.section_models:
                 if generated_section_code == self.registry._generated_section_questionnaire_code(
-                        form_model.name, section_model.code):
+                        form_model.name,
+                        section_model.code):
                     return form_model.name, section_model.code
         return None, None
 
@@ -309,7 +310,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_patient_fields()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
@@ -322,13 +323,13 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-        except ValidationError, verr:
+        except ValidationError as verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             transaction.savepoint_rollback(before_creation)
             return
-        except Exception, ex:
+        except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             transaction.savepoint_rollback(before_creation)
@@ -340,7 +341,7 @@ class PatientCreator(object):
             custom_consent_data = questionnaire_data["custom_consent_data"]
             logger.debug("custom_consent_data = %s" % custom_consent_data)
             self._create_custom_consents(patient, custom_consent_data)
-        except Exception, ex:
+        except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             transaction.savepoint_rollback(before_creation)
@@ -353,7 +354,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_dynamic_fields()
-        except Exception, ex:
+        except Exception as ex:
             self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
@@ -362,7 +363,7 @@ class PatientCreator(object):
                             (patient.pk, self.registry))
                 transaction.savepoint_rollback(before_creation)
                 return
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("could not remove dynamic data for patient %s: %s" %
                              (patient.pk, ex))
                 transaction.savepoint_rollback(before_creation)

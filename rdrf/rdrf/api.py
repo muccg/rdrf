@@ -133,8 +133,9 @@ class PatientResource(ModelResource):
         def not_generated(frm):
             return not frm.name.startswith(registry_model.generated_questionnaire_name)
 
-        forms = [f for f in RegistryForm.objects.filter(registry=registry_model).order_by('position')
-                 if not_generated(f) and user.can_view(f)]
+        forms = [
+            f for f in RegistryForm.objects.filter(
+                registry=registry_model).order_by('position') if not_generated(f) and user.can_view(f)]
 
         content = ''
 
@@ -157,10 +158,8 @@ class PatientResource(ModelResource):
                 to_form = label
 
             if form.has_progress_indicator:
-                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (static(flag),
-                                                                           patient_model.form_progress(
-                                                                               form)[1],
-                                                                           to_form)
+                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
+                    static(flag), patient_model.form_progress(form)[1], to_form)
             else:
                 content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
@@ -168,10 +167,11 @@ class PatientResource(ModelResource):
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
-        return [
-            url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name,
-                                                       trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
-        ]
+        return [url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name,
+                                                           trailing_slash()),
+                    self.wrap_view('get_search'),
+                    name="api_get_search"),
+                ]
 
     def _bulk_compute_progress(self, page, user, registry_code,
                                compute_progress=True,

@@ -54,8 +54,18 @@ class QuickLinks(object):
     REPORTING = oset([Reports])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
-    REGISTRY_DESIGN = oset([Registries, RegistryForms, Sections, DataElements, PermissibleValueGroups,
-                            PermissibleValues, ConsentSections, Groups, Importer, Explorer, DemographicsFields, NextOfKinRelationship])
+    REGISTRY_DESIGN = oset([Registries,
+                            RegistryForms,
+                            Sections,
+                            DataElements,
+                            PermissibleValueGroups,
+                            PermissibleValues,
+                            ConsentSections,
+                            Groups,
+                            Importer,
+                            Explorer,
+                            DemographicsFields,
+                            NextOfKinRelationship])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

@@ -26,7 +26,10 @@ def debug_handler500(request):
     """
     Returns simple 500 response with rendered request
     """
-    return HttpResponseServerError(_getHTMLFormattedReuest(request, "Disease Registry Default Server Error"))
+    return HttpResponseServerError(
+        _getHTMLFormattedReuest(
+            request,
+            "Disease Registry Default Server Error"))
 
 
 def handler404(request):

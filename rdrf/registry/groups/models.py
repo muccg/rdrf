@@ -55,7 +55,9 @@ class CustomUser(AbstractUser):
     @property
     def notices(self):
         from rdrf.models import Notification
-        return Notification.objects.filter(to_username=self.username, seen=False).order_by("-created")
+        return Notification.objects.filter(
+            to_username=self.username,
+            seen=False).order_by("-created")
 
     def in_registry(self, registry_model):
         for reg in self.registry.all():
@@ -191,7 +193,7 @@ class CustomUser(AbstractUser):
 def user_registered_callback(sender, user, request, **kwargs):
     from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian
 
-    is_parent = request.POST.has_key("parent_guardian_check")
+    is_parent = "parent_guardian_check" in request.POST
 
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)

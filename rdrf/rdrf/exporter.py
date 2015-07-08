@@ -176,7 +176,10 @@ class Exporter(object):
 
         data["working_groups"] = self._get_working_groups()
 
-        if export_type in [ExportType.REGISTRY_ONLY, ExportType.REGISTRY_PLUS_ALL_CDES, ExportType.REGISTRY_PLUS_CDES]:
+        if export_type in [
+                ExportType.REGISTRY_ONLY,
+                ExportType.REGISTRY_PLUS_ALL_CDES,
+                ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
             data["code"] = self.registry.code
             data["desc"] = self.registry.desc
@@ -382,7 +385,9 @@ class Exporter(object):
         def get_section_maps(adj_def):
             result_fields_section = self._create_section_map(adj_def.result_fields)
             decision_fields_section = self._create_section_map(adj_def.decision_field)
-            return {"results_fields": result_fields_section, "decision_fields_section": decision_fields_section}
+            return {
+                "results_fields": result_fields_section,
+                "decision_fields_section": decision_fields_section}
 
         for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
             adj_def_map = {}

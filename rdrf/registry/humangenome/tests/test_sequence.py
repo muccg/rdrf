@@ -201,7 +201,14 @@ class TestSequenceVariation(unittest.TestCase):
             unicode(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_position(self):
-        def assertPosition(string, position, intron_offset, uncertain, stop_codon, unknown, intron_offset_unknown):
+        def assertPosition(
+                string,
+                position,
+                intron_offset,
+                uncertain,
+                stop_codon,
+                unknown,
+                intron_offset_unknown):
             location = SequenceVariation("c.%sinv" % string).alleles[0].variations[0].location
 
             self.assertTrue(isinstance(location, Position), "Location is not a Position")

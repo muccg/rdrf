@@ -31,9 +31,17 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
         base_dir = package
         os.chdir(os.path.join(start_dir, base_dir))
 
-    for data_dir in ('templates', 'static', 'migrations', 'fixtures', 'features', 'hooks', 'templatetags', 'management'):
-        package_data[package].extend(
-            [add_file_for_package(package, subdir, f) for (subdir, dirs, files) in os.walk(data_dir) for f in files])
+    for data_dir in (
+            'templates',
+            'static',
+            'migrations',
+            'fixtures',
+            'features',
+            'hooks',
+            'templatetags',
+            'management'):
+        package_data[package].extend([add_file_for_package(package, subdir, f) for (
+            subdir, dirs, files) in os.walk(data_dir) for f in files])
 
     os.chdir(start_dir)
 

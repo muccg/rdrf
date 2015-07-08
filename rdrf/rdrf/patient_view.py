@@ -29,7 +29,7 @@ def get_error_messages(forms):
         return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
 
     for form in forms:
-        if type(form._errors) is list:
+        if isinstance(form._errors, list):
             logger.debug("checking formset _errors")
             if len(form._errors) == 0:
                 logger.debug("form._errors = []")
@@ -68,7 +68,10 @@ class PatientView(View):
         except Registry.DoesNotExist:
             context['error_msg'] = "Registry does not exist"
             logger.error("Registry %s does not exist" % registry_code)
-            return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))
+            return render_to_response(
+                'rdrf_cdes/patient.html',
+                context,
+                context_instance=RequestContext(request))
 
         if request.user.is_authenticated():
             try:
@@ -104,7 +107,10 @@ class PatientView(View):
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
 
-        return render_to_response('rdrf_cdes/patient.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/patient.html',
+            context,
+            context_instance=RequestContext(request))
 
 
 class PatientMixin(object):
@@ -301,9 +307,10 @@ class PatientFormMixin(PatientMixin):
             if not registry.patient_fields:
                 patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
             else:
-                munged_patient_form_class = self._create_registry_specific_patient_form_class(user,
-                                                                                              PatientForm,
-                                                                                              registry)
+                munged_patient_form_class = self._create_registry_specific_patient_form_class(
+                    user,
+                    PatientForm,
+                    registry)
                 patient_form = munged_patient_form_class(
                     instance=patient, user=user, registry_model=registry)
 
@@ -486,8 +493,9 @@ class PatientFormMixin(PatientMixin):
                             logger.debug("creating patient from relative %s" %
                                          patient_relative_model)
 
-                            patient_relative_model.create_patient_from_myself(self.registry_model,
-                                                                              self.object.working_groups.all())
+                            patient_relative_model.create_patient_from_myself(
+                                self.registry_model,
+                                self.object.working_groups.all())
 
         patient_model = self.object
         if hasattr(patient_model, 'add_registry_closures'):
@@ -514,12 +522,14 @@ class PatientFormMixin(PatientMixin):
                      errors):
         logger.debug("errors = %s" % errors)
         has_errors = len(errors) > 0
-        return self.render_to_response(self.get_context_data(form=patient_form,
-                                                             all_errors=errors,
-                                                             errors=has_errors,
-                                                             patient_address_formset=patient_address_formset,
-                                                             patient_doctor_formset=patient_doctor_formset,
-                                                             patient_relative_formset=patient_relative_formset))
+        return self.render_to_response(
+            self.get_context_data(
+                form=patient_form,
+                all_errors=errors,
+                errors=has_errors,
+                patient_address_formset=patient_address_formset,
+                patient_doctor_formset=patient_doctor_formset,
+                patient_relative_formset=patient_relative_formset))
 
     def _get_address_formset(self, request):
         patient_address_form_set = inlineformset_factory(
@@ -609,8 +619,13 @@ class PatientEditView(View):
     def _get_formlinks(self, user, patient_id, registry_model):
 
         if user is not None:
-            return [FormLink(patient_id, registry_model, form, selected=(form.name == ""))
-                    for form in registry_model.forms if not form.is_questionnaire and user.can_view(form)]
+            return [
+                FormLink(
+                    patient_id,
+                    registry_model,
+                    form,
+                    selected=(
+                        form.name == "")) for form in registry_model.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -636,7 +651,10 @@ class PatientEditView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/patient_edit.html',
+            context,
+            context_instance=RequestContext(request))
 
     def post(self, request, registry_code, patient_id):
         user = request.user
@@ -698,7 +716,7 @@ class PatientEditView(View):
         for form in forms:
             if not form.is_valid():
                 valid_forms.append(False)
-                if type(form.errors) is list:
+                if isinstance(form.errors, list):
                     for error_dict in form.errors:
                         for field in error_dict:
                             error_messages.append("%s: %s" % (field, error_dict[field]))
@@ -768,7 +786,10 @@ class PatientEditView(View):
         context["form_links"] = self._get_formlinks(request.user, patient.id, registry)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
-        return render_to_response('rdrf_cdes/patient_edit.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/patient_edit.html',
+            context,
+            context_instance=RequestContext(request))
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
@@ -786,8 +807,9 @@ class PatientEditView(View):
                             logger.debug("creating patient from relative %s" %
                                          patient_relative_model)
 
-                            patient_relative_model.create_patient_from_myself(registry_model,
-                                                                              patient_model.working_groups.all())
+                            patient_relative_model.create_patient_from_myself(
+                                registry_model,
+                                patient_model.working_groups.all())
 
     def _get_patient_and_forms_sections(self,
                                         patient_id,
@@ -809,9 +831,10 @@ class PatientEditView(View):
             if not registry.patient_fields:
                 patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
             else:
-                munged_patient_form_class = self._create_registry_specific_patient_form_class(user,
-                                                                                              PatientForm,
-                                                                                              registry)
+                munged_patient_form_class = self._create_registry_specific_patient_form_class(
+                    user,
+                    PatientForm,
+                    registry)
                 patient_form = munged_patient_form_class(
                     instance=patient, user=user, registry_model=registry)
 

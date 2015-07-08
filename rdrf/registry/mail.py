@@ -25,7 +25,7 @@ def sendNewPatientEmail(recipients, from_email=None):
 
     try:
         send_mail(subject, body, from_email, to_email, fail_silently=False)
-    except Exception, e:
+    except Exception as e:
         print 'Error sending mail to user: ', to_email, ':', str(e)
 
 

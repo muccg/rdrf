@@ -47,7 +47,7 @@ class DatabaseUtils(object):
             client = self._get_mongo_client()
             client.close()
             return True, None
-        except ConnectionFailure, e:
+        except ConnectionFailure as e:
             return False, e
 
     def run_sql(self):

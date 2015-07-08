@@ -104,7 +104,11 @@ class PatientAdmin(admin.ModelAdmin):
     full_name.short_description = 'Name'
 
     def demographic_btn(self, obj):
-        return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % reverse('admin:patients_patient_change', args=(obj.id,))
+        return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % reverse(
+            'admin:patients_patient_change',
+            args=(
+                obj.id,
+            ))
 
     demographic_btn.allow_tags = True
     demographic_btn.short_description = 'Demographics'
@@ -179,7 +183,8 @@ class PatientAdmin(admin.ModelAdmin):
             action = adjudication_actions[0]
             args = action.args + [obj.id]
             url = reverse(action.url_name, args=args)
-            return "<a href='%s' class='btn btn-info btn-small'>%s</a>" % (url, action.display_name)
+            return "<a href='%s' class='btn btn-info btn-small'>%s</a>" % (
+                url, action.display_name)
 
         for adjudication_action in adjudication_actions:
             args = adjudication_actions.args + [obj.id]
@@ -407,8 +412,10 @@ class PatientAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns(
-            "", url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search"))
+        local_urls = patterns("",
+                              url(r"search/(.*)$",
+                                  self.admin_site.admin_view(self.search),
+                                  name="patient_search"))
         return local_urls + urls
 
     def queryset(self, request):
@@ -432,8 +439,9 @@ class PatientAdmin(admin.ModelAdmin):
             # Guess not.
             patients = queryset.filter(Q(family_name__icontains=term) | Q(
                 given_names__icontains=term)).order_by("family_name", "given_names")
-            response = [
-                [patient.id, unicode(patient), unicode(patient.date_of_birth)] for patient in patients]
+            response = [[patient.id,
+                         unicode(patient),
+                         unicode(patient.date_of_birth)] for patient in patients]
         except Patient.DoesNotExist:
             response = []
 
@@ -449,7 +457,11 @@ class PatientAdmin(admin.ModelAdmin):
         if not hasattr(obj, 'patient_diagnosis'):
             return ''
         graph_html = '<a href="%s">' % urlresolvers.reverse(
-            'admin:{0}_diagnosis_change'.format(obj.patient_diagnosis._meta.app_label), args=(obj.id,))
+            'admin:{0}_diagnosis_change'.format(
+                obj.patient_diagnosis._meta.app_label),
+            args=(
+                obj.id,
+            ))
         graph_html += obj.patient_diagnosis.progress_graph()
         graph_html += '</a>'
         return graph_html
@@ -458,7 +470,11 @@ class PatientAdmin(admin.ModelAdmin):
     progress_graph.short_description = "Diagnosis Entry Progress"
 
     def moleculardata_entered(self, obj):
-        if not hasattr(obj, 'moleculardatasma') or not hasattr(obj.moleculardatasma, 'variationsma_set') or not obj.moleculardatasma.variationsma_set.all():
+        if not hasattr(
+                obj,
+                'moleculardatasma') or not hasattr(
+                obj.moleculardatasma,
+                'variationsma_set') or not obj.moleculardatasma.variationsma_set.all():
             return ''
 
         imagefile = 'tick.png'

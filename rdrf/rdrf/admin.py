@@ -213,13 +213,19 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
         if user.is_superuser:
             return QuestionnaireResponse.objects.all()
         else:
-            return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all()])
+            return QuestionnaireResponse.objects.filter(
+                registry__in=[
+                    reg for reg in user.registry.all()])
 
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
 
 
-def create_restricted_model_admin_class(model_class, search_fields=None, ordering=None, list_display=None):
+def create_restricted_model_admin_class(
+        model_class,
+        search_fields=None,
+        ordering=None,
+        list_display=None):
 
     def query_set_func(model_class):
         def queryset(myself, request):
@@ -293,7 +299,9 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
         if user.is_superuser:
             return AdjudicationRequest.objects.all()
         else:
-            return AdjudicationRequest.objects.filter(username=user.username, state=AdjudicationRequestState.REQUESTED)
+            return AdjudicationRequest.objects.filter(
+                username=user.username,
+                state=AdjudicationRequestState.REQUESTED)
 
 
 class AdjudicationAdmin(admin.ModelAdmin):
@@ -345,8 +353,8 @@ class ConsentQuestionAdmin(admin.StackedInline):
 
     fieldsets = (
         (None, {
-         'fields': ('position', 'code', 'question_label', 'questionnaire_label', 'instructions')}),
-    )
+            'fields': (
+                'position', 'code', 'question_label', 'questionnaire_label', 'instructions')}), )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
@@ -361,12 +369,37 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=[
-                    'code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
+admin.site.register(
+    CDEPermittedValue,
+    create_restricted_model_admin_class(
+        CDEPermittedValue,
+        ordering=['code'],
+        search_fields=[
+            'code',
+            'value',
+            'pv_group__code'],
+        list_display=[
+            'code',
+            'value',
+            'questionnaire_value_formatted',
+            'pvg_link',
+            'position_formatted']))
 admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
 # admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=[
-                    'code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
+admin.site.register(
+    CommonDataElement,
+    create_restricted_model_admin_class(
+        CommonDataElement,
+        ordering=['code'],
+        search_fields=[
+            'code',
+            'name',
+            'datatype'],
+        list_display=[
+            'code',
+            'name',
+            'datatype',
+            'widget_name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)

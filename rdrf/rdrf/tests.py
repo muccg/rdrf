@@ -134,8 +134,12 @@ class ExporterTestCase(RDRFTestCase):
         for form_map in data['forms']:
             test_keys(['is_questionnaire', 'name', 'sections'], form_map)
             for section_map in form_map['sections']:
-                test_keys(
-                    ['code', 'display_name', 'elements', 'allow_multiple', 'extra'], section_map)
+                test_keys(['code',
+                           'display_name',
+                           'elements',
+                           'allow_multiple',
+                           'extra'],
+                          section_map)
 
         from rdrf.models import CommonDataElement
         dummy_cde = CommonDataElement.objects.create()
@@ -229,12 +233,8 @@ class FormTestCase(RDRFTestCase):
 
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
-        self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
-                                                                             address_type=self.address_type,
-                                                                             suburb='Neverland',
-                                                                             state=self.state,
-                                                                             postcode='1111',
-                                                                             patient=self.patient)
+        self.patient_address, created = PatientAddress.objects.get_or_create(
+            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state, postcode='1111', patient=self.patient)
         self.patient_address.save()
 
         self.request_factory = RequestFactory()

@@ -27,13 +27,14 @@ class SaveNewlyCreatedRegisterForm(Base):
         try:
             self.assertEqual(
                 "Please correct the errors below.", sel.get_text("css=p.errornote"))
-        except AssertionError, e:
+        except AssertionError as e:
             self.verificationErrors.append(str(e))
         sel.type("id=id_sections", "adummysection")
         sel.click("name=_save")
         sel.wait_for_page_to_load("30000")
         try:
-            self.assertEqual(u"× The registry form \"Facioscapulohumeral Muscular Dystrophy (fshd) testingformforfshd Form comprising adummysection\" was added successfully.", sel.get_text(
-                "//div[@id='suit-center']/div"))
-        except AssertionError, e:
+            self.assertEqual(
+                u"× The registry form \"Facioscapulohumeral Muscular Dystrophy (fshd) testingformforfshd Form comprising adummysection\" was added successfully.",
+                sel.get_text("//div[@id='suit-center']/div"))
+        except AssertionError as e:
             self.verificationErrors.append(str(e))

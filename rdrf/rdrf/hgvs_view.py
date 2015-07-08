@@ -23,7 +23,8 @@ class HGVSView(View):
         except ParseError:
             parse_result = False
 
-        return HttpResponse(json.dumps({'parse_result': parse_result}), mimetype='application/json')
+        return HttpResponse(
+            json.dumps({'parse_result': parse_result}), mimetype='application/json')
 
     def post(self, request, hgvs_code):
         pass

@@ -35,8 +35,8 @@ class FormProgressCalculator(object):
         self.registry_model = registry_model
         self.patient_resource = patient_resource
 
-        self.viewable_forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by('position')
-                               if self._not_generated_form(f) and self.user.can_view(f)]
+        self.viewable_forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
+            'position') if self._not_generated_form(f) and self.user.can_view(f)]
 
         # List of (form_model, section_model, cde_model) triples
         self.diagnosis_triples = self.registry_model.diagnosis_progress_cde_triples
@@ -183,9 +183,11 @@ class FormProgressCalculator(object):
         results = {}
         logger.debug("mongo data %s" % self.mongo_data)
         for patient_data in self.mongo_data:
-            results[patient_data["django_id"]] = self.data_currency_one_patient(patient_data,
-                                                                                self.diagnosis_forms,
-                                                                                num_days)
+            results[
+                patient_data["django_id"]] = self.data_currency_one_patient(
+                patient_data,
+                self.diagnosis_forms,
+                num_days)
 
         for patient_id in self.patient_ids_not_in_mongo:
             results[patient_id] = False
@@ -254,7 +256,13 @@ class FormProgressCalculator(object):
 
         return results
 
-    def _form_is_current(self, form_model, patient_data, time_window_start=datetime.datetime.now() - datetime.timedelta(days=365)):
+    def _form_is_current(
+            self,
+            form_model,
+            patient_data,
+            time_window_start=datetime.datetime.now() -
+            datetime.timedelta(
+            days=365)):
         form_timestamp = self._get_form_timestamp(patient_data, form_model)
         if form_timestamp and form_timestamp >= time_window_start:
             return True

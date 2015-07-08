@@ -79,8 +79,9 @@ class CustomConsentHelper(object):
     def check_for_errors(self):
         for custom_consent_wrapper in self.custom_consent_wrappers:
             if not custom_consent_wrapper.is_valid():
-                self.custom_consent_errors[custom_consent_wrapper.label] = [error_message for error_message in
-                                                                            custom_consent_wrapper.errors]
+                self.custom_consent_errors[
+                    custom_consent_wrapper.label] = [
+                    error_message for error_message in custom_consent_wrapper.errors]
                 self.error_count += custom_consent_wrapper.num_errors
 
     def load_dynamic_data(self, dynamic_data):
@@ -163,7 +164,10 @@ class FormView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(self.template, context, context_instance=RequestContext(request))
+        return render_to_response(
+            self.template,
+            context,
+            context_instance=RequestContext(request))
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
@@ -202,7 +206,12 @@ class FormView(View):
         for section_index, s in enumerate(sections):
             section_model = Section.objects.get(code=s)
             form_class = create_form_class_for_section(
-                registry, form_obj, section_model, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
+                registry,
+                form_obj,
+                section_model,
+                injected_model="Patient",
+                injected_model_id=self.patient_id,
+                is_superuser=self.request.user.is_superuser)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -216,7 +225,10 @@ class FormView(View):
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                     from copy import deepcopy
                     form2 = form_class(
-                        dynamic_data, initial=wrap_gridfs_data_for_form(registry_code, deepcopy(dynamic_data)))
+                        dynamic_data,
+                        initial=wrap_gridfs_data_for_form(
+                            registry_code,
+                            deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
                     for e in form.errors:
@@ -261,7 +273,10 @@ class FormView(View):
 
                     logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
                     form_section[s] = form_set_class(
-                        initial=wrap_gridfs_data_for_form(registry_code, dynamic_data), prefix=prefix)
+                        initial=wrap_gridfs_data_for_form(
+                            registry_code,
+                            dynamic_data),
+                        prefix=prefix)
                 else:
                     logger.debug("formset for multisection is invalid!")
                     for e in formset.errors:
@@ -314,9 +329,15 @@ class FormView(View):
         else:
             if not self.testing:
                 messages.add_message(
-                    request, messages.ERROR, 'Patient %s not saved due to validation errors' % patient_name)
+                    request,
+                    messages.ERROR,
+                    'Patient %s not saved due to validation errors' %
+                    patient_name)
 
-        return render_to_response('rdrf_cdes/form.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/form.html',
+            context,
+            context_instance=RequestContext(request))
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
@@ -338,13 +359,23 @@ class FormView(View):
 
     def _get_form_class_for_section(self, registry, registry_form, section):
         return create_form_class_for_section(
-            registry, registry_form, section, injected_model="Patient", injected_model_id=self.patient_id, is_superuser=self.request.user.is_superuser)
+            registry,
+            registry_form,
+            section,
+            injected_model="Patient",
+            injected_model_id=self.patient_id,
+            is_superuser=self.request.user.is_superuser)
 
     def _get_formlinks(self, user):
 
         if user is not None:
-            return [FormLink(self.patient_id, self.registry, form, selected=(form.name == self.registry_form.name))
-                    for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
+            return [
+                FormLink(
+                    self.patient_id,
+                    self.registry,
+                    form,
+                    selected=(
+                        form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -401,7 +432,8 @@ class FormView(View):
                             self.registry, self.dynamic_data[s])
                     except KeyError as ke:
                         logger.error(
-                            "patient %s section %s data could not be retrieved: %s" % (self.patient_id, s, ke))
+                            "patient %s section %s data could not be retrieved: %s" %
+                            (self.patient_id, s, ke))
                         initial_data = [""]  # * len(section_elements)
                 else:
                     # initial_data = [""] * len(section_elements)
@@ -631,7 +663,10 @@ class QuestionnaireView(FormView):
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
             form_class = create_form_class_for_section(
-                registry, questionnaire_form, section_model, questionnaire_context=self.questionnaire_context)
+                registry,
+                questionnaire_form,
+                section_model,
+                questionnaire_context=self.questionnaire_context)
             section_field_ids_map[section] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
@@ -681,7 +716,8 @@ class QuestionnaireView(FormView):
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
             questionnaire_response_wrapper.save_dynamic_data(
-                registry_code, "cdes", {"custom_consent_data": custom_consent_helper.custom_consent_data})
+                registry_code, "cdes", {
+                    "custom_consent_data": custom_consent_helper.custom_consent_data})
 
             if self.testing:
                 questionnaire_response_wrapper.testing = True
@@ -690,7 +726,11 @@ class QuestionnaireView(FormView):
                 questionnaire_response_wrapper.save_dynamic_data(
                     registry_code, "cdes", data_map[section])
 
-            def get_completed_questions(questionnaire_form_model, data_map, custom_consent_data, consent_wrappers):
+            def get_completed_questions(
+                    questionnaire_form_model,
+                    data_map,
+                    custom_consent_data,
+                    consent_wrappers):
                 from django.utils.datastructures import SortedDict
                 section_map = SortedDict()
 
@@ -703,7 +743,8 @@ class QuestionnaireView(FormView):
                         self.questions = []
 
                     def load_consents(self, consent_section_model, custom_consent_data):
-                        for consent_question_model in consent_section_model.questions.order_by("position"):
+                        for consent_question_model in consent_section_model.questions.order_by(
+                                "position"):
                             question_wrapper = ConsentQuestionWrapper()
                             question_wrapper.label = consent_question_model.label(
                                 on_questionnaire=True)
@@ -792,12 +833,17 @@ class QuestionnaireView(FormView):
                     else:
                         section_map[section_label].is_multi = True
 
-                        for multisection_map in data_map[section_model.code][section_model.code]:
+                        for multisection_map in data_map[
+                                section_model.code][
+                                section_model.code]:
                             subsection = []
                             section_wrapper = {section_model.code: multisection_map}
                             for cde_model in section_model.cde_models:
                                 question = get_question(
-                                    questionnaire_form_model, section_model, cde_model, section_wrapper)
+                                    questionnaire_form_model,
+                                    section_model,
+                                    cde_model,
+                                    section_wrapper)
                                 subsection.append(question)
                             section_map[section_label].subsections.append(subsection)
 
@@ -813,7 +859,9 @@ class QuestionnaireView(FormView):
             context["completed_sections"] = section_map
             context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
 
-            return render_to_response('rdrf_cdes/completed_questionnaire_thankyou.html', context)
+            return render_to_response(
+                'rdrf_cdes/completed_questionnaire_thankyou.html',
+                context)
         else:
             logger.debug("Error count non-zero!:  %s" % error_count)
 
@@ -838,8 +886,13 @@ class QuestionnaireView(FormView):
 
             context.update(csrf(request))
             messages.add_message(
-                request, messages.ERROR, 'The questionnaire was not submitted because of validation errors - please try again')
-            return render_to_response('rdrf_cdes/questionnaire.html', context, context_instance=RequestContext(request))
+                request,
+                messages.ERROR,
+                'The questionnaire was not submitted because of validation errors - please try again')
+            return render_to_response(
+                'rdrf_cdes/questionnaire.html',
+                context,
+                context_instance=RequestContext(request))
 
     def _get_patient_id(self):
         return "questionnaire"
@@ -866,7 +919,9 @@ class QuestionnaireResponseView(FormView):
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(
-            id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+            id=questionnaire_response_id,
+            registry_code=registry_code,
+            model_class=QuestionnaireResponse)
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -940,10 +995,13 @@ class QuestionnaireResponseView(FormView):
             messages.error(request, "Questionnaire rejected")
         else:
             logger.debug(
-                "attempting to create patient from questionnaire response %s" % questionnaire_response_id)
+                "attempting to create patient from questionnaire response %s" %
+                questionnaire_response_id)
             patient_creator = PatientCreator(self.registry, request.user)
             questionnaire_data = self._get_dynamic_data(
-                id=questionnaire_response_id, registry_code=registry_code, model_class=QuestionnaireResponse)
+                id=questionnaire_response_id,
+                registry_code=registry_code,
+                model_class=QuestionnaireResponse)
             logger.debug("questionnaire data = %s" % questionnaire_data)
 
             patient_creator.create_patient(request.POST, qr, questionnaire_data)
@@ -954,7 +1012,9 @@ class QuestionnaireResponseView(FormView):
             elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
                 error = patient_creator.error
                 messages.error(
-                    request, "Patient failed to be created due to validation errors: %s" % error)
+                    request,
+                    "Patient failed to be created due to validation errors: %s" %
+                    error)
             elif patient_creator.state == PatientCreatorState.FAILED:
                 error = patient_creator.error
                 messages.error(request, "Patient failed to be created: %s" % error)
@@ -1041,7 +1101,9 @@ class QuestionnaireConfigurationView(View):
 
             @property
             def exposed(self):
-                if self.registry_form.on_questionnaire(self.section_model.code, self.cde_model.code):
+                if self.registry_form.on_questionnaire(
+                        self.section_model.code,
+                        self.cde_model.code):
                     return "checked"
                 else:
                     return ""
@@ -1073,7 +1135,10 @@ class QuestionnaireConfigurationView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(self.TEMPLATE, context, context_instance=RequestContext(request))
+        return render_to_response(
+            self.TEMPLATE,
+            context,
+            context_instance=RequestContext(request))
 
 
 class RDRFDesignerCDESEndPoint(View):
@@ -1170,51 +1235,80 @@ class AdjudicationInitiationView(View):
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            return StandardView.render_error(request, "Patient with id %s not found!" % patient_id)
+            return StandardView.render_error(
+                request,
+                "Patient with id %s not found!" %
+                patient_id)
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
         return render_to_response(
-            'rdrf_cdes/adjudication_initiation_form.html', context, context_instance=RequestContext(request))
+            'rdrf_cdes/adjudication_initiation_form.html',
+            context,
+            context_instance=RequestContext(request))
 
     @method_decorator(login_required)
     def post(self, request, def_id, patient_id):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
         except AdjudicationDefinition.DoesNotExist:
-            return StandardView.render_error(request, "Adjudication Definition %s not found" % def_id)
+            return StandardView.render_error(
+                request,
+                "Adjudication Definition %s not found" %
+                def_id)
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            return StandardView.render_error(request, "Patient with id %s not found!" % patient_id)
+            return StandardView.render_error(
+                request,
+                "Patient with id %s not found!" %
+                patient_id)
 
         from rdrf.models import AdjudicationState
         adjudication_state = adj_def.get_state(patient)
         if adjudication_state == AdjudicationState.ADJUDICATED:
-            return StandardView.render_error(request, "This patient has already been adjudicated!")
+            return StandardView.render_error(
+                request,
+                "This patient has already been adjudicated!")
         elif adjudication_state == AdjudicationState.UNADJUDICATED:
-            return StandardView.render_error(request, "This patient has already had an adjudication initiated")
+            return StandardView.render_error(
+                request,
+                "This patient has already had an adjudication initiated")
         elif adjudication_state != AdjudicationState.NOT_CREATED:
-            return StandardView.render_error(request, "Unknown adjudication state '%s' - contact admin" %
-                                             adjudication_state)
+            return StandardView.render_error(
+                request,
+                "Unknown adjudication state '%s' - contact admin" %
+                adjudication_state)
         else:
             # no requests have been adjudication requests created for this patient
             sent_ok, errors = self._create_adjudication_requests(
                 request, adj_def, patient, request.user)
             if errors:
                 return StandardView.render_error(
-                    request, "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" % (sent_ok, errors))
+                    request,
+                    "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" %
+                    (sent_ok,
+                     errors))
             else:
-                return StandardView.render_information(request, "Adjudication Request Sent Successfully!")
+                return StandardView.render_information(
+                    request,
+                    "Adjudication Request Sent Successfully!")
 
-    def _create_adjudication_requests(self, request, adjudication_definition, patient, requesting_user):
+    def _create_adjudication_requests(
+            self,
+            request,
+            adjudication_definition,
+            patient,
+            requesting_user):
         form_data = request.POST
         errors = []
         request_created_ok = []
         try:
             adjudication = Adjudication.objects.get(
-                definition=adjudication_definition, patient_id=patient.pk, requesting_username=requesting_user.username)
+                definition=adjudication_definition,
+                patient_id=patient.pk,
+                requesting_username=requesting_user.username)
             raise AdjudicationError(
                 "Adjudication already created for this patient and definition")
 
@@ -1222,8 +1316,10 @@ class AdjudicationInitiationView(View):
             # this is good
             # adjudication object created as bookkeeping object so adjudicator can
             # launch from admin and decide result
-            adjudication = Adjudication(definition=adjudication_definition, patient_id=patient.pk,
-                                        requesting_username=requesting_user.username)
+            adjudication = Adjudication(
+                definition=adjudication_definition,
+                patient_id=patient.pk,
+                requesting_username=requesting_user.username)
 
             adjudication.save()
 
@@ -1252,7 +1348,8 @@ class AdjudicationInitiationView(View):
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append(
-                        "Could not create adjudication request object for %s: %s" % (target_user, ex))
+                        "Could not create adjudication request object for %s: %s" %
+                        (target_user, ex))
 
         for target_working_group_name in target_working_group_names:
             try:
@@ -1267,9 +1364,9 @@ class AdjudicationInitiationView(View):
                         requesting_user, patient, target_user)
                     request_created_ok.append(target_username)
                 except Exception as ex:
-                    errors.append("could not create adjudication request for %s in group %s:%s" % (target_user,
-                                                                                                   target_working_group,
-                                                                                                   ex))
+                    errors.append(
+                        "could not create adjudication request for %s in group %s:%s" %
+                        (target_user, target_working_group, ex))
                     continue
 
         return request_created_ok, errors
@@ -1282,8 +1379,10 @@ class AdjudicationRequestView(View):
         user = request.user
         from rdrf.models import AdjudicationRequest, AdjudicationRequestState
         try:
-            adj_req = AdjudicationRequest.objects.get(pk=adjudication_request_id, username=user.username,
-                                                      state=AdjudicationRequestState.REQUESTED)
+            adj_req = AdjudicationRequest.objects.get(
+                pk=adjudication_request_id,
+                username=user.username,
+                state=AdjudicationRequestState.REQUESTED)
         except AdjudicationRequest.DoesNotExist:
             msg = "Adjudication request not found or not for current user or has already been actioned"
             return StandardView.render_error(request, msg)
@@ -1292,7 +1391,8 @@ class AdjudicationRequestView(View):
             # The adjudicator has already acted on the information from other requests
             # for this patient
             return StandardView.render_information(
-                request, "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
+                request,
+                "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 
@@ -1301,7 +1401,10 @@ class AdjudicationRequestView(View):
                    "req": adj_req}
 
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/adjudication_form.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/adjudication_form.html',
+            context,
+            context_instance=RequestContext(request))
 
     @method_decorator(login_required)
     def post(self, request, adjudication_request_id):
@@ -1311,14 +1414,18 @@ class AdjudicationRequestView(View):
         else:
             from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError
             try:
-                adj_req = AdjudicationRequest.objects.get(pk=arid, state=AdjudicationRequestState.REQUESTED,
-                                                          username=request.user.username)
+                adj_req = AdjudicationRequest.objects.get(
+                    pk=arid,
+                    state=AdjudicationRequestState.REQUESTED,
+                    username=request.user.username)
                 try:
                     adj_req.handle_response(request)
                 except AdjudicationError as aerr:
                     return StandardView.render_error(request, "Adjudication Error: %s" % aerr)
 
-                return StandardView.render_information(request, "Adjudication Response submitted successfully!")
+                return StandardView.render_information(
+                    request,
+                    "Adjudication Response submitted successfully!")
 
             except AdjudicationRequest.DoesNotExist:
                 msg = "Cannot submit adjudication - adjudication request with id %s not found" %  \
@@ -1346,23 +1453,27 @@ class AdjudicationResultsView(View):
         adjudicating_username = adj_def.adjudicator_username
 
         if adjudicating_username != request.user.username:
-            return StandardView.render_error(request, "This adjudication result is not adjudicable by you!")
+            return StandardView.render_error(
+                request,
+                "This adjudication result is not adjudicable by you!")
 
         try:
             from registry.groups.models import CustomUser
             requesting_user = CustomUser.objects.get(pk=requesting_user_id)
         except CustomUser.DoesNotExist:
-            return StandardView.render_error(request, "Could not find requesting user for this adjudication '%s'" %
-                                             requesting_user_id)
+            return StandardView.render_error(
+                request,
+                "Could not find requesting user for this adjudication '%s'" %
+                requesting_user_id)
 
         try:
-            adjudication = Adjudication.objects.get(definition=adj_def,
-                                                    patient_id=patient_id,
-                                                    requesting_username=requesting_user.username)
+            adjudication = Adjudication.objects.get(
+                definition=adj_def,
+                patient_id=patient_id,
+                requesting_username=requesting_user.username)
         except Adjudication.DoesNotExist:
-            msg = "Could not find adjudication for definition %s patient %s requested by %s" % (adj_def,
-                                                                                                patient_id,
-                                                                                                requesting_user)
+            msg = "Could not find adjudication for definition %s patient %s requested by %s" % (
+                adj_def, patient_id, requesting_user)
 
             return StandardView.render_error(request, msg)
 
@@ -1500,7 +1611,11 @@ class AdjudicationResultsView(View):
             results.append(value)
         return results
 
-    def _get_stats_and_responses(self, patient_id, requesting_username, adjudication_definition):
+    def _get_stats_and_responses(
+            self,
+            patient_id,
+            requesting_username,
+            adjudication_definition):
         """
 
         :param patient_id: pk of patient
@@ -1510,8 +1625,10 @@ class AdjudicationResultsView(View):
         """
         responses = []
         stats = {}
-        for adj_req in AdjudicationRequest.objects.filter(definition=adjudication_definition, patient=patient_id,
-                                                          requesting_username=requesting_username):
+        for adj_req in AdjudicationRequest.objects.filter(
+                definition=adjudication_definition,
+                patient=patient_id,
+                requesting_username=requesting_username):
             if adj_req.state not in stats:
                 stats[adj_req.state] = 1
             else:
@@ -1532,8 +1649,9 @@ class AdjudicationResultsView(View):
             return StandardView.render_error(request, msg)
 
         if adj_def.adjudicator_username != request.user.username:
-            return StandardView.render_error(request,
-                                             "You are not authorised to submit an adjudication for this patient")
+            return StandardView.render_error(
+                request,
+                "You are not authorised to submit an adjudication for this patient")
 
         patient_id_on_form = request.POST["patient_id"]
         if patient_id_on_form != patient_id:
@@ -1557,9 +1675,14 @@ class AdjudicationResultsView(View):
             return StandardView.render_information(request)
 
         elif adjudication_state == AdjudicationState.ADJUDICATED:
-            return StandardView.render_error(request, "This patient has already been adjudicated!")
+            return StandardView.render_error(
+                request,
+                "This patient has already been adjudicated!")
         elif adjudication_state != AdjudicationState.UNADJUDICATED:
-            return StandardView.render_error(request, "Unknown adjudication state: %s" % adjudication_state)
+            return StandardView.render_error(
+                request,
+                "Unknown adjudication state: %s" %
+                adjudication_state)
         else:
             adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
             action_code_value_pairs = self._get_actions_data(adj_def, request.POST)
@@ -1567,8 +1690,10 @@ class AdjudicationResultsView(View):
             adj_dec.save()
             # link the adjudication bookkeeping object to this decision
             try:
-                adjudication = Adjudication.objects.get(definition=adj_def, patient_id=patient_id,
-                                                        requesting_username=requesting_user.username)
+                adjudication = Adjudication.objects.get(
+                    definition=adj_def,
+                    patient_id=patient_id,
+                    requesting_username=requesting_user.username)
             except Adjudication.DoesNotExist:
                 return StandardView.render_error(request, "Adjudication object doesn't exist")
 
@@ -1576,11 +1701,15 @@ class AdjudicationResultsView(View):
             adjudication.save()
             result = adjudication.perform_actions(request)
             if result.ok:
-                return StandardView.render_information(request, "Your adjudication decision has been sent to %s" %
-                                                       adjudication.requesting_username)
+                return StandardView.render_information(
+                    request,
+                    "Your adjudication decision has been sent to %s" %
+                    adjudication.requesting_username)
             else:
-                return StandardView.render_error(request, "Your adjudication decision was not communicated: %s" %
-                                                 result.error_message)
+                return StandardView.render_error(
+                    request,
+                    "Your adjudication decision was not communicated: %s" %
+                    result.error_message)
 
     def _get_actions_data(self, definition, post_data):
         actions = []
@@ -1613,7 +1742,10 @@ class PatientsListingView(LoginRequiredMixin, View):
 
         context["location"] = "Patient List"
 
-        return render_to_response('rdrf_cdes/patients.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/patients.html',
+            context,
+            context_instance=RequestContext(request))
 
 
 class BootGridApi(View):

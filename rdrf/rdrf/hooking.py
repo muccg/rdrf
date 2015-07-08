@@ -29,7 +29,8 @@ def run_hooks(hook_name, *args, **kwargs):
     import rdrf.hooks as defined_hooks_package
     defined_hooks_package_path = os.path.dirname(defined_hooks_package.__file__)
     hooks_to_run = []
-    for _, defined_hook_module_name, _ in pkgutil.iter_modules(path=[defined_hooks_package_path]):
+    for _, defined_hook_module_name, _ in pkgutil.iter_modules(
+            path=[defined_hooks_package_path]):
         if not _registry_exists_for_hook_module(defined_hook_module_name):
             continue
         defined_hook_module = __import__(

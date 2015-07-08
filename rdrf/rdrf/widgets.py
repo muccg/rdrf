@@ -234,7 +234,8 @@ class CountryWidget(widgets.Select):
         countries = pycountry.countries
 
         output = [
-            "<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" % (name, name)]
+            "<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" %
+            (name, name)]
         empty_option = "<option value=''>---</option>"
         output.append(empty_option)
         for country in countries:
@@ -378,7 +379,8 @@ class ReadOnlySelect(widgets.Select):
         return self._make_label(html) + self._make_hidden_field(name, value, attrs)
 
     def _make_hidden_field(self, name, value, attrs):
-        return """<input type="hidden" id="%s" name="%s" value="%s"/>""" % (attrs['id'], name, value)
+        return """<input type="hidden" id="%s" name="%s" value="%s"/>""" % (
+            attrs['id'], name, value)
 
     def _make_label(self, html):
         import re
@@ -418,18 +420,21 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
         if self.RPC_COMMAND_NAME:
             attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (
                 rpc_endpoint_url, self.RPC_COMMAND_NAME)
-        return super(GenericValidatorWithConstructorPopupWidget, self).render(name, value, attrs) + \
-            self._validation_indicator_html() + \
-            self._constructor_button() + \
-            self._on_page_load(attrs['id'])
+        return super(
+            GenericValidatorWithConstructorPopupWidget,
+            self).render(
+            name,
+            value,
+            attrs) + self._validation_indicator_html() + self._constructor_button() + self._on_page_load(
+            attrs['id'])
 
     def _constructor_button(self):
         if not self.CONSTRUCTOR_FORM_NAME:
             return ""
         else:
             constructor_form_url = self._get_constructor_form_url(self.CONSTRUCTOR_FORM_NAME)
-            return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (self.CONSTRUCTOR_FORM_NAME,
-                                                                                                                       constructor_form_url)
+            return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (
+                self.CONSTRUCTOR_FORM_NAME, constructor_form_url)
 
     def _validation_indicator_html(self):
         if self.RPC_COMMAND_NAME:

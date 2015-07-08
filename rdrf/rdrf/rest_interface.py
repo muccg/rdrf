@@ -100,8 +100,9 @@ class REST(object):
                     raise RESTInterfaceError("Section %s does not exist" % self.section_code)
 
             else:
-                raise RESTInterfaceError("Section %s does not appear in Registry form %s in Registry %s" % (
-                    self.section_code, self.form_name, self.registry_code))
+                raise RESTInterfaceError(
+                    "Section %s does not appear in Registry form %s in Registry %s" %
+                    (self.section_code, self.form_name, self.registry_code))
 
         else:
             self.section = None
@@ -110,8 +111,9 @@ class REST(object):
             try:
                 self.cde = CommonDataElement.objects.get(code=self.cde_code)
                 if not appears_in(self.cde, self.registry, self.registry_form, self.section):
-                    raise RESTInterfaceError("Data Element with code %s does not appear in Registry %s Form %s Section %s" % (
-                        self.cde_code, self.registry_code, self.form_name, self.section_code))
+                    raise RESTInterfaceError(
+                        "Data Element with code %s does not appear in Registry %s Form %s Section %s" %
+                        (self.cde_code, self.registry_code, self.form_name, self.section_code))
             except CommonDataElement.DoesNotExist:
                 raise RESTInterfaceError(
                     "Data Elemement with code %s doesn't exist" % self.cde_code)
@@ -247,7 +249,8 @@ class REST(object):
 
     def _create_delimited_key(self):
         from django.conf import settings
-        return settings.FORM_SECTION_DELIMITER.join([self.form_name, self.section_code, self.cde_code])
+        return settings.FORM_SECTION_DELIMITER.join(
+            [self.form_name, self.section_code, self.cde_code])
 
     def _retrieve(self, level, data):
         logger.debug("dynamic data = %s" % data)

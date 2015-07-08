@@ -34,7 +34,7 @@ class PatientDoctorForm(forms.ModelForm):
         (5, "Neurologist"),
         (6, "Geneticist"),
         (7, "Specialist - Other"),
-        (8,	"Cardiologist"),
+        (8, "Cardiologist"),
         (9, "Nurse Practitioner"),
         (10, "Paediatrician"),
     )
@@ -52,14 +52,21 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
-        date_of_birth = forms.DateField(widget=forms.DateInput(
-            attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), input_formats=['%d-%m-%Y'])
+        date_of_birth = forms.DateField(
+            widget=forms.DateInput(
+                attrs={
+                    'class': 'datepicker',
+                    "style": "width:70px"},
+                format='%d-%m-%Y'),
+            input_formats=['%d-%m-%Y'])
         widgets = {
-            'relative_patient': PatientRelativeLinkWidget,
-            'sex': Select(attrs={"style": "width:90px"}),
-            'living_status': Select(attrs={"style": "width:100px"}),
-            'date_of_birth': forms.DateInput(attrs={'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'),
-        }
+            'relative_patient': PatientRelativeLinkWidget, 'sex': Select(
+                attrs={
+                    "style": "width:90px"}), 'living_status': Select(
+                attrs={
+                    "style": "width:100px"}), 'date_of_birth': forms.DateInput(
+                        attrs={
+                            'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), }
 
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
@@ -93,7 +100,7 @@ class PatientRelativeForm(forms.ModelForm):
                 elif name == 'date_of_birth':
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
-                    except Exception, ex:
+                    except Exception as ex:
                         raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
@@ -210,7 +217,8 @@ class PatientForm(forms.ModelForm):
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
+                registry=self.registry_model, id__in=[
+                    wg.pk for wg in self.user.working_groups.all()])
             if not user.is_superuser:
                 logger.debug("not superuser so updating field visibility")
                 if not self.registry_model:
@@ -281,8 +289,13 @@ class PatientForm(forms.ModelForm):
     #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
     #consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
     #consent_provided_by_parent_guardian = forms.BooleanField(required=False, help_text="The parent/guardian of the patient has provided consent", label="Parent/Guardian consent provided on behalf of the patient")
-    date_of_birth = forms.DateField(widget=forms.DateInput(
-        attrs={'class': 'datepicker'}, format='%d-%m-%Y'), help_text="DD-MM-YYYY", input_formats=['%d-%m-%Y'])
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'class': 'datepicker'},
+            format='%d-%m-%Y'),
+        help_text="DD-MM-YYYY",
+        input_formats=['%d-%m-%Y'])
 
     class Meta:
         model = Patient
@@ -360,8 +373,8 @@ class PatientForm(forms.ModelForm):
 
                 answer_dict = data[registry_model][consent_section_model]
                 if not consent_section_model.is_valid(answer_dict):
-                    error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
-                                                                              consent_section_model.section_label)
+                    error_message = "Consent Section '%s %s' is not valid" % (
+                        registry_model.code.upper(), consent_section_model.section_label)
                     validation_errors.append(error_message)
                 else:
                     logger.debug("Consent section %s is valid!" %
@@ -370,7 +383,7 @@ class PatientForm(forms.ModelForm):
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
 
-    def save(self,  commit=True):
+    def save(self, commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
         logger.debug("patient instance = %s" % patient_model)
@@ -425,7 +438,10 @@ class PatientForm(forms.ModelForm):
             if not patient_registries:
                 logger.debug("No registries yet - Adding patient consent closure")
                 closure = self._make_consent_closure(
-                    registry_model, consent_section_model, consent_question_model, consent_field)
+                    registry_model,
+                    consent_section_model,
+                    consent_question_model,
+                    consent_field)
                 if hasattr(patient_model, 'add_registry_closures'):
                     logger.debug("appending to closure list")
                     patient_model.add_registry_closures.append(closure)
@@ -435,7 +451,12 @@ class PatientForm(forms.ModelForm):
 
         return patient_model
 
-    def _make_consent_closure(self, registry_model, consent_section_model, consent_question_model, consent_field):
+    def _make_consent_closure(
+            self,
+            registry_model,
+            consent_section_model,
+            consent_question_model,
+            consent_field):
         def closure(patient_model, registry_ids):
             logger.debug("running consent closure")
             if registry_model.id in registry_ids:
@@ -471,7 +492,8 @@ class PatientForm(forms.ModelForm):
         for registry_model in registries:
             for consent_section_model in registry_model.consent_sections.all():
                 if consent_section_model.applicable_to(patient_model):
-                    for consent_question_model in consent_section_model.questions.all().order_by("position"):
+                    for consent_question_model in consent_section_model.questions.all().order_by(
+                            "position"):
                         consent_field = consent_question_model.create_field()
                         field_key = consent_question_model.field_key
                         self.fields[field_key] = consent_field
@@ -508,7 +530,11 @@ class PatientForm(forms.ModelForm):
                             pk=consent_section_pk)
                         questions.append(field)
 
-        return ("%s %s" % (registry_model.code.upper(), consent_section_model.section_label), questions)
+        return (
+            "%s %s" %
+            (registry_model.code.upper(),
+             consent_section_model.section_label),
+            questions)
 
     def _check_working_groups(self, cleaned_data):
         working_group_data = {}
@@ -527,7 +553,8 @@ class PatientForm(forms.ModelForm):
         if bad:
             bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
             raise forms.ValidationError(
-                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" % ",".join(bad_regs))
+                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" %
+                ",".join(bad_regs))
 
 
 class ParentGuardianForm(forms.ModelForm):

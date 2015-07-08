@@ -84,10 +84,14 @@ class PatientManager(models.Manager):
         return self.model.objects.filter(working_groups__in=get_working_groups(user))
 
     def get_filtered(self, user):
-        return self.model.objects.filter(rdrf_registry__id__in=get_registries(user)).filter(working_groups__in=get_working_groups(user)).distinct()
+        return self.model.objects.filter(
+            rdrf_registry__id__in=get_registries(user)).filter(
+            working_groups__in=get_working_groups(user)).distinct()
 
     def get_filtered_unallocated(self, user):
-        return self.model.objects.filter(working_groups__in=get_working_groups(user)).exclude(rdrf_registry__isnull=False)
+        return self.model.objects.filter(
+            working_groups__in=get_working_groups(user)).exclude(
+            rdrf_registry__isnull=False)
 
 
 class Patient(models.Model):
@@ -125,13 +129,26 @@ class Patient(models.Model):
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(
-        null=False, blank=False, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.", verbose_name="consent given")
+        null=False,
+        blank=False,
+        help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.",
+        verbose_name="consent given")
     consent_clinical_trials = models.BooleanField(
-        null=False, blank=False, help_text="Consent given to be contacted about clinical trials or other studies related to their condition.", default=False)
+        null=False,
+        blank=False,
+        help_text="Consent given to be contacted about clinical trials or other studies related to their condition.",
+        default=False)
     consent_sent_information = models.BooleanField(
-        null=False, blank=False, help_text="Consent given to be sent information on their condition", verbose_name="consent to be sent information given", default=False)
+        null=False,
+        blank=False,
+        help_text="Consent given to be sent information on their condition",
+        verbose_name="consent to be sent information given",
+        default=False)
     consent_provided_by_parent_guardian = models.BooleanField(
-        null=False, blank=False, help_text="Parent/Guardian consent provided on behalf of the patient.", default=False)
+        null=False,
+        blank=False,
+        help_text="Parent/Guardian consent provided on behalf of the patient.",
+        default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
     maiden_name = models.CharField(
@@ -155,7 +172,11 @@ class Patient(models.Model):
     next_of_kin_given_names = models.CharField(
         max_length=100, blank=True, null=True, verbose_name="given names")
     next_of_kin_relationship = models.ForeignKey(
-        NextOfKinRelationship, verbose_name="Relationship", blank=True, null=True, on_delete=models.SET_NULL)
+        NextOfKinRelationship,
+        verbose_name="Relationship",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL)
     next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
     next_of_kin_suburb = models.CharField(
         max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
@@ -175,12 +196,20 @@ class Patient(models.Model):
         max_length=100, blank=True, null=True, verbose_name="Country")
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(
-        default=True, help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
+        default=True,
+        help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
     inactive_reason = models.TextField(
-        blank=True, null=True, verbose_name="Reason", help_text="Please provide reason for deactivating the patient")
+        blank=True,
+        null=True,
+        verbose_name="Reason",
+        help_text="Please provide reason for deactivating the patient")
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
     user = models.ForeignKey(
-        CustomUser, blank=True, null=True, related_name="user_object", on_delete=models.SET_NULL)
+        CustomUser,
+        blank=True,
+        null=True,
+        related_name="user_object",
+        on_delete=models.SET_NULL)
 
     @property
     def age(self):
@@ -230,9 +259,12 @@ class Patient(models.Model):
                     total_number_filled_in += number_filled_in
                     total_number_required_for_completion += total_number_for_completion
             try:
-                registry_diagnosis_progress[registry_model.code] = int(
-                    100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
-            except ZeroDivisionError, zderr:
+                registry_diagnosis_progress[
+                    registry_model.code] = int(
+                    100.0 *
+                    float(total_number_filled_in) /
+                    float(total_number_required_for_completion))
+            except ZeroDivisionError as zderr:
                 pass  # don't have progress? skip
 
         return registry_diagnosis_progress
@@ -257,9 +289,12 @@ class Patient(models.Model):
                 registry_model, forms)
 
             try:
-                registry_diagnosis_progress[registry_model.code] = int(
-                    100.0 * float(total_number_filled_in) / float(total_number_required_for_completion))
-            except ZeroDivisionError, zderr:
+                registry_diagnosis_progress[
+                    registry_model.code] = int(
+                    100.0 *
+                    float(total_number_filled_in) /
+                    float(total_number_required_for_completion))
+            except ZeroDivisionError as zderr:
                 pass  # don't have progress? skip
 
         return registry_diagnosis_progress
@@ -319,7 +354,13 @@ class Patient(models.Model):
             registry_genetic_progress[registry_model.code] = has_data
         return registry_genetic_progress
 
-    def get_form_value(self, registry_code, form_name, section_code, data_element_code, multisection=False):
+    def get_form_value(
+            self,
+            registry_code,
+            form_name,
+            section_code,
+            data_element_code,
+            multisection=False):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
@@ -605,7 +646,11 @@ class ParentGuardian(models.Model):
     self_patient = models.ForeignKey(
         Patient, blank=True, null=True, related_name="self_patient")
     user = models.ForeignKey(
-        CustomUser, blank=True, null=True, related_name="parent_user_object", on_delete=models.SET_NULL)
+        CustomUser,
+        blank=True,
+        null=True,
+        related_name="parent_user_object",
+        on_delete=models.SET_NULL)
 
 
 class AddressType(models.Model):
@@ -636,7 +681,11 @@ class PatientAddress(models.Model):
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(
-        upload_to='consents', storage=file_system, verbose_name="Consent form", blank=True, null=True)
+        upload_to='consents',
+        storage=file_system,
+        verbose_name="Consent form",
+        blank=True,
+        null=True)
 
 
 class PatientDoctor(models.Model):
@@ -650,7 +699,8 @@ class PatientDoctor(models.Model):
 
 
 def get_countries():
-    return [(c.alpha2, c.name) for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
+    return [(c.alpha2, c.name)
+            for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
 
 
 class PatientRelative(models.Model):
@@ -701,7 +751,11 @@ class PatientRelative(models.Model):
     location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(
-        to=Patient, null=True, blank=True, related_name="as_a_relative", verbose_name="Create Patient?")
+        to=Patient,
+        null=True,
+        blank=True,
+        related_name="as_a_relative",
+        verbose_name="Create Patient?")
 
     def create_patient_from_myself(self, registry_model, working_groups):
         # Create the patient corresponding to this relative
@@ -717,7 +771,7 @@ class PatientRelative(models.Model):
 
         try:
             p.save()
-        except Exception, ex:
+        except Exception as ex:
             raise ValidationError("Could not create patient from relative: %s" % ex)
 
         p.rdrf_registry = [registry_model]
@@ -774,7 +828,8 @@ def _update_mongo_obj(mongo_doc, patient_model):
         if key not in ['django_id', '_id', 'rdrf_registry']:
             if key in patient_model:
                 logger.info(
-                    "key %s is not present in patient_model and will be deleted from the mongo doc ..." % key)
+                    "key %s is not present in patient_model and will be deleted from the mongo doc ..." %
+                    key)
                 mongo_doc[key] = patient_model[key]
             else:
                 keys_to_delete.append(key)
@@ -808,12 +863,18 @@ def send_notification(sender, instance, created, **kwargs):
             logger.debug("about to send welcome email to %s patient %s" %
                          (instance.email, instance))
             name = "%s %s" % (instance.given_names, instance.family_name)
-            send_mail('Welcome to FKRP!', 'Dear %s\nYou have been added to the FKRP registry.\nPlease note this is a test of the email subsystem only!' % name, settings.DEFAULT_FROM_EMAIL,
-                      [instance.email], fail_silently=False)
+            send_mail(
+                'Welcome to FKRP!',
+                'Dear %s\nYou have been added to the FKRP registry.\nPlease note this is a test of the email subsystem only!' %
+                name,
+                settings.DEFAULT_FROM_EMAIL,
+                [
+                    instance.email],
+                fail_silently=False)
             logger.debug("sent email ok to %s" % instance.email)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error sending welddcome email  to %s with email %s: %s" %
-                         (instance, instance.email,  ex))
+                         (instance, instance.email, ex))
 
 
 @receiver(post_save, sender=Patient)
@@ -843,4 +904,5 @@ class ConsentValue(models.Model):
     last_update = models.DateField(null=True, blank=True)
 
     def __unicode__(self):
-        return "Consent Value for %s question %s is %s" % (self.patient, self.consent_question, self.answer)
+        return "Consent Value for %s question %s is %s" % (
+            self.patient, self.consent_question, self.answer)
