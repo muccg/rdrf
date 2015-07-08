@@ -31,13 +31,12 @@ class BaseParentView(LoginRequiredMixin, View):
         "M": 1,
         "F": 2
     }
-    
+
     def get_clinician_centre(self, request, registry):
 
-        clinitian = None
         working_group = None
 
-        try:    
+        try:
             clinician_id, working_group_id = request.POST['clinician'].split("_")
             clinician = get_user_model().objects.get(id=clinician_id)
             working_group = WorkingGroup.objects.get(id=working_group_id)
@@ -47,7 +46,7 @@ class BaseParentView(LoginRequiredMixin, View):
 
         return clinician, working_group
 
-    
+
 class ParentView(BaseParentView):
 
     def get(self, request, registry_code):
@@ -76,7 +75,7 @@ class ParentView(BaseParentView):
             sex=self._GENDER_CODE[request.POST["gender"]],
         )
         patient.rdrf_registry.add(registry)
-        
+
         clinician, centre = self.get_clinician_centre(request, registry)
         patient.clinician = clinician
         patient.save()
