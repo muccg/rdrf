@@ -1,5 +1,6 @@
 from django.conf import settings
 import logging
+import re
 
 logger = logging.getLogger("registry_log")
 
@@ -35,27 +36,9 @@ def id_on_page(registry_form_model, section_model, cde_model):
 
 
 def de_camelcase(s):
-    """
-    :param s: SomeFormName or someFormName
-    :return: Some Form Name
-    """
-    i = 0
-    l = len(s)
-
-    def case_changed(x, y):
-        return x.islower() and y.isupper()
-
-    p = ""
-    while i < l:
-        c = s[i]
-        p += c
-        if i < l - 1:
-            d = s[i + 1]
-            if case_changed(c, d):
-                p += " "
-        i += 1
-
-    return p
+    value = s[0].upper() + s[1:]
+    chunks = re.findall('[A-Z][^A-Z]*', value)
+    return " ".join(chunks)
 
 
 class FormLink(object):

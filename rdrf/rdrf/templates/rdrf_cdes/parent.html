@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load countries %}
+{% load de_camelcase %}
 
 {% block extrastyle %}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -194,7 +195,7 @@
                                 <option>-----</option>
                                 <option value="{% url 'patient_edit' registry_code patient.id %}">Demographics</option>
                                 {% for form in registry_forms %}
-                                    <option value="{% url 'registry_form' registry_code form.id patient.id %}">{{form.name}}</a></option>
+                                    <option value="{% url 'registry_form' registry_code form.id patient.id %}">{{form.name|de_camelcase}}</a></option>
                                 {% endfor %}
                             </select>                        
                         </td>
