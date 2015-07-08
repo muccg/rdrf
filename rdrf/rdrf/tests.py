@@ -16,6 +16,7 @@ from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
 from django.contrib.auth import get_user_model
+from rdrf.utils import de_camelcase
 
 from django.conf import settings
 import os
@@ -349,3 +350,16 @@ class LongitudinalTestCase(FormTestCase):
                 u"")), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert "record" in snapshot_dict, "snapshot dict should have key record"
         assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])
+
+
+class DeCamelcaseTestCase(TestCase):
+
+    _EXPECTED_VALUE = "Your Condition"
+
+    def test_decamelcase_first_lower(self):
+        test_value = "yourCondition"
+        self.assertEqual(de_camelcase(test_value), self._EXPECTED_VALUE)
+
+    def test_decamelcase_first_upper(self):
+        test_value = "YourCondition"
+        self.assertEqual(de_camelcase(test_value), self._EXPECTED_VALUE)
