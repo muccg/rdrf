@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block extrahead %}
+    {{ block.super }}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <script>
         $(document).ready(function() {
@@ -45,6 +46,12 @@
 {% endblock %}
 
 {% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Parent Details</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ parent.first_name }} {{  parent.last_name }}</i>
+        </div>
+    </div>
     <br>
     <form class="form-horizontal date-form" method="POST">
         {% csrf_token %}
