@@ -181,9 +181,13 @@
                         <td>{{patient.family_name|title}}</td>
                         <td>{{patient.date_of_birth|date:"jS F Y"}}</td>
                         <td>
-                            {% for wg in patient.working_groups.all %}
-                                {{wg.name}}
-                            {% endfor %}
+                            {% if patient.clinician %}
+                                {% for wg in patient.clinician.working_groups.all %}
+                                    {{wg.name}}
+                                {% endfor %}
+                            {% else %}
+                                Unallocated
+                            {% endif %}
                         </td>
                         <td>
                             <select onchange="go_to_page(this);">

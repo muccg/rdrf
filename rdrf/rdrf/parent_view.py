@@ -4,10 +4,13 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
 from models import Registry, RegistryForm
 from registry.patients.admin_forms import ParentGuardianForm
+
+from registry.groups.models import WorkingGroup
 
 
 class LoginRequiredMixin(object):
@@ -18,13 +21,34 @@ class LoginRequiredMixin(object):
             request, *args, **kwargs)
 
 
-class ParentView(LoginRequiredMixin, View):
+class BaseParentView(LoginRequiredMixin, View):
+
+    _OTHER_CLINICIAN = "clinician-other"
+    _UNALLOCATED_GROUP = "Unallocated"
 
     _ADDRESS_TYPE = "Postal"
     _GENDER_CODE = {
         "M": 1,
         "F": 2
     }
+    
+    def get_clinician_centre(self, request, registry):
+
+        clinitian = None
+        working_group = None
+
+        try:    
+            clinician_id, working_group_id = request.POST['clinician'].split("_")
+            clinician = get_user_model().objects.get(id=clinician_id)
+            working_group = WorkingGroup.objects.get(id=working_group_id)
+        except ValueError:
+            clinician = None
+            working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP, registry=registry)
+
+        return clinician, working_group
+
+    
+class ParentView(BaseParentView):
 
     def get(self, request, registry_code):
         context = {}
@@ -52,6 +76,9 @@ class ParentView(LoginRequiredMixin, View):
             sex=self._GENDER_CODE[request.POST["gender"]],
         )
         patient.rdrf_registry.add(registry)
+        
+        clinician, centre = self.get_clinician_centre(request, registry)
+        patient.clinician = clinician
         patient.save()
 
         use_parent_address = "use_parent_address" in request.POST
@@ -72,12 +99,7 @@ class ParentView(LoginRequiredMixin, View):
         return redirect(reverse("parent_page", args={registry_code: registry_code}))
 
 
-class ParentEditView(LoginRequiredMixin, View):
-    _ADDRESS_TYPE = "Postal"
-    _GENDER_CODE = {
-        "M": 1,
-        "F": 2
-    }
+class ParentEditView(BaseParentView):
 
     def get(self, request, registry_code, parent_id):
         context = {}
@@ -121,6 +143,8 @@ class ParentEditView(LoginRequiredMixin, View):
             )
 
             patient.rdrf_registry.add(registry)
+            clinician, centre = self.get_clinician_centre(request, registry)
+            patient.clinician = clinician
             patient.save()
 
             parent.patient.add(patient)
