@@ -128,7 +128,7 @@ class Patient(models.Model):
     consent_provided_by_parent_guardian = models.BooleanField(null=False, blank=False, help_text="Parent/Guardian consent provided on behalf of the patient.", default=False)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
-    maiden_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Maiden Name")
+    maiden_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Maiden Name (if applicable)")
     umrn = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(max_length=100, null=True, blank=True, verbose_name="Place of Birth")
