@@ -243,7 +243,7 @@ def _get_header(result):
 def _get_content(result, header):
     row = []
     for h in header:
-        row.append(result[h.decode("utf8")])
+        row.append(result.get(h.decode("utf8"), "???"))
     return row
 
 
