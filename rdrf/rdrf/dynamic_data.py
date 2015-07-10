@@ -28,17 +28,26 @@ class DynamicDataWrapper(object):
     """
     REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION = "registry_specific_patient_data"
 
-    def __init__(self, obj, client=MongoClient(settings.MONGOSERVER, settings.MONGOPORT), filestore_class=gridfs.GridFS):
-        self.testing = False  # When set to True by integration tests, uses testing mongo database
+    def __init__(
+            self,
+            obj,
+            client=MongoClient(
+                settings.MONGOSERVER,
+                settings.MONGOPORT),
+            filestore_class=gridfs.GridFS):
+        # When set to True by integration tests, uses testing mongo database
+        self.testing = False
         self.obj = obj
         self.django_id = obj.pk
         self.django_model = obj.__class__
         # We inject these to allow unit testing
         self.client = client
         self.file_store_class = filestore_class
-        self.current_form_model = None   # when saving data to Mongo this field allows timestamp to be recorded
+        # when saving data to Mongo this field allows timestamp to be recorded
+        self.current_form_model = None
 
-        self.patient_record = None  # holds reference to the complete data record for this object
+        # holds reference to the complete data record for this object
+        self.patient_record = None
 
     def __unicode__(self):
         return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
@@ -89,8 +98,10 @@ class DynamicDataWrapper(object):
         for reg_code in self._get_registry_codes():
             # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
             # ( already prefixed db names from Mongo
-            collection = self._get_collection(reg_code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
-                                              add_mongo_prefix=False)
+            collection = self._get_collection(
+                reg_code,
+                self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
+                add_mongo_prefix=False)
             registry_data = collection.find_one(record_query)
             if registry_data:
                 for k in ['django_id', '_id', 'django_model']:
@@ -140,7 +151,10 @@ class DynamicDataWrapper(object):
                             self.cde_code = cde_code
                             self.gridfs_dict = gridfs_dict
                             from django.core.urlresolvers import reverse
-                            self.url = reverse("file_upload", args=[registry, str(self.gridfs_dict['gridfs_file_id'])])
+                            self.url = reverse(
+                                "file_upload", args=[
+                                    registry, str(
+                                        self.gridfs_dict['gridfs_file_id'])])
 
                         def __unicode__(self):
                             """
@@ -158,17 +172,33 @@ class DynamicDataWrapper(object):
                     self._wrap_gridfs_files_from_mongo(registry, section_dict)
 
     def _get_gridfs_filename(self, registry, data_record, cde_code, original_file_name):
-        return "%s****%s****%s****%s****%s" % (registry, self.django_model, self.django_id, cde_code, original_file_name)
+        return "%s****%s****%s****%s****%s" % (registry,
+                                               self.django_model,
+                                               self.django_id,
+                                               cde_code,
+                                               original_file_name)
 
-    def _store_file_in_gridfs(self, registry, patient_record, cde_code, in_memory_file, dynamic_data):
+    def _store_file_in_gridfs(
+            self,
+            registry,
+            patient_record,
+            cde_code,
+            in_memory_file,
+            dynamic_data):
         fs = self._get_filestore(registry)
         original_file_name = in_memory_file.name
-        file_name = self._get_gridfs_filename(registry, patient_record, cde_code, original_file_name)
+        file_name = self._get_gridfs_filename(
+            registry, patient_record, cde_code, original_file_name)
         gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
         # _alter_ the dyamic data to store reference to gridfs + the original file name
         dynamic_data[cde_code] = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
-        logger.debug("UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
-                     (cde_code, original_file_name, registry, gridfs_id, dynamic_data[cde_code]))
+        logger.debug(
+            "UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
+            (cde_code,
+             original_file_name,
+             registry,
+             gridfs_id,
+             dynamic_data[cde_code]))
         return gridfs_id
 
     def _is_file_cde(self, code):
@@ -178,7 +208,7 @@ class DynamicDataWrapper(object):
             if cde.datatype == 'file':
                 logger.debug("CDE %s is a file!" % cde.code)
                 return True
-        except Exception, ex:
+        except Exception as ex:
             # section forms have codes which are not CDEs
             logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
@@ -207,8 +237,10 @@ class DynamicDataWrapper(object):
                     continue
 
                 if value is None:
-                    logger.debug("User did change file %s - existing_record will not be updated" % key)
-                    logger.debug("existing_record = %s\nnew_data = %s" % (existing_record, new_data))
+                    logger.debug(
+                        "User did change file %s - existing_record will not be updated" % key)
+                    logger.debug("existing_record = %s\nnew_data = %s" %
+                                 (existing_record, new_data))
                     delete_existing = False
 
                 if key in existing_record:
@@ -221,7 +253,8 @@ class DynamicDataWrapper(object):
                 if not file_wrapper:
                     if value is not None:
                         logger.debug("storing file for cde %s value = %s" % (key, value))
-                        self._store_file_in_gridfs(registry, existing_record, key, value, new_data)
+                        self._store_file_in_gridfs(
+                            registry, existing_record, key, value, new_data)
                     else:
                         logger.debug("did not update file as value is None")
                 else:
@@ -231,21 +264,27 @@ class DynamicDataWrapper(object):
                     if gridfs_file_dict is None:
                         if value is not None:
                             logger.debug("storing file with value %s" % value)
-                            self._store_file_in_gridfs(registry, existing_record, key, value, new_data)
+                            self._store_file_in_gridfs(
+                                registry, existing_record, key, value, new_data)
                     else:
                         logger.debug("checking file id on existing gridfs dict")
                         gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
                         logger.debug("existing file id = %s" % gridfs_file_id)
                         if delete_existing:
-                            logger.debug("updated value is not None so we delete existing upload and update:")
+                            logger.debug(
+                                "updated value is not None so we delete existing upload and update:")
                             if fs.exists(gridfs_file_id):
                                 fs.delete(gridfs_file_id)
-                                logger.debug("deleted existing file with id %s" % gridfs_file_id)
+                                logger.debug("deleted existing file with id %s" %
+                                             gridfs_file_id)
                             else:
-                                logger.debug("file id %s in existing_record didn't exist?" % gridfs_file_id)
+                                logger.debug(
+                                    "file id %s in existing_record didn't exist?" %
+                                    gridfs_file_id)
                             if value is not None:
                                 logger.debug("updating %s -> %s" % (key, value))
-                                self._store_file_in_gridfs(registry, existing_record, key, value, new_data)
+                                self._store_file_in_gridfs(
+                                    registry, existing_record, key, value, new_data)
                         else:
                             # don't change anything on update ...
                             new_data[key] = gridfs_file_dict
@@ -260,7 +299,8 @@ class DynamicDataWrapper(object):
 
                 for i, section_data_dict in enumerate(value):
                     existing_section_dict = existing_record[key][i]
-                    self._update_files_in_gridfs(existing_section_dict, registry, section_data_dict)
+                    self._update_files_in_gridfs(
+                        existing_section_dict, registry, section_data_dict)
 
     def save_dynamic_data(self, registry, collection_name, data):
         self._convert_date_to_datetime(data)
@@ -293,7 +333,8 @@ class DynamicDataWrapper(object):
             h = history.find_one({"_id": patient_id})
             if h is None:
                 history.insert({"_id": patient_id, "snapshots": []})
-            history.update({"_id": patient_id}, {"$push": {"snapshots": {"timestamp": timestamp, "record": record}}})
+            history.update(
+                {"_id": patient_id}, {"$push": {"snapshots": {"timestamp": timestamp, "record": record}}})
         except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 

@@ -15,6 +15,7 @@ from rdrf.utils import mongo_db_name_reg_id
 from models import Query
 from forms import QueryForm
 
+
 class DatabaseUtils(object):
 
     result = None
@@ -40,15 +41,15 @@ class DatabaseUtils(object):
                 self.projection = self._string_to_json(self.form_object.projection)
                 self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
-    
+
     def connection_status(self):
         try:
             client = self._get_mongo_client()
             client.close()
             return True, None
-        except ConnectionFailure, e:
+        except ConnectionFailure as e:
             return False, e
-    
+
     def run_sql(self):
         try:
             cursor = connection.cursor()
@@ -61,24 +62,24 @@ class DatabaseUtils(object):
 
     def run_mongo(self):
         client = self._get_mongo_client()
-        
+
         projection = {}
         criteria = {}
-        
+
         database = client[mongo_db_name_reg_id(self.regsitry_id)]
         collection = database[self.collection]
-        
+
         mongo_search_type = self.mongo_search_type
-        
+
         criteria = self.criteria
         projection = self.projection
-        
+
         aggregation = []
-        
+
         pipline = self.aggregation.split("|")
         for pipe in pipline:
             for key, value in ast.literal_eval(pipe).iteritems():
-                aggregation.append({ key:value })
+                aggregation.append({key: value})
 
         django_ids = []
         if self.result:
@@ -87,13 +88,13 @@ class DatabaseUtils(object):
 
         records = []
         if mongo_search_type == 'F':
-            criteria["django_id"] = {"$in":django_ids}
+            criteria["django_id"] = {"$in": django_ids}
             results = collection.find(criteria, projection)
         elif mongo_search_type == 'A':
             if "$match" in aggregation:
-                aggregation["$match"].update({"django_id":{"$in":django_ids }})
+                aggregation["$match"].update({"django_id": {"$in": django_ids}})
             else:
-                aggregation.append({"$match": {"django_id":{"$in":django_ids }} })
+                aggregation.append({"$match": {"django_id": {"$in": django_ids}}})
             results = collection.aggregate(aggregation)
             results = results['result']
 
@@ -106,14 +107,14 @@ class DatabaseUtils(object):
                 else:
                     row[k] = cur[k]
             records.append(row)
-        
+
         self.result = records
         return self
 
     def run_full_query(self):
         sql_result = self.run_sql().result
         mongo_result = self.run_mongo().result
-        
+
         self.result = []
         for sr in sql_result:
             for mr in mongo_result:
@@ -127,13 +128,13 @@ class DatabaseUtils(object):
         sql_result = self.run_sql().result
         mongo_result = self.run_mongo().result
         return sql_result, mongo_result
-    
+
     def _string_to_json(self, string):
         try:
             return json.loads(string)
         except ValueError:
             return None
-    
+
     def _dictfetchall(self, cursor):
         "Returns all rows from a cursor as a dict"
         desc = cursor.description
@@ -141,7 +142,7 @@ class DatabaseUtils(object):
             dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
-    
+
     def _get_mongo_client(self):
         return MongoClient(app_settings.VIEWER_MONGO_HOST,
                            app_settings.VIEWER_MONGO_PORT)
@@ -151,6 +152,6 @@ class ParseQuery(object):
 
     def get_parameters(query):
         pass
-    
+
     def set_parameters(query):
         pass

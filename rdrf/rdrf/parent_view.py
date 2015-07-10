@@ -42,7 +42,8 @@ class BaseParentView(LoginRequiredMixin, View):
             working_group = WorkingGroup.objects.get(id=working_group_id)
         except ValueError:
             clinician = None
-            working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP, registry=registry)
+            working_group, status = WorkingGroup.objects.get_or_create(
+                name=self._UNALLOCATED_GROUP, registry=registry)
 
         return clinician, working_group
 
@@ -61,7 +62,10 @@ class ParentView(BaseParentView):
             context['registry_code'] = registry_code
             context['registry_forms'] = forms
 
-        return render_to_response('rdrf_cdes/parent.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/parent.html',
+            context,
+            context_instance=RequestContext(request))
 
     def post(self, request, registry_code):
         parent = ParentGuardian.objects.get(user=request.user)
@@ -108,7 +112,10 @@ class ParentEditView(BaseParentView):
         context['registry_code'] = registry_code
         context['parent_form'] = ParentGuardianForm(instance=parent)
 
-        return render_to_response("rdrf_cdes/parent_edit.html", context, context_instance=RequestContext(request))
+        return render_to_response(
+            "rdrf_cdes/parent_edit.html",
+            context,
+            context_instance=RequestContext(request))
 
     def post(self, request, registry_code, parent_id):
         context = {}
@@ -154,4 +161,7 @@ class ParentEditView(BaseParentView):
         context['registry_code'] = registry_code
         context['parent_form'] = parent_form
 
-        return render_to_response("rdrf_cdes/parent_edit.html", context, context_instance=RequestContext(request))
+        return render_to_response(
+            "rdrf_cdes/parent_edit.html",
+            context,
+            context_instance=RequestContext(request))

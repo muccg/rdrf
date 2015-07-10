@@ -99,7 +99,8 @@ class SpreadSheetCreator(object):
         if datatype in [TEXT, FILE, CALC]:
             return
         elif datatype == INTEGER:
-            validation = {"validate": "integer", "criteria": 'between', "minimum": 0, "maximum": 1000000}
+            validation = {"validate": "integer", "criteria": 'between',
+                          "minimum": 0, "maximum": 1000000}
         elif datatype == DATE:
             validation = {"validate": 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
         elif datatype == DECIMAL:
@@ -187,7 +188,8 @@ class SpreadSheetCreator(object):
                     cde_dict = self._get_cde_dict(cde_code)
                     if cde_dict is None:
                         raise Exception("cde is missing: %s" % cde_code)
-                    field_header = "\n".join([form_dict['name'], section_dict['display_name'], cde_dict['name']])
+                    field_header = "\n".join(
+                        [form_dict['name'], section_dict['display_name'], cde_dict['name']])
                     datatype = self._get_type(cde_dict)
                     if datatype == RANGE:
                         values = self._get_values(cde_dict['pv_group'])

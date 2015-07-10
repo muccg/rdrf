@@ -131,8 +131,9 @@ class QuestionnaireReverseMapper(object):
                     return state.code
 
             logger.debug("could not find state - returning None")
-        except Exception, ex:
-            logger.debug("Error setting state: state = %s country code = %s error = %s" % (cde_value, country_code, ex))
+        except Exception as ex:
+            logger.debug("Error setting state: state = %s country code = %s error = %s" % (
+                cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
 
     def save_dynamic_fields(self):
@@ -141,11 +142,13 @@ class QuestionnaireReverseMapper(object):
         form_names = set([])
         for reg_code, form_name, section_code, cde_code, value in self._get_dynamic_data():
             form_names.add(form_name)
-            delimited_key = settings.FORM_SECTION_DELIMITER.join([form_name, section_code, cde_code])
+            delimited_key = settings.FORM_SECTION_DELIMITER.join(
+                [form_name, section_code, cde_code])
             dynamic_data_dict[delimited_key] = value
 
         for original_multiple_section, element_list in self._get_multiple_sections():
-            logger.debug("updating multisection %s with %s" % (original_multiple_section, element_list))
+            logger.debug("updating multisection %s with %s" %
+                         (original_multiple_section, element_list))
             if original_multiple_section in dynamic_data_dict:
                 dynamic_data_dict[original_multiple_section].extend(element_list)
             else:
@@ -178,7 +181,8 @@ class QuestionnaireReverseMapper(object):
         # "GenQxyfooFoobarSection" : [ 	{ 	"GeneratedQuestionnaireForxy____GenQxyfooFoobarSection____CDEHeight" : 1, ..
         # to
         # "FoobarSection" : [ 	{ 	"foo____FoobarSection____CDEHeight" : 1
-        original_form, original_multisection = self._parse_generated_section_code(generated_multisectionkey)
+        original_form, original_multisection = self._parse_generated_section_code(
+            generated_multisectionkey)
         new_items = []
         for item_dict in item_dicts:
             new_item_dict = {}
@@ -187,13 +191,17 @@ class QuestionnaireReverseMapper(object):
                 if k is None:
                     continue
                 if k == "DELETE":
-                    logger.debug("skipping DELETE key: not applicable in questionnaire response ...")
+                    logger.debug(
+                        "skipping DELETE key: not applicable in questionnaire response ...")
                     continue
                 value = item_dict[k]
                 logger.debug("value = %s" % value)
-                generated_item_form, generated_item_section, cde_code = k.split(settings.FORM_SECTION_DELIMITER)
-                orig_item_form, orig_item_section = self._parse_generated_section_code(generated_item_section)
-                new_item_key = settings.FORM_SECTION_DELIMITER.join([orig_item_form, orig_item_section, cde_code])
+                generated_item_form, generated_item_section, cde_code = k.split(
+                    settings.FORM_SECTION_DELIMITER)
+                orig_item_form, orig_item_section = self._parse_generated_section_code(
+                    generated_item_section)
+                new_item_key = settings.FORM_SECTION_DELIMITER.join(
+                    [orig_item_form, orig_item_section, cde_code])
                 new_item_dict[new_item_key] = value
             new_items.append(new_item_dict)
 
@@ -210,14 +218,17 @@ class QuestionnaireReverseMapper(object):
 
             if dynamic and is_a_dynamic_field:
                 logger.debug("yielding dynamic %s" % k)
-                generated_form_name, generated_section_code, cde_code = self._get_key_components(k)
-                original_form_name, original_section_code = self._parse_generated_section_code(generated_section_code)
+                generated_form_name, generated_section_code, cde_code = self._get_key_components(
+                    k)
+                original_form_name, original_section_code = self._parse_generated_section_code(
+                    generated_section_code)
 
                 yield self.registry.code, original_form_name, original_section_code, cde_code, self.questionnaire_data[k]
 
             if not dynamic and not is_a_dynamic_field:
                 logger.debug("yield non-dynamic %s" % k)
-                patient_attribute, converter = self._get_patient_attribute_and_converter(cde_code)
+                patient_attribute, converter = self._get_patient_attribute_and_converter(
+                    cde_code)
                 if converter is None:
                     yield patient_attribute, self.questionnaire_data[k]
                 else:
@@ -232,7 +243,8 @@ class QuestionnaireReverseMapper(object):
         def set_next_of_kin_relationship(relationship_name):
             from registry.patients.models import NextOfKinRelationship
             try:
-                rel, created = NextOfKinRelationship.objects.get_or_create(relationship=relationship_name)
+                rel, created = NextOfKinRelationship.objects.get_or_create(
+                    relationship=relationship_name)
                 if created:
                     rel.save()
                 return rel
@@ -287,7 +299,8 @@ class QuestionnaireReverseMapper(object):
         for form_model in self.registry.forms:
             for section_model in form_model.section_models:
                 if generated_section_code == self.registry._generated_section_questionnaire_code(
-                        form_model.name, section_model.code):
+                        form_model.name,
+                        section_model.code):
                     return form_model.name, section_model.code
         return None, None
 
@@ -309,7 +322,7 @@ class PatientCreator(object):
 
         try:
             mapper.save_patient_fields()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
@@ -322,13 +335,13 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-        except ValidationError, verr:
+        except ValidationError as verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
             transaction.savepoint_rollback(before_creation)
             return
-        except Exception, ex:
+        except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             transaction.savepoint_rollback(before_creation)
@@ -340,7 +353,7 @@ class PatientCreator(object):
             custom_consent_data = questionnaire_data["custom_consent_data"]
             logger.debug("custom_consent_data = %s" % custom_consent_data)
             self._create_custom_consents(patient, custom_consent_data)
-        except Exception, ex:
+        except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
             transaction.savepoint_rollback(before_creation)
@@ -353,16 +366,18 @@ class PatientCreator(object):
 
         try:
             mapper.save_dynamic_fields()
-        except Exception, ex:
+        except Exception as ex:
             self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
-                logger.info("removed dynamic data for %s for registry %s" % (patient.pk, self.registry))
+                logger.info("removed dynamic data for %s for registry %s" %
+                            (patient.pk, self.registry))
                 transaction.savepoint_rollback(before_creation)
                 return
-            except Exception, ex:
-                logger.error("could not remove dynamic data for patient %s: %s" % (patient.pk, ex))
+            except Exception as ex:
+                logger.error("could not remove dynamic data for patient %s: %s" %
+                             (patient.pk, ex))
                 transaction.savepoint_rollback(before_creation)
                 return
 

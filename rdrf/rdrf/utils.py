@@ -52,7 +52,12 @@ class FormLink(object):
     @property
     def url(self):
         from django.core.urlresolvers import reverse
-        return reverse('registry_form', args=(self.registry.code, self.form.pk, self.patient_id))
+        return reverse(
+            'registry_form',
+            args=(
+                self.registry.code,
+                self.form.pk,
+                self.patient_id))
 
     @property
     def text(self):
@@ -83,8 +88,9 @@ def requires_feature(feature_name):
             if has_feature(feature_name):
                 return func(*args, **kwargs)
             else:
-                logger.info("%s will not be run with args %s kwargs %s as the site lacks feature %s" %
-                            (func.__name__, args, kwargs, feature_name))
+                logger.info(
+                    "%s will not be run with args %s kwargs %s as the site lacks feature %s" %
+                    (func.__name__, args, kwargs, feature_name))
         return wrapper
     return decorator
 

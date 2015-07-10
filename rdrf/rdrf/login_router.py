@@ -3,7 +3,8 @@ from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 
 
-# todo update ophg registries to use new demographics and patients listing forms: we need to fix this properly
+# todo update ophg registries to use new demographics and patients listing
+# forms: we need to fix this properly
 def in_fkrp(user):
     user_reg_codes = [r.code for r in user.registry.all()]
     return "fkrp" in user_reg_codes

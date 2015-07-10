@@ -17,5 +17,6 @@ class CustomFieldC18587(CharField):
 
 
 class ChoiceFieldNoValidation(ChoiceField):
+
     def validate(self, value):
         pass

@@ -1,9 +1,12 @@
 from selenium import selenium
-import unittest, time, re
+import unittest
+import time
+import re
 from base import Base
 
+
 class OpenQuestionnaire(Base):
-    
+
     def test_open_questionnaire(self):
         sel = self.selenium
         sel.open("/admin/")

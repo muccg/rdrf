@@ -48,12 +48,16 @@ LANGUAGES = (
 
 DATABASES = {
     'default': {
-        'ENGINE': env.get_db_engine("dbtype", "pgsql"),         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': env.get("dbname", "rdrf"),                      # Or path to database file if using sqlite3.
+        # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': env.get_db_engine("dbtype", "pgsql"),
+        # Or path to database file if using sqlite3.
+        'NAME': env.get("dbname", "rdrf"),
         'USER': env.get("dbuser", "rdrf"),                      # Not used with sqlite3.
         'PASSWORD': env.get("dbpass", "rdrf"),                  # Not used with sqlite3.
-        'HOST': env.get("dbserver", ""),                        # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': env.get("dbport", ""),                          # Set to empty string for default. Not used with sqlite3.
+        # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': env.get("dbserver", ""),
+        # Set to empty string for default. Not used with sqlite3.
+        'PORT': env.get("dbport", ""),
     },
     # 'legacydb': {
     #     'ENGINE': env.get_db_engine("dbtype", "pgsql"),
@@ -152,7 +156,8 @@ DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# list of features  '*' means all , '' means none and ['x','y'] means site supports features x and y
+# list of features  '*' means all , '' means none and ['x','y'] means site
+# supports features x and y
 FEATURES = env.get("features", "*")
 
 
@@ -170,7 +175,8 @@ MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'static', 'media'))
 MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
 
 # TODO AH I can't see how this setting does anything
-# for local development, this is set to the static serving directory. For deployment use Apache Alias
+# for local development, this is set to the static serving directory. For
+# deployment use Apache Alias
 STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
@@ -183,7 +189,8 @@ SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
 SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
-SESSION_COOKIE_NAME = env.get("session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
+SESSION_COOKIE_NAME = env.get(
+    "session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
@@ -355,7 +362,8 @@ SUIT_CONFIG = {
 One can add custom menu items to the left hand manu in Django Suit
 '''
 CUSTOM_MENU_ITEMS = [
-    {'name': 'Import Registry Definition', 'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
+    {'name': 'Import Registry Definition',
+        'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
     {'name': 'Reports', 'url': '{0}/reports'.format(SCRIPT_NAME), 'superuser': True},
 ]
 

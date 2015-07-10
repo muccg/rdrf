@@ -19,7 +19,10 @@ class FileUpload(object):
     @property
     def url(self):
         from django.core.urlresolvers import reverse
-        return reverse("file_upload", args=[self.registry, str(self.gridfs_dict['gridfs_file_id'])])
+        return reverse(
+            "file_upload", args=[
+                self.registry, str(
+                    self.gridfs_dict['gridfs_file_id'])])
 
     def __unicode__(self):
         """
@@ -45,7 +48,9 @@ def wrap_gridfs_data_for_form(registry, data):
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
                     wrapper = FileUpload(registry, key, value)
-                    logger.debug("munging gridfs %s data dict (before): %s -> (after) %s" % (key, value, wrapper))
+                    logger.debug(
+                        "munging gridfs %s data dict (before): %s -> (after) %s" %
+                        (key, value, wrapper))
                     data[key] = wrapper
 
     if data is None:

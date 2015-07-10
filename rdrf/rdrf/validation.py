@@ -17,12 +17,16 @@ def make_validation_func(val_type, cde):
     if val_type == ValidationType.MIN:
         def vf(value):
             if value < cde.min_value:
-                raise ValidationError("Value of %s for %s is less than minimum value %s" % (value, cde.name, cde.min_value))
+                raise ValidationError(
+                    "Value of %s for %s is less than minimum value %s" %
+                    (value, cde.name, cde.min_value))
         return vf
     elif val_type == ValidationType.MAX:
         def vf(value):
             if value > cde.max_value:
-                raise ValidationError("Value of %s for %s is more than maximum value %s" % (value, cde.name, cde.max_value))
+                raise ValidationError(
+                    "Value of %s for %s is more than maximum value %s" %
+                    (value, cde.name, cde.max_value))
         return vf
     elif val_type == ValidationType.PATTERN:
         try:
@@ -33,7 +37,9 @@ def make_validation_func(val_type, cde):
 
         def vf(value):
             if not re_pattern.match(value):
-                raise ValidationError("Value of %s for %s does not match pattern '%s'" % (value, cde.name, cde.pattern))
+                raise ValidationError(
+                    "Value of %s for %s does not match pattern '%s'" %
+                    (value, cde.name, cde.pattern))
         return vf
     elif val_type == ValidationType.LENGTH:
         def vf(value):
@@ -78,8 +84,9 @@ class ValidatorFactory(object):
                     if validate_pattern is not None:
                         validators.append(validate_pattern)
                 except Exception as ex:
-                    logger.error("Could not pattern validator for string field of cde %s pattern %s: %s" %
-                                 (self.cde.name, self.cde.pattern, ex))
+                    logger.error(
+                        "Could not pattern validator for string field of cde %s pattern %s: %s" %
+                        (self.cde.name, self.cde.pattern, ex))
 
             if self.cde.max_length:
                 validate_length = make_validation_func(ValidationType.LENGTH, self.cde)
