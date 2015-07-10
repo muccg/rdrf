@@ -101,7 +101,10 @@
             setupPatientRelativeForm();
             $( "input[id*='date']").datepicker({
                 "dateFormat": "dd-mm-yy",
-                "maxDate": 0
+                "yearRange": "-120:+0",
+                "maxDate": 0,
+                "changeMonth": true,
+                "changeYear": true
             });
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");

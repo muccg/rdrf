@@ -11,7 +11,14 @@ class CalculatedFieldParseError(Exception):
 
 class CalculatedFieldParser(object):
 
-    def __init__(self, registry, registry_form, section, cde, injected_model=None, injected_model_id=None):
+    def __init__(
+            self,
+            registry,
+            registry_form,
+            section,
+            cde,
+            injected_model=None,
+            injected_model_id=None):
         """
         A calculation is valid javascript like:
 
@@ -52,13 +59,18 @@ class CalculatedFieldParser(object):
 
         calculation_result = self.context_indicator + "." + self.result_name
         if calculation_result not in self.calculation:
-            raise CalculatedFieldParseError("Calculation does not contain %s" % calculation_result)
+            raise CalculatedFieldParseError(
+                "Calculation does not contain %s" % calculation_result)
         if not self.subjects:
             raise CalculatedFieldParseError("Calculation does not depend on any fields")
 
     def _parse_subjects(self, calculation):
         import re
-        return filter(lambda code: code != self.result_name, re.findall(self.pattern, calculation))
+        return filter(
+            lambda code: code != self.result_name,
+            re.findall(
+                self.pattern,
+                calculation))
 
     def _get_id_in_section(self, cde_code):
         """
@@ -100,7 +112,11 @@ class CalculatedFieldParser(object):
             injected_model = self.injected_model
             injected_model_id = self.injected_model_id
             tastypie_url = reverse(
-                'api_dispatch_detail', kwargs={'resource_name': self.injected_model.lower(), "api_name": "v1", "pk": self.injected_model_id})
+                'api_dispatch_detail',
+                kwargs={
+                    'resource_name': self.injected_model.lower(),
+                    "api_name": "v1",
+                    "pk": self.injected_model_id})
         else:
             function_parameter_list = "context"
             injected_model = ""

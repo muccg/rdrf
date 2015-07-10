@@ -47,7 +47,8 @@ class StateLookup(View):
 
     def get(self, request, country_code):
         try:
-            states = sorted(pycountry.subdivisions.get(country_code=country_code.upper()), key=lambda x: x.name)
+            states = sorted(pycountry.subdivisions.get(
+                country_code=country_code.upper()), key=lambda x: x.name)
             return HttpResponse(json.dumps(self._to_json(states)))
         except KeyError:
             return HttpResponse()
@@ -75,7 +76,8 @@ class ClinitianLookup(View):
         for clinician in filtered:
             for wg in clinician.working_groups.all():
                 json_ = {}
-                json_['full_name'] = "%s %s (%s)" % (clinician.first_name, clinician.last_name, wg.name)
+                json_['full_name'] = "%s %s (%s)" % (
+                    clinician.first_name, clinician.last_name, wg.name)
                 json_['id'] = "%d_%d" % (clinician.id, wg.id)
                 json_result.append(json_)
 

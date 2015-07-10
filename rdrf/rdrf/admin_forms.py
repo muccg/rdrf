@@ -12,7 +12,8 @@ class RegistryFormAdminForm(ModelForm):
             cdes = []
             for section in sections:
                 cdes += section.get_elements()
-            self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(code__in=cdes)
+            self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
+                code__in=cdes)
 
     class Meta:
         model = RegistryForm

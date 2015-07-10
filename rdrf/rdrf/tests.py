@@ -56,6 +56,7 @@ class RDRFTestCase(TestCase):
 
 
 class TestFormPermissions(RDRFTestCase):
+
     def test_form_without_groups_restriction_is_open(self):
         from registry.groups.models import CustomUser
         fh = Registry.objects.get(code='fh')
@@ -133,13 +134,19 @@ class ExporterTestCase(RDRFTestCase):
         for form_map in data['forms']:
             test_keys(['is_questionnaire', 'name', 'sections'], form_map)
             for section_map in form_map['sections']:
-                test_keys(['code', 'display_name', 'elements', 'allow_multiple', 'extra'], section_map)
+                test_keys(['code',
+                           'display_name',
+                           'elements',
+                           'allow_multiple',
+                           'extra'],
+                          section_map)
 
         from rdrf.models import CommonDataElement
         dummy_cde = CommonDataElement.objects.create()
         cde_fields = model_to_dict(dummy_cde).keys()
         for cde_map in data['cdes']:
-            assert isinstance(cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
+            assert isinstance(
+                cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
             for cde_field in cde_fields:
                 assert cde_field in cde_map, "Expected export of cde to contain field %s - it doesn't" % cde_field
 
@@ -213,7 +220,8 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
-        self.state, created = State.objects.get_or_create(short_name="WA", name="Western Australia")
+        self.state, created = State.objects.get_or_create(
+            short_name="WA", name="Western Australia")
 
         self.state.save()
         self.create_sections()
@@ -225,12 +233,8 @@ class FormTestCase(RDRFTestCase):
 
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
-        self.patient_address, created = PatientAddress.objects.get_or_create(address='1 Line St',
-                                                                             address_type=self.address_type,
-                                                                             suburb='Neverland',
-                                                                             state=self.state,
-                                                                             postcode='1111',
-                                                                             patient=self.patient)
+        self.patient_address, created = PatientAddress.objects.get_or_create(
+            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state, postcode='1111', patient=self.patient)
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
@@ -290,10 +294,13 @@ class FormTestCase(RDRFTestCase):
 
     def create_sections(self):
         # "simple" sections ( no files or multi-allowed sections
-        self.sectionA = self.create_section("sectionA", "Simple Section A", ["CDEName", "CDEAge"])
-        self.sectionB = self.create_section("sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
+        self.sectionA = self.create_section(
+            "sectionA", "Simple Section A", ["CDEName", "CDEAge"])
+        self.sectionB = self.create_section(
+            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
         # A multi allowed section with no file cdes
-        self.sectionC = self.create_section("sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
+        self.sectionC = self.create_section(
+            "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
         # A multi allowed section with a file CDE
         # self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
 
@@ -312,11 +319,13 @@ class FormTestCase(RDRFTestCase):
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
-        # This switches off messaging , which requires request middleware which doesn't exist in RequestFactory requests
+        # This switches off messaging , which requires request middleware which
+        # doesn't exist in RequestFactory requests
         view.testing = True
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
 
-        mongo_query = {"django_id": self.patient.pk, "django_model": self.patient.__class__.__name__}
+        mongo_query = {"django_id": self.patient.pk,
+                       "django_model": self.patient.__class__.__name__}
 
         mongo_db = self.client["testing_" + self.registry.code]
 
@@ -326,10 +335,14 @@ class FormTestCase(RDRFTestCase):
 
         print "*** MONGO RECORD = %s ***" % mongo_record
 
-        assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEName")] == "Fred"
-        assert mongo_record[self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
-        assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
-        assert mongo_record[self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
+        assert mongo_record[
+            self._create_form_key(self.simple_form, self.sectionA, "CDEName")] == "Fred"
+        assert mongo_record[
+            self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
+        assert mongo_record[
+            self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
+        assert mongo_record[
+            self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
 
 
 class LongitudinalTestCase(FormTestCase):
@@ -344,12 +357,14 @@ class LongitudinalTestCase(FormTestCase):
         assert "snapshots" in record, "history records should have a snaphots list"
         assert isinstance(record["snapshots"], list), "snapshots should be a list"
         for snapshot_dict in record["snapshots"]:
-            assert isinstance(snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
+            assert isinstance(
+                snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
             assert "timestamp" in snapshot_dict, "snapshot dict should have  timestamp key"
             assert isinstance(snapshot_dict["timestamp"], type(
                 u"")), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
             assert "record" in snapshot_dict, "snapshot dict should have key record"
-        assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(record["snapshots"])
+        assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(
+            record["snapshots"])
 
 
 class DeCamelcaseTestCase(TestCase):

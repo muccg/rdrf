@@ -38,14 +38,18 @@ class MainView(LoginRequiredMixin, View):
 
     def get(self, request):
         user = request.user
-        
+
         reports = None
-        
+
         if user.is_superuser:
             reports = Query.objects.all()
         elif user.is_curator:
-            reports = Query.objects.filter(registry__in = [reg.id for reg in user.get_registries()]).filter(access_group__in = [g.id for g in user.get_groups()])
-    
+            reports = Query.objects.filter(
+                registry__in=[
+                    reg.id for reg in user.get_registries()]).filter(
+                access_group__in=[
+                    g.id for g in user.get_groups()])
+
         return render_to_response(
             'explorer/query_list.html',
             {'object_list': reports},
@@ -78,8 +82,8 @@ class DeleteQueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
         if not request.user.is_superuser:
-            raise PermissionDenied()    
-    
+            raise PermissionDenied()
+
         query_model = Query.objects.get(id=query_id)
         query_model.delete()
         return redirect('explorer_main')
@@ -89,7 +93,7 @@ class QueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
         from rdrf.models import Registry
-        
+
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
@@ -110,7 +114,7 @@ class QueryView(LoginRequiredMixin, View):
             munged = _munge_docs(result, cdes)
             munged = _filler(munged, cdes)
             munged = _final_cleanup(munged)
-    
+
             result = _human_friendly(munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
@@ -127,18 +131,19 @@ class DownloadQueryView(LoginRequiredMixin, View):
     def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
-        
+
         query_params = re.findall("%(.*?)%", query_model.sql_query)
-        
+
         sql_query = query_model.sql_query
         for param in query_params:
-            sql_query = sql_query.replace("%%%s%%" % param, request.POST[param])        
+            sql_query = sql_query.replace("%%%s%%" % param, request.POST[param])
         query_model.sql_query = sql_query
-        
+
         if "registry" in query_params:
             query_model.registry = Registry.objects.get(id=request.POST["registry"])
         if "working_group" in query_params:
-            query_model.working_group = WorkingGroup.objects.get(id=request.POST["working_group"])
+            query_model.working_group = WorkingGroup.objects.get(
+                id=request.POST["working_group"])
 
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
@@ -148,10 +153,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         if not result:
             messages.add_message(request, messages.WARNING, "No results")
-            return redirect(reverse("explorer_query_download", args=(query_id,)))            
-        
+            return redirect(reverse("explorer_query_download", args=(query_id,)))
+
         return self._extract(munged, query_model.title, query_id)
-        
 
     def get(self, request, query_id):
         user = request.user
@@ -159,7 +163,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         query_form = QueryForm(instance=query_model)
 
         query_params = re.findall("%(.*?)%", query_model.sql_query)
-        
+
         if query_params:
             params = _get_default_params(request, query_form)
             params['query_params'] = query_params
@@ -167,27 +171,28 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
                 if user.is_curator:
-                    params["working_group"] = WorkingGroup.objects.filter(id__in = [wg.id for wg in user.get_working_groups()])
+                    params["working_group"] = WorkingGroup.objects.filter(
+                        id__in=[wg.id for wg in user.get_working_groups()])
                 else:
                     params["working_group"] = WorkingGroup.objects.all()
             return render_to_response('explorer/query_download.html', params)
-        
-        database_utils = DatabaseUtils(query_model)        
-        result = database_utils.run_full_query().result        
+
+        database_utils = DatabaseUtils(query_model)
+        result = database_utils.run_full_query().result
         cdes = _get_cdes(query_model.registry)
         munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
         munged = _final_cleanup(munged)
-            
+
         return self._extract(munged, query_model.title, query_id)
 
     def _extract(self, result, title, query_id):
         result = _human_friendly(result)
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' %title.lower()
+        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
         writer = csv.writer(response)
-        
+
         header = _get_header(result)
         writer.writerow(header)
         for r in result:
@@ -195,6 +200,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
             writer.writerow(row)
 
         return response
+
 
 class SqlQueryView(View):
 
@@ -213,17 +219,17 @@ def json_serial(obj):
 
 
 def _get_default_params(request, form):
-        database_utils = DatabaseUtils()
-        status, error = database_utils.connection_status()
+    database_utils = DatabaseUtils()
+    status, error = database_utils.connection_status()
 
-        return RequestContext(request, {
-            'version': app_settings.APP_VERSION,
-            'host': app_settings.VIEWER_MONGO_HOST,
-            'status': status,
-            'error_msg': error,
-            'form': form,
-            'csrf_token_name': app_settings.CSRF_NAME
-        })
+    return RequestContext(request, {
+        'version': app_settings.APP_VERSION,
+        'host': app_settings.VIEWER_MONGO_HOST,
+        'status': status,
+        'error_msg': error,
+        'form': form,
+        'csrf_token_name': app_settings.CSRF_NAME
+    })
 
 
 def _get_header(result):
@@ -240,6 +246,7 @@ def _get_content(result, header):
         row.append(result[h.decode("utf8")])
     return row
 
+
 def _human_friendly(result):
     for r in result:
         for key in r.keys():
@@ -252,6 +259,7 @@ def _human_friendly(result):
                 del r[key]
     return result
 
+
 def _lookup_cde_value(cde_value_code):
     from rdrf.models import CDEPermittedValue
     try:
@@ -261,6 +269,7 @@ def _lookup_cde_value(cde_value_code):
         return None
     except KeyError:
         return None
+
 
 def _lookup_cde_name(cde_string):
     from rdrf.models import CommonDataElement
@@ -273,10 +282,11 @@ def _lookup_cde_name(cde_string):
     except IndexError:
         return None
 
+
 def _get_cdes(registry_obj):
     from rdrf.models import RegistryForm
     from rdrf.models import Section
-    
+
     cdes = []
     forms = RegistryForm.objects.filter(registry__code=registry_obj.code)
 
@@ -288,6 +298,7 @@ def _get_cdes(registry_obj):
 
     return cdes
 
+
 def _filler(result, cdes):
     import collections
     munged = []
@@ -297,6 +308,7 @@ def _filler(result, cdes):
                 r[cde] = "?"
         munged.append(collections.OrderedDict(sorted(r.items())))
     return munged
+
 
 def _munge_docs(result, cdes):
     munged = []
@@ -312,6 +324,7 @@ def _munge_docs(result, cdes):
                 munged_result[item] = res[item]
         munged.append(munged_result)
     return munged
+
 
 def _final_cleanup(results):
     for res in results:

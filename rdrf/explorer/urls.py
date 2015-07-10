@@ -12,7 +12,7 @@ urlpatterns = patterns(
         DownloadQueryView.as_view(), name='explorer_query_download'),
     url(r'^query/delete/(?P<query_id>\w+)/?$',
         DeleteQueryView.as_view(), name='explorer_query_delete'),
-    
+
     url(r'^sql$',
         SqlQueryView.as_view(), name='explorer_sql_query'),
 

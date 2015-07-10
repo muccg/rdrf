@@ -6,6 +6,7 @@ from registry.patients.models import Patient
 import logging
 logger = logging.getLogger('genetic')
 
+
 class Gene(models.Model):
     symbol = models.TextField()
     hgnc_id = models.TextField(verbose_name="HGNC ID")
@@ -30,6 +31,7 @@ class Technique(models.Model):
 
 
 class Laboratory(models.Model):
+
     """
     Laboratory is a model for preset values of "laboratory site"
     fields.

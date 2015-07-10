@@ -1,4 +1,5 @@
 import logging
+from functools import reduce
 logger = logging.getLogger('registry_log')
 
 
@@ -52,7 +53,7 @@ class SimpleReport(object):
                 try:
                     report_value = formatting_function(selector_function(obj))
                     logger.debug("%s = %s" % (report_field, report_value))
-                except Exception, ex:
+                except Exception as ex:
                     obj_class_name = obj.__class__.__name__
                     id = obj.pk
                     e = "Error retrieving %s in %s report for %s id %s: %s" % (report_field,

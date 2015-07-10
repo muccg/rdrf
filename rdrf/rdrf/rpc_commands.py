@@ -12,9 +12,11 @@ def rpc_check_notifications(request):
     from rdrf.models import Notification
     user = request.user
     results = []
-    notifications = Notification.objects.filter(to_username=user.username, seen=False).order_by('-created')
+    notifications = Notification.objects.filter(
+        to_username=user.username, seen=False).order_by('-created')
     for notification in notifications:
-        results.append({"message": notification.message, "from_user": notification.from_username, "link": notification.link})
+        results.append({"message": notification.message,
+                        "from_user": notification.from_username, "link": notification.link})
     return results
 
 
@@ -27,7 +29,8 @@ def rpc_dismiss_notification(request, notification_id):
         notification.save()
         status = True
     except Exception as ex:
-        logger.error("could not mark notification with id %s as seen: %s" % (notification_id, ex))
+        logger.error("could not mark notification with id %s as seen: %s" %
+                     (notification_id, ex))
     return status
 
 
@@ -35,8 +38,9 @@ def rpc_fh_patient_is_index(request, patient_id):
     from registry.patients.models import Patient
     patient = Patient.objects.get(pk=patient_id)
     if patient.in_registry("fh"):
-            is_index = patient.get_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative") != "fh_is_relative"
-            return is_index
+        is_index = patient.get_form_value(
+            "fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative") != "fh_is_relative"
+        return is_index
     else:
         return False
 

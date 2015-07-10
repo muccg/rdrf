@@ -100,19 +100,23 @@ class FieldFactory(object):
 
     def _get_custom_field(self):
         customisation_module = self._get_customisation_module()
-        custom_field_function = getattr(customisation_module, self._get_custom_field_function_name())
+        custom_field_function = getattr(
+            customisation_module, self._get_custom_field_function_name())
         if not callable(custom_field_function):
-            raise Exception("Custom Field Definition for %s is not a function" % self._get_custom_field_function_name())
+            raise Exception("Custom Field Definition for %s is not a function" %
+                            self._get_custom_field_function_name())
         else:
             return custom_field_function(self.cde)
 
     def _get_field_name(self):
         if self.context == FieldContext.CLINICAL_FORM:
-            return self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
+            return self._get_cde_link(
+                _(self.cde.name)) if self.is_superuser else _(self.cde.name)
         else:
             q_field_text = self.cde.questionnaire_text
             if not q_field_text:
-                q_field_text = self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
+                q_field_text = self._get_cde_link(
+                    _(self.cde.name)) if self.is_superuser else _(self.cde.name)
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
     def _get_cde_link(self, name):
@@ -177,21 +181,42 @@ class FieldFactory(object):
         return getattr(widgets, self.WIDGET_OVERRIDE_TEMPLATE % self.cde.code)
 
     def _has_widget_for_datatype(self):
-        return hasattr(widgets, self.DATATYPE_WIDGET_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return hasattr(
+            widgets,
+            self.DATATYPE_WIDGET_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_widget_for_datatype(self):
-        return getattr(widgets, self.DATATYPE_WIDGET_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return getattr(
+            widgets,
+            self.DATATYPE_WIDGET_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _has_field_for_dataype(self):
-        return hasattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return hasattr(
+            fields,
+            self.DATATYPE_FIELD_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_field_for_datatype(self):
-        return getattr(fields, self.DATATYPE_FIELD_TEMPLATE % self.cde.datatype.replace(" ", ""))
+        return getattr(
+            fields,
+            self.DATATYPE_FIELD_TEMPLATE %
+            self.cde.datatype.replace(
+                " ",
+                ""))
 
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by('position'):
+            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by(
+                    'position'):
                 value = _(permitted_value.value)
                 if self.context == FieldContext.QUESTIONNAIRE:
                     q_value = getattr(permitted_value, 'questionnaire_value')
@@ -235,11 +260,14 @@ class FieldFactory(object):
         return ":" in widget_string
 
     def _get_parametrised_widget_instance(self, widget_string, widget_context):
-        # Given a widget string ( from the DE specification page ) like:   <SomeWidgetClassName>:<widget parameter string>
+        # Given a widget string ( from the DE specification page ) like:
+        # <SomeWidgetClassName>:<widget parameter string>
         widget_class_name, widget_parameter = widget_string.split(":")
         if hasattr(widgets, widget_class_name):
             widget_class = getattr(widgets, widget_class_name)
-            return widget_class(widget_parameter=widget_parameter, widget_context=widget_context)
+            return widget_class(
+                widget_parameter=widget_parameter,
+                widget_context=widget_context)
         else:
             logger.info("could not locate widget from widget string: %s" % widget_string)
 
@@ -281,21 +309,31 @@ class FieldFactory(object):
             options['initial'] = self.UNSET_CHOICE
             if self._has_other_please_specify():
                 # TODO make this more robust
-                other_please_specify_index = ["specify" in pair[1].lower() for pair in choices].index(True)
+                other_please_specify_index = [
+                    "specify" in pair[1].lower() for pair in choices].index(True)
                 other_please_specify_value = choices[other_please_specify_index][0]
                 if self.cde.widget_name:
                     try:
                         widget_class = getattr(widgets, self.cde.widget_name)
                         widget = widget_class(
-                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                            main_choices=choices,
+                            other_please_specify_value=other_please_specify_value,
+                            unset_value=self.UNSET_CHOICE)
                     except:
                         widget = widgets.OtherPleaseSpecifyWidget(
-                            main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                            main_choices=choices,
+                            other_please_specify_value=other_please_specify_value,
+                            unset_value=self.UNSET_CHOICE)
                 else:
                     widget = widgets.OtherPleaseSpecifyWidget(
-                        main_choices=choices, other_please_specify_value=other_please_specify_value, unset_value=self.UNSET_CHOICE)
+                        main_choices=choices,
+                        other_please_specify_value=other_please_specify_value,
+                        unset_value=self.UNSET_CHOICE)
 
-                return fields.CharField(max_length=80, help_text=self.cde.instructions, widget=widget)
+                return fields.CharField(
+                    max_length=80,
+                    help_text=self.cde.instructions,
+                    widget=widget)
             else:
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde.widget_name)
@@ -307,16 +345,23 @@ class FieldFactory(object):
                     if widget:
                         options['widget'] = widget
 
-                    options['choices'] = [choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
+                    options['choices'] = [
+                        choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
                     return MultipleChoiceField(**options)
                 else:
                     if widget:
                         options['widget'] = widget
                         if "RadioSelect" in str(widget):
-                            options["choices"] = options['choices'][1:]     # get rid of the unset choice
+                            # get rid of the unset choice
+                            options["choices"] = options['choices'][1:]
 
-                    if self.cde.code in ["State", "Country", "CDEPatientNextOfKinState", "CDEPatientNextOfKinCountry"]:
-                        # These are dynamic now and alter their reange lists dynamically so have to switch off validation
+                    if self.cde.code in [
+                            "State",
+                            "Country",
+                            "CDEPatientNextOfKinState",
+                            "CDEPatientNextOfKinCountry"]:
+                        # These are dynamic now and alter their reange lists dynamically so have
+                        # to switch off validation
                         from rdrf.fields import ChoiceFieldNoValidation
                         return ChoiceFieldNoValidation(**options)
 
@@ -339,7 +384,12 @@ class FieldFactory(object):
                 if self._is_calculated_field():
                     try:
                         parser = CalculatedFieldParser(
-                            self.registry, self.registry_form, self.section, self.cde, injected_model=self.primary_model, injected_model_id=self.primary_id)
+                            self.registry,
+                            self.registry_form,
+                            self.section,
+                            self.cde,
+                            injected_model=self.primary_model,
+                            injected_model_id=self.primary_id)
                         script = parser.get_script()
                         from widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
@@ -348,7 +398,8 @@ class FieldFactory(object):
                     except CalculatedFieldParseError as pe:
                         logger.error("Calculated Field %s Error: %s" % (self.cde, pe))
 
-                field_or_tuple = self.DATATYPE_DICTIONARY.get(self.cde.datatype.lower(), django.forms.CharField)
+                field_or_tuple = self.DATATYPE_DICTIONARY.get(
+                    self.cde.datatype.lower(), django.forms.CharField)
 
                 if isinstance(field_or_tuple, tuple):
                     field = field_or_tuple[0]
@@ -361,7 +412,8 @@ class FieldFactory(object):
                 try:
                     widget = self._widget_search(self.cde.widget_name)
                 except Exception as ex:
-                    logger.error("Error setting widget %s for cde %s: %s" % (self.cde.widget_name, self.cde, ex))
+                    logger.error("Error setting widget %s for cde %s: %s" %
+                                 (self.cde.widget_name, self.cde, ex))
                     raise ex
                     widget = None
             else:
@@ -432,14 +484,16 @@ class ComplexFieldFactory(object):
                     cde = CommonDataElement.objects.get(code=cde_code)
                     cdes.append(cde)
                 except Exception as ex:
-                    logger.error("Couldn't get CDEs for %s - errored on code %s: %s" % (self, self.cde.code, ex))
+                    logger.error("Couldn't get CDEs for %s - errored on code %s: %s" %
+                                 (self, self.cde.code, ex))
                     raise ComplexFieldParseError("%s couldn't be created: %s" % (self, ex))
 
             return cdes
 
     def _create_multi_widget(self):
         class_dict = {}
-        complex_widget_class_name = "ComplexMultiWidgetFrom%s" % "".join([cde.code for cde in self.component_cdes])
+        complex_widget_class_name = "ComplexMultiWidgetFrom%s" % "".join(
+            [cde.code for cde in self.component_cdes])
 
         def decompress_method(itself, value):
             """
@@ -465,7 +519,8 @@ class ComplexFieldFactory(object):
         self._load_components()
 
         options_dict["fields"] = self.component_fields
-        complex_field_class_name = "MultiValueFieldFrom%s" % "".join([cde.code for cde in self.component_cdes])
+        complex_field_class_name = "MultiValueFieldFrom%s" % "".join(
+            [cde.code for cde in self.component_cdes])
         class_dict = {}
 
         def compress_method(itself, data_list):
@@ -482,6 +537,7 @@ class ComplexFieldFactory(object):
 
         class_dict["widget"] = self._create_multi_widget()
         class_dict['compress'] = compress_method
-        complex_field_class = type(str(complex_field_class_name), (MultiValueField,), class_dict)
+        complex_field_class = type(
+            str(complex_field_class_name), (MultiValueField,), class_dict)
 
         return complex_field_class(**options_dict)
