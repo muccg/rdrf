@@ -48,7 +48,7 @@
                     <th data-column-id="date_of_birth">Date of Birth</th>
                     {% if request.user.is_clinical or request.user.is_curator or request.user.is_working_group_staff or request.user.is_superuser %}
                         <th data-column-id="diagnosis_progress" data-sortable="false" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
-                        <th data-column-id="diagnosis_currency" data-sortable="false" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
+                        <th data-column-id="diagnosis_currency" data-sortable="false" data-align="center" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
                     {% endif %}
                     {% if request.user.is_genetic_staff or request.user.is_genetic_curator or request.user.is_superuser %}
                         <th data-column-id="genetic_data" data-sortable="false" data-formatter="genetic_data_formatter">Genetic Data</th>
