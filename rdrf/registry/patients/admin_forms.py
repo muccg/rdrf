@@ -124,8 +124,8 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(required=False, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
-    state = forms.ComboField(required=False, widget=StateWidget())
+    country = forms.ComboField(required=True, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    state = forms.ComboField(required=True, widget=StateWidget())
 
 
 class PatientConsentFileForm(forms.ModelForm):
