@@ -157,9 +157,9 @@ class Patient(models.Model):
         max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Place of Birth")
+        max_length=100, null=True, blank=True, verbose_name="Place of birth")
     country_of_birth = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Country of Birth")
+        max_length=100, null=True, blank=True, verbose_name="Country of birth")
     ethnic_origin = models.CharField(
         choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
@@ -634,7 +634,7 @@ class ParentGuardian(models.Model):
     last_name = models.CharField(max_length=50)
     date_of_birth = models.DateField(blank=True, null=True)
     place_of_birth = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Place of Birth")
+        max_length=100, null=True, blank=True, verbose_name="Place of birth")
     date_of_migration = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     address = models.TextField()
