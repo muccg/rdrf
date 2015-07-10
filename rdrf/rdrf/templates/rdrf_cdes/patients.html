@@ -43,17 +43,17 @@
         <table id="grid" class="table table-hover" width="100%">
             <thead>
                 <tr>
-                    <th data-column-id="full_name" data-formatter="full_name_formatter">Patient</th>
-                    <th data-column-id="working_groups_display">Working Groups</th>
+                    <th data-column-id="full_name" data-sortable="false" data-formatter="full_name_formatter">Patient</th>
+                    <th data-column-id="working_groups_display" data-sortable="false">Working Groups</th>
                     <th data-column-id="date_of_birth">Date of Birth</th>
                     {% if request.user.is_clinical or request.user.is_curator or request.user.is_working_group_staff or request.user.is_superuser %}
-                        <th data-column-id="diagnosis_progress" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
-                        <th data-column-id="diagnosis_currency" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
+                        <th data-column-id="diagnosis_progress" data-sortable="false" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
+                        <th data-column-id="diagnosis_currency" data-sortable="false" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
                     {% endif %}
                     {% if request.user.is_genetic_staff or request.user.is_genetic_curator or request.user.is_superuser %}
-                        <th data-column-id="genetic_data" data-formatter="genetic_data_formatter">Genetic Data</th>
+                        <th data-column-id="genetic_data" data-sortable="false" data-formatter="genetic_data_formatter">Genetic Data</th>
                     {% endif %}
-                    <th data-column-id="data_modules" data-formatter="data_modules" data-sortable="false">Modules</th>
+                    <th data-column-id="data_modules" data-sortable="false" data-formatter="data_modules" data-sortable="false">Modules</th>
                 </tr>
             </thead>
         </table>
