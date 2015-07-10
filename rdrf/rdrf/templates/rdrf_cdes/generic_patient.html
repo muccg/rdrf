@@ -238,6 +238,9 @@
                                                                     Select for deletion
                                                                 {% else %}
                                                                     {{ element.label }}
+                                                                    {% if  element.field.required %}
+                                                                        <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                    {% endif %}
                                                                 {% endif %}
                                                             </label>
                                                             <div class="col-sm-9">
@@ -285,16 +288,29 @@
                                             <div class="form-group">
                                         {% endif %}
                                             {% if link %}
-                                                <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">{{ element.label }}</label>
+                                                <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
+                                                    {{ element.label }}
+                                                    {% if  element.field.required %}
+                                                        <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    {% endif %}
+                                                </label>
                                                 <div class="col-sm-1">
                                             {% else %}
-                                                <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    {{ element.label }}
+                                                    {% if  element.field.required %}
+                                                        <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    {% endif %}                                                
+                                                </label>
                                                 <div class="col-sm-9">
                                             {% endif %}
                                                 {% if not element|is_checkbox %}
                                                     {{ element | add_attr:"class,form-control" }}
                                                 {% else %}
                                                     {{ element }}
+                                                    {% if  element.field.required %}
+                                                        <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    {% endif %}
                                                 {% endif %}
                                                 <small class="text-muted">
                                                     {{ element.help_text }}

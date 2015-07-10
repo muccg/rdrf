@@ -272,12 +272,14 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        {{ element.label }}
+                                                        {% if  element.field.required %}
+                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                        {% endif %}
+                                                    </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
-                                                        {% if element.field.required %}
-                                                            <span class="label label-danger">This field is required</span>
-                                                        {% endif %}
                                                         <small class="text-muted">
                                                             {{ element.help_text }}
                                                         </small>
@@ -304,13 +306,13 @@
                                                             Select for deletion
                                                         {% else %}
                                                             {{ element.label }}
+                                                            {% if  element.field.required %}
+                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            {% endif %}
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
-                                                        {% if element.field.required %}
-                                                            <span class="label label-danger">This field is required</span>
-                                                        {% endif %}
                                                         <small class="text-muted">
                                                             {{ element.help_text }}
                                                         </small>
@@ -328,7 +330,12 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group">
-                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">{{field.label}}</label>
+                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
+                                        {{field.label}}
+                                        {% if  field.field.required %}
+                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                        {% endif %}
+                                    </label>
                                     <div class="col-md-8">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
