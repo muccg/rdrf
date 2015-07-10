@@ -122,7 +122,7 @@ make_virtualenv() {
 pythonlint() {
     make_virtualenv
     ${VIRTUALENV}/bin/pip install 'flake8>=2.0,<2.1'
-    ${VIRTUALENV}/bin/flake8 rdrf/rdrf --exclude=migrations,selenium_test --ignore=E501 --count
+    ${VIRTUALENV}/bin/flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
 }
 
 

@@ -28,7 +28,8 @@ from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
 
 
-admin.autodiscover()  # very important so that registry admins (genetic, patient, etc) are discovered.
+# very important so that registry admins (genetic, patient, etc) are discovered.
+admin.autodiscover()
 
 
 def handler404(request):
@@ -40,7 +41,8 @@ def handler500(request):
 
 
 def handlerApplicationError(request):
-    return render_to_response("rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
+    return render_to_response(
+        "rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
 
 
 # TastyPie API
@@ -52,7 +54,8 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
-                       url(r'^constructors/(?P<form_name>\w+)/?$', form_view.ConstructorFormView.as_view(), name="constructors"),
+                       url(r'^constructors/(?P<form_name>\w+)/?$',
+                           form_view.ConstructorFormView.as_view(), name="constructors"),
                        url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
                        (r'^admin/', include(admin.site.urls)),
@@ -61,24 +64,29 @@ urlpatterns = patterns('',
 
                        url(r'^/?$', landing_view.LandingView.as_view(), name='landing'),
                        url(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
-                       url(r'^import/?', import_registry_view.ImportRegistryView.as_view(), name='import_registry'),
+                       url(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
+                           name='import_registry'),
                        url(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
                        url(r'^explorer/', include('explorer.urls')),
                        url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
-                       url(r'^laboratory/?$', LaboratoryView.as_view(), name='laboratory_source'),
+                       url(r'^laboratory/?$', LaboratoryView.as_view(),
+                           name='laboratory_source'),
 
                        url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
 
-                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(), name="patientslisting"),
+                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
+                           name="patientslisting"),
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
-                       url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'admin/login.html'}, name='login'),
+                       url(r'^login/?$', 'django.contrib.auth.views.login',
+                           {'template_name': 'admin/login.html'}, name='login'),
                        url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
                        url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
                            form_view.FormView.as_view(), name='registry_form'),
-                       url(r"^(?P<registry_code>\w+)/?$", registry_view.RegistryView.as_view(), name='registry'),
+                       url(r"^(?P<registry_code>\w+)/?$",
+                           registry_view.RegistryView.as_view(), name='registry'),
 
                        url(r"^(?P<registry_code>\w+)/patient/?$",
                            patient_view.PatientView.as_view(), name='patient_page'),
@@ -109,13 +117,17 @@ urlpatterns = patterns('',
                            rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
                        (r'^admin/lookups/', include(ajax_select_urls)),
 
-                       url(r'^admin/patients/updatesession/?$', update_session, name='updatesession'),
+                       url(r'^admin/patients/updatesession/?$',
+                           update_session, name='updatesession'),
                        (r'^api/', include(v1_api.urls)),
-                       url(r'^state/(?P<country_code>\w+)/?$', StateLookup.as_view(), name='state_lookup'),
+                       url(r'^state/(?P<country_code>\w+)/?$',
+                           StateLookup.as_view(), name='state_lookup'),
                        url(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
                            form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
-                       url(r'^designer/(?P<reg_pk>\d+)$', form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
-                       url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(), name='rdrf_designer_cdes_endpoint'),
+                       url(r'^designer/(?P<reg_pk>\d+)$',
+                           form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
+                       url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(),
+                           name='rdrf_designer_cdes_endpoint'),
                        url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(),
                            name='rdrf_designer_registry_structure_endpoint'),
                        url(r'^adjudicationinitiation/(?P<def_id>\d+)/(?P<patient_id>\d+)/?$',
@@ -130,12 +142,24 @@ urlpatterns = patterns('',
                        )
 
 urlpatterns += patterns('',
-                        url(r'^(?P<registry_code>\w+)/register/$', RdrfRegistrationView.as_view(), name='registration_register'),
-                        url(r'^register/complete/$', TemplateView.as_view(template_name='registration/registration_complete.html'), name='registration_complete'),
-                        url(r'^register/closed/$', TemplateView.as_view(template_name='registration/registration_closed.html'), name='registration_disallowed'),
-
-                        url(r'^activate/complete/$', TemplateView.as_view(template_name='registration/activation_complete.html'), name='registration_activation_complete'),
-                        url(r'^activate/(?P<activation_key>\w+)/$', ActivationView.as_view(), name='registration_activate'),
+                        url(r'^(?P<registry_code>\w+)/register/$',
+                            RdrfRegistrationView.as_view(),
+                            name='registration_register'),
+                        url(r'^register/complete/$',
+                            TemplateView.as_view(
+                                template_name='registration/registration_complete.html'),
+                            name='registration_complete'),
+                        url(r'^register/closed/$',
+                            TemplateView.as_view(
+                                template_name='registration/registration_closed.html'),
+                            name='registration_disallowed'),
+                        url(r'^activate/complete/$',
+                            TemplateView.as_view(
+                                template_name='registration/activation_complete.html'),
+                            name='registration_activation_complete'),
+                        url(r'^activate/(?P<activation_key>\w+)/$',
+                            ActivationView.as_view(),
+                            name='registration_activate'),
                         )
 
 urlpatterns += patterns('',

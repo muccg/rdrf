@@ -93,7 +93,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
                 logger.error("Error(s) exporting %s:" % registry.name)
                 for error in errors:
                     logger.error("Export Error: %s" % error)
-                    messages.error(request, "Error in export of %s: %s" % (registry.name, error))
+                    messages.error(request, "Error in export of %s: %s" %
+                                   (registry.name, error))
                 return None
             else:
                 logger.info("Exported YAML Data for %s OK" % registry.name)
@@ -139,7 +140,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         zippedfile.seek(0)
 
         response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_" + reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
+        name = "export_" + export_time + "_" + \
+            reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
         response['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         return response
@@ -211,13 +213,19 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
         if user.is_superuser:
             return QuestionnaireResponse.objects.all()
         else:
-            return QuestionnaireResponse.objects.filter(registry__in=[reg for reg in user.registry.all()])
+            return QuestionnaireResponse.objects.filter(
+                registry__in=[
+                    reg for reg in user.registry.all()])
 
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
 
 
-def create_restricted_model_admin_class(model_class, search_fields=None, ordering=None, list_display=None):
+def create_restricted_model_admin_class(
+        model_class,
+        search_fields=None,
+        ordering=None,
+        list_display=None):
 
     def query_set_func(model_class):
         def queryset(myself, request):
@@ -291,11 +299,14 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
         if user.is_superuser:
             return AdjudicationRequest.objects.all()
         else:
-            return AdjudicationRequest.objects.filter(username=user.username, state=AdjudicationRequestState.REQUESTED)
+            return AdjudicationRequest.objects.filter(
+                username=user.username,
+                state=AdjudicationRequestState.REQUESTED)
 
 
 class AdjudicationAdmin(admin.ModelAdmin):
-    list_display = ('requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
+    list_display = (
+        'requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
     ordering = ['requesting_username', 'definition']
     list_filter = ['requesting_username', 'definition']
 
@@ -341,8 +352,9 @@ class ConsentQuestionAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {'fields': ('position', 'code', 'question_label', 'questionnaire_label', 'instructions')}),
-    )
+        (None, {
+            'fields': (
+                'position', 'code', 'question_label', 'questionnaire_label', 'instructions')}), )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
@@ -357,12 +369,37 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(CDEPermittedValue, create_restricted_model_admin_class(CDEPermittedValue, ordering=['code'], search_fields=[
-                    'code', 'value', 'pv_group__code'], list_display=['code', 'value', 'questionnaire_value_formatted', 'pvg_link', 'position_formatted']))
+admin.site.register(
+    CDEPermittedValue,
+    create_restricted_model_admin_class(
+        CDEPermittedValue,
+        ordering=['code'],
+        search_fields=[
+            'code',
+            'value',
+            'pv_group__code'],
+        list_display=[
+            'code',
+            'value',
+            'questionnaire_value_formatted',
+            'pvg_link',
+            'position_formatted']))
 admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
 # admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
-admin.site.register(CommonDataElement, create_restricted_model_admin_class(CommonDataElement, ordering=[
-                    'code'], search_fields=['code', 'name', 'datatype'], list_display=['code', 'name', 'datatype', 'widget_name']))
+admin.site.register(
+    CommonDataElement,
+    create_restricted_model_admin_class(
+        CommonDataElement,
+        ordering=['code'],
+        search_fields=[
+            'code',
+            'name',
+            'datatype'],
+        list_display=[
+            'code',
+            'name',
+            'datatype',
+            'widget_name']))
 admin.site.register(RegistryForm, RegistryFormAdmin)
 
 admin.site.register(Section, SectionAdmin)

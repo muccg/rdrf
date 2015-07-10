@@ -3,8 +3,10 @@ import time
 import logging
 from django.db import connection
 from django.utils.encoding import smart_str
+from functools import reduce
 
 logger = logging.getLogger(__name__)
+
 
 class TimeLogMiddleware(object):
 

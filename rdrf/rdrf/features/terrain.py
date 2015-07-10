@@ -26,4 +26,5 @@ def delete_cookies(scenario):
 
 @after.each_scenario
 def screenshot(scenario):
-    world.browser.get_screenshot_as_file("/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+    world.browser.get_screenshot_as_file(
+        "/data/{0}-{1}.png".format(scenario.passed, scenario.name))

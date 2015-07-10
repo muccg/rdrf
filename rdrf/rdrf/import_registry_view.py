@@ -28,7 +28,10 @@ class ImportRegistryView(View):
             'error_message': error_message,
         }
 
-        return render_to_response('rdrf_cdes/import_registry.html', context, context_instance=RequestContext(request))
+        return render_to_response(
+            'rdrf_cdes/import_registry.html',
+            context,
+            context_instance=RequestContext(request))
 
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
