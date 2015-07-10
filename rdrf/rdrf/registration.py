@@ -6,6 +6,7 @@ import logging
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
+from datetime import datetime
 import pycountry
 
 logger = logging.getLogger("registry_log")
@@ -138,7 +139,9 @@ class QuestionnaireReverseMapper(object):
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
         dynamic_data_dict = {}
+        form_names = set([])
         for reg_code, form_name, section_code, cde_code, value in self._get_dynamic_data():
+            form_names.add(form_name)
             delimited_key = settings.FORM_SECTION_DELIMITER.join(
                 [form_name, section_code, cde_code])
             dynamic_data_dict[delimited_key] = value
@@ -151,7 +154,16 @@ class QuestionnaireReverseMapper(object):
             else:
                 dynamic_data_dict[original_multiple_section] = element_list
 
+        self._update_timestamps(form_names, dynamic_data_dict)
         wrapper.save_dynamic_data(self.registry.code, 'cdes', dynamic_data_dict)
+
+    def _update_timestamps(self, form_names, dynamic_data_dict):
+        # These timestamps are used by the form progress indicator in the
+        # patient listing
+        last_update_time = datetime.now()
+        dynamic_data_dict["timestamp"] = last_update_time
+        for form_name in form_names:
+            dynamic_data_dict["%s_timestamp" % form_name] = last_update_time
 
     def _get_multiple_sections(self):
         for k in self.questionnaire_data:
