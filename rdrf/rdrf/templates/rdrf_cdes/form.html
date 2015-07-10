@@ -260,7 +260,7 @@
                                     <div class="form-group">
                                         <div class="col-sm-9 col-sm-offset-3">
                                             <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Delete
+                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
                                             </a>
                                         </div>
                                     </div>
@@ -303,7 +303,7 @@
                                             {% endif %}
                                                     <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
                                                         {% if element.label == "Delete" %}
-                                                            Select for deletion
+                                                            Mark for deletion
                                                         {% else %}
                                                             {{ element.label }}
                                                             {% if  element.field.required %}
