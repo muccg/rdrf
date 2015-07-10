@@ -58,13 +58,18 @@
 
 
         function remove_link(new_form_id, prefix) {
+            var span_obj = $("<span></span>");
+            span_obj.attr("class", "glyphicon glyphicon-minus");
+            span_obj.attr("aria-hiddent", "true");
+        
             var remove_link = $("<a/>");
-            remove_link.attr("class", "btn btn-danger");
-            remove_link.text("Remove");
+            remove_link.attr("class", "btn btn-xs btn-danger pull-right");
+            remove_link.text("Delete");
             remove_link.click(function(){
                 del_formset(new_form_id, prefix);
             });
 
+            remove_link.wrapInner(span_obj);
             return remove_link;
         }
 
@@ -100,6 +105,16 @@
 
             var full_form = $("<div/>");
             full_form.attr("class", "col-sm-12");
+            
+            var form_div = $("<div/>");            
+            form_div.attr("class", "form-group");
+            
+            var field_div = $("<div/>");
+            field_div.attr("class", "col-sm-12");
+            field_div.append(remove_link);
+            
+            form_div.append(field_div);
+            full_form.append(form_div);
 
             $.each( modified_form_html, function( i, element ) {
                 var label = ($(element).find("th").html());
@@ -107,27 +122,24 @@
 
                 var form_div = $("<div/>");
                 if (label && field ) {
-                    console.log();
-                    form_div.attr("class", "form-group");
-                    form_div.append($(label).attr("class", "col-sm-3 control-label"));
-
-                    var field_div = $("<div/>");
-                    field_div.attr("class", "col-sm-9");
-
-
-                    var field_obj = null;
                     if ($(label).html().indexOf("Delete") == 0) {
-                        field_obj = remove_link;
+                        //skip in oder to put delete button on the top of new form
                     } else {
+                        form_div.attr("class", "form-group");
+                        form_div.append($(label).attr("class", "col-sm-3 control-label"));
+        
+                        var field_div = $("<div/>");
+                        field_div.attr("class", "col-sm-9");
+        
                         var field_obj = $(field);
                         if (field_obj.attr("type") != "checkbox" ) {
                             field_obj.attr("class", "form-control");
                         }
+        
+                        field_div.append(field_obj);
+        
+                        form_div.append(field_div);
                     }
-
-                    field_div.append(field_obj);
-
-                    form_div.append(field_div);
                 }
                 full_form.append(form_div);
             });
@@ -221,7 +233,13 @@
                                                             {% else %}
                                                                 <div class="form-group">
                                                             {% endif %}
-                                                            <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                            <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                                {% if element.label == "Delete" %}
+                                                                    Select for deletion
+                                                                {% else %}
+                                                                    {{ element.label }}
+                                                                {% endif %}
+                                                            </label>
                                                             <div class="col-sm-9">
                                                                 {% if not element|is_checkbox %}
                                                                     {% if element|is_patient_relative_widget %}

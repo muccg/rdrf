@@ -245,7 +245,7 @@
                         
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-warning btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
+                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
                                 </a>
                             {% endwith %}
@@ -257,6 +257,13 @@
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
                                 <div style="display: none;" id="empty_{{formset.prefix}}">
+                                    <div class="form-group">
+                                        <div class="col-sm-9 col-sm-offset-3">
+                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Delete
+                                            </a>
+                                        </div>
+                                    </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
                                             <div class="form-group has-error">
@@ -264,9 +271,6 @@
                                             <div class="form-group">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
-                                                    <div class="col-sm-9 col-sm-offset-3">
-                                                        <a class="btn btn-danger btn-sm" onclick="delete_form(this, '{{formset.prefix}}')">Remove</a>
-                                                    </div>
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
                                                     <div class="col-sm-9">
@@ -295,7 +299,13 @@
                                             {% else %}
                                                 <div class="form-group">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">{{ element.label }}</label>
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        {% if element.label == "Delete" %}
+                                                            Select for deletion
+                                                        {% else %}
+                                                            {{ element.label }}
+                                                        {% endif %}
+                                                    </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         {% if element.field.required %}
