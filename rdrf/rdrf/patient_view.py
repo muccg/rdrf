@@ -326,7 +326,7 @@ class PatientFormMixin(PatientMixin):
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
-        personal_details_fields = ('Personal Details', [
+        personal_details_fields = ('Patients Personal Details', [
             "family_name",
             "given_names",
             "maiden_name",
@@ -848,7 +848,7 @@ class PatientEditView(View):
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
-        personal_details_fields = ('Personal Details', [
+        personal_details_fields = ('Patients Personal Details', [
             "family_name",
             "given_names",
             "maiden_name",
