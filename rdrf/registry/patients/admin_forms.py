@@ -137,9 +137,8 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(
-        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    state = forms.ComboField(required=False, widget=StateWidget())
+    country = forms.ComboField(required=True, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    state = forms.ComboField(required=True, widget=StateWidget())
 
 
 class PatientConsentFileForm(forms.ModelForm):
@@ -160,6 +159,7 @@ class PatientForm(forms.ModelForm):
     next_of_kin_country = forms.ComboField(
         required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     next_of_kin_state = forms.ComboField(required=False, widget=StateWidget())
+    country_of_birth = forms.ComboField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()

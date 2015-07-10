@@ -666,10 +666,9 @@ class PatientAddress(models.Model):
     address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
     suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
-    state = models.CharField(
-        max_length=50, verbose_name="State/Province/Territory", blank=True, null=True)
-    postcode = models.CharField(max_length=50, blank=True)
-    country = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=50)
+    country = models.CharField(max_length=100)
 
     class Meta:
         verbose_name_plural = "Patient Addresses"
