@@ -3,7 +3,7 @@ from registry.utils import get_static_url
 from django_countries import countries
 from models import *
 from models import PatientConsent, ParentGuardian
-from rdrf.widgets import CountryWidget, StateWidget
+from rdrf.widgets import CountryWidget, StateWidget, DateWidget
 from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
 import logging
@@ -52,21 +52,11 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
-        date_of_birth = forms.DateField(
-            widget=forms.DateInput(
-                attrs={
-                    'class': 'datepicker',
-                    "style": "width:70px"},
-                format='%d-%m-%Y'),
-            input_formats=['%d-%m-%Y'])
         widgets = {
-            'relative_patient': PatientRelativeLinkWidget, 'sex': Select(
-                attrs={
-                    "style": "width:90px"}), 'living_status': Select(
-                attrs={
-                    "style": "width:100px"}), 'date_of_birth': forms.DateInput(
-                        attrs={
-                            'class': 'datepicker', "style": "width:70px"}, format='%d-%m-%Y'), }
+            'relative_patient': PatientRelativeLinkWidget,
+            'date_of_birth': DateWidget
+        }
+
 
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
