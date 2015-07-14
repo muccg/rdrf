@@ -24,6 +24,10 @@ from bson.json_util import dumps
 from bson import json_util
 from datetime import datetime
 import collections
+import logging
+from itertools import product
+
+logger = logging.getLogger("registry_log")
 
 
 class LoginRequiredMixin(object):
@@ -114,7 +118,7 @@ class QueryView(LoginRequiredMixin, View):
             munged = _munge_docs(result, cdes)
             munged = _filler(munged, cdes)
             munged = _final_cleanup(munged)
-
+            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
             result = _human_friendly(munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
@@ -151,11 +155,14 @@ class DownloadQueryView(LoginRequiredMixin, View):
         munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
 
-        if not result:
+        unrolled_results = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+        logger.debug("number of unrolled rows = %s" % len(unrolled_results))
+
+        if not unrolled_results:
             messages.add_message(request, messages.WARNING, "No results")
             return redirect(reverse("explorer_query_download", args=(query_id,)))
 
-        return self._extract(munged, query_model.title, query_id)
+        return self._extract(unrolled_results, query_model.title, query_id)
 
     def get(self, request, query_id):
         user = request.user
@@ -188,6 +195,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _extract(self, result, title, query_id):
         result = _human_friendly(result)
+        logger.debug("num rows after human friendly = %s" % len(result))
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
@@ -195,9 +203,13 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         header = _get_header(result)
         writer.writerow(header)
+        csv_rows = 0
         for r in result:
             row = _get_content(r, header)
             writer.writerow(row)
+            csv_rows += 1
+
+        logger.debug("num csv rows emitted = %s" % csv_rows)
 
         return response
 
@@ -243,7 +255,7 @@ def _get_header(result):
 def _get_content(result, header):
     row = []
     for h in header:
-        row.append(result.get(h.decode("utf8"), "???"))
+        row.append(result.get(h.decode("utf8"), "?"))
     return row
 
 
@@ -332,3 +344,117 @@ def _final_cleanup(results):
             if key.endswith('timestamp'):
                 del res[key]
     return results
+
+
+class MultisectionUnRoller(object):
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+        self.multisection_codes = self.get_multisection_codes()
+        self.row_count = 0
+
+    def get_multisection_codes(self):
+        multisections = {}
+        for form_model in self.registry_model.forms:
+            if form_model.is_questionnaire:
+                continue
+            for section_model in form_model.section_models:
+                if section_model.allow_multiple:
+                    if not section_model.code in multisections:
+                        multisections[section_model.code] = section_model
+        return multisections
+
+    def munge_multisection_item(self, multisection_code, item):
+        multisection_model = self.multisection_codes[multisection_code]
+        if isinstance(item, basestring):
+            return self.create_blank_item(multisection_model)
+        d = {}
+        for key in item:
+            if "____" in key:
+                nice_cde_name = self.create_nice_name_from_delimited_key(multisection_model, key)
+                d[nice_cde_name] = item[key]
+            else:
+                # we omit the DELETE key and value
+                pass
+        return d
+
+    def create_nice_name_from_delimited_key(self, multisection_model, delimited_key):
+        from rdrf.models import CommonDataElement
+        form_code, section_code, cde_code = delimited_key.split("____")
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        return self.nice_name(multisection_model, cde_model)
+
+    def nice_name(self, section_model, cde_model):
+        return cde_model.name
+
+    def create_blank_item(self, multisection_model):
+        d = {}
+        for cde_model in multisection_model.cde_models:
+            nice_name = self.nice_name(multisection_model, cde_model)
+            d[nice_name] = "?"
+        return d
+
+    def unroll(self, row):
+        django_id = row["django_id"]
+        logger.debug("unrolling row for patient %s" % django_id)
+        new_rows = []
+        sublists = {}
+        logger.debug("number of multisections in registry = %s" % len(self.multisection_codes.keys()))
+
+        for multisection_code in self.multisection_codes:
+                if multisection_code in row:
+                    logger.debug("multisection code %s is in row" % multisection_code)
+                    multisection_data = row[multisection_code]
+                    if type(multisection_data) is list:
+                        for item in multisection_data:
+                            munged_item = self.munge_multisection_item(multisection_code, item)
+                            if multisection_code in sublists:
+                                sublists[multisection_code].append((multisection_code, munged_item))
+                            else:
+                                sublists[multisection_code] = [(multisection_code, munged_item)]
+                    else:
+                        logger.debug("multisection code %s is not in row" % multisection_code)
+                        # the multisection has not been filled out so a ? appears in the report
+                        blank_item = self.create_blank_item(self.multisection_codes[multisection_code])
+                        if multisection_code in sublists:
+                            sublists[multisection_code].append((multisection_code, blank_item))
+                        else:
+                            sublists[multisection_code] = [(multisection_code, blank_item)]
+                else:
+                    # error?
+                    logger.debug("multisection code %s is not in row???" % multisection_code)
+                    pass
+
+        f = 1
+        for k in sublists:
+            num_items = len(sublists[k])
+            f = f * num_items
+            logger.debug("Number of %s for patient %s = %s" % (k, django_id, num_items))
+
+        logger.debug("expect there to be %s rows output for this row" % f)
+        row_count = 0
+        for choice_tuple in product(*sublists.values()):
+            new_row = row.copy()
+            row_count += 1
+            for (key, new_dict) in choice_tuple:
+                logger.debug("key = %s" % str(key))
+                logger.debug("new_dict = %s" % str(new_dict))
+                if key in new_row:
+                    del new_row[key]
+                new_row.update(new_dict)
+            new_rows.append(new_row)
+
+        logger.debug("number of new rows = %s" % len(new_rows))
+        return new_rows
+
+    def unroll_rows(self, rows):
+        logger.debug("abount to unroll %s rows" % len(rows))
+        self.row_count = 0
+        new_rows = []
+        for row in rows:
+            logger.debug("unrolling row ..")
+            unrolled_rows = self.unroll(row)
+            self.row_count += len(unrolled_rows)
+            logger.debug("row count now = %s" % self.row_count)
+            new_rows.extend(unrolled_rows)
+
+        return new_rows
