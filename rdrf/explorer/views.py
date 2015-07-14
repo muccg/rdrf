@@ -384,7 +384,7 @@ class MultisectionUnRoller(object):
         return self.nice_name(multisection_model, cde_model)
 
     def nice_name(self, section_model, cde_model):
-        return cde_model.name
+        return section_model.display_name + "-" + cde_model.name
 
     def create_blank_item(self, multisection_model):
         d = {}
