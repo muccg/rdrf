@@ -426,7 +426,7 @@ class MultisectionUnRoller(object):
         we need to iterate through the cartesian product of [a,b,c] and [d,e,f] ( a square)
         ( 1 row expands to 9 rows !)
         Hence the use of itertools.product to walk through the generated choices
-        ( eg d,e
+        ( eg b,e
              a,f
             etc etc)
         for three multisections we iterate through the triple product ( a cube) and so on
