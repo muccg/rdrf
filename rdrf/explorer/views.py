@@ -123,7 +123,8 @@ class QueryView(LoginRequiredMixin, View):
             mongo_keys = _get_non_multiple_mongo_keys(registry_model)
             munged = _filler(result, mongo_keys)
             munged = _final_cleanup(munged)
-            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+            humaniser = Humaniser(registry_model)
+            munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
             result = _human_friendly(registry_model, munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
@@ -159,7 +160,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
         result = database_utils.run_full_query().result
         mongo_keys = _get_non_multiple_mongo_keys(registry_model)
         munged = _filler(result, mongo_keys)
-        munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+        humaniser = Humaniser(registry_model)
+        munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
         logger.debug("number of unrolled rows = %s" % len(munged))
 
         if not munged:
@@ -290,14 +292,13 @@ class Humaniser(object):
             except BadKeyError:
                 logger.error("Key %s refers to non-existant models" % key)
                 return mongo_value
-            if not section_model.allow_multiple:
-                if cde_model.pv_group:
-                    # look up the stored code and return the display value
-                    range_dict = cde_model.pv_group.as_dict()
-                    for value_dict in range_dict["values"]:
-                        if mongo_value == value_dict["code"]:
-                            return value_dict["value"]
 
+            if cde_model.pv_group:
+                # look up the stored code and return the display value
+                range_dict = cde_model.pv_group.as_dict()
+                for value_dict in range_dict["values"]:
+                    if mongo_value == value_dict["code"]:
+                        return value_dict["value"]
         return mongo_value
 
 
@@ -372,7 +373,8 @@ def _final_cleanup(results):
 
 
 class MultisectionUnRoller(object):
-    def __init__(self, registry_model):
+    def __init__(self, registry_model, humaniser):
+        self.humaniser = humaniser
         self.registry_model = registry_model
         self.multisection_codes = self.get_multisection_codes()
         self.row_count = 0
@@ -396,7 +398,7 @@ class MultisectionUnRoller(object):
         for key in item:
             if "____" in key:
                 nice_cde_name = self.create_nice_name_from_delimited_key(multisection_model, key)
-                d[nice_cde_name] = item[key]
+                d[nice_cde_name] = self.humaniser.display_value(key, item[key])
             else:
                 # we omit the DELETE key and value
                 pass
