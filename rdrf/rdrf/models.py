@@ -784,7 +784,6 @@ class QuestionnaireResponse(models.Model):
             [questionnaire_form_name, "PatientData", patient_field])
         return record[key]
 
-
 def appears_in(cde, registry, registry_form, section):
     if section.code not in registry_form.get_sections():
         return False

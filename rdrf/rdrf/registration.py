@@ -237,8 +237,10 @@ class QuestionnaireReverseMapper(object):
     def _get_patient_attribute_and_converter(self, cde_code):
 
         def get_working_group(working_group_name):
+            from django.db.models import Q
 
-            return [WorkingGroup.objects.get(name__iexact=working_group_name.strip())]
+            return [WorkingGroup.objects.get(Q(name__iexact=working_group_name.strip())
+                        & Q(registry=self.registry) )]
 
         def set_next_of_kin_relationship(relationship_name):
             from registry.patients.models import NextOfKinRelationship
