@@ -200,8 +200,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _extract(self, registry_model, result, title, query_id):
         result = _human_friendly(registry_model, result)
-        logger.debug("num rows after human friendly = %s" % len(result))
-
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
         writer = csv.writer(response)
@@ -213,8 +211,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
             row = _get_content(r, header)
             writer.writerow(encode_row(row))
             csv_rows += 1
-
-        logger.debug("num csv rows emitted = %s" % csv_rows)
 
         return response
 
@@ -278,14 +274,11 @@ class Humaniser(object):
                 form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
             except BadKeyError:
                 logger.error("key %s refers to non-existant models" % key)
-                logger.debug("display_name for %s = %s" % (key, key))
                 return key
 
             human_name = "%s/%s/%s" % (form_model.name, section_model.display_name, cde_model.name)
-            logger.debug("display_name for %s = %s" % (key, human_name))
             return human_name
         else:
-            logger.debug("display_name for %s = %s" % (key, key))
             return key
 
     @cached
@@ -296,7 +289,6 @@ class Humaniser(object):
                 form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
             except BadKeyError:
                 logger.error("Key %s refers to non-existant models" % key)
-                logger.debug("display_value for %s = %s" % (key, mongo_value))
                 return mongo_value
             if not section_model.allow_multiple:
                 if cde_model.pv_group:
@@ -306,7 +298,6 @@ class Humaniser(object):
                         if mongo_value == value_dict["code"]:
                             return value_dict["value"]
 
-        logger.debug("display_value for %s = %s" % (key, mongo_value))
         return mongo_value
 
 
@@ -315,9 +306,7 @@ def _human_friendly(registry_model, result):
 
     for r in result:
         for key in r.keys():
-            logger.debug("_human_friendly on key %s" % key)
             mongo_value = r[key]
-            logger.debug("mongo value = %s" % mongo_value)
             cde_value = humaniser.display_value(key, mongo_value)
             if cde_value:
                 r[key] = cde_value
@@ -430,15 +419,26 @@ class MultisectionUnRoller(object):
         return d
 
     def unroll(self, row):
-        django_id = row["django_id"]
-        logger.debug("unrolling row for patient %s" % django_id)
-        new_rows = []
-        sublists = {}
-        logger.debug("number of multisections in registry = %s" % len(self.multisection_codes.keys()))
+        """
+        Basic idea is to use cartesian product to display all combinations of list elements
+        for the multisections:
+        if a row originally looks like   normalfield1, normalfield2, [a,b,c], notmalfield4, [d,e,f]
+        we need to iterate through the cartesian product of [a,b,c] and [d,e,f] ( a square)
+        ( 1 row expands to 9 rows !)
+        Hence the use of itertools.product to walk through the generated choices
+        ( eg d,e
+             a,f
+            etc etc)
+        for three multisections we iterate through the triple product ( a cube) and so on
+        This gets big quick obviously ...
+        :param row:
+        :return:
+        """
+        new_rows = []  # the extra unrolled rows
+        sublists = {}  # a map of multisection codes to lists of the pairs of that multisection code and an item added
 
         for multisection_code in self.multisection_codes:
                 if multisection_code in row:
-                    logger.debug("multisection code %s is in row" % multisection_code)
                     multisection_data = row[multisection_code]
                     if type(multisection_data) is list:
                         for item in multisection_data:
@@ -448,49 +448,37 @@ class MultisectionUnRoller(object):
                             else:
                                 sublists[multisection_code] = [(multisection_code, munged_item)]
                     else:
-                        logger.debug("multisection code %s is not in row" % multisection_code)
                         # the multisection has not been filled out so a ? appears in the report
                         blank_item = self.create_blank_item(self.multisection_codes[multisection_code])
                         if multisection_code in sublists:
                             sublists[multisection_code].append((multisection_code, blank_item))
                         else:
                             sublists[multisection_code] = [(multisection_code, blank_item)]
-                else:
-                    # error?
-                    logger.debug("multisection code %s is not in row???" % multisection_code)
-                    pass
 
         f = 1
         for k in sublists:
             num_items = len(sublists[k])
             f = f * num_items
-            logger.debug("Number of %s for patient %s = %s" % (k, django_id, num_items))
 
-        logger.debug("expect there to be %s rows output for this row" % f)
         row_count = 0
+        # choice tuple is one choice from each sublist
         for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
             row_count += 1
             for (key, new_dict) in choice_tuple:
-                logger.debug("key = %s" % str(key))
-                logger.debug("new_dict = %s" % str(new_dict))
                 if key in new_row:
                     del new_row[key]
                 new_row.update(new_dict)
             new_rows.append(new_row)
 
-        logger.debug("number of new rows = %s" % len(new_rows))
         return new_rows
 
     def unroll_rows(self, rows):
-        logger.debug("abount to unroll %s rows" % len(rows))
         self.row_count = 0
         new_rows = []
         for row in rows:
-            logger.debug("unrolling row ..")
             unrolled_rows = self.unroll(row)
             self.row_count += len(unrolled_rows)
-            logger.debug("row count now = %s" % self.row_count)
             new_rows.extend(unrolled_rows)
 
         return new_rows
