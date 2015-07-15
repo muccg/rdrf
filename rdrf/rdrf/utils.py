@@ -148,3 +148,17 @@ def get_site_url(request, path="/"):
 
 def location_name(registry_form):
     return de_camelcase(registry_form.name)
+
+
+def cached(func):
+    d = {}
+
+    def wrapped(*args, **kwargs):
+        key = str("%s %s" % (args, kwargs))
+        if key in d:
+            return d[key]
+        else:
+            d[key] = func(*args, **kwargs)
+            return d[key]
+
+    return wrapped
