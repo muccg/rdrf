@@ -5,6 +5,9 @@ import re
 logger = logging.getLogger("registry_log")
 
 
+class BadKeyError(Exception):
+    pass
+
 def mongo_db_name(registry):
     return settings.MONGO_DB_PREFIX + registry
 
@@ -29,6 +32,38 @@ def mongo_key(form_name, section_code, cde_code):
 
 def mongo_key_from_models(form_model, section_model, cde_model):
     return mongo_key(form_model.name, section_model.code, cde_model.code)
+
+
+def models_from_mongo_key(registry_model, delimited_key):
+    from rdrf.models import RegistryForm, Section, CommonDataElement
+    form_name, section_code, cde_code = get_form_section_code(delimited_key)
+    try:
+        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
+    except RegistryForm.DoesNotExist:
+        raise BadKeyError()
+
+    try:
+        section_model = Section.objects.get(code=section_code)
+    except Section.DoesNotExist:
+        raise BadKeyError()
+
+    try:
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+    except CommonDataElement.DoesNotExist:
+        raise BadKeyError()
+
+    return form_model, section_model, cde_model
+
+
+def is_delimited_key(s):
+    try:
+        parts = s.split(settings.FORM_SECTION_DELIMITER)
+        if len(parts) == 3:
+            return True
+    except Exception:
+        pass
+    return False
+
 
 
 def id_on_page(registry_form_model, section_model, cde_model):
@@ -113,3 +148,17 @@ def get_site_url(request, path="/"):
 
 def location_name(registry_form):
     return de_camelcase(registry_form.name)
+
+
+def cached(func):
+    d = {}
+
+    def wrapped(*args, **kwargs):
+        key = str("%s %s" % (args, kwargs))
+        if key in d:
+            return d[key]
+        else:
+            d[key] = func(*args, **kwargs)
+            return d[key]
+
+    return wrapped
