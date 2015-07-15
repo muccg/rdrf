@@ -158,8 +158,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
         cdes = _get_cdes(query_model.registry)
-        munged = _munge_docs(result, cdes)
-        munged = _filler(munged, cdes)
+        munged = _filler(result, cdes)
 
         if UNROLL:
             munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
@@ -195,7 +194,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
         cdes = _get_cdes(query_model.registry)
-        #munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
         munged = _final_cleanup(munged)
 
@@ -354,22 +352,6 @@ def _filler(result, cdes):
             if cde not in r:
                 r[cde] = "?"
         munged.append(collections.OrderedDict(sorted(r.items())))
-    return munged
-
-
-def _munge_docs(result, cdes):
-    munged = []
-    for res in result:
-        munged_result = {}
-        for item in res:
-            if isinstance(res[item], list):
-                res_list = []
-                for i in res[item]:
-                    res_list.append(i)
-                munged_result[item] = res_list
-            else:
-                munged_result[item] = res[item]
-        munged.append(munged_result)
     return munged
 
 
