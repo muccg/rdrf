@@ -26,11 +26,10 @@ from datetime import datetime
 import collections
 import logging
 from itertools import product
-from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError
+from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 
 logger = logging.getLogger("registry_log")
 
-UNROLL = False
 
 
 class LoginRequiredMixin(object):
@@ -121,8 +120,7 @@ class QueryView(LoginRequiredMixin, View):
             mongo_keys = _get_non_multiple_mongo_keys(registry_model)
             munged = _filler(result, mongo_keys)
             munged = _final_cleanup(munged)
-            if UNROLL:
-                munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
             result = _human_friendly(registry_model, munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
@@ -158,9 +156,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         result = database_utils.run_full_query().result
         mongo_keys = _get_non_multiple_mongo_keys(registry_model)
         munged = _filler(result, mongo_keys)
-
-        if UNROLL:
-            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+        munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
         logger.debug("number of unrolled rows = %s" % len(munged))
 
         if not munged:
@@ -272,6 +268,7 @@ class Humaniser(object):
     def __init__(self, registry_model):
         self.registry_model = registry_model
 
+    @cached
     def display_name(self, key):
         if is_delimited_key(key):
             try:
@@ -288,6 +285,7 @@ class Humaniser(object):
             logger.debug("display_name for %s = %s" % (key, key))
             return key
 
+    @cached
     def display_value(self, key, mongo_value):
         # return the display value for ranges
         if is_delimited_key(key):
