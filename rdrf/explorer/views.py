@@ -31,6 +31,9 @@ from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cac
 logger = logging.getLogger("registry_log")
 
 
+def encode_row(row):
+    return [s.encode('utf8') if type(s) is unicode else s for s in row]
+
 
 class LoginRequiredMixin(object):
 
@@ -204,11 +207,11 @@ class DownloadQueryView(LoginRequiredMixin, View):
         writer = csv.writer(response)
 
         header = _get_header(result)
-        writer.writerow(header)
+        writer.writerow(encode_row(header))
         csv_rows = 0
         for r in result:
             row = _get_content(r, header)
-            writer.writerow(row)
+            writer.writerow(encode_row(row))
             csv_rows += 1
 
         logger.debug("num csv rows emitted = %s" % csv_rows)
