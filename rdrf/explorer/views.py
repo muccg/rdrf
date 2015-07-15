@@ -13,7 +13,7 @@ from explorer import app_settings
 from forms import QueryForm
 from models import Query
 from utils import DatabaseUtils
-from rdrf.models import Registry
+from rdrf.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValue
 from registry.groups.models import WorkingGroup
 
 import re
@@ -26,8 +26,11 @@ from datetime import datetime
 import collections
 import logging
 from itertools import product
+from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError
 
 logger = logging.getLogger("registry_log")
+
+UNROLL = False
 
 
 class LoginRequiredMixin(object):
@@ -107,6 +110,7 @@ class QueryView(LoginRequiredMixin, View):
 
     def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
+        registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
 
@@ -115,11 +119,12 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             result = database_utils.run_full_query().result
             cdes = _get_cdes(query_model.registry)
-            munged = _munge_docs(result, cdes)
+            #munged = _munge_docs(result, cdes)
             munged = _filler(munged, cdes)
             munged = _final_cleanup(munged)
-            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
-            result = _human_friendly(munged)
+            if UNROLL:
+                munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+            result = _human_friendly(registry_model, munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
         else:
@@ -149,24 +154,27 @@ class DownloadQueryView(LoginRequiredMixin, View):
             query_model.working_group = WorkingGroup.objects.get(
                 id=request.POST["working_group"])
 
+        registry_model = query_model.registry
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
         cdes = _get_cdes(query_model.registry)
         munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
 
-        unrolled_results = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
-        logger.debug("number of unrolled rows = %s" % len(unrolled_results))
+        if UNROLL:
+            munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
+        logger.debug("number of unrolled rows = %s" % len(munged))
 
-        if not unrolled_results:
+        if not munged:
             messages.add_message(request, messages.WARNING, "No results")
             return redirect(reverse("explorer_query_download", args=(query_id,)))
 
-        return self._extract(unrolled_results, query_model.title, query_id)
+        return self._extract(registry_model, munged, query_model.title, query_id)
 
     def get(self, request, query_id):
         user = request.user
         query_model = Query.objects.get(id=query_id)
+        registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
 
         query_params = re.findall("%(.*?)%", query_model.sql_query)
@@ -187,14 +195,14 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
         cdes = _get_cdes(query_model.registry)
-        munged = _munge_docs(result, cdes)
+        #munged = _munge_docs(result, cdes)
         munged = _filler(munged, cdes)
         munged = _final_cleanup(munged)
 
-        return self._extract(munged, query_model.title, query_id)
+        return self._extract(registry_model, munged, query_model.title, query_id)
 
-    def _extract(self, result, title, query_id):
-        result = _human_friendly(result)
+    def _extract(self, registry_model, result, title, query_id):
+        result = _human_friendly(registry_model, result)
         logger.debug("num rows after human friendly = %s" % len(result))
 
         response = HttpResponse(content_type='text/csv')
@@ -259,40 +267,67 @@ def _get_content(result, header):
     return row
 
 
-def _human_friendly(result):
+class Humaniser(object):
+    """
+    If a display name/value is appropriate for a field, return it
+    """
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+
+    def display_name(self, key):
+        if is_delimited_key(key):
+            try:
+                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+            except BadKeyError:
+                logger.error("key %s refers to non-existant models" % key)
+                logger.debug("display_name for %s = %s" % (key, key))
+                return key
+
+            human_name = "%s/%s/%s" % (form_model.name, section_model.display_name, cde_model.name)
+            logger.debug("display_name for %s = %s" % (key, human_name))
+            return human_name
+        else:
+            logger.debug("display_name for %s = %s" % (key, key))
+            return key
+
+    def display_value(self, key, mongo_value):
+        # return the display value for ranges
+        if is_delimited_key(key):
+            try:
+                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+            except BadKeyError:
+                logger.error("Key %s refers to non-existant models" % key)
+                logger.debug("display_value for %s = %s" % (key, mongo_value))
+                return mongo_value
+            if not section_model.allow_multiple:
+                if cde_model.pv_group:
+                    # look up the stored code and return the display value
+                    range_dict = cde_model.pv_group.as_dict()
+                    for value_dict in range_dict["values"]:
+                        if mongo_value == value_dict["code"]:
+                            return value_dict["value"]
+
+        logger.debug("display_value for %s = %s" % (key, mongo_value))
+        return mongo_value
+
+
+def _human_friendly(registry_model, result):
+    humaniser = Humaniser(registry_model)
+
     for r in result:
         for key in r.keys():
-            cde_value = _lookup_cde_value(r[key])
+            logger.debug("_human_friendly on key %s" % key)
+            mongo_value = r[key]
+            logger.debug("mongo value = %s" % mongo_value)
+            cde_value = humaniser.display_value(key, mongo_value)
             if cde_value:
                 r[key] = cde_value
-            cde_name = _lookup_cde_name(key)
+            cde_name = humaniser.display_name(key)
             if cde_name:
                 r[cde_name] = r[key]
-                del r[key]
+                if cde_name != key:
+                    del r[key]
     return result
-
-
-def _lookup_cde_value(cde_value_code):
-    from rdrf.models import CDEPermittedValue
-    try:
-        cde_permitedd_value_object = CDEPermittedValue.objects.get(code=cde_value_code)
-        return cde_permitedd_value_object.value
-    except CDEPermittedValue.DoesNotExist:
-        return None
-    except KeyError:
-        return None
-
-
-def _lookup_cde_name(cde_string):
-    from rdrf.models import CommonDataElement
-    try:
-        cde_code = cde_string.split("____")[2]
-        cde_object = CommonDataElement.objects.get(code=cde_code)
-        return cde_object.name
-    except CommonDataElement.DoesNotExist:
-        return None
-    except IndexError:
-        return None
 
 
 def _get_cdes(registry_obj):
