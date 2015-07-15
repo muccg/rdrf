@@ -118,9 +118,8 @@ class QueryView(LoginRequiredMixin, View):
 
         if request.is_ajax():
             result = database_utils.run_full_query().result
-            cdes = _get_cdes(query_model.registry)
-            #munged = _munge_docs(result, cdes)
-            munged = _filler(munged, cdes)
+            mongo_keys = _get_non_multiple_mongo_keys(registry_model)
+            munged = _filler(result, mongo_keys)
             munged = _final_cleanup(munged)
             if UNROLL:
                 munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
@@ -157,8 +156,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
         registry_model = query_model.registry
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
-        cdes = _get_cdes(query_model.registry)
-        munged = _filler(result, cdes)
+        mongo_keys = _get_non_multiple_mongo_keys(registry_model)
+        munged = _filler(result, mongo_keys)
 
         if UNROLL:
             munged = MultisectionUnRoller(query_model.registry).unroll_rows(munged)
@@ -193,8 +192,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         database_utils = DatabaseUtils(query_model)
         result = database_utils.run_full_query().result
-        cdes = _get_cdes(query_model.registry)
-        munged = _filler(munged, cdes)
+        #cdes = _get_cdes(query_model.registry)
+        mongo_keys = _get_non_multiple_mongo_keys(query_model.registry)
+        munged = _filler(munged, mongo_keys)
         munged = _final_cleanup(munged)
 
         return self._extract(registry_model, munged, query_model.title, query_id)
@@ -326,6 +326,24 @@ def _human_friendly(registry_model, result):
                 if cde_name != key:
                     del r[key]
     return result
+
+
+def _get_non_multiple_mongo_keys(registry_model):
+    # return a list of delimited mongo keys for the supplied registry
+    # skip the generated questionnaire ( the data from which is copied to the target clinical forms anyway)
+    # skip multisections  as these are handled separately
+    delimited_keys = []
+    from rdrf.utils import mongo_key_from_models
+    for form_model in registry_model.forms:
+        if not form_model.is_questionnaire:
+            for section_model in form_model.section_models:
+                if not section_model.allow_multiple:
+                    for cde_model in section_model.cde_models:
+                        delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
+                        delimited_keys.append(delimited_key)
+    return delimited_keys
+
+
 
 
 def _get_cdes(registry_obj):
