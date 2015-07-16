@@ -69,7 +69,7 @@
                 $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
                 $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
                 
-                if ($(this).hasClass("datepicker")) {
+               if ($(this).attr('id').match(/date/)) {
                     $(this).datepicker({
                         changeMonth: true,
                         changeYear: true,
@@ -99,13 +99,19 @@
 
         $(document).ready(function(){
             setupPatientRelativeForm();
-            $( "input[id*='date']").datepicker({
-                "dateFormat": "dd-mm-yy",
-                "yearRange": "-120:+0",
-                "maxDate": 0,
-                "changeMonth": true,
-                "changeYear": true
+
+          $("input[id*='date']").each(function () {
+                if( ! $(this).attr('id').match(/patient_relative/)) {
+                    $(this).datepicker({
+                        "dateFormat": "dd-mm-yy",
+                        "yearRange": "-120:+0",
+                        "maxDate": 0,
+                        "changeMonth": true,
+                        "changeYear": true
+                    })
+                }
             });
+
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");

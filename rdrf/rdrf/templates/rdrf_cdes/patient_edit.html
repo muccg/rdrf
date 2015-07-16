@@ -59,15 +59,15 @@
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);
             
-            var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-            
+            var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
+
             var new_form = empty_form.clone(true, true);
-            
+
             new_form.find(":input").each(function() {
                 $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
                 $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-                
-                if ($(this).hasClass("datepicker")) {
+
+                if ($(this).attr('id').match(/date/)) {
                     $(this).datepicker({
                         changeMonth: true,
                         changeYear: true,
@@ -78,10 +78,10 @@
                     });
                 }
             });
-    
+
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
-    
+
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
             new_form.appendTo(forms).show("fast");
         }
@@ -97,13 +97,19 @@
 
         $(document).ready(function(){
             setupPatientRelativeForm();
-            $( "input[id*='date']").datepicker({
-                "dateFormat": "dd-mm-yy",
-                "yearRange": "-120:+0",
-                "maxDate": 0,
-                "changeMonth": true,
-                "changeYear": true
+
+            $("input[id*='date']").each(function () {
+                if( ! $(this).attr('id').match(/patient_relative/)) {
+                    $(this).datepicker({
+                        "dateFormat": "dd-mm-yy",
+                        "yearRange": "-120:+0",
+                        "maxDate": 0,
+                        "changeMonth": true,
+                        "changeYear": true
+                    })
+                }
             });
+
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
