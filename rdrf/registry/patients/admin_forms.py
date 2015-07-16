@@ -52,10 +52,10 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
-        # widgets = {
-        #     'relative_patient': PatientRelativeLinkWidget,
-        #     #'date_of_birth': DateWidget
-        # }
+        widgets = {
+             'relative_patient': PatientRelativeLinkWidget,
+
+        }
 
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
