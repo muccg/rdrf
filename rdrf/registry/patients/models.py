@@ -21,7 +21,7 @@ from rdrf.models import Section
 from rdrf.models import ConsentQuestion
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_delete
 
 import logging
 logger = logging.getLogger('registry_log')
@@ -905,3 +905,13 @@ class ConsentValue(models.Model):
     def __unicode__(self):
         return "Consent Value for %s question %s is %s" % (
             self.patient, self.consent_question, self.answer)
+
+
+@receiver(post_delete, sender=PatientRelative)
+def delete_associated_patient_if_any(sender, instance, **kwargs):
+    logger.debug("post_delete of patient relative")
+    logger.debug("instance = %s" % instance)
+    logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
+    if instance.relative_patient:
+        logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
+        instance.relative_patient.delete()
