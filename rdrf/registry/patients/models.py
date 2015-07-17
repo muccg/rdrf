@@ -212,6 +212,13 @@ class Patient(models.Model):
         on_delete=models.SET_NULL)
 
     @property
+    def display_name(self):
+        if self.active:
+            return "%s, %s" % (self.family_name, self.given_names)
+        else:
+            return "%s, %s (Archived)" % (self.family_name, self.given_names)
+
+    @property
     def age(self):
         """ in years """
         from datetime import date
