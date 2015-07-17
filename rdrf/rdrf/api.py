@@ -71,7 +71,9 @@ class PatientResource(ModelResource):
             bundle.data["reg_code"] = [reg.code for reg in Registry.objects.all()]
         else:
             bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
-        bundle.data["full_name"] = "%s, %s" % (p.family_name, p.given_names)
+
+
+        bundle.data["full_name"] = p.display_name
 
         if hasattr(bundle, "progress_data"):
             progress_data = getattr(bundle, "progress_data")
