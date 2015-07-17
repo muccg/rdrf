@@ -28,20 +28,22 @@ def get_error_messages(forms):
         form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
         return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
 
-    for form in forms:
+    for i, form in enumerate(forms):
         if isinstance(form._errors, list):
-            logger.debug("checking formset _errors")
+            logger.debug("checking formset %s for errors" % i)
             if len(form._errors) == 0:
                 logger.debug("form._errors = []")
+            else:
+                logger.debug("form._errors = %s" % form._errors)
             for error_dict in form._errors:
                 for field in error_dict:
-
                     messages.append(display(form, field, error_dict[field]))
         else:
             if form._errors is None:
                 logger.debug("form._errors is None - skipping")
                 continue
             else:
+                logger.debug("form._errors = %s" % form._errors)
                 for field in form._errors:
                     for error in form._errors[field]:
                         if "This field is required" in error:
@@ -49,7 +51,7 @@ def get_error_messages(forms):
                             continue
                         messages.append(display(form, field, error))
     results = map(strip_tags, messages)
-
+    logger.debug("get_error_messages = %s" % results)
     return results
 
 
@@ -484,11 +486,14 @@ class PatientFormMixin(PatientMixin):
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
+                logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
+                                                                                            patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
                 for form in self.patient_relative_formset:
                     if form.tag == tag:  # must be a better way to do this ...
+                        logger.debug("patient tag = %s" % form.tag)
                         if form.create_patient_flag:
                             logger.debug("creating patient from relative %s" %
                                          patient_relative_model)
@@ -496,6 +501,10 @@ class PatientFormMixin(PatientMixin):
                             patient_relative_model.create_patient_from_myself(
                                 self.registry_model,
                                 self.object.working_groups.all())
+                        else:
+                            logger.debug("create_patient_flag is False ...")
+                    else:
+                        logger.debug("form tag different")
 
         patient_model = self.object
         if hasattr(patient_model, 'add_registry_closures'):
@@ -715,6 +724,7 @@ class PatientEditView(View):
 
         for form in forms:
             if not form.is_valid():
+
                 valid_forms.append(False)
                 if isinstance(form.errors, list):
                     for error_dict in form.errors:
@@ -735,6 +745,7 @@ class PatientEditView(View):
             valid_forms.append(doctors_to_save.is_valid())
 
         if all(valid_forms):
+            logger.debug("All forms are valid")
             if registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save.save()
             address_to_save.save()
@@ -758,11 +769,12 @@ class PatientEditView(View):
             context = {
                 "forms": form_sections,
                 "patient": patient,
-                "message": "Patient's details saved successfully"
+                "message": "Patient's details saved successfully",
+                "error_messages": [],
             }
         else:
+            logger.debug("Not all forms are valid")
             error_messages = get_error_messages(forms)
-
             logger.debug("error messages = %s" % error_messages)
             if not registry.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None

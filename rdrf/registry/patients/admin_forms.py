@@ -57,16 +57,25 @@ class PatientRelativeForm(forms.ModelForm):
 
         }
 
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'class': 'datepicker'},
+            format='%d-%m-%Y'),
+        help_text="DD-MM-YYYY",
+        input_formats=['%d-%m-%Y'])
+
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
-        self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
+        #self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
         self.create_patient_flag = False
         self.tag = None    # used to locate this form
 
     def _clean_fields(self):
         logger.debug("in PatientRelatives clean fields")
         self._errors = ErrorDict()
+        num_errors = 0
         if not self.is_bound:  # Stop further processing.
             return
         self.cleaned_data = {}
@@ -89,7 +98,9 @@ class PatientRelativeForm(forms.ModelForm):
                 elif name == 'date_of_birth':
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
+                        logger.debug("cleaned patient relative date of birth = %s" % value)
                     except Exception as ex:
+                        logger.debug("Exception cleaning date of birth: %s" % ex)
                         raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
@@ -100,11 +111,15 @@ class PatientRelativeForm(forms.ModelForm):
                 logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
 
             except ValidationError as e:
+                num_errors += 1
+                logger.debug("Patient Relative Validation Error name = %s field = %s error = %s" % (name, field, e))
                 self._errors[name] = self.error_class(e.messages)
                 if name in self.cleaned_data:
                     del self.cleaned_data[name]
 
+        logger.debug("PR clean fields final error count = %s" % num_errors)
         self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
+        logger.debug("after clean fields errors = %s" % self._errors)
 
     def _set_date_of_birth(self, dob):
         # todo figure  out why the correct input format is not being respected -
