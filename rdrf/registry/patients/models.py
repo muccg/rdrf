@@ -461,6 +461,9 @@ class Patient(models.Model):
 
     @property
     def is_index(self):
+        if not self.active:
+            return False
+
         if not self.in_registry("fh"):
             return False
         else:
