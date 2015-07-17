@@ -724,7 +724,7 @@ class PatientRelative(models.Model):
         ("1st Cousin", "1st Cousin"),
         ("Grandchild", "Grandchild"),
         ("Uncle/Aunty", "Uncle/Aunty"),
-        ("Spouse", "pouse"),
+        ("Spouse", "Spouse"),
         ("Non-identical twin", "Non-identical twin"),
         ("Grandparent", "Grandparent"),
         ("1st cousin once removed", "1st cousin once removed"),
