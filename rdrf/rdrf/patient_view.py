@@ -1,9 +1,12 @@
+from datetime import date
+
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
 from django.utils.datastructures import SortedDict
 from django.http import HttpResponseRedirect
+from django.contrib.auth import logout
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -11,6 +14,8 @@ from rdrf.utils import FormLink
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
+
+from django.contrib.auth.models import Group
 
 from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
@@ -53,6 +58,50 @@ def get_error_messages(forms):
     results = map(strip_tags, messages)
     logger.debug("get_error_messages = %s" % results)
     return results
+
+def calculate_age(born):
+    today = date.today()
+    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+
+class PatientToParentView(View):
+
+    _GENDER_CODE = {
+        1: "M",
+        2: "F"
+    }
+
+    def get(self, request, registry_code, patient_id):
+
+        patient = Patient.objects.get(id=patient_id)
+        patient_address = PatientAddress.objects.get(patient=patient)
+        
+        parent_group, created = Group.objects.get_or_create(name="Parents")
+
+        patient.user.groups = [parent_group,]
+        patient.save()
+
+        parent = ParentGuardian.objects.create(
+            first_name = patient.given_names,
+            last_name = patient.family_name,
+            date_of_birth = patient.date_of_birth,
+            gender = patient.sex,
+            address = patient_address.address,
+            suburb = patient_address.suburb,
+            state = patient_address.state,
+            postcode = patient_address.postcode,
+            country = patient_address.country,
+        
+            user = patient.user,
+            self_patient = patient
+        )
+        
+        parent.patient.add(patient)
+        parent.save()
+        
+        logout(request)
+        redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
+        return redirect(redirect_url)
 
 
 class PatientView(View):
@@ -106,6 +155,7 @@ class PatientView(View):
                     context['patient_form'] = PatientForm(
                         instance=patient, user=request.user, registry_model=registry)
                     context['patient_id'] = patient.id
+                    context['age'] = calculate_age(patient.date_of_birth)
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
 
