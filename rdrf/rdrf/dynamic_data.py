@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from pymongo import MongoClient
 import gridfs
 import logging
-from rdrf.utils import get_code, mongo_db_name
+from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key
 from django.conf import settings
 import datetime
 
@@ -13,6 +13,107 @@ class FileStore(object):
 
     def __init__(self, mongo_db):
         self.fs = gridfs.GridFS(mongo_db)
+
+
+class FormDataParser(object):
+
+    def __init__(self, registry_model, form_data, existing_record=None):
+        self.registry_model = registry_model
+        self.form_data = form_data
+        self.parsed_data = {}
+        self.global_timestamp = None
+        self.form_timestamps = {}
+        self.django_id = None
+        self.django_model = None
+        self.mongo_id = None
+        self.existing_record = existing_record
+
+
+    def update_timestamps(self, form_model):
+        from datetime import datetime
+        t = datetime.now()
+        form_timestamp = form_model.name + "_timestamp"
+        self.global_timestamp = t
+        self.form_timestamps[form_timestamp] = t
+
+    def set_django_instance(self, instance):
+        self.django_id = instance.pk
+        self.django_model = instance.__class__.__name__
+
+    @property
+    def nested_data(self):
+        self._parse()
+
+        if self.existing_record:
+            d = self.existing_record
+        else:
+            d = {"forms": []}
+
+
+        logger.debug("d = %s" % d)
+
+        if self.django_id:
+            d["django_id"] = self.django_id
+
+        if self.django_model:
+            d["django_model"] = self.django_model
+
+        if self.mongo_id:
+            d["mongo_id"] = self.mongo_id
+
+        if self.global_timestamp:
+            d["timestamp"] = self.global_timestamp
+
+        for form_timestamp in self.form_timestamps:
+            d[form_timestamp] = self.form_timestamps[form_timestamp]
+
+        for (form_model, section_model, cde_model), value in self.parsed_data.items():
+            if not section_model.allow_multiple:
+                cde_dict = self._get_cde_dict(form_model, section_model, cde_model, d)
+                cde_dict["value"] = value
+
+        logger.debug("*** NESTED DATA  =\n %s" % d)
+        return d
+
+    def _parse(self):
+        for key in self.form_data:
+            logger.debug("FormDataParser: key = %s" % key)
+            if key == "timestamp":
+                self.global_timestamp = self.form_data[key]
+            elif key.endswith("_timestamp"):
+                self.form_timestamps[key] = self.form_data[key]
+            elif is_delimited_key(key):
+                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                value = self.form_data[key]
+                self.parsed_data[(form_model, section_model, cde_model)] = value
+            else:
+                logger.debug("don't know how to parse key: %s" % key)
+
+    def _get_cde_dict(self, form_model, section_model, cde_model, data):
+        section_dict = self._get_section_dict(form_model, section_model, data)
+        for cde_dict in section_dict["cdes"]:
+            if cde_dict["code"] == cde_model.code:
+                return cde_dict
+        cde_dict = {"code": cde_model.code, "value": None}
+        section_dict["cdes"].append(cde_dict)
+        return cde_dict
+
+    def _get_section_dict(self, form_model, section_model, data):
+        form_dict = self._get_form_dict(form_model, data)
+        for section_dict in form_dict["sections"]:
+            if section_dict["code"] == section_model.code:
+                return section_dict
+        section_dict = {"code": section_model.code, "cdes": [], "allow_multiple": section_model.allow_multiple}
+        form_dict["sections"].append(section_dict)
+        return section_dict
+
+    def _get_form_dict(self, form_model, data):
+        for form_dict in data["forms"]:
+            if form_dict["name"] == form_model.name:
+                return form_dict
+        form_dict = {"name": form_model.name, "sections": []}
+        data["forms"].append(form_dict)
+        return form_dict
 
 
 class DynamicDataWrapper(object):
@@ -79,17 +180,36 @@ class DynamicDataWrapper(object):
 
         return self.file_store_class(db, collection=registry + ".files")
 
-    def load_dynamic_data(self, registry, collection_name):
+    def load_dynamic_data(self, registry, collection_name, flattened=True):
         """
         :param registry: e.g. sma or dmd
         :param collection_name: e.g. cde or hpo
-        :return:
+        :param flattened: use flattened to get data in a form suitable for the view
+        :return: a dictionary of nested or flattened data for this instance
         """
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
-        data = collection.find_one(record_query)
-        self._wrap_gridfs_files_from_mongo(registry, data)
-        return data
+        nested_data = collection.find_one(record_query)
+        logger.debug("data from mongo = %s" % nested_data)
+        if nested_data is None:
+            return None
+
+        self._wrap_gridfs_files_from_mongo(registry, nested_data)
+        if flattened:
+            flattened_data = {}
+            for k in nested_data:
+                if k != "forms":
+                    flattened_data[k] = nested_data[k]
+
+            for form_dict in nested_data["forms"]:
+                for section_dict in form_dict["sections"]:
+                    for cde_dict in section_dict["cdes"]:
+                        value = cde_dict["value"]
+                        delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                        flattened_data[delimited_key] = value
+            return flattened_data
+        else:
+            return nested_data
 
     def load_registry_specific_data(self):
         data = {}
@@ -302,27 +422,37 @@ class DynamicDataWrapper(object):
                     self._update_files_in_gridfs(
                         existing_section_dict, registry, section_data_dict)
 
-    def save_dynamic_data(self, registry, collection_name, data):
-        self._convert_date_to_datetime(data)
+    def save_dynamic_data(self, registry, collection_name, form_data):
+        from rdrf.models import Registry
+        self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
-        record = self.load_dynamic_data(registry, collection_name)
 
-        data["timestamp"] = datetime.datetime.now()
+        existing_record = self.load_dynamic_data(registry, collection_name, flattened=False)
+
+        form_data["timestamp"] = datetime.datetime.now()
 
         if self.current_form_model:
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
-            data[form_timestamp_key] = data["timestamp"]
+            form_data[form_timestamp_key] = form_data["timestamp"]
 
-        if record:
-            mongo_id = record['_id']
-            self._update_files_in_gridfs(record, registry, data)
-            collection.update({'_id': mongo_id}, {"$set": data}, upsert=False)
+        if existing_record:
+            mongo_id = existing_record['_id']
+            self._update_files_in_gridfs(existing_record, registry, form_data)
+
+            form_data_parser = FormDataParser(Registry.objects.get(code=registry), form_data, existing_record=existing_record)
+            form_data_parser.set_django_instance(self.obj)
+
+            collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
         else:
             record = self._get_record_query()
-            record.update(data)
+            record.update(form_data)
             self._set_in_memory_uploaded_files_to_none(record)
-            self._update_files_in_gridfs(record, registry, data)
-            collection.insert(record)
+            self._update_files_in_gridfs(record, registry, form_data)
+
+            form_data_parser = FormDataParser(Registry.objects.get(code=registry), record)
+            form_data_parser.set_django_instance(self.obj)
+
+            collection.insert(form_data_parser.nested_data)
 
     def _save_longitudinal_snapshot(self, registry, record):
         try:
