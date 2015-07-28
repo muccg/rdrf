@@ -17,17 +17,18 @@ class FileStore(object):
 
 class FormDataParser(object):
 
-    def __init__(self, registry_model, form_data, existing_record=None):
+    def __init__(self, registry_model, form_data, existing_record=None, is_multisection=False):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
+        self.parsed_multisections = {}
         self.global_timestamp = None
         self.form_timestamps = {}
         self.django_id = None
         self.django_model = None
         self.mongo_id = None
         self.existing_record = existing_record
-
+        self.is_multisection = is_multisection
 
     def update_timestamps(self, form_model):
         from datetime import datetime
@@ -72,22 +73,60 @@ class FormDataParser(object):
                 cde_dict = self._get_cde_dict(form_model, section_model, cde_model, d)
                 cde_dict["value"] = value
 
+        for (form_model, section_model), items_list in self.parsed_multisections.items():
+            section_dict = self._get_section_dict(form_model, section_model, d)
+            section_dict["allow_multiple"] = True
+            section_dict["cdes"] = items_list
+
         logger.debug("*** NESTED DATA  =\n %s" % d)
         return d
 
     def _parse(self):
-        for key in self.form_data:
-            logger.debug("FormDataParser: key = %s" % key)
-            if key == "timestamp":
-                self.global_timestamp = self.form_data[key]
-            elif key.endswith("_timestamp"):
-                self.form_timestamps[key] = self.form_data[key]
-            elif is_delimited_key(key):
-                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
-                value = self.form_data[key]
-                self.parsed_data[(form_model, section_model, cde_model)] = value
-            else:
-                logger.debug("don't know how to parse key: %s" % key)
+        if not self.is_multisection:
+            for key in self.form_data:
+                logger.debug("FormDataParser: key = %s" % key)
+                if key == "timestamp":
+                    self.global_timestamp = self.form_data[key]
+                elif key.endswith("_timestamp"):
+                    self.form_timestamps[key] = self.form_data[key]
+                elif is_delimited_key(key):
+                    form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                    value = self.form_data[key]
+                    self.parsed_data[(form_model, section_model, cde_model)] = value
+                else:
+                    logger.debug("don't know how to parse key: %s" % key)
+        else:
+            # multisections extracted from the form like this (ugh):
+            # the delimited keys  will(should) always be cdes from the same form and section
+            #{u'testmultisection': [
+            # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingNever',
+            #  u'testform____testmultisection____DM1FatigueDrug': u'd1'},
+            #
+            # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingSlightChance', u'testform____testmultisection____DM1FatigueDrug': u'd2'}]}
+            the_form_model = None
+            the_section_model = None
+            multisection_code = self.form_data.keys()[0]
+            multisection_item_list = self.form_data[multisection_code]
+            items = []
+            for item_dict in multisection_item_list:
+                if "DELETE" in  item_dict and item_dict["DELETE"]:
+                    continue
+                item = []
+                for key in item_dict:
+                    if is_delimited_key(key):
+                        value = item_dict[key]
+                        form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                        if the_form_model is None:
+                            the_form_model = form_model
+                        if the_section_model is None:
+                            the_section_model = section_model
+                        cde_dict = {"code": cde_model.code, "value": value}
+                        item.append(cde_dict)
+                items.append(item)
+            self.parsed_multisections[(the_form_model, the_section_model)] = items
+
+
+
 
     def _get_cde_dict(self, form_model, section_model, cde_model, data):
         section_dict = self._get_section_dict(form_model, section_model, data)
@@ -422,7 +461,11 @@ class DynamicDataWrapper(object):
                     self._update_files_in_gridfs(
                         existing_section_dict, registry, section_data_dict)
 
-    def save_dynamic_data(self, registry, collection_name, form_data):
+    def save_dynamic_data(self, registry, collection_name, form_data, multisection=False):
+        logger.debug("in save_dynamic_data: form_data = %s" % form_data)
+
+
+
         from rdrf.models import Registry
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
@@ -439,7 +482,11 @@ class DynamicDataWrapper(object):
             mongo_id = existing_record['_id']
             self._update_files_in_gridfs(existing_record, registry, form_data)
 
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry), form_data, existing_record=existing_record)
+            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
+                                              form_data,
+                                              existing_record=existing_record,
+                                              is_multisection=multisection)
+
             form_data_parser.set_django_instance(self.obj)
 
             collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
@@ -449,7 +496,9 @@ class DynamicDataWrapper(object):
             self._set_in_memory_uploaded_files_to_none(record)
             self._update_files_in_gridfs(record, registry, form_data)
 
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry), record)
+            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
+                                              record,
+                                              is_multisection=multisection)
             form_data_parser.set_django_instance(self.obj)
 
             collection.insert(form_data_parser.nested_data)

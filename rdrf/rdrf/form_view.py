@@ -266,7 +266,7 @@ class FormView(View):
 
                     logger.debug("after wrapping for gridfs = %s" % section_dict)
 
-                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True)
 
                     data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     logger.debug("data in mongo after saving = %s" % data_after_save)
