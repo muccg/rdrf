@@ -233,7 +233,7 @@ class DynamicDataWrapper(object):
         if nested_data is None:
             return None
 
-        self._wrap_gridfs_files_from_mongo(registry, nested_data)
+        #self._wrap_gridfs_files_from_mongo(registry, nested_data)
         if flattened:
             flattened_data = {}
             for k in nested_data:
@@ -242,10 +242,24 @@ class DynamicDataWrapper(object):
 
             for form_dict in nested_data["forms"]:
                 for section_dict in form_dict["sections"]:
-                    for cde_dict in section_dict["cdes"]:
-                        value = cde_dict["value"]
-                        delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
-                        flattened_data[delimited_key] = value
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            value = cde_dict["value"]
+                            delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                            flattened_data[delimited_key] = value
+                    else:
+                        multisection_code = section_dict["code"]
+                        flattened_data[multisection_code] = []
+                        multisection_items = section_dict["cdes"]
+                        for cde_list in multisection_items:
+                            d = {}
+                            for cde_dict in cde_list:
+                                cde_code = cde_dict["code"]
+                                cde_value = cde_dict["value"]
+                                delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                                d[delimited_key] = cde_value
+                                flattened_data[multisection_code].append(d)
+
             return flattened_data
         else:
             return nested_data
@@ -480,7 +494,7 @@ class DynamicDataWrapper(object):
 
         if existing_record:
             mongo_id = existing_record['_id']
-            self._update_files_in_gridfs(existing_record, registry, form_data)
+            #self._update_files_in_gridfs(existing_record, registry, form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               form_data,
@@ -493,8 +507,8 @@ class DynamicDataWrapper(object):
         else:
             record = self._get_record_query()
             record.update(form_data)
-            self._set_in_memory_uploaded_files_to_none(record)
-            self._update_files_in_gridfs(record, registry, form_data)
+            #self._set_in_memory_uploaded_files_to_none(record)
+            #self._update_files_in_gridfs(record, registry, form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               record,
