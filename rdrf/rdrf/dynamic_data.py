@@ -35,6 +35,7 @@ class FormDataParser(object):
         self.is_multisection = is_multisection
         self.form_model = form_model
         self.custom_consents = None
+        self.address_data = None
 
     def update_timestamps(self, form_model):
         from datetime import datetime
@@ -70,6 +71,9 @@ class FormDataParser(object):
         if self.custom_consents:
             d["custom_consent_data"] = self.custom_consents
 
+        if self.address_data:
+            d["PatientDataAddressSection"] = self.address_data
+
         if self.global_timestamp:
             d["timestamp"] = self.global_timestamp
 
@@ -99,6 +103,8 @@ class FormDataParser(object):
                     self.form_timestamps[key] = self.form_data[key]
                 elif key == "custom_consent_data":
                     self.custom_consents = self.form_data[key]
+                elif key == "PatientDataAddressSection":
+                    self.address_data = self.form_data[key]
                 elif is_delimited_key(key):
                     form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]
