@@ -14,10 +14,12 @@ class FileStore(object):
     def __init__(self, mongo_db):
         self.fs = gridfs.GridFS(mongo_db)
 
+class FormParsingError(Exception):
+    pass
 
 class FormDataParser(object):
 
-    def __init__(self, registry_model, form_data, existing_record=None, is_multisection=False):
+    def __init__(self, registry_model, form_model, form_data, existing_record=None, is_multisection=False):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
@@ -29,6 +31,7 @@ class FormDataParser(object):
         self.mongo_id = None
         self.existing_record = existing_record
         self.is_multisection = is_multisection
+        self.form_model = form_model
 
     def update_timestamps(self, form_model):
         from datetime import datetime
@@ -44,7 +47,6 @@ class FormDataParser(object):
     @property
     def nested_data(self):
         self._parse()
-
         if self.existing_record:
             d = self.existing_record
         else:
@@ -105,8 +107,14 @@ class FormDataParser(object):
             # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingSlightChance', u'testform____testmultisection____DM1FatigueDrug': u'd2'}]}
             the_form_model = None
             the_section_model = None
-            multisection_code = self.form_data.keys()[0]
+            multisection_code = self._get_multisection_code()
+
             multisection_item_list = self.form_data[multisection_code]
+            if len(multisection_item_list) == 0:
+                from rdrf.models import Section
+                section_model = Section.objects.get(code=multisection_code)
+                self.parsed_multisections[(self.form_model, section_model)] = []
+                return
             items = []
             for item_dict in multisection_item_list:
                 if "DELETE" in  item_dict and item_dict["DELETE"]:
@@ -125,8 +133,11 @@ class FormDataParser(object):
                 items.append(item)
             self.parsed_multisections[(the_form_model, the_section_model)] = items
 
-
-
+    def _get_multisection_code(self):
+        from rdrf.utils import is_multisection
+        for key in self.form_data:
+            if is_multisection(key):
+                return key
 
     def _get_cde_dict(self, form_model, section_model, cde_model, data):
         section_dict = self._get_section_dict(form_model, section_model, data)
@@ -235,9 +246,11 @@ class DynamicDataWrapper(object):
 
         #self._wrap_gridfs_files_from_mongo(registry, nested_data)
         if flattened:
+            logger.debug("loading flattened data for form")
             flattened_data = {}
             for k in nested_data:
                 if k != "forms":
+                    logger.debug("adding flatted key %s" % k)
                     flattened_data[k] = nested_data[k]
 
             for form_dict in nested_data["forms"]:
@@ -247,10 +260,13 @@ class DynamicDataWrapper(object):
                             value = cde_dict["value"]
                             delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
                             flattened_data[delimited_key] = value
+                            logger.debug("added delimited key %s" % delimited_key)
                     else:
                         multisection_code = section_dict["code"]
+                        logger.debug("adding multisection %s" % multisection_code)
                         flattened_data[multisection_code] = []
                         multisection_items = section_dict["cdes"]
+                        logger.debug("items = %s" % multisection_items)
                         for cde_list in multisection_items:
                             d = {}
                             for cde_dict in cde_list:
@@ -258,7 +274,8 @@ class DynamicDataWrapper(object):
                                 cde_value = cde_dict["value"]
                                 delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
                                 d[delimited_key] = cde_value
-                                flattened_data[multisection_code].append(d)
+                            flattened_data[multisection_code].append(d)
+                            logger.debug("added item %s to multisection" % d)
 
             return flattened_data
         else:
@@ -478,8 +495,6 @@ class DynamicDataWrapper(object):
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False):
         logger.debug("in save_dynamic_data: form_data = %s" % form_data)
 
-
-
         from rdrf.models import Registry
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
@@ -497,11 +512,15 @@ class DynamicDataWrapper(object):
             #self._update_files_in_gridfs(existing_record, registry, form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
+                                              self.current_form_model,
                                               form_data,
                                               existing_record=existing_record,
                                               is_multisection=multisection)
 
             form_data_parser.set_django_instance(self.obj)
+
+            if self.current_form_model:
+                form_data_parser.form_name = self.current_form_model
 
             collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
         else:
@@ -511,9 +530,14 @@ class DynamicDataWrapper(object):
             #self._update_files_in_gridfs(record, registry, form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
+                                              self.current_form_model,
                                               record,
                                               is_multisection=multisection)
+
             form_data_parser.set_django_instance(self.obj)
+
+            if self.current_form_model:
+                form_data_parser.form_name = self.current_form_model
 
             collection.insert(form_data_parser.nested_data)
 

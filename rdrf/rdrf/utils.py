@@ -162,3 +162,11 @@ def cached(func):
             return d[key]
 
     return wrapped
+
+def is_multisection(code):
+    try:
+        from rdrf.models import Section
+        section_model = Section.objects.get(code=code)
+        return section_model.allow_multiple
+    except Section.DoesNotExist:
+        return False
