@@ -14,8 +14,10 @@ class FileStore(object):
     def __init__(self, mongo_db):
         self.fs = gridfs.GridFS(mongo_db)
 
+
 class FormParsingError(Exception):
     pass
+
 
 class FormDataParser(object):
 
@@ -32,6 +34,7 @@ class FormDataParser(object):
         self.existing_record = existing_record
         self.is_multisection = is_multisection
         self.form_model = form_model
+        self.custom_consents = None
 
     def update_timestamps(self, form_model):
         from datetime import datetime
@@ -64,6 +67,9 @@ class FormDataParser(object):
         if self.mongo_id:
             d["mongo_id"] = self.mongo_id
 
+        if self.custom_consents:
+            d["custom_consent_data"] = self.custom_consents
+
         if self.global_timestamp:
             d["timestamp"] = self.global_timestamp
 
@@ -91,6 +97,8 @@ class FormDataParser(object):
                     self.global_timestamp = self.form_data[key]
                 elif key.endswith("_timestamp"):
                     self.form_timestamps[key] = self.form_data[key]
+                elif key == "custom_consent_data":
+                    self.custom_consents = self.form_data[key]
                 elif is_delimited_key(key):
                     form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]
@@ -619,6 +627,31 @@ class DynamicDataWrapper(object):
         cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
 
         return cde_value
+
+    def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
+
+        for form_dict, section_dict, item in self.iter_cdes(registry_code):
+            if form_dict["name"] == form_name:
+                if section_dict["code"] == section_code:
+                    if not section_dict["allow_multiple"]:
+                        if item["code"] == cde_code:
+                            return item["value"]
+                    else:
+                        results = []
+                        for cde in item:
+                            if cde["code"] == cde_code:
+                                results.append(cde["value"])
+                        return results
+
+    def iter_cdes(self, registry_code):
+        data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
+        logger.debug("dynamic data = %s" % data)
+        if "forms" in data:
+            for form_dict in data["forms"]:
+                for section_dict in form_dict['sections']:
+                    for cde_dict in section_dict["cdes"]:
+                        yield form_dict, section_dict, cde_dict
+
 
     def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
         try:
