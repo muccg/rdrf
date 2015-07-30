@@ -102,5 +102,6 @@ Documentation Content List:
    questionnaires
    interfacing
    about
+   installation/index
    development
 
