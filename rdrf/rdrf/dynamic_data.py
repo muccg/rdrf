@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from pymongo import MongoClient
 import gridfs
 import logging
-from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key
+from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from django.conf import settings
 import datetime
 
@@ -20,8 +20,13 @@ class FormParsingError(Exception):
 
 
 class FormDataParser(object):
-
-    def __init__(self, registry_model, form_model, form_data, existing_record=None, is_multisection=False):
+    def __init__(self,
+                 registry_model,
+                 form_model,
+                 form_data,
+                 existing_record=None,
+                 is_multisection=False,
+                 parse_all_forms=False):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
@@ -36,6 +41,7 @@ class FormDataParser(object):
         self.form_model = form_model
         self.custom_consents = None
         self.address_data = None
+        self.parse_all_forms = parse_all_forms
 
     def update_timestamps(self, form_model):
         from datetime import datetime
@@ -50,12 +56,15 @@ class FormDataParser(object):
 
     @property
     def nested_data(self):
-        self._parse()
+        if not self.parse_all_forms:
+            self._parse()
+        else:
+            self._parse_all_forms()
+
         if self.existing_record:
             d = self.existing_record
         else:
             d = {"forms": []}
-
 
         logger.debug("d = %s" % d)
 
@@ -93,6 +102,52 @@ class FormDataParser(object):
         logger.debug("*** NESTED DATA  =\n %s" % d)
         return d
 
+    def _parse_all_forms(self):
+        # used in questionnaire approval handling where all form data was being saved in one go
+        # generated questionnaire gets fanned out to all forms
+        for key in self.form_data:
+            if key == "timestamp":
+                self.global_timestamp = self.form_data[key]
+            elif key.endswith("_timestamp"):
+                    self.form_timestamps[key] = self.form_data[key]
+            elif key == "custom_consent_data":
+                pass
+            elif key == "PatientDataAddressSection":
+                pass
+            elif is_multisection(key):
+                self._parse_multisection(key)
+            elif is_delimited_key(key):
+                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                value = self.form_data[key]
+                self.parsed_data[(form_model, section_model, cde_model)] = value
+
+    def _parse_multisection(self, multisection_code):
+        the_form_model = None
+        the_section_model = None
+        multisection_item_list = self.form_data[multisection_code]
+        if len(multisection_item_list) == 0:
+            from rdrf.models import Section
+            section_model = Section.objects.get(code=multisection_code)
+            self.parsed_multisections[(self.form_model, section_model)] = []
+            return
+        items = []
+        for item_dict in multisection_item_list:
+            if "DELETE" in item_dict and item_dict["DELETE"]:
+                continue
+            item = []
+            for key in item_dict:
+                if is_delimited_key(key):
+                    value = item_dict[key]
+                    form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                    if the_form_model is None:
+                        the_form_model = form_model
+                    if the_section_model is None:
+                        the_section_model = section_model
+                    cde_dict = {"code": cde_model.code, "value": value}
+                    item.append(cde_dict)
+            items.append(item)
+        self.parsed_multisections[(the_form_model, the_section_model)] = items
+
     def _parse(self):
         if not self.is_multisection:
             for key in self.form_data:
@@ -119,35 +174,11 @@ class FormDataParser(object):
             #  u'testform____testmultisection____DM1FatigueDrug': u'd1'},
             #
             # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingSlightChance', u'testform____testmultisection____DM1FatigueDrug': u'd2'}]}
-            the_form_model = None
-            the_section_model = None
             multisection_code = self._get_multisection_code()
-
-            multisection_item_list = self.form_data[multisection_code]
-            if len(multisection_item_list) == 0:
-                from rdrf.models import Section
-                section_model = Section.objects.get(code=multisection_code)
-                self.parsed_multisections[(self.form_model, section_model)] = []
-                return
-            items = []
-            for item_dict in multisection_item_list:
-                if "DELETE" in  item_dict and item_dict["DELETE"]:
-                    continue
-                item = []
-                for key in item_dict:
-                    if is_delimited_key(key):
-                        value = item_dict[key]
-                        form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
-                        if the_form_model is None:
-                            the_form_model = form_model
-                        if the_section_model is None:
-                            the_section_model = section_model
-                        cde_dict = {"code": cde_model.code, "value": value}
-                        item.append(cde_dict)
-                items.append(item)
-            self.parsed_multisections[(the_form_model, the_section_model)] = items
+            self._parse_multisection(multisection_code)
 
     def _get_multisection_code(self):
+        # NB this assumes we're only parsing multisection forms one  at at time
         from rdrf.utils import is_multisection
         for key in self.form_data:
             if is_multisection(key):
@@ -506,9 +537,7 @@ class DynamicDataWrapper(object):
                     self._update_files_in_gridfs(
                         existing_section_dict, registry, section_data_dict)
 
-    def save_dynamic_data(self, registry, collection_name, form_data, multisection=False):
-        logger.debug("in save_dynamic_data: form_data = %s" % form_data)
-
+    def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False):
         from rdrf.models import Registry
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
@@ -529,7 +558,8 @@ class DynamicDataWrapper(object):
                                               self.current_form_model,
                                               form_data,
                                               existing_record=existing_record,
-                                              is_multisection=multisection)
+                                              is_multisection=multisection,
+                                              parse_all_forms=parse_all_forms)
 
             form_data_parser.set_django_instance(self.obj)
 
@@ -546,7 +576,8 @@ class DynamicDataWrapper(object):
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               self.current_form_model,
                                               record,
-                                              is_multisection=multisection)
+                                              is_multisection=multisection,
+                                              parse_all_forms=parse_all_forms)
 
             form_data_parser.set_django_instance(self.obj)
 
@@ -675,3 +706,5 @@ class DynamicDataWrapper(object):
         form_timestamp = collection.find_one(self._get_record_query(), {"timestamp": True})
 
         return form_timestamp
+
+
