@@ -20,7 +20,7 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
-from rdrf.utils import location_name
+from rdrf.utils import location_name, is_multisection
 
 import json
 import os
@@ -723,7 +723,11 @@ class QuestionnaireView(FormView):
                 questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
-                questionnaire_response_wrapper.save_dynamic_data(
+                if is_multisection(section):
+                    questionnaire_response_wrapper.save_dynamic_data(
+                        registry_code, "cdes", data_map[section], multisection=True)
+                else:
+                    questionnaire_response_wrapper.save_dynamic_data(
                     registry_code, "cdes", data_map[section])
 
             def get_completed_questions(
