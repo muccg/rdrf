@@ -1,4 +1,4 @@
-# Default debug mode is off, turn on for trouble-shooting
-# DEBUG = False
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+from settings import *
+
+# Settings we always want enabled in production can be set here
+# However we typically prefer to edit /etc/rdrf/rdrf.conf
