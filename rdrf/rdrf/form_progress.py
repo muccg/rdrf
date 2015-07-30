@@ -102,12 +102,26 @@ class FormProgressCalculator(object):
         query = {"django_model": "Patient", "django_id": {"$in": patient_ids}}
         return [doc for doc in self.cdes_collection.find(query)]
 
+    def _get_value_from_patient_mongo_data(self, patient_data, key):
+        try:
+            form_name, section_code, cde_code = key.split("____")
+        except Exception:
+            return
+        for form_dict in patient_data["forms"]:
+            if form_dict["name"] == form_name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == section_code:
+                        if not section_dict["allow_multiple"]:
+                            for cde_dict in section_dict["cdes"]:
+                                if cde_dict["code"] == cde_code:
+                                    return cde_dict["value"]
+
     def _progress_for_keys(self, patient_mongo_data, mongo_keys):
         total = len(mongo_keys)
         have_non_empty_data = 0
         for key in mongo_keys:
             try:
-                value = patient_mongo_data[key]
+                value = self._get_value_from_patient_mongo_data(patient_mongo_data, key)
                 if value:
                     have_non_empty_data += 1
             except KeyError:
