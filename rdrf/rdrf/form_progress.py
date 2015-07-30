@@ -115,6 +115,13 @@ class FormProgressCalculator(object):
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_code:
                                     return cde_dict["value"]
+                        else:
+                            # for progress we just need
+                            for item in section_dict["cdes"]:
+                                for cde_dict in item:
+                                    if cde_dict["code"] == cde_code:
+                                        if cde_dict["value"] is not None:
+                                            return cde_dict["value"]
 
     def _progress_for_keys(self, patient_mongo_data, mongo_keys):
         total = len(mongo_keys)
@@ -168,7 +175,7 @@ class FormProgressCalculator(object):
 
     def _has_data(self, patient_data, cde_key):
         try:
-            value = patient_data[cde_key]
+            value = self._get_value_from_patient_mongo_data(patient_data, cde_key)
             if value:
                 return True
             else:
@@ -282,26 +289,17 @@ class FormProgressCalculator(object):
             return True
         return False
 
+    def _get_multisection_items(self, form_name, multisection_code, patient_data):
+        for form_dict in patient_data["forms"]:
+            if form_dict["name"] == form_name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == multisection_code and section_dict["allow_multiple"]:
+                        return section_dict["cdes"]
+
+        return []
+
     def _form_progress_one_form(self, form_model, patient_data):
-        required_keys = self.completion_keys_by_form[form_model.name]
-        required = len(required_keys)
-        filled_in = 0
-        for cde_key, section_code in required_keys:
-            if section_code is None:
-                # non-multiple
-                if self._has_data(patient_data, cde_key):
-                    filled_in += 1
-            else:
-                # multisection gets stored as a list of dictionaries -
-                section_items = patient_data.get(section_code, [])
-                for item_dict in section_items:
-                    if self._has_data(item_dict, cde_key):
-                        filled_in += 1
-                        break  # we have at least one value for a cde in the multisection
-
-        try:
-            percentage = int(100 * (float(filled_in) / float(required)))
-        except ZeroDivisionError:
-            percentage = 0
-
+        completion_list = self.completion_keys_by_form[form_model.name]
+        keys = [pair[0] for pair in completion_list]
+        percentage = self._progress_for_keys(patient_data, keys)[2]
         return percentage
