@@ -1,6 +1,6 @@
 #
 node default {
-  $custom_hostname = 'aws-syd-rdrf-staging.ec2.ccgapps.com.au'
+  $custom_hostname = 'aws-syd-rdrf-rpm-staging.ec2.ccgapps.com.au'
 
   include ccgcommon
   include ccgcommon::source
