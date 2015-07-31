@@ -34,6 +34,7 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
+            var state_lookup_url = "{% url 'state_lookup' 999 %}";
 
             function dateDiffInYears(a, b) {
                 var utc2 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
@@ -126,7 +127,28 @@
                     $("#patient_form").hide();
                     $("#login_details").hide();
                 }
-            });            
+            });
+            
+            $("#id_country").change(function() {
+                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
+                    var states = $("#id_state");
+                    states.empty();
+                    $.each( data, function( key, val ) {
+                        states.append($('<option>', { value : val.code }).text(val.name));
+                    });
+                });
+            });
+            
+            
+            $("#id_parent_guardian_country").change(function() {
+                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
+                    var states = $("#id_parent_guardian_state");
+                    states.empty();
+                    $.each( data, function( key, val ) {
+                        states.append($('<option>', { value : val.code }).text(val.name));
+                    });
+                });
+            });
         });    
     </script>
 </head>
@@ -172,19 +194,14 @@
                             <div class="radio">
                                 <label><input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M">Male</label>
                                 <label><input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="F">Female</label>
+                                <label><input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="I">Indeterminate</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Parent/Guardian Suburb/Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Parent/Guardian State" id="id_parent_guardian_state" maxlength="30" name="parent_guardian_state" type="text" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Parent/Guardian Postcode" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                            <input class="form-control" placeholder="Parent/Guardian Suburb / Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
                         </div>
                         <div class="form-group">
                             <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
@@ -194,6 +211,14 @@
                                     <option value="{{con.alpha2}}">{{con.name}}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" placeholder="Parent/Guardian State / County / Province / Region" id="id_parent_guardian_state" maxlength="30" name="parent_guardian_state" type="text" required>
+                                <option value="-1">Parent/Guardian State / County / Province / Region</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Parent/Guardian Zip / Postal Code" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
                         </div>
                         
                         <div class="form-group">
@@ -217,6 +242,7 @@
                             <div class="radio">
                                 <label><input type="radio" id="id_gender" name="gender" value="M">Male</label>
                                 <label><input type="radio" id="id_gender" name="gender" value="F">Female</label>
+                                <label><input type="radio" id="id_gender" name="gender" value="I">Indeterminate</label>
                             </div>
                         </div>
 
@@ -224,13 +250,7 @@
                             <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Suburb/Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="State" id="id_state" maxlength="30" name="state" type="text" />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Postcode" id="id_postcode" maxlength="30" name="postcode" type="text" />
+                            <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
                         </div>
                         <div class="form-group">
                             <select class="form-control" placeholder="Country" id="id_country" name="country">
@@ -241,7 +261,14 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        
+                        <div class="form-group">
+                            <select class="form-control" placeholder="State / County / Province / Region" id="id_state" maxlength="30" name="state" type="text" >
+                                <option value="-1">State / County / Province / Region</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Zip / Postal Code" id="id_postcode" maxlength="30" name="postcode" type="text" />
+                        </div>                        
                         <div class="form-group top-separator">
                             <select class="form-control" id="id_clinician" name="clinician">
                                 <option value="-1">Choose your preferred Clinician</option>
