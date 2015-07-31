@@ -19,7 +19,7 @@ To start up the RDRF web application restart Apache::
 Start MongoDB
 -------------
 
-To start up the RDRF Backend start Celery::
+To start up the MongoDB::
 
  # service mongod start
 
