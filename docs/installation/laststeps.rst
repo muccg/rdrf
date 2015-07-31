@@ -24,7 +24,30 @@ To start up the RDRF Backend start Celery::
  # service mongod start
 
 
+
+Load fixtures
+-------------
+
+Create initial users and sample data elements (both files must be loaded in order)::
+
+  # django-admin.py  load_fixture --file=rdrf.json
+  # django-admin.py   load_fixture --file=users.json
+
+
+The following users/password are created:
+ * curator/curator
+ * genetic/genetic
+ * fhcurator/fhcurator
+ * clinical/clinical
+ * admin/admin
+
+The sample registries are purely for demonstration purposes
+
+
+NB. After designing a registry ( along with its working groups) - users will need to be assigned to a working and registry
+before they will be able to see any data - this is accomplished by logging in as an admin and editing the given user.
+
+
 At this stage you should be able to access the RDRF web application by browsing to https://YOURHOST/rdrf/.
 
-The RDRF default installation creates two users *demo* and *admin*, where *demo* is a normal user and *admin* is RDRF administrator.
-The password for *demo* is *demo* and for *admin* is *admin*.
+
