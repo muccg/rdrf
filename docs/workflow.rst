@@ -130,7 +130,7 @@ Entering / editing existing Clinical Data for a Patient
 
 
 Approving/Rejecting a Questionnaire response
-----------------------------------
+--------------------------------------------
 1. Curator or clinician logs in.
 2. Click "Questionnaire Responses" under "Menu"
 3. Click "Review" under "Process Questionnaire" to approve/reject a questionanaire
