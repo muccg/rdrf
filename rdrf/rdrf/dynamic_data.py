@@ -66,8 +66,6 @@ class FormDataParser(object):
         else:
             d = {"forms": []}
 
-        logger.debug("d = %s" % d)
-
         if self.django_id:
             d["django_id"] = self.django_id
 
@@ -92,6 +90,8 @@ class FormDataParser(object):
         for (form_model, section_model, cde_model), value in self.parsed_data.items():
             if not section_model.allow_multiple:
                 cde_dict = self._get_cde_dict(form_model, section_model, cde_model, d)
+                if self._is_file(value):
+                    value = self._get_gridfs_value(value)
                 cde_dict["value"] = value
 
         for (form_model, section_model), items_list in self.parsed_multisections.items():
@@ -99,8 +99,13 @@ class FormDataParser(object):
             section_dict["allow_multiple"] = True
             section_dict["cdes"] = items_list
 
-        logger.debug("*** NESTED DATA  =\n %s" % d)
         return d
+
+    def _is_file(self, value):
+        return isinstance(value, InMemoryUploadedFile)
+
+    def _get_gridfs_value(self, inmemory_uploaded_file):
+        return None
 
     def _parse_all_forms(self):
         # used in questionnaire approval handling where all form data was being saved in one go
@@ -285,17 +290,16 @@ class DynamicDataWrapper(object):
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
-        logger.debug("data from mongo = %s" % nested_data)
+        logger.debug("load_dynamic_data : nested_data is: %s" % nested_data)
         if nested_data is None:
+            logger.debug("loading dynamic data - nested data is None so returning None")
             return None
 
-        #self._wrap_gridfs_files_from_mongo(registry, nested_data)
+        self._wrap_gridfs_files_from_mongo(registry, nested_data)
         if flattened:
-            logger.debug("loading flattened data for form")
             flattened_data = {}
             for k in nested_data:
                 if k != "forms":
-                    logger.debug("adding flatted key %s" % k)
                     flattened_data[k] = nested_data[k]
 
             for form_dict in nested_data["forms"]:
@@ -305,13 +309,10 @@ class DynamicDataWrapper(object):
                             value = cde_dict["value"]
                             delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
                             flattened_data[delimited_key] = value
-                            logger.debug("added delimited key %s" % delimited_key)
                     else:
                         multisection_code = section_dict["code"]
-                        logger.debug("adding multisection %s" % multisection_code)
                         flattened_data[multisection_code] = []
                         multisection_items = section_dict["cdes"]
-                        logger.debug("items = %s" % multisection_items)
                         for cde_list in multisection_items:
                             d = {}
                             for cde_dict in cde_list:
@@ -320,7 +321,6 @@ class DynamicDataWrapper(object):
                                 delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
                                 d[delimited_key] = cde_value
                             flattened_data[multisection_code].append(d)
-                            logger.debug("added item %s to multisection" % d)
 
             return flattened_data
         else:
@@ -420,13 +420,25 @@ class DynamicDataWrapper(object):
             cde_code,
             in_memory_file,
             dynamic_data):
+        logger.debug("storing file in gridfs")
+        logger.debug("dynamic data supplied = %s" % dynamic_data)
         fs = self._get_filestore(registry)
         original_file_name = in_memory_file.name
+        logger.debug("original filename = %s" % original_file_name)
+
         file_name = self._get_gridfs_filename(
             registry, patient_record, cde_code, original_file_name)
+
+        logger.debug("gridfs filename = %s" % file_name)
         gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
+        logger.debug("gridfs_id = %s" % gridfs_id)
         # _alter_ the dyamic data to store reference to gridfs + the original file name
-        dynamic_data[cde_code] = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
+
+        grid_ref_dict = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
+
+        logger.debug("grid_ref_dict = %s" % grid_ref_dict)
+
+        dynamic_data[cde_code] = grid_ref_dict
         logger.debug(
             "UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
             (cde_code,
@@ -445,7 +457,6 @@ class DynamicDataWrapper(object):
                 return True
         except Exception as ex:
             # section forms have codes which are not CDEs
-            logger.debug("Error checking CDE code %s for being a file: %s" % (code, ex))
             return False
 
     def _is_section_code(self, code):
@@ -465,6 +476,9 @@ class DynamicDataWrapper(object):
                 logger.debug("updating file reference for cde %s" % key)
                 delete_existing = True
                 logger.debug("uploaded file: %s" % key)
+
+
+
                 if value is False:
                     logger.debug("User cleared %s - file will be deleted" % key)
                     # Django uses a "clear" checkbox value of False to indicate file should be removed
@@ -481,6 +495,9 @@ class DynamicDataWrapper(object):
                 if key in existing_record:
                     file_wrapper = existing_record[key]
                 else:
+                    file_wrapper = None
+
+                if isinstance(file_wrapper, InMemoryUploadedFile):
                     file_wrapper = None
 
                 logger.debug("File wrapper = %s" % file_wrapper)
@@ -552,7 +569,9 @@ class DynamicDataWrapper(object):
 
         if existing_record:
             mongo_id = existing_record['_id']
-            #self._update_files_in_gridfs(existing_record, registry, form_data)
+            logger.debug("************  updating gridfs ****************************")
+            self._update_files_in_gridfs(existing_record, registry, form_data)
+            logger.debug("after update: %s" %  form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               self.current_form_model,
@@ -566,12 +585,15 @@ class DynamicDataWrapper(object):
             if self.current_form_model:
                 form_data_parser.form_name = self.current_form_model
 
+            nested_data = form_data_parser.nested_data
+            logger.debug("nested data = %s" % nested_data)
+
             collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
         else:
             record = self._get_record_query()
             record.update(form_data)
-            #self._set_in_memory_uploaded_files_to_none(record)
-            #self._update_files_in_gridfs(record, registry, form_data)
+            self._set_in_memory_uploaded_files_to_none(record)
+            self._update_files_in_gridfs(record, registry, form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               self.current_form_model,
@@ -583,6 +605,10 @@ class DynamicDataWrapper(object):
 
             if self.current_form_model:
                 form_data_parser.form_name = self.current_form_model
+
+            nested_data = form_data_parser.nested_data
+
+            logger.debug("nested data to insert = %s" % nested_data)
 
             collection.insert(form_data_parser.nested_data)
 
@@ -633,6 +659,7 @@ class DynamicDataWrapper(object):
                     self._convert_date_to_datetime(e)
 
     def _set_in_memory_uploaded_files_to_none(self, data):
+        logger.debug("setting uploaded files to None for data = %s" % data)
         if not isinstance(data, dict):
             # TODO find a better way! this test added to fix RDR-634
             # The items in a multiple allowed select widget were being passed in here
@@ -642,6 +669,7 @@ class DynamicDataWrapper(object):
         for key, value in data.items():
             if isinstance(value, InMemoryUploadedFile):
                 keys_to_change.append(key)
+                logger.debug("setting key %s InMemoryUploadedFile to None: " % key)
             elif isinstance(value, list):
                 for item in value:
                     self._set_in_memory_uploaded_files_to_none(item)

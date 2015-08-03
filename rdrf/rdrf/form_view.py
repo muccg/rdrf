@@ -20,7 +20,7 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
-from rdrf.utils import location_name, is_multisection
+from rdrf.utils import location_name, is_multisection, mongo_db_name
 
 import json
 import os
@@ -259,19 +259,16 @@ class FormView(View):
                         if 'DELETE' in dd and dd['DELETE']:
                             dynamic_data.remove(dd)
 
-                    logger.debug("cleaned data = %s" % dynamic_data)
                     section_dict = {}
                     section_dict[s] = wrap_gridfs_data_for_form(
                         self.registry.code, dynamic_data)
 
-                    logger.debug("after wrapping for gridfs = %s" % section_dict)
+                    logger.debug("** after wrapping for gridfs = %s" % section_dict)
 
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True)
 
                     data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    logger.debug("data in mongo after saving = %s" % data_after_save)
 
-                    logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
                     form_section[s] = form_set_class(
                         initial=wrap_gridfs_data_for_form(
                             registry_code,
@@ -1038,11 +1035,13 @@ class FileUploadView(View):
         from bson.objectid import ObjectId
         import gridfs
         client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
-        db = client[registry_code]
+        db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
+        filename = data.filename.split("****")[-1]
         response = HttpResponse(data, mimetype='application/octet-stream')
+        response['Content-disposition'] = "filename=%s" % filename
         return response
 
 
