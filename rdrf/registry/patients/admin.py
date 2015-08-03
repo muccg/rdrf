@@ -545,6 +545,13 @@ class ConsentValueAdmin(admin.ModelAdmin):
     def registry(self, obj):
         return obj.consent_question.section.registry
 
+    def queryset(self, request):
+        qs = super(ConsentValueAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.filter(patient__rdrf_registry__in=request.user.registry.all())
+
 
 class ParentGuardianAdmin(admin.ModelAdmin):
     model = ParentGuardian

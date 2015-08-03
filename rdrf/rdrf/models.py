@@ -1541,6 +1541,10 @@ class ConsentQuestion(models.Model):
         else:
             return self.question_label
 
+    def __unicode__(self):
+        return "%s" % self.question_label
+    
+
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
