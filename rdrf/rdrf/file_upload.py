@@ -31,6 +31,10 @@ class FileUpload(object):
         """
         return self.gridfs_dict['file_name']
 
+    @property
+    def mongo_data(self):
+        return self.gridfs_dict
+
 
 def wrap_gridfs_data_for_form(registry, data):
     """
@@ -43,10 +47,14 @@ def wrap_gridfs_data_for_form(registry, data):
     wrappers which display a download link to the file
 
     """
-    def munge_dict(data):
+    logger.debug("in wrap_gridfs_data_for_form")
+
+    def check_for_gridfs_dict(data):
         for key, value in data.items():
+            logger.debug("checking key %s for gridfs data value = %s" % (key, value))
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
+                    logger.debug("found a gridfs dict - wrapping the value witha FileUpload object")
                     wrapper = FileUpload(registry, key, value)
                     logger.debug(
                         "munging gridfs %s data dict (before): %s -> (after) %s" %
@@ -54,15 +62,18 @@ def wrap_gridfs_data_for_form(registry, data):
                     data[key] = wrapper
 
     if data is None:
+        logger.debug("supplied data is None - nothing to  do")
         return
 
     if isinstance(data, list):
+        logger.debug("supplied data is a list - iterating ..")
         for data_dict in data:
-            munge_dict(data_dict)
+            check_for_gridfs_dict(data_dict)
         return data
 
     elif isinstance(data, dict):
-        munge_dict(data)
+        logger.debug("supplied data is a dict - checking ...")
+        check_for_gridfs_dict(data)
         return data
 
     return data
