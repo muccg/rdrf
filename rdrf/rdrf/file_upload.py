@@ -12,7 +12,11 @@ class FileUpload(object):
     """
 
     def __init__(self, registry, cde_code, gridfs_dict):
-        self.registry = registry
+        if isinstance(registry, unicode):
+            from rdrf.models import Registry
+            self.registry = Registry.objects.get(code=registry)
+        else:
+            self.registry = registry
         self.cde_code = cde_code
         self.gridfs_dict = gridfs_dict
 
@@ -21,7 +25,7 @@ class FileUpload(object):
         from django.core.urlresolvers import reverse
         return reverse(
             "file_upload", args=[
-                self.registry, str(
+                self.registry.code, str(
                     self.gridfs_dict['gridfs_file_id'])])
 
     def __unicode__(self):

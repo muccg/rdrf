@@ -409,6 +409,7 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
+
             else:
                 # Ensure that we can have multiple formsets on the one page
                 prefix = "formset_%s" % s

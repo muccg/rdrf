@@ -369,7 +369,6 @@ class DynamicDataWrapper(object):
                                 d[delimited_key] = cde_value
                             flattened_data[multisection_code].append(d)
 
-
             return flattened_data
         else:
             return nested_data
@@ -504,6 +503,27 @@ class DynamicDataWrapper(object):
         return False
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data):
+
+        class KeyValueMissing(Exception):
+            pass
+
+        def get_mongo_value(registry_code, nested_data, delimited_key):
+            from rdrf.utils import models_from_mongo_key
+            from rdrf.models import Registry
+            registry_model = Registry.objects.get(code=registry_code)
+
+            form_model, section_model, cde_model = models_from_mongo_key(registry_model, key)
+
+            for form_dict in nested_data["forms"]:
+                if form_dict["name"] == form_model.name:
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == section_model.code:
+                            if not section_dict["allow_multiple"]:
+                                for cde_dict in section_dict['cdes']:
+                                    if cde_dict["code"] == cde_model.code:
+                                        return cde_dict["value"]
+            raise KeyValueMissing()
+
         logger.debug("_update_files_in_gridfs: existing record = %s new_data = %s" % (existing_record, new_data))
         fs = self._get_filestore(registry)
         for key, value in new_data.items():
@@ -520,14 +540,21 @@ class DynamicDataWrapper(object):
 
                 if value is None:
                     logger.debug(
-                        "User did change file %s - existing_record will not be updated" % key)
+                        "User did not change file %s - existing_record will not be updated" % key)
                     logger.debug("existing_record = %s\nnew_data = %s" %
                                  (existing_record, new_data))
                     delete_existing = False
 
-                if key in existing_record:
+                try:
+                    existing_value = get_mongo_value(registry, existing_record, key)
+                    in_mongo = True
+                except KeyValueMissing, err:
+                    in_mongo = False
+                    existing_value = None
+
+                if in_mongo:
                     logger.debug("key %s in existing record - value is file wrapper" % key)
-                    file_wrapper = existing_record[key]
+                    file_wrapper = existing_value
                     logger.debug("file_wrapper = %s" % file_wrapper)
                 else:
                     file_wrapper = None
@@ -550,7 +577,11 @@ class DynamicDataWrapper(object):
                         logger.debug("incoming value is None so no update")
                 else:
                     logger.debug("existing value is a file wrapper: %s" % file_wrapper)
-                    gridfs_file_dict = file_wrapper.gridfs_dict
+                    if isinstance(file_wrapper, FileUpload):
+                        gridfs_file_dict = file_wrapper.gridfs_dict
+                    elif isinstance(file_wrapper, dict):
+                        if "gridfs_file_id" in file_wrapper:
+                            gridfs_file_dict = file_wrapper
                     logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
 
                     if gridfs_file_dict is None:
