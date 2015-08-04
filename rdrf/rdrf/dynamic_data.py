@@ -512,7 +512,7 @@ class DynamicDataWrapper(object):
             from rdrf.models import Registry
             registry_model = Registry.objects.get(code=registry_code)
 
-            form_model, section_model, cde_model = models_from_mongo_key(registry_model, key)
+            form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
 
             for form_dict in nested_data["forms"]:
                 if form_dict["name"] == form_model.name:
@@ -618,6 +618,7 @@ class DynamicDataWrapper(object):
 
             elif self._is_section_code(key):
                 # value is a list of section field data dictionaries
+
                 if key not in existing_record:
                     existing_record[key] = [{}] * len(value)
                 elif len(existing_record[key]) < len(value):
