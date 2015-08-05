@@ -163,6 +163,7 @@ def cached(func):
 
     return wrapped
 
+
 def is_multisection(code):
     try:
         from rdrf.models import Section
@@ -170,3 +171,19 @@ def is_multisection(code):
         return section_model.allow_multiple
     except Section.DoesNotExist:
         return False
+
+
+def is_file_cde(code):
+    from rdrf.models import CommonDataElement
+    try:
+        cde = CommonDataElement.objects.get(code=code)
+        if cde.datatype == 'file':
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def is_uploaded_file(value):
+    from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+    return isinstance(value, InMemoryUploadedFile) or isinstance(value, TemporaryUploadedFile)

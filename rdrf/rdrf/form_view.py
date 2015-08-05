@@ -223,6 +223,7 @@ class FormView(View):
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+
                     from copy import deepcopy
                     form2 = form_class(
                         dynamic_data,
@@ -254,26 +255,33 @@ class FormView(View):
 
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
+                    logger.debug("multisection formset is valid")
+                    logger.debug("cleaned dynamic_data = %s" % dynamic_data)
 
                     for dd in dynamic_data:
                         if 'DELETE' in dd and dd['DELETE']:
+                            logger.debug("removed DELETED section item: %s" % dd)
                             dynamic_data.remove(dd)
 
-                    section_dict = {}
-                    section_dict[s] = wrap_gridfs_data_for_form(
-                        self.registry.code, dynamic_data)
+                    logger.debug("dynamic data after deletions: %s" % dynamic_data)
 
-                    logger.debug("** after wrapping for gridfs = %s" % section_dict)
+                    section_dict = {}
+
+                    # section_dict[s] = wrap_gridfs_data_for_form(
+                    #     self.registry.code, dynamic_data)
+
+                    section_dict[s] = dynamic_data
+
+                    #logger.debug("** after wrapping mutlisection for gridfs = %s" % section_dict)
 
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True)
+                    logger.debug("saved dynamic data to mongo OK")
 
-                    data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
 
-                    form_section[s] = form_set_class(
-                        initial=wrap_gridfs_data_for_form(
-                            registry_code,
-                            dynamic_data),
-                        prefix=prefix)
+                    form_section[s] = form_set_class(initial=wrapped_data_for_form, prefix=prefix)
+
                 else:
                     logger.debug("formset for multisection is invalid!")
                     for e in formset.errors:
