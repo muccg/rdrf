@@ -3,11 +3,15 @@ from pymongo import MongoClient
 import gridfs
 import logging
 from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
-from rdrf.utils import is_file_cde, is_uploaded_file
+from rdrf.utils import is_file_cde, is_uploaded_file, is_gridfs_file_wrapper
 
 from django.conf import settings
 import datetime
 from rdrf.file_upload import FileUpload
+from copy import deepcopy
+
+
+
 
 logger = logging.getLogger("registry_log")
 
@@ -33,14 +37,17 @@ class MultisectionGridFSFileHandler(object):
                  form_model,
                  multisection_code,
                  form_section_items,
-                 existing_nested_data):
+                 existing_nested_data,
+                 index_map):
 
+        self.original_data = deepcopy(existing_nested_data)
         self.gridfs_filestore = gridfs_filestore
         self.registry_code = registry_code
         self.form_model = form_model
         self.multisection_code = multisection_code
         self.form_section_items = form_section_items # list of section dicts in this multisection
         self.existing_nested_data = existing_nested_data
+        self.index_map = index_map  # if sections have been deleted,
 
         # bookkeeping of gridfs file ids
         self.existing_file_ids = set([])
@@ -48,6 +55,7 @@ class MultisectionGridFSFileHandler(object):
         self.added_file_ids = set([])
         self.deleted_file_ids = set([])
         self.unchanged_file_ids = set([])
+
 
     def _add_file(self, item_index, key, file_object):
         # Put an uploaded file into gridfs and return a wrapper dictionary  which is stored against the key mongo
@@ -114,13 +122,13 @@ class MultisectionGridFSFileHandler(object):
         deleted_file_id = None
 
         for form_dict in self.existing_nested_data["forms"]:
-            if form_dict["name"] == form_model.name:
+            if form_dict["name"] == self.form_model.name:
                 for section_dict in form_dict["sections"]:
                     if section_dict["code"] == self.multisection_code:
                         if section_dict["allow_multiple"]:
                             for index, item in enumerate(section_dict["cdes"]):
                                 if index == item_index:
-                                    for cde_dict in item["cdes"]:
+                                    for cde_dict in item:
                                         if cde_dict['code'] == file_cde_code:
                                             existing_gridfs_ref_dict = cde_dict["value"]
                                             logger.debug("existing cde value of this file cde = %s" %
@@ -140,7 +148,28 @@ class MultisectionGridFSFileHandler(object):
                                             logger.debug("updated the value to None")
         return deleted_file_id
 
-    # helper methods
+    def _get_original_file_cde_value(self, item_index, key):
+        cde_code = get_code(key)
+        old_index = self.index_map[item_index]
+        for form_dict in self.original_data["forms"]:
+            if form_dict["name"] == self.form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == self.multisection_code:
+                        if section_dict["allow_multiple"]:
+                            items = section_dict["cdes"]
+                            old_cdes_list = items[old_index]
+                            for cde_dict in old_cdes_list:
+                                if cde_dict["code"] == cde_code:
+                                    original_value = cde_dict["value"]
+                                    return original_value
+
+    def _preserve_file(self, item_index, key, original_value):
+        cde_code = get_code(key)
+        section_dict = self.form_section_items[item_index]
+        section_dict[key] = original_value
+        if is_gridfs_file_wrapper(original_value):
+            return original_value["gridfs_file_id"]
+
     def _is_gridfs_file_wrapper(self, value):
         return isinstance(value, dict) and "gridfs_file_id" in value
 
@@ -159,7 +188,7 @@ class MultisectionGridFSFileHandler(object):
         for cde_dict_list in items:
             for cde_dict in cde_dict_list:
                 value = cde_dict["value"]
-                if self._is_gridfs_file_wrapper(value):
+                if is_gridfs_file_wrapper(value):
                     result_set.add(value["gridfs_file_id"])
 
         return result_set
@@ -207,15 +236,17 @@ class MultisectionGridFSFileHandler(object):
                 self.added_file_ids.add(added_gridfs_file_id)
 
         for (item_index, key) in files_to_delete:
-            deleted_gridfs_file_id = self._delete_gridfs_file_in_multisection(gridfs_filestore,
-                                                                              form_model,
-                                                                              multisection_key,
-                                                                              item_index,
-                                                                              key,
-                                                                              form_section_items,
-                                                                              existing_nested_data)
+            deleted_gridfs_file_id = self._delete_file(item_index, key)
             if not deleted_gridfs_file_id is None:
-                deleted_gridfs_file_ids.add(deleted_gridfs_file_id)
+                self.deleted_file_ids.add(deleted_gridfs_file_id)
+
+        for (item_index, key) in unchanged_files:
+            #todo ensure that unchanged gridfs files in a multisection are not clobbered
+            original_value = self._get_original_file_cde_value(item_index, key)
+            original_gridfs_file_id = self._preserve_file(item_index, key, original_value)
+            if original_gridfs_file_id is not None:
+                self.unchanged_file_ids.add(original_gridfs_file_id)
+
 
         logger.debug("****************** END UPDATE MULTISECTION FILE CDES ****************************")
 
@@ -679,7 +710,8 @@ class DynamicDataWrapper(object):
             pass
         return False
 
-    def _update_files_in_gridfs(self, existing_record, registry, new_data):
+    def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
+
         fs = self._get_filestore(registry)
 
         def get_mongo_value(registry_code, nested_data, delimited_key):
@@ -806,7 +838,8 @@ class DynamicDataWrapper(object):
                                                                             form_model,
                                                                             key,
                                                                             new_section_items,
-                                                                            existing_record)
+                                                                            existing_record,
+                                                                            index_map)
 
                 multisection_gridfs_handler.update_multisection_file_cdes()
 
@@ -916,7 +949,8 @@ class DynamicDataWrapper(object):
 
         return None
 
-    def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False):
+    def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
+                          index_map=None):
         from rdrf.models import Registry
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
@@ -932,7 +966,7 @@ class DynamicDataWrapper(object):
         if existing_record:
             logger.debug("saving dynamic data - updating existing")
             mongo_id = existing_record['_id']
-            self._update_files_in_gridfs(existing_record, registry, form_data)
+            self._update_files_in_gridfs(existing_record, registry, form_data, index_map)
             logger.debug("after update: %s" % form_data)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
@@ -956,7 +990,7 @@ class DynamicDataWrapper(object):
             record["forms"] = []
             #record.update(form_data)
             #self._set_in_memory_uploaded_files_to_none(record)
-            self._update_files_in_gridfs(record, registry, form_data)
+            self._update_files_in_gridfs(record, registry, form_data, index_map)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
                                               self.current_form_model,

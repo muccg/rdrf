@@ -20,7 +20,7 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
-from rdrf.utils import location_name, is_multisection, mongo_db_name
+from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 
 import json
 import os
@@ -258,23 +258,36 @@ class FormView(View):
                     logger.debug("multisection formset is valid")
                     logger.debug("cleaned dynamic_data = %s" % dynamic_data)
 
-                    for dd in dynamic_data:
+                    index_actions = []  # 101010 means the second item was deleted, first wass kept as was third etc
+                    to_remove = []
+
+                    for item_index, dd in enumerate(dynamic_data):
                         if 'DELETE' in dd and dd['DELETE']:
                             logger.debug("removed DELETED section item: %s" % dd)
-                            dynamic_data.remove(dd)
+                            #dynamic_data.remove(dd)
+                            to_remove.append(dd)
+                            index_actions.append(0)
+                        else:
+                            index_actions.append(1)
+
+                    for dd in to_remove:
+                        dynamic_data.remove(dd)
+
+                    index_map = make_index_map(index_actions)
 
                     logger.debug("dynamic data after deletions: %s" % dynamic_data)
 
                     section_dict = {}
 
-                    # section_dict[s] = wrap_gridfs_data_for_form(
+                    # section_dict[s] = wrap_gridfs_data_for_form
                     #     self.registry.code, dynamic_data)
 
                     section_dict[s] = dynamic_data
 
                     #logger.debug("** after wrapping mutlisection for gridfs = %s" % section_dict)
 
-                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True)
+                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                                                  index_map=index_map)
                     logger.debug("saved dynamic data to mongo OK")
 
                     #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")

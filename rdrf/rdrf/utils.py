@@ -187,3 +187,25 @@ def is_file_cde(code):
 def is_uploaded_file(value):
     from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
     return isinstance(value, InMemoryUploadedFile) or isinstance(value, TemporaryUploadedFile)
+
+
+def make_index_map(index_actions_list):
+    # index_actions_list looks like [1,0,1,0,1]
+    # 1 means that this item in the list was not deleted
+    # 0 means that item in the list was deleted
+    # we return a map mapping the positions of the 1s ( kept items)
+    # to original indices - this allows us to retriebve data from an item
+    # depsite re-ordering\
+    # index map in example is {0: 0, 1: 2, 2: 4}
+
+    m = {}
+    new_index = 0
+    for original_index, i in enumerate(index_actions_list):
+        if i == 1:
+            m[new_index] = original_index
+            new_index += 1
+    return m
+
+
+def is_gridfs_file_wrapper(value):
+    return isinstance(value, dict) and "griffs_file_id" in value
