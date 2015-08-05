@@ -624,6 +624,7 @@ class CommonDataElement(models.Model):
     questionnaire_text = models.TextField(
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
+    groups_allowed = models.ManyToManyField(Group, blank=True)
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)

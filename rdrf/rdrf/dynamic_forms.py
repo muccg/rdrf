@@ -40,7 +40,8 @@ def create_form_class_for_section(
         questionnaire_context=None,
         injected_model=None,
         injected_model_id=None,
-        is_superuser=None):
+        is_superuser=None,
+        user_groups=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
     base_fields = SortedDict()
@@ -48,6 +49,16 @@ def create_form_class_for_section(
     for s in section.elements.split(","):
         try:
             cde = CommonDataElement.objects.get(code=s.strip())
+
+            groups_allowed = cde.groups_allowed.all()
+            if groups_allowed and user_groups:
+                field_allowed = False
+                for ug in user_groups:
+                    if ug in groups_allowed:
+                        field_allowed = True
+                if not field_allowed:
+                    continue
+
             cde_field = FieldFactory(
                 registry,
                 registry_form,
