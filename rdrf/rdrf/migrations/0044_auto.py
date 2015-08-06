@@ -8,19 +8,30 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding M2M table for field groups_allowed on 'CommonDataElement'
-        m2m_table_name = db.shorten_name(u'rdrf_commondataelement_groups_allowed')
+        # Adding model 'CdePolicy'
+        db.create_table(u'rdrf_cdepolicy', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
+            ('cde', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.CommonDataElement'])),
+        ))
+        db.send_create_signal(u'rdrf', ['CdePolicy'])
+
+        # Adding M2M table for field groups_allowed on 'CdePolicy'
+        m2m_table_name = db.shorten_name(u'rdrf_cdepolicy_groups_allowed')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('commondataelement', models.ForeignKey(orm[u'rdrf.commondataelement'], null=False)),
+            ('cdepolicy', models.ForeignKey(orm[u'rdrf.cdepolicy'], null=False)),
             ('group', models.ForeignKey(orm[u'auth.group'], null=False))
         ))
-        db.create_unique(m2m_table_name, ['commondataelement_id', 'group_id'])
+        db.create_unique(m2m_table_name, ['cdepolicy_id', 'group_id'])
 
 
     def backwards(self, orm):
-        # Removing M2M table for field groups_allowed on 'CommonDataElement'
-        db.delete_table(db.shorten_name(u'rdrf_commondataelement_groups_allowed'))
+        # Deleting model 'CdePolicy'
+        db.delete_table(u'rdrf_cdepolicy')
+
+        # Removing M2M table for field groups_allowed on 'CdePolicy'
+        db.delete_table(db.shorten_name(u'rdrf_cdepolicy_groups_allowed'))
 
 
     models = {
@@ -99,6 +110,13 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'CDEPermittedValueGroup'},
             'code': ('django.db.models.fields.CharField', [], {'max_length': '250', 'primary_key': 'True'})
         },
+        u'rdrf.cdepolicy': {
+            'Meta': {'object_name': 'CdePolicy'},
+            'cde': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.CommonDataElement']"}),
+            'groups_allowed': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"})
+        },
         u'rdrf.commondataelement': {
             'Meta': {'object_name': 'CommonDataElement'},
             'allow_multiple': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -106,7 +124,6 @@ class Migration(SchemaMigration):
             'code': ('django.db.models.fields.CharField', [], {'max_length': '30', 'primary_key': 'True'}),
             'datatype': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'desc': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'groups_allowed': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
             'instructions': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'is_required': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'max_length': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),

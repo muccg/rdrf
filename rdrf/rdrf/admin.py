@@ -17,6 +17,7 @@ from models import Section
 from models import ConsentSection
 from models import ConsentQuestion
 from models import DemographicFields
+from models import CdePolicy
 
 import logging
 from django.http import HttpResponse
@@ -367,6 +368,17 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
     form = DemographicFieldsAdminForm
     list_display = ("registry", "group", "field", "hidden", "readonly")
 
+
+class CdePolicyAdmin(admin.ModelAdmin):
+    model = CdePolicy
+    list_display = ("registry", "cde", "groups")
+    
+    def groups(self, obj):
+        return ", ".join([gr.name for gr in obj.groups_allowed.all()])
+    
+    groups.short_description = "Allowed Groups"
+
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(
@@ -407,6 +419,8 @@ admin.site.register(Section, SectionAdmin)
 admin.site.register(ConsentSection, ConsentSectionAdmin)
 
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
+
+admin.site.register(CdePolicy, CdePolicyAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)

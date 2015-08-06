@@ -624,7 +624,6 @@ class CommonDataElement(models.Model):
     questionnaire_text = models.TextField(
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
-    groups_allowed = models.ManyToManyField(Group, blank=True)
 
     def __unicode__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -643,6 +642,21 @@ class CommonDataElement(models.Model):
         else:
             return None
 
+
+class CdePolicy(models.Model):
+    registry = models.ForeignKey(Registry)
+    cde = models.ForeignKey(CommonDataElement)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+    
+    def is_allowed(self, user_groups):
+        for ug in user_groups:
+            if ug in self.groups_allowed.all():
+                return True
+
+    class Meta:
+        verbose_name = "CDE Policy"
+        verbose_name_plural = "CDE Policies"
+    
 
 class RegistryFormManager(models.Manager):
 
