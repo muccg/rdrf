@@ -47,6 +47,7 @@ class QuickLinks(object):
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
+    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", "CDE Policy", True)
 
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
@@ -58,6 +59,7 @@ class QuickLinks(object):
                             RegistryForms,
                             Sections,
                             DataElements,
+                            CdePolicy,
                             PermissibleValueGroups,
                             PermissibleValues,
                             ConsentSections,

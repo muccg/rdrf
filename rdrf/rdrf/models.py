@@ -643,6 +643,21 @@ class CommonDataElement(models.Model):
             return None
 
 
+class CdePolicy(models.Model):
+    registry = models.ForeignKey(Registry)
+    cde = models.ForeignKey(CommonDataElement)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+    
+    def is_allowed(self, user_groups):
+        for ug in user_groups:
+            if ug in self.groups_allowed.all():
+                return True
+
+    class Meta:
+        verbose_name = "CDE Policy"
+        verbose_name_plural = "CDE Policies"
+    
+
 class RegistryFormManager(models.Manager):
 
     def get_by_registry(self, registry):

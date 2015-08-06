@@ -3,6 +3,7 @@ from django.utils.datastructures import SortedDict
 from field_lookup import FieldFactory
 from django.conf import settings
 import logging
+from rdrf.models import CdePolicy
 
 logger = logging.getLogger("registry_log")
 
@@ -32,6 +33,11 @@ def create_form_class(owner_class_name):
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
     return form_class
 
+def get_cde_policy(registry, cde):
+    try:
+        return CdePolicy.objects.get(registry=registry, cde=cde)
+    except CdePolicy.DoesNotExist:
+        return None
 
 def create_form_class_for_section(
         registry,
@@ -40,7 +46,8 @@ def create_form_class_for_section(
         questionnaire_context=None,
         injected_model=None,
         injected_model_id=None,
-        is_superuser=None):
+        is_superuser=None,
+        user_groups=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
     base_fields = SortedDict()
@@ -48,6 +55,11 @@ def create_form_class_for_section(
     for s in section.elements.split(","):
         try:
             cde = CommonDataElement.objects.get(code=s.strip())
+            cde_policy = get_cde_policy(registry, cde)
+            if cde_policy and user_groups:
+                if not cde_policy.is_allowed(user_groups.all()):
+                    continue
+
             cde_field = FieldFactory(
                 registry,
                 registry_form,
@@ -69,7 +81,6 @@ def create_form_class_for_section(
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
     return type(form_class_name, (BaseForm,), form_class_dict)
-
 
 def create_form_class_for_consent_section(
         registry_model,
