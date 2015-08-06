@@ -777,12 +777,17 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
-        record = wrapper.load_dynamic_data(self.registry.code, "cdes")
         questionnaire_form_name = RegistryForm.objects.get(
             registry=self.registry, is_questionnaire=True).name
-        key = settings.FORM_SECTION_DELIMITER.join(
-            [questionnaire_form_name, "PatientData", patient_field])
-        return record[key]
+
+        value = wrapper.get_nested_cde(self.registry.code, questionnaire_form_name, "PatientData", patient_field)
+
+        logger.debug("_get_patient_field %s = %s" % (patient_field, value))
+
+        if value is None:
+            return ""
+
+        return value
 
 def appears_in(cde, registry, registry_form, section):
     if section.code not in registry_form.get_sections():

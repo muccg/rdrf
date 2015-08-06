@@ -20,7 +20,7 @@ from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
-from rdrf.utils import location_name
+from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 
 import json
 import os
@@ -223,6 +223,7 @@ class FormView(View):
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
                     dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+
                     from copy import deepcopy
                     form2 = form_class(
                         dynamic_data,
@@ -254,29 +255,46 @@ class FormView(View):
 
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
+                    logger.debug("multisection formset is valid")
+                    logger.debug("cleaned dynamic_data = %s" % dynamic_data)
 
-                    for dd in dynamic_data:
+                    index_actions = []  # 101010 means the second item was deleted, first wass kept as was third etc
+                    to_remove = []
+
+                    for item_index, dd in enumerate(dynamic_data):
                         if 'DELETE' in dd and dd['DELETE']:
-                            dynamic_data.remove(dd)
+                            logger.debug("removed DELETED section item: %s" % dd)
+                            #dynamic_data.remove(dd)
+                            to_remove.append(dd)
+                            index_actions.append(0)
+                        else:
+                            index_actions.append(1)
 
-                    logger.debug("cleaned data = %s" % dynamic_data)
+                    for dd in to_remove:
+                        dynamic_data.remove(dd)
+
+                    index_map = make_index_map(index_actions)
+
+                    logger.debug("dynamic data after deletions: %s" % dynamic_data)
+
                     section_dict = {}
-                    section_dict[s] = wrap_gridfs_data_for_form(
-                        self.registry.code, dynamic_data)
 
-                    logger.debug("after wrapping for gridfs = %s" % section_dict)
+                    # section_dict[s] = wrap_gridfs_data_for_form
+                    #     self.registry.code, dynamic_data)
 
-                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict)
+                    section_dict[s] = dynamic_data
 
-                    data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    logger.debug("data in mongo after saving = %s" % data_after_save)
+                    #logger.debug("** after wrapping mutlisection for gridfs = %s" % section_dict)
 
-                    logger.debug("updated data for section %s to %s OK" % (s, dynamic_data))
-                    form_section[s] = form_set_class(
-                        initial=wrap_gridfs_data_for_form(
-                            registry_code,
-                            dynamic_data),
-                        prefix=prefix)
+                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                                                  index_map=index_map)
+                    logger.debug("saved dynamic data to mongo OK")
+
+                    #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
+
+                    form_section[s] = form_set_class(initial=wrapped_data_for_form, prefix=prefix)
+
                 else:
                     logger.debug("formset for multisection is invalid!")
                     for e in formset.errors:
@@ -412,6 +430,7 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
+
             else:
                 # Ensure that we can have multiple formsets on the one page
                 prefix = "formset_%s" % s
@@ -723,7 +742,11 @@ class QuestionnaireView(FormView):
                 questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
-                questionnaire_response_wrapper.save_dynamic_data(
+                if is_multisection(section):
+                    questionnaire_response_wrapper.save_dynamic_data(
+                        registry_code, "cdes", data_map[section], multisection=True)
+                else:
+                    questionnaire_response_wrapper.save_dynamic_data(
                     registry_code, "cdes", data_map[section])
 
             def get_completed_questions(
@@ -1034,11 +1057,13 @@ class FileUploadView(View):
         from bson.objectid import ObjectId
         import gridfs
         client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
-        db = client[registry_code]
+        db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
+        filename = data.filename.split("****")[-1]
         response = HttpResponse(data, mimetype='application/octet-stream')
+        response['Content-disposition'] = "filename=%s" % filename
         return response
 
 
