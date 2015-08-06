@@ -435,6 +435,7 @@ class FieldFactory(object):
 
     def _create_file_field(self, options):
         field = FileField(**options)
+        logger.debug("file field = %s" % field)
         return field
 
 
