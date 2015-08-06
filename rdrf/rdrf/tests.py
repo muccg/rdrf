@@ -358,10 +358,23 @@ class FormTestCase(RDRFTestCase):
         # we've only written data for 2 sections
         assert len(the_form["sections"]) == 2, "expected 2 sections got %s" % len(the_form["sections"])
 
+        for section_dict in the_form["sections"]:
+            assert isinstance(section_dict, dict), "sections should be dictioanaries"
+            assert "cdes" in section_dict, "sections should have a cdes key"
+            assert isinstance(section_dict["cdes"], list), "sections cdes key should be a list"
+            for cde in section_dict["cdes"]:
+                assert isinstance(cde, dict), "cde should be a dict"
+                assert "code" in cde, "cde dictionary should have a code key"
+                assert "value" in cde, "cde dictionary should have a value key"
+
+
+
         assert form_value(self.simple_form.name, self.sectionA.code, "CDEName", mongo_record) == "Fred"
         assert form_value(self.simple_form.name, self.sectionA.code, "CDEAge", mongo_record) == 20
         assert form_value(self.simple_form.name, self.sectionB.code, "CDEHeight", mongo_record) == 1.73
         assert form_value(self.simple_form.name, self.sectionB.code, "CDEWeight", mongo_record) == 88.23
+
+
 
 
 
