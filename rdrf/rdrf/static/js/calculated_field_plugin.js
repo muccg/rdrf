@@ -64,10 +64,12 @@
                             context.result = "ERROR";
                         }
                         $("#id_" + settings.prefix + settings.observer).val(context.result);
+                        $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
              });
         };
 
-        $(subject_codes_string).on("input, change", update_function);
+        $(subject_codes_string).on("input change", update_function);
+        $(subject_codes_string).on("rdrf_calculation_performed", update_function);
 
         try {
             // call on initial page load
@@ -75,7 +77,7 @@
                                // we are always in sync(RDR-426 )
         }
         catch (err) {
-            //alert(err);
+            alert(err);
         }
     };
 
