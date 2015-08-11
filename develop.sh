@@ -14,7 +14,7 @@ AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
 }
 
 
@@ -82,6 +82,17 @@ selenium() {
     fig --project-name rdrf -f fig-selenium.yml rm --force
     fig --project-name rdrf -f fig-selenium.yml build
     fig --project-name rdrf -f fig-selenium.yml up
+}
+
+registry_specific_tests() {
+    for reg_code in fh DM1 fkrp; do
+        yaml_file="rdrd/registries/$reg_code.yaml"
+        if [ -f "$yaml_file" ]; then
+            echo "$yaml_file found OK"
+        else
+            echo "$yaml_file not found - skipping tests"
+        fi
+    done
 }
 
 
@@ -168,6 +179,9 @@ selenium)
     ;;
 lettuce)
     lettuce
+    ;;
+registry_specific_tests)
+    registry_specific_tests
     ;;
 *)
     usage
