@@ -23,3 +23,19 @@ class Base(unittest.TestCase):
             random.choice(
                 string.ascii_uppercase +
                 string.digits) for _ in range(size))
+
+    def import_registry(self, yaml_file_name):
+        sel = self.selenium
+        sel.open("/admin")
+        sel.wait_for_page_to_load("30000")
+        sel.click("link=Log in")
+        sel.wait_for_page_to_load("30000")
+        sel.type("id=id_username", "admin")
+        sel.type("id=id_password", "admin")
+        sel.click("link=Menu")
+        sel.click("link=Settings")
+        sel.click("link=Importer")
+        sel.wait_for_page_to_load("30000")
+        sel.type("id=id_registry_yaml_file", "definitions/registries/%s" % yaml_file_name)
+        sel.click("id=submit-form-btn")
+        sel.wait_for_page_to_load("30000")
