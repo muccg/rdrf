@@ -32,7 +32,7 @@ class Base(unittest.TestCase):
         sel.wait_for_page_to_load("30000")
         sel.type("id=id_username", "admin")
         sel.type("id=id_password", "admin")
-        sel.click("link=Menu")
+        sel.wait_for_page_to_load("30000")
         sel.click("link=Settings")
         sel.click("link=Importer")
         sel.wait_for_page_to_load("30000")
