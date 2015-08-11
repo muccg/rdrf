@@ -86,7 +86,7 @@ selenium() {
 
 registry_specific_tests() {
     for reg_code in fh DM1 fkrp; do
-        yaml_file="rdrd/registries/$reg_code.yaml"
+        yaml_file="definitions/rdrd/registries/$reg_code.yaml"
         if [ -f "$yaml_file" ]; then
             echo "$yaml_file found OK"
         else
