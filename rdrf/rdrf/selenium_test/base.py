@@ -30,14 +30,18 @@ class Base(unittest.TestCase):
         sel.wait_for_page_to_load("30000")
         sel.type("id=id_username", "admin")
         sel.type("id=id_password", "admin")
-        sel.click("//input[@value='Log in']")
-        sel.wait_for_page_to_load("30000")
-        sel.click("link=Settings")
-        sel.click("link=Importer")
-        sel.wait_for_page_to_load("30000")
-        if not os.path.exists(yaml_file_name):
-            raise Exception("yaml file %s does not exist" % yaml_file_name)
-        absolute_path = os.path.abspath(yaml_file_name)
-        sel.type("id=id_registry_yaml_file", absolute_path)
-        sel.click("id=submit-form-btn")
-        sel.wait_for_page_to_load("30000")
+        # sel.click("//input[@value='Log in']")
+        # sel.wait_for_page_to_load("30000")
+        # sel.click("link=Settings")
+        # sel.click("link=Importer")
+        # sel.wait_for_page_to_load("30000")
+        # if not os.path.exists(yaml_file_name):
+        #     raise Exception("yaml file %s does not exist" % yaml_file_name)
+        # absolute_path = os.path.abspath(yaml_file_name)
+        import requests
+        url = 'http:///web:8000/import/'
+        files = {'file': open(yaml_file_name, 'rb')}
+        r = requests.post(url, files=files)
+        # sel.type("id=id_registry_yaml_file", absolute_path)
+        # sel.click("id=submit-form-btn")
+        # sel.wait_for_page_to_load("30000")
