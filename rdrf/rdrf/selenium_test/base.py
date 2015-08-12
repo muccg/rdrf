@@ -35,7 +35,7 @@ class Base(unittest.TestCase):
         sel.click("link=Settings")
         sel.click("link=Importer")
         sel.wait_for_page_to_load("30000")
-        yaml_file_path = "rdrf/definitions/registries/%s" % yaml_file_name
+        yaml_file_path = "/app/rdrd/definitions/registries/%s" % yaml_file_name
         if not os.path.exists(yaml_file_path):
             raise Exception("%s not found - cwd = %s" % (yaml_file_path, os.getcwd()))
 
