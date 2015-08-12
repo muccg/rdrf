@@ -37,6 +37,7 @@ class Base(unittest.TestCase):
         sel.wait_for_page_to_load("30000")
         if not os.path.exists(yaml_file_name):
             raise Exception("yaml file %s does not exist" % yaml_file_name)
-        sel.type("id=id_registry_yaml_file", yaml_file_name)
+        absolute_path = os.path.abspath(yaml_file_name)
+        sel.type("id=id_registry_yaml_file", absolute_path)
         sel.click("id=submit-form-btn")
         sel.wait_for_page_to_load("30000")
