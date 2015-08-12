@@ -40,7 +40,7 @@ class Base(unittest.TestCase):
         # absolute_path = os.path.abspath(yaml_file_name)
         import requests
         from requests.auth import HTTPBasicAuth
-        url = 'http:///web:8000/import/'
+        url = 'http://web:8000/import/'
         files = {'file': open(yaml_file_name, 'rb')}
         requests.post(url, files=files, auth=HTTPBasicAuth('admin', 'admin'))
         # sel.type("id=id_registry_yaml_file", absolute_path)
