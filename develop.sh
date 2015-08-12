@@ -74,12 +74,12 @@ lettuce() {
 selenium() {
     mkdir -p data/selenium
     chmod o+rwx data/selenium
+    find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
-    find ../definitions -name "*.yaml" -exec cp "{}" data/selenium \;
 
     fig --project-name rdrf -f fig-selenium.yml rm --force
     fig --project-name rdrf -f fig-selenium.yml build
