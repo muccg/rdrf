@@ -1,0 +1,57 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    
+    <script>
+        $("document").ready(function() {
+            $("div[id*='consent_details']").hide();
+            $("li").click(function() {
+                var url = this.id;
+                $.getJSON(url, function(data) {
+                    var questions = $("<table>").attr("class", "table table-condensed table-hover");
+                    var patient_id = -1;
+                    $.each(data, function(key, value) {
+                        var row = $("<tr>");
+                        var question_cell = $("<td>").text(value.question);
+                        var question_answer = $("<td>").text(value.answer);
+                        
+                        questions.append(row.append(question_cell).append(question_answer));
+                        patient_id = value.patient_id
+                    });
+                    $("div[id*='consent_details']").slideUp("fast");
+                    $("#consent_details_" + patient_id).empty().append(questions).slideDown("fast");
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    
+    <br>
+    
+    <blockquote>
+        {{registry}}
+    </blockquote>
+    
+    {% for patient, sections in consents.items %}
+        <h5><i><strong>{{patient}}</strong></i></h5>
+        <ul class="list-group">
+            {% for section, signed in sections.items %}
+                <li class="list-group-item" id="{% url 'consent_details' registry_code section.id patient.id %}">{{section}}
+                    <span class="badge">
+                        {% if signed %}
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        {% else %}
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        {% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+        <div id="consent_details_{{patient.id}}">
+        </div>
+    {% endfor%}
+
+{% endblock %}
