@@ -41,7 +41,7 @@ class Base(unittest.TestCase):
         import requests
         url = 'http:///web:8000/import/'
         files = {'file': open(yaml_file_name, 'rb')}
-        r = requests.post(url, files=files)
+        requests.post(url, files=files, auth=HTTPBasicAuth('admin', 'admin'))
         # sel.type("id=id_registry_yaml_file", absolute_path)
         # sel.click("id=submit-form-btn")
         # sel.wait_for_page_to_load("30000")
