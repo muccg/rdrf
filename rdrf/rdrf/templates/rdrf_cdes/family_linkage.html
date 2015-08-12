@@ -1,0 +1,42 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script type="text/javascript">
+
+        // use jquery ui widget?
+
+        $.widget( "rdrf.indexlookup", {
+            _create: function () {
+
+            }
+
+        });
+
+         $.widget( "rdrf.family", {
+            _create: function () {
+
+            }
+
+        });
+
+
+        $(document).ready(function () {
+            $("#source").family({})
+        })
+
+
+    </script>
+{% endblock %}
+
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        <div id="source"></div>
+        <div id="target"></div>
+
+    {% else %}
+        <div class="alert alert-info">Please log in to access the registry.</div>
+    {% endif %}
+{% endblock %}
