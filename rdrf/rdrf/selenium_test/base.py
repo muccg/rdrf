@@ -39,6 +39,7 @@ class Base(unittest.TestCase):
         #     raise Exception("yaml file %s does not exist" % yaml_file_name)
         # absolute_path = os.path.abspath(yaml_file_name)
         import requests
+        from requests.auth import HTTPBasicAuth
         url = 'http:///web:8000/import/'
         files = {'file': open(yaml_file_name, 'rb')}
         requests.post(url, files=files, auth=HTTPBasicAuth('admin', 'admin'))
