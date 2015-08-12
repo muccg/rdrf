@@ -4,7 +4,7 @@ import time
 import re
 import string
 import random
-
+import os
 
 class Base(unittest.TestCase):
 
@@ -35,6 +35,10 @@ class Base(unittest.TestCase):
         sel.click("link=Settings")
         sel.click("link=Importer")
         sel.wait_for_page_to_load("30000")
-        sel.send_keys("id=id_registry_yaml_file", "definitions/registries/%s" % yaml_file_name)
+        yaml_file_path = "definitions/registries/%s" % yaml_file_name
+        if not os.path.exists(yaml_file_path):
+            raise Exception("%s not found" % yaml_file_path)
+
+        sel.send_keys("id=id_registry_yaml_file", yaml_file_path)
         sel.click("id=submit-form-btn")
         sel.wait_for_page_to_load("30000")
