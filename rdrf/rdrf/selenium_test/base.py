@@ -35,6 +35,8 @@ class Base(unittest.TestCase):
         sel.click("link=Settings")
         sel.click("link=Importer")
         sel.wait_for_page_to_load("30000")
+        if not os.path.exists(yaml_file_name):
+            raise Exception("yaml file %s does not exist" % yaml_file_name)
         sel.type("id=id_registry_yaml_file", yaml_file_name)
         sel.click("id=submit-form-btn")
         sel.wait_for_page_to_load("30000")
