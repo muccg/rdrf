@@ -82,3 +82,12 @@ class ClinitianLookup(View):
                 json_result.append(json_)
 
         return HttpResponse(json.dumps(json_result))
+
+
+class IndexLookup(View):
+    def get(self, request):
+        registry_code = request.GET("reg_code")
+        working_groups = request.user.working_groups
+
+        return ""
+

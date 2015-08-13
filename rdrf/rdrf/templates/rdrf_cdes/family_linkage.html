@@ -1,43 +1,136 @@
 {% extends "rdrf_cdes/base.html" %}
-
 {% block extrastyle %}
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     <script type="text/javascript">
-
         // use jquery ui widget?
+        (function($){
 
-        $.widget( "rdrf.indexlookup", {
-            _create: function () {
+         $.widget("rdrf.index_lookup", {
+            options: {
+
+            },
+
+            _create: function() {
+                this.element.addClass("indexlookup");
+
 
             }
+         });
 
-        });
 
          $.widget( "rdrf.family", {
+            // Default options.
+            options: {
+                name: "Lee"
+            },
             _create: function () {
-                this.element = $("<h1>Hi there</h1>");
 
+                this._setupIndex();
+                this._setupRelatives();
 
             }
 
+             _setupIndex: function() {
+
+             }
+
+             _setupRelatives: function() {
+
+             }
         });
 
+       $(document).ready(function() {
+           //$("#source").family({name:"frug"});
 
-        $(document).ready(function () {
-            $("#source").family({});
+           $("#index_lookup").keyup(function() {
+                                     lookup($(this), '{{index_lookup_url}}');
+                    });
+       });
 
-        })
-
-
+     })(jQuery);
     </script>
 {% endblock %}
 
-
 {% block content %}
     {% if request.user.is_authenticated %}
-        <div id="source"></div>
+        <div class="row">
+            <h2>Family Linkage</h2>
 
+            <div class="col-sm-4">
+                <div class="panel panel-default">
+                <div class="panel-heading">Family Browser</div>
+                <div class="panel-body">
+
+                     <div class="panel panel-info">
+                    <div class="panel-heading">Index Lookup <i>Type name to find an index</i></div>
+                    <div class="panel-body">
+                        <div class="row">
+                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""> <button>Use</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                    <div id="source">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Index Patient</div>
+
+                            <div class="panel-body">
+                                <div class="indexpatient">
+                                    <table class="table table-bordered">
+                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
+                                        <tr><td>Harry</td><td>Bloggs</td><td>44</td></tr>
+                                    </table>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="panel panel-default">
+                                <div class="panel panel-heading">Relatives</div>
+                                <div class="panel panel-body">
+                                     <div class=familymembers">
+                                        <table class="table table-bordered table-striped">
+                                            <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Relationship to index</th><th class="col-md-2">Patient</th></tr>
+                                            <tr><td>Fred</td><td>Bloggs</td>
+                                                <td>
+                                                    <select>
+                                                        <option>Child</option>
+                                                        <option>Parent</option>
+                                                        <option>Sibling</option>
+                                                    </select>
+
+
+                                            </select></td><td>Not in registry</td></tr>
+                                             <tr><td>Sally</td><td>Bloggs</td><td><select>
+                                                        <option>Child</option>
+                                                        <option>Parent</option>
+                                                        <option>Sibling</option>
+                                                    </select></td><td>Not in registry</td></tr>
+                                             <tr><td>George</td><td>Bloggs</td><td><select>
+                                                        <option>Child</option>
+                                                        <option>Parent</option>
+                                                        <option>Sibling</option>
+                                                    </select></td><td>123</td></tr>
+
+                                        </table>
+
+                                     </div>
+                                </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+
+
+    </div>
 
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>

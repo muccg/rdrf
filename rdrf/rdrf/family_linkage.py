@@ -69,6 +69,7 @@ class FamilyLinkageView(View):
     def get(self, request, registry_code):
         context = {}
         context['registry_code'] = registry_code
+        context['index_lookup_url'] = ""
 
         return render_to_response(
             'rdrf_cdes/family_linkage.html',
@@ -92,10 +93,5 @@ class FamilyLinkageView(View):
 
         except FamilyLinkageError, err:
             pass
-
-
-
-
-
 
 
