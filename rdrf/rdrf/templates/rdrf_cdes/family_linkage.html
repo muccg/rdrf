@@ -16,6 +16,8 @@
 
          $.widget( "rdrf.family", {
             _create: function () {
+                this.element = $("<h1>Hi there</h1>");
+
 
             }
 
@@ -23,7 +25,8 @@
 
 
         $(document).ready(function () {
-            $("#source").family({})
+            $("#source").family({});
+
         })
 
 
@@ -34,7 +37,7 @@
 {% block content %}
     {% if request.user.is_authenticated %}
         <div id="source"></div>
-        <div id="target"></div>
+
 
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>

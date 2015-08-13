@@ -1,6 +1,15 @@
 from django import forms
+from django.shortcuts import render_to_response, RequestContext
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.generic.base import View
 from registry.patients.models import Patient, PatientRelative
 from rdrf.models import Registry
+
+import logging
+
+logger = logging.getLogger("registry_log")
+
 
 class FamilyLinkageError(Exception):
     pass
@@ -56,14 +65,23 @@ class FamilyLinkageManager(object):
 
 
 class FamilyLinkageView(View):
-    def get(self, request):
-        pass
+    @method_decorator(login_required)
+    def get(self, request, registry_code):
+        context = {}
+        context['registry_code'] = registry_code
 
-    def post(self, request, reg_code):
+        return render_to_response(
+            'rdrf_cdes/family_linkage.html',
+            context,
+            context_instance=RequestContext(request))
+
+
+    @method_decorator(login_required)
+    def post(self, request, registry_code):
 
         # start transaction ?
         try:
-            registry_model = Registry.objects.get(code=reg_code)
+            registry_model = Registry.objects.get(code=registry_code)
             action_data = {}
 
             for action in action_data["actions"]:

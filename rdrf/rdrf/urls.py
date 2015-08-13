@@ -23,6 +23,7 @@ from rdrf.views import RegistryList
 from rdrf.api import PatientResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
+from rdrf.family_linkage import FamilyLinkageView
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -104,6 +105,9 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
                            parent_view.ParentEditView.as_view(), name='parent_edit'),
+
+                       url(r"^(?P<registry_code>\w+)/familylinkage/?$",
+                           FamilyLinkageView.as_view(), name='family_linkage'),
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
