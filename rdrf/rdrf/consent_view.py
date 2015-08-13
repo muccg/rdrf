@@ -1,4 +1,6 @@
+from django.core.serializers.json import DjangoJSONEncoder
 import json
+from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -59,20 +61,26 @@ class ConsentDetails(View):
             
             values = []
             for consent_question in consent_questions:
-                answer = False
                 try:
                     consent_value = ConsentValue.objects.get(consent_question=consent_question, patient__id=patient_id)
                     answer = consent_value.answer
+                    values.append({
+                        "question": consent_question.question_label,
+                        "answer": answer,
+                        "patient_id": patient_id,
+                        "section_id": section_id,
+                        "first_save": consent_value.first_save,
+                        "last_update": consent_value.last_update
+                    })
                 except ConsentValue.DoesNotExist:
-                    pass
-
-                values.append({
-                    "question": consent_question.question_label,
-                    "answer": answer,
-                    "patient_id": patient_id
-                })
+                    values.append({
+                        "question": consent_question.question_label,
+                        "answer": False,
+                        "patient_id": patient_id,
+                        "section_id": section_id
+                    })
             
-            return HttpResponse(json.dumps(values))
+            return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
     
         context = {}
     

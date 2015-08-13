@@ -5,22 +5,35 @@
     
     <script>
         $("document").ready(function() {
-            $("div[id*='consent_details']").hide();
-            $("li").click(function() {
+            $("span[id*='consent']").click(function() {
+                console.log($(this).parent().parent().find("tbody"));
+                var span_obj = $(this);
                 var url = this.id;
+                span_obj.addClass("glyphicon glyphicon-chevron-down");
                 $.getJSON(url, function(data) {
-                    var questions = $("<table>").attr("class", "table table-condensed table-hover");
                     var patient_id = -1;
+                    var section_id = -1;
                     $.each(data, function(key, value) {
                         var row = $("<tr>");
-                        var question_cell = $("<td>").text(value.question);
-                        var question_answer = $("<td>").text(value.answer);
-                        
-                        questions.append(row.append(question_cell).append(question_answer));
-                        patient_id = value.patient_id
+                        var question_cell = $("<td>").attr("class", "col-md-8").text(value.question);
+                        var first_save = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.first_save);
+                        var last_update = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.last_update);
+                        var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
+                        if (value.answer == false) {
+                            question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
+                        } else {
+                            question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
+                        }
+                        $("#consent_details_" + section_id + "_" + patient_id).append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
+                        patient_id = value.patient_id;
+                        section_id = value.section_id;
                     });
-                    $("div[id*='consent_details']").slideUp("fast");
-                    $("#consent_details_" + patient_id).empty().append(questions).slideDown("fast");
+                    $("#consent_details_" + section_id + "_" + patient_id).toggle(function() {
+                        if($(this).is(':visible') == false) {
+                            $("#consent_details_" + section_id + "_" + patient_id).empty();
+                            span_obj.removeClass().addClass("glyphicon glyphicon-chevron-right");
+                        }
+                    });
                 });
             });
         });
@@ -32,26 +45,28 @@
     <br>
     
     <blockquote>
-        {{registry}}
+        <b>Patient Consents</b> - {{registry}}
     </blockquote>
     
-    {% for patient, sections in consents.items %}
-        <h5><i><strong>{{patient}}</strong></i></h5>
-        <ul class="list-group">
+    <table class="table table-bordered">
+        {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
-                <li class="list-group-item" id="{% url 'consent_details' registry_code section.id patient.id %}">{{section}}
-                    <span class="badge">
+                <tr class="warning"  id="patient_{{section.id}}_{{patient.id}}">
+                    <td class="col-md-8"><span id="{% url 'consent_details' registry_code section.id patient.id %}" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> {{patient}} - {{section}}</td>
+                    <td class="col-md-1" style="text-align: center;"></td>
+                    <td class="col-md-1" style="text-align: center;"></td>
+                    <td class="col-md-1" style="text-align: center;">
                         {% if signed %}
-                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                            <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
                         {% else %}
-                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                            <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
                         {% endif %}
-                    </span>
-                </li>
+                    </td>
+                </tr>
+                <tbody id="consent_details_{{section.id}}_{{patient.id}}" style="display: none;">
+                </tbody>
             {% endfor %}
-        </ul>
-        <div id="consent_details_{{patient.id}}">
-        </div>
-    {% endfor%}
+        {% endfor%}
+    </table>
 
 {% endblock %}
