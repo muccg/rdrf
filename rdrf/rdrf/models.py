@@ -647,6 +647,7 @@ class CdePolicy(models.Model):
     registry = models.ForeignKey(Registry)
     cde = models.ForeignKey(CommonDataElement)
     groups_allowed = models.ManyToManyField(Group, blank=True)
+    condition = models.TextField(blank=True)
     
     def is_allowed(self, user_groups):
         for ug in user_groups:
