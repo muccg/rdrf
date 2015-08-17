@@ -27,20 +27,32 @@ class ConsentList(View):
 
         patient_list = {}
         for patient in patients:
-            answers = []
             sections = {}
             for consent_section in consent_sections:
                 if consent_section.applicable_to(patient):
+                    answers = []
+                    first_saves = []
+                    last_updates = []
                     questions = ConsentQuestion.objects.filter(section=consent_section)
                     for question in questions:
                         try:
                             cv = ConsentValue.objects.get(patient=patient, consent_question = question)
                             answers.append(cv.answer)
+                            if cv.first_save:
+                                first_saves.append(cv.first_save)
+                            if cv.last_update:
+                                last_updates.append(cv.last_update)
                         except ConsentValue.DoesNotExist:
                             answers.append(False)
-                    sections[consent_section] = all(answers)
+                    first_save = min(first_saves) if first_saves else None
+                    last_update = max(last_updates) if last_updates else None
+                    sections[consent_section] = {
+                        "first_save": first_save,
+                        "last_update": last_update,
+                        "signed": all(answers)
+                    }
             patient_list[patient] = sections
-    
+
         context['consents'] = patient_list
         context['registry'] = Registry.objects.get(code=registry_code).name
         context['registry_code'] = registry_code

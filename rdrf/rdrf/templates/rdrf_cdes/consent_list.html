@@ -2,39 +2,57 @@
 
 {% block extrahead %}
     {{ block.super }}
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <script>
+        $(function() {
+            $( "#accordion" ).accordion();
+        });
+    </script>
     
     <script>
         $("document").ready(function() {
             $("span[id*='consent']").click(function() {
-                console.log($(this).parent().parent().find("tbody"));
                 var span_obj = $(this);
-                var url = this.id;
-                span_obj.addClass("glyphicon glyphicon-chevron-down");
-                $.getJSON(url, function(data) {
-                    var patient_id = -1;
-                    var section_id = -1;
-                    $.each(data, function(key, value) {
-                        var row = $("<tr>");
-                        var question_cell = $("<td>").attr("class", "col-md-8").text(value.question);
-                        var first_save = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.first_save);
-                        var last_update = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.last_update);
-                        var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
-                        if (value.answer == false) {
-                            question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
-                        } else {
-                            question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
-                        }
-                        $("#consent_details_" + section_id + "_" + patient_id).append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
-                        patient_id = value.patient_id;
-                        section_id = value.section_id;
+                var details_id = span_obj.parent().parent().attr("id").replace("patient_", "consent_details_");
+                
+                var details_obj = $("#" + details_id);
+
+                if (details_obj.is(":visible")) {
+                    details_obj.empty();
+                    details_obj.toggle();
+                    span_obj.removeClass().addClass("glyphicon glyphicon-chevron-right");
+                } else {
+                    var url = this.id;
+                    span_obj.addClass("glyphicon glyphicon-chevron-down");
+                    $.getJSON(url, function(data) {
+                        var patient_id = -1;
+                        var section_id = -1;
+                        $.each(data, function(key, value) {
+                            var row = $("<tr>");
+                            var question_cell = $("<td>").attr("class", "col-md-8").text(value.question);
+                            var first_save = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.first_save);
+                            var last_update = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;").text(value.last_update);
+                            var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
+                            if (value.answer == false) {
+                                question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
+                            } else {
+                                question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
+                            }
+                            $("#consent_details_" + section_id + "_" + patient_id).append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
+                            patient_id = value.patient_id;
+                            section_id = value.section_id;
+                        });
+                        $("#consent_details_" + section_id + "_" + patient_id).toggle(function() {
+                            if($(this).is(':visible') == false) {
+                                $("#consent_details_" + section_id + "_" + patient_id).empty();
+                                span_obj.removeClass().addClass("glyphicon glyphicon-chevron-right");
+                            }
+                        });
                     });
-                    $("#consent_details_" + section_id + "_" + patient_id).toggle(function() {
-                        if($(this).is(':visible') == false) {
-                            $("#consent_details_" + section_id + "_" + patient_id).empty();
-                            span_obj.removeClass().addClass("glyphicon glyphicon-chevron-right");
-                        }
-                    });
-                });
+                }
             });
         });
     </script>
@@ -47,16 +65,22 @@
     <blockquote>
         <b>Patient Consents</b> - {{registry}}
     </blockquote>
+
+    <p class="pull-right">
+        <button type="button" class="btn btn-default btn-success" onClick="javascript:window.print()">
+            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+        </button>
+    </p>
     
     <table class="table table-bordered">
         {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
                 <tr class="warning"  id="patient_{{section.id}}_{{patient.id}}">
                     <td class="col-md-8"><span id="{% url 'consent_details' registry_code section.id patient.id %}" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> {{patient}} - {{section}}</td>
-                    <td class="col-md-1" style="text-align: center;"></td>
-                    <td class="col-md-1" style="text-align: center;"></td>
+                    <td class="col-md-1" style="text-align: center;">{{signed.first_save|date:"Y-m-d"}}</td>
+                    <td class="col-md-1" style="text-align: center;">{{signed.last_update|date:"Y-m-d"}}</td>
                     <td class="col-md-1" style="text-align: center;">
-                        {% if signed %}
+                        {% if signed.signed %}
                             <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
                         {% else %}
                             <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
