@@ -371,7 +371,7 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
-    list_display = ("registry", "cde", "groups")
+    list_display = ("registry", "cde", "groups", "condition")
     
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
