@@ -167,6 +167,7 @@ class Exporter(object):
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
+        data["cde_policies"] = self._get_cde_policies()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -450,3 +451,14 @@ class Exporter(object):
             queries.append(q)
 
         return queries
+
+    def _get_cde_policies(self):
+        from rdrf.models import CdePolicy
+        cde_policies = []
+        for cde_policy in CdePolicy.objects.filter(registry=self.registry):
+            cde_pol_dict = {}
+            cde_pol_dict["cde_code"] = cde_policy.cde.code
+            cde_pol_dict["groups_allowed"] = [group.name for group in cde_policy.groups_allowed.all()]
+            cde_pol_dict["condition"] = cde_policy.condition
+            cde_policies.append(cde_pol_dict)
+        return cde_policies
