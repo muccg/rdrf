@@ -16,6 +16,7 @@
         $("document").ready(function() {
             $("span[id*='consent']").click(function() {
                 var span_obj = $(this);
+                var row_obj = span_obj.parent().parent();
                 var details_id = span_obj.parent().parent().attr("id").replace("patient_", "consent_details_");
                 
                 var details_obj = $("#" + details_id);
@@ -24,7 +25,9 @@
                     details_obj.empty();
                     details_obj.toggle();
                     span_obj.removeClass().addClass("glyphicon glyphicon-chevron-right");
+                    row_obj.attr("class", "warning");
                 } else {
+                    row_obj.attr("class", "success");
                     var url = this.id;
                     span_obj.addClass("glyphicon glyphicon-chevron-down");
                     $.getJSON(url, function(data) {
@@ -73,6 +76,14 @@
     </p>
     
     <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Patient - Consent Type</th>
+                <th style="text-align: center;">First Save</th>
+                <th style="text-align: center;">Last Update</th>
+                <th style="text-align: center;">Status</th>
+            </tr>
+        </thead>
         {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
                 <tr class="warning"  id="patient_{{section.id}}_{{patient.id}}">
