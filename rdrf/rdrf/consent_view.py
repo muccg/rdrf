@@ -7,6 +7,8 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 from django.shortcuts import render_to_response, RequestContext
 from django.http import HttpResponse
+from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 
 from registry.patients.models import ConsentValue
 from registry.patients.models import Patient
@@ -23,6 +25,10 @@ class ConsentList(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code):
+        user_registries = [ reg.code for reg in request.user.get_registries()]
+        if not registry_code in user_registries:
+            raise PermissionDenied
+    
         context = {}
     
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)

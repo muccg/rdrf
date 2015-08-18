@@ -53,7 +53,6 @@ class QuickLinks(object):
 
     DATA_ENTRY = oset([
         PatientsListing,
-        ConsentValues
     ])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
