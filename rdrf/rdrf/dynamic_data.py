@@ -618,6 +618,8 @@ class DynamicDataWrapper(object):
         logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
             registry_data = data[reg_code]
+            if not registry_data:
+                continue
             collection = self._get_collection(reg_code, "registry_specific_patient_data")
             query = self._get_record_query()
             record = collection.find_one(query)

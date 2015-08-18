@@ -212,7 +212,7 @@ class FormView(View):
                 injected_model="Patient",
                 injected_model_id=self.patient_id,
                 is_superuser=self.request.user.is_superuser,
-                user_groups=self.request.user.groups.all())
+                patient_model=patient)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)

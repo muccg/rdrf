@@ -33,11 +33,13 @@ def create_form_class(owner_class_name):
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
     return form_class
 
+
 def get_cde_policy(registry, cde):
     try:
         return CdePolicy.objects.get(registry=registry, cde=cde)
     except CdePolicy.DoesNotExist:
         return None
+
 
 def create_form_class_for_section(
         registry,
@@ -47,7 +49,8 @@ def create_form_class_for_section(
         injected_model=None,
         injected_model_id=None,
         is_superuser=None,
-        user_groups=None):
+        user_groups=None,
+        patient_model=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
     base_fields = SortedDict()
@@ -57,7 +60,7 @@ def create_form_class_for_section(
             cde = CommonDataElement.objects.get(code=s.strip())
             cde_policy = get_cde_policy(registry, cde)
             if cde_policy and user_groups:
-                if not cde_policy.is_allowed(user_groups.all()):
+                if not cde_policy.is_allowed(user_groups.all(), patient_model):
                     continue
 
             cde_field = FieldFactory(
@@ -81,6 +84,7 @@ def create_form_class_for_section(
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
     return type(form_class_name, (BaseForm,), form_class_dict)
+
 
 def create_form_class_for_consent_section(
         registry_model,

@@ -99,11 +99,16 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
                            patient_view.PatientToParentView.as_view(), name='patient_to_parent'),
 
+#---- Consent related URLs -----------------
                        url(r"^(?P<registry_code>\w+)/consent/?$",
                            consent_view.ConsentList.as_view(), name='consent_list'),
 
                        url(r"^(?P<registry_code>\w+)/consent/(?P<section_id>\d+)/(?P<patient_id>\d+)/?$",
                            consent_view.ConsentDetails.as_view(), name='consent_details'),
+
+                       url(r"^(?P<registry_code>\w+)/consent/print/?$",
+                           consent_view.PrintConsentList.as_view(), name='print_consent_list'),
+#-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",
                            parent_view.ParentView.as_view(), name='parent_page'),

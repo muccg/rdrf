@@ -18,6 +18,9 @@ from rdrf.models import Registry
 
 class ConsentList(View):
 
+    def _get_template(self):
+        return 'rdrf_cdes/consent_list.html'
+
     @method_decorator(login_required)
     def get(self, request, registry_code):
         context = {}
@@ -58,9 +61,15 @@ class ConsentList(View):
         context['registry_code'] = registry_code
 
         return render_to_response(
-                'rdrf_cdes/consent_list.html',
+                self._get_template(),
                 context,
                 context_instance=RequestContext(request))
+
+
+class PrintConsentList(ConsentList):
+
+    def _get_template(self):
+        return 'rdrf_cdes/consent_list_print.html'
 
 
 class ConsentDetails(View):
