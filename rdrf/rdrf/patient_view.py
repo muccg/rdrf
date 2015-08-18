@@ -10,6 +10,7 @@ from django.contrib.auth import logout
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
+from rdrf.models import CdePolicy
 from rdrf.utils import FormLink
 
 from django.forms.models import inlineformset_factory
@@ -739,7 +740,8 @@ class PatientEditView(View):
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
                                                                                    PatientForm,
-                                                                                   registry)
+                                                                                   registry,
+                                                                                   patient)
 
         else:
             patient_form_class = PatientForm
@@ -896,7 +898,8 @@ class PatientEditView(View):
                 munged_patient_form_class = self._create_registry_specific_patient_form_class(
                     user,
                     PatientForm,
-                    registry)
+                    registry,
+                    patient)
                 patient_form = munged_patient_form_class(
                     instance=patient, user=user, registry_model=registry)
 
@@ -1038,12 +1041,23 @@ class PatientEditView(View):
         else:
             return registry_model.patient_fields
 
-    def _create_registry_specific_patient_form_class(self, user, form_class, registry_model):
+    def _create_registry_specific_patient_form_class(self, user, form_class, registry_model, patient=None):
         additional_fields = SortedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
 
         for cde, field_object in field_pairs:
-            additional_fields[cde.code] = field_object
+            try:
+                cde_policy = CdePolicy.objects.get(registry=registry_model, cde=cde)
+                logger.debug("found a cde policy: %s" % cde_policy)
+            except CdePolicy.DoesNotExist:
+                cde_policy = None
+
+            if cde_policy is None:
+                additional_fields[cde.code] = field_object
+            else:
+
+                if cde_policy.is_allowed(user.groups.all(), patient):
+                    additional_fields[cde.code] = field_object
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
@@ -1056,11 +1070,16 @@ class PatientEditView(View):
 
     def _save_registry_specific_data_in_mongo(self, patient_model, registry, post_data):
         from rdrf.dynamic_data import DynamicDataWrapper
+        from django.utils.datastructures import MultiValueDictKeyError
         if registry.patient_fields:
             mongo_patient_data = {registry.code: {}}
             for cde, field_object in registry.patient_fields:
                 cde_code = cde.code
-                field_value = post_data[cde.code]
+                try:
+                    field_value = post_data[cde.code]
+                except MultiValueDictKeyError:
+                    continue
+
                 mongo_patient_data[registry.code][cde_code] = field_value
             mongo_wrapper = DynamicDataWrapper(patient_model)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)

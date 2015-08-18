@@ -8,30 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'CdePolicy'
-        db.create_table(u'rdrf_cdepolicy', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
-            ('cde', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.CommonDataElement'])),
-        ))
-        db.send_create_signal(u'rdrf', ['CdePolicy'])
-
-        # Adding M2M table for field groups_allowed on 'CdePolicy'
-        m2m_table_name = db.shorten_name(u'rdrf_cdepolicy_groups_allowed')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('cdepolicy', models.ForeignKey(orm[u'rdrf.cdepolicy'], null=False)),
-            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['cdepolicy_id', 'group_id'])
+        # Adding field 'CdePolicy.condition'
+        db.add_column(u'rdrf_cdepolicy', 'condition',
+                      self.gf('django.db.models.fields.TextField')(default='', blank=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'CdePolicy'
-        db.delete_table(u'rdrf_cdepolicy')
-
-        # Removing M2M table for field groups_allowed on 'CdePolicy'
-        db.delete_table(db.shorten_name(u'rdrf_cdepolicy_groups_allowed'))
+        # Deleting field 'CdePolicy.condition'
+        db.delete_column(u'rdrf_cdepolicy', 'condition')
 
 
     models = {
@@ -113,6 +98,7 @@ class Migration(SchemaMigration):
         u'rdrf.cdepolicy': {
             'Meta': {'object_name': 'CdePolicy'},
             'cde': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.CommonDataElement']"}),
+            'condition': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'groups_allowed': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"})

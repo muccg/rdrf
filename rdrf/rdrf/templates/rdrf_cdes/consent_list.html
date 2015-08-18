@@ -1,0 +1,106 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    
+    <style>
+        .modal .modal-dialog { width: 60%; }
+    </style>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('#list_of_patients').DataTable();
+        })
+        function get_consent_details(url, patient, section) {
+            $.getJSON(url, function(data) {
+                var patient_id = -1;
+                var section_id = -1;
+                var questions = $("<table>");
+                questions.addClass("table table-hover");
+                $.each(data, function(key, value) {
+                    var row = $("<tr>");
+                    var question_cell = $("<td>").attr("class", "col-md-7").text(value.question);
+                    var first_save = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.first_save);
+                    var last_update = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.last_update);
+                    var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
+                    if (value.answer == false) {
+                        question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
+                    } else {
+                        question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
+                    }
+                    questions.append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
+                    patient_id = value.patient_id;
+                    section_id = value.section_id;
+                });
+                $("#consent-header").html("<strong>" + patient + "</strong> (<i>" + section + "</i>)");
+                $("#consent-body").empty().append(questions);
+                $("#myModal").modal();
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    
+    <br>
+    
+    <blockquote>
+        <b>Patient Consents</b> - {{registry}}
+    </blockquote>
+
+    <p class="pull-right">
+        <a class="btn btn-success" href="{% url 'print_consent_list' registry_code %}" target="_blank">
+            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+        </a>
+    </p>
+    
+    <table class="table table-bordered table-hover" id="list_of_patients">
+        <thead>
+            <tr>
+                <th class="col-md-5">Patient - Consent Type</th>
+                <th class="col-md-3" style="text-align: center;">First Save</th>
+                <th class="col-md-3" style="text-align: center;">Last Update</th>
+                <th class="col-md-1" style="text-align: center;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for patient, sections in consents.items %}
+            {% for section, signed in sections.items %}
+                <tr class="warning" onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label}}')">
+                    <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
+                    <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"d F Y"}}</td>
+                    <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"d F Y"}}</td>
+                    <td class="col-md-1" style="text-align: center;">
+                        {% if signed.signed %}
+                            <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
+                        {% else %}
+                            <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor%}
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="consent-header"></h4>
+                </div>
+                <div class="modal-body" id="consent-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

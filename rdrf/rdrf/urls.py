@@ -16,6 +16,7 @@ import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
 import rdrf.report_view as report_view
+import rdrf.consent_view as consent_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
@@ -98,6 +99,16 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
                            patient_view.PatientToParentView.as_view(), name='patient_to_parent'),
 
+#---- Consent related URLs -----------------
+                       url(r"^(?P<registry_code>\w+)/consent/?$",
+                           consent_view.ConsentList.as_view(), name='consent_list'),
+
+                       url(r"^(?P<registry_code>\w+)/consent/(?P<section_id>\d+)/(?P<patient_id>\d+)/?$",
+                           consent_view.ConsentDetails.as_view(), name='consent_details'),
+
+                       url(r"^(?P<registry_code>\w+)/consent/print/?$",
+                           consent_view.PrintConsentList.as_view(), name='print_consent_list'),
+#-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",
                            parent_view.ParentView.as_view(), name='parent_page'),

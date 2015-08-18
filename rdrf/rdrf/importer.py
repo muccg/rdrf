@@ -542,6 +542,12 @@ class Importer(object):
             logger.info("complete reports OK ")
         else:
             logger.info("no reports to import")
+
+        if "cde_policies" in self.data:
+            self._create_cde_policies(r)
+            logger.info("imported cde policies OK")
+        else:
+            logger.info("no cde policies to import")
         logger.info("end of import registry objects!")
 
     def _create_form_permissions(self, registry):
@@ -685,3 +691,31 @@ class Importer(object):
             query.created_by = d["created_by"]
             query.created_at = d["created_at"]
             query.save()
+
+    def _create_cde_policies(self, registry_model):
+        from rdrf.models import CdePolicy
+
+        for pol in CdePolicy.objects.filter(registry=registry_model):
+            logger.info("deleting old cde policy object for registry %s cde %s" % (registry_model.code, pol.cde.code))
+            pol.delete()
+
+        if "cde_policies" in self.data:
+            cde_policies = self.data['cde_policies']
+            for cde_pol_dict in cde_policies:
+                try:
+                    cde_model = CommonDataElement.objects.get(code=cde_pol_dict["cde_code"])
+                except CommonDataElement.DoesNotExist:
+                    logger.error("cde code does not exist for cde policy %s" % cde_pol_dict)
+                    continue
+
+                group_names = cde_pol_dict["groups_allowed"]
+                logger.debug("group_names = %s" % group_names)
+                groups = [g for g in Group.objects.filter(name__in=group_names)]
+
+                cde_policy = CdePolicy(registry=registry_model,
+                                       cde=cde_model,
+                                       condition=cde_pol_dict['condition'])
+                cde_policy.save()
+                cde_policy.groups_allowed = groups
+                cde_policy.save()
+
