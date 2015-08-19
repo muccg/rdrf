@@ -1,17 +1,206 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static %}
 {% block extrastyle %}
-    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript">
-        // use jquery ui widget?
-        (function($){
+    <style>
 
+            .selectable .ui-selecting { border-width: 5px }
+            .selectable .ui-selected { border-width: 2px }
+
+
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script>
+        var  c = {};
+        var original_index = null;
+
+
+        var link = _.template("<a href='<%= url %>'><%= text %></a>");
+
+        var index_row = _.template("<tr class='selectable draggable'><td><%= given_names %></td><td><%= family_name %></td><td><%= link %></td></tr>");
+
+        var relative_row = _.template("<tr class='draggable selectable'><td><%= given_names %></td><td><%= family_name %></td>" +
+                                        "<td><%= relationship %></td><td><%= link %></td></tr>");
+
+        function allowDragAndDrop() {
+
+            $("#indexpatient tr, #relatives tr").draggable({
+                helper: "clone",
+                start: function (event, ui) {
+                    c.tr = this;
+                    c.helper = ui.helper;
+                }
+            });
+
+            $("#indexpatient tr").droppable({
+                drop: function (event, ui) {
+                        var dragged_relative = $(ui.draggable);
+                        var given_names = $(dragged_relative).find("td").eq(0).text();
+
+                        var family_name = $(dragged_relative).find("td").eq(1).text();
+                        var link = $(dragged_relative).find("td").eq(3).text();
+
+
+                        var new_index_patient = {given_names: given_names,
+                                       family_name: family_name,
+                                       link: link};
+
+                        var old_index_patient = getIndexPatient();
+
+
+                        setIndexPatient(new_index_patient);
+                        addRelativeRow(old_index_patient);
+
+
+
+                        $(ui.draggable).remove();
+                        $(ui.helper).remove();
+                    }
+                });
+
+            $("#relatives tr").droppable({
+                drop: function (event, ui) {
+                        var dragged_index = $(ui.draggable);
+
+
+                        var given_names = $(dragged_index).find("td[0]").text();
+                        alert(given_names);
+
+
+                        $(ui.draggable).remove();
+                        $(ui.helper).remove();
+                    }
+                });
+
+
+        }
+
+        function allowSelectable() {
+            $(".selectable").selectable();
+        }
+
+        function clearTableData(tableSelector) {
+            $(tableSelector).find("tr:gt(0)").remove();
+        }
+
+        function lookupIndex(element, source_url) {
+            element.autocomplete({
+              source: source_url,
+              minLength: 1,
+              select: function(event, ui) {
+                  $(element).data("index_pk", ui.item.pk);
+                  console.log("selected index pk = " + $(element).data("index_pk").toString());
+              }
+            }).data("ui-autocomplete")._renderItem = function(ul, item) {
+              item.pk = item.value;  // so we can load
+              item.value = item.label;
+              return $("<li>")
+                .append("<a>" + item.label + "</a>")
+                .appendTo(ul);
+            };
+        }
+
+        function setIndexPatient(patient) {
+            var patient_link = "";
+            clearTableData("#indexpatient table");
+
+            if (patient.link) {
+               patient_link = link({url: patient.link, text: "Demographics"});
+            }
+
+            $("#indexpatient table").append(index_row({given_names: patient.given_names,
+                                                       family_name: patient.family_name,
+                                                       link: patient_link}));
+            //allowSelectable();
+            allowDragAndDrop();
+
+        }
+
+        function createRelationshipSelect(relationships, relative) {
+            var select = _.template("<select><%= options %></select>");
+            var option = _.template("<option <%= selected %> value='<%= value %>'><%= text %></option>");
+            var options = [];
+
+            _.each(relationships, function (rel) {
+                if(rel==relative.relationship) {
+                    options.push(option({selected: "selected", value: rel, text: rel}));
+                }
+                else {
+                    options.push(option({selected: "", value: rel, text: rel}));
+                }
+            });
+
+            return select({options: options.join("")})
+        }
+
+        function addRelativeRow(relationships, relative) {
+            var relative_link = "Not in registry";
+            if (relative.link) {
+                relative_link = link({url: relative.link, text: "Demographics"});
+            }
+            var relationship_select = createRelationshipSelect(relationships, relative);
+
+            var table_row = relative_row({given_names: relative.given_names,
+                                          family_name: relative.family_name,
+                                          relationship: relationship_select,
+                                          link: relative_link});
+
+            $("#relatives table").append(table_row);
+            //allowSelectable();
+            allowDragAndDrop();
+        }
+
+        function setRelatives(relationships, relatives) {
+            clearTableData("#relatives table");
+            _.each(relatives, function(relative) {
+                addRelativeRow(relationships, relative);
+            });
+
+        }
+
+        function loadIndex(index_pk) {
+             $.ajax({ url: "{% url 'family_lookup' registry_code %}",
+                      type: "GET",
+                        data: {
+                            'index_pk': $('#index_lookup').data("index_pk")
+                        },
+
+                        success: function(result_json) {
+                            result  = jQuery.parseJSON(result_json);
+                            original_index = result.index;
+
+                            setIndexPatient(result.index);
+                            setRelatives(result.relationships, result.relatives);
+
+
+                        }
+                    });
+        }
+
+        function load_index(element) {
+            var index_pk = $("#index_lookup").data("index_pk");
+            loadIndex(index_pk);
+        }
+
+    </script>
+    <script type="text/javascript">
+        (function($){
            $(document).ready(function() {
-               //$("#source").family({name:"frug"});
+
+                $(".selectable").selectable();
+
+                allowDragAndDrop();
+
+                $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }});
 
                $("#index_lookup").keyup(function() {
-                                         lookup($(this), '{{index_lookup_url}}');
-                        });
+                                         lookupIndex($(this), '{{index_lookup_url}}');
+               });
            });
 
         })(jQuery);
@@ -20,19 +209,24 @@
 
 {% block content %}
     {% if request.user.is_authenticated %}
+        {{ block.super }}
+        <br>
+        <p></p>
         <div class="row">
-            <h2>Family Linkage</h2>
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Family Linkages</h3></p>
 
-            <div class="col-sm-4">
-                <div class="panel panel-default">
-                <div class="panel-heading">Family Browser</div>
-                <div class="panel-body">
+        </div>
+        </div>
+    <br>
+        <div class="row">
+            <div class="col-md-10">
 
-                     <div class="panel panel-info">
-                    <div class="panel-heading">Index Lookup <i>Type name to find an index</i></div>
+             <div class="panel panel-info">
+               <div class="panel-heading">Index Lookup <i>Type name to find an index</i></div>
                     <div class="panel-body">
                         <div class="row">
-                            Lookup Index: <input id="index_lookup" name="index_lookup" value="">
+                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
                             <button onclick="load_index(this);">Load this index and family</button>
                             <button onclick="add_patient(this);">Add</button>
                         </div>
@@ -40,16 +234,18 @@
 
                 </div>
 
-
-                    <div id="source">
+               <div>
                         <div class="panel panel-default">
                             <div class="panel-heading">Index Patient</div>
 
                             <div class="panel-body">
-                                <div class="indexpatient">
-                                    <table class="table table-bordered">
+                                <div id="indexpatient" >
+                                    <table class="table table-bordered droppable">
+                                        <tbody>
+
+
                                         <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
-                                        <tr><td>Harry</td><td>Bloggs</td><td>44</td></tr>
+                                        </tbody>
                                     </table>
 
                                 </div>
@@ -61,45 +257,47 @@
                         <div class="panel panel-default">
                                 <div class="panel panel-heading">Relatives</div>
                                 <div class="panel panel-body">
-                                     <div class=familymembers">
+                                     <div id="relatives">
                                         <table class="table table-bordered table-striped">
-                                            <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Relationship to index</th><th class="col-md-2">Patient</th></tr>
-                                            <tr><td>Fred</td><td>Bloggs</td>
-                                                <td>
-                                                    <select>
-                                                        <option>Child</option>
-                                                        <option>Parent</option>
-                                                        <option>Sibling</option>
-                                                    </select>
+                                        <tbody>
 
 
-                                            </select></td><td>Not in registry</td></tr>
-                                             <tr><td>Sally</td><td>Bloggs</td><td><select>
-                                                        <option>Child</option>
-                                                        <option>Parent</option>
-                                                        <option>Sibling</option>
-                                                    </select></td><td>Not in registry</td></tr>
-                                             <tr><td>George</td><td>Bloggs</td><td><select>
-                                                        <option>Child</option>
-                                                        <option>Parent</option>
-                                                        <option>Sibling</option>
-                                                    </select></td><td>123</td></tr>
-
+                                        <tr>
+                                            <th>Given Names</th>
+                                            <th>Family Name</th>
+                                            <th>Relationship</th>
+                                            <th>Link</th>
+                                        </tr>
+                                        </tbody>
                                         </table>
 
                                      </div>
                                 </div>
                         </div>
 
-                    </div>
-                </div>
+
             </div>
 
             </div>
+
+
+             <div class="col-md-2">
+            <div data-spy="affix" style="width: 150px;">
+                <button type="submit" class="btn btn-success btn-block" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+            </div>
+        </div>
+
 
 
 
     </div>
+
+
 
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>

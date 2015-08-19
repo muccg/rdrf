@@ -3,10 +3,12 @@ from django.shortcuts import render_to_response, RequestContext
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
-from registry.patients.models import Patient, PatientRelative
-from rdrf.models import Registry
+from django.core.context_processors import csrf
 from django.http import Http404
 from django.core.urlresolvers import reverse
+
+from rdrf.models import Registry
+from registry.patients.models import Patient, PatientRelative
 
 import logging
 
@@ -79,6 +81,7 @@ class FamilyLinkageView(View):
             raise Http404("Registry does not exist")
 
         context = {}
+        context.update(csrf(request))
         context['registry_code'] = registry_code
         context['index_lookup_url'] = reverse("index_lookup", args=(registry_code,))
 

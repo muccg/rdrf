@@ -1,9 +1,11 @@
 from django.http import HttpResponse
 from django.views.generic import View
+from django.core.urlresolvers import reverse
 import json
 
 from registry.genetic.models import Gene, Laboratory
 from registry.groups.models import CustomUser
+from registry.patients.models import Patient
 
 import pycountry
 
@@ -92,23 +94,78 @@ class IndexLookup(View):
         from registry.patients.models import Patient
         from django.db.models import Q
         term = None
+        results = []
         try:
-            results = []
             registry_model = Registry.objects.get(code=reg_code)
             if registry_model.has_feature("family_linkage"):
                 term = request.GET.get("term", "")
                 working_groups = request.user.working_groups
 
                 query = Q(given_names__icontains=term) | Q(family_name__icontains=term)
+                logger.debug("query = %s" % query)
 
                 for patient_model in Patient.objects.filter(query):
                     if patient_model.is_index:
                         name = "%s" % patient_model
-                        results.append({"code": patient_model.pk, "name": name})
+                        results.append({"value": patient_model.pk, "label": name})
 
         except Registry.DoesNotExist:
+            logger.debug("reg code doesn't exist %s" % reg_code)
             results = []
 
         logger.debug("IndexLookup: reg code = %s term = %s results = %s" % (reg_code, term, results))
 
         return HttpResponse(json.dumps(results))
+
+
+class FamilyLookup(View):
+    def get(self, request, reg_code):
+        result = {}
+        try:
+            index_patient_pk = request.GET.get("index_pk", None)
+            patient = Patient.objects.get(pk=index_patient_pk)
+        except Patient.DoesNotExist:
+            result = {"error": "patient does not exist"}
+            return HttpResponse(json.dumps(result))
+
+        if not patient.is_index:
+            result = {"error": "patient is not an index"}
+            return HttpResponse(json.dumps(result))
+
+        link = reverse("patient_edit", args=[reg_code, patient.pk])
+        result["index"] = {"pk": patient.pk,
+                           "given_names": patient.given_names,
+                           "family_name": patient.family_name,
+                           "link": link}
+        result["relatives"] = []
+
+        relationships = self._get_relationships()
+        result["relationships"] = relationships
+
+        for relative in patient.relatives.all():
+            patient_created = relative.relative_patient
+
+            if patient_created:
+                relative_link = reverse("patient_edit", args=[reg_code, patient_created.pk])
+            else:
+                relative_link = None
+
+            relative_dict = {"pk": relative.pk,
+                             "given_names": relative.given_names,
+                             "family_name": relative.family_name,
+                             "relationship":  relative.relationship,
+                             "link": relative_link}
+
+            result["relatives"].append(relative_dict)
+
+
+        return HttpResponse(json.dumps(result))
+
+    def _get_relationships(self):
+        from registry.patients.models import PatientRelative
+        return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
+
+
+
+
+
