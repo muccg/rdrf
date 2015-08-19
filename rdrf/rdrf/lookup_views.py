@@ -5,8 +5,10 @@ import json
 from registry.genetic.models import Gene, Laboratory
 from registry.groups.models import CustomUser
 
-
 import pycountry
+
+import logging
+logger = logging.getLogger("registry_log")
 
 
 class LookupView(View):
@@ -85,9 +87,28 @@ class ClinitianLookup(View):
 
 
 class IndexLookup(View):
-    def get(self, request):
-        registry_code = request.GET("reg_code")
-        working_groups = request.user.working_groups
+    def get(self, request, reg_code):
+        from rdrf.models import Registry
+        from registry.patients.models import Patient
+        from django.db.models import Q
+        term = None
+        try:
+            results = []
+            registry_model = Registry.objects.get(code=reg_code)
+            if registry_model.has_feature("family_linkage"):
+                term = request.GET.get("term", "")
+                working_groups = request.user.working_groups
 
-        return ""
+                query = Q(given_names__icontains=term) | Q(family_name__icontains=term)
 
+                for patient_model in Patient.objects.filter(query):
+                    if patient_model.is_index:
+                        name = "%s" % patient_model
+                        results.append({"code": patient_model.pk, "name": name})
+
+        except Registry.DoesNotExist:
+            results = []
+
+        logger.debug("IndexLookup: reg code = %s term = %s results = %s" % (reg_code, term, results))
+
+        return HttpResponse(json.dumps(results))

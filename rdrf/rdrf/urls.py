@@ -18,7 +18,7 @@ import rdrf.login_router as login_router
 import rdrf.report_view as report_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
+from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup
 from rdrf.views import RegistryList
 from rdrf.api import PatientResource
 from registry.patients.views import update_session
@@ -147,7 +147,8 @@ urlpatterns = patterns('',
 
                        url(r'^api/clinitian/',
                            ClinitianLookup.as_view(), name="clinician_lookup"),
-                       )
+
+                       url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"))
 
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',

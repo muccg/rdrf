@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
 from registry.patients.models import Patient, PatientRelative
 from rdrf.models import Registry
+from django.http import Http404
+from django.core.urlresolvers import reverse
 
 import logging
 
@@ -67,9 +69,18 @@ class FamilyLinkageManager(object):
 class FamilyLinkageView(View):
     @method_decorator(login_required)
     def get(self, request, registry_code):
+
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
+            if not registry_model.has_feature("family_linkage"):
+                raise Http404("Registry does not support family linkage")
+
+        except Registry.DoesNotExist:
+            raise Http404("Registry does not exist")
+
         context = {}
         context['registry_code'] = registry_code
-        context['index_lookup_url'] = ""
+        context['index_lookup_url'] = reverse("index_lookup", args=(registry_code,))
 
         return render_to_response(
             'rdrf_cdes/family_linkage.html',
@@ -93,5 +104,3 @@ class FamilyLinkageView(View):
 
         except FamilyLinkageError, err:
             pass
-
-

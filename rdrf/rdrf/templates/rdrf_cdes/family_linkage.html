@@ -1,52 +1,20 @@
 {% extends "rdrf_cdes/base.html" %}
+{% load static %}
 {% block extrastyle %}
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript">
         // use jquery ui widget?
         (function($){
 
-         $.widget("rdrf.index_lookup", {
-            options: {
+           $(document).ready(function() {
+               //$("#source").family({name:"frug"});
 
-            },
+               $("#index_lookup").keyup(function() {
+                                         lookup($(this), '{{index_lookup_url}}');
+                        });
+           });
 
-            _create: function() {
-                this.element.addClass("indexlookup");
-
-
-            }
-         });
-
-
-         $.widget( "rdrf.family", {
-            // Default options.
-            options: {
-                name: "Lee"
-            },
-            _create: function () {
-
-                this._setupIndex();
-                this._setupRelatives();
-
-            }
-
-             _setupIndex: function() {
-
-             }
-
-             _setupRelatives: function() {
-
-             }
-        });
-
-       $(document).ready(function() {
-           //$("#source").family({name:"frug"});
-
-           $("#index_lookup").keyup(function() {
-                                     lookup($(this), '{{index_lookup_url}}');
-                    });
-       });
-
-     })(jQuery);
+        })(jQuery);
     </script>
 {% endblock %}
 
@@ -64,9 +32,10 @@
                     <div class="panel-heading">Index Lookup <i>Type name to find an index</i></div>
                     <div class="panel-body">
                         <div class="row">
-                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""> <button>Use</button>
+                            Lookup Index: <input id="index_lookup" name="index_lookup" value="">
+                            <button onclick="load_index(this);">Load this index and family</button>
+                            <button onclick="add_patient(this);">Add</button>
                         </div>
-
                     </div>
 
                 </div>
