@@ -107,7 +107,7 @@ class IndexLookup(View):
                 for patient_model in Patient.objects.filter(query):
                     if patient_model.is_index:
                         name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name})
+                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
 
         except Registry.DoesNotExist:
             logger.debug("reg code doesn't exist %s" % reg_code)
@@ -136,6 +136,7 @@ class FamilyLookup(View):
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
                            "family_name": patient.family_name,
+                           "class": "Patient",
                            "link": link}
         result["relatives"] = []
 
@@ -154,6 +155,7 @@ class FamilyLookup(View):
                              "given_names": relative.given_names,
                              "family_name": relative.family_name,
                              "relationship":  relative.relationship,
+                             "class": "PatientRelative",
                              "link": relative_link}
 
             result["relatives"].append(relative_dict)

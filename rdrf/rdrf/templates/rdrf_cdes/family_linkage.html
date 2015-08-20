@@ -66,7 +66,9 @@
 
                         var new_index_patient = {given_names: relative.given_names,
                                        family_name: relative.family_name,
-                                       link: relative.link};
+                                       link: relative.link,
+                                       class: relative.class,
+                                       pk: relative.pk};
 
                         var old_index_patient = getIndexPatient();
                         if (old_index_patient != null) {
@@ -213,12 +215,41 @@
             loadIndex(index_pk);
         }
 
+        function add_patient(element) {
+            var index_pk = $("#index_lookup").data("index_pk");
+             $.ajax({ url: "{% url 'family_lookup' registry_code %}",
+                      type: "GET",
+                        data: {
+                            'index_pk': $('#index_lookup').data("index_pk")
+                        },
+
+                        success: function(result_json) {
+                            result  = jQuery.parseJSON(result_json);
+                            var patient = result.index;
+                            if (result.relatives.length == 0) {
+                                addRelativeRow(result.relationships, patient);
+                            }
+                            else {
+                                alert("Can't add this patient to family - they have relatives attached");
+                            }
+
+                        }
+                    });
+        }
+
+           function getRelationship(row) {
+               return $(row).find("td").eq(2).find("select").val();
+           }
         function getFamilyData() {
             var index_patient = getIndexPatient();
             var relatives = [];
 
             $("#relatives tr").each(function () {
                 if ($(this).data("object")) {
+                    var updated_relationship = getRelationship($(this));
+                    var relative = $(this).data("object");
+                    relative.relationship = updated_relationship;
+                    $(this).data("object", relative);
                     relatives.push($(this).data("object"))
                 }
             });
@@ -231,7 +262,7 @@
             $.ajax({
                      url: "{% url 'family_linkage' registry_code %}",
                      type: "POST",
-                        data: data,
+                        data: {packet_json: JSON.stringify(data)},
                         success: function(data) {
                            alert("Saved ok!")
                         }
@@ -272,6 +303,8 @@
 {% endblock %}
 
 {% block content %}
+
+
     {% if request.user.is_authenticated %}
         {{ block.super }}
         <br>
@@ -287,12 +320,12 @@
             <div class="col-md-10">
 
              <div class="panel panel-info">
-               <div class="panel-heading">Index Lookup <i>Type name to find an index</i></div>
+               <div class="panel-heading">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
                     <div class="panel-body">
                         <div class="row">
                             Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
                             <button onclick="load_index(this);">Load this index and family</button>
-                            <button onclick="add_patient(this);">Add</button>
+                            <button onclick="add_patient(this);">Add looked up patient to family</button>
                         </div>
                     </div>
 

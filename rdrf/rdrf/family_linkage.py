@@ -6,9 +6,11 @@ from django.views.generic.base import View
 from django.core.context_processors import csrf
 from django.http import Http404
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 
 from rdrf.models import Registry
 from registry.patients.models import Patient, PatientRelative
+from django.contrib import messages
 
 import logging
 
@@ -25,47 +27,119 @@ class FamilyLinkageType:
 
 
 class FamilyLinkageManager(object):
-    def __init__(self,  registry_model, index_patient):
+    def __init__(self,  registry_model, packet):
+        self.registry_model = registry_model
+        self.packet = packet
+        logger.debug("packet = %s" % self.packet)
         if not registry_model.has_feature("family_linkage"):
             raise FamilyLinkageError("need family linkages feature to use FamilyManager")
-        self.registry_model = registry_model
-        self.index_patient = index_patient
-        self.relative_objects = self._get_relatives(index_patient)
-        self.linkage_form_name = "ClinicalData"
-        self.linkage_section_code = "fhDateSection"
-        self.linkage_cde_code = "CDEIndexOrRelative"
+        self.index_dict = self.packet["index"]
+        self.original_index_dict = self.packet["original_index"]
+        self.original_index = int(self.original_index_dict["pk"])
 
-    def _change_index(self, obj, new_relationships_map, delete=False):
+        self.relatives = self.packet["relatives"]
+        self.index_patient = self._get_index_patient()
+
+        self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
+
+    def _get_index_patient(self):
+        try:
+            return Patient.objects.get(pk=self.original_index)
+        except Patient.DoesNotExist:
+            raise FamilyLinkageError("original index patient does not exist")
+
+    def run(self):
+        if self._index_changed():
+            logger.debug("index has changed")
+            self._update_index()
+        else:
+            logger.debug("index unchanged")
+            self._update_relatives()
+
+    def _update_relatives(self):
+        for relative_dict in self.relatives:
+            if relative_dict['class'] == "PatientRelative":
+                rel = PatientRelative.objects.get(pk=relative_dict["pk"])
+                if rel.relationship != relative_dict["relationship"]:
+                    rel.relationship = relative_dict["relationship"]
+                    rel.save()
+            elif relative_dict['class'] == "Patient":
+                patient = Patient.objects.get(pk=relative_dict["pk"])
+                rel = PatientRelative()
+                rel.date_of_birth = patient.date_of_birth
+                re.patient = self.index_patient
+                rel.given_names = relative_dict["given_names"]
+                rel.family_name = relative_dict["family_name"]
+                rel.relationship = relative_dict["relationship"]
+                rel.relative_patient = patient
+                rel.save()
+
+    def _index_changed(self):
+        return self.original_index != int(self.index_dict["pk"])
+
+    def _update_index(self):
         old_index_patient = self.index_patient
 
-        if isinstance(obj, Patient):
-            patient = obj
-        elif isinstance(obj, PatientRelative):
-            patient = obj.create_patient_from_myself(self.registry_model, old_index_patient.working_groups)
-            patient.save()
-        else:
-            raise FamilyLinkageError("can't change linkage on a %s" % obj)
+        if self.index_dict["class"] == "Patient":
+            new_index_patient = Patient.objects.get(pk=self.index_dict["pk"])
+            self._change_index(old_index_patient, new_index_patient)
 
-        self._set_family_linkage_type(patient, FamilyLinkageType.index)
-
-        for patient_relative in self.relative_objects:
-            if patient_relative.pk in new_relationships_map:
-                patient_relative.relationship = new_relationships_map[pk]
-                patient_relative.patient = self.index_patient
-                patient_relative.save()
+        elif self.index_dict["class"] == "PatientRelative":
+            patient_relative = PatientRelative.objects.get(pk=self.index_dict["pk"])
+            if patient_relative.relative_patient:
+                self._change_index(old_index_patient, patient_relative.relative_patient)
+                patient_relative.delete()
             else:
-                raise FamilyManagementError("change index : all relative relationships but be remapped")
+                # create a new patient from relative first
+                new_patient = patient_relative.create_patient_from_myself(self.registry_model, self.working_groups)
+                self._change_index(old_index_patient, new_patient)
+                patient_relative.delete()
 
-    def _set_family_linkage(self, patient, family_linkage_type):
-        # These are currently FH form_name and sections
-        patient.set_form_value(self.registry_model.code,
-                               self.linkage_form_name,
-                               self.linkage_section_code,
-                               self.linkage_cde_code,
-                               family_linkage_type)
+    def _change_index(self, old_index_patient, new_index_patient):
+        self._set_as_index_patient(new_index_patient)
+        updated_rels = set([])
+        original_relatives = set([r.pk for r in old_index_patient.relatives.all()])
+        for relative_dict in self.relatives:
+            if relative_dict["class"] == "PatientRelative":
+                patient_relative = PatientRelative.objects.get(pk=relative_dict["pk"])
+                patient_relative.patient = new_index_patient
+                patient_relative.relationship = relative_dict["relationship"]
+                patient_relative.save()
+                updated_rels.add(patient_relative.pk)
 
-    def do(self, action_dict):
-        pass
+            elif relative_dict["class"] == "Patient":
+                # index 'demoted' : create patient rel object
+                patient = Patient.objects.get(pk=relative_dict["pk"])
+
+                new_patient_relative = PatientRelative()
+                new_patient_relative.date_of_birth = patient.date_of_birth
+                new_patient_relative.patient = new_index_patient
+                new_patient_relative.relative_patient = patient
+                new_patient_relative.given_names = relative_dict["given_names"]
+                new_patient_relative.family_name = relative_dict["family_name"]
+                self._set_as_relative(patient)
+                new_patient_relative.relationship = relative_dict["relationship"]
+                new_patient_relative.save()
+                updated_rels.add(new_patient_relative.pk)
+            else:
+                logger.debug("???? %s" % relative_dict)
+
+        promoted_relatives = original_relatives - updated_rels
+        logger.debug("promoted rels = %s" % promoted_relatives)
+
+    def _get_new_relationship(self, relative_pk):
+        for item in self.relatives:
+            if item["class"] == "PatientRelative" and item["pk"] == relative_pk:
+                updated_relationship = item["relationship"]
+                return updated_relationship
+
+        return None
+
+    def _set_as_relative(self, patient):
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
+
+    def _set_as_index_patient(self, patient):
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
 
 
 class FamilyLinkageView(View):
@@ -93,17 +167,21 @@ class FamilyLinkageView(View):
 
     @method_decorator(login_required)
     def post(self, request, registry_code):
-
-        # start transaction ?
         try:
+            import json
             registry_model = Registry.objects.get(code=registry_code)
-            action_data = {}
+            packet = json.loads(request.POST["packet_json"])
+            logger.debug("packet = %s" % packet)
+            self._process_packet(registry_model, packet)
+            messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
+            return HttpResponse("OK")
 
-            for action in action_data["actions"]:
-                src_index_patient_id = action["source_index_patient"]
-                index_patient = Patient.objects.get(pk=src_index_patient_id)
-                flm = FamilyLinkageManager(registry_model, index_patient)
-                flm.do(action)
+        except Exception, err:
+            messages.add_message(request, messages.ERROR, "Linkage update failed: %s" % err)
+            return HttpResponse("failed")
 
-        except FamilyLinkageError, err:
-            pass
+    def _process_packet(self, registry_model,  packet):
+        logger.debug("packet = %s" % packet)
+        flm = FamilyLinkageManager(registry_model, packet)
+        flm.run()
+
