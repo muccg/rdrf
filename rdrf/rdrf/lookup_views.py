@@ -1,6 +1,9 @@
 from django.http import HttpResponse
 from django.views.generic import View
 from django.core.urlresolvers import reverse
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+
 import json
 
 from registry.genetic.models import Gene, Laboratory
@@ -89,6 +92,7 @@ class ClinitianLookup(View):
 
 
 class IndexLookup(View):
+    @method_decorator(login_required)
     def get(self, request, reg_code):
         from rdrf.models import Registry
         from registry.patients.models import Patient
@@ -119,6 +123,7 @@ class IndexLookup(View):
 
 
 class FamilyLookup(View):
+    @method_decorator(login_required)
     def get(self, request, reg_code):
         result = {}
         try:
