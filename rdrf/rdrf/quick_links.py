@@ -48,6 +48,8 @@ class QuickLinks(object):
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
 
+    FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
+
     DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
