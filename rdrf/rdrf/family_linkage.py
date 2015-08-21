@@ -67,7 +67,7 @@ class FamilyLinkageManager(object):
                 patient = Patient.objects.get(pk=relative_dict["pk"])
                 rel = PatientRelative()
                 rel.date_of_birth = patient.date_of_birth
-                re.patient = self.index_patient
+                rel.patient = self.index_patient
                 rel.given_names = relative_dict["given_names"]
                 rel.family_name = relative_dict["family_name"]
                 rel.relationship = relative_dict["relationship"]
