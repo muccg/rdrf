@@ -232,6 +232,7 @@
                             result  = jQuery.parseJSON(result_json);
                             var patient = result.index;
                             if (result.relatives.length == 0) {
+                                patient.relationship = "Unknown";
                                 addRelativeRow(result.relationships, patient);
                             }
                             else {
