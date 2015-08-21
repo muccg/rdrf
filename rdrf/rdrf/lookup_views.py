@@ -103,9 +103,10 @@ class IndexLookup(View):
             registry_model = Registry.objects.get(code=reg_code)
             if registry_model.has_feature("family_linkage"):
                 term = request.GET.get("term", "")
-                working_groups = request.user.working_groups
+                working_groups = [wg for wg in request.user.working_groups.all()]
 
-                query = Q(given_names__icontains=term) | Q(family_name__icontains=term)
+                query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                         Q(working_groups__in=working_groups)
                 logger.debug("query = %s" % query)
 
                 for patient_model in Patient.objects.filter(query):
