@@ -211,6 +211,13 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
+
+    class Meta:
+        ordering = ["family_name", "given_names", "date_of_birth"]
+        verbose_name_plural = "Patient List"
+
+        permissions = settings.CUSTOM_PERMISSIONS["patients"]["patient"]
+    
     @property
     def display_name(self):
         if self.active:
@@ -492,10 +499,6 @@ class Patient(models.Model):
             return name
         else:
             return "%s" % self
-
-    class Meta:
-        ordering = ["family_name", "given_names", "date_of_birth"]
-        verbose_name_plural = "Patient List"
 
     def __unicode__(self):
         if self.active:
