@@ -124,10 +124,11 @@ class IndexLookup(View):
 
 class FamilyLookup(View):
     @method_decorator(login_required)
-    def get(self, request, reg_code):
+    def get(self, request, reg_code, index=None):
         result = {}
         try:
             index_patient_pk = request.GET.get("index_pk", None)
+            logger.debug("index_patient_pk = %s" % index_patient_pk)
             patient = Patient.objects.get(pk=index_patient_pk)
         except Patient.DoesNotExist:
             result = {"error": "patient does not exist"}

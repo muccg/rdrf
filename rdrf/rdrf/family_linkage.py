@@ -144,7 +144,7 @@ class FamilyLinkageManager(object):
 
 class FamilyLinkageView(View):
     @method_decorator(login_required)
-    def get(self, request, registry_code):
+    def get(self, request, registry_code, initial_index=None):
 
         try:
             registry_model = Registry.objects.get(code=registry_code)
@@ -158,6 +158,7 @@ class FamilyLinkageView(View):
         context.update(csrf(request))
         context['registry_code'] = registry_code
         context['index_lookup_url'] = reverse("index_lookup", args=(registry_code,))
+        context["initial_index"] = initial_index
 
         return render_to_response(
             'rdrf_cdes/family_linkage.html',
@@ -166,7 +167,7 @@ class FamilyLinkageView(View):
 
 
     @method_decorator(login_required)
-    def post(self, request, registry_code):
+    def post(self, request, registry_code, initial_index=None):
         try:
             import json
             registry_model = Registry.objects.get(code=registry_code)

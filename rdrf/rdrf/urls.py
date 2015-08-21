@@ -106,7 +106,7 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
                            parent_view.ParentEditView.as_view(), name='parent_edit'),
 
-                       url(r"^(?P<registry_code>\w+)/familylinkage/?$",
+                       url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
                            FamilyLinkageView.as_view(), name='family_linkage'),
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',

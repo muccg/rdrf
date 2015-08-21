@@ -15,6 +15,7 @@
 
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script>
+        var initial_index = '{{ initial_index }}';
         var relationships = [];
         var tmpObject = null;
         var original_index = null;
@@ -237,9 +238,10 @@
                     });
         }
 
-           function getRelationship(row) {
+        function getRelationship(row) {
                return $(row).find("td").eq(2).find("select").val();
-           }
+        }
+
         function getFamilyData() {
             var index_patient = getIndexPatient();
             var relatives = [];
@@ -277,6 +279,12 @@
             })
         }
 
+        function loadInitial() {
+            var index = parseInt(initial_index);
+            $('#index_lookup').data("index_pk", index);
+            loadIndex(index);
+        }
+
     </script>
     <script type="text/javascript">
         (function($){
@@ -296,6 +304,10 @@
                $("#index_lookup").keyup(function() {
                                          lookupIndex($(this), '{{index_lookup_url}}');
                });
+
+               if (initial_index != 'None') {
+                   loadInitial();
+               }
            });
 
         })(jQuery);
