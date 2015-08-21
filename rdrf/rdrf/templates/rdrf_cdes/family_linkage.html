@@ -129,6 +129,9 @@
         }
 
         function setIndexPatient(patient) {
+            if (patient == undefined) {
+                return;
+            }
             var patient_link = "";
             clearTableData("#indexpatient table");
 
