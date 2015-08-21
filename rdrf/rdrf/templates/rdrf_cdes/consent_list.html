@@ -57,7 +57,7 @@
         </a>
     </p>
     
-    <table class="table table-bordered table-hover" id="list_of_patients">
+    <table class="table table-striped table-hover" id="list_of_patients">
         <thead>
             <tr>
                 <th class="col-md-5">Patient - Consent Type</th>
@@ -69,7 +69,7 @@
         <tbody>
         {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
-                <tr class="warning" onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label}}')">
+                <tr onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label}}')">
                     <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
                     <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"d F Y"}}</td>
                     <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"d F Y"}}</td>
