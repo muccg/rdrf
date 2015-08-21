@@ -87,6 +87,7 @@ class FamilyLinkageManager(object):
                 rel.relationship = relative_dict["relationship"]
                 rel.relative_patient = patient
                 rel.save()
+                self._set_as_relative(patient)
 
     def _index_changed(self):
         return self.original_index != int(self.index_dict["pk"])
@@ -155,10 +156,12 @@ class FamilyLinkageManager(object):
 
     def _set_as_relative(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
+        logger.debug("set patient %s to relative" % patient)
         self._add_undo(patient, "fh_is_relative")
 
     def _set_as_index_patient(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
+        logger.debug("set patient %s to index" % patient)
         self._add_undo(patient, "fh_is_index")
 
 
