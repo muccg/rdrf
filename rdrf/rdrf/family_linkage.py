@@ -7,6 +7,7 @@ from django.core.context_processors import csrf
 from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
+from django.db import transaction
 
 from rdrf.models import Registry
 from registry.patients.models import Patient, PatientRelative
@@ -26,6 +27,18 @@ class FamilyLinkageType:
     relative = "fh_is_relative"
 
 
+class MongoUndo(object):
+    def __init__(self, patient, linkage_type):
+        self.patient = patient
+        self.linkage_type = linkage_type
+        self.reverse_op = {FamilyLinkageType.index: FamilyLinkageType.relative,
+                           FamilyLinkageType.relative: FamilyLinkageType.index}
+
+    def __call__(self):
+        reversed_value = self.reverse_op[self.linkage_type]
+        self.patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", reversed_value)
+
+
 class FamilyLinkageManager(object):
     def __init__(self,  registry_model, packet):
         self.registry_model = registry_model
@@ -41,6 +54,7 @@ class FamilyLinkageManager(object):
         self.index_patient = self._get_index_patient()
 
         self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
+        self.mongo_undos = []
 
     def _get_index_patient(self):
         try:
@@ -135,11 +149,17 @@ class FamilyLinkageManager(object):
 
         return None
 
+    def _add_undo(self, patient, value):
+        undo = MongoUndo(patient, value)
+        self.mongo_undos.append(undo)
+
     def _set_as_relative(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
+        self._add_undo(patient, "fh_is_relative")
 
     def _set_as_index_patient(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
+        self._add_undo(patient, "fh_is_index")
 
 
 class FamilyLinkageView(View):
@@ -184,5 +204,15 @@ class FamilyLinkageView(View):
     def _process_packet(self, registry_model,  packet):
         logger.debug("packet = %s" % packet)
         flm = FamilyLinkageManager(registry_model, packet)
-        flm.run()
+        try:
+            with transaction.commit_on_success():
+                flm.run()
 
+        except Exception, ex:
+            for undo in flm.mongo_undos:
+                try:
+                    undo()
+                except Exception, ex:
+                    logger.error("could not undo %s" % undo)
+
+            raise ex
