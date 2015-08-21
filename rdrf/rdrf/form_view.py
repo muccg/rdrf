@@ -1761,12 +1761,22 @@ class PatientsListingView(LoginRequiredMixin, View):
             registries = [registry_model for registry_model in Registry.objects.all()]
         else:
             registries = [registry_model for registry_model in request.user.registry.all()]
-        context["num_registries"] = len(registries)  # if there are one do something special
-        context["registries"] = registries
-        if len(registries) == 1:
-            context["the_one_registry_code"] = registries[0].code
 
+        context["registries"] = registries
         context["location"] = "Patient List"
+        
+        columns = []
+        
+        for definition in settings.GRID_PATIENT_LISTING:
+            if request.user.has_perm(definition["permission"]):
+                columns.append(
+                    {
+                        "data" : definition["data"],
+                        "label" : definition["label"]
+                    }
+                )
+
+        context["columns"] = columns
 
         return render_to_response(
             'rdrf_cdes/patients.html',

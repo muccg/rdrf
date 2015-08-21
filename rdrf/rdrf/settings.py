@@ -375,3 +375,50 @@ ACCOUNT_ACTIVATION_DAYS = 2
 
 LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
+
+
+CUSTOM_PERMISSIONS = {
+    "patients": { # App Name
+        "patient": ( # Model Name
+            ("can_see_full_name", "Can see Full Name column"),
+            ("can_see_dob", "Can see Date of Birth column"),
+            ("can_see_working_groups", "Can see Working Groups column"),
+            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
+            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
+            ("can_see_genetic_data_map", "Can see Genetic Module column"),
+            ("can_see_data_modules", "Can see Data Modules column"),
+        )
+    }
+}
+
+GRID_PATIENT_LISTING = [
+    {
+        "permission": "patients.can_see_full_name",
+        "data": "full_name",
+        "label": "Patient"
+    }, {
+        "permission": "patients.can_see_dob",
+        "data": "date_of_birth",
+        "label": "Date of Birth"
+    }, {
+        "permission": "patients.can_see_working_groups",
+        "data": "working_groups_display",
+        "label": "Working Groups"
+    }, {
+        "permission": "patients.can_see_diagnosis_progress",
+        "data": "diagnosis_progress",
+        "label": "Diagnosis Entry Progress"
+    }, {
+        "permission": "patients.can_see_diagnosis_currency",
+        "data": "diagnosis_currency",
+        "label": "Updated < 365 days"
+    }, {
+        "permission": "patients.can_see_genetic_data_map",
+        "data": "genetic_data_map",
+        "label": "Genetic Data"
+    }, {
+        "permission": "patients.can_see_data_modules",
+        "data": "data_modules",
+        "label": "Modules"
+    }
+]

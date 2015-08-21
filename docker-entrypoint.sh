@@ -95,6 +95,7 @@ if [ "$1" = 'uwsgi' ]; then
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
     django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-syncdb.log
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
+    manage.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
 
     uwsgi ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
     exit $?
@@ -110,6 +111,7 @@ if [ "$1" = 'runserver' ]; then
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
     django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-syncdb.log
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-migrate.log
+    manage.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
 
     django-admin.py load_fixture --file=rdrf.json
     django-admin.py load_fixture --file=users.json
