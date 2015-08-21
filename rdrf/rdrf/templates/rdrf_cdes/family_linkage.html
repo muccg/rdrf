@@ -1,6 +1,7 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static %}
 {% block extrastyle %}
+        {{ block.super }}
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
     <style>
 
@@ -315,13 +316,8 @@
 {% endblock %}
 
 {% block content %}
-
-
     {% if request.user.is_authenticated %}
         {{ block.super }}
-        <br>
-        <br>
-        <p></p>
         <div class="row">
         <div class="col-md-12">
             <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Family Linkages</h3></p>
