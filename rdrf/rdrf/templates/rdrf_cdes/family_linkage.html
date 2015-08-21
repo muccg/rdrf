@@ -267,7 +267,19 @@
                      type: "POST",
                         data: {packet_json: JSON.stringify(data)},
                         success: function(data) {
-                           alert("Saved ok!")
+                           if (data == "OK") {
+                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                           }
+                           else {
+                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+
+
+                           }
+
+                           $(".alert").fadeOut(3000, function () {
+                               $(this).remove();
+                           });
+
                         }
                     });
 

@@ -194,12 +194,12 @@ class FamilyLinkageView(View):
             packet = json.loads(request.POST["packet_json"])
             logger.debug("packet = %s" % packet)
             self._process_packet(registry_model, packet)
-            messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
+            #messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
             return HttpResponse("OK")
 
         except Exception, err:
-            messages.add_message(request, messages.ERROR, "Linkage update failed: %s" % err)
-            return HttpResponse("failed")
+            #messages.add_message(request, messages.ERROR, "Linkage update failed: %s" % err)
+            return HttpResponse("FAIL: %s" % err)
 
     def _process_packet(self, registry_model,  packet):
         logger.debug("packet = %s" % packet)
