@@ -18,11 +18,12 @@ import rdrf.login_router as login_router
 import rdrf.report_view as report_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup
+from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup
 from rdrf.views import RegistryList
 from rdrf.api import PatientResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
+from rdrf.family_linkage import FamilyLinkageView
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -105,6 +106,9 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
                            parent_view.ParentEditView.as_view(), name='parent_edit'),
 
+                       url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
+                           FamilyLinkageView.as_view(), name='family_linkage'),
+
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
                        url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireResponseView.as_view(),
@@ -143,7 +147,13 @@ urlpatterns = patterns('',
 
                        url(r'^api/clinitian/',
                            ClinitianLookup.as_view(), name="clinician_lookup"),
-                       )
+
+                       url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
+
+                       url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"))
+
+
+
 
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',
