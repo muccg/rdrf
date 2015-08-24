@@ -8,6 +8,7 @@ from base import Base
 class Curator(Base):
 
     def test_curator(self):
+        #self.set_grid_permissions()
         sel = self.selenium
         sel.open("/")
         sel.click("link=Registries on this site")
@@ -22,8 +23,7 @@ class Curator(Base):
         sel.type("id=id_password", "fhcurator")
         sel.click("//input[@value='Log in']")
         sel.wait_for_page_to_load("30000")
-        self.assertEqual("Updated < 365 days", sel.get_text(
-            "//table[@id='grid']/thead/tr/th[5]/a/span"))
+
         sel.click("css=span.glyphicon.glyphicon-user")
         sel.click("link=Logout")
         sel.wait_for_page_to_load("30000")

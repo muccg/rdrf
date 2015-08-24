@@ -46,3 +46,26 @@ class Base(unittest.TestCase):
         # sel.type("id=id_registry_yaml_file", absolute_path)
         # sel.click("id=submit-form-btn")
         # sel.wait_for_page_to_load("30000")
+
+    def set_grid_permissions(self, group_name="Working Group Curators"):
+        sel = self.selenium
+        sel.open("/admin/")
+        sel.type("id=id_username", "admin")
+        sel.type("id=id_password", "admin")
+        sel.click("//input[@value='Log in']")
+        sel.wait_for_page_to_load("30000")
+        sel.click("link=admin admin")
+        sel.click("link=Settings")
+        sel.click("link=Groups")
+        sel.wait_for_page_to_load("30000")
+        sel.click("link=%s" % group_name)
+        sel.wait_for_page_to_load("30000")
+        sel.add_selection("id=id_permissions_from", "label=patients | patient | Can see Data Modules column")
+        sel.add_selection("id=id_permissions_from", "label=patients | patient | Can see Diagnosis Currency column")
+        sel.add_selection("id=id_permissions_from", "label=patients | patient | Can see Diagnosis Progress column")
+        sel.add_selection("id=id_permissions_from", "label=patients | patient | Can see Date of Birth column")
+
+        sel.click("id=id_permissions_add_link")
+        sel.click("link=admin admin")
+        sel.click("link=Logout")
+        sel.wait_for_page_to_load("30000")
