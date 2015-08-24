@@ -36,6 +36,29 @@
                 var reg_code = $("#registry_options option:selected").attr("id");
                 patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
             });
+
+            $("#add_patient").click(function() {
+                                        var registryCode = null;
+                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                                        try {
+                                            registryCode = $("#registry_select").val();
+                                            if (registryCode=="---") {
+                                                alert("Please select registry first");
+                                                return;
+                                             }
+
+                                            if (registryCode == undefined) {
+                                                registryCode = "{{registries.0.code}}";
+                                            }
+                                        }
+                                        catch(err) {
+                                            // one registry ?
+                                            registryCode = "{{registries.0.code}}";
+                                        }
+                                        var location = addPatientUrl.replace("xxx", registryCode);
+                                        window.location.replace(location);
+                                        });
+
         });
         
     </script>
