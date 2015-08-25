@@ -22,6 +22,7 @@ from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 
+from operator import itemgetter
 import json
 import os
 from django.conf import settings
@@ -1767,8 +1768,10 @@ class PatientsListingView(LoginRequiredMixin, View):
         context["location"] = "Patient List"
         
         columns = []
+
+        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
         
-        for definition in settings.GRID_PATIENT_LISTING:
+        for definition in sorted_by_order:
             if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
