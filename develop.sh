@@ -14,7 +14,7 @@ AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
 }
 
 
@@ -74,14 +74,22 @@ lettuce() {
 selenium() {
     mkdir -p data/selenium
     chmod o+rwx data/selenium
+    find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
     pip install fig
 
+
     fig --project-name rdrf -f fig-selenium.yml rm --force
     fig --project-name rdrf -f fig-selenium.yml build
     fig --project-name rdrf -f fig-selenium.yml up
+}
+
+registry_specific_tests() {
+    for yaml_file in definitions/registries/*.yaml; do
+        echo "running registry specific tests for $yaml_file ( if any)"
+    done
 }
 
 
@@ -168,6 +176,9 @@ selenium)
     ;;
 lettuce)
     lettuce
+    ;;
+registry_specific_tests)
+    registry_specific_tests
     ;;
 *)
     usage

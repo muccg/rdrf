@@ -920,11 +920,11 @@ class ConsentValue(models.Model):
             self.patient, self.consent_question, self.answer)
 
 
-@receiver(post_delete, sender=PatientRelative)
-def delete_associated_patient_if_any(sender, instance, **kwargs):
-    logger.debug("post_delete of patient relative")
-    logger.debug("instance = %s" % instance)
-    logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
-    if instance.relative_patient:
-        logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
-        instance.relative_patient.delete()
+# @receiver(post_delete, sender=PatientRelative)
+# def delete_associated_patient_if_any(sender, instance, **kwargs):
+#     logger.debug("post_delete of patient relative")
+#     logger.debug("instance = %s" % instance)
+#     logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
+#     if instance.relative_patient:
+#         logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
+#         instance.relative_patient.delete()

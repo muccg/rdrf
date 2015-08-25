@@ -51,9 +51,9 @@ class QuickLinks(object):
         "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
     CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", "CDE Policy", True)
 
-    DATA_ENTRY = oset([
-        PatientsListing,
-    ])
+    #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
+
+    DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
