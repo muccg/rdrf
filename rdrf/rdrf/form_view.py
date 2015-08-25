@@ -1769,7 +1769,7 @@ class PatientsListingView(LoginRequiredMixin, View):
         columns = []
         
         for definition in settings.GRID_PATIENT_LISTING:
-            if request.user.has_perm(definition["permission"]):
+            if request.user.has_perm(definition["permission"]) or request.user.is_superuser:
                 columns.append(
                     {
                         "data" : definition["data"],
