@@ -393,31 +393,52 @@ CUSTOM_PERMISSIONS = {
 
 GRID_PATIENT_LISTING = [
     {
-        "permission": "patients.can_see_full_name",
+        "access": {
+            "default": True,
+            "permission": ""
+        },
         "data": "full_name",
         "label": "Patient"
     }, {
-        "permission": "patients.can_see_dob",
+        "access": {
+            "default": True,
+            "permission": ""
+        },
         "data": "date_of_birth",
         "label": "Date of Birth"
     }, {
-        "permission": "patients.can_see_working_groups",
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_working_groups"
+        },
         "data": "working_groups_display",
         "label": "Working Groups"
     }, {
-        "permission": "patients.can_see_diagnosis_progress",
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_progress"
+        },
         "data": "diagnosis_progress",
         "label": "Diagnosis Entry Progress"
     }, {
-        "permission": "patients.can_see_diagnosis_currency",
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_currency"
+        },
         "data": "diagnosis_currency",
         "label": "Updated < 365 days"
     }, {
-        "permission": "patients.can_see_genetic_data_map",
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_genetic_data_map"
+        },
         "data": "genetic_data_map",
         "label": "Genetic Data"
     }, {
-        "permission": "patients.can_see_data_modules",
+        "access": {
+            "default": True,
+            "permission": ""
+        },
         "data": "data_modules",
         "label": "Modules"
     }

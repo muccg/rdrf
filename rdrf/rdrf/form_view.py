@@ -383,7 +383,8 @@ class FormView(View):
             section,
             injected_model="Patient",
             injected_model_id=self.patient_id,
-            is_superuser=self.request.user.is_superuser)
+            is_superuser=self.request.user.is_superuser,
+            user_groups=self.request.user.groups.all())
 
     def _get_formlinks(self, user):
 
@@ -1768,7 +1769,7 @@ class PatientsListingView(LoginRequiredMixin, View):
         columns = []
         
         for definition in settings.GRID_PATIENT_LISTING:
-            if request.user.has_perm(definition["permission"]):
+            if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
                         "data" : definition["data"],
