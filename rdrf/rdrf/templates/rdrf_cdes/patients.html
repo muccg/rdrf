@@ -13,6 +13,29 @@
             if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
                 $("#add_patient").hide();
             }
+
+             $("#add_patient").click(function() {
+                                        var registryCode = null;
+                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                                        try {
+                                            registryCode = $("#registry_select").val();
+                                            if (registryCode=="---") {
+                                                alert("Please select registry first");
+                                                return;
+                                             }
+
+                                            if (registryCode == undefined) {
+                                                registryCode = "{{registries.0.code}}";
+                                            }
+                                        }
+                                        catch(err) {
+                                            // one registry ?
+                                            registryCode = "{{registries.0.code}}";
+                                        }
+                                        var location = addPatientUrl.replace("xxx", registryCode);
+                                        window.location.replace(location);
+                                        });
+
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
             var patients_list = $("#patient_list_table").DataTable({
                 "ajax": {

@@ -72,8 +72,11 @@ class PatientResource(ModelResource):
         else:
             bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
 
-
-        bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+        if registry_code:
+            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+        else:
+            # calls from calculated field plugin don't pass a registry code
+            bundle.data["full_name"] = p.display_name
 
         if hasattr(bundle, "progress_data"):
             progress_data = getattr(bundle, "progress_data")
