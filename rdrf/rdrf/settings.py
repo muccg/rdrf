@@ -71,7 +71,9 @@ DATABASES = {
     # }
 }
 
-#Mongo
+# Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
+# These settings ( and only )  are consumed by rdrf.mongo_client
+
 MONGOSERVER = env.get("mongoserver", "localhost")
 MONGOPORT = env.get("mongoport", 27017)
 MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
@@ -80,42 +82,17 @@ MONGO_CLIENT_MAX_POOL_SIZE = env.get("mongo_max_pool_size", 100)
 MONGO_CLIENT_TZ_AWARE = env.get("mongo_client_tz_aware", False)
 MONGO_CLIENT_CONNECT = env.get("mongo_client_connect", True)
 
-
-# socketTimeoutMS: (integer or None) How long (in milliseconds) a send or receive on a socket can take before timing out. Defaults to None (no timeout).
-# connectTimeoutMS: (integer or None) How long (in milliseconds) a connection can take to be opened before timing out. Defaults to 20000.
-# waitQueueTimeoutMS: (integer or None) How long (in milliseconds) a thread will wait for a socket from the pool if the pool has no free sockets. Defaults to None (no timeout).
-# waitQueueMultiple: (integer or None) Multiplied by max_pool_size to give the number of threads allowed to wait for a socket at one time. Defaults to None (no waiters).
-# socketKeepAlive: (boolean) Whether to send periodic keep-alive packets on connected sockets. Defaults to False (do not send keep-alive packets).
-# auto_start_request: Deprecated.
-# use_greenlets: If True, start_request() will ensure that the current greenlet uses the same socket for all operations until end_request(). Defaults to False.
-
-# keyword arg = socketTimeoutMS
-MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", None)
-# keyword arg = connectTimeoutMS
+MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", "") or None
 MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 20000)
-# keyword arg = waitQueueTimeoutMS
-MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", None)
-# keyword arg = waitQueueMultiple
-MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", None)
-# keyword arg = socketKeepAlive
+MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
+MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
 MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
 
-
-# Mongo client options
-# SSL configuration:
-# ssl: If True, create the connection to the server using SSL. Defaults to False.
-# ssl_keyfile: The private keyfile used to identify the local connection against mongod. If included with the certfile then only the ssl_certfile is needed. Implies ssl=True. Defaults to None.
-# ssl_certfile: The certificate file used to identify the local connection against mongod. Implies ssl=True. Defaults to None.
-# ssl_cert_reqs: Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided. It must be one of the three values ssl.CERT_NONE (certificates ignored), ssl.CERT_OPTIONAL (not required, but validated if provided), or ssl.CERT_REQUIRED (required and validated). If the value of this parameter is not ssl.CERT_NONE, then the ssl_ca_certs parameter must point to a file of CA certificates. Implies ssl=True. Defaults to ssl.CERT_NONE.
-# ssl_ca_certs: The ca_certs file contains a set of concatenated “certification authority” certificates, which are used to validate certificates passed from the other end of the connection. Implies ssl=True. Defaults to None.
 MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
-MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", None)
-MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", None)
-MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", ssl.CERT_NONE)
-MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", None)
-
-
-
+MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
+MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
+MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
+MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 
 
 # Django Core stuff
