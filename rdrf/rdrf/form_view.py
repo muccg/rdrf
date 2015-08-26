@@ -21,6 +21,8 @@ from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
+from rdrf.mongo_client import construct_mongo_client
+
 
 import json
 import os
@@ -1055,10 +1057,9 @@ class FileUploadView(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, gridfs_file_id):
-        from pymongo import MongoClient
         from bson.objectid import ObjectId
         import gridfs
-        client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        client = construct_mongo_client()
         db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
