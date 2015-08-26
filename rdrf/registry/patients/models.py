@@ -1,7 +1,6 @@
 from django.core import serializers
 import copy
 import json
-from pymongo import MongoClient
 import datetime
 
 from django.db import models
@@ -21,6 +20,7 @@ from rdrf.models import Section
 from rdrf.models import ConsentQuestion
 from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
+from rdrf.mongo_client import construct_mongo_client
 from django.db.models.signals import m2m_changed, post_delete
 
 import logging
@@ -813,7 +813,7 @@ def clean_consents(sender, instance, **kwargs):
 
 
 def _save_patient_mongo(patient_obj):
-    client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+    client = construct_mongo_client()
     patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
     patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
 

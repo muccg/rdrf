@@ -1,5 +1,5 @@
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-from pymongo import MongoClient
+from rdrf.mongo_client import construct_mongo_client
 import gridfs
 import logging
 from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
@@ -497,9 +497,7 @@ class DynamicDataWrapper(object):
     def __init__(
             self,
             obj,
-            client=MongoClient(
-                settings.MONGOSERVER,
-                settings.MONGOPORT),
+            client=construct_mongo_client(),
             filestore_class=gridfs.GridFS):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False

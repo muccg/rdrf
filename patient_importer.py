@@ -5,8 +5,7 @@ from datetime import date
 import traceback
 
 from django.db import transaction
-
-from pymongo import MongoClient
+from rdrf.mongo_client import construct_mongo_client
 
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
@@ -940,7 +939,7 @@ class PatientImporter(object):
     def rollback_mongo(self):
         self.msg("rolling back mongo ...")
         from django.conf import settings
-        client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        client = construct_mongo_client()
         db_name = mongo_db_name(self.registry.code)
         self.msg("dropping mongo db %s .." % db_name)
         client[db_name].connection.drop_database(db_name)

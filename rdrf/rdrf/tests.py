@@ -12,11 +12,12 @@ from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
-from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
 from django.contrib.auth import get_user_model
 from rdrf.utils import de_camelcase
+from rdrf.mongo_client import construct_mongo_client
+
 
 from django.conf import settings
 import os
@@ -240,7 +241,7 @@ class FormTestCase(RDRFTestCase):
         self.request_factory = RequestFactory()
 
     def _reset_mongo(self):
-        self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        self.client = construct_mongo_client()
         # delete any testing databases
         for db in self.client.database_names():
             if db.startswith("testing_"):
