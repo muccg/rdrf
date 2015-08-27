@@ -17,6 +17,7 @@ class RegistryFormAdminForm(ModelForm):
 
     class Meta:
         model = RegistryForm
+        fields = "__all__"
         widgets = {
             'complete_form_cdes': SelectMultiple(attrs={'size': 20, 'style': 'width:50%'})
         }
