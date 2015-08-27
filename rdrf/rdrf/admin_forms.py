@@ -25,9 +25,6 @@ class RegistryFormAdminForm(ModelForm):
 
 class DemographicFieldsAdminForm(ModelForm):
 
-    class Meta:
-        fields = "__all__"
-
     def __init__(self, *args, **kwargs):
         super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
 
