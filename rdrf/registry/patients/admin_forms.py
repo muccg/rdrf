@@ -53,6 +53,7 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
+        fields = "__all__"
         widgets = {
              'relative_patient': PatientRelativeLinkWidget,
 
