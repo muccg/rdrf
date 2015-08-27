@@ -131,7 +131,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
-    'south',
     'messages_ui',
     'userlog',
     'rdrf',
