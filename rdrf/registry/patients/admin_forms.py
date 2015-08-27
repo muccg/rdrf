@@ -45,6 +45,7 @@ class PatientDoctorForm(forms.ModelForm):
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
+        fields = "__all__"
         model = PatientDoctor
 
 
