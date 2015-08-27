@@ -3,7 +3,7 @@ pymongo==2.8.1
 pyyaml
 django-extensions>=0.7.1
 django-picklefield==0.1.9
-django-templatetag-sugar==0.1
+django-templatetag-sugar==1.0
 pyparsing==1.5.7
 wsgiref==0.1.2
 python-memcached==1.54
