@@ -151,6 +151,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     class Meta:
         model = PatientConsent
+        fields = "__all__"
 
     form = forms.FileField(widget=AdminFileWidget, required=False)
 
