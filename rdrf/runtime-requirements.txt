@@ -14,7 +14,7 @@ django-ajax-selects
 pysam==0.8.3
 hgvs==0.2.2
 django-positions 
-django-tastypie==0.12.1
+django-tastypie==0.12.2
 pycountry==1.12
 django-countries
 hgtools
