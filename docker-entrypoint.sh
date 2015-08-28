@@ -93,8 +93,10 @@ if [ "$1" = 'uwsgi' ]; then
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
 
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-syncdb.log
-    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
+    django-admin.py  makemigrations registration --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py  makemigrations --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py  migrate registration --settings=${DJANGO_SETTINGS_MODULE}
     manage.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
 
     uwsgi ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
@@ -107,14 +109,27 @@ if [ "$1" = 'runserver' ]; then
 
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${WEBPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
-
+    echo "running collectstatic"
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-syncdb.log
-    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-migrate.log
-    manage.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
 
-    django-admin.py load_fixture --file=rdrf.json
-    django-admin.py load_fixture --file=users.json
+    django-admin.py  makemigrations registration --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py  makemigrations --settings=${DJANGO_SETTINGS_MODULE}
+    echo "running migrate ..."
+    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE}
+    echo "finished migrate"
+    django-admin.py  migrate registration --settings=${DJANGO_SETTINGS_MODULE}
+    django-admin.py loaddata   --settings=${DJANGO_SETTINGS_MODULE} --file=initial_groups.json  2>&1 | tee /data/runserver-groups.log
+    django-admin.py loaddata   --settings=${DJANGO_SETTINGS_MODULE} --file=initial_genes.json  2>&1 | tee /data/runserver-genes.log
+    django-admin.py loaddata   --settings=${DJANGO_SETTINGS_MODULE} --file=genetic.laboratories.json  2>&1 | tee /data/runserver-laboratories.log
+    django-admin.py loaddata   --settings=${DJANGO_SETTINGS_MODULE} --file=technique.json  2>&1 | tee /data/runserver-techniques.log
+    echo "updating permissions"
+    django-admin.py update_permissions  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
+
+    echo "loading rdrf fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
+    echo "loading users fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+    echo "running runserver ..."
     django-admin.py ${RUNSERVER_OPTS} 2>&1 | tee /data/runserver.log
     exit $?
 fi
