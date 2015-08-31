@@ -2,6 +2,9 @@
 import os
 import django.core.handlers.wsgi
 
+import django
+django.setup()
+
 def application(environ, start):
 
     # copy any vars into os.environ
