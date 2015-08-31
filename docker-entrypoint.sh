@@ -126,9 +126,9 @@ if [ "$1" = 'runserver' ]; then
     django-admin.py update_permissions  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
 
     echo "loading rdrf fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json  2>&1 | tee /data/runserver-load-rdrf.log
     echo "loading users fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json 2>&1 | tee /data/runserver-load-users.log
     echo "running runserver ..."
     django-admin.py ${RUNSERVER_OPTS} 2>&1 | tee /data/runserver.log
     exit $?
