@@ -1,28 +1,25 @@
-from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from rdrf.importer import Importer
+import argparse
 
 
 class Command(BaseCommand):
     help = 'Imports a given registry file'
 
-    option_list = BaseCommand.option_list[1:] + (
-        make_option('--file',
-                    action='store',
-                    dest='registry_file',
-                    type="string",
-                    default=None,
-                    help='Registry Import file name'),
+    def add_arguments(self, parser):
+        parser.add_argument('--file',
+                            action='store',
+                            dest='registry_file',
+                            default=None,
+                            help='Registry Import file name')
 
-        make_option('--format',
-                    action='store',
-                    dest='import_format',
-                    default='yaml',
-                    type='choice',
-                    choices=['yaml', 'json'],
-                    help='Import format: yaml or json'),
-    )
+        parser.add_argument('--format',
+                            action='store',
+                            dest='import_format',
+                            default='yaml',
+                            choices=['yaml', 'json'],
+                            help='Import format: yaml or json')
 
     def handle(self, *args, **options):
         file_name = options.get("registry_file")
