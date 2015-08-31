@@ -208,7 +208,7 @@ class FamilyLinkageView(View):
         logger.debug("packet = %s" % packet)
         flm = FamilyLinkageManager(registry_model, packet)
         try:
-            with transaction.commit_on_success():
+            with transaction.atomic():
                 flm.run()
 
         except Exception, ex:
