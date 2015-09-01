@@ -12,7 +12,9 @@ from django.contrib.messages import constants as message_constants
 env = EnvConfig()
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
+print "SCRIPT_NAME = %s" % SCRIPT_NAME
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
+print "FORCE_SCRIPT_NAME = %s" % FORCE_SCRIPT_NAME
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -189,6 +191,8 @@ MANAGERS = ADMINS
 
 STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
 STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
+
+print "STATIC_URL = %s" % STATIC_URL
 
 MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'static', 'media'))
 MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
