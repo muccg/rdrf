@@ -1,8 +1,6 @@
 # Generic WSGI application
 import os
-#import django.core.handlers.wsgi
 from django.core.wsgi import get_wsgi_application
-
 
 def application(environ, start):
 
