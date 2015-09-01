@@ -1,10 +1,10 @@
-legacydb:
-  image: postgres:9.3
-  environment:
-    - POSTGRES_USER=legacyrdrf
-    - POSTGRES_PASSWORD=legacyrdrf
-  ports:
-    - "15432:5432"
+#legacydb:
+#  image: postgres:9.3
+#  environment:
+#    - POSTGRES_USER=legacyrdrf
+#    - POSTGRES_PASSWORD=legacyrdrf
+#  ports:
+#    - "15432:5432"
 
 # data only container pattern
 data:
@@ -17,7 +17,7 @@ smtp:
   image: muccg/postfix:latest
 
 db:
-  image: postgres:9.3
+  image: postgres:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
@@ -37,7 +37,7 @@ mongo:
 #    - ":10035"
 
 nginx:
-  image: muccg/nginx-uwsgi:1.7
+  image: muccg/nginx-uwsgi:1.9
   links:
     - uwsgi
   ports:
@@ -61,7 +61,7 @@ web:
     - "8000:8000"
   links:
     - db
-    - legacydb
+    #- legacydb
     - cache
     - mongo
     - smtp
