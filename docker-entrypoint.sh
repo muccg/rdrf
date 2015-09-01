@@ -95,7 +95,7 @@ if [ "$1" = 'uwsgi' ]; then
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
     django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
     django-admin.py migrate registration --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
-    manage.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
+    django-admin.py update_permissions --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
 
     uwsgi --ini ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
     exit $?
