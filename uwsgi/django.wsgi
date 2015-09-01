@@ -1,9 +1,8 @@
 # Generic WSGI application
 import os
-import django.core.handlers.wsgi
+#import django.core.handlers.wsgi
+from django.core.wsgi import get_wsgi_application
 
-import django
-django.setup()
 
 def application(environ, start):
 
@@ -11,4 +10,4 @@ def application(environ, start):
     for key in environ:
         os.environ[key] = str(environ[key])
 
-    return django.core.handlers.wsgi.WSGIHandler()(environ,start)
+    return get_wsgi_application()(environ,start)
