@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages

@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, RequestContext
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse

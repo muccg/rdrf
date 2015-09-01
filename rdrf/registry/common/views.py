@@ -1,7 +1,7 @@
 from django.http import HttpResponseServerError
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseRedirect
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import render_to_response
