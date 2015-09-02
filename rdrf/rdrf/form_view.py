@@ -1065,7 +1065,7 @@ class FileUploadView(View):
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
         filename = data.filename.split("****")[-1]
-        response = HttpResponse(data, mimetype='application/octet-stream')
+        response = HttpResponse(data, content_type='application/octet-stream')
         response['Content-disposition'] = "filename=%s" % filename
         return response
 
