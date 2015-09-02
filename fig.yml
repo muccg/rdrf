@@ -37,7 +37,7 @@ mongo:
 #    - ":10035"
 
 nginx:
-  image: muccg/nginx-uwsgi:1.9
+  image: muccg/nginx-uwsgi:1.7
   links:
     - uwsgi
   ports:
