@@ -67,7 +67,7 @@ def patient_report(request):
     if not request.user.is_superuser:
         return HttpResponseRedirect('/')
 
-    response = HttpResponse(mimetype="text/csv")
+    response = HttpResponse(content_type="text/csv")
     writer = csv.writer(response)
 
     report = PatientReport()
