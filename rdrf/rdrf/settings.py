@@ -243,9 +243,6 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = env.get("use_x_forwarded_host", True)
 
-print "USE_X_FORWARDED_HOST = %s" % USE_X_FORWARDED_HOST
-
-
 if env.get("memcache", ""):
     CACHES = {
         'default': {
