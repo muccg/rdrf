@@ -420,7 +420,7 @@ class PatientFormMixin(PatientMixin):
         patient_address_section = ("Patient Address", None)
 
         patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True)
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
         patient_consent_file_form = patient_consent_file_formset(
             instance=patient, prefix="patient_consent_file")
 
@@ -731,7 +731,7 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
-        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent)
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent, fields='__all__')
         patient_consent_file_to_save = patient_consent_file_formset(
             request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
         patient_consent_file_to_save.is_valid()
