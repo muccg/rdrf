@@ -24,7 +24,7 @@ class HGVSView(View):
             parse_result = False
 
         return HttpResponse(
-            json.dumps({'parse_result': parse_result}), mimetype='application/json')
+            json.dumps({'parse_result': parse_result}), content_type='application/json')
 
     def post(self, request, hgvs_code):
         pass
