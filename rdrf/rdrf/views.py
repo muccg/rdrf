@@ -18,7 +18,7 @@ class AllocateView(View):
         regs = Registry.objects.all()
         print regs
         results = [obj.as_json() for obj in regs]
-        return HttpResponse(json.dumps(results), mimetype='application/json')
+        return HttpResponse(json.dumps(results), content_type='application/json')
 
 
 class RegistryList(View):
@@ -27,7 +27,7 @@ class RegistryList(View):
         regs = Registry.objects.all()
         print regs
         results = [obj.as_json() for obj in regs]
-        return HttpResponse(json.dumps(results), mimetype='application/json')
+        return HttpResponse(json.dumps(results), content_type='application/json')
 
 
 def patient_cdes(request, patient_id):
