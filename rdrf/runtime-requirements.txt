@@ -18,7 +18,7 @@ django-tastypie==0.12.2
 pycountry==1.12
 django-countries
 hgtools
-uwsgi==2.0.10
+uwsgi==2.0.8
 uwsgitop
 pyinotify==0.9.4
 six==1.9.0
