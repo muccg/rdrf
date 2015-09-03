@@ -833,6 +833,9 @@ class DynamicDataWrapper(object):
                     #todo fix this
                     form_model = None
 
+                if form_model is None:
+                    return
+
                 multisection_gridfs_handler = MultisectionGridFSFileHandler(fs,
                                                                             registry,
                                                                             form_model,

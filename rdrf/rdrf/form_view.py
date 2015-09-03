@@ -738,6 +738,7 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
+            questionnaire_response_wrapper.current_form_model = questionnaire_form
             questionnaire_response_wrapper.save_dynamic_data(
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
