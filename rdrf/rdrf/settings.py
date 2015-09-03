@@ -114,7 +114,6 @@ MESSAGE_TAGS = {
 MIDDLEWARE_CLASSES = (
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -131,7 +130,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
-    'south',
     'messages_ui',
     'userlog',
     'rdrf',
@@ -140,7 +138,6 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'django.contrib.admin',
-    'iprestrict',
     'ajax_select',
     'registration',
     'explorer',

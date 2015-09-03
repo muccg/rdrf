@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
@@ -739,6 +739,7 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
+            questionnaire_response_wrapper.current_form_model = questionnaire_form
             questionnaire_response_wrapper.save_dynamic_data(
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
@@ -1066,7 +1067,7 @@ class FileUploadView(View):
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
         filename = data.filename.split("****")[-1]
-        response = HttpResponse(data, mimetype='application/octet-stream')
+        response = HttpResponse(data, content_type='application/octet-stream')
         response['Content-disposition'] = "filename=%s" % filename
         return response
 

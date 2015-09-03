@@ -5,7 +5,7 @@ datastaging:
     - data:/data
 
 dbstaging:
-  image: postgres:9.3
+  image: postgres:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp

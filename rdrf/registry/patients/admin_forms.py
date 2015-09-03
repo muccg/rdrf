@@ -45,6 +45,7 @@ class PatientDoctorForm(forms.ModelForm):
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
+        fields = "__all__"
         model = PatientDoctor
 
 
@@ -52,6 +53,7 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
+        fields = "__all__"
         widgets = {
              'relative_patient': PatientRelativeLinkWidget,
 
@@ -149,6 +151,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     class Meta:
         model = PatientConsent
+        fields = "__all__"
 
     form = forms.FileField(widget=AdminFileWidget, required=False)
 

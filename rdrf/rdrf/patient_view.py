@@ -265,10 +265,13 @@ class PatientFormMixin(PatientMixin):
             mongo_wrapper = DynamicDataWrapper(self.object)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """
-        Returns an instance of the form to be used in this view.
+        PatientFormMixin.get_form Returns an instance of the form to be used in this view.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form_instance = super(PatientFormMixin, self).get_form(form_class)
         self.patient_form = form_instance
         return form_instance
@@ -374,7 +377,8 @@ class PatientFormMixin(PatientMixin):
                                                             PatientAddress,
                                                             form=PatientAddressForm,
                                                             extra=0,
-                                                            can_delete=True)
+                                                            can_delete=True,
+                                                            fields="__all__")
 
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
@@ -420,7 +424,7 @@ class PatientFormMixin(PatientMixin):
         patient_address_section = ("Patient Address", None)
 
         patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True)
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
         patient_consent_file_form = patient_consent_file_formset(
             instance=patient, prefix="patient_consent_file")
 
@@ -460,7 +464,8 @@ class PatientFormMixin(PatientMixin):
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
                                                                form=PatientDoctorForm,
                                                                extra=0,
-                                                               can_delete=True)
+                                                               can_delete=True,
+                                                               fields="__all__")
 
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
@@ -480,7 +485,8 @@ class PatientFormMixin(PatientMixin):
                                                                  fk_name='patient',
                                                                  form=PatientRelativeForm,
                                                                  extra=0,
-                                                                 can_delete=True)
+                                                                 can_delete=True,
+                                                                 fields="__all__")
 
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
@@ -593,12 +599,12 @@ class PatientFormMixin(PatientMixin):
 
     def _get_address_formset(self, request):
         patient_address_form_set = inlineformset_factory(
-            Patient, PatientAddress, form=PatientAddressForm)
+            Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
         return patient_address_form_set(request.POST, prefix="patient_address")
 
     def _get_doctor_formset(self, request):
         patient_doctor_form_set = inlineformset_factory(
-            Patient, PatientDoctor, form=PatientDoctorForm)
+            Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
         return patient_doctor_form_set(request.POST, prefix="patient_doctor")
 
     def _get_patient_relatives_formset(self, request):
@@ -607,7 +613,8 @@ class PatientFormMixin(PatientMixin):
                                                           fk_name='patient',
                                                           form=PatientRelativeForm,
                                                           extra=0,
-                                                          can_delete=True)
+                                                          can_delete=True,
+                                                          fields="__all__")
 
         return patient_relatives_formset(request.POST, prefix="patient_relative")
 
@@ -646,7 +653,7 @@ class AddPatientView(PatientFormMixin, CreateView):
         forms.append(self.address_formset)
 
         patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm)
+            Patient, PatientConsent, form=PatientConsentFileForm, fields="__all__")
         self.patient_consent_file_formset = patient_consent_file_formset(
             request.POST, request.FILES, prefix="patient_consent_file")
         forms.append(self.patient_consent_file_formset)
@@ -731,7 +738,11 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
-        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent)
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+                                                             form=PatientConsentFileForm, fields="__all__")
+
+        logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
+
         patient_consent_file_to_save = patient_consent_file_formset(
             request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
         patient_consent_file_to_save.is_valid()
@@ -750,7 +761,7 @@ class PatientEditView(View):
             request.POST, instance=patient, user=request.user, registry_model=registry)
 
         patient_address_form_set = inlineformset_factory(
-            Patient, PatientAddress, form=PatientAddressForm)
+            Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
         address_to_save = patient_address_form_set(
             request.POST, instance=patient, prefix="patient_address")
 
@@ -762,7 +773,8 @@ class PatientEditView(View):
                                                               fk_name='patient',
                                                               form=PatientRelativeForm,
                                                               extra=0,
-                                                              can_delete=True)
+                                                              can_delete=True,
+                                                              fields="__all__")
 
             patient_relatives_forms = patient_relatives_formset(
                 request.POST, instance=patient, prefix="patient_relative")
@@ -791,7 +803,7 @@ class PatientEditView(View):
 
         if registry.get_metadata_item("patient_form_doctors"):
             patient_doctor_form_set = inlineformset_factory(
-                Patient, PatientDoctor, form=PatientDoctorForm)
+                Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
             doctors_to_save = patient_doctor_form_set(
                 request.POST, instance=patient, prefix="patient_doctor")
             valid_forms.append(doctors_to_save.is_valid())
@@ -908,7 +920,8 @@ class PatientEditView(View):
                                                             PatientAddress,
                                                             form=PatientAddressForm,
                                                             extra=0,
-                                                            can_delete=True)
+                                                            can_delete=True,
+                                                            fields="__all__")
 
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
@@ -954,7 +967,7 @@ class PatientEditView(View):
         patient_address_section = ("Patient Address", None)
 
         patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True)
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
         patient_consent_file_form = patient_consent_file_formset(
             instance=patient, prefix="patient_consent_file")
 
@@ -994,7 +1007,8 @@ class PatientEditView(View):
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
                                                                form=PatientDoctorForm,
                                                                extra=0,
-                                                               can_delete=True)
+                                                               can_delete=True,
+                                                               fields="__all__")
 
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
@@ -1013,7 +1027,8 @@ class PatientEditView(View):
                                                              fk_name='patient',
                                                              form=PatientRelativeForm,
                                                              extra=0,
-                                                             can_delete=True)
+                                                             can_delete=True,
+                                                             fields="__all__")
             patient_relative_form = patient_relative_formset(
                 instance=patient, prefix="patient_relative")
 
