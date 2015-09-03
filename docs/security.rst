@@ -7,21 +7,24 @@ Application Level Security
 --------------------------
 
 RDRF is built on top of Django 1.8.4, the latest LTS ( Long term support) release of Django.
-LTS releases  get security and data loss fixes applied for a guaranteed period of time ( 3+ years.)
+LTS releases get security and data loss fixes applied for a guaranteed period of time ( 3+ years.)
 
 Django itself provides distinct levels of built-in security including:
 
-1. CSRF ( Cross-Site Request Forgery ) checking: A method of insuring that man in the middle attacks
+1. SSL ( Secure Socket Layer) security - all web traffic to and from application is encrypted.
+
+2. CSRF ( Cross-Site Request Forgery ) checking: A method of insuring that man in the middle attacks
 ( falsifying form submissions for example) are impossible.
 
-2. Login restrictions of all "views"
+3. Login restrictions of all "views"
 
-3. In addition RDRF uses the Django Secure package ( http://django-secure.readthedocs.org/en/v0.1.2/) middleware.
+4. In addition RDRF uses the Django Secure package ( http://django-secure.readthedocs.org/en/v0.1.2/) middleware with
+all default settings applied.
 
-4. RDRF itself includes a fully configurable permissions layer which restrict the visibility of forms ( and fields) to user
-groups.
+5. RDRF itself includes a fully configurable permissions layer (role based security model)
+which restrict the visibility of forms ( and fields) to specified user groups.
 
-5. Furthermore, RDRF stores identifying patient contact/demographic data in a totally distinct database to any clinical/genetic data.
+6. Furthermore, RDRF stores identifying patient contact/demographic data in a totally distinct database to any clinical/genetic data.
 
 
 Notes on Operational Security
