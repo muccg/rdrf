@@ -235,7 +235,7 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
         self.patient_address, created = PatientAddress.objects.get_or_create(
-            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state, postcode='1111', patient=self.patient)
+            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state.short_name, postcode='1111', patient=self.patient)
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
