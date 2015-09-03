@@ -265,10 +265,13 @@ class PatientFormMixin(PatientMixin):
             mongo_wrapper = DynamicDataWrapper(self.object)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """
-        Returns an instance of the form to be used in this view.
+        PatientFormMixin.get_form Returns an instance of the form to be used in this view.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form_instance = super(PatientFormMixin, self).get_form(form_class)
         self.patient_form = form_instance
         return form_instance
