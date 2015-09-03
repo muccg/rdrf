@@ -19,7 +19,7 @@ Django itself provides distinct levels of built-in security including:
 3. Login restrictions of all "views"
 
 4. In addition RDRF uses the Django Secure package ( http://django-secure.readthedocs.org/en/v0.1.2/) middleware with
-all default settings applied.
+all settings enabled by default.
 
 5. RDRF itself includes a fully configurable permissions layer (role based security model)
 which restrict the visibility of forms ( and fields) to specified user groups.
