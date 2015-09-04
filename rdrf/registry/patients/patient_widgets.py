@@ -20,6 +20,8 @@ class PatientRelativeLinkWidget(widgets.Widget):
     def render(self, name, value, attrs=None):
         if value is None:
             return """<input type="checkbox" id="%s" name="%s">""" % (attrs['id'], name)
+        elif value == 'on':
+            return """<input type="checkbox" value="on" id="%s" name="%s">""" % (attrs['id'], name)
         else:
             reg_code = self.REGISTRY_CODE
 

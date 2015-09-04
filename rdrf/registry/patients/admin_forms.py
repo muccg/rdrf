@@ -53,7 +53,8 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
-        fields = "__all__"
+        fields = "__all__"  # Added after upgrading to Django 1.8
+        exclude = ['id']    # Added after upgrading to Django 1.8  - uniqueness check was failing otherwise (RDR-1039)
         widgets = {
              'relative_patient': PatientRelativeLinkWidget,
 
