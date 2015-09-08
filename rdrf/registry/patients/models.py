@@ -753,7 +753,7 @@ class PatientRelative(models.Model):
 
     LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
-    SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
     patient = models.ForeignKey(Patient, related_name="relatives")
     family_name = models.CharField(max_length=100)
     given_names = models.CharField(max_length=100)
