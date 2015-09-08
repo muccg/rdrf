@@ -124,6 +124,8 @@ class Patient(models.Model):
         ("Decline to Answer", "Decline to Answer"),
     )
 
+    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
+
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
     working_groups = models.ManyToManyField(
@@ -211,6 +213,7 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive')
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
