@@ -543,6 +543,10 @@ class DynamicDataWrapper(object):
 
         return self.file_store_class(db, collection=registry + ".files")
 
+    def has_data(self, registry_code):
+        data = self.load_dynamic_data(registry_code, "cdes")
+        return data is not None
+
     def load_dynamic_data(self, registry, collection_name, flattened=True):
         """
         :param registry: e.g. sma or dmd

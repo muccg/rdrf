@@ -203,6 +203,9 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_filter = ('registry', 'date_submitted')
 
     def process_link(self, obj):
+        if not obj.has_mongo_data:
+            return "NO DATA"
+
         link = "-"
         if not obj.processed:
             url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))

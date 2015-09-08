@@ -9,6 +9,7 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 
 logger = logging.getLogger("registry_log")
 
@@ -811,6 +812,9 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
+        if not self.has_mongo_data:
+            raise ObjectDoesNotExist
+
         questionnaire_form_name = RegistryForm.objects.get(
             registry=self.registry, is_questionnaire=True).name
 
@@ -822,6 +826,13 @@ class QuestionnaireResponse(models.Model):
             return ""
 
         return value
+
+    @property
+    def has_mongo_data(self):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(self)
+        return wrapper.has_data(self.registry.code)
+
 
 def appears_in(cde, registry, registry_form, section):
     if section.code not in registry_form.get_sections():
