@@ -783,6 +783,7 @@ class PatientRelative(models.Model):
         p.sex = self.sex
         p.consent = True   # tricky ?
         p.active = True
+        p.living_status = self.living_status
 
         try:
             p.save()
