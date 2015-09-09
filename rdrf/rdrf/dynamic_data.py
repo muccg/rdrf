@@ -592,22 +592,19 @@ class DynamicDataWrapper(object):
         else:
             return nested_data
 
-    def load_registry_specific_data(self):
+    def load_registry_specific_data(self, registry_model=None):
         data = {}
+        if registry_model is None:
+            return data
         record_query = self._get_record_query()
         logger.debug("record_query = %s" % record_query)
-        for reg_code in self._get_registry_codes():
-            # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
-            # ( already prefixed db names from Mongo
-            collection = self._get_collection(
-                reg_code,
-                self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
-                add_mongo_prefix=False)
-            registry_data = collection.find_one(record_query)
-            if registry_data:
-                for k in ['django_id', '_id', 'django_model']:
+        collection = self._get_collection(registry_model.code,
+                                          self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+        registry_data = collection.find_one(record_query)
+        if registry_data:
+            for k in ['django_id', '_id', 'django_model']:
                     del registry_data[k]
-                data[reg_code] = registry_data
+            data[registry_model.code] = registry_data
 
         logger.debug("registry_specific_data  = %s" % data)
         return data
