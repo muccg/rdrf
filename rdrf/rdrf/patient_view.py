@@ -12,13 +12,15 @@ from rdrf.models import RegistryForm
 from rdrf.models import Registry
 from rdrf.models import CdePolicy
 from rdrf.utils import FormLink
+from rdrf.models import ConsentSection
+from rdrf.models import ConsentQuestion
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
 from django.contrib.auth.models import Group
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian
+from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian, ConsentValue
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 import logging
@@ -157,6 +159,7 @@ class PatientView(View):
                         instance=patient, user=request.user, registry_model=registry)
                     context['patient_id'] = patient.id
                     context['age'] = calculate_age(patient.date_of_birth)
+                    context['consent'] = self._consent_status(registry_code, patient)
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
 
@@ -164,6 +167,20 @@ class PatientView(View):
             'rdrf_cdes/patient.html',
             context,
             context_instance=RequestContext(request))
+        
+    def _consent_status(self, registry_code, patient):
+        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+        for consent_section in consent_sections:
+            if consent_section.applicable_to(patient):
+                answers = []
+                questions = ConsentQuestion.objects.filter(section=consent_section)
+                for question in questions:
+                    try:
+                        cv = ConsentValue.objects.get(patient=patient, consent_question = question)
+                        answers.append(cv.answer)
+                    except ConsentValue.DoesNotExist:
+                        answers.append(False)
+        return all(answers)
 
 
 class PatientMixin(object):
