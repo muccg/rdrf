@@ -312,6 +312,20 @@ class PatientResource(ModelResource):
                 Q(given_names__icontains=search_phrase) | Q(family_name__icontains=search_phrase))
 
         total = query_set.count()
+
+        if total == 0:
+            # No patients found
+            results = {
+                "current": 1,
+                "rowCount": 0,
+                "searchPhrase": search_phrase,
+                "rows": [],
+                "total": total,
+                "show_add_patient": not chosen_registry.has_feature("no_add_patient_button"),
+            }
+            self.log_throttled_access(request)
+            return self.create_response(request, results)
+
         if row_count == -1:
             # All
             row_count = total
