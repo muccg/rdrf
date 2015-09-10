@@ -35,7 +35,7 @@ and cannot be addressed by the software itself.
 
 1. security of data on physical media
 
-The registry framework stores data in PostgreSQL and MongoDB. Thedatabase these systems use should be encrypted.
+The registry framework stores data in PostgreSQL and MongoDB. The database these systems use should be encrypted.
 This ensures that data is protected if the storage hardware is (for example) stolen, reused, or returned to the manufacturer to address a fault.
 
 In this sense, storage includes all physical media which is used to store registry data, including the volumes used by the database software,
