@@ -119,7 +119,7 @@ class FormView(View):
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
         self.testing = False
-        self.template = 'rdrf_cdes/form.html'
+        self.template = self._get_template()
         self.registry = None
         self.dynamic_data = {}
         self.registry_form = None
@@ -357,7 +357,7 @@ class FormView(View):
                     patient_name)
 
         return render_to_response(
-            'rdrf_cdes/form.html',
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -536,6 +536,15 @@ class FormView(View):
                 json_dict[section] = json.dumps(metadata)
 
         return json_dict
+
+    def _get_template(self, ):
+        return "rdrf_cdes/form.html"
+
+
+class FormPrintView(FormView):
+    
+    def _get_template(self):
+        return "rdrf_cdes/form_print.html"
 
 
 class ConsentFormWrapper(object):
