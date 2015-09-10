@@ -39,7 +39,7 @@
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
             var patients_list = $("#patient_list_table").DataTable({
                 "ajax": {
-                    "url": api_url + "?registry_code={{registries.0.code}}",
+                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
                     "dataSrc": "rows",
                 },
                 "columns": {{columns|safe}},
