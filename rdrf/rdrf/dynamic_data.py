@@ -355,6 +355,13 @@ class FormDataParser(object):
     def _get_gridfs_value(self, inmemory_uploaded_file):
         return None
 
+    def _parse_timestamps(self):
+        for key in self.form_data:
+            if key == "timestamp":
+                self.global_timestamp = self.form_data[key]
+            elif key.endswith("_timestamp"):
+                    self.form_timestamps[key] = self.form_data[key]
+
     def _parse_all_forms(self):
         # used in questionnaire approval handling where all form data was being saved in one go
         # generated questionnaire gets fanned out to all forms
@@ -375,6 +382,7 @@ class FormDataParser(object):
                 self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
 
     def _parse_multisection(self, multisection_code):
+        self._parse_timestamps()
         the_form_model = None
         the_section_model = None
         multisection_item_list = self.form_data[multisection_code]
@@ -992,8 +1000,6 @@ class DynamicDataWrapper(object):
         else:
             record = self._get_record_query()
             record["forms"] = []
-            #record.update(form_data)
-            #self._set_in_memory_uploaded_files_to_none(record)
             self._update_files_in_gridfs(record, registry, form_data, index_map)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),
