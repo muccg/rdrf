@@ -425,7 +425,7 @@ class PatientAdmin(admin.ModelAdmin):
                                   name="patient_search"))
         return local_urls + urls
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         self.request = request
         if request.user.is_superuser:
             return Patient.objects.all()
