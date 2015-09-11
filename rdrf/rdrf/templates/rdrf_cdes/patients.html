@@ -10,6 +10,8 @@
     
     <script>
         $(document).ready(function() {
+            $.fn.dataTable.ext.errMode = 'throw';
+
             if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
                 $("#add_patient").hide();
             }
