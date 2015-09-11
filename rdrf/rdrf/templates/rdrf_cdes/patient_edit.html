@@ -9,6 +9,7 @@
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
+{% load get_information_text %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -295,8 +296,15 @@
                             <div class="panel panel-default">
                                 <div class="panel-heading"><strong>{{name}}</strong>
                                 {% with link=section|get_information_link %}
+                                {% with info_text=section|get_information_text %}
                                 {% with doc="docs/"|add:link %}
                                     {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
+                                    {% if info_text %}
+                                        <br>
+                                        <hr>
+                                        {{ info_text|safe }}
+                                    {% endif %}
+                                {% endwith %}
                                 {% endwith %}
                                 </div>
                                 <div class="panel-body">

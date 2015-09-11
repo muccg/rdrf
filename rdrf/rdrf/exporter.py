@@ -323,6 +323,7 @@ class Exporter(object):
             section_dict = {"code": consent_section.code,
                             "section_label": consent_section.section_label,
                             "information_link": consent_section.information_link,
+                            "information_text": consent_section.information_text,
                             "applicability_condition": consent_section.applicability_condition,
                             "validation_rule": consent_section.validation_rule,
                             "questions": []}
