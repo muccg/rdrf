@@ -55,7 +55,7 @@ class ParentView(BaseParentView):
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
-            forms = RegistryForm.objects.filter(registry=registry)
+            forms = RegistryForm.objects.filter(registry=registry).order_by('position')
 
             context['parent'] = parent
             context['patients'] = parent.patient.all()
