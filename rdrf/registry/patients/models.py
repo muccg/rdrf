@@ -47,16 +47,25 @@ class State(models.Model):
 
 
 class Doctor(models.Model):
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
+
     # TODO: Is it possible for one doctor to work with multiple working groups?
+    title = models.CharField(max_length=4, blank=True, null=True)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=20, blank=True, null=True)
+    state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
+                              on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+
+    fax = models.CharField(max_length=30, blank=True, null=True)
+
 
     class Meta:
         ordering = ['family_name']
