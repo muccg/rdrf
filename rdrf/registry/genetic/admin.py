@@ -49,7 +49,7 @@ class LaboratoryAdmin(admin.ModelAdmin):
                               )
         return local_urls + urls
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return Laboratory.objects.all()
 
     def search(self, request, term):

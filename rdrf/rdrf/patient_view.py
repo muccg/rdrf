@@ -414,6 +414,7 @@ class PatientFormMixin(PatientMixin):
             "mobile_phone",
             "work_phone",
             "email",
+            "living_status",
         ])
 
         next_of_kin = ("Next of Kin", [
@@ -957,6 +958,7 @@ class PatientEditView(View):
             "mobile_phone",
             "work_phone",
             "email",
+            "living_status",
         ])
 
         next_of_kin = ("Next of Kin", [

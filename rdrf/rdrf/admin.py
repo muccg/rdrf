@@ -170,7 +170,7 @@ generate_questionnaire_action.short_description = "Generate Questionnaire"
 class RegistryAdmin(admin.ModelAdmin):
     actions = [export_registry_action, design_registry_action, generate_questionnaire_action]
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         if not request.user.is_superuser:
             user = get_user_model().objects.get(username=request.user)
             return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
@@ -203,13 +203,16 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_filter = ('registry', 'date_submitted')
 
     def process_link(self, obj):
+        if not obj.has_mongo_data:
+            return "NO DATA"
+
         link = "-"
         if not obj.processed:
             url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
             link = "<a href='%s'>Review</a>" % url
         return link
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         user = request.user
         if user.is_superuser:
             return QuestionnaireResponse.objects.all()

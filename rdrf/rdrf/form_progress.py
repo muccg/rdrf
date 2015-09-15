@@ -42,12 +42,9 @@ class FormProgressCalculator(object):
 
         # List of (form_model, section_model, cde_model) triples
         self.diagnosis_triples = self.registry_model.diagnosis_progress_cde_triples
-        logger.debug("xx diagnosis triples = %s" % self.diagnosis_triples)
         self.genetic_triples = self.registry_model.genetic_progress_cde_triples
         self.diagnosis_forms = self._get_diagnosis_forms()
-        logger.debug("xx diagnosis forms = %s" % self.diagnosis_forms)
         self.genetic_forms = self._get_genetic_forms()
-        logger.debug("xx genetic forms = %s" % self.genetic_forms)
         self.patient_ids = []
         # do this once to save time
         self.completion_keys_by_form = self._get_completion_keys_by_form()

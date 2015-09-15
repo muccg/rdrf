@@ -124,6 +124,8 @@ class Patient(models.Model):
         ("Decline to Answer", "Decline to Answer"),
     )
 
+    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
+
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry)
     working_groups = models.ManyToManyField(
@@ -211,6 +213,7 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive')
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -753,7 +756,7 @@ class PatientRelative(models.Model):
 
     LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
-    SEX_CHOICES = (("M", "Male"), ("F", "Female"), ("X", "Other/Intersex"))
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
     patient = models.ForeignKey(Patient, related_name="relatives")
     family_name = models.CharField(max_length=100)
     given_names = models.CharField(max_length=100)
@@ -780,6 +783,7 @@ class PatientRelative(models.Model):
         p.sex = self.sex
         p.consent = True   # tricky ?
         p.active = True
+        p.living_status = self.living_status
 
         try:
             p.save()
