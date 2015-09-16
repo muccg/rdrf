@@ -157,7 +157,7 @@
             </div>
             </div>
         </div>
-
+        
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -196,7 +196,12 @@
                                     <option>-----</option>
                                     <option value="{% url 'patient_edit' registry_code patient.patient.id %}">Demographics</option>
                                         {% for form in registry_forms %}
-                                            <option value="{% url 'registry_form' registry_code form.id patient.patient.id %}">{{form.name|de_camelcase}}</a></option>
+                                            <option value="{% url 'registry_form' registry_code form.form.id patient.patient.id %}">
+                                                {{form.form.name|de_camelcase}}
+                                                {% if form.readonly %}
+                                                    ---READONLY---
+                                                {% endif %}
+                                            </option>
                                         {% endfor %}
                                 </select>
                             {% else %}

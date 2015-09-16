@@ -69,12 +69,17 @@ class ParentView(BaseParentView):
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
-            forms = RegistryForm.objects.filter(registry=registry).order_by('position')
             
+            forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
+            forms = []
+            for form in forms_objects:
+                forms.append({
+                    "form": form,
+                    "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
+                })
+
             patients_objects = parent.patient.all()
-            
             patients = []
-            
             for patient in patients_objects:
                 patients.append({
                     "patient": patient,

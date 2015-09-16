@@ -144,6 +144,7 @@ class PatientView(View):
 
                     def __init__(self, form):
                         self.form = form
+                        self.readonly = request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
                         patient = Patient.objects.get(user=request.user)
                         self.link = form.link(patient)
 

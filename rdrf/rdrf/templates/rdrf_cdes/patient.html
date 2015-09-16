@@ -66,7 +66,7 @@
             {% if consent %}
                 <ul class="list-group">
                 {% for form in forms %}
-                    <li class="list-group-item">{{form.form.name}}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
+                    <li class="list-group-item">{{form.form.name}} {% if form.readonly %}<i><font style="color: red">Readonly</font></strong></i>{% endif %}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
                 {% endfor %}
                 </ul>
             {% else %}

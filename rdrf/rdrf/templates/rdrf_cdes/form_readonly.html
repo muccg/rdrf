@@ -1,0 +1,395 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load get_display_name %}
+{% load get_section_id %}
+{% load is_formset %}
+{% load get_management_form %}
+{% load lookup %}
+{% load get_forms %}
+{% load get_form %}
+{% load get_form_object %}
+{% load static %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    
+    <!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+    <![endif]-->
+
+
+    <script type="text/javascript">
+        window.IMAGES_URL = "{% static 'images/' %}";
+        window.HGVS_URL = "{% url 'hgvs_validator' %}";
+    </script>
+
+    <style>
+        .ui-autocomplete {
+            max-height: 100px;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+        }
+          /* IE 6 doesn't support max-height
+           * we use height instead, but this forces the menu to always be this tall
+           */
+          * html .ui-autocomplete {
+            height: 100px;
+        }
+        
+        ul {
+            list-style-type: none;
+            margin-left: 0;
+        }
+        
+        table {
+            table-layout: fixed;
+        }
+        
+        .progress {
+            margin-bottom: 0px;
+        }
+        
+        .badge {
+            border-radius: 0px;
+        }
+        
+        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
+            border-top: 0;
+        }
+    </style>
+    
+    <script>
+        function goBack() {
+            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            if (warning == true) {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            }
+        }
+    </script>
+    
+    <script>
+    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
+    // clicking the today button
+    $.datepicker._gotoToday = function(id) {
+        var target = $(id);
+        var inst = this._getInst(target[0]);
+        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+                inst.selectedDay = inst.currentDay;
+                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+                inst.drawYear = inst.selectedYear = inst.currentYear;
+        }
+        else {
+                var date = new Date();
+                inst.selectedDay = date.getDate();
+                inst.drawMonth = inst.selectedMonth = date.getMonth();
+                inst.drawYear = inst.selectedYear = date.getFullYear();
+                // the below two lines are new
+                this._setDateDatepicker(target, date);
+                this._selectDate(id, this._getDateDatepicker(target));
+        }
+        this._notifyChange(inst);
+        this._adjustDate(target);
+    }
+    
+    {% if user.is_superuser and has_form_progress %}
+        $(function() {
+            $( "#form-progress" ).progressbar({
+                value: {{form_progress}}
+            });
+        });
+    {% endif %}
+    
+    $(document).ready(function(){
+        $("#form-progress-cdes").hide();
+        
+        $("#show-cdes-btn").click(function() {
+            $("#form-progress-cdes").toggle("fast");
+        });
+        
+        $(document).find( ".datepicker" ).each(function() {
+            $(this).on("mouseover", function() {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
+                });
+            });
+        });
+    });
+    
+    function add_form(prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var empty_form = $("#empty_" + prefix);
+        var forms = $("#forms_" + prefix);
+        
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        
+        var new_form = empty_form.clone(true, true);
+        
+        new_form.find(":input").each(function() {
+            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+            
+            if ($(this).hasClass("datepicker")) {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
+                });
+            }
+        });
+
+        var total_forms_inc = parseInt(total_forms.val()) + 1;
+        total_forms.attr("value", total_forms_inc);
+
+        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+        new_form.appendTo(forms).show("fast");
+    }
+
+    function delete_form(form_div, prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        var total_forms_dec = parseInt(total_forms.val()) - 1;
+        total_forms.attr("value", total_forms_dec);
+
+        $(form_div).parent().parent().parent().remove();
+    }
+
+    </script>
+{% endblock %}
+
+
+{% block formlinks %}
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
+            {% for form_link in form_links %}
+                <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
+            {% endfor %}
+        </ul>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <div class="alert alert-danger">This form is readonly</div>
+    {{ block.super }}
+    <br>
+    <div class="row">
+    <div class="col-md-10">
+        <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
+            {% if has_form_progress %}
+                <div class="well">
+                    <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>
+                    <div id="form-progress">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <span class="badge" id="show-cdes-btn"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
+                                      {{form_progress|floatformat:"0"}}%
+                                    </div>
+                                </div>
+                          </li>
+                        </ul>
+                    </div>
+                    <div id="form-progress-cdes">
+                        </br>
+                        <ul class="list-group">
+                            {% for fpc in form_progress_cdes.items %}
+                                <li class="list-group-item">
+                                    {% if fpc.1 %}
+                                        <img src='{% static 'images/tick.png'%}'>
+                                    {% elif fpc.1 == False %}
+                                        <img src='{% static 'images/cross.png'%}'>
+                                    {% endif %}
+                                    {{fpc.0}}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for s in sections %}
+                <div class="panel panel-default">
+    
+                    <div class="panel-heading">
+                        {% if request.user.is_superuser %}
+                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
+                        {% else %}
+                            <strong>{{display_names|get_display_name:s}}</strong>
+                        {% endif %}
+                        
+                        {% if forms|is_formset:s %}
+                            {% with formset=forms|get_form_object:s %}
+                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                </a>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+    
+                    <div class="panel-body">
+                        {% if forms|is_formset:s %}
+                            {% with formset=forms|get_form_object:s %}
+                                <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
+                                <div style="display: none;" id="empty_{{formset.prefix}}">
+                                    <div class="form-group">
+                                        <div class="col-sm-9 col-sm-offset-3">
+                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% for element in formset.empty_form %}
+                                        {% if element.errors %}
+                                            <div class="form-group has-error">
+                                        {% else %}
+                                            <div class="form-group">
+                                        {% endif %}
+                                                {% if element.label == "Delete" %}
+                                                {% else %}
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        {{ element.label }}
+                                                        {% if  element.field.required %}
+                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        {{ element|safe }}
+                                                        <small class="text-muted">
+                                                            {{ element.help_text }}
+                                                        </small>
+                                                        {% if element.errors %}
+                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div id="forms_{{formset.prefix}}">
+                                {% for f in formset.forms %}
+                                    <div>
+                                        {% for element in f %}
+                                            {% if element.errors %}
+                                                <div class="form-group has-error">
+                                            {% else %}
+                                                <div class="form-group">
+                                            {% endif %}
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        {% if element.label == "Delete" %}
+                                                            Mark for deletion
+                                                        {% else %}
+                                                            {{ element.label }}
+                                                            {% if  element.field.required %}
+                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        {{ element|safe }}
+                                                        <small class="text-muted">
+                                                            {{ element.help_text }}
+                                                        </small>
+                                                        {% if element.errors %}
+                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                        {% endfor %}
+                                        <p><hr style="border: solid 1px gray"></p>
+                                    </div>
+                                {% endfor %}
+                                </div>
+                            {% endwith%}
+                        {% else %}
+                            {% for field in forms|get_form_object:s %}
+                                <div class="form-group">
+                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
+                                        {{field.label}}
+                                        {% if  field.field.required %}
+                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                        {% endif %}
+                                    </label>
+                                    <div class="col-md-8">
+                                        {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
+                                        {% if field.errors %}
+                                            <span class="label label-danger">{{field.errors.as_text}}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-2">
+            <div data-spy="affix" style="width: 150px;">
+                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+                </a>
+            </div>
+        </div>
+
+    </form>
+
+ </div>
+
+
+<script>
+    $(document).ready(function () {
+        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+        $("textarea").addClass("form-control");
+        $("select").addClass("form-control");
+        $("label[for*='-clear']").removeClass();
+        $(":input").attr("disabled", true);
+    })
+</script>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-error">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-error">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
+
+

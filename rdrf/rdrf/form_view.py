@@ -119,12 +119,13 @@ class FormView(View):
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
         self.testing = False
-        self.template = self._get_template()
+        self.template = None
         self.registry = None
         self.dynamic_data = {}
         self.registry_form = None
         self.form_id = None
         self.patient_id = None
+        self.user = None
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -152,6 +153,7 @@ class FormView(View):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
+        self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
@@ -168,7 +170,7 @@ class FormView(View):
     def _render_context(self, request, context):
         context.update(csrf(request))
         return render_to_response(
-            self.template,
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -180,9 +182,12 @@ class FormView(View):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
-        if request.user.is_working_group_staff:
+        if request.user.is_superuser:
+            pass
+        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
             raise PermissionDenied()
 
+        self.user = request.user
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
@@ -538,6 +543,8 @@ class FormView(View):
         return json_dict
 
     def _get_template(self, ):
+        if self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+            return "rdrf_cdes/form_readonly.html"
         return "rdrf_cdes/form.html"
 
 
