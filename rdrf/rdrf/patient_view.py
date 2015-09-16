@@ -730,6 +730,7 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+        patient_relatives_forms = None
 
         logger.debug("Edit patient pk before save %s" % patient.pk)
 
@@ -851,7 +852,8 @@ class PatientEditView(View):
                                                                           request,
                                                                           patient_form,
                                                                           address_to_save,
-                                                                          doctors_to_save)
+                                                                          doctors_to_save,
+                                                                          patient_relatives_forms=patient_relatives_forms)
 
             context = {
                 "forms": form_sections,
@@ -897,7 +899,8 @@ class PatientEditView(View):
                                         request,
                                         patient_form=None,
                                         patient_address_form=None,
-                                        patient_doctor_form=None):
+                                        patient_doctor_form=None,
+                                        patient_relatives_forms=None):
 
         user = request.user
         if patient_id is None:
@@ -1037,8 +1040,14 @@ class PatientEditView(View):
                                                              extra=0,
                                                              can_delete=True,
                                                              fields="__all__")
-            patient_relative_form = patient_relative_formset(
-                instance=patient, prefix="patient_relative")
+
+            if patient_relatives_forms is None:
+
+                patient_relative_form = patient_relative_formset(
+                    instance=patient, prefix="patient_relative")
+
+            else:
+                patient_relative_form = patient_relatives_forms
 
             patient_relative_section = ("Patient Relative", None)
 
