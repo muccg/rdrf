@@ -163,7 +163,7 @@ class Patient(models.Model):
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
     maiden_name = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Maiden Name (if applicable)")
+        max_length=100, null=True, blank=True, verbose_name="Maiden name (if applicable)")
     umrn = models.CharField(
         max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
