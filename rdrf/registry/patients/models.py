@@ -814,6 +814,11 @@ class PatientRelative(models.Model):
         return p
 
 
+@receiver(post_delete, sender=PatientRelative)
+def delete_created_patient(sender, instance, **kwargs):
+    if instance.relative_patient:
+        instance.relative_patient.delete()
+
 @receiver(post_save, sender=Patient)
 def save_patient_mongo(sender, instance, **kwargs):
     patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
