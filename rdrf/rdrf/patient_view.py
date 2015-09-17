@@ -917,6 +917,7 @@ class PatientEditView(View):
                                         patient_relatives_forms=None):
 
         user = request.user
+        hide_registry_specific_fields_section = False
         if patient_id is None:
             patient = None
         else:
@@ -933,6 +934,8 @@ class PatientEditView(View):
                     PatientForm,
                     registry,
                     patient)
+                if munged_patient_form_class.HIDDEN:
+                    hide_registry_specific_fields_section = True
                 patient_form = munged_patient_form_class(
                     instance=patient, user=user, registry_model=registry)
 
@@ -1068,11 +1071,12 @@ class PatientEditView(View):
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 
         if registry.patient_fields:
-            registry_specific_section_fields = self._get_registry_specific_section_fields(
-                user, registry)
-            form_sections.append(
-                (patient_form, (registry_specific_section_fields,))
-            )
+            if not hide_registry_specific_fields_section:
+                registry_specific_section_fields = self._get_registry_specific_section_fields(
+                    user, registry)
+                form_sections.append(
+                    (patient_form, (registry_specific_section_fields,))
+                )
 
         return patient, form_sections
 
@@ -1104,6 +1108,13 @@ class PatientEditView(View):
 
                 if cde_policy.is_allowed(user.groups.all(), patient):
                     additional_fields[cde.code] = field_object
+
+
+        if len(additional_fields.keys()) == 0:
+            additional_fields["HIDDEN"] = True
+        else:
+            additional_fields["HIDDEN"] = False
+
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
