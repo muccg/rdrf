@@ -769,7 +769,7 @@ class PatientEditView(View):
             patient_form_class = PatientForm
 
         patient_form = patient_form_class(
-            request.POST, instance=patient, user=request.user, registry_model=registry)
+            request.POST, request.FILES, instance=patient, user=request.user, registry_model=registry)
 
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
@@ -836,7 +836,7 @@ class PatientEditView(View):
                 patient_instance.user = patient_user
                 patient_instance.save()
 
-            self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
+            self._save_registry_specific_data_in_mongo(patient_instance, registry, request)
 
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
@@ -1109,12 +1109,10 @@ class PatientEditView(View):
                 if cde_policy.is_allowed(user.groups.all(), patient):
                     additional_fields[cde.code] = field_object
 
-
         if len(additional_fields.keys()) == 0:
             additional_fields["HIDDEN"] = True
         else:
             additional_fields["HIDDEN"] = False
-
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
@@ -1125,18 +1123,23 @@ class PatientEditView(View):
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
-    def _save_registry_specific_data_in_mongo(self, patient_model, registry, post_data):
+    def _save_registry_specific_data_in_mongo(self, patient_model, registry, request):
         from rdrf.dynamic_data import DynamicDataWrapper
         from django.utils.datastructures import MultiValueDictKeyError
         if registry.patient_fields:
             mongo_patient_data = {registry.code: {}}
             for cde, field_object in registry.patient_fields:
                 cde_code = cde.code
-                try:
-                    field_value = post_data[cde.code]
-                except MultiValueDictKeyError:
-                    continue
+                if not cde.datatype == "file":
+                    try:
+                        field_value = request.POST[cde.code]
+                        mongo_patient_data[registry.code][cde_code] = field_value
+                    except MultiValueDictKeyError:
+                        continue
+                else:
+                    in_memory_uploaded_file = request.FILES[cde_code]
 
-                mongo_patient_data[registry.code][cde_code] = field_value
+                    data = in_memory_uploaded_file.read()
+                    mongo_patient_data[registry.code][cde.code] = data
             mongo_wrapper = DynamicDataWrapper(patient_model)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)
