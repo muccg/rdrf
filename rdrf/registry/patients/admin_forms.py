@@ -293,10 +293,6 @@ class PatientForm(forms.ModelForm):
         logger.debug("restricted working groups choices to %s" %
                      [wg.pk for wg in initial_working_groups])
 
-    #consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
-    #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
-    #consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
-    #consent_provided_by_parent_guardian = forms.BooleanField(required=False, help_text="The parent/guardian of the patient has provided consent", label="Parent/Guardian consent provided on behalf of the patient")
     date_of_birth = forms.DateField(
         widget=forms.DateInput(
             attrs={
