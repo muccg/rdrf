@@ -250,7 +250,7 @@ class PatientFormMixin(PatientMixin):
 
     def _get_registry_specific_section_fields(self, user, registry_model):
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldset_title = "%s Specific Fields" % registry_model.code.upper()
+        fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
@@ -459,6 +459,9 @@ class PatientFormMixin(PatientMixin):
                 (next_of_kin,)
             ),
         ]
+
+        if registry.has_feature("family_linkage"):
+            form_sections = form_sections[:-1]
 
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
@@ -727,6 +730,7 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+        patient_relatives_forms = None
 
         logger.debug("Edit patient pk before save %s" % patient.pk)
 
@@ -848,7 +852,8 @@ class PatientEditView(View):
                                                                           request,
                                                                           patient_form,
                                                                           address_to_save,
-                                                                          doctors_to_save)
+                                                                          doctors_to_save,
+                                                                          patient_relatives_forms=patient_relatives_forms)
 
             context = {
                 "forms": form_sections,
@@ -894,7 +899,8 @@ class PatientEditView(View):
                                         request,
                                         patient_form=None,
                                         patient_address_form=None,
-                                        patient_doctor_form=None):
+                                        patient_doctor_form=None,
+                                        patient_relatives_forms=None):
 
         user = request.user
         if patient_id is None:
@@ -1004,6 +1010,9 @@ class PatientEditView(View):
             ),
         ]
 
+        if registry.has_feature("family_linkage"):
+            form_sections = form_sections[:-1]
+
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
@@ -1031,8 +1040,14 @@ class PatientEditView(View):
                                                              extra=0,
                                                              can_delete=True,
                                                              fields="__all__")
-            patient_relative_form = patient_relative_formset(
-                instance=patient, prefix="patient_relative")
+
+            if patient_relatives_forms is None:
+
+                patient_relative_form = patient_relative_formset(
+                    instance=patient, prefix="patient_relative")
+
+            else:
+                patient_relative_form = patient_relatives_forms
 
             patient_relative_section = ("Patient Relative", None)
 
@@ -1081,7 +1096,7 @@ class PatientEditView(View):
 
     def _get_registry_specific_section_fields(self, user, registry_model):
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldset_title = "%s Specific Fields" % registry_model.code.upper()
+        fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 

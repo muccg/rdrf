@@ -47,16 +47,25 @@ class State(models.Model):
 
 
 class Doctor(models.Model):
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
+
     # TODO: Is it possible for one doctor to work with multiple working groups?
+    title = models.CharField(max_length=4, blank=True, null=True)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=20, blank=True, null=True)
+    state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
+                              on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+
+    fax = models.CharField(max_length=30, blank=True, null=True)
+
 
     class Meta:
         ordering = ['family_name']
@@ -154,7 +163,7 @@ class Patient(models.Model):
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
     maiden_name = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Maiden Name (if applicable)")
+        max_length=100, null=True, blank=True, verbose_name="Maiden name (if applicable)")
     umrn = models.CharField(
         max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
@@ -804,6 +813,11 @@ class PatientRelative(models.Model):
         logger.debug("updated %s relative_patient to %s" % (self, p))
         return p
 
+
+@receiver(post_delete, sender=PatientRelative)
+def delete_created_patient(sender, instance, **kwargs):
+    if instance.relative_patient:
+        instance.relative_patient.delete()
 
 @receiver(post_save, sender=Patient)
 def save_patient_mongo(sender, instance, **kwargs):
