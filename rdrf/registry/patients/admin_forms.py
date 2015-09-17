@@ -414,7 +414,6 @@ class PatientForm(forms.ModelForm):
             patient_model.rdrf_registry = [reg for reg in self.cleaned_data["rdrf_registry"]]
             patient_model.save()
 
-
         patient_model.clinician = self.cleaned_data["clinician"]
 
         for consent_field in self.custom_consents:
