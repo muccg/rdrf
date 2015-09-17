@@ -446,6 +446,24 @@ class Patient(models.Model):
 
         return None
 
+    def sync_patient_relative(self):
+        logger.debug("Attempting to sync PatientRelative")
+        # If there is a patient relative ( from which I was created)
+        # then synchronise my common properties:
+        try:
+            pr = PatientRelative.objects.get(relative_patient=self)
+        except PatientRelative.DoesNotExist:
+            logger.debug("no PatientRelative to sync")
+            return
+        logger.debug("Patient %s updating PatientRelative %s" % (self, pr))
+        pr.given_names = self.given_names
+        pr.family_name = self.family_name
+        pr.date_of_birth = self.date_of_birth
+        pr.sex = self.sex
+        pr.living_status = self.living_status
+        pr.save()
+        logger.debug("synced PatientRelative OK")
+
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
@@ -529,7 +547,6 @@ class Patient(models.Model):
             self.active = True
 
         super(Patient, self).save(*args, **kwargs)
-        #regs = self._save_patient_mongo()
 
     def delete(self, *args, **kwargs):
         """
@@ -812,6 +829,15 @@ class PatientRelative(models.Model):
         self.save()
         logger.debug("updated %s relative_patient to %s" % (self, p))
         return p
+
+    def sync_relative_patient(self):
+        if self.relative_patient:
+            self.relative_patient.given_names = self.given_names
+            self.relative_patient.family_name = self.family_name
+            self.relative_patient.date_of_birth = self.date_of_birth
+            self.relative_patient.sex = self.sex
+            self.relative_patient.living_status = self.living_status
+            self.relative_patient.save()
 
 
 @receiver(post_delete, sender=PatientRelative)

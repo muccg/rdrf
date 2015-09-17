@@ -60,6 +60,7 @@ def get_error_messages(forms):
     logger.debug("get_error_messages = %s" % results)
     return results
 
+
 def calculate_age(born):
     today = date.today()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
@@ -520,6 +521,10 @@ class PatientFormMixin(PatientMixin):
         # called _after_ all form(s) validated
         # save patient
         self.object = form.save()
+        # if this patient was created from a patient relative, sync with it
+        self.object.sync_patient_relative()
+
+
         # save registry specific fields
         self._save_registry_specific_data_in_mongo()
 
@@ -547,6 +552,7 @@ class PatientFormMixin(PatientMixin):
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
+                patient_relative_model.sync_relative_patient()
                 logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
                                                                                             patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
@@ -819,6 +825,9 @@ class PatientEditView(View):
                 doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
+
+            patient_instance.sync_patient_relative()
+
             logger.debug("patient pk after valid forms save = %s" % patient_instance.pk)
 
             # For some reason for FKRP , the patient.user was being clobbered
@@ -880,6 +889,11 @@ class PatientEditView(View):
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = patient_model
                 patient_relative_model.save()
+                # explicitly synchronise with the patient that has already been created from
+                # this patient relative ( if any )
+                # to avoid infinite loops we are doing this explicitly in the views ( not overriding save)
+                patient_relative_model.sync_relative_patient()
+
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
