@@ -33,12 +33,6 @@ rpmbuild() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    # docker-compose is hanging on "Attaching to" forever on Bambo instances
-    # The issue might be:
-    # https://github.com/docker/compose/issues/1961
-    # Until it is solved we use the previous stable version of docker-compose
-    pip install docker-compose==1.3.3
-
     docker-compose --project-name rdrf -f fig-rpmbuild.yml up
 }
 
