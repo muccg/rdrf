@@ -543,7 +543,7 @@ class DynamicDataWrapper(object):
         collection = db[collection_name]
         return collection
 
-    def _get_filestore(self, registry):
+    def get_filestore(self, registry):
         if not self.testing:
             db = self.client[mongo_db_name(registry)]
         else:
@@ -681,7 +681,7 @@ class DynamicDataWrapper(object):
             dynamic_data):
         logger.debug("storing file in gridfs")
         logger.debug("dynamic data supplied = %s" % dynamic_data)
-        fs = self._get_filestore(registry)
+        fs = self.get_filestore(registry)
         original_file_name = in_memory_file.name
         logger.debug("original filename = %s" % original_file_name)
 
@@ -719,7 +719,7 @@ class DynamicDataWrapper(object):
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
 
-        fs = self._get_filestore(registry)
+        fs = self.get_filestore(registry)
 
         def get_mongo_value(registry_code, nested_data, delimited_key):
             from rdrf.utils import models_from_mongo_key
