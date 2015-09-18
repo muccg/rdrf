@@ -261,7 +261,12 @@ class PatientFormMixin(PatientMixin):
             mongo_patient_data = {self.registry_model.code: {}}
             for cde, field_object in self.registry_model.patient_fields:
                 cde_code = cde.code
-                field_value = self.request.POST[cde.code]
+                if cde.datatype != 'file':
+                    field_value = self.request.POST[cde.code]
+                else:
+                    continue
+                    #field_value = self.request.FILES[cde.code]
+
                 mongo_patient_data[self.registry_model.code][cde_code] = field_value
             mongo_wrapper = DynamicDataWrapper(self.object)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)
@@ -1137,9 +1142,9 @@ class PatientEditView(View):
                     except MultiValueDictKeyError:
                         continue
                 else:
-                    in_memory_uploaded_file = request.FILES[cde_code]
-
-                    data = in_memory_uploaded_file.read()
-                    mongo_patient_data[registry.code][cde.code] = data
+                    continue
+                    #in_memory_uploaded_file = request.FILES[cde_code]
+                    #data = in_memory_uploaded_file.read()
+                    #mongo_patient_data[registry.code][cde.code] = data
             mongo_wrapper = DynamicDataWrapper(patient_model)
             mongo_wrapper.save_registry_specific_data(mongo_patient_data)
