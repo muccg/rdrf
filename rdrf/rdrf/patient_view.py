@@ -21,6 +21,8 @@ from django.contrib.auth.models import Group
 from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
+from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -190,6 +192,7 @@ class PatientFormMixin(PatientMixin):
         self.patient_relative_formset = None
         self.object = None
         self.patient_consent_file_formset = None
+        self.registry_specific_fields_handler = RegistrySpecificFieldsHandler(self.registry_model, self.patient_model)
 
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
@@ -255,21 +258,6 @@ class PatientFormMixin(PatientMixin):
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
-    def _save_registry_specific_data_in_mongo(self):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        if self.registry_model.patient_fields:
-            mongo_patient_data = {self.registry_model.code: {}}
-            for cde, field_object in self.registry_model.patient_fields:
-                cde_code = cde.code
-                if cde.datatype != 'file':
-                    field_value = self.request.POST[cde.code]
-                else:
-                    continue
-                    #field_value = self.request.FILES[cde.code]
-
-                mongo_patient_data[self.registry_model.code][cde_code] = field_value
-            mongo_wrapper = DynamicDataWrapper(self.object)
-            mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
     def get_form(self, form_class=None):
         """
@@ -531,7 +519,7 @@ class PatientFormMixin(PatientMixin):
 
 
         # save registry specific fields
-        self._save_registry_specific_data_in_mongo()
+        self.registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
 
         if self.patient_consent_file_formset:
             self.patient_consent_file_formset.instance = self.object
@@ -841,7 +829,8 @@ class PatientEditView(View):
                 patient_instance.user = patient_user
                 patient_instance.save()
 
-            self._save_registry_specific_data_in_mongo(patient_instance, registry, request)
+            registry_specific_fields_handler = RegistrySpecificFieldsHandler(registry, patient_instance)
+            registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
 
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
@@ -1127,24 +1116,3 @@ class PatientEditView(View):
         fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
-
-    def _save_registry_specific_data_in_mongo(self, patient_model, registry, request):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        from django.utils.datastructures import MultiValueDictKeyError
-        if registry.patient_fields:
-            mongo_patient_data = {registry.code: {}}
-            for cde, field_object in registry.patient_fields:
-                cde_code = cde.code
-                if not cde.datatype == "file":
-                    try:
-                        field_value = request.POST[cde.code]
-                        mongo_patient_data[registry.code][cde_code] = field_value
-                    except MultiValueDictKeyError:
-                        continue
-                else:
-                    continue
-                    #in_memory_uploaded_file = request.FILES[cde_code]
-                    #data = in_memory_uploaded_file.read()
-                    #mongo_patient_data[registry.code][cde.code] = data
-            mongo_wrapper = DynamicDataWrapper(patient_model)
-            mongo_wrapper.save_registry_specific_data(mongo_patient_data)
