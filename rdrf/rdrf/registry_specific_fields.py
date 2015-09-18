@@ -39,7 +39,10 @@ class RegistrySpecificFieldsHandler(object):
 
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
-            pass
+            gridfs_dict = gridfs_self.gridfs_api.store(self.registry_model, self.patient_model, file_cde_model, form_value)
+            return gridfs_dict
+        else:
+            logger.debug("")
 
         return {}
 

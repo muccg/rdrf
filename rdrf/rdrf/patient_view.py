@@ -192,7 +192,7 @@ class PatientFormMixin(PatientMixin):
         self.patient_relative_formset = None
         self.object = None
         self.patient_consent_file_formset = None
-        self.registry_specific_fields_handler = RegistrySpecificFieldsHandler(self.registry_model, self.patient_model)
+        self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
@@ -517,9 +517,10 @@ class PatientFormMixin(PatientMixin):
         # if this patient was created from a patient relative, sync with it
         self.object.sync_patient_relative()
 
-
         # save registry specific fields
-        self.registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
+        registry_specific_fields_handler = RegistrySpecificFieldsHandler(self.registry_model, self.object)
+
+        registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
         if self.patient_consent_file_formset:
             self.patient_consent_file_formset.instance = self.object
@@ -644,6 +645,7 @@ class AddPatientView(PatientFormMixin, CreateView):
         return super(AddPatientView, self).get(request, registry_code)
 
     def post(self, request, registry_code):
+        self.request = request
         logger.debug("starting POST of Add Patient")
         self._set_user(request)
         self._set_registry_model(registry_code)
