@@ -28,3 +28,4 @@ psycopg2==2.6.1
 django-secure==1.0.1
 https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.3.1.tar.gz
 https://github.com/muccg/django-userlog/archive/2.0.0.tar.gz
+openpyxl

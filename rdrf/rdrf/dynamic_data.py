@@ -707,8 +707,6 @@ class DynamicDataWrapper(object):
              dynamic_data[cde_code]))
         return gridfs_id
 
-
-
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from models import Section
@@ -854,8 +852,6 @@ class DynamicDataWrapper(object):
                                                                             index_map)
 
                 multisection_gridfs_handler.update_multisection_file_cdes()
-
-
 
     def _update_file_cde(self, section_index, key, value, existing_record):
         logger.debug("updating file reference for cde %s" % key)
