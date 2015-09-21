@@ -614,7 +614,9 @@ class DynamicDataWrapper(object):
                     del registry_data[k]
             data[registry_model.code] = registry_data
 
-        logger.debug("registry_specific_data  = %s" % data)
+        for registry_code in data:
+            self._wrap_gridfs_files_from_mongo(registry_model, data[registry_code])
+        logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
     def _get_registry_codes(self):

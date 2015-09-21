@@ -28,6 +28,10 @@ class RegistrySpecificFieldsHandler(object):
                         continue
                 else:
                     form_value = self._get_file_form_value(cde_model, request)
+                    if form_value == '':
+                        # delete?
+                        self._delete_existing_file_in_gridfs(cde_model)
+                        form_value = {}
                     logger.debug("file cde %s value = %s" % (cde_model.code, form_value))
                     processed_value = self._process_file_cde_value(cde_model, form_value)
                     logger.debug("after processing = %s" % processed_value)
@@ -37,14 +41,24 @@ class RegistrySpecificFieldsHandler(object):
 
             self.mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
+    def _delete_existing_file_in_gridfs(self, file_cde_model):
+        existing_data = self.get_registry_specific_data()
+        try:
+            file_upload_wrapper = existing_data[self.registry_model.code][file_cde_model.code]
+            if "gridfs_file_id" in file_upload_wrapper.mongo_data:
+                original_gridfs_id = file_upload_wrapper.mongo_data["gridfs_file_id"]
+                logger.debug("old value of file cde %s = %s" % (file_cde_model.code, original_gridfs_id))
+                self.gridfs_api.delete(original_gridfs_id)
+        except Exception, ex:
+            logger.debug("error deleting existing file for %s: %s" % (file_cde_model.code, ex))
+
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
-            gridfs_dict = gridfs_self.gridfs_api.store(self.registry_model, self.patient_model, file_cde_model, form_value)
+            self._delete_existing_file_in_gridfs(file_cde_model)
+            gridfs_dict = self.gridfs_api.store(self.registry_model, self.patient_model, file_cde_model, form_value)
             return gridfs_dict
         else:
-            logger.debug("")
-
-        return {}
+            return form_value
 
     def _get_file_form_value(self, file_cde_model, request):
         if file_cde_model.code in request.FILES:
@@ -87,4 +101,6 @@ class RegistrySpecificFieldsHandler(object):
     def get_registry_specific_data(self):
         if self.patient_model is None:
             return {}
-        return self.mongo_wrapper.load_registry_specific_data(self.registry_model)
+        data = self.mongo_wrapper.load_registry_specific_data(self.registry_model)
+        logger.debug("reg spec fields from mongo = %s" % data)
+        return data
