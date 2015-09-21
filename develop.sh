@@ -32,9 +32,8 @@ rpmbuild() {
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
-    pip install fig
 
-    fig --project-name rdrf -f fig-rpmbuild.yml up
+    docker-compose --project-name rdrf -f fig-rpmbuild.yml up
 }
 
 
@@ -64,11 +63,10 @@ lettuce() {
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
-    pip install fig
 
-    fig --project-name rdrf -f fig-lettuce.yml rm --force
-    fig --project-name rdrf -f fig-lettuce.yml build
-    fig --project-name rdrf -f fig-lettuce.yml up
+    docker-compose --project-name rdrf -f fig-lettuce.yml rm --force
+    docker-compose --project-name rdrf -f fig-lettuce.yml build
+    docker-compose --project-name rdrf -f fig-lettuce.yml up
 }
 
 selenium() {
@@ -78,12 +76,10 @@ selenium() {
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
-    pip install fig
 
-
-    fig --project-name rdrf -f fig-selenium.yml rm --force
-    fig --project-name rdrf -f fig-selenium.yml build
-    fig --project-name rdrf -f fig-selenium.yml up
+    docker-compose --project-name rdrf -f fig-selenium.yml rm --force
+    docker-compose --project-name rdrf -f fig-selenium.yml build
+    docker-compose --project-name rdrf -f fig-selenium.yml up
 }
 
 registry_specific_tests() {
@@ -99,9 +95,8 @@ start() {
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
-    pip install fig
 
-    fig --project-name rdrf up
+    docker-compose --project-name rdrf up
 }
 
 
@@ -111,11 +106,10 @@ unit_tests() {
 
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
-    pip install fig
 
-    fig --project-name rdrf -f fig-test.yml rm --force
-    fig --project-name rdrf -f fig-test.yml build
-    fig --project-name rdrf -f fig-test.yml up
+    docker-compose --project-name rdrf -f fig-test.yml rm --force
+    docker-compose --project-name rdrf -f fig-test.yml build
+    docker-compose --project-name rdrf -f fig-test.yml up
 }
 
 
@@ -124,6 +118,12 @@ make_virtualenv() {
     if [ ! -e ${VIRTUALENV} ]; then
         virtualenv ${VIRTUALENV}
     fi
+
+    # docker-compose is hanging on "Attaching to" forever on Bambo instances
+    # The issue might be:
+    # https://github.com/docker/compose/issues/1961
+    # Until it is solved we use the previous stable version of docker-compose
+    pip install docker-compose==1.3.3
 }
 
 
