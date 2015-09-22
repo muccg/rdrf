@@ -1,4 +1,6 @@
 {% load static from staticfiles %}
+{% load i18n %}
+
 <html>
 
 <head>
@@ -26,8 +28,8 @@
     <br/>
     <div class="container">
         <div class="alert alert-success" role="alert">
-            <h3>You have successfully activated your account.</h3><br>
-            Please proceed to <a href="{% url 'login' %}?next={% url 'login_router' %}">login page</a>.
+            <h3>{% trans 'You have successfully activated your account.' %}</h3><br>
+            {% trans 'Please proceed to' %} <a href="{% url 'login' %}?next={% url 'login_router' %}">{% trans 'login page' %}</a>.
         </div>
     </div>
 </body>

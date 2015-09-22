@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -48,7 +49,7 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Parent Details</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'Parent Details' %}</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ parent.first_name }} {{  parent.last_name }}</i>
         </div>
     </div>
@@ -69,24 +70,24 @@
         {% if not parent.self_patient %}
             <hr>
             <div class="form-group">
-                <div class="col-md-3 col-md-offset-1 control-label"><strong>I am a patient</strong></div>
+                <div class="col-md-3 col-md-offset-1 control-label"><strong>{% trans 'I am a patient' %}</strong></div>
                 <div class="col-md-6">
                     <input type="checkbox" name="self_patient_flag" id="self_patient_flag">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="clinician" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
+                <label for="clinician" class="col-md-3 col-md-offset-1 control-label">{% trans "Clinician" %}</label>
                 <div class="col-md-6">
                     <select class="form-control" id="id_clinician" name="clinician" required>
-                        <option value="-1">Choose your preferred Clinician</option>
+                        <option value="-1">{% trans 'Choose your preferred Clinician' %}</option>
                     </select>
                 </div>
             </div>
         {% endif %}
         <div class="form-group">
             <div class="col-md-10">
-                <input type="submit" class="btn btn-success pull-right" value="Save">
+                <input type="submit" class="btn btn-success pull-right" value="{% trans 'Save' %}">
             </div>
         </div>
     </form>

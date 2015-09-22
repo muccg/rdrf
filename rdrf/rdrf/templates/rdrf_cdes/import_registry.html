@@ -4,6 +4,7 @@
 {% load admin_urls %}
 {% load get_form %}
 {% load get_display_name %}
+{% load i18n %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -30,15 +31,15 @@
     <br>
 
     {% if state == "fail" %}
-        <div class="alert alert-danger">Import Failed: {{error_message}}</div>
+        <div class="alert alert-danger">{% trans 'Import Failed'%}: {{error_message}}</div>
     {% endif %}
     {% if state == "success" %}
-        <div class="alert alert-success">Import Succeeded</div>
+        <div class="alert alert-success">{% trans 'Import Succeeded' %}</div>
     {% endif %}    
     
     <div class="alert alert-info alert-dismissable">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        Please load from file OR paste in the text area
+        {% trans 'Please load from file OR paste in the text area' %}
     </div>
     
     <form enctype="multipart/form-data" method="post" id="import-form">{% csrf_token %}
@@ -52,11 +53,11 @@
                 <textarea cols="100" class="form-control" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>
             </div>
             <div class="panel-footer">
-                <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="Submit" />
+                <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="{% trans ' Submit' %}" />
                 <div class="clearfix"></div>
             </div>
         </div>
     </form>
     
-    <h2 class="muted" id="import-msg">Importing, please wait...</h2>
+    <h2 class="muted" id="import-msg">{% trans 'Importing, please wait' %}...</h2>
 {% endblock %}

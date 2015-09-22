@@ -13,6 +13,7 @@ from utils import consent_status_for_patient
 
 
 from registry.groups.models import WorkingGroup
+from django.utils.translation import ugettext as _
 
 
 class LoginRequiredMixin(object):
@@ -115,7 +116,7 @@ class ParentView(BaseParentView):
 
         parent.patient.add(patient)
         parent.save()
-        messages.add_message(request, messages.SUCCESS, 'Patient added successfully')
+        messages.add_message(request, messages.SUCCESS, _('Patient added successfully'))
         return redirect(reverse("parent_page", args={registry_code: registry_code}))
 
 
@@ -141,9 +142,9 @@ class ParentEditView(BaseParentView):
         parent_form = ParentGuardianForm(request.POST, instance=parent)
         if parent_form.is_valid():
             parent_form.save()
-            messages.add_message(request, messages.SUCCESS, "Details saved")
+            messages.add_message(request, messages.SUCCESS, _("Details saved"))
         else:
-            messages.add_message(request, messages.ERROR, "Please correct the errors bellow")
+            messages.add_message(request, messages.ERROR, _("Please correct the errors bellow"))
 
         if "self_patient_flag" in request.POST:
             registry = Registry.objects.get(code=registry_code)

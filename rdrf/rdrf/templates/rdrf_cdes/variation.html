@@ -1,4 +1,6 @@
 {% load static from staticfiles %}
+{% load i18n %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -240,32 +242,32 @@
     </script>
 </head>
 <body style="margin-left: 50px">
-    <h1>Enter genetic variation</h1>
+    <h1>{% trans 'Enter genetic variation' %}</h1>
 
     <form id="variation-entry-form">
         <!-- We should probably do something with genes here. -->
 
         <fieldset class="module aligned">
             <div class="form-row">
-                <label for="sequence-type">Sequence type:</label>
+                <label for="sequence-type">{% trans 'Sequence type' %}:</label>
                 <select id="sequence-type">
-                    <option value="g">Genomic</option>
-                    <option value="c">Coding DNA</option>
-                    <option value="r">RNA</option>
-                    <option value="m">Mitochondrial DNA</option>
+                    <option value="g">{% trans 'Genomic' %}</option>
+                    <option value="c">{% trans 'Coding DNA' %}</option>
+                    <option value="r">{% trans 'RNA' %}</option>
+                    <option value="m">{% trans 'Mitochondrial DNA' %}</option>
                     <!-- TODO: Protein. -->
                 </select>
             </div>
 
             <div class="form-row">
-                <label for="mutation-type">Mutation type:</label>
+                <label for="mutation-type">{% trans 'Mutation type' %}:</label>
                 <select id="mutation-type">
-                    <option value="substitution">Substitution (point mutation)</option>
-                    <option value="deletion">Deletion</option>
-                    <option value="insertion">Insertion</option>
-                    <option value="duplication">Duplication</option>
-                    <option value="indel">Insertion/Deletion</option>
-                    <option value="inversion">Inversion</option>
+                    <option value="substitution">{% trans 'Substitution (point mutation)' %}</option>
+                    <option value="deletion">{% trans 'Deletion' %}</option>
+                    <option value="insertion">{% trans 'Insertion' %}</option>
+                    <option value="duplication">{% trans 'Duplication' %}</option>
+                    <option value="indel">{% trans 'Insertion/Deletion' %}</option>
+                    <option value="inversion">{% trans 'Inversion' %}</option>
                     <!--
                     Not implemented from Mutalyzer: frame shift; micro
                     satellite.
@@ -274,7 +276,7 @@
             </div>
 
             <div class="form-row">
-                <label for="range-start">Range:</label>
+                <label for="range-start">{% trans 'Range' %}:</label>
                 <input class="form-control" type="text" id="range-start" size="10">
                 <span id="range-end-container">
                     &ndash;
@@ -287,17 +289,17 @@
             </div>
 
             <div class="form-row" id="sequence-container">
-                <label for="sequence" id="sequence-label">Sequence:</label>
+                <label for="sequence" id="sequence-label">{% trans 'Sequence' %}:</label>
                 <input type="text" id="sequence" size="20">
             </div>
 
             <div class="form-row" id="new-sequence-container">
-                <label for="new-sequence">New sequence:</label>
+                <label for="new-sequence">{% trans 'New sequence' %}:</label>
                 <input type="text" id="new-sequence" size="20">
             </div>
 
             <div class="form-row" id="preview-container">
-                <label>Preview:</label>
+                <label>{% trans 'Preview' %}:</label>
                 <span id="preview"></span>
                 <span id="validity"></span>
             </div>

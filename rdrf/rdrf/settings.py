@@ -52,7 +52,6 @@ LANGUAGES = (
     ('ar', 'Arabic'),
     ('de', 'German'),
     ('en', 'English'),
-    ('no', 'Norwegian'),
 )
 
 DATABASES = {

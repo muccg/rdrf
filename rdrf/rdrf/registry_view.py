@@ -5,6 +5,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 
+from django.utils.translation import ugettext as _
 from models import Registry
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class RegistryView(View):
                     'rdrf_cdes/splash.html', {'body': ' '})
         except ObjectDoesNotExist:
             return render_to_response(
-                'rdrf_cdes/splash.html', {'body': 'Oops, wrong registry code...'})
+                'rdrf_cdes/splash.html', {'body': _('Oops, wrong registry code...')})
 
         context = {
             'body': registry.splash_screen,

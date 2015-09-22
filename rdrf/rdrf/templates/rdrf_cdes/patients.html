@@ -1,6 +1,7 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static from staticfiles %}
 {% load has_feature %}
+{% load i18n %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -107,7 +108,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans "Patient List" %}</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
@@ -116,7 +117,7 @@
 
     <div class="clearfix">
         <button id="add_patient" class="btn btn-success pull-right">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans "Add" %}
         </button>
     </div>
     
@@ -126,7 +127,7 @@
                 <option id="{{ reg.code }}">{{ reg.name }}</option>
             {% endfor %}
         </select>
-        <span id="loading_text"><i>Loading...</i></span>
+        <span id="loading_text"><i>{% trans "Loading..." %}</i></span>
     </p>
 
     <table id="patient_list_table" class="table table-striped table-hover">
