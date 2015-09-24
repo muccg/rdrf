@@ -4,6 +4,8 @@ MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN rm /etc/apt/apt.conf.d/30proxy
+
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
   git \

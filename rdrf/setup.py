@@ -47,7 +47,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="1.0.8",
+      version="1.0.9",
       packages=packages,
       description='RDRF',
       long_description='Rare Disease Registry Framework',

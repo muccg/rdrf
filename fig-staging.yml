@@ -1,6 +1,6 @@
 # data only container pattern
 datastaging:
-  image: muccg/base:debian8
+  image: muccg/debian8-base
   volumes:
     - data:/data
 
