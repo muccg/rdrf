@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN git clone --depth=1 --branch=1.0.7 https://bitbucket.org/ccgmurdoch/rdrf.git .
+RUN git clone --depth=1 --branch=1.0.9 https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order
