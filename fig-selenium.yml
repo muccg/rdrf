@@ -1,6 +1,6 @@
 #
 dataselenium:
-  image: muccg/base:debian8
+  image: muccg/debian8-base
   volumes:
     - .:/app
     - data/selenium:/data

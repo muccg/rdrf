@@ -155,6 +155,11 @@ class Registry(models.Model):
         field_pairs.reverse()
         return field_pairs
 
+    @property
+    def specific_fields_section_title(self):
+        if self.patient_data_section:
+            return self.patient_data_section.display_name
+
     def _progress_cdes(self, progress_type="diagnosis"):
         # returns list of triples (form_model, section_model, cde_model)
         results = []

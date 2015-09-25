@@ -1,6 +1,6 @@
 # data only container pattern
 datatest:
-  image: muccg/base:debian8
+  image: muccg/debian8-base
   volumes:
     - .:/app
     - data/tests:/data

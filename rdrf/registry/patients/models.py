@@ -47,16 +47,25 @@ class State(models.Model):
 
 
 class Doctor(models.Model):
+    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
+
     # TODO: Is it possible for one doctor to work with multiple working groups?
+    title = models.CharField(max_length=4, blank=True, null=True)
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory")
+    postcode = models.CharField(max_length=20, blank=True, null=True)
+    state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
+                              on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+
+    fax = models.CharField(max_length=30, blank=True, null=True)
+
 
     class Meta:
         ordering = ['family_name']
@@ -154,7 +163,7 @@ class Patient(models.Model):
     family_name = models.CharField(max_length=100, db_index=True)
     given_names = models.CharField(max_length=100, db_index=True)
     maiden_name = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Maiden Name (if applicable)")
+        max_length=100, null=True, blank=True, verbose_name="Maiden name (if applicable)")
     umrn = models.CharField(
         max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
     date_of_birth = models.DateField()
@@ -437,6 +446,24 @@ class Patient(models.Model):
 
         return None
 
+    def sync_patient_relative(self):
+        logger.debug("Attempting to sync PatientRelative")
+        # If there is a patient relative ( from which I was created)
+        # then synchronise my common properties:
+        try:
+            pr = PatientRelative.objects.get(relative_patient=self)
+        except PatientRelative.DoesNotExist:
+            logger.debug("no PatientRelative to sync")
+            return
+        logger.debug("Patient %s updating PatientRelative %s" % (self, pr))
+        pr.given_names = self.given_names
+        pr.family_name = self.family_name
+        pr.date_of_birth = self.date_of_birth
+        pr.sex = self.sex
+        pr.living_status = self.living_status
+        pr.save()
+        logger.debug("synced PatientRelative OK")
+
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
@@ -520,7 +547,6 @@ class Patient(models.Model):
             self.active = True
 
         super(Patient, self).save(*args, **kwargs)
-        #regs = self._save_patient_mongo()
 
     def delete(self, *args, **kwargs):
         """
@@ -804,6 +830,20 @@ class PatientRelative(models.Model):
         logger.debug("updated %s relative_patient to %s" % (self, p))
         return p
 
+    def sync_relative_patient(self):
+        if self.relative_patient:
+            self.relative_patient.given_names = self.given_names
+            self.relative_patient.family_name = self.family_name
+            self.relative_patient.date_of_birth = self.date_of_birth
+            self.relative_patient.sex = self.sex
+            self.relative_patient.living_status = self.living_status
+            self.relative_patient.save()
+
+
+@receiver(post_delete, sender=PatientRelative)
+def delete_created_patient(sender, instance, **kwargs):
+    if instance.relative_patient:
+        instance.relative_patient.delete()
 
 @receiver(post_save, sender=Patient)
 def save_patient_mongo(sender, instance, **kwargs):
