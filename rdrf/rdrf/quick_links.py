@@ -41,6 +41,8 @@ class QuickLinks(object):
         "admin:rdrf_cdepermittedvalue_changelist", "Permissible Values", True)
     ConsentSections = QuickLink(
         "admin:rdrf_consentsection_changelist", "Consent Sections", True)
+    ConsentValues = QuickLink(
+        "admin:patients_consentvalue_changelist", "Consent Values", False)
     DemographicsFields = QuickLink(
         "admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
     Importer = QuickLink("import_registry", "Importer", True)
@@ -65,6 +67,7 @@ class QuickLinks(object):
                             PermissibleValueGroups,
                             PermissibleValues,
                             ConsentSections,
+                            ConsentValues,
                             Groups,
                             Importer,
                             Explorer,

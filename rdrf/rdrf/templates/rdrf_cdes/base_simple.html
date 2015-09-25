@@ -1,0 +1,31 @@
+{% load staticfiles %}
+{% load i18n %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <title>{% trans "Rare Disease Registry Framework" %}</title>
+  
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        
+        {% block extrahead %}
+        {% endblock %}
+    
+    </head>
+    <body>
+
+
+<div id="wrap">
+
+    <div class="container">
+        {% block content%}
+        {% endblock%}
+    </div>
+
+</div>
+
+</body>
+</html>

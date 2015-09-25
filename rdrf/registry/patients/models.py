@@ -670,7 +670,7 @@ class Patient(models.Model):
 
 
 class ParentGuardian(models.Model):
-    GENDER_CHOICES = (("M", "Male"), ("F", "Female"))
+    GENDER_CHOICES = (("M", "Male"), ("F", "Female"), ("I", "Indeterminate"))
 
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)

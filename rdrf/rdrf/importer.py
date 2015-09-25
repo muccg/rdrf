@@ -15,6 +15,9 @@ from registry.groups.models import WorkingGroup
 from explorer.models import Query
 
 from django.contrib.auth.models import Group
+
+from utils import create_permission
+
 import yaml
 import json
 
@@ -468,6 +471,11 @@ class Importer(object):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
+            
+            permission_code_name = "form_%s_is_readonly" % f.id
+            permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
+            create_permission("rdrf", "registryform", permission_code_name, permission_name)
+            
             f.name = frm_map["name"]
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
@@ -621,6 +629,7 @@ class Importer(object):
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
                 information_link = section_dict["information_link"]
+                information_text = section_dict["information_text"]
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry)
                 section_model.information_link = information_link

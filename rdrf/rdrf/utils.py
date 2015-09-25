@@ -1,4 +1,10 @@
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+
 from django.conf import settings
+from django.db import IntegrityError
+from django.db import transaction
+
 import logging
 import re
 
@@ -209,3 +215,12 @@ def make_index_map(index_actions_list):
 
 def is_gridfs_file_wrapper(value):
     return isinstance(value, dict) and "griffs_file_id" in value
+
+def create_permission(app_label, model, code_name, name):
+    content_type = ContentType.objects.get(app_label=app_label, model=model)
+    
+    try:
+        with transaction.atomic():
+            Permission.objects.create(codename=code_name, name=name, content_type=content_type)
+    except IntegrityError:
+        pass

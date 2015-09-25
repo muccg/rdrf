@@ -1476,6 +1476,7 @@ class ConsentSection(models.Model):
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
     information_link = models.CharField(max_length=100, blank=True, null=True)
+    information_text = models.TextField(blank=True, null=True)
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)
@@ -1595,6 +1596,10 @@ class ConsentQuestion(models.Model):
             return self.questionnaire_label
         else:
             return self.question_label
+
+    def __unicode__(self):
+        return "%s" % self.question_label
+    
 
 
 class DemographicFields(models.Model):
