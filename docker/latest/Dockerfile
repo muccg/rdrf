@@ -1,6 +1,6 @@
 #
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER https://bitbucket.org/ccgmurdoch/fkrp/
+MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN git clone --depth=1 --branch=master https://bitbucket.org/ccgmurdoch/fkrp.git .
+RUN git clone --depth=1 --branch=master https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order

@@ -1,6 +1,6 @@
 #
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER https://bitbucket.org/ccgmurdoch/fkrp/
+MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
 ENV DEBIAN_FRONTEND noninteractive
 
