@@ -23,6 +23,8 @@ from django.contrib.auth.models import Group
 from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian, ConsentValue
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
+from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -61,6 +63,7 @@ def get_error_messages(forms):
     results = map(strip_tags, messages)
     logger.debug("get_error_messages = %s" % results)
     return results
+
 
 def calculate_age(born):
     today = date.today()
@@ -207,6 +210,7 @@ class PatientFormMixin(PatientMixin):
         self.patient_relative_formset = None
         self.object = None
         self.patient_consent_file_formset = None
+        self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
     def _get_registry_specific_fields(self, user, registry_model):
@@ -268,20 +272,10 @@ class PatientFormMixin(PatientMixin):
 
     def _get_registry_specific_section_fields(self, user, registry_model):
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldset_title = "%s Specific Fields" % registry_model.code.upper()
+        fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
-    def _save_registry_specific_data_in_mongo(self):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        if self.registry_model.patient_fields:
-            mongo_patient_data = {self.registry_model.code: {}}
-            for cde, field_object in self.registry_model.patient_fields:
-                cde_code = cde.code
-                field_value = self.request.POST[cde.code]
-                mongo_patient_data[self.registry_model.code][cde_code] = field_value
-            mongo_wrapper = DynamicDataWrapper(self.object)
-            mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
     def get_form(self, form_class=None):
         """
@@ -478,6 +472,9 @@ class PatientFormMixin(PatientMixin):
             ),
         ]
 
+        if registry.has_feature("family_linkage"):
+            form_sections = form_sections[:-1]
+
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
@@ -535,8 +532,13 @@ class PatientFormMixin(PatientMixin):
         # called _after_ all form(s) validated
         # save patient
         self.object = form.save()
+        # if this patient was created from a patient relative, sync with it
+        self.object.sync_patient_relative()
+
         # save registry specific fields
-        self._save_registry_specific_data_in_mongo()
+        registry_specific_fields_handler = RegistrySpecificFieldsHandler(self.registry_model, self.object)
+
+        registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
         if self.patient_consent_file_formset:
             self.patient_consent_file_formset.instance = self.object
@@ -562,6 +564,7 @@ class PatientFormMixin(PatientMixin):
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
+                patient_relative_model.sync_relative_patient()
                 logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
                                                                                             patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
@@ -660,6 +663,7 @@ class AddPatientView(PatientFormMixin, CreateView):
         return super(AddPatientView, self).get(request, registry_code)
 
     def post(self, request, registry_code):
+        self.request = request
         logger.debug("starting POST of Add Patient")
         self._set_user(request)
         self._set_registry_model(registry_code)
@@ -745,6 +749,7 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+        patient_relatives_forms = None
 
         logger.debug("Edit patient pk before save %s" % patient.pk)
 
@@ -777,7 +782,7 @@ class PatientEditView(View):
             patient_form_class = PatientForm
 
         patient_form = patient_form_class(
-            request.POST, instance=patient, user=request.user, registry_model=registry)
+            request.POST, request.FILES, instance=patient, user=request.user, registry_model=registry)
 
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
@@ -833,6 +838,9 @@ class PatientEditView(View):
                 doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
+
+            patient_instance.sync_patient_relative()
+
             logger.debug("patient pk after valid forms save = %s" % patient_instance.pk)
 
             # For some reason for FKRP , the patient.user was being clobbered
@@ -841,7 +849,8 @@ class PatientEditView(View):
                 patient_instance.user = patient_user
                 patient_instance.save()
 
-            self._save_registry_specific_data_in_mongo(patient_instance, registry, request.POST)
+            registry_specific_fields_handler = RegistrySpecificFieldsHandler(registry, patient_instance)
+            registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
 
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
@@ -866,7 +875,8 @@ class PatientEditView(View):
                                                                           request,
                                                                           patient_form,
                                                                           address_to_save,
-                                                                          doctors_to_save)
+                                                                          doctors_to_save,
+                                                                          patient_relatives_forms=patient_relatives_forms)
 
             context = {
                 "forms": form_sections,
@@ -893,6 +903,11 @@ class PatientEditView(View):
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = patient_model
                 patient_relative_model.save()
+                # explicitly synchronise with the patient that has already been created from
+                # this patient relative ( if any )
+                # to avoid infinite loops we are doing this explicitly in the views ( not overriding save)
+                patient_relative_model.sync_relative_patient()
+
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
@@ -912,9 +927,11 @@ class PatientEditView(View):
                                         request,
                                         patient_form=None,
                                         patient_address_form=None,
-                                        patient_doctor_form=None):
+                                        patient_doctor_form=None,
+                                        patient_relatives_forms=None):
 
         user = request.user
+        hide_registry_specific_fields_section = False
         if patient_id is None:
             patient = None
         else:
@@ -931,6 +948,8 @@ class PatientEditView(View):
                     PatientForm,
                     registry,
                     patient)
+                if munged_patient_form_class.HIDDEN:
+                    hide_registry_specific_fields_section = True
                 patient_form = munged_patient_form_class(
                     instance=patient, user=user, registry_model=registry)
 
@@ -1022,6 +1041,9 @@ class PatientEditView(View):
             ),
         ]
 
+        if registry.has_feature("family_linkage"):
+            form_sections = form_sections[:-1]
+
         if registry.get_metadata_item("patient_form_doctors"):
             if not patient_doctor_form:
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
@@ -1049,19 +1071,26 @@ class PatientEditView(View):
                                                              extra=0,
                                                              can_delete=True,
                                                              fields="__all__")
-            patient_relative_form = patient_relative_formset(
-                instance=patient, prefix="patient_relative")
+
+            if patient_relatives_forms is None:
+
+                patient_relative_form = patient_relative_formset(
+                    instance=patient, prefix="patient_relative")
+
+            else:
+                patient_relative_form = patient_relatives_forms
 
             patient_relative_section = ("Patient Relative", None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 
         if registry.patient_fields:
-            registry_specific_section_fields = self._get_registry_specific_section_fields(
-                user, registry)
-            form_sections.append(
-                (patient_form, (registry_specific_section_fields,))
-            )
+            if not hide_registry_specific_fields_section:
+                registry_specific_section_fields = self._get_registry_specific_section_fields(
+                    user, registry)
+                form_sections.append(
+                    (patient_form, (registry_specific_section_fields,))
+                )
 
         return patient, form_sections
 
@@ -1094,27 +1123,16 @@ class PatientEditView(View):
                 if cde_policy.is_allowed(user.groups.all(), patient):
                     additional_fields[cde.code] = field_object
 
+        if len(additional_fields.keys()) == 0:
+            additional_fields["HIDDEN"] = True
+        else:
+            additional_fields["HIDDEN"] = False
+
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
 
     def _get_registry_specific_section_fields(self, user, registry_model):
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldset_title = "%s Specific Fields" % registry_model.code.upper()
+        fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
-
-    def _save_registry_specific_data_in_mongo(self, patient_model, registry, post_data):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        from django.utils.datastructures import MultiValueDictKeyError
-        if registry.patient_fields:
-            mongo_patient_data = {registry.code: {}}
-            for cde, field_object in registry.patient_fields:
-                cde_code = cde.code
-                try:
-                    field_value = post_data[cde.code]
-                except MultiValueDictKeyError:
-                    continue
-
-                mongo_patient_data[registry.code][cde_code] = field_value
-            mongo_wrapper = DynamicDataWrapper(patient_model)
-            mongo_wrapper.save_registry_specific_data(mongo_patient_data)

@@ -29,7 +29,7 @@ Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
 BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel libyaml-devel
-Requires: python%{pyver} zlib libyaml postgresql94-libs
+Requires: python%{pyver} zlib libyaml postgresql94-libs python%{pyver}-mod_wsgi
 
 %description
 Registry rdrf

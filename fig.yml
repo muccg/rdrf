@@ -8,10 +8,10 @@
 
 # data only container pattern
 data:
-  image: muccg/base:debian8
-  volumes:
-    - .:/app
-    - data/dev:/data
+    image: muccg/debian8-base
+    volumes:
+      - .:/app
+      - data/dev:/data
 
 smtp:
   image: muccg/postfix:latest
