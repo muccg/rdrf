@@ -1,195 +1,289 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import positions.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Registry'
-        db.create_table(u'rdrf_registry', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=80)),
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('desc', self.gf('django.db.models.fields.TextField')()),
-            ('splash_screen', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'rdrf', ['Registry'])
+    dependencies = [
+        ('auth', '0006_require_contenttypes_0002'),
+    ]
 
-        # Adding model 'CDEPermittedValueGroup'
-        db.create_table(u'rdrf_cdepermittedvaluegroup', (
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=250, primary_key=True)),
-        ))
-        db.send_create_signal(u'rdrf', ['CDEPermittedValueGroup'])
-
-        # Adding model 'CDEPermittedValue'
-        db.create_table(u'rdrf_cdepermittedvalue', (
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=30, primary_key=True)),
-            ('value', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('desc', self.gf('django.db.models.fields.TextField')(null=True)),
-            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')
-             (related_name='permitted_value_set', to=orm['rdrf.CDEPermittedValueGroup'])),
-        ))
-        db.send_create_signal(u'rdrf', ['CDEPermittedValue'])
-
-        # Adding model 'CommonDataElement'
-        db.create_table(u'rdrf_commondataelement', (
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=30, primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('desc', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('datatype', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('instructions', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('pv_group', self.gf('django.db.models.fields.related.ForeignKey')
-             (to=orm['rdrf.CDEPermittedValueGroup'], null=True, blank=True)),
-            ('allow_multiple', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('max_length', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('max_value', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('min_value', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('is_required', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('pattern', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('widget_name', self.gf('django.db.models.fields.CharField')(max_length=80, blank=True)),
-            ('calculation', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('questionnaire_text', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal(u'rdrf', ['CommonDataElement'])
-
-        # Adding model 'RegistryForm'
-        db.create_table(u'rdrf_registryform', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=80)),
-            ('sections', self.gf('django.db.models.fields.TextField')()),
-            ('is_questionnaire', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal(u'rdrf', ['RegistryForm'])
-
-        # Adding model 'Section'
-        db.create_table(u'rdrf_section', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('display_name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('elements', self.gf('django.db.models.fields.TextField')()),
-            ('allow_multiple', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('extra', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'rdrf', ['Section'])
-
-        # Adding model 'Wizard'
-        db.create_table(u'rdrf_wizard', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('registry', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('forms', self.gf('django.db.models.fields.TextField')()),
-            ('rules', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'rdrf', ['Wizard'])
-
-        # Adding model 'QuestionnaireResponse'
-        db.create_table(u'rdrf_questionnaireresponse', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('registry', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rdrf.Registry'])),
-            ('date_submitted', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('processed', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('patient_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'rdrf', ['QuestionnaireResponse'])
-
-    def backwards(self, orm):
-        # Deleting model 'Registry'
-        db.delete_table(u'rdrf_registry')
-
-        # Deleting model 'CDEPermittedValueGroup'
-        db.delete_table(u'rdrf_cdepermittedvaluegroup')
-
-        # Deleting model 'CDEPermittedValue'
-        db.delete_table(u'rdrf_cdepermittedvalue')
-
-        # Deleting model 'CommonDataElement'
-        db.delete_table(u'rdrf_commondataelement')
-
-        # Deleting model 'RegistryForm'
-        db.delete_table(u'rdrf_registryform')
-
-        # Deleting model 'Section'
-        db.delete_table(u'rdrf_section')
-
-        # Deleting model 'Wizard'
-        db.delete_table(u'rdrf_wizard')
-
-        # Deleting model 'QuestionnaireResponse'
-        db.delete_table(u'rdrf_questionnaireresponse')
-
-    models = {
-        u'rdrf.cdepermittedvalue': {
-            'Meta': {'object_name': 'CDEPermittedValue'},
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '30', 'primary_key': 'True'}),
-            'desc': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'pv_group': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'permitted_value_set'", 'to': u"orm['rdrf.CDEPermittedValueGroup']"}),
-            'value': ('django.db.models.fields.CharField', [], {'max_length': '256'})
-        },
-        u'rdrf.cdepermittedvaluegroup': {
-            'Meta': {'object_name': 'CDEPermittedValueGroup'},
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '250', 'primary_key': 'True'})
-        },
-        u'rdrf.commondataelement': {
-            'Meta': {'object_name': 'CommonDataElement'},
-            'allow_multiple': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'calculation': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '30', 'primary_key': 'True'}),
-            'datatype': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'desc': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'instructions': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'is_required': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'max_length': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'max_value': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'min_value': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'pattern': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'pv_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.CDEPermittedValueGroup']", 'null': 'True', 'blank': 'True'}),
-            'questionnaire_text': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'widget_name': ('django.db.models.fields.CharField', [], {'max_length': '80', 'blank': 'True'})
-        },
-        u'rdrf.questionnaireresponse': {
-            'Meta': {'object_name': 'QuestionnaireResponse'},
-            'date_submitted': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'patient_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'processed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"})
-        },
-        u'rdrf.registry': {
-            'Meta': {'object_name': 'Registry'},
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'desc': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),
-            'splash_screen': ('django.db.models.fields.TextField', [], {})
-        },
-        u'rdrf.registryform': {
-            'Meta': {'object_name': 'RegistryForm'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_questionnaire': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '80'}),
-            'registry': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['rdrf.Registry']"}),
-            'sections': ('django.db.models.fields.TextField', [], {})
-        },
-        u'rdrf.section': {
-            'Meta': {'object_name': 'Section'},
-            'allow_multiple': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'display_name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'elements': ('django.db.models.fields.TextField', [], {}),
-            'extra': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
-        },
-        u'rdrf.wizard': {
-            'Meta': {'object_name': 'Wizard'},
-            'forms': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'registry': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'rules': ('django.db.models.fields.TextField', [], {})
-        }
-    }
-
-    complete_apps = ['rdrf']
+    operations = [
+        migrations.CreateModel(
+            name='Adjudication',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('requesting_username', models.CharField(max_length=80)),
+                ('patient_id', models.IntegerField()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='AdjudicationDecision',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('patient', models.IntegerField()),
+                ('decision_data', models.TextField()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='AdjudicationDefinition',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('display_name', models.CharField(max_length=80, null=True, blank=True)),
+                ('fields', models.TextField()),
+                ('result_fields', models.TextField()),
+                ('decision_field', models.TextField(null=True, blank=True)),
+                ('adjudicator_username', models.CharField(default=b'admin', max_length=80)),
+                ('adjudicating_users', models.TextField(help_text=b'Either comma-seperated list of usernames and/or working group names', null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='AdjudicationRequest',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('username', models.CharField(max_length=80)),
+                ('requesting_username', models.CharField(max_length=80)),
+                ('patient', models.IntegerField()),
+                ('state', models.CharField(default=b'C', max_length=1)),
+                ('definition', models.ForeignKey(to='rdrf.AdjudicationDefinition')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='AdjudicationResponse',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('response_data', models.TextField()),
+                ('request', models.ForeignKey(to='rdrf.AdjudicationRequest')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CDEPermittedValue',
+            fields=[
+                ('id', models.AutoField(serialize=False, primary_key=True)),
+                ('code', models.CharField(max_length=30)),
+                ('value', models.CharField(max_length=256)),
+                ('questionnaire_value', models.CharField(max_length=256, null=True, blank=True)),
+                ('desc', models.TextField(null=True)),
+                ('position', models.IntegerField(null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CDEPermittedValueGroup',
+            fields=[
+                ('code', models.CharField(max_length=250, serialize=False, primary_key=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CdePolicy',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('condition', models.TextField(blank=True)),
+            ],
+            options={
+                'verbose_name': 'CDE Policy',
+                'verbose_name_plural': 'CDE Policies',
+            },
+        ),
+        migrations.CreateModel(
+            name='CommonDataElement',
+            fields=[
+                ('code', models.CharField(max_length=30, serialize=False, primary_key=True)),
+                ('name', models.CharField(help_text=b'Label for field in form', max_length=250)),
+                ('desc', models.TextField(help_text=b'origin of field', blank=True)),
+                ('datatype', models.CharField(help_text=b'type of field', max_length=50)),
+                ('instructions', models.TextField(help_text=b'Used to indicate help text for field', blank=True)),
+                ('allow_multiple', models.BooleanField(default=False, help_text=b'If a range, indicate whether multiple selections allowed')),
+                ('max_length', models.IntegerField(help_text=b'Length of field - only used for character fields', null=True, blank=True)),
+                ('max_value', models.IntegerField(help_text=b'Only used for numeric fields', null=True, blank=True)),
+                ('min_value', models.IntegerField(help_text=b'Only used for numeric fields', null=True, blank=True)),
+                ('is_required', models.BooleanField(default=False, help_text=b'Indicate whether field is non-optional')),
+                ('pattern', models.CharField(help_text=b'Regular expression to validate string fields (optional)', max_length=50, blank=True)),
+                ('widget_name', models.CharField(help_text=b'If a special widget required indicate here - leave blank otherwise', max_length=80, blank=True)),
+                ('calculation', models.TextField(help_text=b'Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output', blank=True)),
+                ('questionnaire_text', models.TextField(help_text=b'The text to use in any public facing questionnaires/registration forms', blank=True)),
+                ('pv_group', models.ForeignKey(blank=True, to='rdrf.CDEPermittedValueGroup', help_text=b'If a range, indicate the Permissible Value Group', null=True)),
+            ],
+            options={
+                'verbose_name': 'Data Element',
+                'verbose_name_plural': 'Data Elements',
+            },
+        ),
+        migrations.CreateModel(
+            name='ConsentQuestion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.CharField(max_length=20)),
+                ('position', models.IntegerField(null=True, blank=True)),
+                ('question_label', models.TextField()),
+                ('instructions', models.TextField(blank=True)),
+                ('questionnaire_label', models.TextField(blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ConsentSection',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.CharField(max_length=20)),
+                ('section_label', models.CharField(max_length=100)),
+                ('information_link', models.CharField(max_length=100, null=True, blank=True)),
+                ('applicability_condition', models.TextField(blank=True)),
+                ('validation_rule', models.TextField(blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='DemographicFields',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('field', models.CharField(max_length=50)),
+                ('readonly', models.NullBooleanField()),
+                ('hidden', models.NullBooleanField()),
+                ('group', models.ForeignKey(to='auth.Group')),
+            ],
+            options={
+                'verbose_name_plural': 'Demographic Fields',
+            },
+        ),
+        migrations.CreateModel(
+            name='Notification',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('from_username', models.CharField(max_length=80)),
+                ('to_username', models.CharField(max_length=80)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('message', models.TextField()),
+                ('link', models.CharField(default=b'', max_length=100)),
+                ('seen', models.BooleanField(default=False)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='QuestionnaireResponse',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('date_submitted', models.DateTimeField(auto_now_add=True)),
+                ('processed', models.BooleanField(default=False)),
+                ('patient_id', models.IntegerField(help_text=b'The id of the patient created from this response, if any', null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Registry',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=80)),
+                ('code', models.CharField(max_length=10)),
+                ('desc', models.TextField()),
+                ('splash_screen', models.TextField()),
+                ('patient_splash_screen', models.TextField(null=True, blank=True)),
+                ('version', models.CharField(max_length=20, blank=True)),
+                ('metadata_json', models.TextField(blank=True)),
+            ],
+            options={
+                'verbose_name_plural': 'registries',
+            },
+        ),
+        migrations.CreateModel(
+            name='RegistryForm',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=80)),
+                ('questionnaire_display_name', models.CharField(max_length=80, blank=True)),
+                ('sections', models.TextField(help_text=b'Comma-separated list of sections')),
+                ('is_questionnaire', models.BooleanField(default=False, help_text=b"Check if this form is questionnaire form for it's registry")),
+                ('is_questionnaire_login', models.BooleanField(default=False, help_text=b'If the form is a questionnaire, is it accessible only by logged in users?', verbose_name=b'Questionnaire Login Required')),
+                ('position', positions.fields.PositionField(default=-1)),
+                ('questionnaire_questions', models.TextField(help_text=b'Comma-separated list of sectioncode.cdecodes for questionnnaire', blank=True)),
+                ('complete_form_cdes', models.ManyToManyField(to='rdrf.CommonDataElement', blank=True)),
+                ('groups_allowed', models.ManyToManyField(to='auth.Group', blank=True)),
+                ('registry', models.ForeignKey(to='rdrf.Registry')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Section',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.CharField(max_length=100)),
+                ('display_name', models.CharField(max_length=200)),
+                ('questionnaire_display_name', models.CharField(max_length=200, blank=True)),
+                ('elements', models.TextField()),
+                ('allow_multiple', models.BooleanField(default=False, help_text=b'Allow extra items to be added')),
+                ('extra', models.IntegerField(help_text=b'Extra rows to show if allow_multiple checked', null=True, blank=True)),
+                ('questionnaire_help', models.TextField(blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Wizard',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('registry', models.CharField(max_length=50)),
+                ('forms', models.TextField(help_text=b'A comma-separated list of forms')),
+                ('rules', models.TextField(help_text=b'Rules')),
+            ],
+        ),
+        migrations.AddField(
+            model_name='registry',
+            name='patient_data_section',
+            field=models.ForeignKey(blank=True, to='rdrf.Section', null=True),
+        ),
+        migrations.AddField(
+            model_name='questionnaireresponse',
+            name='registry',
+            field=models.ForeignKey(to='rdrf.Registry'),
+        ),
+        migrations.AddField(
+            model_name='demographicfields',
+            name='registry',
+            field=models.ForeignKey(to='rdrf.Registry'),
+        ),
+        migrations.AddField(
+            model_name='consentsection',
+            name='registry',
+            field=models.ForeignKey(related_name='consent_sections', to='rdrf.Registry'),
+        ),
+        migrations.AddField(
+            model_name='consentquestion',
+            name='section',
+            field=models.ForeignKey(related_name='questions', to='rdrf.ConsentSection'),
+        ),
+        migrations.AddField(
+            model_name='cdepolicy',
+            name='cde',
+            field=models.ForeignKey(to='rdrf.CommonDataElement'),
+        ),
+        migrations.AddField(
+            model_name='cdepolicy',
+            name='groups_allowed',
+            field=models.ManyToManyField(to='auth.Group', blank=True),
+        ),
+        migrations.AddField(
+            model_name='cdepolicy',
+            name='registry',
+            field=models.ForeignKey(to='rdrf.Registry'),
+        ),
+        migrations.AddField(
+            model_name='cdepermittedvalue',
+            name='pv_group',
+            field=models.ForeignKey(related_name='permitted_value_set', to='rdrf.CDEPermittedValueGroup'),
+        ),
+        migrations.AddField(
+            model_name='adjudicationdefinition',
+            name='registry',
+            field=models.ForeignKey(to='rdrf.Registry'),
+        ),
+        migrations.AddField(
+            model_name='adjudicationdecision',
+            name='definition',
+            field=models.ForeignKey(to='rdrf.AdjudicationDefinition'),
+        ),
+        migrations.AddField(
+            model_name='adjudication',
+            name='decision',
+            field=models.ForeignKey(to='rdrf.AdjudicationDecision', null=True),
+        ),
+        migrations.AddField(
+            model_name='adjudication',
+            name='definition',
+            field=models.ForeignKey(to='rdrf.AdjudicationDefinition'),
+        ),
+    ]

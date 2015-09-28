@@ -157,7 +157,7 @@
             </div>
             </div>
         </div>
-
+        
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -171,19 +171,19 @@
             </thead>
             <tbody>
                 {% for patient in patients %}
-                    <tr>
+                    <tr {% if not patient.consent %}class="danger"{% endif %} >
                         <td>
                             {{ forloop.counter }}
-                            {% if patient.id = parent.self_patient.id %}
+                            {% if patient.patient.id = parent.self_patient.id %}
                                 <span class="label label-primary">Self Patient</span>
                             {% endif %}
                         </td>
-                        <td>{{patient.given_names|title}}</td>
-                        <td>{{patient.family_name|title}}</td>
-                        <td>{{patient.date_of_birth|date:"jS F Y"}}</td>
+                        <td>{{patient.patient.given_names|title}}</td>
+                        <td>{{patient.patient.family_name|title}}</td>
+                        <td>{{patient.patient.date_of_birth|date:"jS F Y"}}</td>
                         <td>
-                            {% if patient.clinician %}
-                                {% for wg in patient.clinician.working_groups.all %}
+                            {% if patient.patient.clinician %}
+                                {% for wg in patient.patient.clinician.working_groups.all %}
                                     {{wg.name}}
                                 {% endfor %}
                             {% else %}
@@ -191,13 +191,23 @@
                             {% endif %}
                         </td>
                         <td>
-                            <select onchange="go_to_page(this);">
-                                <option>-----</option>
-                                <option value="{% url 'patient_edit' registry_code patient.id %}">Demographics</option>
-                                {% for form in registry_forms %}
-                                    <option value="{% url 'registry_form' registry_code form.id patient.id %}">{{form.name|de_camelcase}}</a></option>
-                                {% endfor %}
-                            </select>                        
+                            {% if patient.consent %}
+                                <select onchange="go_to_page(this);">
+                                    <option>-----</option>
+                                    <option value="{% url 'patient_edit' registry_code patient.patient.id %}">Demographics</option>
+                                        {% for form in registry_forms %}
+                                            <option value="{% url 'registry_form' registry_code form.form.id patient.patient.id %}">
+                                                {{form.form.name|de_camelcase}}
+                                                {% if form.readonly %}
+                                                    ---READONLY---
+                                                {% endif %}
+                                            </option>
+                                        {% endfor %}
+                                </select>
+                            {% else %}
+                                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                <a href="{% url 'patient_edit' registry_code patient.patient.id %}">Please sign consent</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

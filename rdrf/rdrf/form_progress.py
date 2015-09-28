@@ -1,10 +1,12 @@
-from pymongo import MongoClient
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from rdrf.utils import mongo_db_name, mongo_key, de_camelcase
 from rdrf.models import RegistryForm
+from rdrf.mongo_client import construct_mongo_client
+
 from registry.patients.models import Patient
+
 
 import logging
 import datetime
@@ -40,17 +42,14 @@ class FormProgressCalculator(object):
 
         # List of (form_model, section_model, cde_model) triples
         self.diagnosis_triples = self.registry_model.diagnosis_progress_cde_triples
-        logger.debug("xx diagnosis triples = %s" % self.diagnosis_triples)
         self.genetic_triples = self.registry_model.genetic_progress_cde_triples
         self.diagnosis_forms = self._get_diagnosis_forms()
-        logger.debug("xx diagnosis forms = %s" % self.diagnosis_forms)
         self.genetic_forms = self._get_genetic_forms()
-        logger.debug("xx genetic forms = %s" % self.genetic_forms)
         self.patient_ids = []
         # do this once to save time
         self.completion_keys_by_form = self._get_completion_keys_by_form()
 
-        self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        self.client = construct_mongo_client()
         self.db_name = mongo_db_name(self.registry_model.code)
         self.db = self.client[self.db_name]
         self.cdes_collection = self.db["cdes"]

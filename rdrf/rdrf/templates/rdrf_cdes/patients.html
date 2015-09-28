@@ -1,314 +1,125 @@
 {% extends "rdrf_cdes/base.html" %}
-{% load staticfiles %}
+{% load static from staticfiles %}
+{% load has_feature %}
+
 {% block extrastyle %}
     {{ block.super }}
-    <link href="{% static 'css/jquery.bootgrid.css' %}" rel="stylesheet">
-    <script src="{% static 'js/jquery.bootgrid.js' %}"></script>
-    
-    <style>
-        .progress {background: rgba(255, 255, 255, 1); border: 0px solid rgba(245, 245, 245, 1); border-radius: 5px; height: 22px;}
-        .progress-bar-custom {background: rgba(66, 139, 202, 1);}
-        
-        .spacer {
-            margin-left: 20px; /* define margin as you see fit */
-        }
-    </style>
-    
-{% endblock %}
-{% block content %}
-        <div class="row">
-            <div class="col-md-12">
-                <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
-                <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
-            </div>
-        </div>
 
-        <hr>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $.fn.dataTable.ext.errMode = 'throw';
+
+            if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
+                $("#add_patient").hide();
+            }
+
+             $("#add_patient").click(function() {
+                                        var registryCode = null;
+                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                                        try {
+                                            registryCode = $("#registry_select").val();
+                                            if (registryCode=="---") {
+                                                alert("Please select registry first");
+                                                return;
+                                             }
+
+                                            if (registryCode == undefined) {
+                                                registryCode = "{{registries.0.code}}";
+                                            }
+                                        }
+                                        catch(err) {
+                                            // one registry ?
+                                            registryCode = "{{registries.0.code}}";
+                                        }
+                                        var location = addPatientUrl.replace("xxx", registryCode);
+                                        window.location.replace(location);
+                                        });
+
+            var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
+            var patients_list = $("#patient_list_table").DataTable({
+                "ajax": {
+                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
+                    "dataSrc": "rows",
+                },
+                "columns": {{columns|safe}},
+            }).on("draw", function() {
+                $("#loading_text").hide();
+                $('button[data-toggle=popover]').popover({
+                    'html': true,
+                    'title': 'Available Modules',
+                    'trigger': 'click',
+                    'placement': 'bottom',
+                    'container': 'body'
+                });
+            });
             
-        {% if request.user.is_superuser or num_registries > 1  %}
-            <div class="col-md-4" id="registry_select_div">
-                <select id="registry_select" class="form-control">
-                    <option value="---">Select Registry ...</option>
-                     {% for registry_model in registries %}
-                        <option value="{{registry_model.code}}">{{registry_model.name}}</option>
-                     {% endfor %}
-                </select>
-            </div>
-        {% endif %}
+            $("#registry_options").change(function() {
+                $("#loading_text").show();
+                var reg_code = $("#registry_options option:selected").attr("id");
+                patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+            });
 
-        <button id="add_patient" class="btn btn-success spacer">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-        </button>
-
-        <table id="grid" class="table table-hover" width="100%">
-            <thead>
-                <tr>
-                    <th data-column-id="full_name" data-sortable="false" data-formatter="full_name_formatter">Patient</th>
-                    <th data-column-id="working_groups_display" data-sortable="false">Working Groups</th>
-                    <th data-column-id="date_of_birth">Date of Birth</th>
-                    {% if request.user.is_clinical or request.user.is_curator or request.user.is_working_group_staff or request.user.is_superuser %}
-                        <th data-column-id="diagnosis_progress" data-sortable="false" data-formatter="diagnosis_progress_formatter">Diagnosis Entry Progress</th>
-                        <th data-column-id="diagnosis_currency" data-sortable="false" data-align="center" data-formatter="diagnosis_currency_formatter">Updated < 365 days</th>
-                    {% endif %}
-                    {% if request.user.is_genetic_staff or request.user.is_genetic_curator or request.user.is_superuser %}
-                        <th data-column-id="genetic_data" data-sortable="false" data-formatter="genetic_data_formatter">Genetic Data</th>
-                    {% endif %}
-                    <th data-column-id="data_modules" data-sortable="false" data-formatter="data_modules" data-sortable="false">Modules</th>
-                </tr>
-            </thead>
-        </table>
-        
-        <!-- Scripts -->
-        <script>
-            $(document).ready(function () {
-                $("#add_patient").click(function() {
-                    var registryCode = null;
-                    var addPatientUrl = '{% url "patient_add" "xxx" %}';
-                    try {
-                        registryCode = $("#registry_select").val();
-                        if (registryCode=="---") {
-                            alert("Please select registry first");
-                            return;
-                        }
-
-                        if (registryCode == undefined) {
-                            registryCode = "{{registries.0.code}}";
-                        }
+            $("#add_patient").click(function() {
+                var registryCode = null;
+                var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                try {
+                    registryCode = $("#registry_select").val();
+                    if (registryCode=="---") {
+                        alert("Please select registry first");
+                        return;
                     }
-                    catch(err) {
-                        // one registry ?
+    
+                    if (registryCode == undefined) {
                         registryCode = "{{registries.0.code}}";
                     }
+                } catch(err) {
+                    // one registry ?
+                    registryCode = "{{registries.0.code}}";
+                }
                     var location = addPatientUrl.replace("xxx", registryCode);
                     window.location.replace(location);
-                });
+            });
+        });
+        
+    </script>
+{% endblock %}
 
+{% block content %}
 
-                $.ajaxSetup({beforeSend: function (xhr) {
-                    var csrfToken = '{{ csrf_token }}';
-                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
-                }});
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
 
-                var grid = $('#grid').bootgrid({
-                    ajax: true,
-                    url: "{% url 'api_get_search' 'v1' 'patient'  %}",
+    <hr>
 
-                    requestHandler: function(request)
-                    {
-                        request.registry_code = null;
+    <div class="clearfix">
+        <button id="add_patient" class="btn btn-success pull-right">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
+    </div>
+    
+    <p>
+        <select id="registry_options">
+            {% for reg in registries %}
+                <option id="{{ reg.code }}">{{ reg.name }}</option>
+            {% endfor %}
+        </select>
+        <span id="loading_text"><i>Loading...</i></span>
+    </p>
 
-                        {% if request.user.is_superuser or num_registries > 1 %}
-                            request.registry_code = $("#registry_select").val();
-                        {%  endif %}
-
-                        {% if not request.user.is_superuser and num_registries == 1 %}
-                            request.registry_code = "{{the_one_registry_code}}";
-                        {% endif %}
-
-                        return request;
-
-                    },
-
-                    responseHandler: function (response) {
-                        if(!response.show_add_patient) {
-                            $("#add_patient").hide();
-                        }
-                        else {
-                            $("#add_patient").show();
-                        }
-
-                        return response;
-                    },
-
-                    formatters: {
-                        "full_name_formatter": function (column, row) {
-                            var reg_div = $("<div>");
-                            var restrict_registry;
-                            try {
-                                restrict_registry = $("#registry_select").val();
-                            }
-                            catch (err) {
-                                restrict_registry = null;
-                            }
-                        
-                            row.reg_code.forEach(function(reg) {
-
-
-                                var link = "{% url 'patient_edit' 888 999 %}".replace("/999", "/" + row.id).replace("/888", "/" + reg);
-                                
-                                var edit_link = $("<a>");
-                                edit_link.attr("href", link);
-                                edit_link.append(row.full_name);
-
-                                if (restrict_registry != null) {
-                                    if (reg == restrict_registry) {
-                                        reg_div.append(edit_link);
-                                    }
-                                }
-                                else {
-                                    reg_div.append(edit_link);
-                                }
-
-                            });
-                            
-                            return reg_div.prop('outerHTML');
-                        },
-
-                        "diagnosis_progress_formatter": function(column, row) {
-                            var html = "";
-
-                            if (row.diagnosis_progress === undefined) {
-                                return "";
-
-                            }
-                            var inOneRegistry = _.keys(row.diagnosis_progress).length == 1;
-
-                            for (var regCode in row.diagnosis_progress) {
-                                var completionString;
-                                var percentage = row.diagnosis_progress[regCode].toString();
-                                if (!inOneRegistry) {
-                                    completionString = regCode.toUpperCase() + ":" + percentage + "%";
-                                } else {
-                                    completionString = percentage + "%";
-                                }
-
-                                var progressBarHtml =
-                                    '<div class="progress">'+
-                                        '<div class="progress-bar progress-bar-custom" role="progressbar" aria-valuenow="xxx" aria-valuemin="0" aria-valuemax="100" style="width: xxx%;">'+
-                                            '<span class="progress-label">xxx%</span>'+
-                                        '</div>'+
-                                    '</div>';
-
-                                progressBarHtml = progressBarHtml.replace(/xxx/g, percentage).replace(/yyy/g, completionString);
-
-                                html += progressBarHtml;
-                            }
-
-
-
-                            return html;
-                        },
-
-                        "genetic_data_formatter": function(column, row) {
-                            var html = "";
-                            var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
-                            var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
-                            // If we are in just one registry don't display reg code prefix
-
-                            if (row.genetic_data_map === undefined) {
-                                return "";
-
-                            }
-
-                            var inOneRegistry = _.keys(row.genetic_data_map).length == 1;
-
-
-                            for (var regCode in row.genetic_data_map) {
-                                var geneticDataIndicatorHTML;
-                                var regHTML;
-                                var hasGeneticData = row.genetic_data_map[regCode];
-                                if (hasGeneticData) {
-                                    geneticDataIndicatorHTML = tickHTML;
-                                }
-                                else {
-                                    geneticDataIndicatorHTML = crossHTML;
-                                }
-
-                                if (inOneRegistry) {
-                                    regHTML = geneticDataIndicatorHTML;
-                                }
-                                else {
-                                    regHTML = regCode.toUpperCase() + ":" + geneticDataIndicatorHTML;
-                                }
-
-                                html += regHTML;
-                            }
-
-                            return html;
-                        },
-
-                        "diagnosis_currency_formatter": function(column, row) {
-                           var html = "";
-                           var tickHTML =  '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
-                           var crossHTML = '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
-                           // If we are in just one registry don't display reg code prefix
-                           if (row.diagnosis_currency === undefined) {
-                               return "";
-
-                           }
-                           var inOneRegistry = _.keys(row.diagnosis_currency).length == 1;
-   
-                           for (var regCode in row.diagnosis_currency) {
-                               var diagnosisCurrencyIndicatorHTML;
-                               var regHTML;
-                               var diagnosisCurrent = row.diagnosis_currency[regCode];
-                               if (diagnosisCurrent) {
-                                   diagnosisCurrencyIndicatorHTML = tickHTML;
-                               }
-                               else {
-                                   diagnosisCurrencyIndicatorHTML = crossHTML;
-                               }
-   
-                               if (inOneRegistry) {
-                                   regHTML = diagnosisCurrencyIndicatorHTML;
-                               }
-                               else {
-                                   regHTML = regCode.toUpperCase() + ":" + diagnosisCurrencyIndicatorHTML;
-                               }
-   
-                               html += regHTML;
-                           }
-   
-                           return html;
-                       },
-
-                        "data_modules": function(column, row) {
-                            //return row.forms_html
-                            return row.data_modules;
-                        }
-                    }
-                }).on("loaded.rs.jquery.bootgrid", function() {
-                    // Ensure that the data modules popovers are wired after
-                    // being rendered on grid load
-                    $('button[data-toggle=popover]').popover({
-                        'html': true,
-                        'title': 'Available Modules',
-                        'trigger': 'click',
-                        'placement': 'bottom'
-                    });
-
-                });
-
-                {% if request.user.is_superuser or num_registries > 1  %}
-                    // wire up  registry select
-                     $("#add_patient").hide();
-
-                    $("#registry_select").change(function (){
-                         var registryCode = $(this).val();
-                         if(registryCode == '---') {
-                             $("#grid").hide();
-                             $("#add_patient").hide();
-                             localStorage['selected_reg'] = "";
-                         }
-                         else {
-                             $("#grid").bootgrid("reload");
-                             $("#grid").show();
-                             $("#add_patient").show();
-                             localStorage['selected_reg'] = registryCode;
-                         }
-                    });
-
-                    $("#registry_select").val("---");
-
-                    $(document).ready(function() {
-                        $("#registry_select_div").insertBefore($("div[class='search form-group']"));
-                        $("#add_patient").insertAfter($("div[class='actions btn-group']"));
-                        
-                        if (localStorage['selected_reg'] != "") {
-                            $("#registry_select").val(localStorage['selected_reg']).change();
-                        }
-                    });
-                {% endif %}
-                });
-        </script>
+    <table id="patient_list_table" class="table table-striped table-hover">
+        <thead>
+            <tr>
+                {% for column in columns %}
+                    <th>{{ column.label|safe }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    </table>
 {% endblock %}

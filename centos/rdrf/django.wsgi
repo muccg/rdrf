@@ -19,6 +19,8 @@ setup_prod_env("rdrf")
 
 import django.core.handlers.wsgi
 
+from django.core.wsgi import get_wsgi_application
+
 # This is the WSGI application booter
 def application(environ, start):
     if "HTTP_SCRIPT_NAME" in environ:
@@ -29,4 +31,5 @@ def application(environ, start):
     if 'DJANGODEV' in environ:
        os.environ['DJANGODEV']=environ['DJANGODEV']
 
-    return django.core.handlers.wsgi.WSGIHandler()(environ,start)
+    #return django.core.handlers.wsgi.WSGIHandler()(environ,start)
+    return get_wsgi_application()(environ,start)

@@ -9,6 +9,7 @@ from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 
 logger = logging.getLogger("registry_log")
 
@@ -153,6 +154,11 @@ class Registry(models.Model):
         # The fields were appearing in the "reverse" order, hence this
         field_pairs.reverse()
         return field_pairs
+
+    @property
+    def specific_fields_section_title(self):
+        if self.patient_data_section:
+            return self.patient_data_section.display_name
 
     def _progress_cdes(self, progress_type="diagnosis"):
         # returns list of triples (form_model, section_model, cde_model)
@@ -643,6 +649,40 @@ class CommonDataElement(models.Model):
             return None
 
 
+class CdePolicy(models.Model):
+    registry = models.ForeignKey(Registry)
+    cde = models.ForeignKey(CommonDataElement)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+    condition = models.TextField(blank=True)
+    
+    def is_allowed(self, user_groups, patient_model=None):
+        logger.debug("checking cde policy %s %s" % (self.registry, self.cde))
+        for ug in user_groups:
+            logger.debug("checking user group %s" % ug)
+            if ug in self.groups_allowed.all():
+                if patient_model:
+                    logger.debug("patient model supplied - evaluating against condition")
+                    return self.evaluate_condition(patient_model)
+                else:
+                    logger.debug("no patient model so returning True")
+                    return True
+
+    class Meta:
+        verbose_name = "CDE Policy"
+        verbose_name_plural = "CDE Policies"
+
+    def evaluate_condition(self, patient_model):
+        logger.debug("evaluating condition ...")
+        if not self.condition:
+            logger.debug("*** condition empty - returning True")
+            return True
+        # need to think about safety here
+        context = {"patient": patient_model}
+        result = eval(self.condition, {"__builtins__": None}, context)
+        logger.debug("*** %s eval %s = %s" % (patient_model, self.condition, result))
+        return result
+
+
 class RegistryFormManager(models.Manager):
 
     def get_by_registry(self, registry):
@@ -777,6 +817,9 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
+        if not self.has_mongo_data:
+            raise ObjectDoesNotExist
+
         questionnaire_form_name = RegistryForm.objects.get(
             registry=self.registry, is_questionnaire=True).name
 
@@ -788,6 +831,13 @@ class QuestionnaireResponse(models.Model):
             return ""
 
         return value
+
+    @property
+    def has_mongo_data(self):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(self)
+        return wrapper.has_data(self.registry.code)
+
 
 def appears_in(cde, registry, registry_form, section):
     if section.code not in registry_form.get_sections():
@@ -1426,6 +1476,7 @@ class ConsentSection(models.Model):
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
     information_link = models.CharField(max_length=100, blank=True, null=True)
+    information_text = models.TextField(blank=True, null=True)
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)

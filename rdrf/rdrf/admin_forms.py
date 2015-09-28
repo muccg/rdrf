@@ -8,15 +8,18 @@ class RegistryFormAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(RegistryFormAdminForm, self).__init__(*args, **kwargs)
         if 'instance' in kwargs:
-            sections = Section.objects.filter(code__in=kwargs['instance'].sections.split(","))
-            cdes = []
-            for section in sections:
-                cdes += section.get_elements()
-            self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
-                code__in=cdes)
+            instance = kwargs["instance"]
+            if instance is not None:
+                sections = Section.objects.filter(code__in=kwargs['instance'].sections.split(","))
+                cdes = []
+                for section in sections:
+                    cdes += section.get_elements()
+                self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
+                    code__in=cdes)
 
     class Meta:
         model = RegistryForm
+        fields = "__all__"
         widgets = {
             'complete_form_cdes': SelectMultiple(attrs={'size': 20, 'style': 'width:50%'})
         }

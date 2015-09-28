@@ -63,11 +63,17 @@
                 <div class="alert alert-danger">You don't have access to this registry</div>
             {% endif %}
             
-            <ul class="list-group">
-            {% for form in forms %}
-                <li class="list-group-item">{{form.form.name}}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
-            {% endfor %}
-            </ul>
+            {% if consent %}
+                <ul class="list-group">
+                {% for form in forms %}
+                    <li class="list-group-item">{{form.form.name}} {% if form.readonly %}<i><font style="color: red">Readonly</font></strong></i>{% endif %}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-danger">
+                    Please sign the consent <a href="{% url 'patient_edit' registry_code patient_id %}">here</a> to see avilable forms
+                </div>
+            {% endif %}
         {% elif is_admin %}
             <div class="alert alert-warning">Place for admins is <a href="{% url 'admin:index' %}">here</a></div>
         {% else %}

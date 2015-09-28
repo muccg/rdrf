@@ -30,7 +30,7 @@ class GeneAdmin(admin.ModelAdmin):
             Q(name__icontains=term) | Q(symbol__icontains=term)).order_by("symbol")
         response = [[gene.id, gene.symbol, gene.name] for gene in genes]
 
-        return HttpResponse(json.dumps(response), mimetype="application/json")
+        return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 class LaboratoryAdmin(admin.ModelAdmin):
@@ -49,7 +49,7 @@ class LaboratoryAdmin(admin.ModelAdmin):
                               )
         return local_urls + urls
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return Laboratory.objects.all()
 
     def search(self, request, term):
@@ -61,7 +61,7 @@ class LaboratoryAdmin(admin.ModelAdmin):
         queryset = queryset.order_by("name")
         response = [[unicode(lab)] for lab in queryset]
 
-        return HttpResponse(json.dumps(response), mimetype="application/json")
+        return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 admin.site.register(Gene, GeneAdmin)

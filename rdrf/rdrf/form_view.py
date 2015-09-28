@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
@@ -21,7 +21,10 @@ from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
+from rdrf.mongo_client import construct_mongo_client
 
+
+from operator import itemgetter
 import json
 import os
 from django.conf import settings
@@ -116,12 +119,13 @@ class FormView(View):
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
         self.testing = False
-        self.template = 'rdrf_cdes/form.html'
+        self.template = None
         self.registry = None
         self.dynamic_data = {}
         self.registry_form = None
         self.form_id = None
         self.patient_id = None
+        self.user = None
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -149,6 +153,7 @@ class FormView(View):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
+        self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
@@ -165,7 +170,7 @@ class FormView(View):
     def _render_context(self, request, context):
         context.update(csrf(request))
         return render_to_response(
-            self.template,
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -177,9 +182,12 @@ class FormView(View):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
-        if request.user.is_working_group_staff:
+        if request.user.is_superuser:
+            pass
+        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
             raise PermissionDenied()
 
+        self.user = request.user
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
@@ -211,7 +219,8 @@ class FormView(View):
                 section_model,
                 injected_model="Patient",
                 injected_model_id=self.patient_id,
-                is_superuser=self.request.user.is_superuser)
+                is_superuser=self.request.user.is_superuser,
+                patient_model=patient)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -353,7 +362,7 @@ class FormView(View):
                     patient_name)
 
         return render_to_response(
-            'rdrf_cdes/form.html',
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -382,7 +391,8 @@ class FormView(View):
             section,
             injected_model="Patient",
             injected_model_id=self.patient_id,
-            is_superuser=self.request.user.is_superuser)
+            is_superuser=self.request.user.is_superuser,
+            user_groups=self.request.user.groups.all())
 
     def _get_formlinks(self, user):
 
@@ -531,6 +541,17 @@ class FormView(View):
                 json_dict[section] = json.dumps(metadata)
 
         return json_dict
+
+    def _get_template(self, ):
+        if self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+            return "rdrf_cdes/form_readonly.html"
+        return "rdrf_cdes/form.html"
+
+
+class FormPrintView(FormView):
+    
+    def _get_template(self):
+        return "rdrf_cdes/form_print.html"
 
 
 class ConsentFormWrapper(object):
@@ -734,6 +755,7 @@ class QuestionnaireView(FormView):
             questionnaire_response.registry = registry
             questionnaire_response.save()
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
+            questionnaire_response_wrapper.current_form_model = questionnaire_form
             questionnaire_response_wrapper.save_dynamic_data(
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
@@ -1053,16 +1075,15 @@ class FileUploadView(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, gridfs_file_id):
-        from pymongo import MongoClient
         from bson.objectid import ObjectId
         import gridfs
-        client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        client = construct_mongo_client()
         db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
         obj_id = ObjectId(gridfs_file_id)
         data = fs.get(obj_id)
         filename = data.filename.split("****")[-1]
-        response = HttpResponse(data, mimetype='application/octet-stream')
+        response = HttpResponse(data, content_type='application/octet-stream')
         response['Content-disposition'] = "filename=%s" % filename
         return response
 
@@ -1760,12 +1781,24 @@ class PatientsListingView(LoginRequiredMixin, View):
             registries = [registry_model for registry_model in Registry.objects.all()]
         else:
             registries = [registry_model for registry_model in request.user.registry.all()]
-        context["num_registries"] = len(registries)  # if there are one do something special
-        context["registries"] = registries
-        if len(registries) == 1:
-            context["the_one_registry_code"] = registries[0].code
 
+        context["registries"] = registries
         context["location"] = "Patient List"
+        
+        columns = []
+
+        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
+        
+        for definition in sorted_by_order:
+            if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
+                columns.append(
+                    {
+                        "data" : definition["data"],
+                        "label" : definition["label"]
+                    }
+                )
+
+        context["columns"] = columns
 
         return render_to_response(
             'rdrf_cdes/patients.html',

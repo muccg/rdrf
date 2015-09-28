@@ -1,8 +1,10 @@
 #
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
+MAINTAINER https://bitbucket.org/ccgmurdoch/fkrp/
 
 ENV DEBIAN_FRONTEND noninteractive
+
+#RUN rm /etc/apt/apt.conf.d/30proxy
 
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \

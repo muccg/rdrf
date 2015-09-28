@@ -14,7 +14,7 @@ logger = logging.getLogger('registry_log')
 class WorkingGroupAdmin(admin.ModelAdmin):
     search_fields = ["name"]
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         if request.user.is_superuser:
             return WorkingGroup.objects.all()
 
@@ -67,7 +67,7 @@ class CustomUserAdmin(UserAdmin):
         else:
             return super(UserAdmin, self).get_fieldsets(request, obj)
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         from itertools import chain
         from django.db.models import Q
 

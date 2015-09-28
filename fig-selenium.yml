@@ -1,6 +1,6 @@
 #
 dataselenium:
-  image: muccg/base:debian8
+  image: muccg/debian8-base
   volumes:
     - .:/app
     - data/selenium:/data
@@ -26,7 +26,7 @@ firefox:
   - webselenium:web
 
 dbselenium:
-  image: postgres:9.3
+  image: postgres:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp

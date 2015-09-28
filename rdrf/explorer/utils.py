@@ -2,7 +2,6 @@ import re
 import json
 import ast
 
-from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
 from django.db import ProgrammingError
@@ -12,6 +11,7 @@ from models import Query
 
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
+from rdrf.mongo_client import construct_mongo_client
 from models import Query
 from forms import QueryForm
 
@@ -144,8 +144,7 @@ class DatabaseUtils(object):
         ]
 
     def _get_mongo_client(self):
-        return MongoClient(app_settings.VIEWER_MONGO_HOST,
-                           app_settings.VIEWER_MONGO_PORT)
+        return construct_mongo_client()
 
 
 class ParseQuery(object):

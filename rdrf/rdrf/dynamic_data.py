@@ -1,5 +1,5 @@
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-from pymongo import MongoClient
+from rdrf.mongo_client import construct_mongo_client
 import gridfs
 import logging
 from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
@@ -355,6 +355,13 @@ class FormDataParser(object):
     def _get_gridfs_value(self, inmemory_uploaded_file):
         return None
 
+    def _parse_timestamps(self):
+        for key in self.form_data:
+            if key == "timestamp":
+                self.global_timestamp = self.form_data[key]
+            elif key.endswith("_timestamp"):
+                    self.form_timestamps[key] = self.form_data[key]
+
     def _parse_all_forms(self):
         # used in questionnaire approval handling where all form data was being saved in one go
         # generated questionnaire gets fanned out to all forms
@@ -375,6 +382,7 @@ class FormDataParser(object):
                 self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
 
     def _parse_multisection(self, multisection_code):
+        self._parse_timestamps()
         the_form_model = None
         the_section_model = None
         multisection_item_list = self.form_data[multisection_code]
@@ -497,9 +505,7 @@ class DynamicDataWrapper(object):
     def __init__(
             self,
             obj,
-            client=MongoClient(
-                settings.MONGOSERVER,
-                settings.MONGOPORT),
+            client=construct_mongo_client(),
             filestore_class=gridfs.GridFS):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False
@@ -537,13 +543,17 @@ class DynamicDataWrapper(object):
         collection = db[collection_name]
         return collection
 
-    def _get_filestore(self, registry):
+    def get_filestore(self, registry):
         if not self.testing:
             db = self.client[mongo_db_name(registry)]
         else:
             db = self.client["testing_" + registry]
 
         return self.file_store_class(db, collection=registry + ".files")
+
+    def has_data(self, registry_code):
+        data = self.load_dynamic_data(registry_code, "cdes")
+        return data is not None
 
     def load_dynamic_data(self, registry, collection_name, flattened=True):
         """
@@ -590,24 +600,23 @@ class DynamicDataWrapper(object):
         else:
             return nested_data
 
-    def load_registry_specific_data(self):
+    def load_registry_specific_data(self, registry_model=None):
         data = {}
+        if registry_model is None:
+            return data
         record_query = self._get_record_query()
         logger.debug("record_query = %s" % record_query)
-        for reg_code in self._get_registry_codes():
-            # NB. We DON'T need to add Mongo prefix here as we've retrieved the actual
-            # ( already prefixed db names from Mongo
-            collection = self._get_collection(
-                reg_code,
-                self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION,
-                add_mongo_prefix=False)
-            registry_data = collection.find_one(record_query)
-            if registry_data:
-                for k in ['django_id', '_id', 'django_model']:
+        collection = self._get_collection(registry_model.code,
+                                          self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+        registry_data = collection.find_one(record_query)
+        if registry_data:
+            for k in ['django_id', '_id', 'django_model']:
                     del registry_data[k]
-                data[reg_code] = registry_data
+            data[registry_model.code] = registry_data
 
-        logger.debug("registry_specific_data  = %s" % data)
+        for registry_code in data:
+            self._wrap_gridfs_files_from_mongo(registry_model, data[registry_code])
+        logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
     def _get_registry_codes(self):
@@ -618,6 +627,8 @@ class DynamicDataWrapper(object):
         logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
             registry_data = data[reg_code]
+            if not registry_data:
+                continue
             collection = self._get_collection(reg_code, "registry_specific_patient_data")
             query = self._get_record_query()
             record = collection.find_one(query)
@@ -672,7 +683,7 @@ class DynamicDataWrapper(object):
             dynamic_data):
         logger.debug("storing file in gridfs")
         logger.debug("dynamic data supplied = %s" % dynamic_data)
-        fs = self._get_filestore(registry)
+        fs = self.get_filestore(registry)
         original_file_name = in_memory_file.name
         logger.debug("original filename = %s" % original_file_name)
 
@@ -698,8 +709,6 @@ class DynamicDataWrapper(object):
              dynamic_data[cde_code]))
         return gridfs_id
 
-
-
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from models import Section
@@ -712,7 +721,7 @@ class DynamicDataWrapper(object):
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
 
-        fs = self._get_filestore(registry)
+        fs = self.get_filestore(registry)
 
         def get_mongo_value(registry_code, nested_data, delimited_key):
             from rdrf.utils import models_from_mongo_key
@@ -833,6 +842,9 @@ class DynamicDataWrapper(object):
                     #todo fix this
                     form_model = None
 
+                if form_model is None:
+                    return
+
                 multisection_gridfs_handler = MultisectionGridFSFileHandler(fs,
                                                                             registry,
                                                                             form_model,
@@ -842,8 +854,6 @@ class DynamicDataWrapper(object):
                                                                             index_map)
 
                 multisection_gridfs_handler.update_multisection_file_cdes()
-
-
 
     def _update_file_cde(self, section_index, key, value, existing_record):
         logger.debug("updating file reference for cde %s" % key)
@@ -988,8 +998,6 @@ class DynamicDataWrapper(object):
         else:
             record = self._get_record_query()
             record["forms"] = []
-            #record.update(form_data)
-            #self._set_in_memory_uploaded_files_to_none(record)
             self._update_files_in_gridfs(record, registry, form_data, index_map)
 
             form_data_parser = FormDataParser(Registry.objects.get(code=registry),

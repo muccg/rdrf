@@ -2,7 +2,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.conf import settings
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from dynamic_forms import create_form_class
 from dynamic_data import DynamicDataWrapper
 from django.views.generic import View
@@ -18,7 +18,7 @@ class AllocateView(View):
         regs = Registry.objects.all()
         print regs
         results = [obj.as_json() for obj in regs]
-        return HttpResponse(json.dumps(results), mimetype='application/json')
+        return HttpResponse(json.dumps(results), content_type='application/json')
 
 
 class RegistryList(View):
@@ -27,7 +27,7 @@ class RegistryList(View):
         regs = Registry.objects.all()
         print regs
         results = [obj.as_json() for obj in regs]
-        return HttpResponse(json.dumps(results), mimetype='application/json')
+        return HttpResponse(json.dumps(results), content_type='application/json')
 
 
 def patient_cdes(request, patient_id):

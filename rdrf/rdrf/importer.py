@@ -15,6 +15,9 @@ from registry.groups.models import WorkingGroup
 from explorer.models import Query
 
 from django.contrib.auth.models import Group
+
+from utils import create_permission
+
 import yaml
 import json
 
@@ -468,6 +471,11 @@ class Importer(object):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
+            
+            permission_code_name = "form_%s_is_readonly" % f.id
+            permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
+            create_permission("rdrf", "registryform", permission_code_name, permission_name)
+            
             f.name = frm_map["name"]
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
@@ -542,6 +550,12 @@ class Importer(object):
             logger.info("complete reports OK ")
         else:
             logger.info("no reports to import")
+
+        if "cde_policies" in self.data:
+            self._create_cde_policies(r)
+            logger.info("imported cde policies OK")
+        else:
+            logger.info("no cde policies to import")
         logger.info("end of import registry objects!")
 
     def _create_form_permissions(self, registry):
@@ -615,6 +629,7 @@ class Importer(object):
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
                 information_link = section_dict["information_link"]
+                information_text = section_dict["information_text"]
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry)
                 section_model.information_link = information_link
@@ -685,3 +700,31 @@ class Importer(object):
             query.created_by = d["created_by"]
             query.created_at = d["created_at"]
             query.save()
+
+    def _create_cde_policies(self, registry_model):
+        from rdrf.models import CdePolicy
+
+        for pol in CdePolicy.objects.filter(registry=registry_model):
+            logger.info("deleting old cde policy object for registry %s cde %s" % (registry_model.code, pol.cde.code))
+            pol.delete()
+
+        if "cde_policies" in self.data:
+            cde_policies = self.data['cde_policies']
+            for cde_pol_dict in cde_policies:
+                try:
+                    cde_model = CommonDataElement.objects.get(code=cde_pol_dict["cde_code"])
+                except CommonDataElement.DoesNotExist:
+                    logger.error("cde code does not exist for cde policy %s" % cde_pol_dict)
+                    continue
+
+                group_names = cde_pol_dict["groups_allowed"]
+                logger.debug("group_names = %s" % group_names)
+                groups = [g for g in Group.objects.filter(name__in=group_names)]
+
+                cde_policy = CdePolicy(registry=registry_model,
+                                       cde=cde_model,
+                                       condition=cde_pol_dict['condition'])
+                cde_policy.save()
+                cde_policy.groups_allowed = groups
+                cde_policy.save()
+

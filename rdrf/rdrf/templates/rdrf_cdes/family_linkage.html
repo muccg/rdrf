@@ -1,0 +1,427 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% block extrastyle %}
+        {{ block.super }}
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <style>
+
+            .selectable .ui-selecting { border-width: 5px }
+            .selectable .ui-selected { border-width: 2px }
+
+
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script>
+        var initial_index = '{{ initial_index }}';
+        var relationships = [];
+        var tmpObject = null;
+        var original_index = null;
+        var draggedRow = null;
+
+
+
+        function cloneWithData() {
+            var obj =  $(this).data("object");
+
+            var el =$("<h3>" + obj.given_names + " " + obj.family_name + "</h3>");
+
+            $(el).data("object", obj);
+            draggedRow = $(this);
+            return el;
+        }
+
+        var link = _.template("<a href='<%= url %>'><%= text %></a>");
+
+        var index_row = _.template("<tr class='selectable draggable'><td><%= given_names %></td><td><%= family_name %></td><td><%= link %></td></tr>");
+
+        var relative_row = _.template("<tr class='draggable selectable'><td><%= given_names %></td><td><%= family_name %></td>" +
+                                        "<td><%= relationship %></td><td><%= link %></td></tr>");
+
+        function getIndexPatient() {
+            if ($("#indexpatient table tr").length == 2){
+                 return $("#indexpatient table tr:last").data("object");
+            }
+            else {
+                // index has been dragged away
+                return null;
+            }
+
+        }
+
+        function allowDragAndDrop() {
+
+            $("#indexpatient tr, #relatives tr").draggable({
+                helper: cloneWithData,
+                start: function (event, ui) {
+                    var helper = $(ui.helper);
+                    tmpObject = $(ui.helper).find("tr").data("object");
+                }
+            });
+
+            $("#indexpatient tr").droppable({
+                drop: function (event, ui) {
+                        var relative = ui.helper.data("object");
+
+                        var new_index_patient = {given_names: relative.given_names,
+                                       family_name: relative.family_name,
+                                       link: relative.link,
+                                       class: relative.class,
+                                       pk: relative.pk};
+
+                        var old_index_patient = getIndexPatient();
+                        if (old_index_patient != null) {
+                            old_index_patient.relationship = "Unknown";
+                            addRelativeRow(relationships, old_index_patient);
+                        }
+                        setIndexPatient(new_index_patient);
+
+
+                        if (draggedRow != null) {
+                            draggedRow.remove();
+
+                        }
+                    }
+                });
+
+            $("#relatives tr").droppable({
+                drop: function (event, ui) {
+                        var droppedIndexPatient = ui.helper.data("object");
+                        addRelativeRow(relationships, droppedIndexPatient);
+
+                        if (draggedRow != null) {
+                            draggedRow.remove();
+
+                        }
+
+                    }
+                });
+
+
+        }
+
+        function allowSelectable() {
+            $(".selectable").selectable();
+        }
+
+        function clearTableData(tableSelector) {
+            $(tableSelector).find("tr:gt(0)").remove();
+        }
+
+        function lookupIndex(element, source_url) {
+            element.autocomplete({
+              source: source_url,
+              minLength: 1,
+              select: function(event, ui) {
+                  $(element).data("index_pk", ui.item.pk);
+                  console.log("selected index pk = " + $(element).data("index_pk").toString());
+              }
+            }).data("ui-autocomplete")._renderItem = function(ul, item) {
+              item.pk = item.value;  // so we can load
+              item.value = item.label;
+              return $("<li>")
+                .append("<a>" + item.label + "</a>")
+                .appendTo(ul);
+            };
+        }
+
+        function setIndexPatient(patient) {
+            if (patient == undefined) {
+                return;
+            }
+            var patient_link = "";
+            clearTableData("#indexpatient table");
+
+            if (patient.link) {
+               patient_link = link({url: patient.link, text: "Demographics"});
+            }
+
+            $("#indexpatient table").append(index_row({given_names: patient.given_names,
+                                                       family_name: patient.family_name,
+                                                       link: patient_link}));
+
+            $("#indexpatient table tr:last").data("object", patient);
+
+            allowDragAndDrop();
+
+        }
+
+        function createRelationshipSelect(relationships, relative) {
+            var select = _.template("<select><%= options %></select>");
+            var option = _.template("<option <%= selected %> value='<%= value %>'><%= text %></option>");
+            var options = [];
+
+            _.each(relationships, function (rel) {
+                if(rel==relative.relationship) {
+                    options.push(option({selected: "selected", value: rel, text: rel}));
+                }
+                else {
+                    options.push(option({selected: "", value: rel, text: rel}));
+                }
+            });
+
+            return select({options: options.join("")})
+        }
+
+        function addRelativeRow(relationships, relative) {
+            var relative_link = "Not in registry";
+            if (relative.link) {
+                relative_link = link({url: relative.link, text: "Demographics"});
+            }
+            var relationship_select = createRelationshipSelect(relationships, relative);
+
+            var table_row = relative_row({given_names: relative.given_names,
+                                          family_name: relative.family_name,
+                                          relationship: relationship_select,
+                                          link: relative_link});
+
+            $("#relatives table").append(table_row);
+            $("#relatives table tr:last").data("object", relative);
+
+
+
+            allowDragAndDrop();
+        }
+
+        function setRelatives(relationships, relatives) {
+            clearTableData("#relatives table");
+            _.each(relatives, function(relative) {
+                addRelativeRow(relationships, relative);
+            });
+
+        }
+
+        function loadIndex(index_pk) {
+             $.ajax({ url: "{% url 'family_lookup' registry_code %}",
+                      type: "GET",
+                        data: {
+                            'index_pk': $('#index_lookup').data("index_pk")
+                        },
+
+                        success: function(result_json) {
+                            result  = jQuery.parseJSON(result_json);
+                            original_index = result.index;
+
+                            setIndexPatient(result.index);
+                            relationships = result.relationships;
+
+                            setRelatives(result.relationships, result.relatives);
+
+
+                        }
+                    });
+        }
+
+        function load_index(element) {
+            var index_pk = $("#index_lookup").data("index_pk");
+            loadIndex(index_pk);
+        }
+
+        function add_patient(element) {
+            var index_pk = $("#index_lookup").data("index_pk");
+             $.ajax({ url: "{% url 'family_lookup' registry_code %}",
+                      type: "GET",
+                        data: {
+                            'index_pk': $('#index_lookup').data("index_pk")
+                        },
+
+                        success: function(result_json) {
+                            result  = jQuery.parseJSON(result_json);
+                            var patient = result.index;
+                            if (result.relatives.length == 0) {
+                                patient.relationship = "Unknown";
+                                addRelativeRow(result.relationships, patient);
+                            }
+                            else {
+                                alert("Can't add this patient to family - they have relatives attached");
+                            }
+
+                        }
+                    });
+        }
+
+        function getRelationship(row) {
+               return $(row).find("td").eq(2).find("select").val();
+        }
+
+        function getFamilyData() {
+            var index_patient = getIndexPatient();
+            var relatives = [];
+
+            $("#relatives tr").each(function () {
+                if ($(this).data("object")) {
+                    var updated_relationship = getRelationship($(this));
+                    var relative = $(this).data("object");
+                    relative.relationship = updated_relationship;
+                    $(this).data("object", relative);
+                    relatives.push($(this).data("object"))
+                }
+            });
+
+            return {index: index_patient, relatives: relatives, original_index: original_index}
+        }
+
+        function postFamilyData(data) {
+
+            $.ajax({
+                     url: "{% url 'family_linkage' registry_code %}",
+                     type: "POST",
+                        data: {packet_json: JSON.stringify(data)},
+                        success: function(data) {
+                           if (data == "OK") {
+                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                           }
+                           else {
+                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+
+
+                           }
+
+                           $(".alert").fadeOut(3000, function () {
+                               $(this).remove();
+                           });
+
+                        }
+                    });
+
+        }
+
+        function wireUpSave() {
+            $("#savebutton").click(function () {
+                var family_data = getFamilyData();
+                postFamilyData(family_data);
+            })
+        }
+
+        function loadInitial() {
+            var index = parseInt(initial_index);
+            $('#index_lookup').data("index_pk", index);
+            loadIndex(index);
+        }
+
+    </script>
+    <script type="text/javascript">
+        (function($){
+           $(document).ready(function() {
+
+                $(".selectable").selectable();
+
+                allowDragAndDrop();
+
+                wireUpSave();
+
+                $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }});
+
+               $("#index_lookup").keyup(function() {
+                                         lookupIndex($(this), '{{index_lookup_url}}');
+               });
+
+               if (initial_index != 'None') {
+                   loadInitial();
+               }
+           });
+
+        })(jQuery);
+    </script>
+{% endblock %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        {{ block.super }}
+        <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Family Linkages</h3></p>
+        </div>
+        </div>
+    <br>
+        <div class="row">
+            <div class="col-md-10">
+
+             <div class="panel panel-info">
+               <div class="panel-heading">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
+                    <div class="panel-body">
+                        <div class="row">
+                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
+                            <button onclick="load_index(this);">Load this index and family</button>
+                            <button onclick="add_patient(this);">Add looked up patient to family</button>
+                        </div>
+                    </div>
+
+                </div>
+
+               <div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Index Patient</div>
+
+                            <div class="panel-body">
+                                <div id="indexpatient" >
+                                    <table class="table table-bordered droppable">
+                                        <tbody>
+
+
+                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="panel panel-default">
+                                <div class="panel panel-heading">Relatives</div>
+                                <div class="panel panel-body">
+                                     <div id="relatives">
+                                        <table class="table table-bordered table-striped">
+                                        <tbody>
+
+
+                                        <tr>
+                                            <th>Given Names</th>
+                                            <th>Family Name</th>
+                                            <th>Relationship</th>
+                                            <th>Link</th>
+                                        </tr>
+                                        </tbody>
+                                        </table>
+
+                                     </div>
+                                </div>
+                        </div>
+
+
+            </div>
+
+            </div>
+
+
+             <div class="col-md-2">
+
+            <div data-spy="affix" style="width: 150px;">
+                <button id="savebutton" type="submit" class="btn btn-success btn-block" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+            </div>
+        </div>
+
+
+
+
+    </div>
+
+
+
+    {% else %}
+        <div class="alert alert-info">Please log in to access the registry.</div>
+    {% endif %}
+{% endblock %}

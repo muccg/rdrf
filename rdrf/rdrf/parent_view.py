@@ -6,8 +6,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
-from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
-from models import Registry, RegistryForm
+from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType, ConsentValue
+from models import Registry, RegistryForm, ConsentSection, ConsentQuestion
 from registry.patients.admin_forms import ParentGuardianForm
 
 from registry.groups.models import WorkingGroup
@@ -47,6 +47,20 @@ class BaseParentView(LoginRequiredMixin, View):
 
         return clinician, working_group
 
+    def _consent_status_for_patient(self, registry_code, patient):
+        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+        answers = []
+        for consent_section in consent_sections:
+            if consent_section.applicable_to(patient):
+                questions = ConsentQuestion.objects.filter(section=consent_section)
+                for question in questions:
+                    try:
+                        cv = ConsentValue.objects.get(patient=patient, consent_question = question)
+                        answers.append(cv.answer)
+                    except ConsentValue.DoesNotExist:
+                        answers.append(False)
+        return all(answers)
+
 
 class ParentView(BaseParentView):
 
@@ -55,10 +69,25 @@ class ParentView(BaseParentView):
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
-            forms = RegistryForm.objects.filter(registry=registry)
+            
+            forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
+            forms = []
+            for form in forms_objects:
+                forms.append({
+                    "form": form,
+                    "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
+                })
+
+            patients_objects = parent.patient.all()
+            patients = []
+            for patient in patients_objects:
+                patients.append({
+                    "patient": patient,
+                    "consent": self._consent_status_for_patient(registry_code, patient)
+                })
 
             context['parent'] = parent
-            context['patients'] = parent.patient.all()
+            context['patients'] = patients
             context['registry_code'] = registry_code
             context['registry_forms'] = forms
 
