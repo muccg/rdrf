@@ -629,7 +629,11 @@ class Importer(object):
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
                 information_link = section_dict["information_link"]
-                information_text = section_dict["information_text"]
+                if "information_text" in section_dict:
+                    information_text = section_dict["information_text"]
+                else:
+                    information_text = ""
+
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry)
                 section_model.information_link = information_link
