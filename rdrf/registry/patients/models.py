@@ -66,12 +66,11 @@ class Doctor(models.Model):
 
     fax = models.CharField(max_length=30, blank=True, null=True)
 
-
     class Meta:
         ordering = ['family_name']
 
     def __unicode__(self):
-        return "%s %s" % (self.family_name.upper(), self.given_names)
+        return "%s %s (%s)" % (self.family_name.upper(), self.given_names, self.surgery_name)
 
 
 class NextOfKinRelationship(models.Model):
