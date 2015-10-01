@@ -1125,8 +1125,8 @@ class PatientEditView(View):
                 additional_fields[cde.code] = field_object
             else:
 
-                if cde_policy.is_allowed(user.groups.all(), patient):
-                    # this is bad
+                if user.is_superuser or cde_policy.is_allowed(user.groups.all(), patient):
+                    # this is bad - registry specific fields in demographics are a bad idea
                     if patient.is_index:
                         additional_fields[cde.code] = field_object
 
