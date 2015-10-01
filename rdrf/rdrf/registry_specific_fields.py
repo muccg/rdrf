@@ -37,8 +37,12 @@ class RegistrySpecificFieldsHandler(object):
                     form_value = self._get_file_form_value(cde_model, request)
                     if form_value == FileCommand.PRESERVE:
                         # preserve existing value
-                        file_wrapper = self.get_registry_specific_data()[self.registry_model.code][cde_model.code]
-                        form_value = file_wrapper.gridfs_dict
+                        existing_data = self.get_registry_specific_data()
+                        if existing_data and self.registry_model.code in existing_data:
+                            file_wrapper = existing_data[self.registry_model.code][cde_model.code]
+                            form_value = file_wrapper.gridfs_dict
+                        else:
+                            form_value = {}
 
                     elif form_value == FileCommand.DELETE:
                         self._delete_existing_file_in_gridfs(cde_model)
