@@ -110,6 +110,10 @@ class RegistrySpecificFieldsHandler(object):
             raise Exception("file cde not found")
 
     def get_registry_specific_fields(self, user):
+        if user.is_superuser:
+            fields = self.registry_model.patient_fields
+            return fields
+
         if self.registry_model not in user.registry.all():
             return []
         else:

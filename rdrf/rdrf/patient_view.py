@@ -219,6 +219,9 @@ class PatientFormMixin(PatientMixin):
         :param registry_model:
         :return: list of cde_model, field_object pairs
         """
+        if user.is_superuser:
+            return registry_model.patient_fields
+
         if registry_model not in user.registry.all():
             return []
         else:
@@ -1100,6 +1103,8 @@ class PatientEditView(View):
         :param registry_model:
         :return: list of cde_model, field_object pairs
         """
+        if user.is_superuser:
+            return registry_model.patient_fields
         if registry_model not in user.registry.all():
             return []
         else:
@@ -1121,7 +1126,9 @@ class PatientEditView(View):
             else:
 
                 if cde_policy.is_allowed(user.groups.all(), patient):
-                    additional_fields[cde.code] = field_object
+                    # this is bad
+                    if patient.is_index:
+                        additional_fields[cde.code] = field_object
 
         if len(additional_fields.keys()) == 0:
             additional_fields["HIDDEN"] = True
