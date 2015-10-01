@@ -745,26 +745,25 @@ def get_countries():
 
 class PatientRelative(models.Model):
 
-    RELATIVE_TYPES = (
-        ("Parent", "Parent"),
-        ("Sibling", "Sibling"),
-        ("Child", "Child"),
-        ("Identical Twin", "Identical Twin"),
-        ("Half Sibling", "Half Sibling"),
-        ("Niece/Nephew", "Niece/Nephew"),
-        ("1st Cousin", "1st Cousin"),
-        ("Grandchild", "Grandchild"),
-        ("Uncle/Aunty", "Uncle/Aunty"),
+    RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
+        ("Child (1st degree)",  "Child (1st degree)"),
+        ("Sibling (1st degree)", "Sibling (1st degree)"),
+        ("Identical Twin (0th degree)", "Identical Twin (0th degree)"),
+        ("Non-identical Twin (1st degree)", "Non-identical Twin (1st degree)"),
+        ("Half Sibling (1st degree)", "Half Sibling (1st degree)"),
+        ("Grandparent (2nd degree)", "Grandparent (2nd degree)"),
+        ("Grandchild (2nd degree)",  "Grandchild (2nd degree)"),
+        ("Uncle/Aunt (2nd degree)",  "Uncle/Aunt (2nd degree)"),
+        ("Niece/Nephew (2nd degree)", "Niece/Nephew (2nd degree)"),
+        ("1st Cousin (3rd degree)",  "1st Cousin (3rd degree)"),
+        ("Great Grandparent (3rd degree)", "Great Grandparent (3rd degree)"),
+        ("Great Grandchild (3rd degree)", "Great Grandchild (3rd degree)"),
+        ("Great Uncle/Aunt (3rd degree)", "Great Uncle/Aunt (3rd degree)"),
+        ("Grand Niece/Nephew (3rd degree)", "Grand Niece/Nephew (3rd degree)"),
+        ("1st Cousin once removed (4th degree)", "1st Cousin once removed (4th degree)"),
         ("Spouse", "Spouse"),
-        ("Non-identical twin", "Non-identical twin"),
-        ("Grandparent", "Grandparent"),
-        ("1st cousin once removed", "1st cousin once removed"),
-        ("Great Grandparent", "Great Grandparent"),
-        ("Great Grandchild", "Great Grandchild"),
-        ("Great Uncle/Aunt", "Great Uncle/Aunt"),
-        ("Great Niece/Nephew", "Great Niece/Nephew"),
         ("Unknown", "Unknown"),
-        ("Other", "Other")
+        ("Other", "Other"),
     )
 
     RELATIVE_LOCATIONS = [
