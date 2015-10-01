@@ -33,25 +33,14 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
-            var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
             var state_lookup_url = "{% url 'state_lookup' 999 %}";
 
-            function dateDiffInYears(a, b) {
-                var utc2 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-                var utc1 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-            
-                return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-            }
-
-            $("#parent_guardian_form").hide();
-            $("#underage_msg").hide();
+            $("#parent_guardian_form").show();
             $("#form-other-clinician").hide();
-            $("#parent_guardian_form_btn").hide();
+            $("#parent_guardian_form_btn").show();
+            $("#patient_form").hide();
             
             var registry_code = "{{registry_code}}"
-            $('#id_password1').pwstrength({
-                ui: { showVerdictsInsideProgressBar: true }
-            });
             
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -66,22 +55,9 @@
             $("#id_date_of_birth").datepicker(dateOptions);
             $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
             
-            $("#parent_guardian_check").click(function() {
-                if($(this).prop("checked")) {
-                    $("#parent_guardian_form").show();
-                    $("#patient_form").hide();
-                    $("#parent_guardian_form_btn").show();
-                    $("#login_details").show();
-                } else {
-                    $("#parent_guardian_form").hide();
-                    $("#patient_form").show();
-                    $("#parent_guardian_form_btn").hide();
-                }
-            });
-            
             $("#patient_form_btn").click(function() {
-                $("#patient_form").show();
                 $("#parent_guardian_form").hide();
+                $("#patient_form").show();
             });
             
             $("#parent_guardian_form_btn").click(function() {
@@ -102,30 +78,6 @@
                 $("#id_email").val($("#id_username").val());
                 if (registration_form.valid()) {
                     registration_form.submit();
-                }
-            });
-            /**
-            $('#id_clinician').change(function() {
-                if($('#id_clinician option:selected').val() == 'clinician-other') {
-                    $("#form-other-clinician").show("blind");
-                } else {
-                    $("#form-other-clinician").hide("blind");
-                }
-            });
-            **/
-            $("#id_date_of_birth").change(function() {
-                if ($("#parent_guardian_check").prop("checked")) {
-                    return;
-                }
-                date_str = $("#id_date_of_birth").val();
-                dob = new Date(date_str);
-                if (dateDiffInYears(new Date(),dob) >= 18 ) {
-                    $("#underage_msg").hide("blind");
-                    $("#patient_form").show("blind");
-                } else {
-                    $("#underage_msg").show();
-                    $("#patient_form").hide();
-                    $("#login_details").hide();
                 }
             });
             
@@ -158,17 +110,16 @@
     <br>
     <div class="container">
         <div class="alert alert-info">
-            <strong>Rare Disease Registry - Patient Registration</strong>
-        </div>
-        <div id="underage_msg">
-            <div class="alert alert-danger">
-                For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.
-            </div>            
+            <strong>Angelman Registry - Parent Registration</strong>
         </div>
         <div class="row">
             <div class="col-md-6">
-                <h3>Personal data</h3>
-                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
+                <h4><i>Parent/Guardians:</i></h4>
+                <ul>
+                    <li>To register a child or dependent as a patient, please fill out your own details first.</li>
+                    <li>Please click 'Patient Details' to continue to register your child or dependent as a patient.</li>
+                    <li>You may register one patient at this stage- if you have multiple patients to register, you will be able to enter their details once you have logged into the registry. Please note you must be the patient's parent or guardian to register on their behalf.</li>
+                </ul>
             </div>
             <div class="col-md-6" style="text-align: justify; border-left: dotted 1px #bbb;">
                 <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
@@ -176,8 +127,17 @@
                     <input type="hidden" name="registry_code" value="{{registry_code}}">
                     <input id="id_email" name="email" type="hidden" />
                     
-                    <div class="form-group">
-                        <label><input type="checkbox" name="parent_guardian_check" id="parent_guardian_check"> I am a Parent/Guardian</label>
+                    <div id="login_details">
+                        <div class="form-group">
+                            <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
+                            <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
+                        </div>
                     </div>
                     
                     <div id="parent_guardian_form">
@@ -295,19 +255,6 @@
                         </div>
                     </div>
                     
-                    <div id="login_details">
-                        <div class="form-group">
-                            <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
                         <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
                     </div>
@@ -321,7 +268,7 @@
             <small>
             <p class="text-justify text-muted">
             Privacy Statement - 
-            All information we receive from you will be treated confidentially and will be encrypted and stored on a secure server. Your data will not be made available to employers, government organisations, insurance companies or educational institutions, nor to your spouse, other members of your family or your doctor. Only anonymous health information will be made accessible to qualified researchers who are granted permission by the Steering committee. You may also download the TREAT-NMD privacy policy to know more from <a href="www.treat-nmd.eu/downloads/file/registries_toolkit/Charter_Global_Registry_Revised_and_Approved_April_2014.pdf" target="_blank">here</a>.
+            All information we receive from you will be treated confidentially and will be encrypted and stored on a secure server. Only anonymous health information will be made accessible to qualified researchers who are granted permission by the Steering committee.
             </p>
             </small>
         </div>
