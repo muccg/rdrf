@@ -542,8 +542,8 @@ class FormView(View):
 
         return json_dict
 
-    def _get_template(self, ):
-        if self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+    def _get_template(self):
+        if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
         return "rdrf_cdes/form.html"
 
