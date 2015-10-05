@@ -161,6 +161,7 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
+        context["show_print_button"] = True
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
@@ -545,6 +546,7 @@ class FormView(View):
     def _get_template(self):
         if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
+
         return "rdrf_cdes/form.html"
 
 
@@ -618,6 +620,8 @@ class QuestionnaireView(FormView):
             context["registry"] = self.registry
             context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
+            context["show_print_button"] = False
+
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {
@@ -630,6 +634,9 @@ class QuestionnaireView(FormView):
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+
+    def _get_template(self):
+        return "rdrf_cdes/questionnaire.html"
 
     def _get_prelude(self, registry_code, questionnaire_context):
         if questionnaire_context is None:
@@ -980,6 +987,8 @@ class QuestionnaireResponseView(FormView):
         context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
+        context["show_print_button"] = False
+
         return self._render_context(request, context)
 
     def _get_questionnaire_context(self):
