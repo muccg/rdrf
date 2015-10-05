@@ -186,6 +186,9 @@ class CustomUser(AbstractUser):
         if not self.has_feature("questionnaires"):
             links = links - QuickLinks.QUESTIONNAIRE_HANDLING
 
+        if self.has_feature("family_linkage"):
+            links = links | QuickLinks.DOCTORS
+
         return links
 
 
