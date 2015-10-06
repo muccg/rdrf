@@ -104,4 +104,5 @@ Documentation Content List:
    about
    installation/index
    development
+   security
 

@@ -17,6 +17,7 @@ from models import Section
 from models import ConsentSection
 from models import ConsentQuestion
 from models import DemographicFields
+from models import CdePolicy
 
 import logging
 from django.http import HttpResponse
@@ -169,7 +170,7 @@ generate_questionnaire_action.short_description = "Generate Questionnaire"
 class RegistryAdmin(admin.ModelAdmin):
     actions = [export_registry_action, design_registry_action, generate_questionnaire_action]
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         if not request.user.is_superuser:
             user = get_user_model().objects.get(username=request.user)
             return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
@@ -202,13 +203,16 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_filter = ('registry', 'date_submitted')
 
     def process_link(self, obj):
+        if not obj.has_mongo_data:
+            return "NO DATA"
+
         link = "-"
         if not obj.processed:
             url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
             link = "<a href='%s'>Review</a>" % url
         return link
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         user = request.user
         if user.is_superuser:
             return QuestionnaireResponse.objects.all()
@@ -367,6 +371,17 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
     form = DemographicFieldsAdminForm
     list_display = ("registry", "group", "field", "hidden", "readonly")
 
+
+class CdePolicyAdmin(admin.ModelAdmin):
+    model = CdePolicy
+    list_display = ("registry", "cde", "groups", "condition")
+    
+    def groups(self, obj):
+        return ", ".join([gr.name for gr in obj.groups_allowed.all()])
+    
+    groups.short_description = "Allowed Groups"
+
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(
@@ -407,6 +422,8 @@ admin.site.register(Section, SectionAdmin)
 admin.site.register(ConsentSection, ConsentSectionAdmin)
 
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
+
+admin.site.register(CdePolicy, CdePolicyAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)

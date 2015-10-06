@@ -1,5 +1,7 @@
 # Django settings for rdrf project.
 import os
+import ssl
+
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig
@@ -69,9 +71,29 @@ DATABASES = {
     # }
 }
 
+# Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
+# These settings ( and only )  are consumed by rdrf.mongo_client
+
 MONGOSERVER = env.get("mongoserver", "localhost")
 MONGOPORT = env.get("mongoport", 27017)
 MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
+
+MONGO_CLIENT_MAX_POOL_SIZE = env.get("mongo_max_pool_size", 100)
+MONGO_CLIENT_TZ_AWARE = env.get("mongo_client_tz_aware", False)
+MONGO_CLIENT_CONNECT = env.get("mongo_client_connect", True)
+
+MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", "") or None
+MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 20000)
+MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
+MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
+MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
+
+MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
+MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
+MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
+MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
+MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
+
 
 # Django Core stuff
 TEMPLATE_LOADERS = [
@@ -92,7 +114,6 @@ MESSAGE_TAGS = {
 MIDDLEWARE_CLASSES = (
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -109,7 +130,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
-    'south',
     'messages_ui',
     'userlog',
     'rdrf',
@@ -118,7 +138,6 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'django.contrib.admin',
-    'iprestrict',
     'ajax_select',
     'registration',
     'explorer',
@@ -375,3 +394,78 @@ ACCOUNT_ACTIVATION_DAYS = 2
 
 LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
+
+
+CUSTOM_PERMISSIONS = {
+    "patients": { # App Name
+        "patient": ( # Model Name
+            ("can_see_full_name", "Can see Full Name column"),
+            ("can_see_dob", "Can see Date of Birth column"),
+            ("can_see_working_groups", "Can see Working Groups column"),
+            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
+            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
+            ("can_see_genetic_data_map", "Can see Genetic Module column"),
+            ("can_see_data_modules", "Can see Data Modules column"),
+        )
+    }
+}
+
+GRID_PATIENT_LISTING = [
+    {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "full_name",
+        "label": "Patient",
+        "order": 1
+    }, {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "date_of_birth",
+        "label": "Date of Birth",
+        "order": 2
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_working_groups"
+        },
+        "data": "working_groups_display",
+        "label": "Working Groups",
+        "order": 3
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_progress"
+        },
+        "data": "diagnosis_progress",
+        "label": "Diagnosis Entry Progress",
+        "order": 4
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_currency"
+        },
+        "data": "diagnosis_currency",
+        "label": "Updated < 365 days",
+        "order": 5
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_genetic_data_map"
+        },
+        "data": "genetic_data_map",
+        "label": "Genetic Data",
+        "order": 6
+    }, {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "data_modules",
+        "label": "Modules",
+        "order": 7
+    }
+]

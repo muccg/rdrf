@@ -93,10 +93,10 @@ if [ "$1" = 'uwsgi' ]; then
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
 
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-syncdb.log
-    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
+    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
+    django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
 
-    uwsgi ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
+    uwsgi --ini ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
     exit $?
 fi
 
@@ -107,12 +107,22 @@ if [ "$1" = 'runserver' ]; then
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${WEBPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
 
+    echo "running collectstatic"
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
-    django-admin.py syncdb --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-syncdb.log
-    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-migrate.log
 
-    django-admin.py load_fixture --file=rdrf.json
-    django-admin.py load_fixture --file=users.json
+    echo "running migrate ..."
+    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE}  2>&1 | tee /data/runserver-migrate.log
+
+    echo "updating permissions"
+    django-admin.py update_permissions  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
+
+    echo "loading rdrf fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
+
+    echo "loading users fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+
+    echo "running runserver ..."
     django-admin.py ${RUNSERVER_OPTS} 2>&1 | tee /data/runserver.log
     exit $?
 fi

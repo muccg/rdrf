@@ -28,6 +28,7 @@ class QuickLinks(object):
     # Genetic Staff
     Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
+
     WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", "Working Groups")
 
     # Admin only
@@ -49,11 +50,13 @@ class QuickLinks(object):
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
+    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", "CDE Policy", True)
+    States = QuickLink("admin:patients_state_changelist", "States")
 
-    DATA_ENTRY = oset([
-        PatientsListing,
-        ConsentValues
-    ])
+
+    #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
+
+    DATA_ENTRY = oset([PatientsListing])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
@@ -63,6 +66,7 @@ class QuickLinks(object):
                             RegistryForms,
                             Sections,
                             DataElements,
+                            CdePolicy,
                             PermissibleValueGroups,
                             PermissibleValues,
                             ConsentSections,
@@ -84,4 +88,6 @@ class QuickLinks(object):
 
     CLINICIAN = DATA_ENTRY | QUESTIONNAIRE_HANDLING
 
-    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING
+    STATE_MANAGEMENT = oset([States])
+
+    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT

@@ -117,6 +117,7 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
             "using <a href=\"password/\">this form</a>."))
 
     class Meta:
+        fields = "__all__"
         model = get_user_model()
 
     def clean_password(self):

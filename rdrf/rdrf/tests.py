@@ -12,11 +12,12 @@ from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
-from pymongo import MongoClient
 from django.forms.models import model_to_dict
 import yaml
 from django.contrib.auth import get_user_model
 from rdrf.utils import de_camelcase
+from rdrf.mongo_client import construct_mongo_client
+
 
 from django.conf import settings
 import os
@@ -234,13 +235,13 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
         self.patient_address, created = PatientAddress.objects.get_or_create(
-            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state, postcode='1111', patient=self.patient)
+            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state.short_name, postcode='1111', patient=self.patient)
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
 
     def _reset_mongo(self):
-        self.client = MongoClient(settings.MONGOSERVER, settings.MONGOPORT)
+        self.client = construct_mongo_client()
         # delete any testing databases
         for db in self.client.database_names():
             if db.startswith("testing_"):
@@ -308,6 +309,18 @@ class FormTestCase(RDRFTestCase):
         return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
 
     def test_simple_form(self):
+
+        def form_value(form_name, section_code, cde_code, mongo_record):
+            for form in mongo_record["forms"]:
+                if form["name"] == form_name:
+                    for section in form["sections"]:
+                        if section["code"] == section_code:
+                            for cde in section["cdes"]:
+                                if cde["code"] == cde_code:
+                                    return cde["value"]
+
+
+
         ff = FormFiller(self.simple_form)
         ff.sectionA.CDEName = "Fred"
         ff.sectionA.CDEAge = 20
@@ -335,14 +348,35 @@ class FormTestCase(RDRFTestCase):
 
         print "*** MONGO RECORD = %s ***" % mongo_record
 
-        assert mongo_record[
-            self._create_form_key(self.simple_form, self.sectionA, "CDEName")] == "Fred"
-        assert mongo_record[
-            self._create_form_key(self.simple_form, self.sectionA, "CDEAge")] == 20
-        assert mongo_record[
-            self._create_form_key(self.simple_form, self.sectionB, "CDEHeight")] == 1.73
-        assert mongo_record[
-            self._create_form_key(self.simple_form, self.sectionB, "CDEWeight")] == 88.23
+        assert "forms" in mongo_record, "Mongo record should have a forms key"
+        assert isinstance(mongo_record["forms"], list)
+        assert len(mongo_record["forms"]) == 1, "Expected one form"
+
+        the_form = mongo_record['forms'][0]
+        assert isinstance(the_form, dict), "form data should be a dictionary"
+        assert "sections" in the_form, "A form should have a sections key"
+        assert isinstance(the_form["sections"], list), "Sections should be in a list"
+        # we've only written data for 2 sections
+        assert len(the_form["sections"]) == 2, "expected 2 sections got %s" % len(the_form["sections"])
+
+        for section_dict in the_form["sections"]:
+            assert isinstance(section_dict, dict), "sections should be dictioanaries"
+            assert "cdes" in section_dict, "sections should have a cdes key"
+            assert isinstance(section_dict["cdes"], list), "sections cdes key should be a list"
+            for cde in section_dict["cdes"]:
+                assert isinstance(cde, dict), "cde should be a dict"
+                assert "code" in cde, "cde dictionary should have a code key"
+                assert "value" in cde, "cde dictionary should have a value key"
+
+
+
+        assert form_value(self.simple_form.name, self.sectionA.code, "CDEName", mongo_record) == "Fred"
+        assert form_value(self.simple_form.name, self.sectionA.code, "CDEAge", mongo_record) == 20
+        assert form_value(self.simple_form.name, self.sectionB.code, "CDEHeight", mongo_record) == 1.73
+        assert form_value(self.simple_form.name, self.sectionB.code, "CDEWeight", mongo_record) == 88.23
+
+
+
 
 
 class LongitudinalTestCase(FormTestCase):

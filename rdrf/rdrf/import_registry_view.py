@@ -47,7 +47,7 @@ class ImportRegistryView(View):
             importer = Importer()
 
             importer.load_yaml_from_string(registry_yaml)
-            with transaction.commit_on_success():
+            with transaction.atomic():
                 importer.create_registry()
 
         except Exception as ex:

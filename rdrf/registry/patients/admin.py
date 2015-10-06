@@ -197,6 +197,13 @@ class PatientAdmin(admin.ModelAdmin):
     adjudications_btn.short_description = 'Available Adjudications'
 
     def get_form(self, request, obj=None, **kwargs):
+        """
+        PatientAdmin.get_form
+        :param request:
+        :param obj:
+        :param kwargs:
+        :return:
+        """
         # NB. This method returns a form class
         user = get_user_model().objects.get(username=request.user)
         #registry_specific_fields = self._get_registry_specific_patient_fields(user)
@@ -418,7 +425,7 @@ class PatientAdmin(admin.ModelAdmin):
                                   name="patient_search"))
         return local_urls + urls
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         self.request = request
         if request.user.is_superuser:
             return Patient.objects.all()

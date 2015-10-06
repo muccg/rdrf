@@ -1,11 +1,11 @@
 # data only container pattern
 datastaging:
-  image: muccg/base:debian8
+  image: muccg/debian8-base
   volumes:
     - data:/data
 
 dbstaging:
-  image: postgres:9.3
+  image: postgres:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp

@@ -1,0 +1,47 @@
+{% extends "rdrf_cdes/base_simple.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function(){
+            window.print();
+            setTimeout(window.close, 0);
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <blockquote>
+        <b>Patient Consents</b> - {{registry}}
+    </blockquote>
+
+    <table class="table table-bordered table-hover" id="list_of_patients">
+        <thead>
+            <tr>
+                <th class="col-md-5">Patient - Consent Type</th>
+                <th class="col-md-3" style="text-align: center;">First Save</th>
+                <th class="col-md-3" style="text-align: center;">Last Update</th>
+                <th class="col-md-1" style="text-align: center;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for patient, sections in consents.items %}
+            {% for section, signed in sections.items %}
+                <tr class="warning">
+                    <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
+                    <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"Y-m-d"}}</td>
+                    <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"Y-m-d"}}</td>
+                    <td class="col-md-1" style="text-align: center;">
+                        {% if signed.signed %}
+                            <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
+                        {% else %}
+                            <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor%}
+        </tbody>
+    </table>
+
+{% endblock %}

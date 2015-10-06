@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static from staticfiles %}
 {% load admin_urls %}
 {% load get_form %}
 {% load get_forms %}
@@ -71,6 +71,11 @@
                                 <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {{quick_link.text}}</a></li>
                             {% endif %}
                         {% endfor %}
+                        {% if request.user.is_curator or request.user.is_superuser %}
+                            {% for reg in request.user.get_registries.all %}
+                                <li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>
+                            {% endfor %}
+                        {% endif %}
                         {% block extra_menu %}
                         {% endblock %}
                     </ul>
@@ -112,6 +117,7 @@
                 </li>
             {% else %}
                 <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> Log in</a></li>
+                <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-refresh"></span> Password Reset</a></li>
             {% endif %}
           </ul>
         </div><!-- /.navbar-collapse -->

@@ -5,8 +5,8 @@
 %define pybasever 2.7
 
 %define name rdrf
-%define version 0.8.42
-%define unmangled_version 0.8.42
+%define version 1.0.10
+%define unmangled_version 1.0.10
 %define release 1
 %define webapps /usr/local/webapps
 %define installdir %{webapps}/%{name}
@@ -22,14 +22,14 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 Source0: %{name}-%{unmangled_version}.tar.gz
-License: GNU GPL v2
+License: GNU AGPL v3
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: x86_64
 Vendor: Centre for Comparative Genomics <web@ccg.murdoch.edu.au>
 BuildRequires: python%{pyver}-virtualenv python%{pyver}-devel postgresql94-devel zlib-devel libyaml-devel
-Requires: python%{pyver} zlib libyaml postgresql94-libs
+Requires: python%{pyver} zlib libyaml postgresql94-libs python%{pyver}-mod_wsgi
 
 %description
 Registry rdrf

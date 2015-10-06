@@ -27,6 +27,7 @@ from registry.groups.models import WorkingGroup
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
+        (None, "---------"),
         (1, "GP (Primary Care)"),
         (2, "Specialist (Lipid)"),
         (3, "Primary Care"),
@@ -45,6 +46,7 @@ class PatientDoctorForm(forms.ModelForm):
     relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
 
     class Meta:
+        fields = "__all__"
         model = PatientDoctor
 
 
@@ -52,6 +54,8 @@ class PatientRelativeForm(forms.ModelForm):
 
     class Meta:
         model = PatientRelative
+        fields = "__all__"  # Added after upgrading to Django 1.8
+        exclude = ['id']    # Added after upgrading to Django 1.8  - uniqueness check was failing otherwise (RDR-1039)
         widgets = {
              'relative_patient': PatientRelativeLinkWidget,
 
@@ -149,6 +153,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     class Meta:
         model = PatientConsent
+        fields = "__all__"
 
     form = forms.FileField(widget=AdminFileWidget, required=False)
 
@@ -220,9 +225,14 @@ class PatientForm(forms.ModelForm):
             logger.debug("user = %s" % user)
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
-            self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                registry=self.registry_model, id__in=[
-                    wg.pk for wg in self.user.working_groups.all()])
+            if not user.is_superuser:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                    registry=self.registry_model, id__in=[
+                        wg.pk for wg in self.user.working_groups.all()])
+            else:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+
+            # field visibility restricted no non admins
             if not user.is_superuser:
                 logger.debug("not superuser so updating field visibility")
                 if not self.registry_model:
@@ -261,7 +271,7 @@ class PatientForm(forms.ModelForm):
         if patient_model is None:
             return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
-        return mongo_wrapper.load_registry_specific_data()
+        return mongo_wrapper.load_registry_specific_data(self.registry_model)
 
     def _update_initial_consent_data(self, patient_model, initial_data):
         if patient_model is None:
@@ -284,15 +294,14 @@ class PatientForm(forms.ModelForm):
         logger.debug("user is %s" % user)
         logger.debug("form.registry_model = %s" % self.registry_model)
         from registry.groups.models import WorkingGroup
-        initial_working_groups = user.working_groups.filter(registry=self.registry_model)
-        self.fields['working_groups'].queryset = initial_working_groups
-        logger.debug("restricted working groups choices to %s" %
-                     [wg.pk for wg in initial_working_groups])
+        if not user.is_superuser:
+            initial_working_groups = user.working_groups.filter(registry=self.registry_model)
+            self.fields['working_groups'].queryset = initial_working_groups
+            logger.debug("restricted working groups choices to %s" %
+                        [wg.pk for wg in initial_working_groups])
+        else:
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
-    #consent = forms.BooleanField(required=True, help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them", label="Consent given")
-    #consent_clinical_trials = forms.BooleanField(required=False, help_text="The patient consents to be contacted about clinical trials or other studies related to their condition", label="Consent for clinical trials given")
-    #consent_sent_information = forms.BooleanField(required=False, help_text="The patient consents to be sent information on their condition", label="Consent for being sent information given")
-    #consent_provided_by_parent_guardian = forms.BooleanField(required=False, help_text="The parent/guardian of the patient has provided consent", label="Parent/Guardian consent provided on behalf of the patient")
     date_of_birth = forms.DateField(
         widget=forms.DateInput(
             attrs={
@@ -406,12 +415,9 @@ class PatientForm(forms.ModelForm):
 
         if commit:
             patient_model.save()
-
-            for wg in self.cleaned_data["working_groups"]:
-                patient_model.working_groups.add(wg)
-
-            for reg in self.cleaned_data["rdrf_registry"]:
-                patient_model.rdrf_registry.add(reg)
+            patient_model.working_groups = [wg for wg in self.cleaned_data["working_groups"]]
+            patient_model.rdrf_registry = [reg for reg in self.cleaned_data["rdrf_registry"]]
+            patient_model.save()
 
         patient_model.clinician = self.cleaned_data["clinician"]
 

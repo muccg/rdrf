@@ -72,26 +72,33 @@ class PatientResource(ModelResource):
         else:
             bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
 
-
-        bundle.data["full_name"] = p.display_name
+        if registry_code:
+            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+        else:
+            # calls from calculated field plugin don't pass a registry code
+            bundle.data["full_name"] = p.display_name
 
         if hasattr(bundle, "progress_data"):
             progress_data = getattr(bundle, "progress_data")
 
             if progress_data["diagnosis_progress"]:
-                bundle.data["diagnosis_progress"] = {
-                    registry_code: progress_data["diagnosis_progress"].get(id, 0.00)}
+                progress_number = progress_data["diagnosis_progress"].get(id, 0.00)
+                bundle.data["diagnosis_progress"] = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar' aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'><span class='progress-label'>%s%%</span></div></div>" % (progress_number, progress_number, progress_number)
 
             if progress_data["has_genetic_data"]:
-                bundle.data["genetic_data_map"] = {
-                    registry_code: progress_data["has_genetic_data"].get(id, False)}
+                has_genetic_data = progress_data["has_genetic_data"].get(id, False)
+                icon = "ok" if has_genetic_data else "remove"
+                color = "green" if has_genetic_data else "red"
+                bundle.data["genetic_data_map"] =  "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
             if progress_data["data_modules"]:
                 bundle.data["data_modules"] = progress_data["data_modules"].get(id, "")
 
             if progress_data["diagnosis_currency"]:
-                bundle.data["diagnosis_currency"] = {
-                    registry_code: progress_data["diagnosis_currency"].get(id, False)}
+                diangosis_currency = progress_data["diagnosis_currency"].get(id, False)
+                icon = "ok" if diangosis_currency else "remove"
+                color = "green" if diangosis_currency else "red"
+                bundle.data["diagnosis_currency"] = "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
         finish = time.time()
         elapsed = finish - start
@@ -305,6 +312,20 @@ class PatientResource(ModelResource):
                 Q(given_names__icontains=search_phrase) | Q(family_name__icontains=search_phrase))
 
         total = query_set.count()
+
+        if total == 0:
+            # No patients found
+            results = {
+                "current": 1,
+                "rowCount": 0,
+                "searchPhrase": search_phrase,
+                "rows": [],
+                "total": total,
+                "show_add_patient": not chosen_registry.has_feature("no_add_patient_button"),
+            }
+            self.log_throttled_access(request)
+            return self.create_response(request, results)
+
         if row_count == -1:
             # All
             row_count = total
