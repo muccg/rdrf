@@ -74,13 +74,6 @@ class DatabaseUtils(object):
         criteria = self.criteria
         projection = self.projection
 
-        aggregation = []
-
-        pipline = self.aggregation.split("|")
-        for pipe in pipline:
-            for key, value in ast.literal_eval(pipe).iteritems():
-                aggregation.append({key: value})
-
         django_ids = []
         if self.result:
             for r in self.result:
@@ -91,6 +84,14 @@ class DatabaseUtils(object):
             criteria["django_id"] = {"$in": django_ids}
             results = collection.find(criteria, projection)
         elif mongo_search_type == 'A':
+            aggregation = []
+    
+            pipline = self.aggregation.split("|")
+            for pipe in pipline:
+                for i in json.loads(pipe):
+                    for key, value in i.iteritems():
+                        aggregation.append({key: value})        
+        
             if "$match" in aggregation:
                 aggregation["$match"].update({"django_id": {"$in": django_ids}})
             else:
