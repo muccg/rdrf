@@ -14,7 +14,7 @@ AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|dockerbuild|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
 }
 
 
@@ -23,6 +23,34 @@ ci_ssh_agent() {
     ssh-agent > /tmp/agent.env.sh
     . /tmp/agent.env.sh
     ssh-add ~/.ssh/ccg-syd-staging-2014.pem
+}
+
+
+# docker build and push in CI
+dockerbuild() {
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
+
+    image="muccg/${PROJECT_NAME}"
+    gittag=`git describe --abbrev=0 --tags 2> /dev/null`
+    template="$(cat docker/Dockerfile.in)"
+
+    # attempt to warm up docker cache
+    docker pull ${image} || true
+
+    eval "echo \"${template}\"" | docker build -t ${image} -
+    eval "echo \"${template}\"" | docker build -t ${image}:${DATE} -
+
+    if [ -z ${gittag+x} ]; then
+        echo "No git tag set"
+    else
+        echo "Git tag ${gittag}"
+        eval "echo \"${template}\"" | docker build -t ${image}:${gittag} -
+        docker push ${image}:${gittag}
+    fi
+
+    docker push ${image}
+    docker push ${image}:${DATE}
 }
 
 
@@ -153,6 +181,9 @@ pythonlint)
     ;;
 jslint)
     jslint
+    ;;
+dockerbuild)
+    dockerbuild
     ;;
 rpmbuild)
     rpmbuild
