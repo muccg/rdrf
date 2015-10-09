@@ -24,6 +24,7 @@ from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index
 from rdrf.mongo_client import construct_mongo_client
 
 
+from operator import itemgetter
 import json
 import os
 from django.conf import settings
@@ -118,12 +119,13 @@ class FormView(View):
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
         self.testing = False
-        self.template = 'rdrf_cdes/form.html'
+        self.template = None
         self.registry = None
         self.dynamic_data = {}
         self.registry_form = None
         self.form_id = None
         self.patient_id = None
+        self.user = None
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -151,6 +153,7 @@ class FormView(View):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
+        self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
@@ -158,6 +161,7 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
+        context["show_print_button"] = True
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
@@ -167,7 +171,7 @@ class FormView(View):
     def _render_context(self, request, context):
         context.update(csrf(request))
         return render_to_response(
-            self.template,
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -179,9 +183,12 @@ class FormView(View):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, form_id, patient_id):
-        if request.user.is_working_group_staff:
+        if request.user.is_superuser:
+            pass
+        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
             raise PermissionDenied()
 
+        self.user = request.user
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
         dyn_patient = DynamicDataWrapper(patient)
@@ -356,7 +363,7 @@ class FormView(View):
                     patient_name)
 
         return render_to_response(
-            'rdrf_cdes/form.html',
+            self._get_template(),
             context,
             context_instance=RequestContext(request))
 
@@ -536,6 +543,18 @@ class FormView(View):
 
         return json_dict
 
+    def _get_template(self):
+        if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+            return "rdrf_cdes/form_readonly.html"
+
+        return "rdrf_cdes/form.html"
+
+
+class FormPrintView(FormView):
+    
+    def _get_template(self):
+        return "rdrf_cdes/form_print.html"
+
 
 class ConsentFormWrapper(object):
 
@@ -601,6 +620,8 @@ class QuestionnaireView(FormView):
             context["registry"] = self.registry
             context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
+            context["show_print_button"] = False
+
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {
@@ -613,6 +634,9 @@ class QuestionnaireView(FormView):
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+
+    def _get_template(self):
+        return "rdrf_cdes/questionnaire.html"
 
     def _get_prelude(self, registry_code, questionnaire_context):
         if questionnaire_context is None:
@@ -963,6 +987,8 @@ class QuestionnaireResponseView(FormView):
         context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
+        context["show_print_button"] = False
+
         return self._render_context(request, context)
 
     def _get_questionnaire_context(self):
@@ -1769,8 +1795,10 @@ class PatientsListingView(LoginRequiredMixin, View):
         context["location"] = "Patient List"
         
         columns = []
+
+        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
         
-        for definition in settings.GRID_PATIENT_LISTING:
+        for definition in sorted_by_order:
             if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {

@@ -195,6 +195,7 @@
 {% endblock %}
 
 {% block content %}
+    <div class="alert alert-danger">This form is readonly</div>
     {{ block.super }}
     <br>
     <div class="row">
@@ -281,7 +282,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
+                                                            {{ element.help_text }}
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -314,7 +315,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
+                                                            {{ element.help_text }}
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -330,13 +331,13 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
-                                    <div class="col-sm-9">
+                                    <div class="col-md-8">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="label label-danger">{{field.errors.as_text}}</span>
@@ -352,17 +353,9 @@
 
         <div class="col-md-2">
             <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-                {% if show_print_button %}
                 <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
                 </a>
-                {% endif %}
             </div>
         </div>
 
@@ -377,6 +370,7 @@
         $("textarea").addClass("form-control");
         $("select").addClass("form-control");
         $("label[for*='-clear']").removeClass();
+        $(":input").attr("disabled", true);
     })
 </script>
 

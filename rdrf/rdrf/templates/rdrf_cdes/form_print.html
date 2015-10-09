@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base_simple.html" %}
 {% load get_display_name %}
 {% load get_section_id %}
 {% load is_formset %}
@@ -9,6 +9,16 @@
 {% load get_form_object %}
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function(){
+            window.print();
+            setTimeout(window.close, 0);
+        });
+    </script>
+{% endblock %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -22,67 +32,7 @@
     <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
-
-
-    <script type="text/javascript">
-        window.IMAGES_URL = "{% static 'images/' %}";
-        window.HGVS_URL = "{% url 'hgvs_validator' %}";
-    </script>
-
-    <style>
-        .ui-autocomplete {
-            max-height: 100px;
-            overflow-y: auto;
-            /* prevent horizontal scrollbar */
-            overflow-x: hidden;
-        }
-          /* IE 6 doesn't support max-height
-           * we use height instead, but this forces the menu to always be this tall
-           */
-          * html .ui-autocomplete {
-            height: 100px;
-        }
-        
-        ul {
-            list-style-type: none;
-            margin-left: 0;
-        }
-        
-        table {
-            table-layout: fixed;
-        }
-        
-        .progress {
-            margin-bottom: 0px;
-        }
-        
-        .badge {
-            border-radius: 0px;
-        }
-        
-        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
-            border-top: 0;
-        }
-    </style>
-    
-    <script>
-        function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
-    
+   
     <script>
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
@@ -195,10 +145,10 @@
 {% endblock %}
 
 {% block content %}
-    {{ block.super }}
-    <br>
-    <div class="row">
-    <div class="col-md-10">
+{{ block.super }}
+<br>
+<div class="row">
+<div class="col-md-12">
         <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
@@ -281,7 +231,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
+                                                            {{ element.help_text }}
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -314,7 +264,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
+                                                            {{ element.help_text }}
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -330,13 +280,13 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
-                                    <div class="col-sm-9">
+                                    <div class="col-md-8">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="label label-danger">{{field.errors.as_text}}</span>
@@ -348,22 +298,6 @@
                     </div>
                 </div>
             {% endfor %}
-        </div>
-
-        <div class="col-md-2">
-            <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-                {% if show_print_button %}
-                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
-                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
-                </a>
-                {% endif %}
-            </div>
         </div>
 
     </form>
