@@ -8,6 +8,7 @@ set -e
 
 ACTION="$1"
 
+DATE=`date +%Y.%m.%d`
 PROJECT_NAME='rdrf'
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
@@ -38,7 +39,7 @@ dockerbuild() {
     # attempt to warm up docker cache
     docker pull ${image} || true
 
-    eval "echo \"${template}\"" | docker build -t ${image} -
+    eval "echo \"${template}\"" | docker build --pull=true -t ${image} -
     eval "echo \"${template}\"" | docker build -t ${image}:${DATE} -
 
     if [ -z ${gittag+x} ]; then
