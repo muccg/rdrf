@@ -44,9 +44,8 @@ data curator, genetic staff and clinical staff:
   - clinical staff username and password: clinical
 
 Screencasts are available to talk you through the creation of a Registry:
-  - `Training videos (with audio) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lT-3emdPkc75uBt5aiX1Hn1>`_
-  - `Training videos (with text) to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lSWLUNTqrIpfBuUfHzidbfu>`_
-  - `Training videos to add a Patient as a curator user <https://www.youtube.com/watch?v=O1se5ATJ9jU&list=PL_54ZaRad-lS5cImArcSaAZhnwISPrIOz>`_
+  - `Training videos to create a Registry as an admin user <https://www.youtube.com/playlist?list=PL_54ZaRad-lSLDxVVYh9gByAZz7qp9ohi>`_
+
 
 If you prefer to read:
   - Here's some text explaining how to create a :ref:`registry in 10 minutes <howtocreatearegistry>`
