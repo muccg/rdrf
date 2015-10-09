@@ -193,12 +193,10 @@ class CustomUser(AbstractUser):
 def user_registered_callback(sender, user, request, **kwargs):
     from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian
 
-    is_parent = "parent_guardian_check" in request.POST
-
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
 
-    user = _create_django_user(request, user, registry, is_parent)
+    user = _create_django_user(request, user, registry)
 
     try:
         clinician_id, working_group_id = request.POST['clinician'].split("_")
@@ -225,25 +223,21 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.working_groups.add(working_group.id)
     patient.clinician = clinician
     patient.home_phone = getattr(request.POST, "phone_number", None)
-    patient.user = None if is_parent else user
+    patient.user = None
 
     patient.save()
 
     address = _create_patient_address(patient, request)
     address.save()
 
-    if is_parent:
-        parent_guardian = _create_parent(request)
-        parent_guardian.patient.add(patient)
-        parent_guardian.user = user
-        parent_guardian.save()
+    parent_guardian = _create_parent(request)
+    parent_guardian.patient.add(patient)
+    parent_guardian.user = user
+    parent_guardian.save()
 
 
-def _create_django_user(request, django_user, registry, is_parent):
-    if is_parent:
-        user_group = _get_group("Parents")
-    else:
-        user_group = _get_group("Patients")
+def _create_django_user(request, django_user, registry):
+    user_group = _get_group("Parents")
 
     django_user.groups = [user_group.id, ] if user_group else []
 
