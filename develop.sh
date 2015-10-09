@@ -36,17 +36,22 @@ dockerbuild() {
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
     template="$(cat docker/Dockerfile.in)"
 
+    # log the Dockerfile
+    echo "########################################"
+    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in
+    echo "########################################"
+
     # attempt to warm up docker cache
     docker pull ${image} || true
 
-    eval "echo \"${template}\"" | docker build --pull=true -t ${image} -
-    eval "echo \"${template}\"" | docker build -t ${image}:${DATE} -
+    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build --pull=true -t ${image} -
+    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build -t ${image}:${DATE} -
 
     if [ -z ${gittag+x} ]; then
         echo "No git tag set"
     else
         echo "Git tag ${gittag}"
-        eval "echo \"${template}\"" | docker build -t ${image}:${gittag} -
+        sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build -t ${image}:${gittag} -
         docker push ${image}:${gittag}
     fi
 
