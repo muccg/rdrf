@@ -157,7 +157,7 @@ make_virtualenv() {
     # The issue might be:
     # https://github.com/docker/compose/issues/1961
     # Until it is solved we use the previous stable version of docker-compose
-    pip install docker-compose==1.3.3
+    pip install docker-compose==1.3.3 --upgrade || true
 }
 
 
