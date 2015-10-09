@@ -1,4 +1,4 @@
-# Dockerfile template. ${gittag} needs to be set.
+# Dockerfile template. ${GITTAG} needs to be set.
 FROM muccg/python-base:ubuntu14.04-2.7
 MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
@@ -19,8 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN echo ${gittag} \
-    && git clone --depth=1 --branch=${gittag} https://bitbucket.org/ccgmurdoch/rdrf.git .
+RUN echo GITTAG \
+    && git clone --depth=1 --branch=GITTAG https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order
