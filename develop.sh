@@ -8,6 +8,7 @@ set -e
 
 ACTION="$1"
 
+DATE=`date +%Y.%m.%d`
 PROJECT_NAME='angelman'
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
