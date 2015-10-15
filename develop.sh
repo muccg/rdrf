@@ -8,13 +8,13 @@ set -e
 
 ACTION="$1"
 
-PROJECT_NAME='rdrf'
+PROJECT_NAME='angelman'
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 
 usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
+    echo 'Usage ./develop.sh (pythonlint|jslint|start|dockerbuild|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
 }
 
 
@@ -26,35 +26,48 @@ ci_ssh_agent() {
 }
 
 
-rpmbuild() {
-    mkdir -p data/rpmbuild
-    chmod o+rwx data/rpmbuild
-
+# docker build and push in CI
+dockerbuild() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-rpmbuild.yml up
-}
+    image="muccg/${PROJECT_NAME}"
+    gittag=`git describe --abbrev=0 --tags 2> /dev/null`
 
+    # attempt to warm up docker cache
+    docker pull ${image} || true
 
-rpm_publish() {
-    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/rdrf*.rpm,release=6
+    docker build -f Dockerfile-release -t ${image} .
+    docker build -f Dockerfile-release -t ${image}:${DATE} .
+
+    if [ -z ${gittag+x} ]; then
+        echo "No git tag set"
+    else
+        echo "Git tag ${gittag}"
+        docker build -f Dockerfile-release -t ${image}:${gittag} .
+        docker push ${image}:${gittag}
+    fi
+
+    docker push ${image}
+    docker push ${image}:${DATE}
 }
 
 
 ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/docker/unstable'
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} drun:'chmod o+w rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,rdrf/fig-staging.yml
-    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,rdrf/docker/unstable/Dockerfile
+    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/docker/unstable"
+    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} drun:"chmod o+w ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,${PROJECT_NAME}/fig-staging.yml
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,${PROJECT_NAME}/docker/unstable/Dockerf
+ile
 
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml stop'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml kill'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
-    ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml stop"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml kill"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml rm --force -v"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml build --no-cache websta
+ging"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml up -d"
+    ccg ${AWS_STAGING_INSTANCE} drun:"docker-clean || true"
 }
 
 lettuce() {
@@ -154,12 +167,8 @@ pythonlint)
 jslint)
     jslint
     ;;
-rpmbuild)
-    rpmbuild
-    ;;
-rpm_publish)
-    ci_ssh_agent
-    rpm_publish
+dockerbuild)
+    dockerbuild
     ;;
 ci_staging)
     ci_ssh_agent
