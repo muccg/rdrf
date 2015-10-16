@@ -1,24 +1,26 @@
-#
+# Dockerfile template. ${GITTAG} needs to be set.
 FROM muccg/python-base:ubuntu14.04-2.7
 MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Project specific deps
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
   git \
   libpcre3 \
   libpcre3-dev \
   libpq-dev \
   libssl-dev \
   libyaml-dev \
+  sendmail \
   zlib1g-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN git clone --depth=1 --branch=1.0.10 https://bitbucket.org/ccgmurdoch/rdrf.git .
+RUN echo GITTAG \
+    && git clone --depth=1 --branch=GITTAG https://bitbucket.org/ccgmurdoch/rdrf.git .
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order

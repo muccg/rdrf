@@ -138,6 +138,7 @@ class Exporter(object):
         frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
         frm_map["is_questionnaire"] = form_model.is_questionnaire
         frm_map["questionnaire_questions"] = form_model.questionnaire_questions
+        frm_map["position"] = form_model.position
         frm_map["sections"] = []
 
         for section_code in form_model.get_sections():
