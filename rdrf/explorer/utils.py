@@ -88,9 +88,7 @@ class DatabaseUtils(object):
     
             pipline = self.aggregation.split("|")
             for pipe in pipline:
-                for i in json.loads(pipe):
-                    for key, value in i.iteritems():
-                        aggregation.append({key: value})        
+                aggregation.append(ast.literal_eval(pipe))
         
             if "$match" in aggregation:
                 aggregation["$match"].update({"django_id": {"$in": django_ids}})

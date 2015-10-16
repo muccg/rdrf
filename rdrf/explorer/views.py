@@ -120,12 +120,12 @@ class QueryView(LoginRequiredMixin, View):
 
         if request.is_ajax():
             result = database_utils.run_full_query().result
-            mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-            munged = _filler(result, mongo_keys)
-            munged = _final_cleanup(munged)
-            humaniser = Humaniser(registry_model)
-            munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
-            result = _human_friendly(registry_model, munged)
+            #mongo_keys = _get_non_multiple_mongo_keys(registry_model)
+            #munged = _filler(result, mongo_keys)
+            #munged = _final_cleanup(munged)
+            #humaniser = Humaniser(registry_model)
+            #munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
+            #result = _human_friendly(registry_model, munged)
             result_json = dumps(result, default=json_serial)
             return HttpResponse(result_json)
         else:
