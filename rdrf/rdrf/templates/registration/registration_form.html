@@ -151,8 +151,6 @@
                 states.empty();
                 states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_state");
-                    states.empty();
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
@@ -160,9 +158,10 @@
             });
 
             $("#id_parent_guardian_country").change(function() {
+                var states = $("#id_parent_guardian_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("Parent/Guardian State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_parent_guardian_state");
-                    states.empty();
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
@@ -264,7 +263,10 @@
                             <input class="form-control" placeholder="Parent/Guardian Suburb / Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
                         </div>
                         <div class="form-group">
-                            <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
+                            <input class="form-control" placeholder="{% trans 'Parent/Guardian Postcode' %}" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" placeholder="{% trans 'Parent/Guardian Country' %}" id="id_parent_guardian_country" name="parent_guardian_country" required>
                                 <option value="-1">Country</option>
                                 {% countries as countries %}
                                 {% for con in countries %}
@@ -304,10 +306,13 @@
                         </div>
 
                         <div class="form-group top-separator">
-                            <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
+                            <input class="form-control" placeholder="{% trans 'Address' %}" id="id_address" maxlength="100" name="address" type="text" />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                            <input class="form-control" placeholder="{% trans 'Suburb/Town' %}" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Postcode' %}" id="id_postcode" maxlength="30" name="postcode" type="text" />
                         </div>
                         <div class="form-group">
                             <select class="form-control" placeholder="Country" id="id_country" name="country">
