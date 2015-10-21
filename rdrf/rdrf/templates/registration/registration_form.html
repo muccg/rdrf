@@ -15,7 +15,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
     <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
-    <script src="{% static  'js/pwstrength-bootstrap-1.2.5.min.js' %}"></script>
+    <script src="{% static 'js/password.js' %}"></script>
     
     <style>
         body {
@@ -34,7 +34,6 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
-            $("#id_is_parent").val(false)
             $("#id_password1").passStrengthify();
 
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
@@ -54,9 +53,6 @@
             $("#parent_guardian_form_btn").hide();
             
             var registry_code = "{{registry_code}}"
-            $('#id_password1').pwstrength({
-                ui: { showVerdictsInsideProgressBar: true }
-            });
             
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
