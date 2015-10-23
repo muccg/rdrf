@@ -68,7 +68,7 @@
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
-                $("#id_email").val($("#id_username").val());
+                $("#id_email").val($("#id_rdrf_username").val());
                 if (registration_form.valid()) {
                     registration_form.submit();
                 }

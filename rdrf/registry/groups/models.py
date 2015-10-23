@@ -39,10 +39,13 @@ class WorkingGroup(models.Model):
 
 class CustomUser(AbstractUser):
     working_groups = models.ManyToManyField(
-        WorkingGroup, null=True, related_name='working_groups')
+        WorkingGroup, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, verbose_name="position")
     registry = models.ManyToManyField(
         Registry, null=False, blank=False, related_name='registry')
+    rdrf_username = models.CharField(max_length=255, unique=True)
+    
+    USERNAME_FIELD = "rdrf_username"
 
     @property
     def num_registries(self):
