@@ -99,7 +99,7 @@
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
-                $("#id_email").val($("#id_username").val());
+                $("#id_email").val($("#id_rdrf_username").val());
                 if (registration_form.valid()) {
                     registration_form.submit();
                 }
@@ -298,7 +298,7 @@
                     <div id="login_details">
                         <div class="form-group">
                             <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
+                            <input class="form-control" placeholder="Username" id="id_rdrf_username" maxlength="50" name="rdrf_username" type="email" required />
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
