@@ -324,6 +324,8 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
+        wizard = NavigationWizard(self.user, registry, patient, form_obj)
+
         context = {
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
@@ -346,6 +348,8 @@ class FormView(View):
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form),
+            "next_form_link": wizard.next_link,
+            "previous_form_link": wizard.previous_link,
         }
 
         if request.user.is_parent:
