@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = RDRFUserCreationForm
 
-    list_display = ('rdrf_username', 'email', 'get_working_groups', 'get_registries')
+    list_display = ('username', 'email', 'get_working_groups', 'get_registries')
 
     def get_form(self, request, obj=None, **kwargs):
         user = get_user_model().objects.get(username=request.user)
