@@ -22,6 +22,7 @@ from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
+from rdrf.wizard import NavigationWizard
 
 
 from operator import itemgetter
@@ -162,6 +163,12 @@ class FormView(View):
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
         context["show_print_button"] = True
+
+        patient_model = Patient.objects.get(pk=patient_id)
+        wizard = NavigationWizard(self.user, self.registry, patient_model, self.registry_form)
+
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)

@@ -25,6 +25,8 @@ from registry.patients.admin_forms import PatientForm, PatientAddressForm, Patie
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 
+from rdrf.wizard import NavigationWizard
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -740,6 +742,11 @@ class PatientEditView(View):
             "registry_code": registry_code,
             "form_links": self._get_formlinks(request.user, patient.id, registry_model),
         }
+
+        wizard = NavigationWizard(request.user, registry_model, patient, None)
+
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
