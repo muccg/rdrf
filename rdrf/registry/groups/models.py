@@ -218,6 +218,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return links
 
+CustomUser._meta.get_field('username')._unique = False
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
