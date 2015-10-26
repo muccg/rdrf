@@ -61,11 +61,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
     working_groups = models.ManyToManyField(WorkingGroup, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, verbose_name="position")
-    registry = models.ManyToManyField(
-        Registry, null=False, blank=False, related_name='registry')
-    rdrf_username = models.CharField(max_length=255, unique=True)
+    registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
     
-    USERNAME_FIELD = "rdrf_username"
+    USERNAME_FIELD = "username"
+    
+    objects = UserManager()
+    
+    def get_full_name(self):
+        full_name = "%s %s" % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        return self.first_name
 
     def get_short_name(self):
         return self.first_name
