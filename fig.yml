@@ -28,7 +28,7 @@ cache:
   image: memcached:1.4
 
 mongo:
-  image: mongo:2.6
+  image: mongo:3.0
   command: mongod --smallfiles
 
 #triplestore:

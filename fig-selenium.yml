@@ -37,7 +37,7 @@ cacheselenium:
   image: memcached:1.4
 
 mongoselenium:
-  image: mongo:2.6
+  image: mongo:3.0
   command: mongod --smallfiles
 
 webselenium:
