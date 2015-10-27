@@ -4,13 +4,15 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
-class CustomConsentsFormGenerator(object):
+
+class CustomConsentFormGenerator(object):
     def __init__(self, registry_model, patient_model=None):
         self.registry_model = registry_model
         self.patient_model = patient_model  # None if add form
+        self.fields = {}
 
     def create_form(self):
-        PASS
+        return None
 
     # PASTED FROM PatientForm initially
     def _get_consent_field_models(self, consent_field):
@@ -23,15 +25,15 @@ class CustomConsentsFormGenerator(object):
 
         return registry_model, consent_section_model, consent_question_model
 
-    def _add_custom_consent_fields(self, patient_model):
-        if patient_model is None:
+    def _add_custom_consent_fields(self):
+        if self.patient_model is None:
             registries = [self.registry_model]
         else:
-            registries = patient_model.rdrf_registry.all()
+            registries = self.patient_model.rdrf_registry.all()
 
         for registry_model in registries:
             for consent_section_model in registry_model.consent_sections.all():
-                if consent_section_model.applicable_to(patient_model):
+                if consent_section_model.applicable_to(self.patient_model):
                     for consent_question_model in consent_section_model.questions.all().order_by(
                             "position"):
                         consent_field = consent_question_model.create_field()

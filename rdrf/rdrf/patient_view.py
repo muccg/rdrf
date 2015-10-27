@@ -307,7 +307,7 @@ class PatientFormMixin(PatientMixin):
         patient_address_formset = kwargs.get("patient_address_formset", None)
         patient_doctor_formset = kwargs.get("patient_doctor_formset", None)
         patient_relative_formset = kwargs.get("patient_relative_formset", None)
-        patient_consent_file_formset = kwargs.get("patient_consent_file_formset", None)
+        #patient_consent_file_formset = kwargs.get("patient_consent_file_formset", None)
 
         patient, forms_sections = self._get_patient_and_forms_sections(patient_id,
                                                                        self.registry_model.code,
@@ -315,8 +315,11 @@ class PatientFormMixin(PatientMixin):
                                                                        self.patient_form,
                                                                        patient_address_form=patient_address_formset,
                                                                        patient_doctor_form=patient_doctor_formset,
-                                                                       patient_relative_form=patient_relative_formset,
-                                                                       patient_consent_file_form=patient_consent_file_formset)
+                                                                       patient_relative_form=patient_relative_formset)
+
+
+
+        #patient_consent_file_form=patient_consent_file_formset)
 
         error_messages = get_error_messages([pair[0] for pair in forms_sections])
 
@@ -362,8 +365,7 @@ class PatientFormMixin(PatientMixin):
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relative_form=None,
-                                        patient_consent_file_form=None):
+                                        patient_relative_form=None):
 
         user = request.user
         if patient_id is None:
@@ -438,24 +440,24 @@ class PatientFormMixin(PatientMixin):
 
         patient_address_section = ("Patient Address", None)
 
-        patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
-        patient_consent_file_form = patient_consent_file_formset(
-            instance=patient, prefix="patient_consent_file")
-
-        patient_section_consent = patient_form.get_all_consent_section_info(
-            patient, registry_code)
-        patient_section_consent_file = ("Upload Consent File", None)
+        # patient_consent_file_formset = inlineformset_factory(
+        #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+        # patient_consent_file_form = patient_consent_file_formset(
+        #     instance=patient, prefix="patient_consent_file")
+        #
+        # patient_section_consent = patient_form.get_all_consent_section_info(
+        #     patient, registry_code)
+        # patient_section_consent_file = ("Upload Consent File", None)
 
         form_sections = [
-            (
-                patient_form,
-                patient_section_consent
-            ),
-            (
-                patient_consent_file_form,
-                (patient_section_consent_file,)
-            ),
+            # (
+            #     patient_form,
+            #     patient_section_consent
+            # ),
+            # (
+            #     patient_consent_file_form,
+            #     (patient_section_consent_file,)
+            # ),
             (
                 patient_form,
                 (rdrf_registry,)
@@ -542,9 +544,9 @@ class PatientFormMixin(PatientMixin):
 
         registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
-        if self.patient_consent_file_formset:
-            self.patient_consent_file_formset.instance = self.object
-            self.patient_consent_file_formset.save()
+        # if self.patient_consent_file_formset:
+        #     self.patient_consent_file_formset.instance = self.object
+        #     self.patient_consent_file_formset.save()
 
         # save addresses
         if self.address_formset:
@@ -587,12 +589,12 @@ class PatientFormMixin(PatientMixin):
                     else:
                         logger.debug("form tag different")
 
-        patient_model = self.object
-        if hasattr(patient_model, 'add_registry_closures'):
-            registry_ids = [reg.id for reg in patient_model.rdrf_registry.all()]
-            self._run_consent_closures(patient_model, registry_ids)
-        else:
-            logger.debug("self.object has no closures")
+        #patient_model = self.object
+        # if hasattr(patient_model, 'add_registry_closures'):
+        #     registry_ids = [reg.id for reg in patient_model.rdrf_registry.all()]
+        #     self._run_consent_closures(patient_model, registry_ids)
+        # else:
+        #     logger.debug("self.object has no closures")
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -677,11 +679,11 @@ class AddPatientView(PatientFormMixin, CreateView):
         self.address_formset = self._get_address_formset(request)
         forms.append(self.address_formset)
 
-        patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, fields="__all__")
-        self.patient_consent_file_formset = patient_consent_file_formset(
-            request.POST, request.FILES, prefix="patient_consent_file")
-        forms.append(self.patient_consent_file_formset)
+        # patient_consent_file_formset = inlineformset_factory(
+        #     Patient, PatientConsent, form=PatientConsentFileForm, fields="__all__")
+        # self.patient_consent_file_formset = patient_consent_file_formset(
+        #     request.POST, request.FILES, prefix="patient_consent_file")
+        # forms.append(self.patient_consent_file_formset)
 
         if self._has_doctors_form():
             self.doctor_formset = self._get_doctor_formset(request)
@@ -769,15 +771,15 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
-        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
-                                                             form=PatientConsentFileForm, fields="__all__")
+        # patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+        #                                                      form=PatientConsentFileForm, fields="__all__")
 
-        logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
+        #logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
 
-        patient_consent_file_to_save = patient_consent_file_formset(
-            request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
-        patient_consent_file_to_save.is_valid()
-        patient_consent_file_to_save.save()
+        # patient_consent_file_to_save = patient_consent_file_formset(
+        #     request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
+        # patient_consent_file_to_save.is_valid()
+        # patient_consent_file_to_save.save()
 
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
@@ -1012,24 +1014,24 @@ class PatientEditView(View):
 
         patient_address_section = ("Patient Address", None)
 
-        patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
-        patient_consent_file_form = patient_consent_file_formset(
-            instance=patient, prefix="patient_consent_file")
-
-        patient_section_consent = patient_form.get_all_consent_section_info(
-            patient, registry_code)
-        patient_section_consent_file = ("Upload Consent File", None)
+        # patient_consent_file_formset = inlineformset_factory(
+        #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+        # patient_consent_file_form = patient_consent_file_formset(
+        #     instance=patient, prefix="patient_consent_file")
+        #
+        # patient_section_consent = patient_form.get_all_consent_section_info(
+        #     patient, registry_code)
+        # patient_section_consent_file = ("Upload Consent File", None)
 
         form_sections = [
-            (
-                patient_form,
-                patient_section_consent
-            ),
-            (
-                patient_consent_file_form,
-                (patient_section_consent_file,)
-            ),
+            # (
+            #     patient_form,
+            #     patient_section_consent
+            # ),
+            # (
+            #     patient_consent_file_form,
+            #     (patient_section_consent_file,)
+            # ),
             (
                 patient_form,
                 (rdrf_registry,)
