@@ -158,7 +158,6 @@ class PatientConsentFileForm(forms.ModelForm):
     form = forms.FileField(widget=AdminFileWidget, required=False)
 
 
-
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {
@@ -173,21 +172,16 @@ class PatientForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
-        self.custom_consents = []  # list of consent fields agreed to
 
         if 'registry_model' in kwargs:
             self.registry_model = kwargs['registry_model']
-            logger.debug("set self.registry_model to %s" % self.registry_model)
             del kwargs['registry_model']
         else:
             self.registry_model = None
-            logger.debug("self.registry_model is None")
 
         if 'instance' in kwargs and kwargs['instance'] is not None:
-            logger.debug("instance in kwargs and not None = %s" % kwargs['instance'])
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
-            logger.debug("registry specific data = %s" % registry_specific_data)
             initial_data = kwargs.get('initial', {})
             for reg_code in registry_specific_data:
                 initial_data.update(registry_specific_data[reg_code])
@@ -200,18 +194,9 @@ class PatientForm(forms.ModelForm):
                 registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
-            logger.debug("user in kwargs")
             self.user = kwargs.pop("user")
-            logger.debug("set user on PatientForm to %s" % self.user)
 
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
-
-        # if 'instance' in kwargs and kwargs['instance'] is not None:
-        if not 'instance' in kwargs:
-            self._add_custom_consent_fields(None)
-        else:
-            self._add_custom_consent_fields(kwargs['instance'])
-        #logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(
@@ -221,9 +206,7 @@ class PatientForm(forms.ModelForm):
             id__in=[self.registry_model.id])
 
         if hasattr(self, 'user'):
-            logger.debug("form has user attribute ...")
             user = self.user
-            logger.debug("user = %s" % user)
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             if not user.is_superuser:
@@ -235,14 +218,11 @@ class PatientForm(forms.ModelForm):
 
             # field visibility restricted no non admins
             if not user.is_superuser:
-                logger.debug("not superuser so updating field visibility")
                 if not self.registry_model:
                     registry = user.registry.all()[0]
                 else:
                     registry = self.registry_model
-                logger.debug("registry = %s" % registry)
                 working_groups = user.groups.all()
-                logger.debug("user working groups = %s" % [wg.name for wg in working_groups])
 
                 for field in self.fields:
                     hidden = False
@@ -257,11 +237,9 @@ class PatientForm(forms.ModelForm):
                             pass
 
                     if hidden:
-                        logger.debug("field %s is hidden!" % field)
                         self.fields[field].widget = forms.HiddenInput()
                         self.fields[field].label = ""
                     if readonly and not hidden:
-                        logger.debug("field %s is readonly" % field)
                         self.fields[field].widget = forms.TextInput(
                             attrs={'readonly': 'readonly'})
 

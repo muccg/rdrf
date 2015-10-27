@@ -1864,3 +1864,19 @@ class ConstructorFormView(View):
 
     def get(self, request, form_name):
         return render_to_response('rdrf_cdes/%s.html' % form_name)
+
+
+class CustomConsentFormView(View):
+    def get(self, request, registry_code, patient_id):
+        from rdrf.consent_forms import CustomConsentFormGenerator
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(pk=patient_id)
+
+        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form()
+
+        context = {
+            "consent_form" : custom_consent_form,
+        }
+
+        return render_to_response("rdrf_cdes/custom_consent_form.html", context)
