@@ -26,6 +26,17 @@ logger = logging.getLogger("registry_log")
 _OTHER_CLINICIAN = "clinician-other"
 _UNALLOCATED_GROUP = "Unallocated"
 
+_ADDRESS_TYPE = "Postal"
+_GENDER_CODE = {
+    "M": 1,
+    "F": 2
+}
+
+_TRUE_FALSE = {
+    'true': True,
+    'false': False
+}
+
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -231,7 +242,8 @@ def user_registered_callback(sender, user, request, **kwargs):
     from rdrf.email_notification import RdrfEmail
     from django.conf import settings
 
-    is_parent = "parent_guardian_check" in request.POST
+    is_parent = True if _TRUE_FALSE[request.POST['is_parent']] else False
+    self_patient = True if _TRUE_FALSE[request.POST['self_patient']] else False
 
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
@@ -285,6 +297,33 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.user = user
         parent_guardian.save()
     
+    if self_patient:
+        parent_self_patient = Patient.objects.create(
+            consent=True,
+            family_name=request.POST["parent_guardian_last_name"],
+            given_names=request.POST["parent_guardian_first_name"],
+            date_of_birth=request.POST["parent_guardian_date_of_birth"],
+            sex=_GENDER_CODE[request.POST["parent_guardian_gender"]],
+        )
+        
+        PatientAddress.objects.create(
+            patient=parent_self_patient,
+            address_type=AddressType.objects.get(description__icontains=_ADDRESS_TYPE),
+            address=request.POST["parent_guardian_address"],
+            suburb=request.POST["parent_guardian_suburb"],
+            state=request.POST["parent_guardian_state"],
+            postcode=request.POST["parent_guardian_postcode"],
+            country=request.POST["parent_guardian_country"]
+        )
+        
+        parent_self_patient.rdrf_registry.add(registry)
+        parent_self_patient.clinician = patient.clinician
+        parent_self_patient.save()
+        
+        parent_guardian.patient.add(parent_self_patient)
+        parent_guardian.self_patient = parent_self_patient
+        parent_guardian.save()
+
     email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, request.LANGUAGE_CODE)
     email_note.append("patient", patient).append("clinician", clinician)
     email_note.send()

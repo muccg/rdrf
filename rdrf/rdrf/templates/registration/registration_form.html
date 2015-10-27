@@ -1,5 +1,6 @@
 {% load countries %}
 {% load static %}
+{% load i18n %}
 
 <html>
 
@@ -44,6 +45,7 @@
             }
 
             $("#parent_guardian_form").hide();
+            $("#patient_form").show();
             $("#underage_msg").hide();
             $("#form-other-clinician").hide();
             $("#parent_guardian_form_btn").hide();
@@ -66,19 +68,34 @@
             $("#id_date_of_birth").datepicker(dateOptions);
             $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
             
-            $("#parent_guardian_check").click(function() {
-                if($(this).prop("checked")) {
-                    $("#parent_guardian_form").show();
-                    $("#patient_form").hide();
-                    $("#parent_guardian_form_btn").show();
-                    $("#login_details").show();
-                } else {
-                    $("#parent_guardian_form").hide();
-                    $("#patient_form").show();
-                    $("#parent_guardian_form_btn").hide();
-                }
+            $("#parent_guardian_check1").click(function() {
+                $("#parent_guardian_form").hide();
+                $("#patient_form").show();
+                $("#parent_guardian_form_btn").hide();
+                $("#id_is_parent").val(false);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check2").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check3").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(true);
             });
             
+            $("#parent_guardian_check1").trigger("click");
+
             $("#patient_form_btn").click(function() {
                 $("#patient_form").show();
                 $("#parent_guardian_form").hide();
@@ -128,7 +145,7 @@
                     $("#login_details").hide();
                 }
             });
-            
+
             $("#id_country").change(function() {
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
                     var states = $("#id_state");
@@ -138,8 +155,7 @@
                     });
                 });
             });
-            
-            
+
             $("#id_parent_guardian_country").change(function() {
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
                     var states = $("#id_parent_guardian_state");
@@ -165,20 +181,51 @@
                 For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.
             </div>            
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <h3>Personal data</h3>
-                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
-            </div>
-            <div class="col-md-6" style="text-align: justify; border-left: dotted 1px #bbb;">
-                <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
+
+        <form class="form" id="registration-form" method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>{% trans "Personal data" %}</h3>
+                    <h5 style="text-align: justify;">
+                        {% trans "Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient's parent or guardian to enter a patient other than yourself." %}
+                    </h5>
+                    <div class="form-group top-separator">
+                        <label>
+                            <input type="radio" checked="checked" name="parent_guardian_check" id="parent_guardian_check1" value="parent_guardian_1">
+                            <i>{% trans "I am a patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="parent_guardian_check" id="parent_guardian_check2" value="parent_guardian_2">
+                            <i>{% trans "I am a parent/guardian of the patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="parent_guardian_check" id="parent_guardian_check3" value="parent_guardian_3">
+                            <i>{% trans "I am a patient with the disease and I am a parent/guardian of the patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div id="login_details" class="top-separator">
+                        <div class="form-group">
+                            <h5><div class="label label-warning">{% trans 'Please provide valid email address as your username' %}</div></h5>
+                            <input class="form-control" placeholder="{% trans 'Username' %}" id="id_username" maxlength="50" name="username" type="email" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Password' %}" id="id_password1" name="password1" type="password" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Repeat Password' %}" id="id_password2" name="password2" type="password" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
                     {% csrf_token %}
                     <input type="hidden" name="registry_code" value="{{registry_code}}">
                     <input id="id_email" name="email" type="hidden" />
-                    
-                    <div class="form-group">
-                        <label><input type="checkbox" name="parent_guardian_check" id="parent_guardian_check"> I am a Parent/Guardian</label>
-                    </div>
+                    <input id="id_is_parent" name="is_parent" type="hidden" />
+                    <input id="id_self_patient" name="self_patient" type="hidden" />
                     
                     <div id="parent_guardian_form">
                         <div class="form-group top-separator">
@@ -216,9 +263,6 @@
                             <select class="form-control" placeholder="Parent/Guardian State / County / Province / Region" id="id_parent_guardian_state" maxlength="30" name="parent_guardian_state" type="text" required>
                                 <option value="-1">Parent/Guardian State / County / Province / Region</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Parent/Guardian Zip / Postal Code" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
                         </div>
                         
                         <div class="form-group">
@@ -265,10 +309,7 @@
                             <select class="form-control" placeholder="State / County / Province / Region" id="id_state" maxlength="30" name="state" type="text" >
                                 <option value="-1">State / County / Province / Region</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Zip / Postal Code" id="id_postcode" maxlength="30" name="postcode" type="text" />
-                        </div>                        
+                        </div>                      
                         <div class="form-group top-separator">
                             <select class="form-control" id="id_clinician" name="clinician">
                                 <option value="-1">Choose your preferred Clinician</option>
@@ -294,26 +335,12 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <div id="login_details">
-                        <div class="form-group">
-                            <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
                         <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
     
     <nav class="navbar navbar-default navbar-fixed-bottom">
