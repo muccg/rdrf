@@ -64,10 +64,13 @@ class NavigationWizard(object):
         demographic_link = ("demographic", None, reverse("patient_edit",
                                                          args=[self.registry_model.code, self.patient_model.pk]))
 
+        consents_link = ("consents", None, reverse("custom_consent_form_view",
+                                                   args=[self.registry_model.code, self.patient_model.pk]))
+
         clinical_form_links = [form_link(form) for form in self.registry_model.forms
                                if self.user.can_view(form) and not form.is_questionnaire]
 
-        form_links = [demographic_link] + clinical_form_links
+        form_links = [demographic_link] + [consents_link] + clinical_form_links
         return form_links
 
     def current_link(self, index):
