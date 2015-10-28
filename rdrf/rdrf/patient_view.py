@@ -891,8 +891,9 @@ class PatientEditView(View):
 
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
-        context["location"] = "Demographics"
-        context["form_links"] = get_form_links(request.user, patient.id, registry)
+        context["location"] = _("Demographics")
+        context["form_links"] = _get_formlinks(request.user, patient.id, registry)
+        context["consent"] = consent_status_for_patient(registry_code, patient)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         return render_to_response(
