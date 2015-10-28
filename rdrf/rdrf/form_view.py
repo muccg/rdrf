@@ -1929,6 +1929,76 @@ class CustomConsentFormView(View):
 
         return form_sections
 
+    def post(self, request, registry_code, patient_id):
+        if not request.user.is_authenticated():
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            login_url = reverse('login')
+            return redirect("%s?next=%s" % (login_url, consent_form_url))
+
+        user = request.user
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(id=patient_id)
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+                                                             form=PatientConsentFileForm,
+                                                             fields="__all__")
+
+        logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
+
+        patient_consent_file_forms = patient_consent_file_formset(request.POST,
+                                                                    request.FILES,
+                                                                    instance=patient_model,
+                                                                    prefix="patient_consent_file")
+
+
+
+        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form(request.POST)
+
+        forms = [custom_consent_form, patient_consent_file_forms]
+
+        valid_forms = []
+        error_messages = []
+
+        for form in forms:
+            if not form.is_valid():
+                valid_forms.append(False)
+                if isinstance(form.errors, list):
+                    for error_dict in form.errors:
+                        for field in error_dict:
+                            error_messages.append("%s: %s" % (field, error_dict[field]))
+                else:
+                    for field in form.errors:
+                        for error in form.errors[field]:
+                            error_messages.append(error)
+            else:
+                valid_forms.append(True)
+
+        if all(valid_forms):
+            patient_consent_file_forms.save()
+            custom_consent_form.save()
+
+        else:
+            pass
+
+        context = {
+            "location": "Consents",
+            "forms": form_sections,
+            "patient": patient_model,
+            "patient_id": patient_model.id,
+            "registry_code": registry_code,
+            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "next_form_link": wizard.next_link,
+            "previous_form_link": wizard.previous_link
+
+        }
+
+        return render_to_response("rdrf_cdes/custom_consent_form.html",
+                                  context,
+                                  context_instance=RequestContext(request))
+
+
+
+
 
 
 
