@@ -1913,13 +1913,14 @@ class CustomConsentFormView(View):
         patient_consent_file_form = patient_consent_file_formset(instance=patient_model,
                                                                  prefix="patient_consent_file")
 
-        patient_section_consent = custom_consent_form.get_all_consent_section_info()
+        consent_sections = custom_consent_form.get_consent_sections()
+
         patient_section_consent_file = ("Upload Consent File", None)
 
         form_sections = [
             (
                 custom_consent_form,
-                patient_section_consent
+                consent_sections,
             ),
             (
                 patient_consent_file_form,
