@@ -3,6 +3,7 @@ from rdrf.models import Registry
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from registry.patients.models import Patient
+from django.utils.datastructures import SortedDict
 
 import logging
 
@@ -20,17 +21,15 @@ def _get_consent_field_models(consent_field):
     return registry_model, consent_section_model, consent_question_model
 
 
-class BaseConsentForm(forms.ModelForm):
-        class Meta:
-            model = Patient
-            fields = []
-
+class BaseConsentForm(forms.BaseForm):
         def __init__(self, *args, **kwargs):
+            self.patient_model = kwargs["patient_model"]
+            del kwargs["patient_model"]
             self.registry_model = kwargs['registry_model']
             del kwargs['registry_model']
             super(BaseConsentForm, self).__init__(*args, **kwargs)
 
-        def _get_consent_section_info(self, consent_section_model):
+        def _get_consent_section(self, consent_section_model):
             # return something like this for custom consents
             # consent = ("Consent", [
             #     "consent",
@@ -56,12 +55,12 @@ class BaseConsentForm(forms.ModelForm):
                  consent_section_model.section_label),
                 questions)
 
-        def get_all_consent_section_info(self):
+        def get_consent_sections(self):
             section_tuples = []
             for consent_section_model in self.registry_model.consent_sections.all().order_by("code"):
-                if consent_section_model.applicable_to(self.instance):
+                if consent_section_model.applicable_to(self.patient_model):
                     section_tuples.append(
-                        self._get_consent_section_info(consent_section_model))
+                        self._get_consent_section(consent_section_model))
             return section_tuples
 
 
@@ -73,18 +72,21 @@ class CustomConsentFormGenerator(object):
         self.fields = {}
 
     def create_form(self):
-        form_dict = {"fields": self._create_custom_consent_fields()}
+        form_dict = {"base_fields": self._create_custom_consent_fields()}
         form_class = type("PatientConsentForm", (BaseConsentForm,), form_dict)
-        form_instance = form_class(instance=self.patient_model, registry_model=self.registry_model)
+        form_instance = form_class(patient_model=self.patient_model, registry_model=self.registry_model)
         return form_instance
 
     def _create_custom_consent_fields(self):
-        fields = {}
+        fields = SortedDict()
         for consent_section_model in self.registry_model.consent_sections.all():
+            logger.debug("consent section model = %s" % consent_section_model)
             if consent_section_model.applicable_to(self.patient_model):
                 for consent_question_model in consent_section_model.questions.all().order_by("position"):
                     consent_field = consent_question_model.create_field()
                     field_key = consent_question_model.field_key
                     fields[field_key] = consent_field
                     logger.debug("added consent field %s = %s" % (field_key, consent_field))
+
+        logger.debug("custom consent fields = %s" % fields)
         return fields
