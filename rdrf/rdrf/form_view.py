@@ -22,9 +22,15 @@ from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
-from rdrf.wizard import NavigationWizard
+from rdrf.wizard import NavigationWizard, NavigationFormType
 
+from rdrf.consent_forms import CustomConsentFormGenerator
+from rdrf.utils import get_form_links
 
+from django.shortcuts import redirect
+from django.forms.models import inlineformset_factory
+from registry.patients.models import PatientConsent
+from registry.patients.admin_forms import PatientConsentFileForm
 from operator import itemgetter
 import json
 import os
@@ -164,7 +170,11 @@ class FormView(View):
         context["location"] = location_name(self.registry_form)
 
         patient_model = Patient.objects.get(pk=patient_id)
-        wizard = NavigationWizard(self.user, self.registry, patient_model, self.registry_form)
+        wizard = NavigationWizard(self.user,
+                                  self.registry,
+                                  patient_model,
+                                  NavigationFormType.CLINICAL,
+                                  self.registry_form)
 
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
@@ -323,7 +333,11 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
-        wizard = NavigationWizard(self.user, registry, patient, form_obj)
+        wizard = NavigationWizard(self.user,
+                                  registry,
+                                  patient,
+                                  NavigationFormType.CLINICAL,
+                                  form_obj)
 
         context = {
             'current_registry_name': registry.name,
@@ -1859,15 +1873,63 @@ class ConstructorFormView(View):
 
 class CustomConsentFormView(View):
     def get(self, request, registry_code, patient_id):
-        from rdrf.consent_forms import CustomConsentFormGenerator
-        registry_model = Registry.objects.get(code=registry_code)
-        patient_model = Patient.objects.get(pk=patient_id)
 
-        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
-        custom_consent_form = custom_consent_form_generator.create_form()
+        if not request.user.is_authenticated():
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            login_url = reverse('login')
+            return redirect("%s?next=%s" % (login_url, consent_form_url))
+
+        patient_model = Patient.objects.get(pk=patient_id)
+        registry_model = Registry.objects.get(code=registry_code)
+        form_sections = self._get_form_sections(registry_model, patient_model)
+        wizard = NavigationWizard(request.user,
+                                  registry_model,
+                                  patient_model,
+                                  NavigationFormType.CONSENTS,
+                                  None)
 
         context = {
-            "consent_form" : custom_consent_form,
+            "location": "Consents",
+            "forms": form_sections,
+            "patient": patient_model,
+            "patient_id": patient_model.id,
+            "registry_code": registry_code,
+            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "next_form_link": wizard.next_link,
+            "previous_form_link": wizard.previous_link
+
         }
 
-        return render_to_response("rdrf_cdes/custom_consent_form.html", context)
+        return render_to_response("rdrf_cdes/custom_consent_form.html",
+                                  context,
+                                  context_instance=RequestContext(request))
+
+    def _get_form_sections(self, registry_model, patient_model):
+        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form()
+        patient_consent_file_formset = inlineformset_factory(
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+
+        patient_consent_file_form = patient_consent_file_formset(instance=patient_model,
+                                                                 prefix="patient_consent_file")
+
+        patient_section_consent = custom_consent_form.get_all_consent_section_info()
+        patient_section_consent_file = ("Upload Consent File", None)
+
+        form_sections = [
+            (
+                custom_consent_form,
+                patient_section_consent
+            ),
+            (
+                patient_consent_file_form,
+                (patient_section_consent_file,)
+            )]
+
+        return form_sections
+
+
+
+
+
+
