@@ -115,7 +115,7 @@ urlpatterns = patterns('',
                            consent_view.PrintConsentList.as_view(), name='print_consent_list'),
 
                        url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
-                           form_view.CustomConsentFormView.as_view(), name="custom_consent_form_view"),
+                           form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 #-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",
