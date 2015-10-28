@@ -886,7 +886,6 @@ class PatientEditView(View):
                 "error_messages": error_messages,
             }
 
-
         wizard = NavigationWizard(request.user,
                                   registry,
                                   patient,
