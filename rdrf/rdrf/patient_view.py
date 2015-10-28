@@ -12,6 +12,7 @@ from rdrf.models import RegistryForm
 from rdrf.models import Registry
 from rdrf.models import CdePolicy
 from rdrf.utils import FormLink
+from rdrf.utils import get_form_links
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 
@@ -25,7 +26,7 @@ from registry.patients.admin_forms import PatientForm, PatientAddressForm, Patie
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 
-from rdrf.wizard import NavigationWizard
+from rdrf.wizard import NavigationWizard, NavigationFormType
 
 import logging
 
@@ -710,19 +711,6 @@ class AddPatientView(PatientFormMixin, CreateView):
 
 class PatientEditView(View):
 
-    def _get_formlinks(self, user, patient_id, registry_model):
-
-        if user is not None:
-            return [
-                FormLink(
-                    patient_id,
-                    registry_model,
-                    form,
-                    selected=(
-                        form.name == "")) for form in registry_model.forms if not form.is_questionnaire and user.can_view(form)]
-        else:
-            return []
-
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
@@ -739,10 +727,14 @@ class PatientEditView(View):
             "patient": patient,
             "patient_id": patient.id,
             "registry_code": registry_code,
-            "form_links": self._get_formlinks(request.user, patient.id, registry_model),
+            "form_links": get_form_links(request.user, patient.id, registry_model),
         }
 
-        wizard = NavigationWizard(request.user, registry_model, patient, None)
+        wizard = NavigationWizard(request.user,
+                                  registry_model,
+                                  patient,
+                                  NavigationFormType.DEMOGRAPHICS,
+                                  None)
 
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
@@ -894,10 +886,20 @@ class PatientEditView(View):
                 "error_messages": error_messages,
             }
 
+
+        wizard = NavigationWizard(request.user,
+                                  registry,
+                                  patient,
+                                  NavigationFormType.DEMOGRAPHICS,
+                                  None)
+
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
+
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
-        context["form_links"] = self._get_formlinks(request.user, patient.id, registry)
+        context["form_links"] = get_form_links(request.user, patient.id, registry)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         return render_to_response(

@@ -5,6 +5,12 @@ class NavigationError(Exception):
     pass
 
 
+class NavigationFormType:
+    DEMOGRAPHICS = 1
+    CONSENTS = 2
+    CLINICAL = 3
+
+
 class NavigationWizard(object):
     """
     Allow user to navigate forward and back through demographics and clinical forms
@@ -12,7 +18,8 @@ class NavigationWizard(object):
     Forms are skipped if not viewale by the user and we don't link to a questionnaire
     form
     """
-    def __init__(self, user, registry_model, patient_model, current_form_model=None):
+
+    def __init__(self, user, registry_model, patient_model, form_type, current_form_model=None):
         """
         :param user:
         :param registry_model:
@@ -25,8 +32,10 @@ class NavigationWizard(object):
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.current_form_model = current_form_model
+        self.form_type = form_type
         self.links = self._construct_links()
         self.current_index = self._get_current_index()
+
 
     @property
     def next_link(self):
@@ -43,9 +52,11 @@ class NavigationWizard(object):
         return (self.current_index + steps) % len(self.links)
 
     def _get_current_index(self):
-        if self.current_form_model is None:
+        if self.form_type == NavigationFormType.DEMOGRAPHICS:
             # Demographics
             return 0  # demographics always first item
+        elif self.form_type == NavigationFormType.CONSENTS:
+            return 1
         else:
             index = 0
             for form_type, id, link in self.links:
@@ -64,7 +75,7 @@ class NavigationWizard(object):
         demographic_link = ("demographic", None, reverse("patient_edit",
                                                          args=[self.registry_model.code, self.patient_model.pk]))
 
-        consents_link = ("consents", None, reverse("custom_consent_form_view",
+        consents_link = ("consents", None, reverse("consent_form_view",
                                                    args=[self.registry_model.code, self.patient_model.pk]))
 
         clinical_form_links = [form_link(form) for form in self.registry_model.forms
