@@ -249,3 +249,21 @@ def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
                 if cde_model.code == cde_model_to_find.code:
                     results.append((form_model, section_model))
     return results
+
+
+def consent_status_for_patient(registry_code, patient):
+    from registry.patients.models import ConsentValue
+    from models import ConsentSection, ConsentQuestion
+
+    consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+    answers = []
+    for consent_section in consent_sections:
+        if consent_section.applicable_to(patient):
+            questions = ConsentQuestion.objects.filter(section=consent_section)
+            for question in questions:
+                try:
+                    cv = ConsentValue.objects.get(patient=patient, consent_question = question)
+                    answers.append(cv.answer)
+                except ConsentValue.DoesNotExist:
+                    answers.append(False)
+    return all(answers)

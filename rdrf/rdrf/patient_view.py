@@ -13,6 +13,7 @@ from rdrf.models import Registry
 from rdrf.models import CdePolicy
 from rdrf.utils import FormLink
 from rdrf.utils import get_form_links
+from rdrf.utils import consent_status_for_patient
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 
@@ -727,6 +728,8 @@ class PatientEditView(View):
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient.id, registry_model),
+            "form_links": self._get_formlinks(request.user, patient.id, registry_model),
+            "consent": consent_status_for_patient(registry_code, patient)
         }
 
         wizard = NavigationWizard(request.user,
