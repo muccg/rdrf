@@ -766,15 +766,7 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
-        # patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
-        #                                                      form=PatientConsentFileForm, fields="__all__")
 
-        #logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
-
-        # patient_consent_file_to_save = patient_consent_file_formset(
-        #     request.POST, request.FILES, instance=patient, prefix="patient_consent_file")
-        # patient_consent_file_to_save.is_valid()
-        # patient_consent_file_to_save.save()
 
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
