@@ -895,6 +895,15 @@ class PatientEditView(View):
                 "error_messages": error_messages,
             }
 
+        wizard = NavigationWizard(request.user,
+                                  registry,
+                                  patient,
+                                  None)
+
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
+
+
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
