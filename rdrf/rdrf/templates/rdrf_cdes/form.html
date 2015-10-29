@@ -187,6 +187,7 @@
         <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
             <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
+            <li><a href="{% url 'consent_form_view' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Consents</a></li>
             {% for form_link in form_links %}
                 <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
             {% endfor %}
