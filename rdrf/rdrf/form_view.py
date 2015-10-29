@@ -1933,11 +1933,7 @@ class CustomConsentFormView(View):
         initial_data = self._get_initial_consent_data(patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(initial_data)
 
-        patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
-
-        patient_consent_file_forms = patient_consent_file_formset(instance=patient_model,
-                                                                  prefix="patient_consent_file")
+        patient_consent_file_forms = self._get_consent_file_formset(patient_model)
 
         consent_sections = custom_consent_form.get_consent_sections()
 
@@ -1960,6 +1956,14 @@ class CustomConsentFormView(View):
 
         #return form_sections
 
+    def _get_consent_file_formset(self, patient_model):
+        patient_consent_file_formset = inlineformset_factory(
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+
+        patient_consent_file_forms = patient_consent_file_formset(instance=patient_model,
+                                                                  prefix="patient_consent_file")
+        return patient_consent_file_forms
+
     def _section_structure(self,
                            custom_consent_form,
                            consent_sections,
@@ -1974,6 +1978,10 @@ class CustomConsentFormView(View):
                 patient_consent_file_forms,
                 (patient_section_consent_file,)
             )]
+
+    def _get_success_url(self, registry_model, patient_model):
+        return reverse("consent_form_view", args=[registry_model.code, patient_model.pk])
+
 
     def post(self, request, registry_code, patient_id):
         logger.debug("******************** post of consents *********************")
@@ -2044,12 +2052,15 @@ class CustomConsentFormView(View):
         if all(valid_forms):
             logger.debug("******************** forms valid :)  *********************")
             logger.debug("******************** saving any consent files *********************")
-            patient_consent_file_forms.save()
+            things = patient_consent_file_forms.save()
+            patient_consent_file_forms.initial = things
+            logger.debug("***** ||| things = %s" % things)
             logger.debug("******************** end of consent file save *********************")
             logger.debug("******************** saving custom consent form *********************")
             custom_consent_form.save()
             logger.debug("******************** end of consent save *********************")
             context["message"] = "Consent details saved successfully"
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
 
         else:
             logger.debug("******************** forms invalid :( *********************")
