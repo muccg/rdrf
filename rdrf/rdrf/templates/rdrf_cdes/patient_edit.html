@@ -136,6 +136,7 @@
                     <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
                 {% endfor %}
             {% endif %}
+            <li><a href="{% url 'consent_form_view' registry_code patient.id %}"><span class="glyphicon glyphicon-minus"></span> Consents</a></li>
         </ul>
     </li>
 {% endblock %}
