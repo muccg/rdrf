@@ -1897,6 +1897,11 @@ class CustomConsentFormView(View):
                                   NavigationFormType.CONSENTS,
                                   None)
 
+        try:
+            parent = ParentGuardian.objects.get(user=request.user)
+        except ParentGuardian.DoesNotExist:
+            parent = None
+
         context = {
             "location": "Consents",
             "forms": form_sections,
@@ -1905,7 +1910,8 @@ class CustomConsentFormView(View):
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient_model.id, registry_model),
             "next_form_link": wizard.next_link,
-            "previous_form_link": wizard.previous_link
+            "previous_form_link": wizard.previous_link,
+            "parent": parent
 
         }
 
@@ -2036,6 +2042,11 @@ class CustomConsentFormView(View):
                             error_messages.append(error)
             else:
                 valid_forms.append(True)
+                
+        try:
+            parent = ParentGuardian.objects.get(user=request.user)
+        except ParentGuardian.DoesNotExist:
+            parent = None
 
         context = {
             "location": "Consents",
@@ -2047,6 +2058,7 @@ class CustomConsentFormView(View):
             "previous_form_link": wizard.previous_link,
             "forms": form_sections,
             "error_messages": [],
+            "parent": parent
         }
 
         if all(valid_forms):
