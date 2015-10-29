@@ -17,22 +17,7 @@ class BaseConsentForm(forms.BaseForm):
         del kwargs["patient_model"]
         self.registry_model = kwargs['registry_model']
         del kwargs['registry_model']
-        initial_data = kwargs.get('initial', {})
-        logger.debug("initial = %s" % initial_data)
-        self._update_initial_consent_data(self.patient_model, initial_data)
-        kwargs['initial'] = initial_data
-        logger.debug("after updating with initial consent data = %s" % initial_data)
-
         super(BaseConsentForm, self).__init__(*args, **kwargs)
-
-    def _update_initial_consent_data(self, patient_model, initial_data):
-        if patient_model is None:
-            return
-        data = patient_model.consent_questions_data
-        for consent_field_key in data:
-            initial_data[consent_field_key] = data[consent_field_key]
-            logger.debug("set initial data for %s to %s" %
-                         (consent_field_key, data[consent_field_key]))
 
     def _get_consent_section(self, consent_section_model):
         # return something like this for custom consents
