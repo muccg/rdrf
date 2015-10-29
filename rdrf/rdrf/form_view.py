@@ -1878,6 +1878,7 @@ class CustomConsentFormView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
+        logger.debug("******************** loading consent form *********************")
         patient_model = Patient.objects.get(pk=patient_id)
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
@@ -1899,13 +1900,30 @@ class CustomConsentFormView(View):
 
         }
 
+        logger.debug("context = %s" % context)
+
+        logger.debug("******************** rendering get *********************")
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,
                                   context_instance=RequestContext(request))
 
+    def _get_initial_consent_data(self, patient_model):
+        # load initial consent data for custom consent form
+        if patient_model is None:
+            return {}
+        initial_data = {}
+        data = patient_model.consent_questions_data
+        for consent_field_key in data:
+            initial_data[consent_field_key] = data[consent_field_key]
+            logger.debug("set initial consent data for %s to %s" %
+                         (consent_field_key, data[consent_field_key]))
+        return initial_data
+
     def _get_form_sections(self, registry_model, patient_model):
         custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
-        custom_consent_form = custom_consent_form_generator.create_form()
+        initial_data = self._get_initial_consent_data(patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form(initial_data)
+
         patient_consent_file_formset = inlineformset_factory(
             Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
 
@@ -1949,6 +1967,7 @@ class CustomConsentFormView(View):
             )]
 
     def post(self, request, registry_code, patient_id):
+        logger.debug("******************** post of consents *********************")
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -2014,14 +2033,22 @@ class CustomConsentFormView(View):
         }
 
         if all(valid_forms):
+            logger.debug("******************** forms valid :)  *********************")
+            logger.debug("******************** saving any consent files *********************")
             patient_consent_file_forms.save()
+            logger.debug("******************** end of consent file save *********************")
+            logger.debug("******************** saving custom consent form *********************")
             custom_consent_form.save()
+            logger.debug("******************** end of consent save *********************")
             context["message"] = "Consent details saved successfully"
 
         else:
+            logger.debug("******************** forms invalid :( *********************")
             context["message"] = "Some forms invalid"
             context["error_messages"] = error_messages
             context["errors"] = True
+
+
 
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,
