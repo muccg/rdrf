@@ -1988,9 +1988,9 @@ class CustomConsentFormView(View):
         logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
 
         patient_consent_file_forms = patient_consent_file_formset(request.POST,
-                                                                    request.FILES,
-                                                                    instance=patient_model,
-                                                                    prefix="patient_consent_file")
+                                                                  request.FILES,
+                                                                  instance=patient_model,
+                                                                  prefix="patient_consent_file")
         patient_section_consent_file = ("Upload Consent File", None)
 
         custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
