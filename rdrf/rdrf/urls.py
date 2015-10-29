@@ -113,6 +113,9 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/consent/print/?$",
                            consent_view.PrintConsentList.as_view(), name='print_consent_list'),
+
+                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
+                           form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 #-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",
@@ -170,6 +173,7 @@ urlpatterns = patterns('',
 
 
 
+
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',
                             RdrfRegistrationView.as_view(),
@@ -186,6 +190,7 @@ urlpatterns += patterns('',
                             TemplateView.as_view(
                                 template_name='registration/activation_complete.html'),
                             name='registration_activation_complete'),
+
                         url(r'^activate/(?P<activation_key>\w+)/$',
                             ActivationView.as_view(),
                             name='registration_activate'),

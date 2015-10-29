@@ -22,9 +22,15 @@ from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
-from rdrf.wizard import NavigationWizard
+from rdrf.wizard import NavigationWizard, NavigationFormType
 
+from rdrf.consent_forms import CustomConsentFormGenerator
+from rdrf.utils import get_form_links
 
+from django.shortcuts import redirect
+from django.forms.models import inlineformset_factory
+from registry.patients.models import PatientConsent
+from registry.patients.admin_forms import PatientConsentFileForm
 from operator import itemgetter
 import json
 import os
@@ -165,7 +171,11 @@ class FormView(View):
         context["show_print_button"] = True
 
         patient_model = Patient.objects.get(pk=patient_id)
-        wizard = NavigationWizard(self.user, self.registry, patient_model, self.registry_form)
+        wizard = NavigationWizard(self.user,
+                                  self.registry,
+                                  patient_model,
+                                  NavigationFormType.CLINICAL,
+                                  self.registry_form)
 
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
@@ -324,7 +334,11 @@ class FormView(View):
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
-        wizard = NavigationWizard(self.user, registry, patient, form_obj)
+        wizard = NavigationWizard(self.user,
+                                  registry,
+                                  patient,
+                                  NavigationFormType.CLINICAL,
+                                  form_obj)
 
         context = {
             'current_registry_name': registry.name,
@@ -1864,3 +1878,199 @@ class ConstructorFormView(View):
 
     def get(self, request, form_name):
         return render_to_response('rdrf_cdes/%s.html' % form_name)
+
+
+class CustomConsentFormView(View):
+    def get(self, request, registry_code, patient_id):
+        if not request.user.is_authenticated():
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            login_url = reverse('login')
+            return redirect("%s?next=%s" % (login_url, consent_form_url))
+
+        logger.debug("******************** loading consent form *********************")
+        patient_model = Patient.objects.get(pk=patient_id)
+        registry_model = Registry.objects.get(code=registry_code)
+        form_sections = self._get_form_sections(registry_model, patient_model)
+        wizard = NavigationWizard(request.user,
+                                  registry_model,
+                                  patient_model,
+                                  NavigationFormType.CONSENTS,
+                                  None)
+
+        context = {
+            "location": "Consents",
+            "forms": form_sections,
+            "patient": patient_model,
+            "patient_id": patient_model.id,
+            "registry_code": registry_code,
+            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "next_form_link": wizard.next_link,
+            "previous_form_link": wizard.previous_link
+
+        }
+
+        logger.debug("context = %s" % context)
+
+        logger.debug("******************** rendering get *********************")
+        return render_to_response("rdrf_cdes/custom_consent_form.html",
+                                  context,
+                                  context_instance=RequestContext(request))
+
+    def _get_initial_consent_data(self, patient_model):
+        # load initial consent data for custom consent form
+        if patient_model is None:
+            return {}
+        initial_data = {}
+        data = patient_model.consent_questions_data
+        for consent_field_key in data:
+            initial_data[consent_field_key] = data[consent_field_key]
+            logger.debug("set initial consent data for %s to %s" %
+                         (consent_field_key, data[consent_field_key]))
+        return initial_data
+
+    def _get_form_sections(self, registry_model, patient_model):
+        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        initial_data = self._get_initial_consent_data(patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form(initial_data)
+
+        patient_consent_file_forms = self._get_consent_file_formset(patient_model)
+
+        consent_sections = custom_consent_form.get_consent_sections()
+
+        patient_section_consent_file = ("Upload Consent File", None)
+
+        # form_sections = [
+        #     (
+        #         custom_consent_form,
+        #         consent_sections,
+        #     ),
+        #     (
+        #         patient_consent_file_form,
+        #         (patient_section_consent_file,)
+        #     )]
+
+        return self._section_structure(custom_consent_form,
+                                       consent_sections,
+                                       patient_consent_file_forms,
+                                       patient_section_consent_file)
+
+        #return form_sections
+
+    def _get_consent_file_formset(self, patient_model):
+        patient_consent_file_formset = inlineformset_factory(
+            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+
+        patient_consent_file_forms = patient_consent_file_formset(instance=patient_model,
+                                                                  prefix="patient_consent_file")
+        return patient_consent_file_forms
+
+    def _section_structure(self,
+                           custom_consent_form,
+                           consent_sections,
+                           patient_consent_file_forms,
+                           patient_section_consent_file):
+        return [
+            (
+                custom_consent_form,
+                consent_sections,
+            ),
+            (
+                patient_consent_file_forms,
+                (patient_section_consent_file,)
+            )]
+
+    def _get_success_url(self, registry_model, patient_model):
+        return reverse("consent_form_view", args=[registry_model.code, patient_model.pk])
+
+
+    def post(self, request, registry_code, patient_id):
+        logger.debug("******************** post of consents *********************")
+        if not request.user.is_authenticated():
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            login_url = reverse('login')
+            return redirect("%s?next=%s" % (login_url, consent_form_url))
+
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(id=patient_id)
+        wizard = NavigationWizard(request.user,
+                                  registry_model,
+                                  patient_model,
+                                  NavigationFormType.CONSENTS,
+                                  None)
+
+        patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
+                                                             form=PatientConsentFileForm,
+                                                             fields="__all__")
+
+        logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
+
+        patient_consent_file_forms = patient_consent_file_formset(request.POST,
+                                                                  request.FILES,
+                                                                  instance=patient_model,
+                                                                  prefix="patient_consent_file")
+        patient_section_consent_file = ("Upload Consent File", None)
+
+        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form = custom_consent_form_generator.create_form(request.POST)
+        consent_sections = custom_consent_form.get_consent_sections()
+
+        forms_to_validate = [custom_consent_form, patient_consent_file_forms]
+
+        form_sections = self._section_structure(custom_consent_form,
+                                                consent_sections,
+                                                patient_consent_file_forms,
+                                                patient_section_consent_file)
+        valid_forms = []
+        error_messages = []
+
+        for form in forms_to_validate:
+            if not form.is_valid():
+                valid_forms.append(False)
+                if isinstance(form.errors, list):
+                    for error_dict in form.errors:
+                        for field in error_dict:
+                            error_messages.append("%s: %s" % (field, error_dict[field]))
+                else:
+                    for field in form.errors:
+                        for error in form.errors[field]:
+                            error_messages.append(error)
+            else:
+                valid_forms.append(True)
+
+        context = {
+            "location": "Consents",
+            "patient": patient_model,
+            "patient_id": patient_model.id,
+            "registry_code": registry_code,
+            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "next_form_link": wizard.next_link,
+            "previous_form_link": wizard.previous_link,
+            "forms": form_sections,
+            "error_messages": [],
+        }
+
+        if all(valid_forms):
+            logger.debug("******************** forms valid :)  *********************")
+            logger.debug("******************** saving any consent files *********************")
+            things = patient_consent_file_forms.save()
+            patient_consent_file_forms.initial = things
+            logger.debug("***** ||| things = %s" % things)
+            logger.debug("******************** end of consent file save *********************")
+            logger.debug("******************** saving custom consent form *********************")
+            custom_consent_form.save()
+            logger.debug("******************** end of consent save *********************")
+            context["message"] = "Consent details saved successfully"
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
+
+        else:
+            logger.debug("******************** forms invalid :( *********************")
+            context["message"] = "Some forms invalid"
+            context["error_messages"] = error_messages
+            context["errors"] = True
+
+
+
+        return render_to_response("rdrf_cdes/custom_consent_form.html",
+                                  context,
+                                  context_instance=RequestContext(request))
+
