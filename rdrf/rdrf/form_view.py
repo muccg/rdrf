@@ -1882,7 +1882,6 @@ class ConstructorFormView(View):
 
 class CustomConsentFormView(View):
     def get(self, request, registry_code, patient_id):
-
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -1919,24 +1918,44 @@ class CustomConsentFormView(View):
         patient_consent_file_formset = inlineformset_factory(
             Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
 
-        patient_consent_file_form = patient_consent_file_formset(instance=patient_model,
-                                                                 prefix="patient_consent_file")
+        patient_consent_file_forms = patient_consent_file_formset(instance=patient_model,
+                                                                  prefix="patient_consent_file")
 
         consent_sections = custom_consent_form.get_consent_sections()
 
         patient_section_consent_file = ("Upload Consent File", None)
 
-        form_sections = [
+        # form_sections = [
+        #     (
+        #         custom_consent_form,
+        #         consent_sections,
+        #     ),
+        #     (
+        #         patient_consent_file_form,
+        #         (patient_section_consent_file,)
+        #     )]
+
+        return self._section_structure(custom_consent_form,
+                                       consent_sections,
+                                       patient_consent_file_forms,
+                                       patient_section_consent_file)
+
+        #return form_sections
+
+    def _section_structure(self,
+                           custom_consent_form,
+                           consent_sections,
+                           patient_consent_file_forms,
+                           patient_section_consent_file):
+        return [
             (
                 custom_consent_form,
                 consent_sections,
             ),
             (
-                patient_consent_file_form,
+                patient_consent_file_forms,
                 (patient_section_consent_file,)
             )]
-
-        return form_sections
 
     def post(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
@@ -1944,9 +1963,14 @@ class CustomConsentFormView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
-        user = request.user
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+        wizard = NavigationWizard(request.user,
+                                  registry_model,
+                                  patient_model,
+                                  NavigationFormType.CONSENTS,
+                                  None)
+
         patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
                                                              form=PatientConsentFileForm,
                                                              fields="__all__")
@@ -1957,18 +1981,22 @@ class CustomConsentFormView(View):
                                                                     request.FILES,
                                                                     instance=patient_model,
                                                                     prefix="patient_consent_file")
-
-
+        patient_section_consent_file = ("Upload Consent File", None)
 
         custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
+        consent_sections = custom_consent_form.get_consent_sections()
 
-        forms = [custom_consent_form, patient_consent_file_forms]
+        forms_to_validate = [custom_consent_form, patient_consent_file_forms]
 
+        form_sections = self._section_structure(custom_consent_form,
+                                                consent_sections,
+                                                patient_consent_file_forms,
+                                                patient_section_consent_file)
         valid_forms = []
         error_messages = []
 
-        for form in forms:
+        for form in forms_to_validate:
             if not form.is_valid():
                 valid_forms.append(False)
                 if isinstance(form.errors, list):
@@ -1982,34 +2010,29 @@ class CustomConsentFormView(View):
             else:
                 valid_forms.append(True)
 
-        if all(valid_forms):
-            patient_consent_file_forms.save()
-            custom_consent_form.save()
-
-        else:
-            pass
-
         context = {
             "location": "Consents",
-            "forms": form_sections,
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient_model.id, registry_model),
             "next_form_link": wizard.next_link,
-            "previous_form_link": wizard.previous_link
-
+            "previous_form_link": wizard.previous_link,
+            "forms": form_sections,
+            "error_messages": [],
         }
+
+        if all(valid_forms):
+            patient_consent_file_forms.save()
+            custom_consent_form.save()
+            context["message"] = "Consent details saved successfully"
+
+        else:
+            context["message"] = "Some forms invalid"
+            context["error_messages"] = error_messages
+            context["errors"] = True
 
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,
                                   context_instance=RequestContext(request))
-
-
-
-
-
-
-
-
 
