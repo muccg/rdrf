@@ -453,7 +453,6 @@ class PatientForm(forms.ModelForm):
                 pass
         return closure
 
-
     def _check_working_groups(self, cleaned_data):
         working_group_data = {}
         for working_group in cleaned_data["working_groups"]:
