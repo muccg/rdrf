@@ -177,7 +177,7 @@
         <div class="alert alert-danger">
             {% for field in form %}
                 {% if field.errors %}
-                    <strong>{{field.label}}</strong> - {{ field.errors|striptags }}
+                    <p><strong>{{field.label}}</strong> - {{ field.errors|striptags }}</p>
                 {% endif %}
             {% endfor %}
         </div>
