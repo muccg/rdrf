@@ -170,9 +170,19 @@
 </head>
 
 <body>
-    {{form.errors}}
-    <br>
     <div class="container">
+        <br>
+    
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {% for field in form %}
+                {% if field.errors %}
+                    <strong>{{field.label}}</strong> - {{ field.errors|striptags }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="alert alert-info">
             <strong>Rare Disease Registry - Patient Registration</strong>
         </div>
