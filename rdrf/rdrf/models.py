@@ -1613,3 +1613,12 @@ class DemographicFields(models.Model):
 
     class Meta:
         verbose_name_plural = "Demographic Fields"
+
+
+class EmailNotification(models.Model):
+    description = models.CharField(max_length=100)
+    registry = models.ForeignKey(Registry)
+    recipient = models.EmailField(null=True, blank=True)
+    group_recipient = models.ForeignKey(Group, null=True, blank=True)
+    subject = models.CharField(max_length=50)
+    body = models.TextField()
