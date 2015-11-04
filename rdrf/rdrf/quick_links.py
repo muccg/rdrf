@@ -49,14 +49,14 @@ class QuickLinks(object):
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     NextOfKinRelationship = QuickLink(
-        "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
-    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", "CDE Policy", True)
-    States = QuickLink("admin:patients_state_changelist", "States")
-
+        "admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"), True)
+    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
+    States = QuickLink("admin:patients_state_changelist", _("States"))
+    ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
-    DATA_ENTRY = oset([PatientsListing])
+    DATA_ENTRY = oset([PatientsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
