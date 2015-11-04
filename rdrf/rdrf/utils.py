@@ -216,6 +216,7 @@ def make_index_map(index_actions_list):
 def is_gridfs_file_wrapper(value):
     return isinstance(value, dict) and "griffs_file_id" in value
 
+
 def create_permission(app_label, model, code_name, name):
     content_type = ContentType.objects.get(app_label=app_label, model=model)
     
@@ -224,3 +225,17 @@ def create_permission(app_label, model, code_name, name):
             Permission.objects.create(codename=code_name, name=name, content_type=content_type)
     except IntegrityError:
         pass
+
+
+def get_form_links(user, patient_id, registry_model):
+    if user is not None:
+        return [
+            FormLink(
+                patient_id,
+                registry_model,
+                form,
+                selected=(
+                    form.name == "")) for form in registry_model.forms
+            if not form.is_questionnaire and user.can_view(form)]
+    else:
+        return []

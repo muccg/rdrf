@@ -171,21 +171,16 @@ class PatientForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
-        self.custom_consents = []  # list of consent fields agreed to
 
         if 'registry_model' in kwargs:
             self.registry_model = kwargs['registry_model']
-            logger.debug("set self.registry_model to %s" % self.registry_model)
             del kwargs['registry_model']
         else:
             self.registry_model = None
-            logger.debug("self.registry_model is None")
 
         if 'instance' in kwargs and kwargs['instance'] is not None:
-            logger.debug("instance in kwargs and not None = %s" % kwargs['instance'])
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
-            logger.debug("registry specific data = %s" % registry_specific_data)
             initial_data = kwargs.get('initial', {})
             for reg_code in registry_specific_data:
                 initial_data.update(registry_specific_data[reg_code])
@@ -198,18 +193,9 @@ class PatientForm(forms.ModelForm):
                 registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
-            logger.debug("user in kwargs")
             self.user = kwargs.pop("user")
-            logger.debug("set user on PatientForm to %s" % self.user)
 
         super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
-
-        # if 'instance' in kwargs and kwargs['instance'] is not None:
-        if not 'instance' in kwargs:
-            self._add_custom_consent_fields(None)
-        else:
-            self._add_custom_consent_fields(kwargs['instance'])
-        #logger.debug("added custom consent fields")
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(
@@ -219,23 +205,18 @@ class PatientForm(forms.ModelForm):
             id__in=[self.registry_model.id])
 
         if hasattr(self, 'user'):
-            logger.debug("form has user attribute ...")
             user = self.user
-            logger.debug("user = %s" % user)
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
                 registry=self.registry_model, id__in=[
                     wg.pk for wg in self.user.working_groups.all()])
             if not user.is_superuser:
-                logger.debug("not superuser so updating field visibility")
                 if not self.registry_model:
                     registry = user.registry.all()[0]
                 else:
                     registry = self.registry_model
-                logger.debug("registry = %s" % registry)
                 working_groups = user.groups.all()
-                logger.debug("user working groups = %s" % [wg.name for wg in working_groups])
 
                 for field in self.fields:
                     hidden = False
@@ -250,11 +231,9 @@ class PatientForm(forms.ModelForm):
                             pass
 
                     if hidden:
-                        logger.debug("field %s is hidden!" % field)
                         self.fields[field].widget = forms.HiddenInput()
                         self.fields[field].label = ""
                     if readonly and not hidden:
-                        logger.debug("field %s is readonly" % field)
                         self.fields[field].widget = forms.TextInput(
                             attrs={'readonly': 'readonly'})
 
@@ -473,69 +452,6 @@ class PatientForm(forms.ModelForm):
             else:
                 pass
         return closure
-
-    def _get_consent_field_models(self, consent_field):
-        logger.debug("getting consent field models for %s" % consent_field)
-        _, reg_pk, sec_pk, q_pk = consent_field.split("_")
-
-        registry_model = Registry.objects.get(pk=reg_pk)
-        consent_section_model = ConsentSection.objects.get(pk=sec_pk)
-        consent_question_model = ConsentQuestion.objects.get(pk=q_pk)
-
-        return registry_model, consent_section_model, consent_question_model
-
-    def _add_custom_consent_fields(self, patient_model):
-        if patient_model is None:
-            registries = [self.registry_model]
-        else:
-            registries = patient_model.rdrf_registry.all()
-
-        for registry_model in registries:
-            for consent_section_model in registry_model.consent_sections.all():
-                if consent_section_model.applicable_to(patient_model):
-                    for consent_question_model in consent_section_model.questions.all().order_by(
-                            "position"):
-                        consent_field = consent_question_model.create_field()
-                        field_key = consent_question_model.field_key
-                        self.fields[field_key] = consent_field
-                        logger.debug("added consent field %s = %s" % (field_key, consent_field))
-
-    def get_all_consent_section_info(self, patient_model, registry_code):
-        section_tuples = []
-        registry_model = Registry.objects.get(code=registry_code)
-
-        for consent_section_model in registry_model.consent_sections.all().order_by("code"):
-            if consent_section_model.applicable_to(patient_model):
-                section_tuples.append(
-                    self.get_consent_section_info(registry_model, consent_section_model))
-        return section_tuples
-
-    def get_consent_section_info(self, registry_model, consent_section_model):
-        # return something like this for custom consents
-        # consent = ("Consent", [
-        #     "consent",
-        #     "consent_clinical_trials",
-        #     "consent_sent_information",
-        # ])
-
-        questions = []
-
-        for field in self.fields:
-            if field.startswith("customconsent_"):
-                parts = field.split("_")
-                reg_pk = int(parts[1])
-                if reg_pk == registry_model.pk:
-                    consent_section_pk = int(parts[2])
-                    if consent_section_pk == consent_section_model.pk:
-                        consent_section_model = ConsentSection.objects.get(
-                            pk=consent_section_pk)
-                        questions.append(field)
-
-        return (
-            "%s %s" %
-            (registry_model.code.upper(),
-             consent_section_model.section_label),
-            questions)
 
     def _check_working_groups(self, cleaned_data):
         working_group_data = {}
