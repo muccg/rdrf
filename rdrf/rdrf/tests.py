@@ -10,6 +10,7 @@ from rdrf.models import RegistryForm
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
+from registry.groups.models import CustomUser
 from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
 from django.forms.models import model_to_dict
@@ -17,6 +18,7 @@ import yaml
 from django.contrib.auth import get_user_model
 from rdrf.utils import de_camelcase
 from rdrf.mongo_client import construct_mongo_client
+
 
 
 from django.conf import settings
@@ -221,14 +223,19 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
+        self.user = CustomUser.objects.get(username="curator")
+        self.user.registry = [self.registry]
+        self.user.save()
+
         self.state, created = State.objects.get_or_create(
             short_name="WA", name="Western Australia")
 
         self.state.save()
         self.create_sections()
-        self.create_forms()
         self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
+        self.create_forms()
+
 
         self.patient = self.create_patient()
 
@@ -276,6 +283,7 @@ class FormTestCase(RDRFTestCase):
         form.sections = ",".join([section.code for section in sections])
         form.is_questionnaire = is_questionnnaire
         form.save()
+        self.working_group
         return form
 
     def create_forms(self):
