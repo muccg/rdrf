@@ -69,6 +69,14 @@ DATABASES = {
     #     'HOST': "legacydb",
     #     'PORT': "5432",
     # }
+    "reporting": {
+        'ENGINE': env.get_db_engine("dbtype", "pgsql"),
+        'NAME': "reporting",
+        'USER': "reporting",
+        'PASSWORD': "reporting",
+        'HOST': "reporting",
+        'PORT': "5432",
+    }
 }
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
