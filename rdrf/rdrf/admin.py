@@ -18,6 +18,7 @@ from models import ConsentSection
 from models import ConsentQuestion
 from models import DemographicFields
 from models import CdePolicy
+from models import EmailNotification
 
 import logging
 from django.http import HttpResponse
@@ -381,6 +382,9 @@ class CdePolicyAdmin(admin.ModelAdmin):
     
     groups.short_description = "Allowed Groups"
 
+class EmailNotificationAdmin(admin.ModelAdmin):
+    model = EmailNotification
+    list_display = ("description", "registry", "recipient", "group_recipient")
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
@@ -424,6 +428,8 @@ admin.site.register(ConsentSection, ConsentSectionAdmin)
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
 
 admin.site.register(CdePolicy, CdePolicyAdmin)
+
+admin.site.register(EmailNotification, EmailNotificationAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)

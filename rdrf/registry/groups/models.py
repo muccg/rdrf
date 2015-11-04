@@ -221,6 +221,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
     from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
+    from rdrf.email_notification import RdrfEmail
 
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
@@ -263,8 +264,9 @@ def user_registered_callback(sender, user, request, **kwargs):
             clinician_hospital=request.POST.get("other_clinician_hospital"),
             clinician_address=request.POST.get("other_clinician_address")
         )
-
-
+        email_note = RdrfEmail(registry_code, "other-clinician")
+        email_note.send()
+        
     address = _create_patient_address(patient, request)
     address.save()
 
