@@ -1,6 +1,7 @@
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.dynamic_data import DynamicDataWrapper
+from utils import DatabaseUtils
 
 import logging
 logger = logging.getLogger("registry_log")
@@ -8,7 +9,7 @@ logger = logging.getLogger("registry_log")
 from django.conf import settings
 
 
-class DataExtractionTool(object):
+class ReportingTableGenerator(object):
     DEMOGRAPHIC_FIELDS = [('family_name', 'todo', alc.String),
                           ('given_names', 'todo', alc.String),
                           ('home_phone', 'todo', alc.String),
@@ -24,15 +25,11 @@ class DataExtractionTool(object):
         self.user = user
         self.counter = 0
         self.col_map = {}
-
         self.registry_model = registry_model
         self.type_overrides = type_overrides
         self.engine = self._create_engine()
         self.columns = set([])
-        self.table = self._create_schema()
-
-    def create_table(self):
-        self.table.create()
+        self.table = None
 
     def _create_engine(self):
         report_db_data = settings.DATABASES["reporting"]
@@ -46,8 +43,37 @@ class DataExtractionTool(object):
                                                                        host,
                                                                        port,
                                                                        database)
-        #create_engine('postgresql://scott:tiger@localhost:5432/mydatabase')
         return create_engine(connection_string)
+
+    def create_table(self):
+        self.table.create()
+
+    def create_schema(self, sql_metadata, mongo_metadata):
+        self.columns = set([])
+        for column_metadata in sql_metadata:
+            column_from_sql = self._create_column_from_sql(column_metadata)
+            columns.add(column_from_sql)
+
+        for form_model, section_model, cde_model in mongo_metadata["column_map"]:
+            column_name = mongo_metadata["column_map"][(form_model, section_model, cde_model)]
+            column_from_mongo = self._create_column_from_mongo(column_name, cde_model)
+            columns.add(column_from_mongo)
+
+        self._create_schema()
+
+    def _create_column_from_sql(self, column_metadata):
+        pass
+
+    def _create_column_from_mongo(self, column_name, cde_model):
+        column_data_type = self._get_sql_alchemy_datatype(cde_model)
+        return self._create_column(column_name, column_data_type)
+
+    def run_explorer_query(self, explorer_query):
+        self.create_table()
+        for result_dict in explorer_query.generate_results():
+            self.insert_row(result_dict)
+
+    # the methods below dump everything
 
     def insert_patient_contexts(self, patient_model):
         self.create_table()
@@ -67,6 +93,10 @@ class DataExtractionTool(object):
         self.col_map[name] = short_name
         logger.debug("columns %s --> %s" % (short_name, name))
         return column
+
+
+
+    #   get rid of stuff below
 
     def _get_context_dicts(self, patient_model):
         id = patient_model.pk

@@ -16,6 +16,11 @@ from models import Query
 from forms import QueryForm
 
 
+class MissingDataError(Exception):
+    pass
+
+
+
 class DatabaseUtils(object):
 
     result = None
@@ -52,13 +57,117 @@ class DatabaseUtils(object):
 
     def run_sql(self):
         try:
-            cursor = connection.cursor()
-            self.cursor = cursor.execute(self.query)
+            cursor = self.create_cursor()
             self.result = self._dictfetchall(cursor)
         except ProgrammingError as error:
             self.result = {'error_msg': error.message}
 
         return self
+
+    def dump_results_into_reportingdb(self, reporting_table_generator):
+        cursor = self.create_cursor()
+        sql_metadata = self._get_sql_metadata(cursor)
+        mongo_metadata = self._get_mongo_metadata()
+        reporting_table_generator.create_schema(sql_metadata, mongo_metadata)
+        reporting_table_generator.run_explorer_query(self)
+
+    def generate_results(self):
+        self.mongo_client = self._get_mongo_client()
+        self.database = self.mongo_client[mongo_db_name_reg_id(self.regsitry_id)]
+        collection = self.database[self.collection]
+
+        for row in self.cursor:
+            for mongo_result in self.run_mongo_one_row(row, collection):
+                yield self._combine_sql_and_mongo(row, mongo_result)
+
+    def _combine_sql_and_mongo(self, sql_result, mongo_result):
+        combined = {}
+        combined.update(sql_result)
+        combined.update(mongo_result)
+        return combined
+
+    def create_cursor(self):
+        cursor = connection.cursor()
+        self.cursor = cursor.execute(self.query)
+        self.sql_column_metadata = self._get_sql_column_metadata(cursor)
+        return self.cursor
+
+    def _get_sql_metadata(self, cursor):
+        return [item for item in cursor.description]
+
+    def _get_mongo_metadata(self):
+        import json
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.utils import forms_and_sections_containing_cde
+
+        def short__column_name(form_model, section_model, cde_code):
+            return form_model.name[:5] + "_" + section_model.code + "_" + cde_model.code
+
+        registry_model = Registry.objects.get(pk=self.regisitry_id)
+        data = {"column_map": {}}
+
+        # list of dictionaries like :  {"form": <formname>, "section": <sectioncode>, "cde": <cdecode>}
+        cde_dicts = json.loads(self.projection)
+        for cde_dict in cde_dicts:
+            form_model = RegistryForm.objects.get(name=cde_dict["form"])
+            section_model = Section.objects.get(code=cde_dict["section"])
+            cde_model = CommonDataElement.objects.get(code=cde_dict["cde"])
+            forms_sections = forms_and_sections_containing_cde(registry_model, cde_model)
+            if len(forms_sections) == 1:
+                using_form = forms_sections[0][0]
+                using_section = forms_sections[0][1]
+                if using_form.name == form_model.name and using_section.code == section_model.code:
+                    # we can safely just use the cde code as the column name
+                    data["column_map"][(form_model, section_model, cde_model)] = cde_model.code
+                else:
+                    # error?
+                    raise Exception("mongo projection cde not in registry")
+            else:
+                # another form or section on the same form is using this cde too
+                data["column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
+                                                                                              section_model,
+                                                                                              cde_model)
+
+        return data
+
+
+    def _inspect_cursor(self, cursor):
+        raise Exception(cursor)
+
+    def run_mongo_one_row(self, sql_row, mongo_collection):
+        django_model = sql_row.get("django_model", "Patient")
+        django_id = sql_row["id"]
+        mongo_query = {"django_model": django_model,
+                       "django_id": django_id}
+        for mongo_document in mongo_collection.find(mongo_query):
+            result = {}
+            result["context_id"] = mongo_document.get("context_id", None)
+            for form_model, section_model, cde_model in self._get_mongo_fields():
+                short_namre
+                result[short_name] = self._get_cde_value(form_model,
+                                                         section_model,
+                                                         cde_model,
+                                                         mongo_document)
+            yield result
+
+
+
+    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
+        for form_dict in mongo_document["forms"]:
+            if form_dict["name"] == form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == section_model.code:
+                        if section_dict["allow_multiple"]:
+                            values = []
+                            for section_item in section_dict["cdes"]:
+                                for cde_dict in section_item:
+                                    if cde_dict["code"] == cde_model.code:
+                                        values.append(cde_dict["value"])
+                            return values
+                    else:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == cde_model["code"]:
+                                return cde_dict["value"]
 
     def run_mongo(self):
         client = self._get_mongo_client()
@@ -122,6 +231,7 @@ class DatabaseUtils(object):
                     self.result.append(mr)
 
         return self
+
 
     def run_full_query_split(self):
         sql_result = self.run_sql().result
