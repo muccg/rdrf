@@ -19,6 +19,10 @@ from registration.signals import user_registered
 
 from rdrf.models import Registry
 
+import logging
+
+logger = logging.getLogger("registry_log")
+
 _OTHER_CLINICIAN = "clinician-other"
 _UNALLOCATED_GROUP = "Unallocated"
 
@@ -269,8 +273,7 @@ def user_registered_callback(sender, user, request, **kwargs):
             clinician_hospital=request.POST.get("other_clinician_hospital"),
             clinician_address=request.POST.get("other_clinician_address")
         )
-        email_note = RdrfEmail(registry_code, "other-clinician")
-        email_note.send()
+        RdrfEmail(registry_code, "other-clinician").send()
         
     address = _create_patient_address(patient, request)
     address.save()
@@ -280,6 +283,8 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.patient.add(patient)
         parent_guardian.user = user
         parent_guardian.save()
+    
+    RdrfEmail(registry_code, "new-patient").send()
 
 
 def _create_django_user(request, django_user, registry, is_parent):

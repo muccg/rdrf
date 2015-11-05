@@ -1618,6 +1618,7 @@ class DemographicFields(models.Model):
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry)
+    email_from = models.EmailField(default="no-reply@DOMAIN.COM")
     recipient = models.EmailField(null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     subject = models.CharField(max_length=50)

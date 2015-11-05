@@ -384,7 +384,7 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "recipient", "group_recipient")
+    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
