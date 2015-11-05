@@ -410,6 +410,11 @@ CUSTOM_PERMISSIONS = {
     }
 }
 
+EMAIL_NOTIFICATIONS = (
+    ("other-clinician", "Other Clinician"),
+    ("new-patient", "New Patient Registered")
+)
+
 GRID_PATIENT_LISTING = [
     {
         "access": {
