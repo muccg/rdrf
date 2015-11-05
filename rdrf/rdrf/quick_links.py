@@ -53,6 +53,7 @@ class QuickLinks(object):
     States = QuickLink("admin:patients_state_changelist", _("States"))
     ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
     EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
+    EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
@@ -76,7 +77,8 @@ class QuickLinks(object):
                             Explorer,
                             DemographicsFields,
                             NextOfKinRelationship,
-                            EmailNotification])
+                            EmailNotification,
+                            EmailTemplate])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

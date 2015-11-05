@@ -19,6 +19,7 @@ from models import ConsentQuestion
 from models import DemographicFields
 from models import CdePolicy
 from models import EmailNotification
+from models import EmailTemplate
 
 import logging
 from django.http import HttpResponse
@@ -386,6 +387,10 @@ class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
 
+class EmailTemplateAdmin(admin.ModelAdmin):
+    model = EmailTemplate
+    list_display = ("language", "subject")
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(
@@ -430,6 +435,8 @@ admin.site.register(DemographicFields, DemographicFieldsAdmin)
 admin.site.register(CdePolicy, CdePolicyAdmin)
 
 admin.site.register(EmailNotification, EmailNotificationAdmin)
+
+admin.site.register(EmailTemplate)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)

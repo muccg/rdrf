@@ -10,6 +10,7 @@ from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -1615,11 +1616,19 @@ class DemographicFields(models.Model):
         verbose_name_plural = "Demographic Fields"
 
 
+class EmailTemplate(models.Model):
+    language = models.CharField(max_length=2, choices=settings.LANGUAGES)
+    subject = models.CharField(max_length=50)
+    body = models.TextField()
+    
+    def __unicode__(self):
+        return "%s - %s" % (dict(settings.LANGUAGES)[self.language], self.subject)
+    
+
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry)
     email_from = models.EmailField(default="no-reply@DOMAIN.COM")
     recipient = models.EmailField(null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
-    subject = models.CharField(max_length=50)
-    body = models.TextField()
+    email_templates = models.ManyToManyField(EmailTemplate)
