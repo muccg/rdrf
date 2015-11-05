@@ -239,3 +239,13 @@ def get_form_links(user, patient_id, registry_model):
             if not form.is_questionnaire and user.can_view(form)]
     else:
         return []
+
+
+def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
+    results = []
+    for form_model in registry_model.forms:
+        for section_model in form_model.section_models:
+            for cde_model in section_model.cde_models:
+                if cde_model.code == cde_model_to_find.code:
+                    results.append((form_model, section_model))
+    return results
