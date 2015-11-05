@@ -1626,7 +1626,7 @@ class EmailTemplate(models.Model):
     
 
 class EmailNotification(models.Model):
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry)
     email_from = models.EmailField(default="no-reply@DOMAIN.COM")
     recipient = models.EmailField(null=True, blank=True)
