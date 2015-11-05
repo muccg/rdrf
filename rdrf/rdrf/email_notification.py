@@ -23,6 +23,7 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
+        logger.info(self.language)
 
     def send(self):
         try:

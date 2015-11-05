@@ -274,7 +274,7 @@ def user_registered_callback(sender, user, request, **kwargs):
             clinician_hospital=request.POST.get("other_clinician_hospital"),
             clinician_address=request.POST.get("other_clinician_address")
         )
-        RdrfEmail(registry_code, "other-clinician", translation.get_language()).send()
+        RdrfEmail(registry_code, "other-clinician", request.LANGUAGE_CODE).send()
         
     address = _create_patient_address(patient, request)
     address.save()
@@ -285,7 +285,7 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.user = user
         parent_guardian.save()
     
-    email_note = RdrfEmail(registry_code, "new-patient", translation.get_language())
+    email_note = RdrfEmail(registry_code, "new-patient", request.LANGUAGE_CODE)
     email_note.append("patient", patient).append("clinician", clinician)
     email_note.send()
 
