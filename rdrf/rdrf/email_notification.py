@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
-from rdrf.models import EmailNotification
+from rdrf.models import EmailNotification, EmailTemplate
 from registry.groups.models import CustomUser
+from django.template import Context, Template
 
 import logging
 
@@ -13,31 +14,33 @@ class RdrfEmailException(Exception):
 
 class RdrfEmail(object):
 
-    def __init__(self, reg_code, description):
+    def __init__(self, reg_code, description, language="en"):
         self.email_from = None
         self.recipient = []
-        self.subject = None
-        self.body = None
+        self.email_templates = None
+        self.language = language
+        self.template_data = {}
 
         self.reg_code = reg_code
         self.description = description
+        logger.info("language %s" % language)
 
     def send(self):
         try:
             self._get_email_notification()
-            send_mail(self.subject, self.body, self.email_from, self.recipient)
+            email_subject, email_body = self._get_email_template()
+            send_mail(email_subject, email_body, self.email_from, self.recipient)
             logger.info("Sent email %s" % self.description)
         except RdrfEmailException:
             logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
-        except Exception:
-            logger.error("Email has failed to send")
+        except Exception as e:
+            logger.error("Email has failed to send - %s" % e)
 
     def _get_email_notification(self):
         try:
             email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
             self.email_from = email_note.email_from
-            self.subject = email_note.subject
-            self.body = email_note.body
+            self.email_templates = email_note.email_templates
             
             if email_note.recipient:
                 self.recipient.append(email_note.recipient)
@@ -55,3 +58,19 @@ class RdrfEmail(object):
            user_emails.append(user.email)
         
         return user_emails
+
+    def _get_email_template(self):
+        email_template = EmailTemplate.objects.get(language=self.language)
+        context = Context(self.template_data)
+        
+        template_subject = Template(email_template.subject)
+        template_body = Template(email_template.body)
+        
+        template_subject = template_subject.render(context)
+        template_body = template_body.render(context)
+        
+        return template_subject, template_body
+
+    def append(self, key, obj):
+        self.template_data[key] = obj
+        return self
