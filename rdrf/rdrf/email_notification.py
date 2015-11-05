@@ -21,7 +21,6 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
-        
 
     def send(self):
         try:
@@ -30,7 +29,9 @@ class RdrfEmail(object):
             logger.info("Sent email %s" % self.description)
         except RdrfEmailException:
             logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
-        
+        except Exception:
+            logger.error("Email has failed to send")
+
     def _get_email_notification(self):
         try:
             email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
