@@ -17,13 +17,12 @@ class RdrfEmail(object):
     def __init__(self, reg_code, description, language="en"):
         self.email_from = None
         self.recipient = []
-        self.email_templates = None
+        self.email_templates = []
         self.language = language
         self.template_data = {}
 
         self.reg_code = reg_code
         self.description = description
-        logger.info("language %s" % language)
 
     def send(self):
         try:
@@ -40,7 +39,7 @@ class RdrfEmail(object):
         try:
             email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
             self.email_from = email_note.email_from
-            self.email_templates = email_note.email_templates
+            self.email_templates = email_note.email_templates.get(language=self.language)
             
             if email_note.recipient:
                 self.recipient.append(email_note.recipient)
@@ -60,7 +59,7 @@ class RdrfEmail(object):
         return user_emails
 
     def _get_email_template(self):
-        email_template = EmailTemplate.objects.get(language=self.language)
+        email_template = self.email_templates
         context = Context(self.template_data)
         
         template_subject = Template(email_template.subject)
