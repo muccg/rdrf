@@ -149,3 +149,59 @@ def create_form_class_for_consent_section(
     form_class_dict["clean"] = clean_method
 
     return type(form_class_name, (BaseForm,), form_class_dict)
+
+
+class MongoReportingFieldSelectionGenerator(object):
+    """
+    Generates a form used to indicate which fields in
+    Mongo are included in a report ( yes/no for each viewable form field)
+    """
+    def __init__(self, user, registry_model):
+        self.user = user
+        self.registry_model = registry_model
+        self.field_dict = SortedDict()
+
+    def generate_form(self):
+        for form_model in self.registry_model.forms:
+            if self.user.can_view(form_model) and not form_model.is_questionnaire:
+                for section_model in form_model.section_models:
+                    for cde_model in section_model.cde_models:
+                        field_key, field = self._create_checkbox_field(form_model, section_model, cde_model)
+                        self.field_dict[field_key] = field
+        return self._create_form_instance()
+
+    def _create_checkbox_field(self, form_model, section_model, cde_model):
+        from django.forms.fields import BooleanField
+        field_key = "id_%s_%s_%s" % (form_model.pk, section_model.pk, cde_model.pk)
+        return (field_key, BooleanField(label=cde_model.name,
+                                        required=False,
+                                        help_text="Check if you would like this field to appear in the report"))
+
+    def _create_form_instance(self):
+        class MongoSelectionForm(BaseForm):
+
+            def save(myself):
+                models = []
+                # return triples of form_model, section_model, cde_model
+                for field in self.fields:
+                    models.append(self_get_models(field))
+                return models
+
+            def _get_models(self, field_key):
+                from rdrf.models import RegistryForm, Section, CommonDataElement
+                form_pk, section_pk, cde_pk = field_key.split("_")
+                form_model = RegistryForm.objects.get(pk=int(form_pk))
+                section_model = Section.objects.get(pk=int(section_pk))
+                cde_model = CommonDataElement.objects.get(pk=int(cde_pk))
+                return form_model, section_model, cde_model
+
+        form_class_dict = {"base_fields": self.field_dict}
+        klass = type("MongoForm", (MongoSelectionForm,), form_class_dict)
+        return klass()
+
+
+
+
+
+
+
