@@ -11,14 +11,20 @@
         <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
         
         <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
 
         <link rel="stylesheet" href="{% static 'css/explorer.css' %}">
+        <script src="{% static 'js/rpc_module.js' %}"></script>
         
         <script src="{% static 'js/jquery.cookies.js' %}"></script>
+
+        <script>
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+        </script>
     </head>
     
     <body>

@@ -68,3 +68,20 @@ def rpc_validate_protein(request, field_value):
     from rdrf.genetic_validation import GeneticValidator, GeneticType
     validator = GeneticValidator()
     return validator.validate(field_value, GeneticType.PROTEIN)
+
+
+def rpc_get_mongo_fields_for_registry(request, queryId, registry_id):
+    # return object containing a list of form and section info and field
+    # info for report definition screen
+    from rdrf.reporting_table import MongoFieldSelector
+    from rdrf.models import Registry
+    from explorer.models import Query
+    user = request.user
+    if queryId == "new":
+        query_model = None
+    else:
+        query_model = Query.objects.get(pk=int(queryId))
+
+    registry_model = Registry.objects.get(pk=int(registry_id))
+    field_selector = MongoFieldSelector(user, registry_model, query_model)
+    return field_selector.field_data

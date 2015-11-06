@@ -1,6 +1,77 @@
 {% extends "explorer/base.html" %}
+{% block content %}
+<script>
+    $(document).ready(function () {
+        $("#id_registry").bind("change", function () {
+            var FIELDS_TABLE = "#mongo-fields";
+            var container = $("#mongo_field_selection");
+            var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
+                    "<td><%= section %></td><td><%= fieldLabel %></td>" +
+                    "<td><%= checkBox %></td></tr>");
 
-{% block content %}    
+            var checkBoxTemplate = _.template('<label for="<%= id %>"><%= label %></label>' +
+                                              '<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
+                                                "<%= checked %> />");
+
+
+            function clearFieldsTable() {
+                $(FIELDS_TABLE).empty();
+            }
+
+            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue) {
+                var checked = "";
+                if (currentValue) {
+                    checked = "checked";
+                }
+                var checkBoxHtml = checkBoxTemplate({id: fieldId,
+                                           name: fieldId,
+                                           label: fieldLabel,
+                                           checked: checked
+                                           });
+
+                var fieldRow = $(fieldRowTemplate({form: formName,
+                                                section: section,
+                                                fieldLabel: fieldLabel,
+                                                checkBox: checkBoxHtml}));
+
+                $(FIELDS_TABLE).append(fieldRow);
+                console.log("added " + fieldLabel);
+
+            }
+
+            function setUpMongoFields(fieldData) {
+                clearFieldsTable();
+                _.each(fieldData.fields, function (fieldInfo) {
+                    var fieldId = fieldInfo.id;
+                    var fieldLabel = fieldInfo.label;
+                    var formName = fieldInfo.form;
+                    var section = fieldInfo.section;
+                    var savedValue = fieldInfo.savedValue;
+                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue);
+                })
+                $(FIELDS_TABLE).refresh();
+            }
+
+            var registryId = $("#id_registry").val();
+            var parts = window.location.pathname.split("/");
+            var reportId = parts[parts.length - 1];
+
+            rpc.send("get_mongo_fields_for_registry", [reportId, registryId], function (response) {
+                if (response.status == 'success') {
+                    setUpMongoFields(response.result);
+                }
+                else
+                    {
+                        alert(response.error);
+                }
+
+            });
+        });
+
+    });
+</script>
+
+
 {{form.errors}}
     <form name='query-form' id='query-form' class="form" method='post'>
         {% csrf_token %}
@@ -89,15 +160,30 @@
                     <textarea class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
                 </div>
             </div>
-            
-            <div class="row" id="mongo-parameters-aggregation">
 
-
-                  <div class="col-md-12">
-                   {{ mongo_fields_selection_form }}
-                   </div>
+            <div class="row" id="mongo-longitudinal-settings">
+                <label for="mongo-longitudinal-settings">Include Longitudinal Data?</label>  <input type="checkbox" name="mongo-longitudinal" value=""></input
 
             </div>
+            <p></p>
+
+            <label for="mongo_field_selection">Clinical Fields Selection</label>
+
+            <div class="row" id="mongo_field_selection">
+                <table id="mongo-fields">
+                    <thead>
+                    <th>Form</th>
+                    <th>Section</th>
+                    <th>Field</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+
+            </div>
+
 
         </div>
         
