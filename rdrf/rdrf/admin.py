@@ -389,7 +389,7 @@ class EmailNotificationAdmin(admin.ModelAdmin):
 
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
-    list_display = ("language", "subject")
+    list_display = ("language", "description")
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)

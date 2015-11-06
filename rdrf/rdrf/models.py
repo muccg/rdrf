@@ -1618,11 +1618,12 @@ class DemographicFields(models.Model):
 
 class EmailTemplate(models.Model):
     language = models.CharField(max_length=2, choices=settings.LANGUAGES)
+    description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()
     
     def __unicode__(self):
-        return "%s - %s" % (dict(settings.LANGUAGES)[self.language], self.subject)
+        return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
     
 
 class EmailNotification(models.Model):
