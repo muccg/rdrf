@@ -1633,3 +1633,12 @@ class EmailNotification(models.Model):
     recipient = models.EmailField(null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     email_templates = models.ManyToManyField(EmailTemplate)
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.description, self.registry.code.upper())
+
+
+class EmailNotificationHistory(models.Model):
+    date_stamp = models.DateTimeField(auto_now_add=True)
+    language = models.CharField(max_length=10)
+    email_notification = models.ForeignKey(EmailNotification)
