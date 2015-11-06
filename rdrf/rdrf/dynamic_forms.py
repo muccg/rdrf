@@ -151,7 +151,7 @@ def create_form_class_for_consent_section(
     return type(form_class_name, (BaseForm,), form_class_dict)
 
 
-class MongoReportingFieldSelectionGenerator(object):
+class MongoFieldSelectionFormGenerator(object):
     """
     Generates a form used to indicate which fields in
     Mongo are included in a report ( yes/no for each viewable form field)
