@@ -1,5 +1,5 @@
 from django.core.mail import send_mail
-from rdrf.models import EmailNotification, EmailTemplate
+from rdrf.models import EmailNotification, EmailTemplate, EmailNotificationHistory
 from registry.groups.models import CustomUser
 from django.template import Context, Template
 
@@ -23,7 +23,8 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
-        logger.info(self.language)
+        
+        self.email_notification = None
 
     def send(self):
         try:
@@ -31,6 +32,8 @@ class RdrfEmail(object):
             email_subject, email_body = self._get_email_template()
             send_mail(email_subject, email_body, self.email_from, self.recipient)
             logger.info("Sent email %s" % self.description)
+            self._save_notification_record()
+            logger.info("Email %s saved in history table" % self.description)
         except RdrfEmailException:
             logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
         except Exception as e:
@@ -39,6 +42,7 @@ class RdrfEmail(object):
     def _get_email_notification(self):
         try:
             email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
+            self.email_notification = email_note
             self.email_from = email_note.email_from
             self.email_templates = email_note.email_templates.get(language=self.language)
             
@@ -70,6 +74,27 @@ class RdrfEmail(object):
         template_body = template_body.render(context)
         
         return template_subject, template_body
+
+
+    def _save_notification_record(self):
+        _template_data = {}
+        
+        for key, value in self.template_data.iteritems():
+            if value:
+                _template_data[key] = {
+                    "class": value.__module__ + "." + value.__class__.__name__,
+                    "id": value.id
+                }
+        
+    
+    
+        enh = EmailNotificationHistory(
+            language=self.language,
+            email_notification=self.email_notification,
+            template_data=_template_data
+        )
+        enh.save()
+        
 
     def append(self, key, obj):
         self.template_data[key] = obj

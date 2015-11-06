@@ -396,7 +396,7 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
-    list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
+    list_display = ("date_stamp", "email_notification", "registry", "full_language", "template_data", "resend")
     
     def registry(self, obj):
         return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
