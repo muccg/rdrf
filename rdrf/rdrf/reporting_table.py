@@ -1,7 +1,8 @@
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.dynamic_data import DynamicDataWrapper
-from utils import DatabaseUtils
+import explorer
+from explorer.utils import DatabaseUtils
 
 import logging
 logger = logging.getLogger("registry_log")
@@ -216,46 +217,58 @@ class ReportingTableGenerator(object):
         return self.TYPE_MAP.get(datatype, alc.String)
 
 
+class MongoFieldSelector(object):
+    def __init__(self, user, registry_model, query_model):
+        self.user = user
+        self.registry_model = registry_model
+        self.query_model = query_model
+        if self.query_model:
+            self.existing_data = self._get_existing_report_choices(self.query_model)
+        else:
+            self.existing_data = {}
+
+    def _get_existing_report_choices(self, query_model):
+        import json
+        try:
+            return json.loads(query_model.projection)
+        except:
+            return []
 
 
+    @property
+    def field_data(self):
+        return {"fields": self.fields}
 
+    @property
+    def fields(self):
+        self.field_info = []
+        for form_model in self.registry_model.forms:
+            if self.user.can_view(form_model) and not form_model.is_questionnaire:
+                for section_model in form_model.section_models:
+                    for cde_model in section_model.cde_models:
+                        self._get_field_info(form_model, section_model, cde_model)
 
+        return self.field_info
 
+    def _get_saved_value(self, form_model, section_model, cde_model):
+        for value_dict in self.existing_data:
+            if value_dict["formName"] == form_model.name:
+                if value_dict["sectionCode"] == section_model.code:
+                    if value_dict["cdeCode"] == cde_model.code:
+                        return value_dict["value"]
+        return False
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def _get_field_info(self, form_model, section_model, cde_model):
+        saved_value = self._get_saved_value(form_model, section_model, cde_model)
+        field_id = "cb_%s_%s_%s_%s" % (self.registry_model.code,
+                                       form_model.pk,
+                                       section_model.pk,
+                                       cde_model.pk)
+        field_label = cde_model.name
+        self.field_info.append({"form": form_model.name,
+                                "cdeCode": cde_model.code,
+                                "sectionCode": section_model.code,
+                                "sectionName": section_model.display_name,
+                                "id": field_id,
+                                "label": field_label,
+                                "savedValue": saved_value})
