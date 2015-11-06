@@ -1642,3 +1642,4 @@ class EmailNotificationHistory(models.Model):
     date_stamp = models.DateTimeField(auto_now_add=True)
     language = models.CharField(max_length=10)
     email_notification = models.ForeignKey(EmailNotification)
+    template_data = models.TextField(null=True, blank=True)
