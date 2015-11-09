@@ -48,22 +48,44 @@ class ReportingTableGenerator(object):
 
     def create_table(self):
         self.table.create()
+        logger.debug("created table based on schema")
 
-    def create_schema(self, sql_metadata, mongo_metadata):
+    def drop_table(self):
+        if self.table is not None:
+            self.table.drop(self.engine)
+
+    def create_columns(self, sql_metadata, mongo_metadata):
         self.columns = set([])
+        self.columns.add(self._create_column("context_id", alc.Integer))
+
         for column_metadata in sql_metadata:
             column_from_sql = self._create_column_from_sql(column_metadata)
-            columns.add(column_from_sql)
+            self.columns.add(column_from_sql)
 
         for form_model, section_model, cde_model in mongo_metadata["column_map"]:
             column_name = mongo_metadata["column_map"][(form_model, section_model, cde_model)]
             column_from_mongo = self._create_column_from_mongo(column_name, cde_model)
-            columns.add(column_from_mongo)
-
-        self._create_schema()
+            self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
-        pass
+        column_name = column_metadata["name"]
+        type_name = column_metadata["type_name"]
+        # Not sure if this good idea ...
+        # these type_names are coming from introspection on the sql cursor
+        if type_name == "varchar":
+            datatype = alc.String
+        elif type_name == "bool":
+            datatype = alc.Boolean
+        elif "float" in type_name:
+            datatype = alc.FLOAT
+        elif "int" in type_name:
+            datatype = alc.INTEGER
+        elif "date" in type_name:
+            datatype = alc.DATE
+        else:
+            datatype = alc.String
+
+        return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
@@ -94,8 +116,6 @@ class ReportingTableGenerator(object):
         self.col_map[name] = short_name
         logger.debug("columns %s --> %s" % (short_name, name))
         return column
-
-
 
     #   get rid of stuff below
 
@@ -174,36 +194,12 @@ class ReportingTableGenerator(object):
         form_name = form_model.name.replace(" ", "")
         return "%s_%s_%s" % (form_name, section_model.code, cde_model.code)
 
-    def _create_schema(self):
-        cdes = []
-        viewable_forms = []
-        for form_model in self.registry_model.forms:
-            if self.user.can_view(form_model) and not form_model.is_questionnaire:
-                viewable_forms.append(form_model)
-
-        for form_model in viewable_forms:
-            for section_model in form_model.section_models:
-                for cde_model in section_model.cde_models:
-                    cde_data = (form_model, section_model, cde_model)
-                    cdes.append(cde_data)
-
+    def create_schema(self):
+        logger.debug("creating table schema")
+        logger.debug("There are %s columns" % len(self.columns))
         table_name = self._generate_temporary_table_name()
-
-        patient_id_column = self._create_column("id", alc.Integer)
-        context_id_column = self._create_column("context_id", alc.Integer)
-
-        for field, section,  column_type in self.DEMOGRAPHIC_FIELDS:
-            column_name = self._get_delimited_name("Demographics", section, field)
-            self._create_column(column_name, column_type)
-
-        # TODO need to add demographics columns, consents , registry specific fields ...
-
-        for form_model, section_model, cde_model in cdes:
-            column_name = self._get_delimited_name(form_model.name, section_model.code, cde_model.code)
-            column_datatype = self._get_sql_alchemy_datatype(cde_model)
-            self._create_column(column_name, column_datatype)
-
-        return alc.Table(table_name, MetaData(self.engine), *self.columns, schema=None)
+        logger.debug("table name will be = %s" % table_name)
+        self.table = alc.Table(table_name, MetaData(self.engine), *self.columns, schema=None)
 
     def _generate_temporary_table_name(self):
         return "reporting_table"
@@ -215,6 +211,10 @@ class ReportingTableGenerator(object):
             datatype = cde_model.datatype
 
         return self.TYPE_MAP.get(datatype, alc.String)
+
+    def _get_sql_alchemy_datatype_from_sql_cursor_column_info(self, column_info):
+        oid = column_info.oid
+        type_code = column_info.type_code
 
 
 class MongoFieldSelector(object):
