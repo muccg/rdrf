@@ -25,6 +25,7 @@ from rdrf.api import PatientResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
+from rdrf.email_notification_view import ResendEmail
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -116,6 +117,11 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
                            form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
+#-------------------------------------------
+
+#---- Email Notifications URLs -------------
+                       url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
+                           ResendEmail.as_view(), name="resend_email"),
 #-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/parent/?$",

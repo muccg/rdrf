@@ -396,7 +396,7 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
-    list_display = ("date_stamp", "email_notification", "registry", "full_language", "template_data", "resend")
+    list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
     
     def registry(self, obj):
         return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
@@ -407,7 +407,8 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     full_language.short_description = "Language"
 
     def resend(self, obj):
-        return "<button class='btn btn-info btn-xs'>Resend</button>"
+        email_url = reverse('resend_email', args=(obj.id,))
+        return "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
     resend.allow_tags = True
 
 
