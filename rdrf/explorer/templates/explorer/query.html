@@ -5,6 +5,7 @@
         var FIELDS_TABLE = "#mongo-fields";
         var PROJECTION_FIELD = "projection";
         var container = $("#mongo_field_selection");
+        $("#search_type").hide();
 
         function recalculateProjection() {
             // get ids of  all checked checkboxes
@@ -106,7 +107,7 @@
             });
         });
 
-        $("#id_registry").trigger("change");
+        $("#id_registry").trigger("change"); // ensure checkboxes displayed on initial page load
 
     });
 </script>
@@ -159,8 +160,8 @@
                 </div>
             </div>
     
-            <div class="row">
-                <div class="col-md-12">    
+            <div id="search_type" class="row">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label for="mongo_search_type">Mongo Search Type</label>
                             {{form.mongo_search_type}}

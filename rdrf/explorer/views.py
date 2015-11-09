@@ -119,15 +119,19 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
-            result = database_utils.run_full_query().result
-            mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-            munged = _filler(result, mongo_keys)
-            munged = _final_cleanup(munged)
-            humaniser = Humaniser(registry_model)
-            munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
-            result = _human_friendly(registry_model, munged)
-            result_json = dumps(result, default=json_serial)
-            return HttpResponse(result_json)
+            # populate temporary table
+            from rdrf.reporting_table import ReportingTableGenerator
+            rtg = ReportingTableGenerator(request.user, registry_model)
+            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+            # result = database_utils.run_full_query().result
+            #mongo_keys = _get_non_multiple_mongo_keys(registry_model)
+            #munged = _filler(result, mongo_keys)
+            #munged = _final_cleanup(munged)
+            #humaniser = Humaniser(registry_model)
+            #munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
+            #result = _human_friendly(registry_model, munged)
+            #result_json = dumps(result, default=json_serial)
+            return HttpResponse("[]")
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)
