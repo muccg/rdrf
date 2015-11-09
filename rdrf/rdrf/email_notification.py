@@ -15,6 +15,8 @@ class RdrfEmailException(Exception):
 
 class RdrfEmail(object):
 
+    _DEFAULT_LANGUAGE = "en"
+
     def __init__(self, reg_code=None, description=None, language="en", email_notification=None):
         self.email_from = None
         self.recipient = []
@@ -50,7 +52,10 @@ class RdrfEmail(object):
                 email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
             self.email_notification = email_note
             self.email_from = email_note.email_from
-            self.email_templates = email_note.email_templates.get(language=self.language)
+            try:
+                self.email_templates = email_note.email_templates.get(language=self.language)
+            except EmailTemplate.DoesNotExist:
+                self.email_templates = email_note.email_templates.get(language=self._DEFAULT_LANGUAGE)
             
             if email_note.recipient:
                 recipient = self._get_recipient_template(email_note.recipient)
