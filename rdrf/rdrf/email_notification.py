@@ -53,7 +53,8 @@ class RdrfEmail(object):
             self.email_templates = email_note.email_templates.get(language=self.language)
             
             if email_note.recipient:
-                self.recipient.append(email_note.recipient)
+                recipient = self._get_recipient_template(email_note.recipient)
+                self.recipient.append(recipient)
             if email_note.group_recipient:
                 self.recipient = self.recipient + self._get_group_emails(email_note.group_recipient)
             
@@ -69,6 +70,12 @@ class RdrfEmail(object):
         
         return user_emails
 
+    def _get_recipient_template(self, recipient):
+        context = Context(self.template_data)
+        recipient_template = Template(recipient)
+        
+        return recipient_template.render(context)
+    
     def _get_email_template(self):
         email_template = self.email_templates
         context = Context(self.template_data)
