@@ -263,13 +263,15 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.save()
     
     if "clinician-other" in request.POST['clinician']:
-        ClinicianOther.objects.create(
+        other_clinician = ClinicianOther.objects.create(
             patient=patient,
             clinician_name=request.POST.get("other_clinician_name"),
             clinician_hospital=request.POST.get("other_clinician_hospital"),
             clinician_address=request.POST.get("other_clinician_address")
         )
-        RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, request.LANGUAGE_CODE).send()
+        email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, request.LANGUAGE_CODE)
+        email_note.append("other_clinician", other_clinician).append("patient", patient)
+        email_note.send()
         
     address = _create_patient_address(patient, request)
     address.save()
@@ -285,9 +287,6 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.user = user
         parent_guardian.save()
     
-    email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, request.LANGUAGE_CODE)
-    email_note.append("patient", patient).append("clinician", clinician)
-    email_note.send()
 
 def _create_django_user(request, django_user, registry):
     user_group = _get_group("Parents")
