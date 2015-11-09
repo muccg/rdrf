@@ -5,6 +5,7 @@ from django.views.generic.base import View
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from django.apps import apps
+from django.contrib import messages
 
 from models import EmailNotificationHistory
 
@@ -30,6 +31,8 @@ class ResendEmail(View):
         for key, value in self.template_data.iteritems():
             email.append(key, value)
         email.send()
+        
+        messages.add_message(request, messages.SUCCESS, "Email resend")
         
         return redirect(reverse("admin:rdrf_emailnotificationhistory_changelist"))
 
