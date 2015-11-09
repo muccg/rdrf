@@ -70,9 +70,11 @@ def rpc_validate_protein(request, field_value):
     return validator.validate(field_value, GeneticType.PROTEIN)
 
 
-def rpc_get_mongo_fields_for_registry(request, queryId, registry_id):
-    # return object containing a list of form and section info and field
-    # info for report definition screen
+def rpc_reporting_command(request, queryId, registry_id, command, arg):
+    # 2 possible commands/invocations client side from report definition screen:
+    # get_field_data: used to build all the checkboxes for client
+    # get_projection: process the checked checkboxes and get json representation
+    # of the selected mongo fields ( used to build temp table)
     from rdrf.reporting_table import MongoFieldSelector
     from rdrf.models import Registry
     from explorer.models import Query
@@ -83,5 +85,13 @@ def rpc_get_mongo_fields_for_registry(request, queryId, registry_id):
         query_model = Query.objects.get(pk=int(queryId))
 
     registry_model = Registry.objects.get(pk=int(registry_id))
-    field_selector = MongoFieldSelector(user, registry_model, query_model)
-    return field_selector.field_data
+    if command == "get_projection":
+        checkbox_ids = arg
+        field_selector = MongoFieldSelector(user, registry_model, query_model, checkbox_ids)
+        return field_selector.projections_json
+    elif command == "get_field_data":
+        field_selector = MongoFieldSelector(user, registry_model, query_model)
+        return field_selector.field_data
+    else:
+        raise Exception("unknown command: %s" % command)
+
