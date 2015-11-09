@@ -280,12 +280,6 @@ def user_registered_callback(sender, user, request, **kwargs):
     parent_guardian.patient.add(patient)
     parent_guardian.user = user
     parent_guardian.save()
-
-    if is_parent:
-        parent_guardian = _create_parent(request)
-        parent_guardian.patient.add(patient)
-        parent_guardian.user = user
-        parent_guardian.save()
     
 
 def _create_django_user(request, django_user, registry):
