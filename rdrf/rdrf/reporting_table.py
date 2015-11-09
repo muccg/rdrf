@@ -218,7 +218,12 @@ class ReportingTableGenerator(object):
 
 
 class MongoFieldSelector(object):
-    def __init__(self, user, registry_model, query_model):
+    def __init__(self, user, registry_model, query_model, checkbox_ids=[]):
+        if checkbox_ids is not None:
+            self.checkbox_ids = checkbox_ids
+        else:
+            self.checkbox_ids = []
+
         self.user = user
         self.registry_model = registry_model
         self.query_model = query_model
@@ -266,9 +271,44 @@ class MongoFieldSelector(object):
                                        cde_model.pk)
         field_label = cde_model.name
         self.field_info.append({"form": form_model.name,
-                                "cdeCode": cde_model.code,
                                 "sectionCode": section_model.code,
                                 "sectionName": section_model.display_name,
+                                "cdeCode": cde_model.code,
                                 "id": field_id,
                                 "label": field_label,
                                 "savedValue": saved_value})
+
+    @property
+    def projections_json(self):
+        # this method returns the new projection data back to the client based
+        # on the list of checked items passed in
+        # the constructed json is independent of db ids ( as these will change
+        # is import of registry definition occurs
+        import json
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        projected_cdes = []
+        for checkbox_id in self.checkbox_ids:
+            # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
+            # registry code, form pk, section pk, cde_code
+            # cb_fh_39_105_EchocardiogramResult
+            _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
+
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+
+            value_dict = {}
+            value_dict["formName"] = form_model.name
+            value_dict["sectionCode"] = section_model.code
+            value_dict["cdeCode"] = cde_model.code
+            value_dict["value"] = True  # we only need to store the true / checked cdes
+
+            projected_cdes.append(value_dict)
+
+
+        logger.debug("projected cdes = %s" % projected_cdes)
+        return json.dumps(projected_cdes)
+
+
+
+

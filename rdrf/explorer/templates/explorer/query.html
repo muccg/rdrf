@@ -2,11 +2,43 @@
 {% block content %}
 <script>
     $(document).ready(function () {
+        var FIELDS_TABLE = "#mongo-fields";
+        var PROJECTION_FIELD = "projection";
+        var container = $("#mongo_field_selection");
+
+        function recalculateProjection() {
+            // get ids of  all checked checkboxes
+            var checkedIds = $(FIELDS_TABLE + " :checkbox:checked").map(function () {return this.id}).get();
+            // calculate server side
+            var registryId = $("#id_registry").val();
+            var parts = window.location.pathname.split("/");
+            var reportId = parts[parts.length - 1];
+
+            rpc.send('reporting_command',[reportId, registryId, "get_projection", checkedIds], function(response){
+                if (response.status == "success") {
+                    $("#" + PROJECTION_FIELD).val(response.result);
+                }
+                else {
+                    alert(response.error);
+                }
+
+            })
+        }
+
+        function wireUpFieldsTable() {
+            // when any checkbox in the mongo fields table is checked/unchecked, recalculate
+            // the projected fields and store on the hidden
+            // projection field so when form submitted the
+            // projection is stored.
+            $(FIELDS_TABLE + " input[type=checkbox").click(function () {
+                recalculateProjection();
+            })
+        }
+
         $("#id_registry").bind("change", function () {
-            var FIELDS_TABLE = "#mongo-fields";
-            var container = $("#mongo_field_selection");
+
             var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
-                    "<td><%= section %></td><td><%= fieldLabel %></td>" +
+                    "<td><%= section %></td>" +
                     "<td><%= checkBox %></td></tr>");
 
             var checkBoxTemplate = _.template('<label for="<%= id %>"><%= label %></label>' +
@@ -35,7 +67,10 @@
                                                 checkBox: checkBoxHtml}));
 
                 $(FIELDS_TABLE).append(fieldRow);
-                console.log("added " + fieldLabel);
+
+
+
+
 
             }
 
@@ -45,18 +80,21 @@
                     var fieldId = fieldInfo.id;
                     var fieldLabel = fieldInfo.label;
                     var formName = fieldInfo.form;
-                    var section = fieldInfo.section;
+                    var section = fieldInfo.sectionName;
                     var savedValue = fieldInfo.savedValue;
                     addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue);
-                })
-                $(FIELDS_TABLE).refresh();
+                });
+
+
+                wireUpFieldsTable();
+
             }
 
             var registryId = $("#id_registry").val();
             var parts = window.location.pathname.split("/");
             var reportId = parts[parts.length - 1];
 
-            rpc.send("get_mongo_fields_for_registry", [reportId, registryId], function (response) {
+            rpc.send("reporting_command", [reportId, registryId, "get_field_data", null], function (response) {
                 if (response.status == 'success') {
                     setUpMongoFields(response.result);
                 }
@@ -67,6 +105,8 @@
 
             });
         });
+
+        $("#id_registry").trigger("change");
 
     });
 </script>
@@ -154,10 +194,10 @@
     
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
+                    <textarea style="display:none;" class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
+                    <textarea style="display:none;" class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
                 </div>
             </div>
 
@@ -170,7 +210,7 @@
             <label for="mongo_field_selection">Clinical Fields Selection</label>
 
             <div class="row" id="mongo_field_selection">
-                <table id="mongo-fields">
+                <table class ="table table-striped" id="mongo-fields">
                     <thead>
                     <th>Form</th>
                     <th>Section</th>
