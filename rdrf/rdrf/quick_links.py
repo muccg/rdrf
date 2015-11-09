@@ -52,6 +52,9 @@ class QuickLinks(object):
     CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
     States = QuickLink("admin:patients_state_changelist", _("States"))
     ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
+    EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
+    EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
+    EmailNotificationHistory = QuickLink("admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
@@ -74,7 +77,10 @@ class QuickLinks(object):
                             Importer,
                             Explorer,
                             DemographicsFields,
-                            NextOfKinRelationship])
+                            NextOfKinRelationship,
+                            EmailNotification,
+                            EmailTemplate,
+                            EmailNotificationHistory])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

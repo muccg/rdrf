@@ -18,6 +18,9 @@ from models import ConsentSection
 from models import ConsentQuestion
 from models import DemographicFields
 from models import CdePolicy
+from models import EmailNotification
+from models import EmailTemplate
+from models import EmailNotificationHistory
 
 import logging
 from django.http import HttpResponse
@@ -25,6 +28,7 @@ from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
@@ -381,6 +385,32 @@ class CdePolicyAdmin(admin.ModelAdmin):
     
     groups.short_description = "Allowed Groups"
 
+class EmailNotificationAdmin(admin.ModelAdmin):
+    model = EmailNotification
+    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+
+class EmailTemplateAdmin(admin.ModelAdmin):
+    model = EmailTemplate
+    list_display = ("language", "description")
+
+
+class EmailNotificationHistoryAdmin(admin.ModelAdmin):
+    model = EmailNotificationHistory
+    list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
+    
+    def registry(self, obj):
+        return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
+    
+    def full_language(self, obj):
+        return dict(settings.LANGUAGES)[obj.language]
+        
+    full_language.short_description = "Language"
+
+    def resend(self, obj):
+        email_url = reverse('resend_email', args=(obj.id,))
+        return "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
+    resend.allow_tags = True
+
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
@@ -424,6 +454,12 @@ admin.site.register(ConsentSection, ConsentSectionAdmin)
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
 
 admin.site.register(CdePolicy, CdePolicyAdmin)
+
+admin.site.register(EmailNotification, EmailNotificationAdmin)
+
+admin.site.register(EmailTemplate, EmailTemplateAdmin)
+
+admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)
