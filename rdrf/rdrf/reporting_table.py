@@ -225,7 +225,7 @@ class MongoFieldSelector(object):
             cde_model = CommonDataElement.objects.get(code=cde_code)
 
             value_dict = {}
-            value_dict["registryCode"] = form_model.registry
+            value_dict["registryCode"] = form_model.registry.code
             value_dict["formName"] = form_model.name
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
