@@ -1026,7 +1026,7 @@ class DynamicDataWrapper(object):
             snapshot = {"django_id": patient_id,
                         "django_model": record.get("django_model", None),
                         "registry_code": registry_code,
-                        "record_type": "snaphot",
+                        "record_type": "snapshot",
                         "timestamp": timestamp,
                         "record": record,
                         }
