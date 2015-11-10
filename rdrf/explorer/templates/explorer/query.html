@@ -5,7 +5,6 @@
         var FIELDS_TABLE = "#mongo-fields";
         var PROJECTION_FIELD = "projection";
         var container = $("#mongo_field_selection");
-        $("#search_type").hide();
 
         function recalculateProjection() {
             // get ids of  all checked checkboxes
@@ -201,10 +200,6 @@
                 </div>
             </div>
 
-            <div class="row" id="mongo-longitudinal-settings">
-                <label for="mongo-longitudinal-settings">Include Longitudinal Data?</label>  <input type="checkbox" name="mongo-longitudinal" value=""></input
-
-            </div>
             <p></p>
 
             <label for="mongo_field_selection">Clinical Fields Selection</label>
