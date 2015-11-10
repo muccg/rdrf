@@ -30,6 +30,7 @@ class ReportingTableGenerator(object):
         self.type_overrides = type_overrides
         self.engine = self._create_engine()
         self.columns = set([])
+        self.table_name = ""
         self.table = None
         self.reverse_map = {}
 
@@ -52,8 +53,15 @@ class ReportingTableGenerator(object):
         logger.debug("created table based on schema")
 
     def drop_table(self):
-        if self.table is not None:
-            self.table.drop(self.engine)
+        drop_table_sql = "DROP TABLE %s" % self._generate_temporary_table_name()
+        conn = self.engine.connect()
+        try:
+            conn.execute(drop_table_sql)
+            logger.debug("dropped temp table")
+        except:
+            pass
+        conn.close()
+
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
@@ -107,13 +115,6 @@ class ReportingTableGenerator(object):
         for result_dict in explorer_query.generate_results(self.reverse_map):
             self.insert_row(result_dict)
 
-    # the methods below dump everything
-
-    def insert_patient_contexts(self, patient_model):
-        self.create_table()
-        for context_dict in self._get_context_dicts(patient_model):
-            self.insert_row(context_dict)
-
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
         logger.debug("inserting context dict: %s" % value_dict)
@@ -126,6 +127,8 @@ class ReportingTableGenerator(object):
         return column
 
     def create_schema(self):
+
+        self.drop_table()
         logger.debug("creating table schema")
         logger.debug("There are %s columns" % len(self.columns))
         table_name = self._generate_temporary_table_name()
@@ -237,6 +240,13 @@ class MongoFieldSelector(object):
         logger.debug("projected cdes = %s" % projected_cdes)
         return json.dumps(projected_cdes)
 
-
-
+    def dump_csv(self):
+        import csv
+        select_query = alc.sql.select([self.table])
+        result = db_connection.execute(select_query)
+        fh = open('data.csv', 'wb')
+        outcsv = csv.writer(fh)
+        outcsv.writerow(result.keys())
+        outcsv.writerows(result)
+        fh.close()
 
