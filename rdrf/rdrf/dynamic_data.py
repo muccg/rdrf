@@ -565,7 +565,6 @@ class DynamicDataWrapper(object):
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
-        logger.debug("load_dynamic_data : nested_data is: %s" % nested_data)
         if nested_data is None:
             logger.debug("loading dynamic data - nested data is None so returning None")
             return None
@@ -1018,23 +1017,28 @@ class DynamicDataWrapper(object):
 
             collection.insert(form_data_parser.nested_data)
 
-    def _save_longitudinal_snapshot(self, registry, record):
+    def _save_longitudinal_snapshot(self, registry_code, record):
         try:
             from datetime import datetime
             timestamp = str(datetime.now())
             patient_id = record['django_id']
-            history = self._get_collection(registry, "history")
-            h = history.find_one({"_id": patient_id})
-            if h is None:
-                history.insert({"_id": patient_id, "snapshots": []})
-            history.update(
-                {"_id": patient_id}, {"$push": {"snapshots": {"timestamp": timestamp, "record": record}}})
+            history = self._get_collection(registry_code, "history")
+            snapshot = {"django_id": patient_id,
+                        "django_model": record.get("django_model", None),
+                        "registry_code": registry_code,
+                        "record_type": "snaphot",
+                        "timestamp": timestamp,
+                        "record": record,
+                        }
+            history.insert(snapshot)
+            logger.debug("snapshot added for %s patient %s timestamp %s" % (registry_code, patient_id, timestamp))
+
         except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
     def save_snapshot(self, registry_code, collection_name):
         try:
-            record = self.load_dynamic_data(registry_code, collection_name)
+            record = self.load_dynamic_data(registry_code, collection_name, flattened=False)
             self._save_longitudinal_snapshot(registry_code, record)
         except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
