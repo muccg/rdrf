@@ -90,7 +90,7 @@ class DatabaseUtils(object):
         collection = self.database[self.collection]
         logger.debug("retrieving mongo models for projection once off")
         self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
-        logger.debug("itering through sql cursor ...")
+        logger.debug("iterating through sql cursor ...")
 
         for row in self.cursor:
             logger.debug("sql row = %s" % str(row))
@@ -102,7 +102,8 @@ class DatabaseUtils(object):
                 sql_columns_dict[sql_column_name] = item
 
             for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
-                yield self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict)
+                for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                    yield combined_dict
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
         logger.debug("combining results of mongo and sql")
@@ -113,7 +114,21 @@ class DatabaseUtils(object):
         combined_dict = {}
         combined_dict.update(sql_result_dict)
         combined_dict.update(mongo_result_dict)
-        return combined_dict
+
+        # potentially unwind all multisection cdes here ...
+        if False:
+            # TO DO!
+            # row contains multisection values for one or more fields
+            for unwound_dict in self._unwind(combined_dict):
+                yield unwound_dict
+        else:
+            # row contains no multisection cdes
+            yield combined_dict
+
+    def _unwind(self, combined_dict):
+        # vector product of multisection cdes
+        # to do
+        yield "todo"
 
     def _get_sql_type_info(self):
         #reporting=# select oid, typname,typcategory from pg_type;;
