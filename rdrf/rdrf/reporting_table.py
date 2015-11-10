@@ -31,6 +31,7 @@ class ReportingTableGenerator(object):
         self.engine = self._create_engine()
         self.columns = set([])
         self.table = None
+        self.reverse_map = {}
 
     def _create_engine(self):
         report_db_data = settings.DATABASES["reporting"]
@@ -54,17 +55,26 @@ class ReportingTableGenerator(object):
         if self.table is not None:
             self.table.drop(self.engine)
 
+    def _add_reverse_mapping(self, key, value):
+        self.reverse_map[key] = value
+        logger.debug("reverse map %s --> %s" % (key, value))
+
     def create_columns(self, sql_metadata, mongo_metadata):
+        logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
         self.columns.add(self._create_column("context_id", alc.Integer))
+        self._add_reverse_mapping("context_id", "context_id") # special case
 
-        for column_metadata in sql_metadata:
+        for i, column_metadata in enumerate(sql_metadata):
             column_from_sql = self._create_column_from_sql(column_metadata)
             self.columns.add(column_from_sql)
+            #to get from tuple
+            # map the column's index in tuple to the column name in the dict
+            self._add_reverse_mapping(i, column_metadata["name"])
 
         for form_model, section_model, cde_model in mongo_metadata["column_map"]:
             column_name = mongo_metadata["column_map"][(form_model, section_model, cde_model)]
-            column_from_mongo = self._create_column_from_mongo(column_name, cde_model)
+            column_from_mongo = self._create_column_from_mongo(column_name, form_model, section_model, cde_model)
             self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
@@ -87,13 +97,14 @@ class ReportingTableGenerator(object):
 
         return self._create_column(column_name, datatype)
 
-    def _create_column_from_mongo(self, column_name, cde_model):
+    def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
+        self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         return self._create_column(column_name, column_data_type)
 
     def run_explorer_query(self, explorer_query):
         self.create_table()
-        for result_dict in explorer_query.generate_results():
+        for result_dict in explorer_query.generate_results(self.reverse_map):
             self.insert_row(result_dict)
 
     # the methods below dump everything
@@ -109,90 +120,10 @@ class ReportingTableGenerator(object):
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
-        short_name = "col%s" % self.counter
-        self.counter += 1
-        column = alc.Column(short_name, datatype, nullable=True)
+        column = alc.Column(name, datatype, nullable=True)
         self.columns.add(column)
-        self.col_map[name] = short_name
-        logger.debug("columns %s --> %s" % (short_name, name))
+        logger.debug("added column %s type %s" % (name, datatype))
         return column
-
-    #   get rid of stuff below
-
-    def _get_context_dicts(self, patient_model):
-        id = patient_model.pk
-        context_dicts = {}
-
-        for context_id, form_name, section_code, field, value in self._get_data(patient_model):
-            if context_id not in context_dicts:
-                context_dict = {}
-                context_dict[self.col_map['id']] = id
-                context_dict[self.col_map['context_id']] = context_id
-                context_dicts[context_id] = context_dict
-            else:
-                context_dict = context_dicts[context_id]
-
-            delimited_name = self._get_delimited_name(form_name, section_code, field)
-            column_name = self.col_map[delimited_name]
-            logger.debug("%s is %s = %s" % (column_name, delimited_name, value))
-            context_dict[column_name] = value
-
-        for context_id in context_dicts:
-            yield context_dicts[context_id]
-
-    def _get_column_name(self, form_name, section_code, field):
-        delimited_name = self._get_delimited_name(form_name, section_code, field)
-        col = "col%s" % self.counter
-        self.col_map[delimited_name] = col
-        self.counter += 1
-
-        return col
-
-    def _get_delimited_name(self, form_name, section_code, cde_code):
-        f = form_name.replace(" ", "")
-        return "%s_%s_%s" % (f, section_code, cde_code)
-
-    def _get_data(self, patient_model):
-        """
-        :param patient_model:
-        :return: a generator that yields form_name, section_code, cde_code, cde_value tuples
-        """
-        form_name = "Demographics"
-        context_id = None   # dummy really
-        for field, section, column_datatype in self.DEMOGRAPHIC_FIELDS:
-            value = getattr(patient_model, field)
-            yield context_id, form_name, section, field, value
-
-        mongo_data = DynamicDataWrapper(patient_model).load_dynamic_data(self.registry_model.code,
-                                                                         "cdes",
-                                                                         flattened=False)
-        if isinstance(mongo_data, dict):
-            self._process_form_dict(mongo_data)
-        else:
-            for form_dict in mongo_data:
-                self._process_form_dict(form_dict)
-
-    def _process_form_dict(self, form_dict):
-        context_id = mongo_data.get("context_id", None)
-        for form_dict in mongo_data["forms"]:
-            form_name = form_dict["name"]
-            for section_dict in form_dict["sections"]:
-                section = section_dict["code"]
-                if section_dict["allow_multiple"]:
-                    for section_item in section_dict["cdes"]:
-                        for cde_dict in section_item:
-                            field = cde_dict["code"]
-                            value = cde_dict["value"]
-                            yield context_id, form_name, section, field, value
-                else:
-                    for cde_dict in section_dict["cdes"]:
-                        field = cde_dict["code"]
-                        value = cde_dict["value"]
-                        yield context_id, form_name, section, field, value
-
-    def _cde_name(self, form_model, section_model, cde_model):
-        form_name = form_model.name.replace(" ", "")
-        return "%s_%s_%s" % (form_name, section_model.code, cde_model.code)
 
     def create_schema(self):
         logger.debug("creating table schema")
@@ -211,10 +142,6 @@ class ReportingTableGenerator(object):
             datatype = cde_model.datatype
 
         return self.TYPE_MAP.get(datatype, alc.String)
-
-    def _get_sql_alchemy_datatype_from_sql_cursor_column_info(self, column_info):
-        oid = column_info.oid
-        type_code = column_info.type_code
 
 
 class MongoFieldSelector(object):
@@ -298,6 +225,7 @@ class MongoFieldSelector(object):
             cde_model = CommonDataElement.objects.get(code=cde_code)
 
             value_dict = {}
+            value_dict["registryCode"] = form_model.registry
             value_dict["formName"] = form_model.name
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
