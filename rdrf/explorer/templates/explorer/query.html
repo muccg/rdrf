@@ -40,15 +40,15 @@
 
             var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
                     "<td><%= section %></td>" +
+                    "<td><%= fieldLabel %></td>" +
                     "<td><%= checkBox %></td></tr>");
 
-            var checkBoxTemplate = _.template('<label for="<%= id %>"><%= label %></label>' +
-                                              '<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
+            var checkBoxTemplate = _.template('<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
                                                 "<%= checked %> />");
 
 
             function clearFieldsTable() {
-                $(FIELDS_TABLE).empty();
+                $(FIELDS_TABLE + " tr").has("td").remove();
             }
 
             function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue) {
@@ -58,7 +58,6 @@
                 }
                 var checkBoxHtml = checkBoxTemplate({id: fieldId,
                                            name: fieldId,
-                                           label: fieldLabel,
                                            checked: checked
                                            });
 
@@ -216,6 +215,7 @@
                     <th>Form</th>
                     <th>Section</th>
                     <th>Field</th>
+                    <th>Include in Report</th>
                     </thead>
                     <tbody>
 
