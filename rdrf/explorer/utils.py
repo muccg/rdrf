@@ -88,22 +88,49 @@ class DatabaseUtils(object):
         logger.debug("created mongo client")
         self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
         collection = self.database[self.collection]
+        history_collection = self.database["history"]
+
         logger.debug("retrieving mongo models for projection once off")
         self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
         logger.debug("iterating through sql cursor ...")
 
-        for row in self.cursor:
-            logger.debug("sql row = %s" % str(row))
-            sql_columns_dict = {}
-            for i, item in enumerate(row):
-                logger.debug("item %s = %s" % (i, item))
-                sql_column_name = self.reverse_map[i]
-                logger.debug("sql_column_name = %s" % sql_column_name)
-                sql_columns_dict[sql_column_name] = item
+        if self.mongo_search_type == "C":
+            logger.debug("CURRENT MONGO REPORT")
+            # current data - no longitudinal snapshots
+            for row in self.cursor:
+                logger.debug("sql row = %s" % str(row))
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    logger.debug("item %s = %s" % (i, item))
+                    sql_column_name = self.reverse_map[i]
+                    logger.debug("sql_column_name = %s" % sql_column_name)
+                    sql_columns_dict[sql_column_name] = item
 
-            for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
-                for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                    yield combined_dict
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                    mongo_columns_dict["snapshot"] = False
+                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        yield combined_dict
+        else:
+            # include longitudinal ( snapshot) data
+            logger.debug("LONGITUDINAL MONGO REPORT")
+            for row in self.cursor:
+                logger.debug("sql row = %s" % str(row))
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    logger.debug("item %s = %s" % (i, item))
+                    sql_column_name = self.reverse_map[i]
+                    logger.debug("sql_column_name = %s" % sql_column_name)
+                    sql_columns_dict[sql_column_name] = item
+
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                    mongo_columns_dict["snapshot"] = False
+                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        yield combined_dict
+
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection):
+                    mongo_columns_dict["snapshot"] = True
+                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        yield combined_dict
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
         logger.debug("combining results of mongo and sql")
@@ -246,6 +273,7 @@ class DatabaseUtils(object):
         for mongo_document in mongo_collection.find(mongo_query):
             result = {}
             result["context_id"] = mongo_document.get("context_id", None)
+            result['timestamp'] = mongo_document.get("timestamp", None)
             logger.debug("context_id = %s" % result["context_id"])
             for form_model, section_model, cde_model in self.mongo_models:
                 column_name = self.reverse_map[(form_model, section_model, cde_model)]
@@ -256,6 +284,33 @@ class DatabaseUtils(object):
                 result[column_name] = column_value
                 logger.debug("django id %s mongo column %s = %s" % (django_id, column_name, column_value))
             yield result
+
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection):
+        django_id = sql_column_data["id"]
+
+        mongo_query = {"django_id": django_id,
+                       "django_model": "Patient",
+                       "record_type": "snapshot"}
+
+
+        for snapshot_document in history_collection.find(mongo_query):
+            result = {}
+            result["timestamp"] = snapshot_document["timestamp"]
+            result["context_id"] = snapshot_document["record"].get("context_id", None)
+            for form_model, section_model, cde_model in self.mongo_models:
+                column_name = self.reverse_map[(form_model, section_model, cde_model)]
+                column_value = self._get_cde_value(form_model,
+                                                   section_model,
+                                                   cde_model,
+                                                   snapshot_document["record"])
+                result[column_name] = column_value
+
+                logger.debug("snapshot %s django id %s mongo column %s = %s" % (result['timestamp'],
+                                                                                django_id,
+                                                                                column_name,
+                                                                                column_value))
+
+                yield result
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
@@ -343,7 +398,6 @@ class DatabaseUtils(object):
                     self.result.append(mr)
 
         return self
-
 
     def run_full_query_split(self):
         sql_result = self.run_sql().result

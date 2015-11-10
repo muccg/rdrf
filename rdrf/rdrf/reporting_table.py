@@ -16,7 +16,7 @@ class ReportingTableGenerator(object):
                           ('home_phone', 'todo', alc.String),
                           ('email', 'todo', alc.String)]
     TYPE_MAP = {"float": alc.Float,
-                "calculated": alc.Float,
+                "calculated": alc.String, #todo fix this - some calculated field are strings some numbers
                 "integer": alc.Integer,
                 "int": alc.Integer,
                 "string": alc.String,
@@ -62,7 +62,6 @@ class ReportingTableGenerator(object):
             pass
         conn.close()
 
-
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
         logger.debug("reverse map %s --> %s" % (key, value))
@@ -71,7 +70,14 @@ class ReportingTableGenerator(object):
         logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
         self.columns.add(self._create_column("context_id", alc.Integer))
-        self._add_reverse_mapping("context_id", "context_id") # special case
+        # These columns will always appear
+        self._add_reverse_mapping("context_id", "context_id")
+
+        self.columns.add(self._create_column("timestamp", alc.String))
+        self._add_reverse_mapping("timestamp", "timestamp")
+
+        self.columns.add(self._create_column("snapshot", alc.Boolean))
+        self._add_reverse_mapping("snapshot", "snapshot")
 
         for i, column_metadata in enumerate(sql_metadata):
             column_from_sql = self._create_column_from_sql(column_metadata)
@@ -86,6 +92,7 @@ class ReportingTableGenerator(object):
             self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
+        logger.debug("column metadata = %s" % column_metadata)
         column_name = column_metadata["name"]
         type_name = column_metadata["type_name"]
         # Not sure if this good idea ...
@@ -103,6 +110,7 @@ class ReportingTableGenerator(object):
         else:
             datatype = alc.String
 
+        logger.debug("mapped sql alc data type = %s" % datatype)
         return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
