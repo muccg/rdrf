@@ -12,11 +12,13 @@ from models import Query
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
 from rdrf.mongo_client import construct_mongo_client
+from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from models import Query
 from forms import QueryForm
 
 import logging
 logger = logging.getLogger("registry_log")
+
 
 class MissingDataError(Exception):
     pass
@@ -65,7 +67,6 @@ class DatabaseUtils(object):
 
         return self
 
-
     def dump_results_into_reportingdb(self, reporting_table_generator):
         logger.debug("*********** running query and dumping to temporary table *******")
         reporting_table_generator.drop_table()
@@ -80,20 +81,39 @@ class DatabaseUtils(object):
         reporting_table_generator.create_schema()
         reporting_table_generator.run_explorer_query(self)
 
-    def generate_results(self):
+    def generate_results(self, reverse_column_map):
+        logger.debug("generate_results ...")
+        self.reverse_map = reverse_column_map
         self.mongo_client = self._get_mongo_client()
+        logger.debug("created mongo client")
         self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
         collection = self.database[self.collection]
+        logger.debug("retrieving mongo models for projection once off")
+        self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        logger.debug("itering through sql cursor ...")
 
         for row in self.cursor:
-            for mongo_result in self.run_mongo_one_row(row, collection):
-                yield self._combine_sql_and_mongo(row, mongo_result)
+            logger.debug("sql row = %s" % str(row))
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                logger.debug("item %s = %s" % (i, item))
+                sql_column_name = self.reverse_map[i]
+                logger.debug("sql_column_name = %s" % sql_column_name)
+                sql_columns_dict[sql_column_name] = item
 
-    def _combine_sql_and_mongo(self, sql_result, mongo_result):
-        combined = {}
-        combined.update(sql_result)
-        combined.update(mongo_result)
-        return combined
+            for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                yield self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict)
+
+    def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
+        logger.debug("combining results of mongo and sql")
+
+        logger.debug("sql_result_dict = %s" % str(sql_result_dict))
+        logger.debug("mongo result = %s" % str(mongo_result_dict))
+
+        combined_dict = {}
+        combined_dict.update(sql_result_dict)
+        combined_dict.update(mongo_result_dict)
+        return combined_dict
 
     def _get_sql_type_info(self):
         #reporting=# select oid, typname,typcategory from pg_type;;
@@ -105,37 +125,7 @@ class DatabaseUtils(object):
         # 19 | name                                  | S
         # 20 | int8                                  | N
         # 21 | int2                                  | N
-        # 22 | int2vector                            | A
-        # 23 | int4                                  | N
-        # 24 | regproc                               | N
-        # 25 | text                                  | S
-        # 26 | oid                                   | N
-        # 27 | tid                                   | U
-        # 28 | xid                                   | U
-        # 29 | cid                                   | U
-        # 30 | oidvector                             | A
-        # 71 | pg_type                               | C
-        # 75 | pg_attribute                          | C
-        # 81 | pg_proc                               | C
-        # 83 | pg_class                              | C
-        # 114 | json                                  | U
-        # 142 | xml                                   | U
-        # 143 | _xml                                  | A
-        # 199 | _json                                 | A
-        # 194 | pg_node_tree                          | S
-        # 210 | smgr                                  | U
-        # 600 | point                                 | G
-        # 601 | lseg                                  | G
-        # 602 | path                                  | G
-        # 603 | box                                   | G
-        # 604 | polygon                               | G
-        # 628 | line                                  | G
-        # 629 | _line                                 | A
-        # 700 | float4                                | N
-        # 701 | float8                                | N
-        # 702 | abstime                               | D
-        # 703 | reltime                               | T
-        # 704 | tinterval                             | T
+        # ...
         # 705 | unknown                               | X
         # 718 | circle                                | G
         # 719 | _circle                               | A
@@ -144,23 +134,8 @@ class DatabaseUtils(object):
         # 829 | macaddr                               | U
         # 869 | inet                                  | I
         # 650 | cidr                                  | I
-        # 1000 | _bool                                 | A
-        # 1001 | _bytea                                | A
-        # 1002 | _char                                 | A
-        # 1003 | _name                                 | A
-        # 1005 | _int2                                 | A
-        # 1006 | _int2vector                           | A
-        # 1007 | _int4                                 | A
-        # 1008 | _regproc                              | A
-        # 1009 | _text                                 | A
-        # 1028 | _oid                                  | A
-        # 1010 | _tid                                  | A
-        # 1011 | _xid                                  | A
-        # 1012 | _cid                                  | A
-        # 1013 | _oidvector                            | A
-        # 1014 | _bpchar                               | A
         # ...
-
+        # ...
         cursor = connection.cursor()
         # see http://www.postgresql.org/docs/current/static/catalog-pg-type.html
         type_info_sql = "select oid, typname from pg_type"
@@ -172,11 +147,10 @@ class DatabaseUtils(object):
             type_dict[oid] = type_name
         return type_dict
 
-
     def _get_sql_metadata(self, cursor):
         import sqlalchemy as alc
-        # looks like  - NB these are
         # type_code is looked up in the oid map
+        # cursor description gives list:
         #[Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
         # Column(name='family_name', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None),
         # Column(name='given_names', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None), Column(name='date_of_birth', type_code=1082, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None), Column(name='Working Group', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None)]
@@ -212,10 +186,7 @@ class DatabaseUtils(object):
         registry_model = Registry.objects.get(pk=self.registry_id)
         data = {"column_map": {}}
 
-        # list of dictionaries like :  {"form": <formname>, "section": <sectioncode>, "cde": <cdecode>}
-        cde_dicts = self.projection  # already loaded
-
-        for cde_dict in cde_dicts:
+        for cde_dict in self.projection:
             form_model = RegistryForm.objects.get(name=cde_dict["formName"])
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
@@ -231,40 +202,48 @@ class DatabaseUtils(object):
                     raise Exception("mongo projection cde not in registry")
             else:
                 # another form or section on the same form is using this cde too
+                # use an abbreviation
                 data["column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
-                                                                                              section_model,
-                                                                                              cde_model)
-
+                                                                                               section_model,
+                                                                                               cde_model)
         return data
 
     def _get_mongo_fields(self):
         # to do!
-        return []
+        for cde_dict in self.projection:
+            logger.debug("cde_dict = %s" % cde_dict)
+            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
+            section_model = Section.objects.get(code=cde_dict["sectionCode"])
+            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
 
+            yield form_model, section_model, cde_model
 
-    def run_mongo_one_row(self, sql_row, mongo_collection):
-        logger.debug("sql_row = %s" % str(sql_row))
-
+    def run_mongo_one_row(self, sql_column_data, mongo_collection):
+        logger.debug("getting mongo data for one patient")
         django_model = "Patient"
-        django_id = sql_row[1]  # must make this by convention as first column will be context_id
-
+        django_id = sql_column_data["id"]  # convention?
+        logger.debug("django_id =%s" % django_id)
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
+
+        logger.debug("mongo_query = %s" % mongo_query)
 
         for mongo_document in mongo_collection.find(mongo_query):
             result = {}
             result["context_id"] = mongo_document.get("context_id", None)
-            for form_model, section_model, cde_model in self._get_mongo_fields():
-                short_namre
-                result[short_name] = self._get_cde_value(form_model,
+            logger.debug("context_id = %s" % result["context_id"])
+            for form_model, section_model, cde_model in self.mongo_models:
+                column_name = self.reverse_map[(form_model, section_model, cde_model)]
+                column_value = self._get_cde_value(form_model,
                                                          section_model,
                                                          cde_model,
                                                          mongo_document)
+                result[column_name] = column_value
+                logger.debug("django id %s mongo column %s = %s" % (django_id, column_name, column_value))
             yield result
 
-
-
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
+        # retrieve value of cde
         for form_dict in mongo_document["forms"]:
             if form_dict["name"] == form_model.name:
                 for section_dict in form_dict["sections"]:
@@ -274,19 +253,24 @@ class DatabaseUtils(object):
                             for section_item in section_dict["cdes"]:
                                 for cde_dict in section_item:
                                     if cde_dict["code"] == cde_model.code:
-                                        values.append(cde_dict["value"])
+                                        values.append(self._get_sensible_value_from_cde(cde_model, cde_dict["value"]))
                             return values
-                    else:
-                        for cde_dict in section_dict["cdes"]:
-                            if cde_dict["code"] == cde_model["code"]:
-                                return cde_dict["value"]
+                        else:
+                            logger.debug("section_dict = %s" % section_dict)
+                            for cde_dict in section_dict["cdes"]:
+                                if cde_dict["code"] == cde_model.code:
+                                    return self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+
+    def _get_sensible_value_from_cde(self, cde_model, stored_value):
+        if cde_model.datatype == "file":
+            return "FILE"  # to do
+        else:
+            return stored_value
 
     def run_mongo(self):
         client = self._get_mongo_client()
-
         projection = {}
         criteria = {}
-
         database = client[mongo_db_name_reg_id(self.registry_id)]
         collection = database[self.collection]
 
