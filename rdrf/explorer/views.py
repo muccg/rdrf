@@ -122,7 +122,7 @@ class QueryView(LoginRequiredMixin, View):
             # populate temporary table
             from rdrf.reporting_table import ReportingTableGenerator
             humaniser = Humaniser(registry_model)
-            multisection_unrollower = MultisectionUnRoller([])
+            multisection_unrollower = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
             database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
             # result = database_utils.run_full_query().result
@@ -379,8 +379,10 @@ def _final_cleanup(results):
 
 
 class MultisectionUnRoller(object):
-    def __init__(self, multisection_columns):
-        self.multisection_columns = multisection_columns  # we assume these are cdes from multisections no checking done
+    def __init__(self, multisection_column_map):
+        # section_code --> column names in the report in that multisection
+        # E.g.{ "social": ["friends"], "health": ["drug", "dose"]}
+        self.multisection_column_map = multisection_column_map
         self.row_count = 0
 
     def unroll(self, row):
@@ -396,55 +398,51 @@ class MultisectionUnRoller(object):
             etc etc)
         for three multisections we iterate through the triple product ( a cube) and so on
         This gets big quick obviously ...
+
+        complication is that multisections can contain more than one field  so the unit we walk through is the section
+
         :param row:
         :return:
         """
+        from itertools import product
 
-        logger.debug("about to unroll row: %s" % str(row))
+        def dl2ld(dl):
+            """
+            :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
+            ( each list must be same length )
+            :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
+            """
+            l = []
+            indexes = range(max(map(len, dl.values())))
+            for i in indexes:
+                d = {}
+                for k in dl:
+                    d[k] = dl[k][i]
+                l.append(d)
+            return l
+
+        # e.g. row = {"name": "Lee", "friends": ["fred", "barry"],
+        # "drug":["aspirin","neurophen"], "dose" : [20,23], "height": 56}
         new_rows = []  # the extra unrolled rows
         sublists = {}
+        for multisection_code in self.multisection_column_map:
+            multisection_columns = self.multisection_column_map[multisection_code]
+            section_data = {}
+            for col in multisection_columns:
+                values = row[col]  # each multisection cde will have a list of values
+                section_data[col] = values
 
-        for column in self.multisection_columns:
-            if column not in row:
-                raise Exception("column %s not in row: %s" % (column, row))
-
-            multisection_data = row[column]
-            if type(multisection_data) is list:
-                for value in multisection_data:
-                    if column in sublists:
-                        sublists[column].append((column, value))
-                    else:
-                        sublists[column] = [(column, value)]
-            else:
-                if column in sublists:
-                    sublists[column].append((column, None))
-                else:
-                    sublists[column] = [(column, None)]
-
-        f = 1
-        for k in sublists:
-            num_items = len(sublists[k])
-            f = f * num_items
+            sublists[multisection_code] = dl2ld(section_data)
 
         row_count = 0
         # choice tuple is one choice from each sublist
         for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
             row_count += 1
-            for (key, value) in choice_tuple:
-                if key in new_row:
-                    del new_row[key]
-                new_row[key] = value
+            for section_dict in choice_tuple:
+                for key in section_dict:
+                    new_row[key] = section_dict[key]
+
             new_rows.append(new_row)
-
-        return new_rows
-
-    def unroll_rows(self, rows):
-        self.row_count = 0
-        new_rows = []
-        for row in rows:
-            unrolled_rows = self.unroll(row)
-            self.row_count += len(unrolled_rows)
-            new_rows.extend(unrolled_rows)
 
         return new_rows

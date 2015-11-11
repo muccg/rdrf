@@ -281,6 +281,7 @@ class DatabaseUtils(object):
                                                          section_model,
                                                          cde_model,
                                                          mongo_document)
+
                 result[column_name] = column_value
                 logger.debug("django id %s mongo column %s = %s" % (django_id, column_name, column_value))
             yield result
@@ -330,6 +331,12 @@ class DatabaseUtils(object):
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_model.code:
                                     return self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+
+        if section_model.allow_multiple:
+            # no data filled in?
+            return [None]
+        else:
+            return None
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         if cde_model.datatype == "file":
