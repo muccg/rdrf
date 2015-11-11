@@ -251,7 +251,6 @@ class DatabaseUtils(object):
         return data
 
     def _get_mongo_fields(self):
-        # to do!
         for cde_dict in self.projection:
             logger.debug("cde_dict = %s" % cde_dict)
             form_model = RegistryForm.objects.get(name=cde_dict["formName"])
@@ -293,6 +292,8 @@ class DatabaseUtils(object):
                        "django_model": "Patient",
                        "record_type": "snapshot"}
 
+        logger.debug("mongo models = %s" % [f.name + "_" + s.code + "_" + c.code
+                                            for f, s, c in self.mongo_models])
 
         for snapshot_document in history_collection.find(mongo_query):
             result = {}
@@ -300,6 +301,7 @@ class DatabaseUtils(object):
             result["context_id"] = snapshot_document["record"].get("context_id", None)
             for form_model, section_model, cde_model in self.mongo_models:
                 column_name = self.reverse_map[(form_model, section_model, cde_model)]
+                logger.debug("checking snapshot for %s" % column_name)
                 column_value = self._get_cde_value(form_model,
                                                    section_model,
                                                    cde_model,
@@ -311,7 +313,7 @@ class DatabaseUtils(object):
                                                                                 column_name,
                                                                                 column_value))
 
-                yield result
+            yield result
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
