@@ -33,7 +33,7 @@ class ReportingTableGenerator(object):
         self.table_name = ""
         self.table = None
         self.reverse_map = {}
-        self.multisection_columns = []
+        self.multisection_column_map = {}
         self.multisection_unroller = multisection_unroller
         self.humaniser = humaniser
 
@@ -45,10 +45,10 @@ class ReportingTableGenerator(object):
         host = report_db_data["HOST"]
         port = report_db_data["PORT"]
         connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
-                                                                       db_pass,
-                                                                       host,
-                                                                       port,
-                                                                       database)
+                                                                      db_pass,
+                                                                      host,
+                                                                      port,
+                                                                      database)
         return create_engine(connection_string)
 
     def create_table(self):
@@ -120,15 +120,22 @@ class ReportingTableGenerator(object):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         if section_model.allow_multiple:
-            self.multisection_columns.append(column_name)
+            # This map is used when we unroll/"denormalise" the multisection data
+            logger.debug("multisection_column_map = %s" % self.multisection_column_map)
+            if section_model.code in self.multisection_column_map:
+                self.multisection_column_map[section_model.code].append(column_name)
+            else:
+                self.multisection_column_map[section_model.code] = [column_name]
 
         return self._create_column(column_name, column_data_type)
 
     def run_explorer_query(self, explorer_query):
         self.create_table()
-        self.multisection_unroller.multisection_columns = self.multisection_columns
+        self.multisection_unroller.multisection_column_map = self.multisection_column_map
         for result_dict in explorer_query.generate_results(self.reverse_map):
+            logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
+                logger.debug("unrolled row = %s" % unrolled_row)
                 self.insert_row(unrolled_row)
 
     def insert_row(self, value_dict):
