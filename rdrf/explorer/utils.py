@@ -226,7 +226,7 @@ class DatabaseUtils(object):
             return form_model.name[:5] + "_" + section_model.code + "_" + cde_model.code
 
         registry_model = Registry.objects.get(pk=self.registry_id)
-        data = {"column_map": {}}
+        data = {"multisection_column_map": {}}
 
         for cde_dict in self.projection:
             form_model = RegistryForm.objects.get(name=cde_dict["formName"])
@@ -238,14 +238,14 @@ class DatabaseUtils(object):
                 using_section = forms_sections[0][1]
                 if using_form.name == form_model.name and using_section.code == section_model.code:
                     # we can safely just use the cde code as the column name
-                    data["column_map"][(form_model, section_model, cde_model)] = cde_model.code
+                    data["multisection_column_map"][(form_model, section_model, cde_model)] = cde_model.code
                 else:
                     # error?
                     raise Exception("mongo projection cde not in registry")
             else:
                 # another form or section on the same form is using this cde too
                 # use an abbreviation
-                data["column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
+                data["multisection_column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
                                                                                                section_model,
                                                                                                cde_model)
         return data

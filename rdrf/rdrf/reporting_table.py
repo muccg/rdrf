@@ -22,7 +22,7 @@ class ReportingTableGenerator(object):
                 "string": alc.String,
                 }
 
-    def __init__(self, user, registry_model, type_overrides={}):
+    def __init__(self, user, registry_model, multisection_unroller, humaniser, type_overrides={}):
         self.user = user
         self.counter = 0
         self.col_map = {}
@@ -33,6 +33,9 @@ class ReportingTableGenerator(object):
         self.table_name = ""
         self.table = None
         self.reverse_map = {}
+        self.multisection_columns = []
+        self.multisection_unroller = multisection_unroller
+        self.humaniser = humaniser
 
     def _create_engine(self):
         report_db_data = settings.DATABASES["reporting"]
@@ -86,8 +89,8 @@ class ReportingTableGenerator(object):
             # map the column's index in tuple to the column name in the dict
             self._add_reverse_mapping(i, column_metadata["name"])
 
-        for form_model, section_model, cde_model in mongo_metadata["column_map"]:
-            column_name = mongo_metadata["column_map"][(form_model, section_model, cde_model)]
+        for form_model, section_model, cde_model in mongo_metadata["multisection_column_map"]:
+            column_name = mongo_metadata["multisection_column_map"][(form_model, section_model, cde_model)]
             column_from_mongo = self._create_column_from_mongo(column_name, form_model, section_model, cde_model)
             self.columns.add(column_from_mongo)
 
@@ -116,12 +119,17 @@ class ReportingTableGenerator(object):
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
+        if section_model.allow_multiple:
+            self.multisection_columns.append(column_name)
+
         return self._create_column(column_name, column_data_type)
 
     def run_explorer_query(self, explorer_query):
         self.create_table()
+        self.multisection_unroller.multisection_columns = self.multisection_columns
         for result_dict in explorer_query.generate_results(self.reverse_map):
-            self.insert_row(result_dict)
+            for unrolled_row in self.multisection_unroller.unroll(result_dict):
+                self.insert_row(unrolled_row)
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
