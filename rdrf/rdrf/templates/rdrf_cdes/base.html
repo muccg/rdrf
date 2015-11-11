@@ -66,16 +66,16 @@
                         <span class="glyphicon glyphicon-tasks"></span> Menu<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        {% for quick_link in request.user.quick_links %}
-                            {% if not quick_link.admin_link %}
-                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {{quick_link.text}}</a></li>
-                            {% endif %}
-                        {% endfor %}
                         {% if request.user.is_curator or request.user.is_superuser %}
                             {% for reg in request.user.get_registries.all %}
                                 <li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>
                             {% endfor %}
                         {% endif %}
+                        {% for quick_link in request.user.quick_links %}
+                            {% if not quick_link.admin_link %}
+                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
+                            {% endif %}
+                        {% endfor %}
                         {% block extra_menu %}
                         {% endblock %}
                     </ul>
