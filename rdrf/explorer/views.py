@@ -121,7 +121,9 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             # populate temporary table
             from rdrf.reporting_table import ReportingTableGenerator
-            rtg = ReportingTableGenerator(request.user, registry_model)
+            humaniser = Humaniser(registry_model)
+            multisection_unrollower = MultisectionUnRoller([])
+            rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
             database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
             # result = database_utils.run_full_query().result
             #mongo_keys = _get_non_multiple_mongo_keys(registry_model)
@@ -165,7 +167,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         mongo_keys = _get_non_multiple_mongo_keys(registry_model)
         munged = _filler(result, mongo_keys)
         humaniser = Humaniser(registry_model)
-        munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
+        munged = MultisectionUnRoller()
         logger.debug("number of unrolled rows = %s" % len(munged))
 
         if not munged:
@@ -377,52 +379,9 @@ def _final_cleanup(results):
 
 
 class MultisectionUnRoller(object):
-    def __init__(self, registry_model, humaniser):
-        self.humaniser = humaniser
-        self.registry_model = registry_model
-        self.multisection_codes = self.get_multisection_codes()
+    def __init__(self, multisection_columns):
+        self.multisection_columns = multisection_columns  # we assume these are cdes from multisections no checking done
         self.row_count = 0
-
-    def get_multisection_codes(self):
-        multisections = {}
-        for form_model in self.registry_model.forms:
-            if form_model.is_questionnaire:
-                continue
-            for section_model in form_model.section_models:
-                if section_model.allow_multiple:
-                    if not section_model.code in multisections:
-                        multisections[section_model.code] = section_model
-        return multisections
-
-    def munge_multisection_item(self, multisection_code, item):
-        multisection_model = self.multisection_codes[multisection_code]
-        if isinstance(item, basestring):
-            return self.create_blank_item(multisection_model)
-        d = {}
-        for key in item:
-            if "____" in key:
-                nice_cde_name = self.create_nice_name_from_delimited_key(multisection_model, key)
-                d[nice_cde_name] = self.humaniser.display_value(key, item[key])
-            else:
-                # we omit the DELETE key and value
-                pass
-        return d
-
-    def create_nice_name_from_delimited_key(self, multisection_model, delimited_key):
-        from rdrf.models import CommonDataElement
-        form_code, section_code, cde_code = delimited_key.split("____")
-        cde_model = CommonDataElement.objects.get(code=cde_code)
-        return self.nice_name(multisection_model, cde_model)
-
-    def nice_name(self, section_model, cde_model):
-        return section_model.display_name + "-" + cde_model.name
-
-    def create_blank_item(self, multisection_model):
-        d = {}
-        for cde_model in multisection_model.cde_models:
-            nice_name = self.nice_name(multisection_model, cde_model)
-            d[nice_name] = "?"
-        return d
 
     def unroll(self, row):
         """
@@ -440,26 +399,27 @@ class MultisectionUnRoller(object):
         :param row:
         :return:
         """
-        new_rows = []  # the extra unrolled rows
-        sublists = {}  # a map of multisection codes to lists of the pairs of that multisection code and an item added
 
-        for multisection_code in self.multisection_codes:
-                if multisection_code in row:
-                    multisection_data = row[multisection_code]
-                    if type(multisection_data) is list:
-                        for item in multisection_data:
-                            munged_item = self.munge_multisection_item(multisection_code, item)
-                            if multisection_code in sublists:
-                                sublists[multisection_code].append((multisection_code, munged_item))
-                            else:
-                                sublists[multisection_code] = [(multisection_code, munged_item)]
+        logger.debug("about to unroll row: %s" % str(row))
+        new_rows = []  # the extra unrolled rows
+        sublists = {}
+
+        for column in self.multisection_columns:
+            if column not in row:
+                raise Exception("column %s not in row: %s" % (column, row))
+
+            multisection_data = row[column]
+            if type(multisection_data) is list:
+                for value in multisection_data:
+                    if column in sublists:
+                        sublists[column].append((column, value))
                     else:
-                        # the multisection has not been filled out so a ? appears in the report
-                        blank_item = self.create_blank_item(self.multisection_codes[multisection_code])
-                        if multisection_code in sublists:
-                            sublists[multisection_code].append((multisection_code, blank_item))
-                        else:
-                            sublists[multisection_code] = [(multisection_code, blank_item)]
+                        sublists[column] = [(column, value)]
+            else:
+                if column in sublists:
+                    sublists[column].append((column, None))
+                else:
+                    sublists[column] = [(column, None)]
 
         f = 1
         for k in sublists:
@@ -471,10 +431,10 @@ class MultisectionUnRoller(object):
         for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
             row_count += 1
-            for (key, new_dict) in choice_tuple:
+            for (key, value) in choice_tuple:
                 if key in new_row:
                     del new_row[key]
-                new_row.update(new_dict)
+                new_row[key] = value
             new_rows.append(new_row)
 
         return new_rows
