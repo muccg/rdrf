@@ -15,6 +15,7 @@ from models import Query
 from utils import DatabaseUtils
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValue
 from registry.groups.models import WorkingGroup
+from rdrf.reporting_table import ReportingTableGenerator
 
 import re
 import csv
@@ -125,15 +126,7 @@ class QueryView(LoginRequiredMixin, View):
             multisection_unrollower = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
             database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-            # result = database_utils.run_full_query().result
-            #mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-            #munged = _filler(result, mongo_keys)
-            #munged = _final_cleanup(munged)
-            #humaniser = Humaniser(registry_model)
-            #munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
-            #result = _human_friendly(registry_model, munged)
-            #result_json = dumps(result, default=json_serial)
-            return HttpResponse("[]")
+            return HttpResponse("Temporary Table created")
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)
@@ -198,29 +191,16 @@ class DownloadQueryView(LoginRequiredMixin, View):
             return render_to_response('explorer/query_download.html', params)
 
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query().result
-        #cdes = _get_cdes(query_model.registry)
-        mongo_keys = _get_non_multiple_mongo_keys(query_model.registry)
-        munged = _filler(munged, mongo_keys)
-        munged = _final_cleanup(munged)
+        humaniser = Humaniser(registry_model)
+        multisection_unrollower = MultisectionUnRoller({})
+        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        return self._extract(query_model.title, rtg)
 
-        return self._extract(registry_model, munged, query_model.title, query_id)
-
-    def _extract(self, registry_model, result, title, query_id):
-        result = _human_friendly(registry_model, result)
+    def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
-        writer = csv.writer(response)
-
-        header = _get_header(result)
-        writer.writerow(encode_row(header))
-        csv_rows = 0
-        for r in result:
-            row = _get_content(r, header)
-            writer.writerow(encode_row(row))
-            csv_rows += 1
-
-        return response
+        return report_table_generator.dump_csv(response)
 
 
 class SqlQueryView(View):
