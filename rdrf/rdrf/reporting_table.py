@@ -56,14 +56,17 @@ class ReportingTableGenerator(object):
         logger.debug("created table based on schema")
 
     def drop_table(self):
-        drop_table_sql = "DROP TABLE %s" % self._generate_temporary_table_name()
+        drop_table_sql = "DROP TABLE %s" % self.table_name
         conn = self.engine.connect()
         try:
             conn.execute(drop_table_sql)
-            logger.debug("dropped temp table")
+            logger.debug("dropped temp table %s" % self.table_name)
         except:
             pass
         conn.close()
+
+    def set_table_name(self, query_model):
+        self.table_name = "report_%s_%s" % (self.user.username, query_model.id)
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
@@ -129,17 +132,18 @@ class ReportingTableGenerator(object):
 
         return self._create_column(column_name, column_data_type)
 
-    def run_explorer_query(self, explorer_query):
+    def run_explorer_query(self, database_utils):
+        self.set_table_name(database_utils.form_object)
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
-        for result_dict in explorer_query.generate_results(self.reverse_map):
+        for result_dict in database_utils.generate_results(self.reverse_map):
             logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
                 logger.debug("unrolled row = %s" % unrolled_row)
                 try:
                     self.insert_row(unrolled_row)
                 except Exception, ex:
-                    logger.error("report error: query %s row %s error: %s" % (explorer_query.form_object.title,
+                    logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
                                                                               unrolled_row,
                                                                               ex))
 
@@ -155,16 +159,14 @@ class ReportingTableGenerator(object):
         return column
 
     def create_schema(self):
-
         self.drop_table()
         logger.debug("creating table schema")
         logger.debug("There are %s columns" % len(self.columns))
-        table_name = self._generate_temporary_table_name()
-        logger.debug("table name will be = %s" % table_name)
-        self.table = alc.Table(table_name, MetaData(self.engine), *self.columns, schema=None)
+        logger.debug("table name will be = %s" % self.table_name)
+        self.table = alc.Table(self.table_name, MetaData(self.engine), *self.columns, schema=None)
 
     def _generate_temporary_table_name(self):
-        return "reporting_table"
+        return "reporting_table" + self.user.username
 
     def _get_sql_alchemy_datatype(self, cde_model):
         if cde_model.code in self.type_overrides:
