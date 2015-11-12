@@ -136,7 +136,12 @@ class ReportingTableGenerator(object):
             logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
                 logger.debug("unrolled row = %s" % unrolled_row)
-                self.insert_row(unrolled_row)
+                try:
+                    self.insert_row(unrolled_row)
+                except Exception, ex:
+                    logger.error("report error: query %s row %s error: %s" % (explorer_query.form_object.title,
+                                                                              unrolled_row,
+                                                                              ex))
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
@@ -168,6 +173,17 @@ class ReportingTableGenerator(object):
             datatype = cde_model.datatype
 
         return self.TYPE_MAP.get(datatype, alc.String)
+
+    def dump_csv(self, stream):
+        import csv
+        writer = csv.writer(stream)
+        select_query = alc.sql.select([self.table])
+        db_connection = self.engine.connect()
+        result = db_connection.execute(select_query)
+        writer.writerow(result.keys())
+        writer.writerows(result)
+        db_connection.close()
+        return stream
 
 
 class MongoFieldSelector(object):
@@ -259,17 +275,5 @@ class MongoFieldSelector(object):
 
             projected_cdes.append(value_dict)
 
-
         logger.debug("projected cdes = %s" % projected_cdes)
         return json.dumps(projected_cdes)
-
-    def dump_csv(self):
-        import csv
-        select_query = alc.sql.select([self.table])
-        result = db_connection.execute(select_query)
-        fh = open('data.csv', 'wb')
-        outcsv = csv.writer(fh)
-        outcsv.writerow(result.keys())
-        outcsv.writerows(result)
-        fh.close()
-
