@@ -15,6 +15,7 @@ from models import Query
 from utils import DatabaseUtils
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValue
 from registry.groups.models import WorkingGroup
+from rdrf.reporting_table import ReportingTableGenerator
 
 import re
 import csv
@@ -119,15 +120,14 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
-            result = database_utils.run_full_query().result
-            #mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-            #munged = _filler(result, mongo_keys)
-            #munged = _final_cleanup(munged)
-            #humaniser = Humaniser(registry_model)
-            #munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
-            #result = _human_friendly(registry_model, munged)
-            result_json = dumps(result, default=json_serial)
-            return HttpResponse(result_json)
+            # populate temporary table
+            from rdrf.reporting_table import ReportingTableGenerator
+            humaniser = Humaniser(registry_model)
+            multisection_unrollower = MultisectionUnRoller({})
+            rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+            rtg.set_table_name(query_model)
+            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+            return HttpResponse("Temporary Table created")
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)
@@ -161,7 +161,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         mongo_keys = _get_non_multiple_mongo_keys(registry_model)
         munged = _filler(result, mongo_keys)
         humaniser = Humaniser(registry_model)
-        munged = MultisectionUnRoller(query_model.registry, humaniser).unroll_rows(munged)
+        munged = MultisectionUnRoller()
         logger.debug("number of unrolled rows = %s" % len(munged))
 
         if not munged:
@@ -192,29 +192,17 @@ class DownloadQueryView(LoginRequiredMixin, View):
             return render_to_response('explorer/query_download.html', params)
 
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query().result
-        #cdes = _get_cdes(query_model.registry)
-        mongo_keys = _get_non_multiple_mongo_keys(query_model.registry)
-        munged = _filler(munged, mongo_keys)
-        munged = _final_cleanup(munged)
+        humaniser = Humaniser(registry_model)
+        multisection_unrollower = MultisectionUnRoller({})
+        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        rtg.set_table_name(query_model)
+        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        return self._extract(query_model.title, rtg)
 
-        return self._extract(registry_model, munged, query_model.title, query_id)
-
-    def _extract(self, registry_model, result, title, query_id):
-        result = _human_friendly(registry_model, result)
+    def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
-        writer = csv.writer(response)
-
-        header = _get_header(result)
-        writer.writerow(encode_row(header))
-        csv_rows = 0
-        for r in result:
-            row = _get_content(r, header)
-            writer.writerow(encode_row(row))
-            csv_rows += 1
-
-        return response
+        return report_table_generator.dump_csv(response)
 
 
 class SqlQueryView(View):
@@ -373,52 +361,11 @@ def _final_cleanup(results):
 
 
 class MultisectionUnRoller(object):
-    def __init__(self, registry_model, humaniser):
-        self.humaniser = humaniser
-        self.registry_model = registry_model
-        self.multisection_codes = self.get_multisection_codes()
+    def __init__(self, multisection_column_map):
+        # section_code --> column names in the report in that multisection
+        # E.g.{ "social": ["friends"], "health": ["drug", "dose"]}
+        self.multisection_column_map = multisection_column_map
         self.row_count = 0
-
-    def get_multisection_codes(self):
-        multisections = {}
-        for form_model in self.registry_model.forms:
-            if form_model.is_questionnaire:
-                continue
-            for section_model in form_model.section_models:
-                if section_model.allow_multiple:
-                    if not section_model.code in multisections:
-                        multisections[section_model.code] = section_model
-        return multisections
-
-    def munge_multisection_item(self, multisection_code, item):
-        multisection_model = self.multisection_codes[multisection_code]
-        if isinstance(item, basestring):
-            return self.create_blank_item(multisection_model)
-        d = {}
-        for key in item:
-            if "____" in key:
-                nice_cde_name = self.create_nice_name_from_delimited_key(multisection_model, key)
-                d[nice_cde_name] = self.humaniser.display_value(key, item[key])
-            else:
-                # we omit the DELETE key and value
-                pass
-        return d
-
-    def create_nice_name_from_delimited_key(self, multisection_model, delimited_key):
-        from rdrf.models import CommonDataElement
-        form_code, section_code, cde_code = delimited_key.split("____")
-        cde_model = CommonDataElement.objects.get(code=cde_code)
-        return self.nice_name(multisection_model, cde_model)
-
-    def nice_name(self, section_model, cde_model):
-        return section_model.display_name + "-" + cde_model.name
-
-    def create_blank_item(self, multisection_model):
-        d = {}
-        for cde_model in multisection_model.cde_models:
-            nice_name = self.nice_name(multisection_model, cde_model)
-            d[nice_name] = "?"
-        return d
 
     def unroll(self, row):
         """
@@ -433,54 +380,51 @@ class MultisectionUnRoller(object):
             etc etc)
         for three multisections we iterate through the triple product ( a cube) and so on
         This gets big quick obviously ...
+
+        complication is that multisections can contain more than one field  so the unit we walk through is the section
+
         :param row:
         :return:
         """
+        from itertools import product
+
+        def dl2ld(dl):
+            """
+            :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
+            ( each list must be same length )
+            :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
+            """
+            l = []
+            indexes = range(max(map(len, dl.values())))
+            for i in indexes:
+                d = {}
+                for k in dl:
+                    d[k] = dl[k][i]
+                l.append(d)
+            return l
+
+        # e.g. row = {"name": "Lee", "friends": ["fred", "barry"],
+        # "drug":["aspirin","neurophen"], "dose" : [20,23], "height": 56}
         new_rows = []  # the extra unrolled rows
-        sublists = {}  # a map of multisection codes to lists of the pairs of that multisection code and an item added
+        sublists = {}
+        for multisection_code in self.multisection_column_map:
+            multisection_columns = self.multisection_column_map[multisection_code]
+            section_data = {}
+            for col in multisection_columns:
+                values = row[col]  # each multisection cde will have a list of values
+                section_data[col] = values
 
-        for multisection_code in self.multisection_codes:
-                if multisection_code in row:
-                    multisection_data = row[multisection_code]
-                    if type(multisection_data) is list:
-                        for item in multisection_data:
-                            munged_item = self.munge_multisection_item(multisection_code, item)
-                            if multisection_code in sublists:
-                                sublists[multisection_code].append((multisection_code, munged_item))
-                            else:
-                                sublists[multisection_code] = [(multisection_code, munged_item)]
-                    else:
-                        # the multisection has not been filled out so a ? appears in the report
-                        blank_item = self.create_blank_item(self.multisection_codes[multisection_code])
-                        if multisection_code in sublists:
-                            sublists[multisection_code].append((multisection_code, blank_item))
-                        else:
-                            sublists[multisection_code] = [(multisection_code, blank_item)]
-
-        f = 1
-        for k in sublists:
-            num_items = len(sublists[k])
-            f = f * num_items
+            sublists[multisection_code] = dl2ld(section_data)
 
         row_count = 0
         # choice tuple is one choice from each sublist
         for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
             row_count += 1
-            for (key, new_dict) in choice_tuple:
-                if key in new_row:
-                    del new_row[key]
-                new_row.update(new_dict)
+            for section_dict in choice_tuple:
+                for key in section_dict:
+                    new_row[key] = section_dict[key]
+
             new_rows.append(new_row)
-
-        return new_rows
-
-    def unroll_rows(self, rows):
-        self.row_count = 0
-        new_rows = []
-        for row in rows:
-            unrolled_rows = self.unroll(row)
-            self.row_count += len(unrolled_rows)
-            new_rows.extend(unrolled_rows)
 
         return new_rows
