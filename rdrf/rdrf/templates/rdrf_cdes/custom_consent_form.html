@@ -254,13 +254,13 @@
                                                     </label>
                                                     <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-9">
+                                                    <div class="col-sm-1">
                                                 {% endif %}
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}
