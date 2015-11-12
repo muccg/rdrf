@@ -34,6 +34,9 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
+            $("#id_is_parent").val(false)
+            $("#id_password1").passStrengthify();
+
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
             var state_lookup_url = "{% url 'state_lookup' 999 %}";
 
@@ -132,7 +135,7 @@
             });
 
             $("#id_date_of_birth").change(function() {
-                if ($("#parent_guardian_check").prop("checked")) {
+                if ($("#id_is_parent").val() == "true") {
                     return;
                 }
                 date_str = $("#id_date_of_birth").val();
@@ -148,6 +151,9 @@
             });
 
             $("#id_country").change(function() {
+                var states = $("#id_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
                     var states = $("#id_state");
                     states.empty();
