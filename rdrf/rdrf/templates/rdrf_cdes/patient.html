@@ -71,7 +71,7 @@
                 </ul>
             {% else %}
                 <div class="alert alert-danger">
-                    Please sign the consent <a href="{% url 'patient_edit' registry_code patient_id %}">here</a> to see avilable forms
+                    Please sign the consent <a href="{% url 'consent_form_view' registry_code patient_id %}">here</a> to see avilable forms
                 </div>
             {% endif %}
         {% elif is_admin %}
