@@ -65,8 +65,14 @@ class ReportingTableGenerator(object):
             pass
         conn.close()
 
-    def set_table_name(self, query_model):
-        self.table_name = "report_%s_%s" % (self.user.username, query_model.id)
+    def set_table_name(self, obj):
+        import hashlib
+        logger.debug("setting table name from %s %s" % (self.user.username, obj))
+        m = hashlib.md5()
+        m.update(self.user.username)
+        t = "report_%s_%s" % (obj.id, m.hexdigest())
+        self.table_name = t
+        logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
@@ -133,7 +139,6 @@ class ReportingTableGenerator(object):
         return self._create_column(column_name, column_data_type)
 
     def run_explorer_query(self, database_utils):
-        self.set_table_name(database_utils.form_object)
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
         for result_dict in database_utils.generate_results(self.reverse_map):

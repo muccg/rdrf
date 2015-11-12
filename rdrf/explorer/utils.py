@@ -76,7 +76,6 @@ class DatabaseUtils(object):
         logger.debug("sql metadata = %s" % sql_metadata)
         mongo_metadata = self._get_mongo_metadata()
         logger.debug("mongo metadata = %s" % mongo_metadata)
-
         reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
         reporting_table_generator.create_schema()
         reporting_table_generator.run_explorer_query(self)

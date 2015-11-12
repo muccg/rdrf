@@ -125,6 +125,7 @@ class QueryView(LoginRequiredMixin, View):
             humaniser = Humaniser(registry_model)
             multisection_unrollower = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+            rtg.set_table_name(query_model)
             database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
             return HttpResponse("Temporary Table created")
         else:
@@ -194,7 +195,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         humaniser = Humaniser(registry_model)
         multisection_unrollower = MultisectionUnRoller({})
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
-        rtg.set_table_name(database_utils.form_object)
+        rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         return self._extract(query_model.title, rtg)
 
