@@ -374,6 +374,13 @@
                     <a href="" class="btn btn-danger btn-block">
                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
                     </a>
+                    
+                    <a class="btn btn-info btn-block" href="{{ next_form_link }}">
+                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
+                    </a>
+                    <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
+                        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
+                    </a>
                     {% if patient|has_feature:"consent_lock" %}
                         {% if consent %}
                             <a class="btn btn-info btn-block" href="{{ next_form_link }}">
@@ -389,7 +396,7 @@
                         </a>
                         <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
                             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
-                        </a>                        
+                        </a>
                     {% endif %}
                 </div>
             </div>
