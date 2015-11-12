@@ -95,30 +95,32 @@
                             $("#response_error").fadeIn().delay(3000).fadeOut();
                         })
                         .done(function( data ) {
-                            var response = jQuery.parseJSON(data);
-                            if ($.isEmptyObject(response)) {
-                                $("#response_error").text("No results");
-                                $("#response_error").fadeIn().delay(3000).fadeOut();
-                                return;
-                            }
-                            
-                            $('#results-head').empty();
-                            $('#results-body').empty();
-
-                            $.each(response[0], function(key, value) {
-                                $('#results-head').append($("<th></th>").text(key));
-                            });
-                            
-                            $.each(response, function(key, value) {
-                                var row = $('<tr></tr>');
-                                $.each(value, function(key, value) {
-                                    if (value instanceof Array) {
-                                        
-                                    }
-                                    row.append($('<td></td>').text(value));
-                                });
-                                $('#results-body').append(row);
-                        });
+                            $("#response_error").text(data);
+                            $("#response_error").fadeIn().delay(3000).fadeOut();
+//                            var response = jQuery.parseJSON(data);
+//                            if ($.isEmptyObject(response)) {
+//                                $("#response_error").text("No results");
+//                                $("#response_error").fadeIn().delay(3000).fadeOut();
+//                                return;
+//                            }
+//
+//                            $('#results-head').empty();
+//                            $('#results-body').empty();
+//
+//                            $.each(response[0], function(key, value) {
+//                                $('#results-head').append($("<th></th>").text(key));
+//                            });
+//
+//                            $.each(response, function(key, value) {
+//                                var row = $('<tr></tr>');
+//                                $.each(value, function(key, value) {
+//                                    if (value instanceof Array) {
+//
+//                                    }
+//                                    row.append($('<td></td>').text(value));
+//                                });
+//                                $('#results-body').append(row);
+//                            });
                     });
                 });
 
