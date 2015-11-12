@@ -66,11 +66,8 @@ class ReportingTableGenerator(object):
         conn.close()
 
     def set_table_name(self, obj):
-        import hashlib
         logger.debug("setting table name from %s %s" % (self.user.username, obj))
-        m = hashlib.md5()
-        m.update(self.user.username)
-        t = "report_%s_%s" % (obj.id, m.hexdigest())
+        t = "report_%s_%s" % (obj.id, self.user.pk)
         self.table_name = t
         logger.info("table name = %s" % self.table_name)
 
