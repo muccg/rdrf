@@ -124,11 +124,19 @@
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
         <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'patient_edit' registry_code patient.id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
-            <li><a href="{% url 'consent_form_view' registry_code patient.id %}"><span class="glyphicon glyphicon-minus"></span>Consents</a></li>
-            {% for form in form_links %}
-                <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
-            {% endfor %}
+             <li><a href="{% url 'consent_form_view' registry_code patient.id %}"><span class="glyphicon glyphicon-minus"></span> Consents</a></li>
+             <li><a href="{% url 'patient_edit' registry_code patient.id %}"><span class="glyphicon glyphicon-minus"></span> {% trans 'Demographics' %}</a></li>
+            {% if patient|has_feature:"consent_lock" %}
+                {% if consent %}
+                    {% for form in form_links %}
+                        <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
+                    {% endfor %}
+                {% endif %}
+            {% else %}
+                {% for form in form_links %}
+                    <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
+                {% endfor %}
+            {% endif %}
         </ul>
     </li>
 {% endblock %}
@@ -366,13 +374,30 @@
                     <a href="" class="btn btn-danger btn-block">
                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
                     </a>
-
+                    
                     <a class="btn btn-info btn-block" href="{{ next_form_link }}">
                         <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
                     </a>
                     <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
                         <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
                     </a>
+                    {% if patient|has_feature:"consent_lock" %}
+                        {% if consent %}
+                            <a class="btn btn-info btn-block" href="{{ next_form_link }}">
+                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
+                            </a>
+                            <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
+                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a class="btn btn-info btn-block" href="{{ next_form_link }}">
+                            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
+                        </a>
+                        <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
+                            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </form>

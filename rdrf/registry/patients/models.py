@@ -690,6 +690,7 @@ class ParentGuardian(models.Model):
     state = models.CharField(max_length=20, verbose_name="State/Province/Territory")
     postcode = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=20)
+    phone = models.CharField(max_length=20, blank=True)
     patient = models.ManyToManyField(Patient)
     self_patient = models.ForeignKey(
         Patient, blank=True, null=True, related_name="self_patient")

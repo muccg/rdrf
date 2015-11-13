@@ -1,5 +1,6 @@
 {% load countries %}
 {% load static %}
+{% load i18n %}
 
 <html>
 
@@ -14,7 +15,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
     <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
-    <script src="{% static  'js/pwstrength-bootstrap-1.2.5.min.js' %}"></script>
+    <script src="{% static 'js/password.js' %}"></script>
     
     <style>
         body {
@@ -33,6 +34,8 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
+            $("#id_password1").passStrengthify();
+
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
             var state_lookup_url = "{% url 'state_lookup' 999 %}";
 
@@ -44,14 +47,12 @@
             }
 
             $("#parent_guardian_form").hide();
+            $("#patient_form").show();
             $("#underage_msg").hide();
             $("#form-other-clinician").hide();
             $("#parent_guardian_form_btn").hide();
             
             var registry_code = "{{registry_code}}"
-            $('#id_password1').pwstrength({
-                ui: { showVerdictsInsideProgressBar: true }
-            });
             
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -60,25 +61,41 @@
                 'changeYear': true,
                 'minDate': '-100Y',
                 'maxDate': '0',
-                'yearRange': '-100:+0'
+                'yearRange': '-100:+0',
+                'defaultDate': '-30Y'
             }
             
             $("#id_date_of_birth").datepicker(dateOptions);
             $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
             
-            $("#parent_guardian_check").click(function() {
-                if($(this).prop("checked")) {
-                    $("#parent_guardian_form").show();
-                    $("#patient_form").hide();
-                    $("#parent_guardian_form_btn").show();
-                    $("#login_details").show();
-                } else {
-                    $("#parent_guardian_form").hide();
-                    $("#patient_form").show();
-                    $("#parent_guardian_form_btn").hide();
-                }
+            $("#parent_guardian_check1").click(function() {
+                $("#parent_guardian_form").hide();
+                $("#patient_form").show();
+                $("#parent_guardian_form_btn").hide();
+                $("#id_is_parent").val(false);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check2").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check3").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(true);
             });
             
+            $("#parent_guardian_check1").trigger("click");
+
             $("#patient_form_btn").click(function() {
                 $("#patient_form").show();
                 $("#parent_guardian_form").hide();
@@ -114,7 +131,7 @@
             });
 
             $("#id_date_of_birth").change(function() {
-                if ($("#parent_guardian_check").prop("checked")) {
+                if ($("#id_is_parent").val() == "true") {
                     return;
                 }
                 date_str = $("#id_date_of_birth").val();
@@ -128,22 +145,23 @@
                     $("#login_details").hide();
                 }
             });
-            
+
             $("#id_country").change(function() {
+                var states = $("#id_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_state");
-                    states.empty();
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
                 });
             });
-            
-            
+
             $("#id_parent_guardian_country").change(function() {
+                var states = $("#id_parent_guardian_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("Parent/Guardian State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_parent_guardian_state");
-                    states.empty();
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
@@ -154,9 +172,19 @@
 </head>
 
 <body>
-    {{form.errors}}
-    <br>
     <div class="container">
+        <br>
+    
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {% for field in form %}
+                {% if field.errors %}
+                    <p><strong>{{field.label}}</strong> - {{ field.errors|striptags }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="alert alert-info">
             <strong>Rare Disease Registry - Patient Registration</strong>
         </div>
@@ -165,20 +193,51 @@
                 For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.
             </div>            
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <h3>Personal data</h3>
-                Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient’s parent or guardian to enter a patient other than yourself.
-            </div>
-            <div class="col-md-6" style="text-align: justify; border-left: dotted 1px #bbb;">
-                <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
+
+        <form class="form" id="registration-form" method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>{% trans "Personal data" %}</h3>
+                    <h5 style="text-align: justify;">
+                        {% trans "Please enter your own details here, even if you are not the patient yourself. If you are registering a child as a patient, you will be able to enter his or her details in a later step. Please note that you must be the patient's parent or guardian to enter a patient other than yourself." %}
+                    </h5>
+                    <div class="form-group top-separator">
+                        <label>
+                            <input type="radio" checked="checked" name="parent_guardian_check" id="parent_guardian_check1" value="parent_guardian_1">
+                            <i>{% trans "I am a patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="parent_guardian_check" id="parent_guardian_check2" value="parent_guardian_2">
+                            <i>{% trans "I am a parent/guardian of the patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="parent_guardian_check" id="parent_guardian_check3" value="parent_guardian_3">
+                            <i>{% trans "I am a patient with the disease and I am a parent/guardian of the patient with the disease" %}</i>
+                        </label>
+                    </div>
+                    <div id="login_details" class="top-separator">
+                        <div class="form-group">
+                            <h5><div class="label label-warning">{% trans 'Please provide valid email address as your username' %}</div></h5>
+                            <input class="form-control" placeholder="{% trans 'Username' %}" id="id_username" maxlength="50" name="username" type="email" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Password' %}" id="id_password1" name="password1" type="password" required />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Repeat Password' %}" id="id_password2" name="password2" type="password" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
                     {% csrf_token %}
                     <input type="hidden" name="registry_code" value="{{registry_code}}">
                     <input id="id_email" name="email" type="hidden" />
-                    
-                    <div class="form-group">
-                        <label><input type="checkbox" name="parent_guardian_check" id="parent_guardian_check"> I am a Parent/Guardian</label>
-                    </div>
+                    <input id="id_is_parent" name="is_parent" type="hidden" />
+                    <input id="id_self_patient" name="self_patient" type="hidden" />
                     
                     <div id="parent_guardian_form">
                         <div class="form-group top-separator">
@@ -204,7 +263,10 @@
                             <input class="form-control" placeholder="Parent/Guardian Suburb / Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
                         </div>
                         <div class="form-group">
-                            <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
+                            <input class="form-control" placeholder="{% trans 'Parent/Guardian Postcode' %}" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" placeholder="{% trans 'Parent/Guardian Country' %}" id="id_parent_guardian_country" name="parent_guardian_country" required>
                                 <option value="-1">Country</option>
                                 {% countries as countries %}
                                 {% for con in countries %}
@@ -218,9 +280,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Parent/Guardian Zip / Postal Code" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                            <input class="form-control" placeholder="{% trans 'Parent/Guardian Phone Number' %}" id="id_parent_guardian_phone" name="parent_guardian_phone" type="text" />
                         </div>
-                        
                         <div class="form-group">
                             <button type="button" class="btn btn-info" id="patient_form_btn">
                                 Patient Details <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
@@ -247,10 +308,13 @@
                         </div>
 
                         <div class="form-group top-separator">
-                            <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" />
+                            <input class="form-control" placeholder="{% trans 'Address' %}" id="id_address" maxlength="100" name="address" type="text" />
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                            <input class="form-control" placeholder="{% trans 'Suburb/Town' %}" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="{% trans 'Postcode' %}" id="id_postcode" maxlength="30" name="postcode" type="text" />
                         </div>
                         <div class="form-group">
                             <select class="form-control" placeholder="Country" id="id_country" name="country">
@@ -267,8 +331,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Zip / Postal Code" id="id_postcode" maxlength="30" name="postcode" type="text" />
-                        </div>                        
+                            <input class="form-control" placeholder="{% trans 'Phone Number' %}" id="id_phone_number" name="phone_number" type="text" />
+                        </div>
                         <div class="form-group top-separator">
                             <select class="form-control" id="id_clinician" name="clinician">
                                 <option value="-1">Choose your preferred Clinician</option>
@@ -286,34 +350,17 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
-                        </div>
-                        <div class="form-group">
                             <button type="button" class="btn btn-info" id="parent_guardian_form_btn">
                                 <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Parent / Guardian Details
                             </button>
                         </div>
                     </div>
-                    
-                    <div id="login_details">
-                        <div class="form-group">
-                            <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
-                            <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
                         <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
     
     <nav class="navbar navbar-default navbar-fixed-bottom">
