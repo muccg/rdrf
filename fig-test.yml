@@ -44,7 +44,7 @@ reportingtest:
     - POSTGRES_USER=reporting
     - POSTGRES_PASSWORD=reporting
   ports:
-    - "15633:5432"
+    - "15634:5432"
 
 
 # runs the tests against the stack above
