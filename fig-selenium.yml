@@ -25,6 +25,14 @@ firefox:
   - seleniumhub:hub
   - webselenium:web
 
+reportingselenium:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=reporting
+    - POSTGRES_PASSWORD=reporting
+  ports:
+    - "15635:5432"
+
 dbselenium:
   image: postgres:9.4
   environment:
@@ -76,3 +84,4 @@ seleniumtesthost:
     - webselenium:web
     - mongoselenium:mongo
     - seleniumhub:hub
+    - reportingselenium:reporting
