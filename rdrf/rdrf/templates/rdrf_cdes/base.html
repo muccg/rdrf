@@ -140,6 +140,15 @@
                     </div>
                 </div>
             {% endif %}
+            
+            {% if header %}
+                <br>
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        {{ header|safe }}
+                    </div>
+                </div>
+            {% endif %}
 
         {% endblock%}
     </div>

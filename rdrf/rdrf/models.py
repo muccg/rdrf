@@ -697,6 +697,7 @@ class RegistryForm(models.Model):
     """
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
+    header = models.TextField(blank=True)
     questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
