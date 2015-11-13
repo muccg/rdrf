@@ -168,6 +168,7 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
+        context["header"] = self.registry_form.header
         context["show_print_button"] = True
 
         patient_model = Patient.objects.get(pk=patient_id)
