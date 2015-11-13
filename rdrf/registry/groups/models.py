@@ -369,7 +369,8 @@ def _create_parent(request):
         suburb=request.POST["parent_guardian_suburb"],
         state=request.POST["parent_guardian_state"],
         postcode=request.POST["parent_guardian_postcode"],
-        country=request.POST["parent_guardian_country"]
+        country=request.POST["parent_guardian_country"],
+        phone=request.POST["parent_guardian_phone"],
     )
     return parent_guardian
 
