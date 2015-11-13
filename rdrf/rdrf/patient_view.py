@@ -728,7 +728,6 @@ class PatientEditView(View):
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient.id, registry_model),
-            "form_links": self._get_formlinks(request.user, patient.id, registry_model),
             "consent": consent_status_for_patient(registry_code, patient)
         }
 
