@@ -329,6 +329,11 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.patient.add(parent_self_patient)
         parent_guardian.self_patient = parent_self_patient
         parent_guardian.save()
+    
+    new_patient_email = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, request.LANGUAGE_CODE)
+    new_patient_email.append("patient", patient)
+    new_patient_email.send()
+
 
     email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, request.LANGUAGE_CODE)
     email_note.append("patient", patient).append("clinician", clinician)
