@@ -149,7 +149,9 @@ class PatientResource(ModelResource):
         content = ''
 
         if not forms:
-            content = "No modules available"
+            content = _("No modules available")
+        
+        content += "<a href=%s>Consents</a><br>" % reverse("consent_form_view", args=(registry_code, patient_model.id))
 
         for form in forms:
             if form.is_questionnaire:

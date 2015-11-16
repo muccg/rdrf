@@ -194,7 +194,8 @@
                             {% if patient.consent %}
                                 <select onchange="go_to_page(this);">
                                     <option>-----</option>
-                                    <option value="{% url 'patient_edit' registry_code patient.patient.id %}">Demographics</option>
+                                    <option value="{% url 'consent_form_view' registry_code patient.patient.id %}">Consents</option>
+                                    <option value="{% url 'patient_edit' registry_code patient.patient.id %}">{% trans 'Demographics' %}</option>
                                         {% for form in registry_forms %}
                                             <option value="{% url 'registry_form' registry_code form.form.id patient.patient.id %}">
                                                 {{form.form.name|de_camelcase}}

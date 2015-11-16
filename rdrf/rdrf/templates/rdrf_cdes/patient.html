@@ -65,6 +65,9 @@
             
             {% if consent %}
                 <ul class="list-group">
+                    <li class="list-group-item">
+                        Consents <a target="_blank" href="{% url 'consent_form_view' registry_code patient_id %}" class="btn btn-info btn-xs pull-right" role="button">{% trans 'Access' %}</a>
+                    </li>
                 {% for form in forms %}
                     <li class="list-group-item">{{form.form.name}} {% if form.readonly %}<i><font style="color: red">Readonly</font></strong></i>{% endif %}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
                 {% endfor %}
