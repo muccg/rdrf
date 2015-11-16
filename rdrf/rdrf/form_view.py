@@ -25,7 +25,7 @@ from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
 from rdrf.consent_forms import CustomConsentFormGenerator
-from rdrf.utils import get_form_links
+from rdrf.utils import get_form_links, consent_status_for_patient
 
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
@@ -1904,7 +1904,8 @@ class CustomConsentFormView(View):
             "form_links": get_form_links(request.user, patient_model.id, registry_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
-            "parent": parent
+            "parent": parent,
+            "consent": consent_status_for_patient(registry_code, patient_model)
         }
 
         logger.debug("context = %s" % context)
@@ -2050,7 +2051,8 @@ class CustomConsentFormView(View):
             "previous_form_link": wizard.previous_link,
             "forms": form_sections,
             "error_messages": [],
-            "parent": parent
+            "parent": parent,
+            "consent": consent_status_for_patient(registry_code, patient_model)
         }
 
         if all(valid_forms):
