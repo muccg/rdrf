@@ -29,7 +29,8 @@ _UNALLOCATED_GROUP = "Unallocated"
 _ADDRESS_TYPE = "Postal"
 _GENDER_CODE = {
     "M": 1,
-    "F": 2
+    "F": 2,
+    "I": 3
 }
 
 _TRUE_FALSE = {
@@ -274,7 +275,7 @@ def user_registered_callback(sender, user, request, **kwargs):
         family_name=user.last_name,
         given_names=user.first_name,
         date_of_birth=request.POST["date_of_birth"],
-        sex=request.POST["gender"]
+        sex=_GENDER_CODE[request.POST["gender"]]
     )
 
     patient.rdrf_registry.add(registry.id)
@@ -375,7 +376,7 @@ def _create_parent(request):
         first_name=request.POST["parent_guardian_first_name"],
         last_name=request.POST["parent_guardian_last_name"],
         date_of_birth=request.POST["parent_guardian_date_of_birth"],
-        gender=request.POST["parent_guardian_gender"],
+        gender=_GENDER_CODE[request.POST["parent_guardian_gender"]],
         address=request.POST["parent_guardian_address"],
         suburb=request.POST["parent_guardian_suburb"],
         state=request.POST["parent_guardian_state"],
