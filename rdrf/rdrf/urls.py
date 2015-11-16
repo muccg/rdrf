@@ -26,6 +26,7 @@ from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
+from rdrf.permission_matrix import PermissionMatrixView
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -104,6 +105,9 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
                            patient_view.PatientToParentView.as_view(), name='patient_to_parent'),
+
+                       url(r"^(?P<registry_code>\w+)/permissions/?$",
+                           PermissionMatrixView.as_view(), name='permission_matrix'),
 
 #---- Consent related URLs -----------------
                        url(r"^(?P<registry_code>\w+)/consent/?$",

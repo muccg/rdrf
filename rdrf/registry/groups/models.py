@@ -181,6 +181,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def get_registries(self):
         return self.registry.all()
 
+    def get_registries_or_all(self):
+        if not self.is_superuser:
+            return self.get_registries()
+        else:
+            return Registry.objects.all().order_by("name")
+
     def has_feature(self, feature):
         if not self.is_superuser:
             return any([r.has_feature(feature) for r in self.registry.all()])
