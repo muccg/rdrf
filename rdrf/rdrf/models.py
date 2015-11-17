@@ -10,6 +10,7 @@ from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 logger = logging.getLogger("registry_log")
 
@@ -696,6 +697,7 @@ class RegistryForm(models.Model):
     """
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
+    header = models.TextField(blank=True)
     questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
     objects = RegistryFormManager()
@@ -1613,3 +1615,32 @@ class DemographicFields(models.Model):
 
     class Meta:
         verbose_name_plural = "Demographic Fields"
+
+
+class EmailTemplate(models.Model):
+    language = models.CharField(max_length=2, choices=settings.LANGUAGES)
+    description = models.TextField()
+    subject = models.CharField(max_length=50)
+    body = models.TextField()
+    
+    def __unicode__(self):
+        return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
+    
+
+class EmailNotification(models.Model):
+    description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
+    registry = models.ForeignKey(Registry)
+    email_from = models.EmailField(default="no-reply@DOMAIN.COM")
+    recipient = models.CharField(max_length=100, null=True, blank=True)
+    group_recipient = models.ForeignKey(Group, null=True, blank=True)
+    email_templates = models.ManyToManyField(EmailTemplate)
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.description, self.registry.code.upper())
+
+
+class EmailNotificationHistory(models.Model):
+    date_stamp = models.DateTimeField(auto_now_add=True)
+    language = models.CharField(max_length=10)
+    email_notification = models.ForeignKey(EmailNotification)
+    template_data = models.TextField(null=True, blank=True)

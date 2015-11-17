@@ -7,8 +7,8 @@ from rdrf.models import Registry
 
 class Query(models.Model):
     MONGO_SEARCH_TYPES = (
-        ('F', 'Find'),
-        ('A', 'Aggregation')
+        ('C', 'Current'),
+        ('L', 'Longitudinal')
     )
 
     title = models.CharField(max_length=255)
@@ -17,7 +17,7 @@ class Query(models.Model):
     registry = models.ForeignKey(Registry)
     access_group = models.ManyToManyField(Group)
 
-    mongo_search_type = models.CharField(max_length=1, choices=MONGO_SEARCH_TYPES, default='F')
+    mongo_search_type = models.CharField(max_length=1, choices=MONGO_SEARCH_TYPES, default='C')
 
     collection = models.CharField(max_length=255, default="cdes")
     criteria = models.TextField(blank=True, null=True)

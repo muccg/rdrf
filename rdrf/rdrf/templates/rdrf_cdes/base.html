@@ -76,6 +76,20 @@
                                 <li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>
                             {% endfor %}
                         {% endif %}
+
+                        {% if request.user.is_superuser %}
+
+                            {% for reg in request.user.get_registries_or_all %}
+                                    <li><a href="{% url 'permission_matrix' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Permissions</a></li>
+                            {% endfor %}
+
+                        {% endif %}
+
+                        {% for quick_link in request.user.quick_links %}
+                            {% if not quick_link.admin_link %}
+                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
+                            {% endif %}
+                        {% endfor %}
                         {% block extra_menu %}
                         {% endblock %}
                     </ul>
@@ -136,7 +150,18 @@
                 <div class="row">
                     <div class="col-md-12">
                         <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans location %}</h3></p>
-                        <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
+                        {% if patient_name %}
+                            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if header %}
+                <br>
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        {{ header|safe }}
                     </div>
                 </div>
             {% endif %}

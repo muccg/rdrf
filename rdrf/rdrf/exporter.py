@@ -135,6 +135,7 @@ class Exporter(object):
     def _create_form_map(self, form_model):
         frm_map = {}
         frm_map["name"] = form_model.name
+        frm_map["header"] = form_model.header
         frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
         frm_map["is_questionnaire"] = form_model.is_questionnaire
         frm_map["questionnaire_questions"] = form_model.questionnaire_questions

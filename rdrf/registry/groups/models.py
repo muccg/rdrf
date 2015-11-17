@@ -19,6 +19,10 @@ from registration.signals import user_registered
 
 from rdrf.models import Registry
 
+import logging
+
+logger = logging.getLogger("registry_log")
+
 _OTHER_CLINICIAN = "clinician-other"
 _UNALLOCATED_GROUP = "Unallocated"
 
@@ -166,6 +170,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def get_registries(self):
         return self.registry.all()
 
+    def get_registries_or_all(self):
+        if not self.is_superuser:
+            return self.get_registries()
+        else:
+            return Registry.objects.all().order_by("name")
+
     def has_feature(self, feature):
         if not self.is_superuser:
             return any([r.has_feature(feature) for r in self.registry.all()])
@@ -221,6 +231,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
     from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
+    from rdrf.email_notification import RdrfEmail
+    from django.conf import settings
 
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
@@ -257,14 +269,16 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.save()
     
     if "clinician-other" in request.POST['clinician']:
-        ClinicianOther.objects.create(
+        other_clinician = ClinicianOther.objects.create(
             patient=patient,
             clinician_name=request.POST.get("other_clinician_name"),
             clinician_hospital=request.POST.get("other_clinician_hospital"),
             clinician_address=request.POST.get("other_clinician_address")
         )
-
-
+        email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, request.LANGUAGE_CODE)
+        email_note.append("other_clinician", other_clinician).append("patient", patient)
+        email_note.send()
+        
     address = _create_patient_address(patient, request)
     address.save()
 
@@ -272,7 +286,7 @@ def user_registered_callback(sender, user, request, **kwargs):
     parent_guardian.patient.add(patient)
     parent_guardian.user = user
     parent_guardian.save()
-
+    
 
 def _create_django_user(request, django_user, registry):
     user_group = _get_group("Parents")
@@ -311,7 +325,8 @@ def _create_parent(request):
         suburb=request.POST["parent_guardian_suburb"],
         state=request.POST["parent_guardian_state"],
         postcode=request.POST["parent_guardian_postcode"],
-        country=request.POST["parent_guardian_country"]
+        country=request.POST["parent_guardian_country"],
+        phone=request.POST["parent_guardian_phone_number"]
     )
     return parent_guardian
 

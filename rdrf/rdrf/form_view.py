@@ -168,6 +168,8 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
         context["location"] = location_name(self.registry_form)
+        context["header"] = self.registry_form.header
+        context["show_print_button"] = True
 
         patient_model = Patient.objects.get(pk=patient_id)
         wizard = NavigationWizard(self.user,
@@ -1888,6 +1890,11 @@ class CustomConsentFormView(View):
                                   NavigationFormType.CONSENTS,
                                   None)
 
+        try:
+            parent = ParentGuardian.objects.get(user=request.user)
+        except ParentGuardian.DoesNotExist:
+            parent = None
+
         context = {
             "location": "Consents",
             "forms": form_sections,
@@ -1896,8 +1903,8 @@ class CustomConsentFormView(View):
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient_model.id, registry_model),
             "next_form_link": wizard.next_link,
-            "previous_form_link": wizard.previous_link
-
+            "previous_form_link": wizard.previous_link,
+            "parent": parent
         }
 
         logger.debug("context = %s" % context)

@@ -32,12 +32,23 @@ function wait_for_services {
     if [[ "$WAIT_FOR_MONGO" ]] ; then
         dockerwait $MONGOSERVER $MONGOPORT
     fi
+
+    if [[ "$WAIT_FOR_REPORTING" ]]; then
+        dockerwait $REPORTDBSERVER $REPORTDBPORT
+    fi
 }
 
 
 function defaults {
     : ${DBSERVER:="db"}
     : ${DBPORT:="5432"}
+
+    : ${REPORTDBSERVER:="reporting"}
+    : ${REPORTDBPORT:="5432"}
+    : ${REPORTDBUSER="reporting"}
+    : ${REPORTDBNAME="${DBUSER}"}
+    : ${REPORTDBPASS="${DBUSER}"}
+
     : ${WEBSERVER="web"}
     : ${WEBPORT="8000"}
     : ${CACHESERVER="cache"}
@@ -48,7 +59,9 @@ function defaults {
     : ${DBUSER="webapp"}
     : ${DBNAME="${DBUSER}"}
     : ${DBPASS="${DBUSER}"}
+
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT
+    export REPORTDBSERVER REPORTDBPORT REPORTDBUSER REPORTDBPASS
 }
 
 

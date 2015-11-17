@@ -1,6 +1,116 @@
 {% extends "explorer/base.html" %}
+{% block content %}
+<script>
+    $(document).ready(function () {
+        var FIELDS_TABLE = "#mongo-fields";
+        var PROJECTION_FIELD = "projection";
+        var container = $("#mongo_field_selection");
 
-{% block content %}    
+        function recalculateProjection() {
+            // get ids of  all checked checkboxes
+            var checkedIds = $(FIELDS_TABLE + " :checkbox:checked").map(function () {return this.id}).get();
+            // calculate server side
+            var registryId = $("#id_registry").val();
+            var parts = window.location.pathname.split("/");
+            var reportId = parts[parts.length - 1];
+
+            rpc.send('reporting_command',[reportId, registryId, "get_projection", checkedIds], function(response){
+                if (response.status == "success") {
+                    $("#" + PROJECTION_FIELD).val(response.result);
+                }
+                else {
+                    alert(response.error);
+                }
+
+            })
+        }
+
+        function wireUpFieldsTable() {
+            // when any checkbox in the mongo fields table is checked/unchecked, recalculate
+            // the projected fields and store on the hidden
+            // projection field so when form submitted the
+            // projection is stored.
+            $(FIELDS_TABLE + " input[type=checkbox").click(function () {
+                recalculateProjection();
+            })
+        }
+
+        $("#id_registry").bind("change", function () {
+
+            var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
+                    "<td><%= section %></td>" +
+                    "<td><%= fieldLabel %></td>" +
+                    "<td><%= checkBox %></td></tr>");
+
+            var checkBoxTemplate = _.template('<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
+                                                "<%= checked %> />");
+
+
+            function clearFieldsTable() {
+                $(FIELDS_TABLE + " tr").has("td").remove();
+            }
+
+            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue) {
+                var checked = "";
+                if (currentValue) {
+                    checked = "checked";
+                }
+                var checkBoxHtml = checkBoxTemplate({id: fieldId,
+                                           name: fieldId,
+                                           checked: checked
+                                           });
+
+                var fieldRow = $(fieldRowTemplate({form: formName,
+                                                section: section,
+                                                fieldLabel: fieldLabel,
+                                                checkBox: checkBoxHtml}));
+
+                $(FIELDS_TABLE).append(fieldRow);
+
+
+
+
+
+            }
+
+            function setUpMongoFields(fieldData) {
+                clearFieldsTable();
+                _.each(fieldData.fields, function (fieldInfo) {
+                    var fieldId = fieldInfo.id;
+                    var fieldLabel = fieldInfo.label;
+                    var formName = fieldInfo.form;
+                    var section = fieldInfo.sectionName;
+                    var savedValue = fieldInfo.savedValue;
+                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue);
+                });
+
+
+                wireUpFieldsTable();
+
+            }
+
+            var registryId = $("#id_registry").val();
+            var parts = window.location.pathname.split("/");
+            var reportId = parts[parts.length - 1];
+
+            rpc.send("reporting_command", [reportId, registryId, "get_field_data", null], function (response) {
+                if (response.status == 'success') {
+                    setUpMongoFields(response.result);
+                }
+                else
+                    {
+                        alert(response.error);
+                }
+
+            });
+        });
+
+        $("#id_registry").trigger("change"); // ensure checkboxes displayed on initial page load
+
+    });
+</script>
+
+
 {{form.errors}}
     <form name='query-form' id='query-form' class="form" method='post'>
         {% csrf_token %}
@@ -48,8 +158,8 @@
                 </div>
             </div>
     
-            <div class="row">
-                <div class="col-md-12">    
+            <div id="search_type" class="row">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label for="mongo_search_type">Mongo Search Type</label>
                             {{form.mongo_search_type}}
@@ -83,18 +193,33 @@
     
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
+                    <textarea style="display:none;" class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
+                    <textarea style="display:none;" class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
                 </div>
             </div>
-            
-            <div class="row" id="mongo-parameters-aggregation">
-                <div class="col-md-12">
-                    <textarea class="form-control" cols="40" id="aggregation" name="aggregation" rows="10">{{form.aggregation.value}}</textarea>
-                </div>
+
+            <p></p>
+
+            <label for="mongo_field_selection">Clinical Fields Selection</label>
+
+            <div class="row" id="mongo_field_selection">
+                <table class ="table table-striped" id="mongo-fields">
+                    <thead>
+                    <th>Form</th>
+                    <th>Section</th>
+                    <th>Field</th>
+                    <th>Include in Report</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+
             </div>
+
 
         </div>
         

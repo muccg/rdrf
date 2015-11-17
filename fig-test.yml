@@ -38,6 +38,15 @@ webtest:
     - cachetest:cache
     - mongotest:mongo
 
+reportingtest:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=reporting
+    - POSTGRES_PASSWORD=reporting
+  ports:
+    - "15634:5432"
+
+
 # runs the tests against the stack above
 testhost:
   image: rdrf_webtest
@@ -54,3 +63,4 @@ testhost:
     - dbtest:db
     - webtest:web
     - mongotest:mongo
+    - reportingtest:reporting

@@ -17,12 +17,20 @@ smtp:
   image: muccg/postfix:latest
 
 db:
-  image: postgres:9.4
+  image: muccg/postgres-ssl:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
     - ":5432"
+
+reporting:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=reporting
+    - POSTGRES_PASSWORD=reporting
+  ports:
+    - "15633:5432"
 
 cache:
   image: memcached:1.4
@@ -46,6 +54,7 @@ nginx:
   volumes:
     - ./data/nginx:/data
 
+
 web:
   build: .
   command: runserver
@@ -55,6 +64,7 @@ web:
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
+    - WAIT_FOR_REPORTING=1
   volumes_from:
     - data
   ports:
@@ -62,6 +72,7 @@ web:
   links:
     - db
     #- legacydb
+    - reporting
     - cache
     - mongo
     - smtp
@@ -86,6 +97,7 @@ uwsgi:
     - "9101:9101"
   links:
     - db
+    - reporting
     - cache
     - mongo
     - web
