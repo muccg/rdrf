@@ -1,6 +1,13 @@
+import re
+
+from django.core import validators
+
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.models import Group
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
+
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from django.db.models.signals import post_save
 from django.db import models, transaction
@@ -12,8 +19,23 @@ from registration.signals import user_registered
 
 from rdrf.models import Registry
 
+import logging
+
+logger = logging.getLogger("registry_log")
+
 _OTHER_CLINICIAN = "clinician-other"
 _UNALLOCATED_GROUP = "Unallocated"
+
+_ADDRESS_TYPE = "Postal"
+_GENDER_CODE = {
+    "M": 1,
+    "F": 2
+}
+
+_TRUE_FALSE = {
+    'true': True,
+    'false': False
+}
 
 
 class WorkingGroup(models.Model):
@@ -37,12 +59,35 @@ class WorkingGroup(models.Model):
             return self.name
 
 
-class CustomUser(AbstractUser):
-    working_groups = models.ManyToManyField(
-        WorkingGroup, null=True, related_name='working_groups')
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(_('username'), max_length=254, unique=True,
+        help_text=_('Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
+        validators=[
+            validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))
+        ])
+    first_name = models.CharField(_('first name'), max_length=30)
+    last_name = models.CharField(_('last name'), max_length=30)
+    email = models.EmailField(_('email address'), max_length=254)
+    is_staff = models.BooleanField(_('staff status'), default=False,
+        help_text=_('Designates whether the user can log into this admin site.'))
+    is_active = models.BooleanField(_('active'), default=False,
+        help_text=_('Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    
+    working_groups = models.ManyToManyField(WorkingGroup, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, verbose_name="position")
-    registry = models.ManyToManyField(
-        Registry, null=False, blank=False, related_name='registry')
+    registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
+    
+    USERNAME_FIELD = "username"
+    
+    objects = UserManager()
+    
+    def get_full_name(self):
+        full_name = "%s %s" % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        return self.first_name
 
     @property
     def num_registries(self):
@@ -136,6 +181,12 @@ class CustomUser(AbstractUser):
     def get_registries(self):
         return self.registry.all()
 
+    def get_registries_or_all(self):
+        if not self.is_superuser:
+            return self.get_registries()
+        else:
+            return Registry.objects.all().order_by("name")
+
     def has_feature(self, feature):
         if not self.is_superuser:
             return any([r.has_feature(feature) for r in self.registry.all()])
@@ -191,12 +242,14 @@ class CustomUser(AbstractUser):
 
         return links
 
-
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-    from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian
+    from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
+    from rdrf.email_notification import RdrfEmail
+    from django.conf import settings
 
-    is_parent = "parent_guardian_check" in request.POST
+    is_parent = True if _TRUE_FALSE[request.POST['is_parent']] else False
+    self_patient = True if _TRUE_FALSE[request.POST['self_patient']] else False
 
     registry_code = request.POST['registry_code']
     registry = _get_registry_object(registry_code)
@@ -231,7 +284,16 @@ def user_registered_callback(sender, user, request, **kwargs):
     patient.user = None if is_parent else user
 
     patient.save()
-
+    
+    if "clinician-other" in request.POST['clinician']:
+        ClinicianOther.objects.create(
+            patient=patient,
+            clinician_name=request.POST.get("other_clinician_name"),
+            clinician_hospital=request.POST.get("other_clinician_hospital"),
+            clinician_address=request.POST.get("other_clinician_address")
+        )
+        RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, request.LANGUAGE_CODE).send()
+        
     address = _create_patient_address(patient, request)
     address.save()
 
@@ -240,6 +302,37 @@ def user_registered_callback(sender, user, request, **kwargs):
         parent_guardian.patient.add(patient)
         parent_guardian.user = user
         parent_guardian.save()
+    
+    if self_patient:
+        parent_self_patient = Patient.objects.create(
+            consent=True,
+            family_name=request.POST["parent_guardian_last_name"],
+            given_names=request.POST["parent_guardian_first_name"],
+            date_of_birth=request.POST["parent_guardian_date_of_birth"],
+            sex=_GENDER_CODE[request.POST["parent_guardian_gender"]],
+        )
+        
+        PatientAddress.objects.create(
+            patient=parent_self_patient,
+            address_type=AddressType.objects.get(description__icontains=_ADDRESS_TYPE),
+            address=request.POST["parent_guardian_address"],
+            suburb=request.POST["parent_guardian_suburb"],
+            state=request.POST["parent_guardian_state"],
+            postcode=request.POST["parent_guardian_postcode"],
+            country=request.POST["parent_guardian_country"]
+        )
+        
+        parent_self_patient.rdrf_registry.add(registry)
+        parent_self_patient.clinician = patient.clinician
+        parent_self_patient.save()
+        
+        parent_guardian.patient.add(parent_self_patient)
+        parent_guardian.self_patient = parent_self_patient
+        parent_guardian.save()
+
+    email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, request.LANGUAGE_CODE)
+    email_note.append("patient", patient).append("clinician", clinician)
+    email_note.send()
 
 
 def _create_django_user(request, django_user, registry, is_parent):
@@ -282,7 +375,8 @@ def _create_parent(request):
         suburb=request.POST["parent_guardian_suburb"],
         state=request.POST["parent_guardian_state"],
         postcode=request.POST["parent_guardian_postcode"],
-        country=request.POST["parent_guardian_country"]
+        country=request.POST["parent_guardian_country"],
+        phone=request.POST["parent_guardian_phone"],
     )
     return parent_guardian
 

@@ -49,14 +49,18 @@ class QuickLinks(object):
     Importer = QuickLink("import_registry", "Importer", True)
     Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
     NextOfKinRelationship = QuickLink(
-        "admin:patients_nextofkinrelationship_changelist", "Next of Kin Relationship", True)
-    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", "CDE Policy", True)
-    States = QuickLink("admin:patients_state_changelist", "States")
-
+        "admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"), True)
+    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
+    States = QuickLink("admin:patients_state_changelist", _("States"))
+    ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
+    EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
+    EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
+    EmailNotificationHistory = QuickLink("admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
+    RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist", _("Registration Profiles"), True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
-    DATA_ENTRY = oset([PatientsListing])
+    DATA_ENTRY = oset([PatientsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
@@ -75,7 +79,11 @@ class QuickLinks(object):
                             Importer,
                             Explorer,
                             DemographicsFields,
-                            NextOfKinRelationship])
+                            NextOfKinRelationship,
+                            RegistrationProfiles,
+                            EmailNotification,
+                            EmailTemplate,
+                            EmailNotificationHistory])
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 

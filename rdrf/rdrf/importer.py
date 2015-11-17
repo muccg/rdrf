@@ -477,6 +477,10 @@ class Importer(object):
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
             
             f.name = frm_map["name"]
+            if "header" in frm_map:
+                f.header = frm_map["header"]
+            else:
+                f.header = ""
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
@@ -485,6 +489,8 @@ class Importer(object):
 
             f.registry = r
             f.sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+            if 'position' in frm_map:
+                f.position = frm_map['position']
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)

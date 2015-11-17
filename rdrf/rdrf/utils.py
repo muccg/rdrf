@@ -216,6 +216,7 @@ def make_index_map(index_actions_list):
 def is_gridfs_file_wrapper(value):
     return isinstance(value, dict) and "griffs_file_id" in value
 
+
 def create_permission(app_label, model, code_name, name):
     content_type = ContentType.objects.get(app_label=app_label, model=model)
     
@@ -224,3 +225,45 @@ def create_permission(app_label, model, code_name, name):
             Permission.objects.create(codename=code_name, name=name, content_type=content_type)
     except IntegrityError:
         pass
+
+
+def get_form_links(user, patient_id, registry_model):
+    if user is not None:
+        return [
+            FormLink(
+                patient_id,
+                registry_model,
+                form,
+                selected=(
+                    form.name == "")) for form in registry_model.forms
+            if not form.is_questionnaire and user.can_view(form)]
+    else:
+        return []
+
+
+def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
+    results = []
+    for form_model in registry_model.forms:
+        for section_model in form_model.section_models:
+            for cde_model in section_model.cde_models:
+                if cde_model.code == cde_model_to_find.code:
+                    results.append((form_model, section_model))
+    return results
+
+
+def consent_status_for_patient(registry_code, patient):
+    from registry.patients.models import ConsentValue
+    from models import ConsentSection, ConsentQuestion
+
+    consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+    answers = []
+    for consent_section in consent_sections:
+        if consent_section.applicable_to(patient):
+            questions = ConsentQuestion.objects.filter(section=consent_section)
+            for question in questions:
+                try:
+                    cv = ConsentValue.objects.get(patient=patient, consent_question = question)
+                    answers.append(cv.answer)
+                except ConsentValue.DoesNotExist:
+                    answers.append(False)
+    return all(answers)

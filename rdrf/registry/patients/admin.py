@@ -573,6 +573,12 @@ class ParentGuardianAdmin(admin.ModelAdmin):
 
     patients.allow_tags = True
 
+
+class ClinicianOtherAdmin(admin.ModelAdmin):
+    model = ClinicianOther
+    list_display = ('clinician_name', 'clinician_hospital', 'clinician_address')
+
+
 admin.site.register(Doctor, DoctorAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
@@ -580,5 +586,6 @@ admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
+admin.site.register(ClinicianOther, ClinicianOtherAdmin)
 
 admin.site.disable_action('delete_selected')

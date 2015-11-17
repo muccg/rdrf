@@ -69,6 +69,14 @@ DATABASES = {
     #     'HOST': "legacydb",
     #     'PORT': "5432",
     # }
+    "reporting": {
+        'ENGINE': env.get_db_engine("dbtype", "pgsql"),
+        'NAME': env.get("reportingdbname", "reporting"),
+        'USER': env.get("reportingdbuser", "reporting"),
+        'PASSWORD': env.get("reportingdbpassword", "reporting"),
+        'HOST': env.get("reportingdbserver", "reporting"),
+        'PORT': env.get("reportingdbport", "5432"),
+    }
 }
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
@@ -409,6 +417,14 @@ CUSTOM_PERMISSIONS = {
         )
     }
 }
+
+EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
+EMAIL_NOTE_NEW_PATIENT = "new-patient"
+
+EMAIL_NOTIFICATIONS = (
+    (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
+    (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
+)
 
 GRID_PATIENT_LISTING = [
     {

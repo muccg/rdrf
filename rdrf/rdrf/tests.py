@@ -10,6 +10,7 @@ from rdrf.models import RegistryForm
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
+from registry.groups.models import CustomUser
 from registry.patients.models import State, PatientAddress, AddressType
 from datetime import datetime
 from django.forms.models import model_to_dict
@@ -17,6 +18,7 @@ import yaml
 from django.contrib.auth import get_user_model
 from rdrf.utils import de_camelcase
 from rdrf.mongo_client import construct_mongo_client
+
 
 
 from django.conf import settings
@@ -221,14 +223,19 @@ class FormTestCase(RDRFTestCase):
         super(FormTestCase, self).setUp()
         self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
+        self.user = CustomUser.objects.get(username="curator")
+        self.user.registry = [self.registry]
+        self.user.save()
+
         self.state, created = State.objects.get_or_create(
             short_name="WA", name="Western Australia")
 
         self.state.save()
         self.create_sections()
-        self.create_forms()
         self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
+        self.create_forms()
+
 
         self.patient = self.create_patient()
 
@@ -276,6 +283,7 @@ class FormTestCase(RDRFTestCase):
         form.sections = ",".join([section.code for section in sections])
         form.is_questionnaire = is_questionnnaire
         form.save()
+        self.working_group
         return form
 
     def create_forms(self):
@@ -376,9 +384,6 @@ class FormTestCase(RDRFTestCase):
         assert form_value(self.simple_form.name, self.sectionB.code, "CDEWeight", mongo_record) == 88.23
 
 
-
-
-
 class LongitudinalTestCase(FormTestCase):
 
     def test_simple_form(self):
@@ -386,19 +391,12 @@ class LongitudinalTestCase(FormTestCase):
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
         collection = mongo_db["history"]
-        record = collection.find_one({"_id": self.patient.pk})
-        assert record is not None, "History should be filled in on save"
-        assert "snapshots" in record, "history records should have a snaphots list"
-        assert isinstance(record["snapshots"], list), "snapshots should be a list"
-        for snapshot_dict in record["snapshots"]:
-            assert isinstance(
-                snapshot_dict, dict), "Snapshot should be a dict: %s" % type(snapshot_dict)
-            assert "timestamp" in snapshot_dict, "snapshot dict should have  timestamp key"
-            assert isinstance(snapshot_dict["timestamp"], type(
-                u"")), "timestamp should be a string: got %s" % type(snapshot_dict["timestamp"])
-            assert "record" in snapshot_dict, "snapshot dict should have key record"
-        assert len(record["snapshots"]) == 1, "Length of snapshots should be 1 got : %s" % len(
-            record["snapshots"])
+        snapshots = [ s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
+        assert len(snapshots) > 0, "History should be filled in on save"
+        for snapshot in snapshots:
+            assert "record" in snapshot, "Each snapshot should have a record field"
+            assert "timestamp" in snapshot, "Each snapshot should have a timestamp field"
+            assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
 
 
 class DeCamelcaseTestCase(TestCase):
