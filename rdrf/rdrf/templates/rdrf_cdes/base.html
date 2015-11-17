@@ -77,9 +77,13 @@
                             {% endfor %}
                         {% endif %}
 
-                        {% for reg in request.user.get_registries_or_all %}
-                                <li><a href="{% url 'permission_matrix' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Permissions</a></li>
-                        {% endfor %}
+                        {% if request.user.is_superuser %}
+
+                            {% for reg in request.user.get_registries_or_all %}
+                                    <li><a href="{% url 'permission_matrix' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Permissions</a></li>
+                            {% endfor %}
+
+                        {% endif %}
 
                         {% for quick_link in request.user.quick_links %}
                             {% if not quick_link.admin_link %}
