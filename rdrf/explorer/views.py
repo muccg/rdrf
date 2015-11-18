@@ -159,19 +159,14 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 id=request.POST["working_group"])
 
         registry_model = query_model.registry
+
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query().result
-        mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-        munged = _filler(result, mongo_keys)
         humaniser = Humaniser(registry_model)
-        munged = MultisectionUnRoller()
-        logger.debug("number of unrolled rows = %s" % len(munged))
-
-        if not munged:
-            messages.add_message(request, messages.WARNING, "No results")
-            return redirect(reverse("explorer_query_download", args=(query_id,)))
-
-        return self._extract(registry_model, munged, query_model.title, query_id)
+        multisection_unrollower = MultisectionUnRoller({})
+        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        rtg.set_table_name(query_model)
+        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        return self._extract(query_model.title, rtg)
 
     def get(self, request, query_id):
         user = request.user
