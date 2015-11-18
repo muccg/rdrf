@@ -69,16 +69,51 @@ class DatabaseUtils(object):
 
     def dump_results_into_reportingdb(self, reporting_table_generator):
         logger.debug("*********** running query and dumping to temporary table *******")
-        reporting_table_generator.drop_table()
+        try:
+            reporting_table_generator.drop_table()
+        except Exception, ex:
+            logger.error("Report Error: dropping table: %s" % ex)
+            raise
+
         logger.debug("dropped temporary table")
-        self.cursor = self.create_cursor()
-        sql_metadata = self._get_sql_metadata(self.cursor)
+
+        try:
+            self.cursor = self.create_cursor()
+        except Exception, ex:
+            logger.error("Report Error: create cursor: %s" % ex)
+            raise
+
+        try:
+            sql_metadata = self._get_sql_metadata(self.cursor)
+        except Exception, ex:
+            logger.error("Report Error: getting sql metadata: %s" % ex)
+            raise
         logger.debug("sql metadata = %s" % sql_metadata)
-        mongo_metadata = self._get_mongo_metadata()
+
+        try:
+            mongo_metadata = self._get_mongo_metadata()
+        except Exception, ex:
+            logger.error("Report Error: getting mongo metadata: %s" % ex)
+            raise
         logger.debug("mongo metadata = %s" % mongo_metadata)
-        reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
-        reporting_table_generator.create_schema()
-        reporting_table_generator.run_explorer_query(self)
+
+        try:
+            reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
+        except Exception, ex:
+            logger.error("Report Error: creating columns: %s" % ex)
+            raise
+
+        try:
+            reporting_table_generator.create_schema()
+        except Exception, ex:
+            logger.error("Report Error: creating schema: %s" % ex)
+            raise
+
+        try:
+            reporting_table_generator.run_explorer_query(self)
+        except Exception, ex:
+            logger.error("Error running explorer query: %s" % ex)
+            raise
 
     def generate_results(self, reverse_column_map):
         logger.debug("generate_results ...")
@@ -90,7 +125,11 @@ class DatabaseUtils(object):
         history_collection = self.database["history"]
 
         logger.debug("retrieving mongo models for projection once off")
-        self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        if self.projection:
+            self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        else:
+            self.mongo_models = []
+
         logger.debug("iterating through sql cursor ...")
 
         if self.mongo_search_type == "C":
@@ -227,8 +266,12 @@ class DatabaseUtils(object):
         registry_model = Registry.objects.get(pk=self.registry_id)
         data = {"multisection_column_map": {}}
 
+        if not self.projection:
+            return data
+
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
+            logger.debug("projection cde_dict = %s" % cde_dict)
+            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=registry_model)
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
             forms_sections = forms_and_sections_containing_cde(registry_model, cde_model)
@@ -250,9 +293,13 @@ class DatabaseUtils(object):
         return data
 
     def _get_mongo_fields(self):
+        logger.debug("registry id = %s" % self.registry_id)
+
+        registry_model = Registry.objects.get(pk=self.registry_id)
+
         for cde_dict in self.projection:
             logger.debug("cde_dict = %s" % cde_dict)
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
+            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=registry_model)
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
 
