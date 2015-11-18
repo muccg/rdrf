@@ -123,11 +123,14 @@ class QueryView(LoginRequiredMixin, View):
             # populate temporary table
             from rdrf.reporting_table import ReportingTableGenerator
             humaniser = Humaniser(registry_model)
-            multisection_unrollower = MultisectionUnRoller({})
-            rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+            multisection_unroller = MultisectionUnRoller({})
+            rtg = ReportingTableGenerator(request.user, registry_model, multisection_unroller, humaniser)
             rtg.set_table_name(query_model)
-            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-            return HttpResponse("Temporary Table created")
+            try:
+                database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+                return HttpResponse("Temporary Table created")
+            except Exception, ex:
+                return HttpResponse("Report Error: %s" % ex)
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)
