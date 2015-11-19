@@ -233,11 +233,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
     from patient_registration.fkrp import FkrpRegistration
+    from patient_registration.ang import AngelmanRegistration
     
     reg_code = request.POST['registry_code']
 
     patient_reg = None    
     if reg_code == "fkrp":
-        patient_reg= FkrpRegistration(user, request)
+        patient_reg = FkrpRegistration(user, request)
+    elif reg_code == "ang":
+        patient_reg = AngelmanRegistration(user, request)
         
     patient_reg.process()
