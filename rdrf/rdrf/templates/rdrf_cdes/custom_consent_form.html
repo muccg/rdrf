@@ -246,21 +246,21 @@
                                                 <div class="form-group">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-2 control-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
+                                                    <div class="col-sm-10">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-2 control-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
+                                                    <div class="col-sm-10">
                                                 {% endif %}
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}
