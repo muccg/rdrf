@@ -22,12 +22,6 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
-<<<<<<< HEAD
-_OTHER_CLINICIAN = "clinician-other"
-_UNALLOCATED_GROUP = "Unallocated"
-
-=======
->>>>>>> 5361c6e... Refactored registration classes
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
