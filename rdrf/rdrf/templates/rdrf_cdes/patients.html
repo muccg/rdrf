@@ -16,28 +16,6 @@
                 $("#add_patient").hide();
             }
 
-             $("#add_patient").click(function() {
-                                        var registryCode = null;
-                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
-                                        try {
-                                            registryCode = $("#registry_select").val();
-                                            if (registryCode=="---") {
-                                                alert("Please select registry first");
-                                                return;
-                                             }
-
-                                            if (registryCode == undefined) {
-                                                registryCode = "{{registries.0.code}}";
-                                            }
-                                        }
-                                        catch(err) {
-                                            // one registry ?
-                                            registryCode = "{{registries.0.code}}";
-                                        }
-                                        var location = addPatientUrl.replace("xxx", registryCode);
-                                        window.location.replace(location);
-                                        });
-
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
             var patients_list = $("#patient_list_table").DataTable({
                 "ajax": {
@@ -58,7 +36,7 @@
             
             $("#registry_options").change(function() {
                 $("#loading_text").show();
-                var reg_code = $("#registry_options option:selected").attr("id");
+                var reg_code = $("#registry_options > option:selected").attr("id");
                 patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
             });
 
@@ -66,7 +44,7 @@
                 var registryCode = null;
                 var addPatientUrl = '{% url "patient_add" "xxx" %}';
                 try {
-                    registryCode = $("#registry_select").val();
+                    registryCode = $("#registry_options option:selected").attr('id');
                     if (registryCode=="---") {
                         alert("Please select registry first");
                         return;
