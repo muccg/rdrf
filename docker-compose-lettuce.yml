@@ -3,12 +3,12 @@ dataselenium:
   image: muccg/debian8-base
   volumes:
     - .:/app
-    - data/selenium:/data
+    - ./data/selenium:/data
 
 seleniumhub:
   image: selenium/hub
   ports:
-    - ":4444"
+    - "4444"
 
 chrome:
   image: selenium/node-chrome
@@ -28,7 +28,7 @@ dbselenium:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - ":5432"
+    - "5432"
 
 cacheselenium:
   image: memcached:1.4
@@ -49,7 +49,7 @@ webselenium:
   volumes_from:
     - dataselenium      
   ports:
-    - ":8000"
+    - "8000"
   links:
     - dbselenium:db
     - cacheselenium:cache

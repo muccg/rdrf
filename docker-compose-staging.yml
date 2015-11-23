@@ -2,7 +2,7 @@
 datastaging:
   image: muccg/debian8-base
   volumes:
-    - data:/data
+    - ./data:/data
 
 dbstaging:
   image: postgres:9.4
@@ -10,7 +10,7 @@ dbstaging:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - ":5432"
+    - "5432"
 
 cachestaging:
   image: memcached:1.4
