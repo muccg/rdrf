@@ -1,0 +1,25 @@
+#
+dataselenium:
+  image: muccg/debian8-base
+  volumes:
+    - .:/app
+    - ./data/selenium:/data
+
+webselenium:
+  build: .
+  command: runserver
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - dataselenium      
+  ports:
+    - "8000"
+  external_links:
+    - rdrf_dbselenium_1:db
+    - rdrf_cacheselenium_1:cache
+    - rdrf_mongoselenium_1:mongo
+    - rdrf_seleniumsmtp_1:smtp

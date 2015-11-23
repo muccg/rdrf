@@ -122,9 +122,13 @@ selenium() {
     . ${VIRTUALENV}/bin/activate
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml up -d
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
     set +x
 }
 
@@ -160,7 +164,6 @@ unit_tests() {
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
-
 
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up
 
