@@ -3,7 +3,7 @@ datatest:
   image: muccg/debian8-base
   volumes:
     - .:/app
-    - data/tests:/data
+    - ./data/tests:/data
 
 dbtest:
   image: postgres:9.4
@@ -11,7 +11,7 @@ dbtest:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - ":5432"
+    - "5432"
 
 cachetest:
   image: memcached:1.4
@@ -32,7 +32,7 @@ webtest:
   volumes_from:
     - datatest      
   ports:
-    - ":8000"
+    - "8000"
   links:
     - dbtest:db
     - cachetest:cache

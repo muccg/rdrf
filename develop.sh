@@ -9,11 +9,12 @@ set -e
 ACTION="$1"
 
 DATE=`date +%Y.%m.%d`
-PROJECT_NAME='rdrf'
+: ${PROJECT_NAME:='rdrf'}
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 : ${DOCKER_BUILD_OPTIONS:="--pull=true"}
+: ${DOCKER_COMPOSE_BUILD_OPTIONS:="--pull"}
 
 
 usage() {
@@ -23,9 +24,11 @@ usage() {
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 ci_ssh_agent() {
-    ssh-agent > /tmp/agent.env.sh
-    . /tmp/agent.env.sh
-    ssh-add ~/.ssh/ccg-syd-staging-2014.pem
+    if [ -z ${CI_SSH_KEY+x} ]; then
+        ssh-agent > /tmp/agent.env.sh
+        . /tmp/agent.env.sh
+        ssh-add ${CI_SSH_KEY}
+    fi
 }
 
 
@@ -72,27 +75,27 @@ rpmbuild() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-rpmbuild.yml up
+    set -x
+    docker-compose ${DOCKER_COMPOSE_OPTIONS} --project-name ${PROJECT_NAME} -f docker-compose-rpmbuild.yml up
+    set +x
 }
 
 
 rpm_publish() {
-    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/rdrf*.rpm,release=6
+    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/${PROJECT_NAME}*.rpm,release=6
 }
 
 
 ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/docker/unstable'
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} drun:'chmod o+w rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,rdrf/fig-staging.yml
-    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,rdrf/docker/unstable/Dockerfile
+    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} drun:"chmod o+w ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker-compose-staging.yml,${PROJECT_NAME}/docker-compose-staging.yml
 
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml stop'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml kill'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml stop"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml kill"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml rm --force -v"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS} webstaging"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml up -d"
     ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
 }
 
@@ -103,9 +106,11 @@ lettuce() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-lettuce.yml rm --force
-    docker-compose --project-name rdrf -f fig-lettuce.yml build
-    docker-compose --project-name rdrf -f fig-lettuce.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    set +x
 }
 
 selenium() {
@@ -116,9 +121,11 @@ selenium() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-selenium.yml rm --force
-    docker-compose --project-name rdrf -f fig-selenium.yml build
-    docker-compose --project-name rdrf -f fig-selenium.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up
+    set +x
 }
 
 registry_specific_tests() {
@@ -135,7 +142,10 @@ start() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} up
+    set +x
 }
 
 
@@ -146,9 +156,11 @@ unit_tests() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-test.yml rm --force
-    docker-compose --project-name rdrf -f fig-test.yml build
-    docker-compose --project-name rdrf -f fig-test.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml up
+    set +x
 }
 
 
