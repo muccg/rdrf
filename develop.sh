@@ -35,7 +35,6 @@ ci_ssh_agent() {
 # docker build and push in CI
 dockerbuild() {
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     image="muccg/${PROJECT_NAME}"
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
@@ -73,7 +72,6 @@ rpmbuild() {
     chmod o+rwx data/rpmbuild
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     set -x
     docker-compose ${DOCKER_COMPOSE_OPTIONS} --project-name ${PROJECT_NAME} -f docker-compose-rpmbuild.yml up
@@ -104,7 +102,6 @@ lettuce() {
     chmod o+rwx data/selenium
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
@@ -119,7 +116,6 @@ selenium() {
     find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml rm --force
@@ -144,7 +140,6 @@ start() {
     chmod o+rwx data/dev
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} build ${DOCKER_COMPOSE_BUILD_OPTIONS}
@@ -158,7 +153,6 @@ unit_tests() {
     chmod o+rwx data/tests
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
@@ -177,8 +171,10 @@ make_virtualenv() {
     if [ ! -e ${VIRTUALENV} ]; then
         virtualenv ${VIRTUALENV}
     fi
+    . ${VIRTUALENV}/bin/activate
 
     pip install 'docker-compose<=1.6' --upgrade || true
+    docker-compose --version
 }
 
 
