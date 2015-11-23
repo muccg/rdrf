@@ -12,6 +12,8 @@
         $(document).ready(function() {
             $.fn.dataTable.ext.errMode = 'throw';
 
+
+
             if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
                 $("#add_patient").hide();
             }
@@ -83,6 +85,36 @@
                     window.location.replace(location);
             });
         });
+
+
+
+        function contextRows ( d ) {
+            // `d` is the original data object for the row
+            var contextRowTemplate = _.template("<tr><td><%= contextName %></td></tr>");
+            var contextTableTemplate = _.template('<table ><%= rows %></table>');
+
+            var rows = contextRowTemplate({contextName: "test"});
+            return contextTableTemplate({rows: rows});
+        }
+
+
+
+        // Add event listener for opening and closing details
+        $('#patient_list_table tbody').on('click', 'td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var row = patients_list.row( tr );
+
+            if ( row.child.isShown() ) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                row.child( contextRows(row.data())).show();
+                tr.addClass('shown');
+            }
+        } );
         
     </script>
 {% endblock %}
@@ -116,6 +148,7 @@
     <table id="patient_list_table" class="table table-striped table-hover">
         <thead>
             <tr>
+
                 {% for column in columns %}
                     <th>{{ column.label|safe }}</th>
                 {% endfor %}
