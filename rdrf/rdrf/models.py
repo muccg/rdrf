@@ -11,6 +11,8 @@ from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 logger = logging.getLogger("registry_log")
 
@@ -1644,3 +1646,28 @@ class EmailNotificationHistory(models.Model):
     language = models.CharField(max_length=10)
     email_notification = models.ForeignKey(EmailNotification)
     template_data = models.TextField(null=True, blank=True)
+
+
+class RDRFContextError(Exception):
+    pass
+
+
+class RDRFContext(models.Model):
+    registry = models.ForeignKey(Registry)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    display_name = models.CharField(max_length=80, blank=True, null=True)
+
+    def __unicode__(self):
+        return "%s %s" % (self.display_name, self.created_at)
+
+    def clean(self):
+        if not self.display_name:
+            raise ValidationError("RDRF Context must have a display name")
+        self.display_name = self.display_name.strip()
+
+        if len(self.display_name) == 0:
+            raise ValidationError("RDRF Context must have a display name")
