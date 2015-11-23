@@ -157,9 +157,14 @@ unit_tests() {
     . ${VIRTUALENV}/bin/activate
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml up
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
+
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
     set +x
 }
 
