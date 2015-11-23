@@ -23,9 +23,11 @@ from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
+from rdrf.models import RDRFContext
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import get_form_links, consent_status_for_patient
+from rdrf.utils import location_name
 
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
@@ -133,6 +135,7 @@ class FormView(View):
         self.form_id = None
         self.patient_id = None
         self.user = None
+        self.rdrf_context = None
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -148,26 +151,57 @@ class FormView(View):
             model_class = kwargs['model_class']
         else:
             model_class = Patient
+
+        if 'rdrf_context_id' in kwargs:
+            rdrf_context_id = kwargs['rdrf_context_id']
+        else:
+            rdrf_context_id = None
+            
         obj = model_class.objects.get(pk=kwargs['id'])
-        dyn_obj = DynamicDataWrapper(obj)
+        dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
         if self.testing:
             dyn_obj.testing = True
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
+
+    def set_rdrf_context(self, request):
+        if "rdrf_context_id" in request.session:
+            try:
+                self.rdrf_context = RDRFContext.objects.get(pk=int(request.session["rdrf_context_id"]))
+                logger.debug("set rdrf context on form view to RDRFContext model %s" % self.rdrf_context.pk)
+            except RDRFContext.DoesNotExist:
+                logger.error("error determining rdrf context for user %s rdrf context id %s does not exist" %
+                             (request.user, request.session["rdrf_context_id"]))
+
+                logger.debug("setting it to None on view")
+                self.rdrf_context = None
+        else:
+            logger.debug("no rdrf context in session so setting it on view to None")
+            self.rdrf_context = None
+
 
     @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
+        self.set_rdrf_context(request)
+
+        if self.rdrf_context is not None:
+            rdrf_context_id = self.rdrf_context.pk
+        else:
+            rdrf_context_id = None
+
         self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
         self.registry = self._get_registry(registry_code)
-        self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
+        self.dynamic_data = self._get_dynamic_data(id=patient_id,
+                                                   registry_code=registry_code,
+                                                   rdrf_context_id=rdrf_context_id)
         self.registry_form = self.get_registry_form(form_id)
         context = self._build_context(user=request.user)
-        context["location"] = location_name(self.registry_form)
+        context["location"] = location_name(self.registry_form, self.rdrf_context)
         context["header"] = self.registry_form.header
         context["show_print_button"] = True
 
@@ -207,9 +241,16 @@ class FormView(View):
             raise PermissionDenied()
 
         self.user = request.user
+
+        self.set_rdrf_context(request)
+
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
-        dyn_patient = DynamicDataWrapper(patient)
+        if self.rdrf_context:
+            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        else:
+            dyn_patient = DynamicDataWrapper(patient)
+
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
@@ -362,7 +403,7 @@ class FormView(View):
             "form_links": self._get_formlinks(request.user),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator,
-            "location": location_name(self.registry_form),
+            "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
         }

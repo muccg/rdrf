@@ -152,8 +152,17 @@ def get_site_url(request, path="/"):
     return request.build_absolute_uri(path)
 
 
-def location_name(registry_form):
-    return de_camelcase(registry_form.name)
+def location_name(registry_form, current_rdrf_context_model=None):
+    form_display_name = de_camelcase(registry_form.name)
+    if registry_form.registry.has_feature("contexts"):
+            if current_rdrf_context_model is not None:
+                s = "%s (%s)" % (form_display_name, current_rdrf_context_model)
+            else:
+                s = form_display_name
+    else:
+        s = form_display_name
+    logger.debug("location_name = %s" % s)
+    return s
 
 
 def cached(func):
