@@ -506,7 +506,8 @@ class DynamicDataWrapper(object):
             self,
             obj,
             client=construct_mongo_client(),
-            filestore_class=gridfs.GridFS):
+            filestore_class=gridfs.GridFS,
+            rdrf_context_id=None):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False
         self.obj = obj
@@ -517,6 +518,7 @@ class DynamicDataWrapper(object):
         self.file_store_class = filestore_class
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
+        self.rdrf_context_id = rdrf_context_id
 
         # holds reference to the complete data record for this object
         self.patient_record = None
@@ -528,7 +530,8 @@ class DynamicDataWrapper(object):
         django_model = self.obj.__class__.__name__
         django_id = self.obj.pk
         return {"django_model": django_model,
-                "django_id": django_id}
+                "django_id": django_id,
+                "rdrf_context_id": self.rdrf_context_id}
 
     def _get_collection(self, registry, collection_name, add_mongo_prefix=True):
         if not self.testing:
