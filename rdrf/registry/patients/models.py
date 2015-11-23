@@ -28,9 +28,6 @@ logger = logging.getLogger('registry_log')
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
-_MONGO_PATIENT_DATABASE = 'patients'
-_MONGO_PATIENT_COLLECTION = 'patient'
-
 _6MONTHS_IN_DAYS = 183
 
 
@@ -851,53 +848,10 @@ def delete_created_patient(sender, instance, **kwargs):
     if instance.relative_patient:
         instance.relative_patient.delete()
 
-@receiver(post_save, sender=Patient)
-def save_patient_mongo(sender, instance, **kwargs):
-    patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
-    _save_patient_mongo(patient_obj)
-
 
 @receiver(post_save, sender=Patient)
 def clean_consents(sender, instance, **kwargs):
     instance.clean_consents()
-
-
-def _save_patient_mongo(patient_obj):
-    client = construct_mongo_client()
-    patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
-    patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
-
-    json_str = serializers.serialize("json", [patient_obj])
-    json_obj = json.loads(json_str)
-
-    mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
-
-    if mongo_doc:
-        _update_mongo_obj(mongo_doc, json_obj[0]['fields'])
-        patient_coll.save(mongo_doc)
-    else:
-        json_obj[0]['fields']['django_id'] = json_obj[0]['pk']
-        json_obj[0]['fields']['rdrf_registry'] = _get_registry_for_mongo(
-            patient_obj.rdrf_registry.all())
-        patient_coll.save(json_obj[0]['fields'])
-
-
-def _update_mongo_obj(mongo_doc, patient_model):
-    keys_to_delete = []
-    for key, value in mongo_doc.iteritems():
-        if key in ['rdrf_registry', ]:
-            mongo_doc[key] = _get_registry_for_mongo(patient_model[key])
-        if key not in ['django_id', '_id', 'rdrf_registry']:
-            if key in patient_model:
-                logger.info(
-                    "key %s is not present in patient_model and will be deleted from the mongo doc ..." %
-                    key)
-                mongo_doc[key] = patient_model[key]
-            else:
-                keys_to_delete.append(key)
-
-    for key in keys_to_delete:
-        del mongo_doc[key]
 
 
 def _get_registry_for_mongo(regs):
