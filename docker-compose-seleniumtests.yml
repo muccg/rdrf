@@ -5,21 +5,21 @@ dataselenium:
     - .:/app
     - ./data/selenium:/data
 
-webselenium:
-  build: .
-  command: runserver
+# runs the selenium tests against the stack above
+seleniumtesthost:
+  image: rdrf_webselenium
+  command: selenium
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_WEB=1
     - WAIT_FOR_MONGO=1
   volumes_from:
     - dataselenium      
-  ports:
-    - "8000"
   external_links:
     - rdrf_dbselenium_1:db
-    - rdrf_cacheselenium_1:cache
+    - rdrf_webselenium_1:web
     - rdrf_mongoselenium_1:mongo
-    - rdrf_seleniumsmtp_1:smtp
+    - rdrf_seleniumhub_1:hub
+    - rdrf_reportingselenium_1:reporting
