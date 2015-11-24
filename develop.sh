@@ -10,9 +10,12 @@ set -x
 ACTION="$1"
 
 DATE=`date +%Y.%m.%d`
-PROJECT_NAME='rdrf'
+: ${PROJECT_NAME:='rdrf'}
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
+
+: ${DOCKER_BUILD_OPTIONS:="--pull=true"}
+: ${DOCKER_COMPOSE_BUILD_OPTIONS:="--pull"}
 
 
 usage() {
@@ -22,42 +25,46 @@ usage() {
 
 # ssh setup, make sure our ccg commands can run in an automated environment
 ci_ssh_agent() {
-    ssh-agent > /tmp/agent.env.sh
-    . /tmp/agent.env.sh
-    ssh-add ~/.ssh/ccg-syd-staging-2014.pem
+    if [ -z ${CI_SSH_KEY+x} ]; then
+        ssh-agent > /tmp/agent.env.sh
+        . /tmp/agent.env.sh
+        ssh-add ${CI_SSH_KEY}
+    fi
 }
 
 
 # docker build and push in CI
 dockerbuild() {
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
     image="muccg/${PROJECT_NAME}"
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
-    template="$(cat docker/Dockerfile.in)"
+    gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
 
-    # log the Dockerfile
-    echo "########################################"
-    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in
-    echo "########################################"
+    # only use tags when on master (release) branch
+    if [ $gitbranch != "master" ]; then
+        echo "Ignoring tags, not on master branch"
+        gittag=$gitbranch
+    fi
+
+    # if no git tag, then use branch name
+    if [ -z ${gittag+x} ]; then
+        echo "No git tag set, using branch name"
+        gittag=$gitbranch
+    fi
+
+    echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
     docker pull ${image} || true
 
-    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build --pull=true -t ${image} -
-    sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build -t ${image}:${DATE} -
-
-    if [ -z ${gittag+x} ]; then
-        echo "No git tag set"
-    else
-        echo "Git tag ${gittag}"
-        sed -e "s/GITTAG/${gittag}/g" docker/Dockerfile.in | docker build -t ${image}:${gittag} -
-        docker push ${image}:${gittag}
-    fi
-
-    docker push ${image}
-    docker push ${image}:${DATE}
+    for tag in "${image}:${gittag}" "${image}:${gittag}-${DATE}"; do
+        echo "############################################################# ${PROJECT_NAME} ${tag}"
+        set -x
+        docker build ${DOCKER_BUILD_OPTIONS} --build-arg GIT_TAG=${gittag} -t ${tag} -f Dockerfile-release .
+        docker push ${tag}
+        set +x
+    done
 }
 
 
@@ -66,29 +73,28 @@ rpmbuild() {
     chmod o+rwx data/rpmbuild
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-rpmbuild.yml up
+    set -x
+    docker-compose ${DOCKER_COMPOSE_OPTIONS} --project-name ${PROJECT_NAME} -f docker-compose-rpmbuild.yml up
+    set +x
 }
 
 
 rpm_publish() {
-    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/rdrf*.rpm,release=6
+    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/${PROJECT_NAME}*.rpm,release=6
 }
 
 
 ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/docker/unstable'
-    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} drun:'chmod o+w rdrf/data'
-    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,rdrf/fig-staging.yml
-    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,rdrf/docker/unstable/Dockerfile
+    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} drun:"chmod o+w ${PROJECT_NAME}/data"
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker-compose-staging.yml,${PROJECT_NAME}/docker-compose-staging.yml
 
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml stop'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml kill'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml rm --force -v'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml build --no-cache webstaging'
-    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && fig -f fig-staging.yml up -d'
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml stop"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml kill"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml rm --force -v"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS} webstaging"
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml up -d"
     ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
 }
 
@@ -97,11 +103,12 @@ lettuce() {
     chmod o+rwx data/selenium
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-lettuce.yml rm --force
-    docker-compose --project-name rdrf -f fig-lettuce.yml build
-    docker-compose --project-name rdrf -f fig-lettuce.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    set +x
 }
 
 selenium() {
@@ -110,11 +117,16 @@ selenium() {
     find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-selenium.yml rm --force
-    docker-compose --project-name rdrf -f fig-selenium.yml build
-    docker-compose --project-name rdrf -f fig-selenium.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml up -d
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
+    set +x
 }
 
 registry_specific_tests() {
@@ -129,9 +141,11 @@ start() {
     chmod o+rwx data/dev
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} up
+    set +x
 }
 
 
@@ -140,11 +154,16 @@ unit_tests() {
     chmod o+rwx data/tests
 
     make_virtualenv
-    . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-test.yml rm --force
-    docker-compose --project-name rdrf -f fig-test.yml build
-    docker-compose --project-name rdrf -f fig-test.yml up
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
+    set +x
 }
 
 
@@ -153,12 +172,11 @@ make_virtualenv() {
     if [ ! -e ${VIRTUALENV} ]; then
         virtualenv ${VIRTUALENV}
     fi
+    . ${VIRTUALENV}/bin/activate
 
-    # docker-compose is hanging on "Attaching to" forever on Bambo instances
-    # The issue might be:
-    # https://github.com/docker/compose/issues/1961
-    # Until it is solved we use the previous stable version of docker-compose
-    pip install docker-compose==1.3.3 --upgrade || true
+    pip install functools32 -- upgrade || true
+    pip install 'docker-compose<=1.6' --upgrade || true
+    docker-compose --version
 }
 
 

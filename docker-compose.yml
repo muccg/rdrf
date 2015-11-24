@@ -11,7 +11,7 @@ data:
     image: muccg/debian8-base
     volumes:
       - .:/app
-      - data/dev:/data
+      - ./data/dev:/data
 
 smtp:
   image: muccg/postfix:latest
@@ -22,7 +22,7 @@ db:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - ":5432"
+    - "5432"
 
 reporting:
   image: muccg/postgres-ssl:9.4

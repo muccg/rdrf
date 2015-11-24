@@ -1,0 +1,42 @@
+# data only container pattern
+datastaging:
+  image: muccg/debian8-base
+  volumes:
+    - ./data:/data
+
+dbstaging:
+  image: postgres:9.4
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - "5432"
+
+cachestaging:
+  image: memcached:1.4
+
+mongostaging:
+  image: mongo:3.0
+  command: mongod --smallfiles
+
+webstaging:
+  build: docker/unstable
+  command: uwsgi
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBSERVER=dbstaging
+    - DBUSER=rdrfapp
+    - CACHESERVER=cachestaging
+    - MONGOSERVER=mongostaging
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - datastaging
+  ports:
+    - "9300:9100"
+    - "9301:9101"
+  links:
+    - dbstaging
+    - cachestaging
+    - mongostaging
