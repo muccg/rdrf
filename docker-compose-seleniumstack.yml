@@ -3,12 +3,15 @@ dataselenium:
   image: muccg/debian8-base
   volumes:
     - .:/app
-    - data/selenium:/data
+    - ./data/selenium:/data
 
+seleniumsmtp:
+  image: muccg/postfix:latest
+    
 seleniumhub:
   image: selenium/hub
   ports:
-    - ":4444"
+    - "4444"
 
 chrome:
   image: selenium/node-chrome
@@ -22,13 +25,21 @@ firefox:
   - seleniumhub:hub
   - webselenium:web
 
+reportingselenium:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=reporting
+    - POSTGRES_PASSWORD=reporting
+  ports:
+    - "15635:5432"
+
 dbselenium:
   image: postgres:9.4
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
   ports:
-    - ":5432"
+    - "5432"
 
 cacheselenium:
   image: memcached:1.4
@@ -49,26 +60,9 @@ webselenium:
   volumes_from:
     - dataselenium      
   ports:
-    - ":8000"
+    - "8000"
   links:
     - dbselenium:db
     - cacheselenium:cache
     - mongoselenium:mongo
-
-# runs the lettuce tests against the stack above
-lettucehost:
-  image: rdrf_webselenium
-  command: lettuce
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_WEB=1
-    - WAIT_FOR_MONGO=1
-  volumes_from:
-    - dataselenium      
-  links:
-    - dbselenium:db
-    - webselenium:web
-    - mongoselenium:mongo
-    - seleniumhub:hub
+    - seleniumsmtp:smtp

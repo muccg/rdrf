@@ -3,7 +3,7 @@ datarpmbuild:
   image: muccg/debian8-base
   volumes:
     - .:/app
-    - data/rpmbuild:/data
+    - ./data/rpmbuild:/data
 
 rpmbuild:
   image: muccg/rpmbuild:centos6
