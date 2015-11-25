@@ -126,6 +126,18 @@
     {{form.errors}}
     <br>
     <div class="container">
+        <br>
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {% for field in form %}
+                {% if field.errors %}
+                    <p><strong>{{field.label}}</strong> - {{ field.errors|striptags }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="alert alert-info">
             <strong>Angelman Registry - Parent Registration</strong>
         </div>
