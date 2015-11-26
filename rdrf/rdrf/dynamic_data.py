@@ -526,12 +526,16 @@ class DynamicDataWrapper(object):
     def __unicode__(self):
         return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
 
-    def _get_record_query(self):
+    def _get_record_query(self, filter_by_context=True):
         django_model = self.obj.__class__.__name__
         django_id = self.obj.pk
-        return {"django_model": django_model,
-                "django_id": django_id,
-                "rdrf_context_id": self.rdrf_context_id}
+        if filter_by_context:
+            return {"django_model": django_model,
+                    "django_id": django_id,
+                    "rdrf_context_id": self.rdrf_context_id}
+        else:
+            return {"django_model": django_model,
+                    "django_id": django_id}
 
     def _get_collection(self, registry, collection_name, add_mongo_prefix=True):
         if not self.testing:
@@ -601,6 +605,37 @@ class DynamicDataWrapper(object):
             return flattened_data
         else:
             return nested_data
+
+    def load_contexts(self, registry_model):
+        logger.debug("registry model = %s" % registry_model)
+        if not registry_model.has_feature("contexts"):
+            raise Exception("Registry %s does not support use of contexts" % registry_model.code)
+
+        logger.debug("registry supports contexts so retreiving")
+        from rdrf.models import RDRFContext
+        django_model = self.obj.__class__.__name__
+        mongo_query = {"django_id": self.django_id,
+                       "django_model": django_model }
+        logger.debug("query = %s" % mongo_query)
+
+        projection = {"rdrf_context_id": 1, "_id": 0}
+
+        logger.debug("projection = %s" % projection)
+
+        cdes_collection = self._get_collection(registry_model.code, "cdes")
+
+        context_ids = [d["rdrf_context_id"] for d in cdes_collection.find(mongo_query, projection)]
+        logger.debug("context_ids = %s" % context_ids)
+        rdrf_context_models = []
+        for context_id in context_ids:
+            try:
+                rdrf_context_model = RDRFContext.objects.get(pk=int(context_id))
+                rdrf_context_models.append(rdrf_context_model)
+            except RDRFContext.DoesNotExist:
+                logger.error("Context %s for %s %s does not exist?" % (context_id, django_model, self.obj.pk))
+
+        logger.debug("contexts = %s" % rdrf_context_models)
+        return rdrf_context_models
 
     def load_registry_specific_data(self, registry_model=None):
         data = {}
