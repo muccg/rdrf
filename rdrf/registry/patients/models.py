@@ -664,6 +664,18 @@ class Patient(models.Model):
             date_of_birth=str(self.date_of_birth)
         )
 
+    @property
+    def context_models(self):
+        from django.contrib.contenttypes.models import ContentType
+        from rdrf.models import RDRFContext
+        contexts = []
+        content_type = ContentType.objects.get_for_model(self)
+
+        for context_model in RDRFContext.objects.filter(content_type=content_type,
+                                                        object_id=self.pk).order_by("created_at"):
+            contexts.append(context_model)
+        return contexts
+
 
 class ClinicianOther(models.Model):
     patient = models.ForeignKey(Patient, null=True)
