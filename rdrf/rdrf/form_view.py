@@ -1874,7 +1874,7 @@ class PatientsListingView(LoginRequiredMixin, View):
             context_instance=RequestContext(request))
 
 
-class ContextListingView(LoginRequiredMixin, View):
+class ContextsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
         if request.user.is_patient:
