@@ -1,6 +1,6 @@
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-from rdrf.models import Registry, RegistryForm
+from rdrf.models import Registry, RegistryForm, RDRFContext
 from rdrf.utils import de_camelcase
 
 from django.conf.urls import url
@@ -381,3 +381,100 @@ class PatientResource(ModelResource):
                     return sort_field, sort_direction
 
         return None, None
+
+
+class ContextResource(ModelResource):
+
+    class Meta:
+        queryset = RDRFContext.objects.all()
+        serializer = UrlEncodeSerializer()
+        authorization = DjangoAuthorization()
+
+    def dehydrate(self, bundle):
+        id = int(bundle.data['id'])
+        p = Patient.objects.get(id=id)
+        registry_code = bundle.request.GET.get("registry_code", "")
+
+        bundle.data["working_groups_display"] = p.working_groups_display
+        bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
+        if bundle.request.user.is_superuser:
+            bundle.data["reg_code"] = [reg.code for reg in Registry.objects.all()]
+        else:
+            bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
+
+        if registry_code:
+            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+        else:
+            # calls from calculated field plugin don't pass a registry code
+            bundle.data["full_name"] = p.display_name
+
+        finish = time.time()
+        elapsed = finish - start
+        logger.debug("dehydrate took %s" % elapsed)
+
+        # bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
+        # bundle.data["diagnosis_currency"] = p.clinical_data_currency()
+
+        return bundle
+
+    def _get_reg_list(self, patient, user):
+        if user.is_superuser:
+            return patient.get_reg_list()
+        regs = []
+        for patient_registry in patient.rdrf_registry.all():
+            if patient_registry in user.registry.all():
+                regs.append(patient_registry.name)
+        return ", ".join(regs)
+
+    # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
+    def prepend_urls(self):
+        return [url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name,
+                                                           trailing_slash()),
+                    self.wrap_view('get_search'),
+                    name="api_get_search"),
+                ]
+
+    def get_search(self, request, **kwargs):
+        from django.db.models import Q
+        from rdrf.context_browser import ContextBrowser
+        self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        registry_code = request.GET.get("registry_code", None)
+        row_count = int(request.GET.get('rowCount', 20))
+        search_phrase = request.GET.get("searchPhrase", None)
+        current = int(request.GET.get("current", 1))
+        sort_field, sort_direction = self._get_sorting(request)
+
+        if registry_code is None:
+            return self.create_response(request, {})
+
+        registry_model = Registry.objects.get(code=registry_code)
+        user = request.user
+        query = {"row_count": row_count,
+                 "search_phrase": search_phrase,
+                 "current": current,
+                 "sort_field": sort_field,
+                 "sort_direction": sort_direction}
+
+        context_browser = ContextBrowser(user, registry_model)
+        results = context_browser.run_query(query)
+        self.log_throttled_access(request)
+        return self.create_response(request, results)
+
+    def _get_sorting(self, request):
+        # boot grid uses this convention
+        # sort[given_names]': [u'desc']
+        for k in request.GET:
+            if k.startswith("sort["):
+                import re
+                pattern = re.compile(r'^sort\[(.*?)\]$')
+                m = pattern.match(k)
+                if m:
+                    sort_field = m.groups(1)[0]
+                    sort_direction = request.GET.get(k)
+                    return sort_field, sort_direction
+
+        return None, None
+
