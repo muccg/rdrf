@@ -82,6 +82,10 @@ urlpatterns = patterns('',
 
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
+
+                        url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
+                           name="contextslisting"),
+
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
                        url(r'^login/?$', 'django.contrib.auth.views.login',
