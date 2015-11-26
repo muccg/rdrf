@@ -19,13 +19,13 @@
             $("#add_patient").hide();
         }
 
-        var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-        var patients_list = $("#context_list_table").DataTable({
+        var api_url = "{% url 'api_get_search' 'v1' 'context'  %}";
+        var contexts_list = $("#context_list_table").DataTable({
             "ajax": {
                 "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
                 "dataSrc": "rows",
             },
-            "columns": allColumns,
+            "columns": columns,
         }).on("draw", function () {
             $("#loading_text").hide();
             $('button[data-toggle=popover]').popover({
@@ -40,7 +40,7 @@
         $("#registry_options").change(function () {
             $("#loading_text").show();
             var reg_code = $("#registry_options > option:selected").attr("id");
-            patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+            contexts_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
         });
 
         $("#add_patient").click(function () {
@@ -85,7 +85,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Contexts List</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
@@ -94,7 +94,7 @@
 
     <div class="clearfix">
         <button id="add_patient" class="btn btn-success pull-right">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Patient
         </button>
     </div>
 
@@ -110,8 +110,6 @@
     <table id="context_list_table" class="table table-striped table-hover">
         <thead>
             <tr>
-
-                <th>Contexts</th>
                 {% for column in columns %}
                     <th>{{ column.label|safe }}</th>
                 {% endfor %}
