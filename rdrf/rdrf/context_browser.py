@@ -3,6 +3,9 @@ from rdrf.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from operator import itemgetter
+from django.core.paginator import Paginator
+from django.core.urlresolvers import reverse
+from rdrf.context_menu import PatientContextMenu
 
 
 class ContextBrowserError(Exception):
@@ -13,10 +16,24 @@ class ContextBrowser(object):
     def __init__(self, user, registry_model):
         self.user = user
         self.registry_model = registry_model
-        self.query = {}
         self.grid_config = self._get_grid_config()
-
         self.columns = self._get_columns()
+        self.search_phrase = None
+        self.current = None
+        self.row_count = 0
+        self.objects = []
+        self.total = 0
+
+    def _create_results(self, objects, total):
+        results = {
+            "current": self.current,
+            "rowCount": self.row_count,
+            "searchPhrase": self.search_phrase,
+            "rows": objects,
+            "total": total,
+            "show_add_patient": not self.registry_model.has_feature("no_add_patient_button")
+        }
+        return results
 
     def _get_grid_config(self):
         from django.conf import settings
@@ -40,10 +57,25 @@ class ContextBrowser(object):
 
         return columns
 
-    def run_query(self, query):
-        self.query = query
-        patients = self._get_queryset(query)
-        return self._get_rows(patients)
+    def do_search(self, search_phrase, row_count, current):
+        self.search_phrase = search_phrase
+        self.row_count = row_count
+        self.current = current
+        patient_query_set = self._get_patient_queryset()
+
+        total = patient_query_set.count()
+
+        if total == 0:
+            return self._create_results([], 0)
+
+        if self.row_count == -1:
+            # all rows
+            self.row_count = total
+
+        rows = self._get_rows(patient_query_set)
+
+        return self._create_results(rows, len(rows))
+
 
     def foo(self):
         # TODO fix up this - just moved it from the ContextResource
@@ -109,30 +141,35 @@ class ContextBrowser(object):
             "show_add_patient": not chosen_registry.has_feature("no_add_patient_button"),
         }
 
-    def _get_queryset(self, query):
-        patients = Patient.objects.filter(rdrf_registry__in=[self.registry_model])
+    def _get_patient_queryset(self):
+        patients_queryset = Patient.objects.filter(rdrf_registry__in=[self.registry_model])
         if not self.user.is_superuser:
             if self.user.is_curator:
-                patients.filter(working_groups__in=self.user.working_groups.all())
+                patients_queryset.filter(working_groups__in=self.user.working_groups.all())
             elif self.user.is_genetic_staff:
-                patients = patients.filter(working_groups__in=self.user.working_groups.all())
+                patients_queryset = patients_queryset.filter(working_groups__in=self.user.working_groups.all())
             elif self.user.is_genetic_curator:
-                patients = patients.filter(working_groups__in=self.user.working_groups.all())
+                patients_queryset = patients_queryset.filter(working_groups__in=self.user.working_groups.all())
             elif self.user.is_working_group_staff:
-                patients = patients.filter(working_groups__in=self.user.working_groups.all())
+                patients_queryset = patients_queryset.filter(working_groups__in=self.user.working_groups.all())
             elif self.user.is_clinician and clinicians_have_patients:
-                patients = patients.filter(clinician=self.user)
+                patients_queryset = patients_queryset.filter(clinician=self.user)
             elif self.user.is_clinician and not clinicians_have_patients:
-                patients = patients.filter(working_groups__in=self.user.working_groups.all())
+                patients_queryset = patients_queryset.filter(working_groups__in=self.user.working_groups.all())
             elif request.user.is_patient:
-                patients = patients.filter(user=self.user)
+                patients_queryset = patients_queryset.filter(user=self.user)
             else:
-                patients = patients.none()
+                patients_queryset = patients_queryset.none()
 
-        return patients
+        if self.search_phrase:
+            patients_queryset = patients_queryset.filter(Q(given_names__icontains=self.search_phrase) |
+                                        Q(family_name__icontains=self.search_phrase))
+
+        return patients_queryset
 
     def _get_rows(self, patients):
         rows = []
+
         for patient in patients:
             context_models = patient.context_models
             if len(context_models) == 0:
@@ -143,27 +180,35 @@ class ContextBrowser(object):
         return rows
 
     def _get_row(self, patient_model, context_model=None):
-        row = []
+        row = {}
         for column in self.columns:
             field = column["data"]
             label = column["label"]
             model = column["model"]
             if model == "Patient":
                 if hasattr(patient_model, field):
-                    value = getattr(patient_model, field)
+                    value = str(getattr(patient_model, field))
                 else:
                     value = None
 
             elif model == "RDRFContext":
                 if context_model is not None:
-                    value = getattr(context_model, field)
+                    value = str(getattr(context_model, field))
                 else:
                     value = None
-            else:
-                raise Exception("Unknown model: %s" % model)
+            elif model == "func":
+                func_name = "get_%s" % field
+                if hasattr(self, func_name):
+                    func = getattr(self, func_name)
+                    value = func(patient_model, context_model)
 
-            row.append((model, field, label, value))
+            row[field] = value
         return row
+
+    def get_context_menu(self, patient_model, context_model):
+        registry_code = self.registry_model.code
+        context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
+        return context_menu.html
 
 
 
