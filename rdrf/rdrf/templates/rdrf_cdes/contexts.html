@@ -19,7 +19,7 @@
             $("#add_patient").hide();
         }
 
-        var api_url = "{% url 'api_get_search' 'v1' 'context'  %}";
+        var api_url = "{% url 'contextsapi'  %}";
         var contexts_list = $("#context_list_table").DataTable({
             "ajax": {
                 "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",

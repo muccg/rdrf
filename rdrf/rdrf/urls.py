@@ -21,7 +21,7 @@ from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup
 from rdrf.views import RegistryList
-from rdrf.api import PatientResource, ContextResource
+from rdrf.api import PatientResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
@@ -29,6 +29,8 @@ from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RDRFContextLookup
+from rdrf.contexts_api import ContextsApiView
+
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -54,7 +56,7 @@ def handlerApplicationError(request):
 # TastyPie API
 v1_api = Api(api_name='v1')
 v1_api.register(PatientResource())
-v1_api.register(ContextResource())
+
 
 
 
@@ -86,8 +88,10 @@ urlpatterns = patterns('',
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
 
-                        url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
+                       url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
                            name="contextslisting"),
+
+                       url(r'^contextsapi', ContextsApiView.as_view(), name="contextsapi"),
 
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
