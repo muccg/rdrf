@@ -2,6 +2,7 @@ from registry.patients.models import Patient
 from rdrf.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from operator import itemgetter
 
 
 class ContextBrowserError(Exception):
@@ -19,7 +20,7 @@ class ContextBrowser(object):
 
     def _get_grid_config(self):
         from django.conf import settings
-        return setting.GRID_CONTEXT_LISTING
+        return settings.GRID_CONTEXT_LISTING
 
     def _get_columns(self):
         columns = []
@@ -135,10 +136,10 @@ class ContextBrowser(object):
         for patient in patients:
             context_models = patient.context_models
             if len(context_models) == 0:
-                row.append(self._get_row(patient))
+                rows.append(self._get_row(patient))
             else:
                 for context_model in context_models:
-                    row.append(self._get_row(patient, context_model))
+                    rows.append(self._get_row(patient, context_model))
         return rows
 
     def _get_row(self, patient_model, context_model=None):
@@ -148,7 +149,10 @@ class ContextBrowser(object):
             label = column["label"]
             model = column["model"]
             if model == "Patient":
-                value = getattr(patient_model, field)
+                if hasattr(patient_model, field):
+                    value = getattr(patient_model, field)
+                else:
+                    value = None
 
             elif model == "RDRFContext":
                 if context_model is not None:
