@@ -493,9 +493,9 @@ GRID_CONTEXT_LISTING = [
             "default": True,
             "permission": ""
         },
-        "data": "full_name",
+        "data": "context_menu",
         "label": "Patient",
-        "model": "Patient",
+        "model": "func",
         "order": 1
     }, {
         "access": {
@@ -564,14 +564,5 @@ GRID_CONTEXT_LISTING = [
         "label": "Genetic Data",
         "model": "Patient",
         "order": 8
-    }, {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "data_modules",
-        "label": "Modules",
-        "model": "Patient",
-        "order": 9
     }
 ]
