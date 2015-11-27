@@ -9,6 +9,9 @@
 
     <script>
         $(document).ready(function() {
+
+        $("contextmenu").popover({html: true});
+
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
         var columns = {{columns | safe}};
