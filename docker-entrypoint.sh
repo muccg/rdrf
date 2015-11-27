@@ -40,6 +40,8 @@ function wait_for_services {
 
 
 function defaults {
+    : ${ENV_PATH:="/env/bin"}
+
     : ${DBSERVER:="db"}
     : ${DBPORT:="5432"}
 
@@ -59,6 +61,8 @@ function defaults {
     : ${DBUSER="webapp"}
     : ${DBNAME="${DBUSER}"}
     : ${DBPASS="${DBUSER}"}
+
+    . ${ENV_PATH}/activate
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT
     export REPORTDBSERVER REPORTDBPORT REPORTDBUSER REPORTDBPASS
@@ -109,8 +113,7 @@ if [ "$1" = 'uwsgi' ]; then
     django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
     django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
 
-    uwsgi --ini ${UWSGI_OPTS} 2>&1 | tee /data/uwsgi.log
-    exit $?
+    exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
 
 # runserver entrypoint
@@ -136,29 +139,25 @@ if [ "$1" = 'runserver' ]; then
     django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
 
     echo "running runserver ..."
-    django-admin.py ${RUNSERVER_OPTS} 2>&1 | tee /data/runserver.log
-    exit $?
+    exec django-admin.py ${RUNSERVER_OPTS}
 fi
 
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    django-admin.py test rdrf 2>&1 | tee /data/runtests.log
-    exit $?
+    exec django-admin.py test rdrf
 fi
 
 # lettuce entrypoint
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
-    django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml 2>&1 | tee /data/lettuce.log
-    exit $?
+    exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 
 # selenium entrypoint
 if [ "$1" = 'selenium' ]; then
     echo "[Run] Starting selenium"
-    django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py 2>&1 | tee /data/selenium.log
-    exit $?
+    exec django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 
 echo "[RUN]: Builtin command not provided [lettuce|selenium|runtests|runserver|uwsgi]"
