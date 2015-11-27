@@ -21,7 +21,7 @@ from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup
 from rdrf.views import RegistryList
-from rdrf.api import PatientResource
+from rdrf.api import PatientResource, ContextResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
@@ -54,6 +54,8 @@ def handlerApplicationError(request):
 # TastyPie API
 v1_api = Api(api_name='v1')
 v1_api.register(PatientResource())
+v1_api.register(ContextResource())
+
 
 
 urlpatterns = patterns('',

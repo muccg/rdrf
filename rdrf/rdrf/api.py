@@ -386,6 +386,7 @@ class PatientResource(ModelResource):
 class ContextResource(ModelResource):
 
     class Meta:
+        resource_name = 'context'
         queryset = RDRFContext.objects.all()
         serializer = UrlEncodeSerializer()
         authorization = DjangoAuthorization()
@@ -394,8 +395,14 @@ class ContextResource(ModelResource):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
         registry_code = bundle.request.GET.get("registry_code", "")
-
         bundle.data["working_groups_display"] = p.working_groups_display
+
+        if registry_code:
+            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+        else:
+            # calls from calculated field plugin don't pass a registry code
+            bundle.data["full_name"] = p.display_name
+
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
         if bundle.request.user.is_superuser:
             bundle.data["reg_code"] = [reg.code for reg in Registry.objects.all()]
@@ -428,11 +435,10 @@ class ContextResource(ModelResource):
 
     # https://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-search-functionality
     def prepend_urls(self):
-        return [url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name,
-                                                           trailing_slash()),
-                    self.wrap_view('get_search'),
-                    name="api_get_search"),
-                ]
+        return [
+            url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_search'), name="api_get_search"),
+        ]
 
     def get_search(self, request, **kwargs):
         from django.db.models import Q
