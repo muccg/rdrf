@@ -2,6 +2,62 @@
 {% load static %}
 {% load i18n %}
 
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#password-error").hide();
+        $("#username-error").hide();
+        
+        $("#id_password2").on("keyup", function() {
+            var password1 = $("#id_password1").val();
+            if (password1 != $(this).val()) {
+                $("#password-error").text("The passwords don't match!");
+                $("#password-error").show("fast");
+                $("#registration-submit").prop("disabled", true);
+            } else {
+                $("#password-error").hide("fast");
+                $("#registration-submit").prop("disabled", false);
+                password_regx = /^(?=.*[0-9])\S{6,}$/
+                if(!$(this).val().match(password_regx)) {
+                    $("#password-error").text("Password needs to be at least 6 characters long and contain 1 number");
+                    $("#password-error").show("fast");
+                    $("#registration-submit").prop("disabled", true);
+                } else {
+                    $("#password-error").hide("fast");
+                    $("#registration-submit").prop("disabled", false);
+                }
+            }
+        });
+        
+        $("#id_username").focusout(function() {
+            var url = "{% url 'lookup_username' 'replace-me@domain.com' %}";
+            url = url.replace("replace-me@domain.com", $(this).val());
+            
+            $.getJSON(url, function(data) {
+                if (data.existing == true) {
+                    $("#username-error").show("fast");
+                    $("#registration-submit").prop("disabled", true);
+                } else {
+                    $("#username-error").hide("fast");
+                    $("#registration-submit").prop("disabled", false);
+                }
+            });
+        });
+    });
+</script>
+
+<div class="alert alert-danger" id="username-error">
+    <p>
+        <b>Username error:  This username already exists, please choose a different username.</b>
+    </p>
+    <p>
+        If you have already registered with Global FKRP Registry and would like to update your data or add another patient, you
+        don't have to register again. Just go to the login page and login with the e-mail address and password you previously registered with.
+    </p>    
+    <p>
+        If you have forgotten your password, please  click on 'forgotten your password?'
+    </p>
+</div>
+
 <form class="form" id="registration-form" method="POST">
     <div class="row">
         <div class="col-md-6">
@@ -37,6 +93,9 @@
                 </div>
                 <div class="form-group">
                     <input class="form-control" placeholder="{% trans 'Repeat Password' %}" id="id_password2" name="password2" type="password" required />
+                </div>
+                
+                <div class="alert alert-danger" id="password-error">
                 </div>
             </div>
         </div>
