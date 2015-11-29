@@ -60,5 +60,5 @@ uwsgi:
     - db
     - cache
     - mongo
-    - runserver
+    - runserver:web
     - jasper

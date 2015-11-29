@@ -61,4 +61,4 @@ uwsgi:
     - reporting
     - cache
     - mongo
-    - runserver
+    - runserver:web
