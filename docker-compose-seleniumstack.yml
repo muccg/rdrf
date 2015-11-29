@@ -14,13 +14,13 @@ chrome:
   image: selenium/node-chrome
   links:
   - seleniumhub:hub
-  - webselenium:web
+  - runserverselenium:web
 
 firefox:
   image: selenium/node-firefox
   links:
   - seleniumhub:hub
-  - webselenium:web
+  - runserverselenium:web
 
 smtpselenium:
   extends:
@@ -47,7 +47,7 @@ mongoselenium:
     file: docker-compose-common.yml
     service: mongo
 
-webselenium:
+runserverselenium:
   build: .
   command: runserver
   environment:

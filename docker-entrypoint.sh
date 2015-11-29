@@ -26,8 +26,8 @@ function wait_for_services {
     if [[ "$WAIT_FOR_CACHE" ]] ; then
         dockerwait $CACHESERVER $CACHEPORT
     fi
-    if [[ "$WAIT_FOR_WEB" ]] ; then
-        dockerwait $WEBSERVER $WEBPORT
+    if [[ "$WAIT_FOR_RUNSERVER" ]] ; then
+        dockerwait $RUNSERVER $RUNSERVERPORT
     fi
     if [[ "$WAIT_FOR_MONGO" ]] ; then
         dockerwait $MONGOSERVER $MONGOPORT
@@ -51,8 +51,8 @@ function defaults {
     : ${REPORTDBNAME="${DBUSER}"}
     : ${REPORTDBPASS="${DBUSER}"}
 
-    : ${WEBSERVER="web"}
-    : ${WEBPORT="8000"}
+    : ${RUNSERVER="web"}
+    : ${RUNSERVERPORT="8000"}
     : ${CACHESERVER="cache"}
     : ${CACHEPORT="11211"}
     : ${MONGOSERVER="mongo"}
@@ -120,7 +120,7 @@ fi
 if [ "$1" = 'runserver' ]; then
     echo "[Run] Starting runserver"
 
-    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${WEBPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
+    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
 
     echo "running collectstatic"
