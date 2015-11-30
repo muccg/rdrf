@@ -333,6 +333,8 @@ class FormView(View):
         # Save one snapshot after all sections have being persisted
         dyn_patient.save_snapshot(registry_code, "cdes")
 
+        dyn_patient.save_form_progress(registry_code)
+
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
         wizard = NavigationWizard(self.user,
