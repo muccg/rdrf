@@ -308,8 +308,7 @@ class FormProgressStore(object):
     def __init__(self, progress_collection, registry_model, patient_model):
         self.registry_model = registry_model
         self.patient_model = patient_model
-        self.progress_dict = {}
-        self.currency_dict = {}
+        self.progress_data = {}
         self.progress_collection = progress_collection
 
     def _calculate_form_progress(self, form_model, dynamic_data):
@@ -318,11 +317,23 @@ class FormProgressStore(object):
     def _calculate_form_currency(self, form_model, dynamic_data):
         return True
 
+    def _get_progress_metadata(self):
+        return {}
+
+
     def _calculate(self, dynamic_data):
-        for form_model in self.registry_model.forms:
-            if not form_model.is_questionnaire:
-                self.progress_dict[form_model.name] = self._calculate_form_progress(form_model, dynamic_data)
-                self.currency_dict[form_model.name] = self._calculate_form_currency(form_model, dynamic_data)
+        progress_metadata = self._get_progress_metadata()
+
+        for progress_group in progress_metadata:
+            self.progress_data[progress_group["name"]] = {}
+            current_group = self.progress_data[progress_group["name"]]
+            for form_name in progress_group["forms"]:
+                form_model = RegistryForm.objects.get(name=form_name, registry=self.registry_model)
+                current_group[form_model.name] = self._calculate_form_progress(form_model, dynamic_data)
+                current_group[form_model.name] = self._calculate_form_currency(form_model, dynamic_data)
+
+
+
 
     def _get_query(self):
         return {"django_id": self.patient_model.pk, "django_model": self.patient_model.__class__.__name__}
@@ -333,10 +344,7 @@ class FormProgressStore(object):
 
     def save(self, dynamic_data):
         self._calculate(dynamic_data)
-        progress_data = {
-            "progress": self.progress_dict,
-            "currency": self.currency_dict
-        }
+
 
         query = self._get_query()
         record = self.progress_collection.find_one(query)
