@@ -55,7 +55,7 @@ dockerbuild() {
     echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
-    docker pull ${image} || true
+    docker pull ${image}:${gittag} || true
 
     for tag in "${image}:${gittag}" "${image}:${gittag}-${DATE}"; do
         echo "############################################################# ${PROJECT_NAME} ${tag}"
