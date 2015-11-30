@@ -1,47 +1,36 @@
-# data only container pattern
 datatest:
-  image: muccg/debian8-base
-  volumes:
-    - .:/app
-    - ./data/tests:/data
+  extends:
+    file: docker-compose-common.yml
+    service: datatest
 
 dbtest:
-  image: postgres:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "5432"
-
-cachetest:
-  image: memcached:1.4
-
-mongotest:
-  image: mongo:3.0
-  command: mongod --smallfiles
-
-webtest:
-  build: .
-  command: runserver
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-  volumes_from:
-    - datatest      
-  ports:
-    - "8000"
-  links:
-    - dbtest:db
-    - cachetest:cache
-    - mongotest:mongo
+  extends:
+    file: docker-compose-common.yml
+    service: db
 
 reportingtest:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=reporting
-    - POSTGRES_PASSWORD=reporting
-  ports:
-    - "15634:5432"
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
+
+cachetest:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongotest:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+runservertest:
+  extends:
+    file: docker-compose-common.yml
+    service: runserver
+  volumes_from:
+    - datatest
+  links:
+    - dbtest:db
+    - reportingtest:reporting
+    - cachetest:cache
+    - mongotest:mongo

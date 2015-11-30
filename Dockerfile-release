@@ -3,6 +3,7 @@ FROM muccg/python-base:ubuntu14.04-2.7
 MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
 
 ARG GIT_TAG=next_release
+ARG PIP_OPTS="--no-cache-dir"
 
 ENV GITTAG $GIT_TAG
 
@@ -28,9 +29,10 @@ RUN echo $GIT_TAG \
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order
-RUN pip install nose
-RUN pip install -r rdrf/runtime-requirements.txt
-RUN pip install -e rdrf
+RUN virtualenv /env
+RUN /env/bin/pip ${PIP_OPTS} install nose
+RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
