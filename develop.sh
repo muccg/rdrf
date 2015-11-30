@@ -198,7 +198,7 @@ make_virtualenv() {
     fi
     . ${VIRTUALENV}/bin/activate
 
-    pip install functools32 -- upgrade || true
+    pip install functools32 --upgrade || true
     pip install 'docker-compose<=1.6' --upgrade || true
     docker-compose --version
 }
