@@ -104,9 +104,6 @@ class PatientResource(ModelResource):
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
 
-        # bundle.data["data_modules"] = self._get_data_modules(p, registry_code, bundle.request.user)
-        # bundle.data["diagnosis_currency"] = p.clinical_data_currency()
-
         return bundle
 
     def _get_reg_list(self, patient, user):
