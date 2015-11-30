@@ -4,6 +4,8 @@ from django.template import loader, Context
 from django.utils.html import escape
 
 
+# NB "Context" is not the same as RDRF Context, it's just a "normal" context menu that pops up
+
 class ContextMenuForm(object):
     def __init__(self, title, link, progress_percentage=0):
         self.title = title
@@ -12,9 +14,10 @@ class ContextMenuForm(object):
 
 
 class ContextMenuAction(object):
-    def __init__(self, title, id):
+    def __init__(self, title, link):
         self.title = title
         self.id = id
+        self.link = link
 
 
 class PatientContextMenu(object):
@@ -23,7 +26,7 @@ class PatientContextMenu(object):
         :param user: relative to user looking
         :param patient_model:
         :param registry_model:
-        :param context_model:
+        :param context_model: the rdrf context model
         :return:
         """
         self.user = user
@@ -39,7 +42,7 @@ class PatientContextMenu(object):
             except KeyError:
                 name = "Context"
         else:
-            name = ""
+            name = "boo"
 
         return name
 
@@ -68,11 +71,15 @@ class PatientContextMenu(object):
                  ContextMenuForm("stuff", "http://www.smh.com.au",88),
                  ]
 
+        actions = []
+
+        add_context_title = "Add %s" % self.context_name
+        add_context_link = reverse("context_add", args=(self.registry_model.code, str(self.patient_model.pk)))
+        add_context_action = ContextMenuAction(add_context_title, add_context_link)
 
 
 
-        actions = [ContextMenuAction("Add Assessment", "test"), ContextMenuAction("Add Something else", "ggg")]
-
+        actions.append(add_context_action)
 
         popup_template = loader.get_template(popup_template)
         context = Context({"forms": forms,

@@ -30,6 +30,7 @@ from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RDRFContextLookup
 from rdrf.contexts_api import ContextsApiView
+from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
 
 from ajax_select import urls as ajax_select_urls
@@ -56,9 +57,6 @@ def handlerApplicationError(request):
 # TastyPie API
 v1_api = Api(api_name='v1')
 v1_api.register(PatientResource())
-
-
-
 
 urlpatterns = patterns('',
                        url(r'^test404', handler404),
@@ -87,10 +85,16 @@ urlpatterns = patterns('',
 
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
-
+#---- Context related URLs -----------------
                        url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
                            name="contextslisting"),
 
+                       url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/?$',
+                           RDRFContextCreateView.as_view(),
+                           name="context_add"),
+                       url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/edit/(?P<context_id>\d+)/?$',
+                           RDRFContextCreateView.as_view(),
+                           name="context_edit"),
                        url(r'^contextsapi', ContextsApiView.as_view(), name="contextsapi"),
 
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),

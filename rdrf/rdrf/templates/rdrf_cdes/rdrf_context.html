@@ -1,0 +1,80 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load get_patient %}
+{% load has_feature %}
+{% load get_form_element %}
+{% load is_checkbox %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+
+{% block extrastyle %}
+    {{block.super}}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src={% static 'js/rpc_module.js' %}></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script>
+        $(document).ready(function(){
+        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+        $("textarea").addClass("form-control");
+        $("select").addClass("form-control");
+        });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>{{location}}</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{ patient_name }}</i>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col-md-10">
+
+                {% if message %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+
+            <form class="form-horizontal" method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                {% if errors %}
+                    <div class="alert alert-danger" role="alert">
+                        Please correct errors below:<br>
+                        {% for error_message in error_messages %}
+                        {{ error_message }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+
+               {{ form }}
+
+
+            </form>
+
+
+        </div>
+        <div class="col-md-2">
+            <div data-spy="affix" style="width: 150px;">
+                <button type="submit" class="btn btn-success btn-block" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+
+            </div>
+        </div>
+        </form>
+    </div>
+{% endblock %}
