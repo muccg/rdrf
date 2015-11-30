@@ -1,47 +1,7 @@
-
-<div class="panel panel-info">
-    <div class="panel-heading">
-        Summary
-    </div>
-
-     <div class="panel-body">
-         <a href="
-         {% if context %}
-            Context {{context.display_name}}<br>
-            Created {{context.created_at}}<br>
-         {% endif %}
-
-
-     </div>
-</div>
-
-
-<div class="panel panel-info">
-    <div class="panel-heading">
-        Actions
-    </div>
-
-     <div class="panel-body">
-         {% for action in actions %}
-           <button id="{{action.id}}" class="rdrfactionbutton btn-sm btn-success pull-left">
-                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {{action.title}}
-            </button><br>
-
-        {% endfor %}
-     </div>
-</div>
-
-
- <div class="panel panel-info">
-    <div class="panel-heading">
-        {% if context %}
-            {{context_name}} {{context.display_name}} Forms
-        {% else %}
-            Forms
-        {% endif %}
-    </div>
-
-     <div class="panel-body">
+{% for action in actions %}
+<a href="{{action.link}}">{{action.title}}</a>
+{% endfor %}
+<hr>
 
            {% for form in forms %}
                 {% if form.current %}
@@ -54,8 +14,6 @@
                 <strong><span class="badge">{{form.progress_percentage}}%</span></strong><br>
 
         {% endfor %}
-     </div>
-</div>
 
 
 
