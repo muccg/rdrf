@@ -98,7 +98,6 @@ EOF
       docker-compose -f docker-compose-staging.yml stop
       docker-compose -f docker-compose-staging.yml kill
       docker-compose -f docker-compose-staging.yml rm --force -v
-      docker-compose -f docker-compose-staging.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS} webstaging
       docker-compose -f docker-compose-staging.yml up -d
 EOF
 }
