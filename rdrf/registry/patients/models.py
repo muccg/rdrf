@@ -22,6 +22,7 @@ from registry.groups.models import CustomUser
 from rdrf.hooking import run_hooks
 from rdrf.mongo_client import construct_mongo_client
 from django.db.models.signals import m2m_changed, post_delete
+from rdrf.utils import get_diagnosis_progress
 
 import logging
 logger = logging.getLogger('registry_log')
@@ -269,25 +270,11 @@ class Patient(models.Model):
         returns a map of reg code to an integer between 0-100 (%)
         """
         registry_diagnosis_progress = {}
+        mongo_client = construct_mongo_client()
+
 
         for registry_model in self.rdrf_registry.all():
-            total_number_filled_in = 0
-            total_number_required_for_completion = 0
-            for form_model in registry_model.forms:
-                # hack
-                if not "genetic" in form_model.name.lower():
-                    number_filled_in, total_number_for_completion = self.form_progress(
-                        form_model, numbers_only=True)
-                    total_number_filled_in += number_filled_in
-                    total_number_required_for_completion += total_number_for_completion
-            try:
-                registry_diagnosis_progress[
-                    registry_model.code] = int(
-                    100.0 *
-                    float(total_number_filled_in) /
-                    float(total_number_required_for_completion))
-            except ZeroDivisionError as zderr:
-                pass  # don't have progress? skip
+            registry_diagnosis_progress[registry_model.code] = get_diagnosis_progress(mongo_client, registry_model, self)[1]
 
         return registry_diagnosis_progress
 

@@ -267,3 +267,26 @@ def consent_status_for_patient(registry_code, patient):
                 except ConsentValue.DoesNotExist:
                     answers.append(False)
     return all(answers)
+
+
+
+def get_diagnosis_progress(mongo_client, registry_model, patient_model):
+    db_name = mongo_db_name(registry_model.code)
+    db = mongo_client[db_name]
+    progress_collection = db["progress"]
+    progress_data = progress_collection.find_one({"django_id": patient_model.pk,
+                                                  "django_model": "Patient"})
+
+    percentage = 0
+
+    if not progress_data:
+        return percentage
+
+    if "diagnosis" in progress_data:
+        diagnosis_progress = progress_data["diagnosis"]
+        if "percentage" in diagnosis_progress:
+            percentage = diagnosis_progress["percentage"]
+    else:
+        return percentage
+
+    return percentage
