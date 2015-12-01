@@ -45,7 +45,9 @@ USE_I18N = env.get("use_i18n", True)
 
 LANGUAGES = (
     ('ar', 'Arabic'),
+    ('de', 'German'),
     ('en', 'English'),
+    ('no', 'Norwegian'),
 )
 
 DATABASES = {
