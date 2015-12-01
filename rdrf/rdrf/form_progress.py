@@ -57,6 +57,7 @@ class FormProgressCalculator(object):
         self.form_currency = {}  # {patient_id : {form name : bool}}
         self.data_map = {}
         self.patient_ids_not_in_mongo = []
+        self.progress_collection = self.db["progress"]
 
     def _get_completion_keys_by_form(self):
         key_map = {}
@@ -100,6 +101,10 @@ class FormProgressCalculator(object):
         self.patient_ids = patient_ids
         query = {"django_model": "Patient", "django_id": {"$in": patient_ids}}
         return [doc for doc in self.cdes_collection.find(query)]
+
+    def _get_mongo_progress_data(self, patient_ids):
+        query = {"django_model": "Patient", "django_id": {"$in": patient_ids}}
+        return [progress_doc for progress_doc in self.progress_collection.find(query)]
 
     def _get_value_from_patient_mongo_data(self, patient_data, key):
         try:
@@ -310,30 +315,107 @@ class FormProgressStore(object):
         self.patient_model = patient_model
         self.progress_data = {}
         self.progress_collection = progress_collection
+        self.progress_cdes_map = self._build_progress_map()
+
+
+    def _build_progress_map(self):
+        # maps form names to sets of required cde codes
+        result = {}
+        for form_model in self.registry_model.forms:
+            if not form_model.is_questionnaire:
+                result[form_model.name] = set([cde_model.code for cde_model in
+                                               form_model.complete_form_cdes.all()])
+        return result
 
     def _calculate_form_progress(self, form_model, dynamic_data):
-        return 23
+        result = {"required": 0, "filled": 0, "percentage": 0}
+
+        for section_model, cde_model in self._get_progress_cdes(form_model):
+            result["required"] += 1
+            try:
+                value = self._get_value_from_dynamic_data(form_model, section_model, cde_model, dynamic_data)
+                if value is not None:
+                    result["filled"] += 1
+            except Exception:
+                pass
+
+        if result["required"] > 0:
+            result["percentage"] = int(100.00 * (float(result["filled"]) / float(result["required"])))
+        else:
+            result["percentage"] = 0
+
+        return result
+
+    def _get_value_from_dynamic_data(self, form_model, section_model, cde_model, dynamic_data):
+        # gets value or first value in a multisection
+        for form_dict in dynamic_data["forms"]:
+            if form_dict["name"] == form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == section_model.code:
+                        if not section_dict["allow_multiple"]:
+                            for cde_dict in section_dict["cdes"]:
+                                if cde_dict["code"] == cde_model.code:
+                                    return cde_dict["value"]
+                        else:
+                            for section_item in section_dict["cdes"]:
+                                for cde_dict in section_item:
+                                    if cde_dict["code"] == cde_model.code:
+                                        return cde_dict["value"]
+
+    def _get_progress_cdes(self, form_model_required):
+        cdes_required = self.progress_cdes_map[form_model_required.name]
+        for form_model in self.registry_model.forms:
+            if not form_model.is_questionnaire:
+                if form_model.name == form_model_required.name:
+                    for section_model in form_model.section_models:
+                        for cde_model in section_model.cde_models:
+                            if cde_model.code in cdes_required:
+                                yield section_model, cde_model
 
     def _calculate_form_currency(self, form_model, dynamic_data):
-        return True
+        from datetime import timedelta, datetime
+        form_timestamp_key = "%s_timestamp" % form_model.name
+        six_months_ago = datetime.now() - timedelta(weeks=26)
+
+        if form_timestamp_key in dynamic_data:
+            form_timeastamp_value = dynamic_data[form_timestamp_key]
+            if form_timeastamp_value >= six_months_ago:
+                return True
+
+        return False
 
     def _get_progress_metadata(self):
-        return {}
-
+        try:
+            metadata = self.registry_model.metadata
+            if "progress" in metadata:
+                return metadata["progress"]
+            else:
+                return {}
+        except Exception, ex:
+            logger.error("Error getting progress metadata for registry %s: %s" % (self.registry_model.code,
+                                                                                  ex))
+            return {}
 
     def _calculate(self, dynamic_data):
         progress_metadata = self._get_progress_metadata()
+        if not progress_metadata:
+            logger.debug("No progress metadata for %s - nothing to calculate" % self.registry_model.code)
+            return
 
         for progress_group in progress_metadata:
-            self.progress_data[progress_group["name"]] = {}
-            current_group = self.progress_data[progress_group["name"]]
-            for form_name in progress_group["forms"]:
-                form_model = RegistryForm.objects.get(name=form_name, registry=self.registry_model)
-                current_group[form_model.name] = self._calculate_form_progress(form_model, dynamic_data)
-                current_group[form_model.name] = self._calculate_form_currency(form_model, dynamic_data)
-
-
-
+            logger.debug("getting progress data for progress group %s" % progress_group)
+            self.progress_data[progress_group] = {}
+            current_group = self.progress_data[progress_group]
+            for form_name in progress_metadata[progress_group]:
+                try:
+                    form_model = RegistryForm.objects.get(name=form_name, registry=self.registry_model)
+                    current_group[form_model.name] = {"progress": None, "currency": None}
+                    current_group[form_model.name]["progress"] = self._calculate_form_progress(form_model, dynamic_data)
+                    current_group[form_model.name]["currency"] = self._calculate_form_currency(form_model, dynamic_data)
+                except RegistryForm.DoesNotExist:
+                    logger.error("Form %s specified in form progress metadata does not exist in registry %s" %
+                                 (form_name, self.registry_model.code))
+                    continue
 
     def _get_query(self):
         return {"django_id": self.patient_model.pk, "django_model": self.patient_model.__class__.__name__}
@@ -345,14 +427,19 @@ class FormProgressStore(object):
     def save(self, dynamic_data):
         self._calculate(dynamic_data)
 
-
         query = self._get_query()
         record = self.progress_collection.find_one(query)
         if record:
             mongo_id = record['_id']
-            self.progress_collection.update({'_id': mongo_id}, {"$set": progress_data}, upsert=False)
+            self.progress_collection.update({'_id': mongo_id}, {"$set": self.progress_data}, upsert=False)
         else:
             record = self._get_query()
-            record.update(progress_data)
+            record.update(self.progress_data)
             self.progress_collection.insert(record)
+
+
+
+
+
+
 
