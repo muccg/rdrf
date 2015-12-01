@@ -53,6 +53,10 @@ dockerbuild() {
         gittag=$gitbranch
     fi
 
+    # create .version file for invalidating cache in Dockerfile
+    # we hit remote as the Dockerfile clones remote
+    git ls-remote https://bitbucket.org/ccgmurdoch/rdrf.git ${gittag} > .version
+
     echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
@@ -65,6 +69,8 @@ dockerbuild() {
         docker push ${tag}
         set +x
     done
+
+    rm -f .version || true
 }
 
 

@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
+COPY .version /.version
 RUN echo $GIT_TAG \
     && git clone --depth=1 --branch=$GIT_TAG https://bitbucket.org/ccgmurdoch/rdrf.git .
 
