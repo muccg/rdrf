@@ -19,8 +19,7 @@ mongostaging:
     service: mongo
 
 uwsgistaging:
-  build: .
-  dockerfile: Dockerfile-release
+  image: muccg/rdrf:next_release
   command: uwsgi
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
