@@ -5,9 +5,6 @@ dataselenium:
     - .:/app
     - ./data/selenium:/data
 
-seleniumsmtp:
-  image: muccg/postfix:latest
-    
 seleniumhub:
   image: selenium/hub
   ports:
@@ -17,38 +14,40 @@ chrome:
   image: selenium/node-chrome
   links:
   - seleniumhub:hub
-  - webselenium:web
+  - runserverselenium:web
 
 firefox:
   image: selenium/node-firefox
   links:
   - seleniumhub:hub
-  - webselenium:web
+  - runserverselenium:web
 
-reportingselenium:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=reporting
-    - POSTGRES_PASSWORD=reporting
-  ports:
-    - "15635:5432"
+smtpselenium:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
 
 dbselenium:
-  image: postgres:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "5432"
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+reportingselenium:
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
 
 cacheselenium:
-  image: memcached:1.4
+  extends:
+    file: docker-compose-common.yml
+    service: cache
 
 mongoselenium:
-  image: mongo:3.0
-  command: mongod --smallfiles
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
 
-webselenium:
+runserverselenium:
   build: .
   command: runserver
   environment:
@@ -65,4 +64,4 @@ webselenium:
     - dbselenium:db
     - cacheselenium:cache
     - mongoselenium:mongo
-    - seleniumsmtp:smtp
+    - smtpselenium:smtp

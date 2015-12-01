@@ -1,108 +1,64 @@
-#legacydb:
-#  image: postgres:9.3
-#  environment:
-#    - POSTGRES_USER=legacyrdrf
-#    - POSTGRES_PASSWORD=legacyrdrf
-#  ports:
-#    - "15432:5432"
-
-# data only container pattern
-data:
-    image: muccg/debian8-base
-    volumes:
-      - .:/app
-      - ./data/dev:/data
-
-smtp:
-  image: muccg/postfix:latest
-
-db:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "5432"
+datadev:
+  extends:
+    file: docker-compose-common.yml
+    service: datadev
 
 jasper:
-  image: muccg/jasper-reports-server:6.1.1
-  command: development
-  ports:
-    - "8080"
+  extends:
+    file: docker-compose-common.yml
+    service: jasper
   links:
     - db:db
-  environment:
-    - DB_HOST=db
-    - DB_PORT=5432
-    - DB_NAME=rdrfapp
-    - DB_USERNAME=rdrfapp
-    - DB_PASSWORD=rdrfapp
-    - WAIT_FOR_DB=1
+
+smtp:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
+
+db:
+  extends:
+    file: docker-compose-common.yml
+    service: db
 
 cache:
-  image: memcached:1.4
+  extends:
+    file: docker-compose-common.yml
+    service: cache
 
 mongo:
-  image: mongo:3.0
-  command: mongod --smallfiles
-
-#triplestore:
-#  image: muccg/allegro:4.14.1
-#  ports:
-#    - ":10035"
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
 
 nginx:
-  image: muccg/nginx-uwsgi:1.9
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
   links:
     - uwsgi
-  ports:
-    - "8443:443"
-    - "8080:80"
-  volumes:
-    - ./data/nginx:/data
 
-web:
-  build: .
-  command: runserver
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
+runserver:
+  extends:
+    file: docker-compose-common.yml
+    service: runserver
   volumes_from:
-    - data
-  ports:
-    - "8000:8000"
+    - datadev
   links:
     - db
-    #- legacydb
     - cache
     - mongo
     - smtp
     - jasper
 
 uwsgi:
-  image: rdrf_web
-  command: uwsgi
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - WAIT_FOR_WEB=1
-    # note: important to wait for runserver in dev as both will attempt to syncdb etc
+  extends:
+    file: docker-compose-common.yml
+    service: uwsgi
   volumes_from:
-    - data
-  ports:
-    - "9000:9000"
-    - "9001:9001"
-    - "9100:9100"
-    - "9101:9101"
+    - datadev
   links:
     - db
     - cache
     - mongo
-    - web
+    - runserver:web
     - jasper
