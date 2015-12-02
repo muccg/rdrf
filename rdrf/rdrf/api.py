@@ -189,12 +189,10 @@ class PatientResource(ModelResource):
                                ):
         start = time.time()
         results = {}
-        from rdrf.form_progress import FormProgressCalculator
+
         registry_model = Registry.objects.get(code=registry_code)
         logger.debug("about to set patient_instance_resource to self ..")
         patient_resource_instance = self
-        progress_calculator = FormProgressCalculator(
-            registry_model, user, patient_resource_instance)
         patient_ids = [patient.id for patient in page.object_list]
         logger.debug("patient ids = %s" % patient_ids)
         progress_calculator.load_data(patient_ids)

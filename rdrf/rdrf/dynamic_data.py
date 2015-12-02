@@ -1081,14 +1081,14 @@ class DynamicDataWrapper(object):
         except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
 
-    def save_form_progress(self, registry_code):
-        from rdrf.form_progress import FormProgressStore
+    def save_form_progress(self, registry_code, context_model=None):
+        from rdrf.form_progress import FormProgress
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         progress_collection = self._get_collection(registry_code, "progress")
-        store = FormProgressStore(progress_collection, registry_model, self.obj)
+        form_progress = FormProgress(registry_model, progress_collection)
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        store.save(dynamic_data)
+        form_progress.save_progress(self.obj, dynamic_data, context_model)
 
     def _convert_date_to_datetime(self, data):
         """
