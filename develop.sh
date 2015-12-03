@@ -34,7 +34,6 @@ ci_ssh_agent() {
 
 # docker build and push in CI
 dockerbuild() {
-    set -x
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
