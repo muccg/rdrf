@@ -4,7 +4,7 @@ TOPDIR=$(cd `dirname $0`; pwd)
 
 
 # break on error
-set -e 
+set -e
 
 ACTION="$1"
 
@@ -81,21 +81,8 @@ ci_staging() {
     ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
 }
 
-lettuce() {
-    mkdir -p data/selenium
-    chmod o+rwx data/selenium
 
-    make_virtualenv
-    . ${VIRTUALENV}/bin/activate
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
-    set +x
-}
-
-selenium() {
+_selenium_stack_up() {
     mkdir -p data/selenium
     chmod o+rwx data/selenium
     find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
@@ -107,12 +94,39 @@ selenium() {
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml rm --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml up -d
+    set +x
+}
 
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+_selenium_stack_down() {
+    mkdir -p data/selenium
+    chmod o+rwx data/selenium
+    find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
+
+    make_virtualenv
+    . ${VIRTUALENV}/bin/activate
 
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
     set +x
 }
+
+
+lettuce() {
+    _selenium_stack_up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+
+    _selenium_stack_down
+}
+
+
+selenium() {
+    _selenium_stack_up
+
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+
+    _selenium_stack_down
+}
+
 
 registry_specific_tests() {
     for yaml_file in definitions/registries/*.yaml; do

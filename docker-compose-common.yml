@@ -1,0 +1,104 @@
+# data only container pattern
+datadev:
+  image: muccg/debian8-base
+  volumes:
+    - .:/app
+    - ./data/dev:/data
+
+datatest:
+  image: muccg/debian8-base
+  volumes:
+    - .:/app
+    - ./data/tests:/data
+
+jasper:
+  image: muccg/jasper-reports-server:6.1.1
+  command: development
+  ports:
+    - "8080"
+  #links:
+  #  - db:db
+  environment:
+    - DB_HOST=db
+    - DB_PORT=5432
+    - DB_NAME=rdrfapp
+    - DB_USERNAME=rdrfapp
+    - DB_PASSWORD=rdrfapp
+    - WAIT_FOR_DB=1
+
+legacydb:
+  image: postgres:9.3
+  environment:
+    - POSTGRES_USER=legacyrdrf
+    - POSTGRES_PASSWORD=legacyrdrf
+  ports:
+    - "15432:5432"
+
+smtp:
+  image: muccg/postfix:latest
+
+db:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
+  ports:
+    - "5432"
+
+reporting:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=reporting
+    - POSTGRES_PASSWORD=reporting
+  ports:
+    - "15633:5432"
+
+cache:
+  image: memcached:1.4
+
+mongo:
+  image: mongo:3.0
+  command: mongod --smallfiles
+
+triplestore:
+  image: muccg/allegro:4.14.1
+  ports:
+    - "10035"
+
+nginx:
+  image: muccg/nginx-uwsgi:1.9
+  ports:
+    - "8443:443"
+    - "8080:80"
+  volumes:
+    - ./data/nginx:/data
+
+web:
+  build: .
+  command: runserver
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+    - WAIT_FOR_REPORTING=1
+  ports:
+    - "8000:8000"
+
+uwsgi:
+  image: rdrf_web
+  command: uwsgi
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+    - WAIT_FOR_WEB=1
+    # note: important to wait for runserver in dev as both will attempt to syncdb etc
+  ports:
+    - "9000:9000"
+    - "9001:9001"
+    - "9100:9100"
+    - "9101:9101"

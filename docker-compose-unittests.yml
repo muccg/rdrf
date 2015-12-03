@@ -1,11 +1,10 @@
 # data only container pattern
 datatest:
-  image: muccg/debian8-base
-  volumes:
-    - .:/app
-    - ./data/tests:/data
+  extends:
+    file: docker-compose-common.yml
+    service: datatest
 
-# runs the tests against the stack above
+# runs the tests against docker-compose-teststack.yml
 testhost:
   image: rdrf_webtest
   command: runtests
@@ -16,7 +15,7 @@ testhost:
     - WAIT_FOR_WEB=1
     - WAIT_FOR_MONGO=1
   volumes_from:
-    - datatest      
+    - datatest
   external_links:
     - rdrf_dbtest_1:db
     - rdrf_webtest_1:web

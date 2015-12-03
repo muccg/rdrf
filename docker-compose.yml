@@ -1,74 +1,47 @@
-#legacydb:
-#  image: postgres:9.3
-#  environment:
-#    - POSTGRES_USER=legacyrdrf
-#    - POSTGRES_PASSWORD=legacyrdrf
-#  ports:
-#    - "15432:5432"
-
 # data only container pattern
-data:
-    image: muccg/debian8-base
-    volumes:
-      - .:/app
-      - ./data/dev:/data
+datadev:
+  extends:
+    file: docker-compose-common.yml
+    service: datadev
 
 smtp:
-  image: muccg/postfix:latest
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
 
 db:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "5432"
+  extends:
+    file: docker-compose-common.yml
+    service: db
 
 reporting:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=reporting
-    - POSTGRES_PASSWORD=reporting
-  ports:
-    - "15633:5432"
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
 
 cache:
-  image: memcached:1.4
+  extends:
+    file: docker-compose-common.yml
+    service: cache
 
 mongo:
-  image: mongo:3.0
-  command: mongod --smallfiles
-
-#triplestore:
-#  image: muccg/allegro:4.14.1
-#  ports:
-#    - ":10035"
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
 
 nginx:
-  image: muccg/nginx-uwsgi:1.9
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
   links:
     - uwsgi
-  ports:
-    - "8443:443"
-    - "8080:80"
-  volumes:
-    - ./data/nginx:/data
-
 
 web:
-  build: .
-  command: runserver
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - WAIT_FOR_REPORTING=1
+  extends:
+    file: docker-compose-common.yml
+    service: web
   volumes_from:
-    - data
-  ports:
-    - "8000:8000"
+    - datadev
   links:
     - db
     #- legacydb
@@ -78,23 +51,11 @@ web:
     - smtp
 
 uwsgi:
-  image: rdrf_web
-  command: uwsgi
-  environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - WAIT_FOR_WEB=1
-    # note: important to wait for runserver in dev as both will attempt to syncdb etc
+  extends:
+    file: docker-compose-common.yml
+    service: uwsgi
   volumes_from:
-    - data
-  ports:
-    - "9000:9000"
-    - "9001:9001"
-    - "9100:9100"
-    - "9101:9101"
+    - datadev
   links:
     - db
     - reporting
