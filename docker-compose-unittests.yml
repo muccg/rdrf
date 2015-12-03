@@ -6,18 +6,18 @@ datatest:
 
 # runs the tests against docker-compose-teststack.yml
 testhost:
-  image: rdrf_webtest
+  image: rdrf_runservertest
   command: runtests
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
-    - WAIT_FOR_WEB=1
+    - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_MONGO=1
   volumes_from:
     - datatest
   external_links:
     - rdrf_dbtest_1:db
-    - rdrf_webtest_1:web
+    - rdrf_runservertest_1:web
     - rdrf_mongotest_1:mongo
     - rdrf_reportingtest_1:reporting

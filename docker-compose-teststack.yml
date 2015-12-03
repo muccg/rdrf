@@ -23,10 +23,10 @@ mongotest:
     file: docker-compose-common.yml
     service: mongo
 
-webtest:
+runservertest:
   extends:
     file: docker-compose-common.yml
-    service: web
+    service: runserver
   volumes_from:
     - datatest
   links:

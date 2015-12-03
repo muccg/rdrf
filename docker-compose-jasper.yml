@@ -37,10 +37,10 @@ nginx:
   links:
     - uwsgi
 
-web:
+runserver:
   extends:
     file: docker-compose-common.yml
-    service: web
+    service: runserver
   volumes_from:
     - datadev
   links:
@@ -60,5 +60,5 @@ uwsgi:
     - db
     - cache
     - mongo
-    - web
+    - runserver
     - jasper

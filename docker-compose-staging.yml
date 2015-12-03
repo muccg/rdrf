@@ -18,7 +18,7 @@ mongostaging:
     file: docker-compose-common.yml
     service: mongo
 
-webstaging:
+uwsgistaging:
   build: .
   dockerfile: Dockerfile-release
   command: uwsgi
