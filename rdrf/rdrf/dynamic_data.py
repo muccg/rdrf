@@ -1047,8 +1047,7 @@ class DynamicDataWrapper(object):
         from rdrf.form_progress import FormProgress
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
-        progress_collection = self._get_collection(registry_code, "progress")
-        form_progress = FormProgress(registry_model, progress_collection)
+        form_progress = FormProgress(registry_model)
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
         return form_progress.save_progress(self.obj, dynamic_data, context_model)
 
