@@ -64,11 +64,19 @@ class PatientResource(ModelResource):
         start = time.time()
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
+        calculate_form_progress = False
         registry_code = bundle.request.GET.get("registry_code", "")
-        registry_model = Registry.objects.get(code=registry_code)
+        if registry_code:
+            registry_model = Registry.objects.get(code=registry_code)
+        else:
+            registry_model = None
 
-        form_progress = getattr(bundle, "form_progress")
-        form_progress.reset()
+        if hasattr(bundle, "form_progress"):
+            form_progress = getattr(bundle, "form_progress")
+            form_progress.reset()
+            calculate_form_progress = True
+        else:
+            calculate_form_progress = False
 
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
@@ -85,13 +93,14 @@ class PatientResource(ModelResource):
             # calls from calculated field plugin don't pass a registry code
             bundle.data["full_name"] = p.display_name
 
-        bundle.data["diagnosis_progress"] = self._set_diagnosis_progress(form_progress, p)
-        bundle.data["has_genetic_data"] = self._set_has_genetic_data(form_progress, p)
-        #bundle.data["genetic_data_map"] = self._set_genetic_data(form_progress, p)
+        if calculate_form_progress:
+            bundle.data["diagnosis_progress"] = self._set_diagnosis_progress(form_progress, p)
+            bundle.data["has_genetic_data"] = self._set_has_genetic_data(form_progress, p)
+            bundle.data["genetic_data_map"] = bundle.data["has_genetic_data"]
 
-        logger.debug("calculating data modules for patient %s" % id)
-        bundle.data["data_modules"] = self._set_data_modules(form_progress, p, bundle.request.user)
-        bundle.data["diagnosis_currency"] = self._set_diagnosis_currency(form_progress, p)
+            logger.debug("calculating data modules for patient %s" % id)
+            bundle.data["data_modules"] = self._set_data_modules(form_progress, p, bundle.request.user)
+            bundle.data["diagnosis_currency"] = self._set_diagnosis_currency(form_progress, p)
 
         finish = time.time()
         elapsed = finish - start
