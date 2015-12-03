@@ -4,7 +4,7 @@ dataselenium:
     file: docker-compose-seleniumstack.yml
     service: dataselenium
 
-# runs the selenium tests against docker-compose-seleniumstack.yml
+# runs the selenium tests against the stack above
 seleniumtesthost:
   image: rdrf_webselenium
   command: selenium
@@ -15,7 +15,7 @@ seleniumtesthost:
     - WAIT_FOR_WEB=1
     - WAIT_FOR_MONGO=1
   volumes_from:
-    - dataselenium
+    - dataselenium      
   external_links:
     - rdrf_dbselenium_1:db
     - rdrf_webselenium_1:web
