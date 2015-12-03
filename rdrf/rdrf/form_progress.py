@@ -40,6 +40,12 @@ class FormProgressError(Exception):
     pass
 
 
+def test_value(value):
+    if value:
+        return True
+    else:
+        return False
+
 class FormProgress(object):
     def __init__(self, registry_model):
         self.registry_model = registry_model
@@ -69,12 +75,24 @@ class FormProgress(object):
         result = {"required": 0, "filled": 0, "percentage": 0}
 
         for section_model, cde_model in self._get_progress_cdes(form_model):
-            result["required"] += 1
+            if not section_model.allow_multiple:
+                result["required"] += 1
+            else:
+                num_items = self._get_num_items(form_model, section_model, dynamic_data)
+                result["required"] += num_items
+
             try:
-                value = self._get_value_from_dynamic_data(form_model, section_model, cde_model, dynamic_data)
-                if value is not None:
-                    result["filled"] += 1
-            except Exception:
+                if not section_model.allow_multiple:
+                    value = self._get_value_from_dynamic_data(form_model, section_model, cde_model, dynamic_data)
+                    if test_value(value):
+                        result["filled"] += 1
+                else:
+                    values = self._get_values_from_multisection(form_model, section_model, cde_model, dynamic_data)
+                    filled_in_values = [value for value in values if test_value(value)]
+                    result["filled"] += len(filled_in_values)
+
+            except Exception, ex:
+                logger.error("Error getting value for %s %s: %s" % (section_model.code, cde_model.code, ex))
                 pass
 
         if result["required"] > 0:
@@ -83,6 +101,36 @@ class FormProgress(object):
             result["percentage"] = 0
 
         return result
+
+    def _get_values_from_multisection(self, form_model, section_model, cde_model, dynamic_data):
+        for form_dict in dynamic_data["forms"]:
+            if form_dict["name"] == form_model.name:
+                for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == section_model.code:
+                            values = []
+                            items = section_dict["cdes"]
+                            for item in items:
+                                for cde_dict in item:
+                                    if cde_dict["code"] == cde_model.code:
+                                        values.append(cde_dict["value"])
+                            return values
+        return []
+
+    def _get_num_items(self, form_model, section_model, dynamic_data):
+        if not section_model.allow_multiple:
+            return 1
+        else:
+            n = 0
+            for form_dict in dynamic_data["forms"]:
+                if form_dict["name"] == form_model.name:
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == section_model.code:
+                            # for multisections the cdes field contains a list
+                            # of items, each of which is a list of cde dicts
+                            # containing the values for each item
+                            items = section_dict["cdes"]
+                            return len(items)
+        return 0
 
     def _calculate_form_currency(self, form_model, dynamic_data):
         from datetime import timedelta, datetime
@@ -140,12 +188,12 @@ class FormProgress(object):
                 for section_dict in form_dict["sections"]:
                     if not section_dict["allow_multiple"]:
                         for cde_dict in section_dict["cdes"]:
-                            if cde_dict["value"] is not None:
+                            if test_value(cde_dict["value"]):
                                 return True
                     else:
                         for item in section_dict["cdes"]:
                             for cde_dict in item:
-                                if cde_dict["value"] is not None:
+                                if test_value(cde_dict["value"]):
                                     return True
 
     def _calculate_form_cdes_status(self, form_model, dynamic_data):
@@ -313,7 +361,7 @@ class FormProgress(object):
         metric_name = "%s_group_has_data" % group_name
         return self._get_metric(metric_name, patient_model, context_model)
 
-    def data_modules(self, user, patient_model, context_model=None):
+    def get_data_modules(self, user, patient_model, context_model=None):
 
         viewable_forms = self._get_viewable_forms(user)
         content = ""
@@ -358,8 +406,4 @@ class FormProgress(object):
             self.progress_collection.insert(record)
 
         return self.progress_data
-
-
-
-
 
