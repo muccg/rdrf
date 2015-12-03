@@ -105,6 +105,7 @@ _selenium_stack_down() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
     set +x
 }
@@ -113,7 +114,11 @@ _selenium_stack_down() {
 lettuce() {
     _selenium_stack_up
 
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    set +x
 
     _selenium_stack_down
 }
