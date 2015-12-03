@@ -2,6 +2,7 @@ from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 from rdrf.models import Registry, RegistryForm
 from rdrf.utils import de_camelcase
+from rdrf.form_progress import FormProgress
 
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
@@ -64,6 +65,9 @@ class PatientResource(ModelResource):
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
         registry_code = bundle.request.GET.get("registry_code", "")
+        registry_model = Registry.objects.get(code=registry_code)
+
+        form_progress = getattr(bundle, "form_progress")
 
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
@@ -78,33 +82,37 @@ class PatientResource(ModelResource):
             # calls from calculated field plugin don't pass a registry code
             bundle.data["full_name"] = p.display_name
 
-        if hasattr(bundle, "progress_data"):
-            progress_data = getattr(bundle, "progress_data")
+        bundle.data["diagnosis_progress"] = self._set_diagnosis_progress(form_progress, p)
+        bundle.data["has_genetic_data"] = self._set_has_genetic_data(form_progress, p)
+        #bundle.data["genetic_data_map"] = self._set_genetic_data(form_progress, p)
+        bundle.data["data_modules"] = self._set_data_modules(form_progress, p, bundle.request.user)
+        bundle.data["diagnosis_currency"] = self._set_diagnosis_currency(form_progress, p)
 
-            if progress_data["diagnosis_progress"]:
-                progress_number = progress_data["diagnosis_progress"].get(id, 0.00)
-                bundle.data["diagnosis_progress"] = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar' aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'><span class='progress-label'>%s%%</span></div></div>" % (progress_number, progress_number, progress_number)
-
-            if progress_data["has_genetic_data"]:
-                has_genetic_data = progress_data["has_genetic_data"].get(id, False)
-                icon = "ok" if has_genetic_data else "remove"
-                color = "green" if has_genetic_data else "red"
-                bundle.data["genetic_data_map"] =  "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-
-            if progress_data["data_modules"]:
-                bundle.data["data_modules"] = progress_data["data_modules"].get(id, "")
-
-            if progress_data["diagnosis_currency"]:
-                diangosis_currency = progress_data["diagnosis_currency"].get(id, False)
-                icon = "ok" if diangosis_currency else "remove"
-                color = "green" if diangosis_currency else "red"
-                bundle.data["diagnosis_currency"] = "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
         finish = time.time()
         elapsed = finish - start
         logger.debug("dehydrate took %s" % elapsed)
 
         return bundle
+
+    def _set_diagnosis_progress(self, form_progress, patient_model):
+        progress_number = form_progress.get_group_progress("diagnosis", patient_model)
+        return "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar' aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'><span class='progress-label'>%s%%</span></div></div>" % (progress_number, progress_number, progress_number)
+
+    def _set_has_genetic_data(self, form_progress, patient_model):
+        has_genetic_data = form_progress.get_group_has_data("genetic", patient_model)
+        icon = "ok" if has_genetic_data else "remove"
+        color = "green" if has_genetic_data else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+    def _set_data_modules(self, form_progress, patient_model, user):
+        return form_progress.get_data_modules(user, patient_model)
+
+    def _set_diagnosis_currency(self, form_progress, patient_model):
+        diagnosis_currency = form_progress.get_group_currency("diagnosis", patient_model)
+        icon = "ok" if diagnosis_currency else "remove"
+        color = "green" if diagnosis_currency else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
     def _get_reg_list(self, patient, user):
         if user.is_superuser:
@@ -181,47 +189,6 @@ class PatientResource(ModelResource):
                     name="api_get_search"),
                 ]
 
-    def _bulk_compute_progress(self, page, user, registry_code,
-                               compute_progress=True,
-                               compute_diagnosis_currency=True,
-                               compute_has_genetic_data=True,
-                               compute_data_modules=True
-                               ):
-        start = time.time()
-        results = {}
-
-        registry_model = Registry.objects.get(code=registry_code)
-        logger.debug("about to set patient_instance_resource to self ..")
-        patient_resource_instance = self
-        patient_ids = [patient.id for patient in page.object_list]
-        logger.debug("patient ids = %s" % patient_ids)
-        progress_calculator.load_data(patient_ids)
-
-        if compute_progress:
-            results["diagnosis_progress"] = progress_calculator.diagnosis_progress()
-        else:
-            results["diagnosis_progress"] = None
-
-        if compute_diagnosis_currency:
-            results["diagnosis_currency"] = progress_calculator.diagnosis_currency()
-        else:
-            results["diagnosis_currency"] = None
-
-        if compute_has_genetic_data:
-            results["has_genetic_data"] = progress_calculator.has_genetic_data()
-        else:
-            results["has_genetic_data"] = None
-
-        if compute_data_modules:
-            results["data_modules"] = progress_calculator.data_modules()
-        else:
-            results["data_modules"] = None
-
-        finish = time.time()
-        time_taken = finish - start
-        logger.debug("progress calculator time = %s" % time_taken)
-        return results
-
     def get_search(self, request, **kwargs):
         from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
@@ -253,6 +220,8 @@ class PatientResource(ModelResource):
             clinicians_have_patients = False
 
         patients = Patient.objects.all()
+
+        form_progress = FormProgress(chosen_registry)
 
         if not request.user.is_superuser:
             if request.user.is_curator:
@@ -288,7 +257,8 @@ class PatientResource(ModelResource):
         self.is_authenticated(request)
         self.throttle_check(request)
 
-        row_count = int(request.GET.get('rowCount', 20))
+        row_count = int(request.GET.get('rowCcount', 20))
+        logger.debug("row count = %s" % row_count)
         search_phrase = request.GET.get("searchPhrase", None)
         current = int(request.GET.get("current", 1))
         sort_field, sort_direction = self._get_sorting(request)
@@ -339,12 +309,9 @@ class PatientResource(ModelResource):
         logger.debug("reg code = %s" % chosen_registry_code)
         logger.debug("user = %s" % request.user)
 
-        bulk_progress_data = self._bulk_compute_progress(
-            page, request.user, chosen_registry_code)
-
         for result in page.object_list:
             bundle = self.build_bundle(obj=result, request=request)
-            setattr(bundle, 'progress_data', bulk_progress_data)  # crap I know
+            setattr(bundle, "form_progress", form_progress)
             bundle = self.full_dehydrate(bundle)
             objects.append(bundle)
 
