@@ -104,13 +104,6 @@ _selenium_stack_up() {
 }
 
 _selenium_stack_down() {
-    mkdir -p data/selenium
-    chmod o+rwx data/selenium
-    find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
-
-    make_virtualenv
-    . ${VIRTUALENV}/bin/activate
-
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
     set +x
