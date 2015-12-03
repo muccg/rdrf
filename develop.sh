@@ -114,10 +114,15 @@ lettuce() {
     _selenium_stack_up
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml run --rm lettucehost
+    rval=$?
+    set -e
     set +x
 
     _selenium_stack_down
+
+    exit $rval
 }
 
 
@@ -125,10 +130,15 @@ selenium() {
     _selenium_stack_up
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml run --rm seleniumtesthost
+    rval=$?
+    set -e
     set +x
 
     _selenium_stack_down
+
+    exit $rval
 }
 
 
@@ -165,10 +175,15 @@ unit_tests() {
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
 
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost
+    rval=$?
+    set -e
 
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
     set +x
+
+    return $rval
 }
 
 
