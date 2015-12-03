@@ -181,7 +181,14 @@ class FormProgress(object):
             if "progress" in metadata:
                 return metadata["progress"]
             else:
-                return {}
+                # default behaviour - this is the old behaviour
+                groups_dict = {"diagnosis": [], "genetic": []}
+                for form_model in self.registry_model.forms:
+                    if "genetic" in form_model.name.lower():
+                        groups_dict["genetic"].append(form_model.name)
+                    else:
+                        groups_dict["diagnosis"].append(form_model.name)
+                return groups_dict
         except Exception, ex:
             logger.error("Error getting progress metadata for registry %s: %s" % (self.registry_model.code,
                                                                                   ex))
@@ -326,7 +333,9 @@ class FormProgress(object):
             elif tag == "current":
                 return self.loaded_data.get(form_model.name + "_form_current", False)
             elif tag == "cdes_status":
-                return self.loaded_data.get(form_model.name + "_form_cdes_status", {})
+                initial_completion_status_cdes = {cde_model.name: False for cde_model
+                                                  in form_model.complete_form_cdes.all()}
+                return self.loaded_data.get(form_model.name + "_form_cdes_status", initial_completion_status_cdes)
             else:
                 raise FormProgressError("Unknown metric: %s" % metric)
         else:
