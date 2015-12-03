@@ -46,12 +46,17 @@ def test_value(value):
     else:
         return False
 
+
 class FormProgress(object):
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.progress_data = {}
         self.progress_collection = self._get_progress_collection()
         self.progress_cdes_map = self._build_progress_map()
+        self.loaded_data = None
+
+    def reset(self):
+        # must be called if patient model changes!
         self.loaded_data = None
 
     def _get_progress_collection(self):
@@ -362,7 +367,6 @@ class FormProgress(object):
         return self._get_metric(metric_name, patient_model, context_model)
 
     def get_data_modules(self, user, patient_model, context_model=None):
-
         viewable_forms = self._get_viewable_forms(user)
         content = ""
         if not viewable_forms:
@@ -371,9 +375,7 @@ class FormProgress(object):
             for form in viewable_forms:
                 is_current = self.get_form_currency(form, patient_model, context_model)
                 flag = "images/%s.png" % ("tick" if is_current else "cross")
-
-                url = reverse('registry_form', args=(
-                    self.registry_model.code, form.id, patient_model.pk))
+                url = reverse('registry_form', args=(self.registry_model.code, form.id, patient_model.pk))
                 link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
                 label = nice_name(form.name)
                 to_form = link
@@ -383,12 +385,12 @@ class FormProgress(object):
                 if form.has_progress_indicator:
                     src = static(flag)
                     percentage = self.get_form_progress(form, patient_model, context_model)
-                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
-                        src, percentage, to_form)
+                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (src, percentage, to_form)
                 else:
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
-        html = "<button type='button' class='btn btn-primary btn-xs' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
+        html = "<button type='button' class='btn btn-primary btn-xs' " + \
+               "data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
         return html
 
     #########################################################################################
