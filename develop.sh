@@ -69,16 +69,21 @@ dockerbuild() {
 
 
 ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/data"
-    ccg ${AWS_STAGING_INSTANCE} drun:"chmod o+w ${PROJECT_NAME}/data"
-    ccg ${AWS_STAGING_INSTANCE} putfile:docker-compose-staging.yml,${PROJECT_NAME}/docker-compose-staging.yml
+    ssh ubuntu@staging.ccgapps.com.au << EOF
+      mkdir -p ${PROJECT_NAME}/data
+      chmod o+w ${PROJECT_NAME}/data
+EOF
 
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml stop"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml kill"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml rm --force -v"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS} webstaging"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && docker-compose -f docker-compose-staging.yml up -d"
-    ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
+    scp docker-compose-*.yml ubuntu@staging.ccgapps.com.au:${PROJECT_NAME}/
+
+    # TODO This doesn't actually do a whole lot, some tests should be run against the staging stack
+    ssh ubuntu@staging.ccgapps.com.au << EOF
+      cd ${PROJECT_NAME}
+      docker-compose -f docker-compose-staging.yml stop
+      docker-compose -f docker-compose-staging.yml kill
+      docker-compose -f docker-compose-staging.yml rm --force -v
+      docker-compose -f docker-compose-staging.yml up -d
+EOF
 }
 
 
