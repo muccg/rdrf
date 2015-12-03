@@ -268,7 +268,7 @@ class FormProgress(object):
         elif isinstance(metric, tuple):
             form_model, tag = metric
             if tag == "progress":
-                return self.loaded_data.get(form_model.name + "_form_progress", 0)
+                return self.loaded_data.get(form_model.name + "_form_progress", {})
             elif tag == "current":
                 return self.loaded_data.get(form_model.name + "_form_current", False)
             elif tag == "cdes_status":
