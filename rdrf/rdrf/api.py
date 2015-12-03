@@ -68,6 +68,7 @@ class PatientResource(ModelResource):
         registry_model = Registry.objects.get(code=registry_code)
 
         form_progress = getattr(bundle, "form_progress")
+        form_progress.reset()
 
         bundle.data["working_groups_display"] = p.working_groups_display
         bundle.data["reg_list"] = self._get_reg_list(p, bundle.request.user)
@@ -77,7 +78,9 @@ class PatientResource(ModelResource):
             bundle.data["reg_code"] = [reg.code for reg in bundle.request.user.registry.all()]
 
         if registry_code:
-            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs = {"registry_code": registry_code, "patient_id": p.id}), p.display_name)
+            bundle.data["full_name"] = "<a href='%s'>%s</a>" % (reverse("patient_edit",
+                                                                        kwargs={"registry_code": registry_code,
+                                                                                "patient_id": p.id}), p.display_name)
         else:
             # calls from calculated field plugin don't pass a registry code
             bundle.data["full_name"] = p.display_name
@@ -85,9 +88,10 @@ class PatientResource(ModelResource):
         bundle.data["diagnosis_progress"] = self._set_diagnosis_progress(form_progress, p)
         bundle.data["has_genetic_data"] = self._set_has_genetic_data(form_progress, p)
         #bundle.data["genetic_data_map"] = self._set_genetic_data(form_progress, p)
+
+        logger.debug("calculating data modules for patient %s" % id)
         bundle.data["data_modules"] = self._set_data_modules(form_progress, p, bundle.request.user)
         bundle.data["diagnosis_currency"] = self._set_diagnosis_currency(form_progress, p)
-
 
         finish = time.time()
         elapsed = finish - start
