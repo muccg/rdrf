@@ -5,29 +5,28 @@
 {% block extrastyle %}
     {{ block.super }}
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
     
     <script>
+
         $(document).ready(function() {
+
+            var NUM_RECORDS = 100;  // number of records to retrieve
 
             function getSelectedRegistry() {
                 var code = $("#registry_options > option:selected").attr('id');
                 return code;
             }
 
-            function getSelectedRowCount() {
-                var rowCount = $("select[name='patient_list_table_length'] option:selected").attr("value");
-                if (rowCount == undefined) {
-                    rowCount = 10;
-                }
-                return rowCount;
-            }
 
-            function apiCall(registryCode, rowCount) {
+
+            function getApiUrl(registryCode, rowCount, pageNumber) {
                 var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-                var url = api_url + "?registry_code=" + registryCode + "&rowCount=" + rowCount.toString();
-                return url;
+                return  api_url +
+                          "?registry_code=" + registryCode +
+                          "&rowCount=" + rowCount.toString() +
+                          "&current=" + pageNumber.toString();
             }
 
             $.fn.dataTable.ext.errMode = 'throw';
@@ -36,16 +35,19 @@
                 $("#add_patient").hide();
             }
 
+
+
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-            var rowCount = getSelectedRowCount();
+
+            var numRecords = 100;
+
             var registryCode = getSelectedRegistry();
-            var initialUrl = apiCall(registryCode, rowCount);
+            var initialUrl = getApiUrl(registryCode, numRecords, 1);
 
             var patients_list = $("#patient_list_table").DataTable({
-                "ajax": {
-                    "url": initialUrl,
-                    "dataSrc": "rows",
-                },
+                "processing": true,
+                "serverSide": true,
+                "ajax": api_url,
                 "columns": {{columns|safe}},
             }).on("draw", function() {
                 $("#loading_text").hide();
@@ -57,12 +59,16 @@
                     'container': 'body'
                 });
             });
+
+
+
             
             $("#registry_options").change(function() {
                 $("#loading_text").show();
                 var reg_code = getSelectedRegistry();
                 var rowCount = getSelectedRowCount();
-                var url  = apiCall(reg_code, rowCount);
+                var pageNumber = patients_list.info.page;
+                var url  = getApiUrl(reg_code, rowCount, pageNumber);
                 patients_list.ajax.url(url).load();
             });
 
