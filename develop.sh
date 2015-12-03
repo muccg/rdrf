@@ -115,8 +115,6 @@ lettuce() {
     _selenium_stack_up
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
     set +x
 
@@ -127,7 +125,9 @@ lettuce() {
 selenium() {
     _selenium_stack_up
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
+    set +x
 
     _selenium_stack_down
 }
