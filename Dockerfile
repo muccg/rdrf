@@ -2,6 +2,8 @@
 FROM muccg/python-base:ubuntu14.04-2.7
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
+ARG PIP_OPTS="--no-cache-dir"
+
 ENV DEBIAN_FRONTEND noninteractive
 
 #RUN rm /etc/apt/apt.conf.d/30proxy
@@ -25,16 +27,17 @@ RUN env --unset=DEBIAN_FRONTEND
 COPY rdrf/*requirements.txt /app/rdrf/
 WORKDIR /app
 # hgvs was failing due to lack of nose, hence the order
-RUN pip install -r rdrf/dev-requirements.txt
-RUN pip install -r rdrf/test-requirements.txt
-RUN pip install -r rdrf/runtime-requirements.txt
+RUN virtualenv /env
+RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/dev-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/test-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Copy code and install the app
 COPY . /app
-RUN pip install -e rdrf
+RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
 
 EXPOSE 8000 9000 9001 9100 9101
 VOLUME ["/app", "/data"]
