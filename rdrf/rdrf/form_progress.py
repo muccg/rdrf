@@ -274,7 +274,7 @@ class FormProgress(object):
             result[form_name + "_form_progress"] = forms_progress[form_name]["progress"]
             result[form_name + "_form_current"] = forms_progress[form_name]["current"]
             result[form_name + "_form_has_data"] = forms_progress[form_name]["has_data"]
-            result[form_name + "form_cdes_status"] = forms_progress[form_name]["cdes_status"]
+            result[form_name + "_form_cdes_status"] = forms_progress[form_name]["cdes_status"]
 
         for groups_name in groups_progress:
             result[groups_name + "_group_progress"] = groups_progress[groups_name]["percentage"]
