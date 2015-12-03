@@ -88,9 +88,11 @@ lettuce() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    set +x
 }
 
 selenium() {
@@ -101,9 +103,11 @@ selenium() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml rm --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up
+    set +x
 }
 
 registry_specific_tests() {
@@ -120,8 +124,10 @@ start() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} up
+    set +x
 }
 
 
@@ -132,9 +138,11 @@ unit_tests() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml rm --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-test.yml up
+    set +x
 }
 
 
