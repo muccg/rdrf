@@ -9,11 +9,13 @@ USER root
 # install python deps
 COPY rdrf/*requirements.txt /app/rdrf/
 WORKDIR /app
+
 # hgvs was failing due to lack of nose, hence the order
-RUN rm -rf /env && virtualenv /env
-RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/dev-requirements.txt
-RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/test-requirements.txt
-RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
+RUN /env/bin/pip freeze
+RUN /env/bin/pip ${PIP_OPTS} uninstall -y django-rdrf
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/dev-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/test-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/runtime-requirements.txt
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
