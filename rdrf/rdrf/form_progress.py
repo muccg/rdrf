@@ -41,12 +41,20 @@ class FormProgressError(Exception):
 
 
 class FormProgress(object):
-    def __init__(self, registry_model, progress_collection):
+    def __init__(self, registry_model):
         self.registry_model = registry_model
         self.progress_data = {}
-        self.progress_collection = progress_collection
+        self.progress_collection = self._get_progress_collection()
         self.progress_cdes_map = self._build_progress_map()
         self.loaded_data = None
+
+    def _get_progress_collection(self):
+        from rdrf.utils import mongo_db_name
+        from rdrf.mongo_client import construct_mongo_client
+        db_name = mongo_db_name(self.registry_model.code)
+        mongo_client = construct_mongo_client()
+        db = mongo_client[db_name]
+        return db["progress"]
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
@@ -140,6 +148,36 @@ class FormProgress(object):
                                 if cde_dict["value"] is not None:
                                     return True
 
+    def _calculate_form_cdes_status(self, form_model, dynamic_data):
+        from rdrf.models import CommonDataElement
+
+        def get_name(cde_code):
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            return cde_model.name
+
+        cdes_status = {}
+        required_cdes = self.progress_cdes_map[form_model.name]
+        for cde_code in required_cdes:
+            cde_name = get_name(cde_code)
+            cdes_status[cde_name] = False
+
+        for form_dict in dynamic_data["forms"]:
+            if form_dict["name"] == form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] in required_cdes:
+                                if cde_dict["value"]:
+                                    cde_name = get_name(cde_dict['code'])
+                                    cdes_status[cde_name] = True
+                    else:
+                        for item in section_dict["cdes"]:
+                            for cde_dict in item:
+                                if cde_dict["code"] in required_cdes:
+                                    cde_name = get_name(cde_dict['code'])
+                                    cdes_status[cde_name] = True
+        return cdes_status
+
     def _calculate(self, dynamic_data):
         progress_metadata = self._get_progress_metadata()
         if not progress_metadata:
@@ -150,15 +188,18 @@ class FormProgress(object):
 
         groups_progress = {}
         forms_progress = {}
+        cdes_status = {}
 
         for form_model in self.registry_model.forms:
             if not form_model.is_questionnaire:
                 form_progress_dict = self._calculate_form_progress(form_model, dynamic_data)
                 form_currency = self._calculate_form_currency(form_model, dynamic_data)
                 form_has_data = self._calculate_form_has_data(form_model, dynamic_data)
+                form_cdes_status = self._calculate_form_cdes_status(form_model, dynamic_data)
                 forms_progress[form_model.name] = {"progress": form_progress_dict,
                                                    "current": form_currency,
-                                                   "has_data": form_has_data}
+                                                   "has_data": form_has_data,
+                                                   "cdes_status": form_cdes_status}
 
                 for progress_group in progress_metadata:
                     if form_model.name in progress_metadata[progress_group]:
@@ -185,6 +226,7 @@ class FormProgress(object):
             result[form_name + "_form_progress"] = forms_progress[form_name]["progress"]
             result[form_name + "_form_current"] = forms_progress[form_name]["current"]
             result[form_name + "_form_has_data"] = forms_progress[form_name]["has_data"]
+            result[form_name + "form_cdes_status"] = forms_progress[form_name]["cdes_status"]
 
         for groups_name in groups_progress:
             result[groups_name + "_group_progress"] = groups_progress[groups_name]["percentage"]
@@ -205,6 +247,8 @@ class FormProgress(object):
     def _load(self, patient_model, context_model=None):
         query = self._get_query(patient_model, context_model)
         self.loaded_data = self.progress_collection.find_one(query)
+        if self.loaded_data is None:
+            self.loaded_data = {}
         return self.loaded_data
 
     def _get_metric(self, metric, patient_model, context_model=None):
@@ -222,11 +266,13 @@ class FormProgress(object):
         elif metric == "genetic_group_has_data":
             return self.loaded_data.get("genetic_group_has_data", False)
         elif isinstance(metric, tuple):
-            form_model, tag = tuple
+            form_model, tag = metric
             if tag == "progress":
                 return self.loaded_data.get(form_model.name + "_form_progress", 0)
             elif tag == "current":
                 return self.loaded_data.get(form_model.name + "_form_current", False)
+            elif tag == "cdes_status":
+                return self.loaded_data.get(form_model.name + "_form_cdes_status", {})
             else:
                 raise FormProgressError("Unknown metric: %s" % metric)
         else:
@@ -238,11 +284,22 @@ class FormProgress(object):
 
     ###############################################################################\
     ###  Public Api  - getting the progress
-    def get_form_progress(self, form_model, patient_model, context_model=None):
+    def get_form_progress_dict(self, form_model, patient_model, context_model=None):
+        # returns a dict of required filled percentage numbers
         return self._get_metric((form_model, "progress"), patient_model, context_model)
+
+    def get_form_progress(self, form_model, patient_model, context_model=None):
+        d = self.get_form_progress_dict(form_model, patient_model, context_model)
+        if "percentage" in d:
+            return d["percentage"]
+        else:
+            return 0
 
     def get_form_currency(self, form_model, patient_model, context_model=None):
         return self._get_metric((form_model, "current"), patient_model, context_model)
+
+    def get_form_cdes_status(self, form_model, patient_model, context_model=None):
+        return self._get_metric((form_model, "cdes_status"), patient_model, context_model)
 
     def get_group_progress(self, group_name, patient_model, context_model=None):
         metric_name = "%s_group_progress" % group_name
@@ -299,3 +356,10 @@ class FormProgress(object):
             record = query
             record.update(self.progress_data)
             self.progress_collection.insert(record)
+
+        return self.progress_data
+
+
+
+
+

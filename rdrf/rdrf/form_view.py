@@ -44,6 +44,7 @@ from registry.groups.models import CustomUser
 import logging
 from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
+from rdrf.form_progress import FormProgress
 
 logger = logging.getLogger("registry_log")
 
@@ -200,12 +201,14 @@ class FormView(View):
                                                    registry_code=registry_code,
                                                    rdrf_context_id=rdrf_context_id)
         self.registry_form = self.get_registry_form(form_id)
-        context = self._build_context(user=request.user)
-        context["location"] = location_name(self.registry_form, self.rdrf_context)
+        patient_model = Patient.objects.get(pk=patient_id)
+        context = self._build_context(user=request.user, patient_model=patient_model)
+
+        context["location"] = location_name(self.registry_form)
         context["header"] = self.registry_form.header
         context["show_print_button"] = True
 
-        patient_model = Patient.objects.get(pk=patient_id)
+
         wizard = NavigationWizard(self.user,
                                   self.registry,
                                   patient_model,
@@ -267,6 +270,7 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         error_count = 0
+
         # this is used by formset plugin:
         # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
         section_field_ids_map = {}
@@ -374,7 +378,11 @@ class FormView(View):
         # Save one snapshot after all sections have being persisted
         dyn_patient.save_snapshot(registry_code, "cdes")
 
-        dyn_patient.save_form_progress(registry_code)
+        # progress saved to progress collection in mongo
+        # the data is returned also
+        progress_dict = dyn_patient.save_form_progress(registry_code)
+
+        logger.debug("progress dict = %s" % progress_dict)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
@@ -414,9 +422,15 @@ class FormView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         if not self.registry_form.is_questionnaire:
-            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
-            context["form_progress"] = progress
-            context["form_progress_cdes"] = cdes_status
+            form_progress_map = progress_dict.get(self.registry_form.name + "_form_progress", {})
+            if "percentage" in form_progress_map:
+                progress_percentage = form_progress_map["percentage"]
+            else:
+                progress_percentage = 0
+
+            context["form_progress"] = progress_percentage
+
+            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status", {})
 
         context.update(csrf(request))
         if error_count == 0:
@@ -565,6 +579,15 @@ class FormView(View):
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
+
+            patient_model = self._get_patient_object()
+
+            form_progress = FormProgress(self.registry_form.registry)
+
+            form_progress_dict = form_progress.get_form_progress(self.registry_form, patient_model)
+
+            form_cdes_status = form_progress.get_form_cdes_status(self.registry_form, patient_model)
+
             cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = progress
             context["form_progress_cdes"] = cdes_status

@@ -1088,7 +1088,7 @@ class DynamicDataWrapper(object):
         progress_collection = self._get_collection(registry_code, "progress")
         form_progress = FormProgress(registry_model, progress_collection)
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        form_progress.save_progress(self.obj, dynamic_data, context_model)
+        return form_progress.save_progress(self.obj, dynamic_data, context_model)
 
     def _convert_date_to_datetime(self, data):
         """
