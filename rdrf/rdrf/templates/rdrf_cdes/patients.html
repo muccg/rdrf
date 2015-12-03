@@ -20,9 +20,26 @@
     
     <script>
         $(document).ready(function() {
-        var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-        var unexpandedRowGlyph = '<span class="glyphicon glyphicon-chevron-right" style="color:red" aria-hidden="true"></span>';
-        var expandedRowGlyph = '<span class="glyphicon glyphicon-chevron-down"  style="color:green" aria-hidden="true"></span>';
+            function getSelectedRegistry() {
+                var code = $("#registry_options > option:selected").attr('id');
+                return code;
+            }
+
+            function getSelectedRowCount() {
+                var rowCount = $("select[name='patient_list_table_length'] option:selected").attr("value");
+                if (rowCount == undefined) {
+                    rowCount = 10;
+                }
+                return rowCount;
+            }
+
+            function apiCall(registryCode, rowCount) {
+                var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
+                var url = api_url + "?registry_code=" + registryCode + "&rowCount=" + rowCount.toString();
+                return url;
+            }
+
+            $.fn.dataTable.ext.errMode = 'throw';
 
         var columns = {{columns | safe}};
 
@@ -57,9 +74,13 @@
                                         });
 
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
+            var rowCount = getSelectedRowCount();
+            var registryCode = getSelectedRegistry();
+            var apiCall = apiCall(registryCode, rowCount);
+
             var patients_list = $("#patient_list_table").DataTable({
                 "ajax": {
-                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
+                    "url": apiCall,
                     "dataSrc": "rows",
                 },
                 "columns": {{columns|safe}},
@@ -76,8 +97,10 @@
             
             $("#registry_options").change(function() {
                 $("#loading_text").show();
-                var reg_code = $("#registry_options option:selected").attr("id");
-                patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+                var reg_code = getSelectedRegistry();
+                var rowCount = getSelectedRowCount();
+                var url  = apiCall(reg_code, rowCount);
+                patients_list.ajax.url(url).load();
             });
 
             $("#add_patient").click(function() {
