@@ -228,7 +228,8 @@ class FormProgress(object):
                             for cde_dict in item:
                                 if cde_dict["code"] in required_cdes:
                                     cde_name = get_name(cde_dict['code'])
-                                    cdes_status[cde_name] = True
+                                    if cde_dict["value"]:
+                                        cdes_status[cde_name] = True
         return cdes_status
 
     def _calculate(self, dynamic_data):
