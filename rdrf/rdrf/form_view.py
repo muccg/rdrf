@@ -429,8 +429,10 @@ class FormView(View):
                 progress_percentage = 0
 
             context["form_progress"] = progress_percentage
-
-            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status", {})
+            initial_completion_cdes = {cde_model.name: False for cde_model in
+                                       self.registry_form.complete_form_cdes.all()}
+            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status",
+                                                              initial_completion_cdes)
 
         context.update(csrf(request))
         if error_count == 0:
