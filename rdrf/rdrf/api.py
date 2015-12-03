@@ -270,7 +270,7 @@ class PatientResource(ModelResource):
         self.is_authenticated(request)
         self.throttle_check(request)
 
-        row_count = int(request.GET.get('rowCcount', 20))
+        row_count = int(request.GET.get('rowCount', 20))
         logger.debug("row count = %s" % row_count)
         search_phrase = request.GET.get("searchPhrase", None)
         current = int(request.GET.get("current", 1))
