@@ -12,6 +12,8 @@ PROJECT_NAME='angelman'
 VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
+: ${DOCKER_BUILD_OPTIONS:="--pull=true"}
+
 
 usage() {
     echo 'Usage ./develop.sh (pythonlint|jslint|start|dockerbuild|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
@@ -33,23 +35,32 @@ dockerbuild() {
 
     image="muccg/${PROJECT_NAME}"
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
+    gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
+
+    # only use tags when on master (release) branch
+    if [ $gitbranch != "master" ]; then
+        echo "Ignoring tags, not on master branch"
+        gittag=$gitbranch
+    fi
+
+    # if no git tag, then use branch name
+    if [ -z ${gittag+x} ]; then
+        echo "No git tag set, using branch name"
+        gittag=$gitbranch
+    fi
+
+    echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
     docker pull ${image} || true
 
-    docker build -f Dockerfile-release -t ${image} .
-    docker build -f Dockerfile-release -t ${image}:${DATE} .
-
-    if [ -z ${gittag+x} ]; then
-        echo "No git tag set"
-    else
-        echo "Git tag ${gittag}"
-        docker build -f Dockerfile-release -t ${image}:${gittag} .
-        docker push ${image}:${gittag}
-    fi
-
-    docker push ${image}
-    docker push ${image}:${DATE}
+    for tag in "${image}:${gittag}" "${image}:${gittag}-${DATE}"; do
+        echo "############################################################# ${PROJECT_NAME} ${tag}"
+        set -x
+        docker build ${DOCKER_BUILD_OPTIONS} --build-arg GIT_TAG=${gittag} -t ${tag} -f Dockerfile-release .
+        docker push ${tag}
+        set +x
+    done
 }
 
 
@@ -132,11 +143,7 @@ make_virtualenv() {
         virtualenv ${VIRTUALENV}
     fi
 
-    # docker-compose is hanging on "Attaching to" forever on Bambo instances
-    # The issue might be:
-    # https://github.com/docker/compose/issues/1961
-    # Until it is solved we use the previous stable version of docker-compose
-    pip install docker-compose==1.3.3
+    pip install 'docker-compose<=1.6' --upgrade || true
 }
 
 
