@@ -39,11 +39,11 @@
             var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
             var rowCount = getSelectedRowCount();
             var registryCode = getSelectedRegistry();
-            var apiCall = apiCall(registryCode, rowCount);
+            var initialUrl = apiCall(registryCode, rowCount);
 
             var patients_list = $("#patient_list_table").DataTable({
                 "ajax": {
-                    "url": apiCall,
+                    "url": initialUrl,
                     "dataSrc": "rows",
                 },
                 "columns": {{columns|safe}},
