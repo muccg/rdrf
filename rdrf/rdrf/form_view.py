@@ -543,13 +543,13 @@ class FormView(View):
 
             form_progress = FormProgress(self.registry_form.registry)
 
-            form_progress_dict = form_progress.get_form_progress(self.registry_form, patient_model)
+            form_progress_percentage = form_progress.get_form_progress(self.registry_form, patient_model)
 
             form_cdes_status = form_progress.get_form_cdes_status(self.registry_form, patient_model)
 
-            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
-            context["form_progress"] = progress
-            context["form_progress_cdes"] = cdes_status
+            #cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
+            context["form_progress"] = form_progress_percentage
+            context["form_progress_cdes"] = form_cdes_status
 
         context.update(kwargs)
         return context
