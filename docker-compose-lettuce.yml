@@ -6,7 +6,7 @@ dataselenium:
 
 # runs the lettuce tests against docker-compose-seleniumstack.yml
 lettucehost:
-  image: rdrf_runserverselenium
+  image: angelman_runserverselenium
   command: lettuce
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
@@ -17,8 +17,8 @@ lettucehost:
   volumes_from:
     - dataselenium      
   external_links:
-    - rdrf_dbselenium_1:db
-    - rdrf_runserverselenium_1:web
-    - rdrf_mongoselenium_1:mongo
-    - rdrf_seleniumhub_1:hub
-    - rdrf_reportingselenium_1:reporting
+    - angelman_dbselenium_1:db
+    - angelman_runserverselenium_1:web
+    - angelman_mongoselenium_1:mongo
+    - angelman_seleniumhub_1:hub
+    - angelman_reportingselenium_1:reporting

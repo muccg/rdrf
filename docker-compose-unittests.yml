@@ -6,7 +6,7 @@ datatest:
 
 # runs the tests against docker-compose-teststack.yml
 testhost:
-  image: rdrf_runservertest
+  image: angelman_runservertest
   command: runtests
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
@@ -17,7 +17,7 @@ testhost:
   volumes_from:
     - datatest
   external_links:
-    - rdrf_dbtest_1:db
-    - rdrf_runservertest_1:web
-    - rdrf_mongotest_1:mongo
-    - rdrf_reportingtest_1:reporting
+    - angelman_dbtest_1:db
+    - angelman_runservertest_1:web
+    - angelman_mongotest_1:mongo
+    - angelman_reportingtest_1:reporting

@@ -1,6 +1,6 @@
-# Dockerfile template. ${GITTAG} needs to be set.
+#
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
+MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 ARG GIT_TAG=next_release
 ARG PIP_OPTS="--no-cache-dir"
@@ -24,14 +24,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN env --unset=DEBIAN_FRONTEND
 
 WORKDIR /app
-RUN echo $GIT_TAG \
-    && git clone --depth=1 --branch=$GIT_TAG https://bitbucket.org/ccgmurdoch/rdrf.git .
+COPY rdrf/*requirements.txt /app/rdrf/
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order
 RUN virtualenv /env
 RUN /env/bin/pip ${PIP_OPTS} install nose
 RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
+
+
+COPY . /app/
 RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
 
 EXPOSE 9100 9101

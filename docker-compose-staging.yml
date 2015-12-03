@@ -19,7 +19,7 @@ mongostaging:
     service: mongo
 
 uwsgistaging:
-  image: muccg/rdrf:next_release
+  image: muccg/angelman:next_release
   command: uwsgi
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
