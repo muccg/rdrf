@@ -399,6 +399,13 @@ class LongitudinalTestCase(FormTestCase):
             assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
 
 
+class FormProgressTest(FormTestCase):
+    def test_progress_calcs(self):
+        mongo_db = self.client["testing_" + self.registry.code]
+        super(FormProgressTest, self).test_simple_form()
+        collection = mongo_db["progress"]
+
+
 class DeCamelcaseTestCase(TestCase):
 
     _EXPECTED_VALUE = "Your Condition"
