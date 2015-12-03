@@ -13,6 +13,7 @@ VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
 AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
 
 : ${DOCKER_BUILD_OPTIONS:="--pull=true"}
+: ${DOCKER_COMPOSE_BUILD_OPTIONS:="--pull"}
 
 
 usage() {
@@ -65,20 +66,18 @@ dockerbuild() {
 
 
 ci_staging() {
-    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/docker/unstable"
-    ccg ${AWS_STAGING_INSTANCE} drun:"mkdir -p ${PROJECT_NAME}/data"
-    ccg ${AWS_STAGING_INSTANCE} drun:"chmod o+w ${PROJECT_NAME}/data"
-    ccg ${AWS_STAGING_INSTANCE} putfile:fig-staging.yml,${PROJECT_NAME}/fig-staging.yml
-    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,${PROJECT_NAME}/docker/unstable/Dockerf
-ile
+    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/docker/unstable'
+    ccg ${AWS_STAGING_INSTANCE} drun:'mkdir -p rdrf/data'
+    ccg ${AWS_STAGING_INSTANCE} drun:'chmod o+w rdrf/data'
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker-compose-staging.yml,rdrf/docker-compose-staging.yml
+    ccg ${AWS_STAGING_INSTANCE} putfile:docker/unstable/Dockerfile,rdrf/docker/unstable/Dockerfile
 
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml stop"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml kill"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml rm --force -v"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml build --no-cache websta
-ging"
-    ccg ${AWS_STAGING_INSTANCE} drun:"cd ${PROJECT_NAME} && fig -f fig-staging.yml up -d"
-    ccg ${AWS_STAGING_INSTANCE} drun:"docker-clean || true"
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && docker-compose -f docker-compose-staging.yml stop'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && docker-compose -f docker-compose-staging.yml kill'
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && docker-compose -f docker-compose-staging.yml rm --force -v'
+    ccg ${AWS_STAGING_INSTANCE} drun:"cd rdrf && docker-compose -f docker-compose-staging.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS} webstaging"
+    ccg ${AWS_STAGING_INSTANCE} drun:'cd rdrf && docker-compose -f docker-compose-staging.yml up -d'
+    ccg ${AWS_STAGING_INSTANCE} drun:'docker-clean || true'
 }
 
 lettuce() {
@@ -88,9 +87,9 @@ lettuce() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-lettuce.yml rm --force
-    docker-compose --project-name rdrf -f fig-lettuce.yml build
-    docker-compose --project-name rdrf -f fig-lettuce.yml up
+    docker-compose --project-name rdrf -f docker-compose-lettuce.yml rm --force
+    docker-compose --project-name rdrf -f docker-compose-lettuce.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name rdrf -f docker-compose-lettuce.yml up
 }
 
 selenium() {
@@ -101,9 +100,9 @@ selenium() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-selenium.yml rm --force
-    docker-compose --project-name rdrf -f fig-selenium.yml build
-    docker-compose --project-name rdrf -f fig-selenium.yml up
+    docker-compose --project-name rdrf -f docker-compose-selenium.yml rm --force
+    docker-compose --project-name rdrf -f docker-compose-selenium.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name rdrf -f docker-compose-selenium.yml up
 }
 
 registry_specific_tests() {
@@ -120,6 +119,7 @@ start() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
+    docker-compose --project-name rdrf build ${DOCKER_COMPOSE_BUILD_OPTIONS}
     docker-compose --project-name rdrf up
 }
 
@@ -131,9 +131,9 @@ unit_tests() {
     make_virtualenv
     . ${VIRTUALENV}/bin/activate
 
-    docker-compose --project-name rdrf -f fig-test.yml rm --force
-    docker-compose --project-name rdrf -f fig-test.yml build
-    docker-compose --project-name rdrf -f fig-test.yml up
+    docker-compose --project-name rdrf -f docker-compose-test.yml rm --force
+    docker-compose --project-name rdrf -f docker-compose-test.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
+    docker-compose --project-name rdrf -f docker-compose-test.yml up
 }
 
 
