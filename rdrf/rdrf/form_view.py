@@ -1883,7 +1883,7 @@ class PatientsListingView(LoginRequiredMixin, View):
         columns = []
 
         sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
-        
+
         for definition in sorted_by_order:
             if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
                 columns.append(
