@@ -49,7 +49,9 @@ dockerbuild() {
     . ${VIRTUALENV}/bin/activate
 
     image="muccg/${PROJECT_NAME}"
+    set +e
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
+    set -e
     gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
 
     # only use tags when on master (release) branch
