@@ -45,9 +45,10 @@
             var initialUrl = getApiUrl(registryCode, numRecords, 1);
 
             var patients_list = $("#patient_list_table").DataTable({
-                "processing": true,
-                "serverSide": true,
-                "ajax": api_url,
+                 "ajax": {
+                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
+                    "dataSrc": "rows",
+                },
                 "columns": {{columns|safe}},
             }).on("draw", function() {
                 $("#loading_text").hide();
