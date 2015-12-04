@@ -1,0 +1,64 @@
+# data only container pattern
+datadev:
+  extends:
+    file: docker-compose-common.yml
+    service: datadev
+
+smtp:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
+
+db:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+reporting:
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
+
+cache:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongo:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+nginx:
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
+  links:
+    - uwsgi
+
+runserver:
+  extends:
+    file: docker-compose-common.yml
+    service: runserver
+  volumes_from:
+    - datadev
+  links:
+    - db
+    #- legacydb
+    - reporting
+    - cache
+    - mongo
+    - smtp
+
+uwsgi:
+  extends:
+    file: docker-compose-common.yml
+    service: uwsgi
+  volumes_from:
+    - datadev
+  links:
+    - db
+    - reporting
+    - cache
+    - mongo
+    - runserver:web

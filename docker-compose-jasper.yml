@@ -1,0 +1,64 @@
+datadev:
+  extends:
+    file: docker-compose-common.yml
+    service: datadev
+
+jasper:
+  extends:
+    file: docker-compose-common.yml
+    service: jasper
+  links:
+    - db:db
+
+smtp:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
+
+db:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+cache:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongo:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+nginx:
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
+  links:
+    - uwsgi
+
+runserver:
+  extends:
+    file: docker-compose-common.yml
+    service: runserver
+  volumes_from:
+    - datadev
+  links:
+    - db
+    - cache
+    - mongo
+    - smtp
+    - jasper
+
+uwsgi:
+  extends:
+    file: docker-compose-common.yml
+    service: uwsgi
+  volumes_from:
+    - datadev
+  links:
+    - db
+    - cache
+    - mongo
+    - runserver:web
+    - jasper

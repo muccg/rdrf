@@ -1,0 +1,23 @@
+# data only container pattern
+datatest:
+  extends:
+    file: docker-compose-common.yml
+    service: datatest
+
+# runs the tests against docker-compose-teststack.yml
+testhost:
+  image: angelman_runservertest
+  command: runtests
+  environment:
+    - DJANGO_SETTINGS_MODULE=rdrf.settings
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_RUNSERVER=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - datatest
+  external_links:
+    - angelman_dbtest_1:db
+    - angelman_runservertest_1:web
+    - angelman_mongotest_1:mongo
+    - angelman_reportingtest_1:reporting

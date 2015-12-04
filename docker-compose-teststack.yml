@@ -1,0 +1,36 @@
+datatest:
+  extends:
+    file: docker-compose-common.yml
+    service: datatest
+
+dbtest:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+reportingtest:
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
+
+cachetest:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongotest:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+runservertest:
+  extends:
+    file: docker-compose-common.yml
+    service: runserver
+  volumes_from:
+    - datatest
+  links:
+    - dbtest:db
+    - reportingtest:reporting
+    - cachetest:cache
+    - mongotest:mongo

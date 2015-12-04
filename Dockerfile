@@ -1,40 +1,28 @@
 #
-FROM muccg/python-base:ubuntu14.04-2.7
+FROM muccg/angelman:next_release
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
-ENV DEBIAN_FRONTEND noninteractive
+ARG PIP_OPTS="--no-cache-dir"
 
-#RUN rm /etc/apt/apt.conf.d/30proxy
-
-# Project specific deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  git \
-  libpcre3 \
-  libpcre3-dev \
-  libpq-dev \
-  libssl-dev \
-  libyaml-dev \
-  python-tk \
-  sendmail \
-  zlib1g-dev \
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN env --unset=DEBIAN_FRONTEND
+USER root
 
 # install python deps
 COPY rdrf/*requirements.txt /app/rdrf/
 WORKDIR /app
+
 # hgvs was failing due to lack of nose, hence the order
-RUN pip install -r rdrf/dev-requirements.txt
-RUN pip install -r rdrf/test-requirements.txt
-RUN pip install -r rdrf/runtime-requirements.txt
+RUN /env/bin/pip freeze
+RUN /env/bin/pip ${PIP_OPTS} uninstall -y django-rdrf
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/dev-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/test-requirements.txt
+RUN /env/bin/pip ${PIP_OPTS} install --upgrade -r rdrf/runtime-requirements.txt
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Copy code and install the app
 COPY . /app
-RUN pip install -e rdrf
+RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
 
 EXPOSE 8000 9000 9001 9100 9101
 VOLUME ["/app", "/data"]
