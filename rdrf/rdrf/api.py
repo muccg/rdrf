@@ -61,15 +61,9 @@ class PatientResource(ModelResource):
         authorization = DjangoAuthorization()
 
     def dehydrate(self, bundle):
-        start = time.time()
         id = int(bundle.data['id'])
         p = Patient.objects.get(id=id)
-        calculate_form_progress = False
         registry_code = bundle.request.GET.get("registry_code", "")
-        if registry_code:
-            registry_model = Registry.objects.get(code=registry_code)
-        else:
-            registry_model = None
 
         if hasattr(bundle, "form_progress"):
             form_progress = getattr(bundle, "form_progress")
@@ -97,15 +91,8 @@ class PatientResource(ModelResource):
             bundle.data["diagnosis_progress"] = self._set_diagnosis_progress(form_progress, p)
             bundle.data["has_genetic_data"] = self._set_has_genetic_data(form_progress, p)
             bundle.data["genetic_data_map"] = bundle.data["has_genetic_data"]
-
-            logger.debug("calculating data modules for patient %s" % id)
             bundle.data["data_modules"] = self._set_data_modules(form_progress, p, bundle.request.user)
             bundle.data["diagnosis_currency"] = self._set_diagnosis_currency(form_progress, p)
-
-        finish = time.time()
-        elapsed = finish - start
-        logger.debug("dehydrate took %s" % elapsed)
-
         return bundle
 
     def _set_diagnosis_progress(self, form_progress, patient_model):
@@ -203,6 +190,8 @@ class PatientResource(ModelResource):
                 ]
 
     def get_search(self, request, **kwargs):
+        start_time = time.time()
+
         from django.db.models import Q
         logger.debug("get_search request.GET = %s" % request.GET)
         chosen_registry_code = request.GET.get("registry_code", None)
@@ -340,6 +329,8 @@ class PatientResource(ModelResource):
         }
 
         self.log_throttled_access(request)
+        end_time = time.time()
+        logger.debug("TIME = %s" % end_time - start_time)
         return self.create_response(request, results)
 
     def _get_sorting(self, request):
