@@ -248,9 +248,11 @@ start)
     start
     ;;
 unit_tests)
+    ci_docker_login
     unit_tests
     ;;
 selenium)
+    ci_docker_login
     selenium
     ;;
 lettuce)
