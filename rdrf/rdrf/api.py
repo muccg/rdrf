@@ -356,3 +356,23 @@ class PatientResource(ModelResource):
                     return sort_field, sort_direction
 
         return None, None
+
+    def _get_columns(self, user):
+        from django.conf import settings
+
+        columns = []
+
+        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
+
+        for definition in sorted_by_order:
+            if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
+                columns.append(
+                    {
+                        "data" : definition["data"],
+                        "label" : definition["label"]
+                    }
+                )
+
+        return columns
+
+
