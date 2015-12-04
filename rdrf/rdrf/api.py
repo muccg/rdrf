@@ -330,7 +330,8 @@ class PatientResource(ModelResource):
 
         self.log_throttled_access(request)
         end_time = time.time()
-        logger.debug("TIME = %s" % end_time - start_time)
+        elapsed = end_time - start_time
+        logger.debug("TIME = %s" % elapsed)
         return self.create_response(request, results)
 
     def _get_sorting(self, request):
