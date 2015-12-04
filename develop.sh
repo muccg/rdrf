@@ -5,7 +5,7 @@ TOPDIR=$(cd `dirname $0`; pwd)
 
 # break on error
 set -e
-set +x
+set -x
 
 ACTION="$1"
 
