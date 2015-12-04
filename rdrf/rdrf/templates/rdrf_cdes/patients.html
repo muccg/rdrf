@@ -11,21 +11,18 @@
     <script>
 
         $(document).ready(function() {
-            var NUM_RECORDS = 100;  // number of records to retrieve
+            var ALL_RECORDS = -1;
 
             function getSelectedRegistry() {
                 var code = $("#registry_options > option:selected").attr('id');
                 return code;
             }
 
-
-
-            function getApiUrl(registryCode, rowCount, pageNumber) {
+            function getApiUrl(registryCode, rowCount) {
                 var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
                 return  api_url +
                           "?registry_code=" + registryCode +
-                          "&rowCount=" + rowCount.toString() +
-                          "&current=" + pageNumber.toString();
+                          "&rowCount=" + rowCount.toString();
             }
 
             $.fn.dataTable.ext.errMode = 'throw';
@@ -62,18 +59,12 @@
                                         window.location.replace(location);
                                         });
 
-
-
-            var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-
-            var numRecords = 100;
-
             var registryCode = getSelectedRegistry();
-            var initialUrl = getApiUrl(registryCode, numRecords, 1);
+            var initialUrl = getApiUrl(registryCode, ALL_RECORDS);
 
             var patients_list = $("#patient_list_table").DataTable({
                  "ajax": {
-                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
+                    "url": initialUrl,
                     "dataSrc": "rows",
                 },
                 "columns": {{columns|safe}},
@@ -88,15 +79,12 @@
                 });
             });
 
-
-
-            
             $("#registry_options").change(function() {
                 $("#loading_text").show();
                 var reg_code = getSelectedRegistry();
-                var rowCount = getSelectedRowCount();
-                var pageNumber = patients_list.info.page;
-                var url  = getApiUrl(reg_code, rowCount, pageNumber);
+                var rowCount = ALL_RECORDS;
+                //var pageNumber = patients_list.info.page;
+                var url  = getApiUrl(reg_code, rowCount);
                 patients_list.ajax.url(url).load();
             });
 
