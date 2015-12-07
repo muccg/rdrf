@@ -35,7 +35,7 @@ class AngelmanRegistration(BaseRegistration, object):
             family_name=user.last_name,
             given_names=user.first_name,
             date_of_birth=self.request.POST["date_of_birth"],
-            sex=self.request.POST["gender"]
+            sex=self._GENDER_CODE[self.request.POST["gender"]]
         )
     
         patient.rdrf_registry.add(registry.id)
