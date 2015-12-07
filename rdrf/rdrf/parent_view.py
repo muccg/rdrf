@@ -1,3 +1,5 @@
+import logging
+
 from django.views.generic.base import View
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.core.urlresolvers import reverse
@@ -11,6 +13,8 @@ from models import Registry, RegistryForm, ConsentSection, ConsentQuestion
 from registry.patients.admin_forms import ParentGuardianForm
 
 from registry.groups.models import WorkingGroup
+
+logger = logging.getLogger("registry_log")
 
 
 class LoginRequiredMixin(object):
@@ -49,17 +53,19 @@ class BaseParentView(LoginRequiredMixin, View):
 
     def _consent_status_for_patient(self, registry_code, patient):
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        answers = []
+        answers = {}
+        valid = []
         for consent_section in consent_sections:
             if consent_section.applicable_to(patient):
                 questions = ConsentQuestion.objects.filter(section=consent_section)
                 for question in questions:
                     try:
                         cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                        answers.append(cv.answer)
+                        answers[cv.consent_question.code] = cv.answer
                     except ConsentValue.DoesNotExist:
-                        answers.append(False)
-        return all(answers)
+                        pass
+            valid.append(consent_section.is_valid(answers))
+        return all(valid)
 
 
 class ParentView(BaseParentView):
