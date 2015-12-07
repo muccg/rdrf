@@ -28,6 +28,7 @@ from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import get_form_links, consent_status_for_patient
 
 from django.shortcuts import redirect
+from django.db.models import Q
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm
@@ -43,6 +44,9 @@ import logging
 from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
+from django.core.paginator import Paginator, InvalidPage
+
+
 
 logger = logging.getLogger("registry_log")
 
@@ -1830,7 +1834,24 @@ class AdjudicationResultsView(View):
         return actions
 
 
-class PatientsListingView(LoginRequiredMixin, View):
+class GridColumnsViewer(object):
+    def get_columns(self, user):
+        columns = []
+        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
+
+        for definition in sorted_by_order:
+            if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
+                columns.append(
+                    {
+                        "data": definition["data"],
+                        "label": definition["label"]
+                    }
+                )
+
+        return columns
+
+
+class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
 
     def get(self, request):
         if request.user.is_patient:
@@ -1846,26 +1867,153 @@ class PatientsListingView(LoginRequiredMixin, View):
 
         context["registries"] = registries
         context["location"] = "Patient List"
-        
-        columns = []
-
-        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
-
-        for definition in sorted_by_order:
-            if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
-                columns.append(
-                    {
-                        "data" : definition["data"],
-                        "label" : definition["label"]
-                    }
-                )
-
-        context["columns"] = columns
+        context["columns"] = self.get_columns(request.user)
 
         return render_to_response(
             'rdrf_cdes/patients.html',
             context,
             context_instance=RequestContext(request))
+
+
+class PatientsListingServerSideApi(View, GridColumnsViewer):
+    def get(self, request):
+        # see http://datatables.net/manual/server-side
+        for key in request.GET:
+            logger.debug("key = %s" % key)
+
+        registry_code = request.GET.get("registry_code", None)
+        logger.debug("registry code = %s" % registry_code)
+
+        if registry_code is None:
+            return self._json([])
+
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
+            logger.debug("querying %s" % registry_model)
+        except Registry.DoesNotExist:
+            logger.error("patients listing api registry code %s does not exist" % registry_code)
+            return self._json([])
+
+        if not registry_model.code in [r.code for r in request.user.registry.all()]:
+            logger.debug("user isn't in registry!")
+            return self._json([])
+
+        search_term = request.GET.get("search[value]", "")
+        logger.debug("search term = %s" % search_term)
+
+        draw = int(request.GET.get("draw", 1))
+        logger.debug("draw = %s" % draw)
+
+        start = int(request.GET.get("start", 0))
+        logger.debug("start = %s" % start)
+
+        length = int(request.GET.get("length", 10))
+        logger.debug("length = %s" % length)
+
+        page_number = start % length
+        logger.debug("page = %s" % page_number)
+
+        context = {}
+        context.update(csrf(request))
+        columns = self.get_columns(request.user)
+        queryset = self._get_initial_queryset(request.user, registry_code)
+        record_total = queryset.count()
+        if search_term:
+            filtered_queryset = self._apply_filter(queryset, search_term)
+        else:
+            filtered_queryset = queryset
+
+        rows = self._run_query(filtered_queryset, page_number, columns)
+        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_queryset.count(), rows)
+
+        return self._json(results_dict)
+
+    def _apply_filter(self, queryset, search_term):
+        return queryset
+
+    def _run_query(self, query_set, page_number, columns):
+        # return objects in requested page
+        rows = []
+        paginator = Paginator(query_set, 30)
+        try:
+            page = paginator.page(page_number)
+        except InvalidPage:
+            return []
+
+        for obj in page.object_list:
+            rows.append(self._get_row_dict(obj, columns))
+        return rows
+
+    def _get_row_dict(self, patient, columns):
+        logger.debug("getting data for %s" % patient)
+        row_dict = {}
+        for column in columns:
+            logger.debug("getting %s" % column)
+        return {}
+
+
+    def _json(self, data):
+        json_data = json.dumps(data)
+        return HttpResponse(json_data, content_type="application/json")
+
+    def _get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
+
+        #       {
+        # "draw": 2,
+        # "recordsTotal": 57,
+        # "recordsFiltered": 57,
+        # "data": [
+        #   {
+        #     "first_name": "Charde",
+        #     "last_name": "Marshall",
+        #     "position": "Regional Director",
+        #     "office": "San Francisco",
+        #     "start_date": "16th Oct 08",
+        #     "salary": "$470,600"
+        #   },
+
+        results = {
+            "draw": draw,
+            "recordsTotal": total_records,
+            "recordsFiltered": total_filtered_records,
+            "rows": [row for row in rows]
+        }
+
+        return results
+
+    def _get_initial_queryset(self, user, registry_code):
+        registry_queryset = Registry.objects.filter(code=registry_code)
+        patients = Patient.objects.all()
+        if not user.is_superuser:
+            if user.is_curator:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+                patients = patients.filter(query_patients)
+            elif user.is_genetic_staff:
+                patients = patients.filter(working_groups__in=user.working_groups.all())
+            elif user.is_genetic_curator:
+                patients = patients.filter(working_groups__in=user.working_groups.all())
+            elif user.is_working_group_staff:
+                patients = patients.filter(working_groups__in=user.working_groups.all())
+            elif user.is_clinician and clinicians_have_patients:
+                patients = patients.filter(clinician=user)
+            elif user.is_clinician and not clinicians_have_patients:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+                patients = patients.filter(query_patients)
+            elif user.is_patient:
+                patients = patients.filter(user=user)
+            else:
+                patients = patients.none()
+        else:
+            patients = patients.filter(rdrf_registry__in=registry_queryset)
+
+        logger.debug("found %s patients for initial query" % patients.count())
+        return patients
+
+    def _get_grid_data(self, columns):
+
+        return []
 
 
 class BootGridApi(View):

@@ -28,6 +28,7 @@ from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 
+
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
 
@@ -81,6 +82,8 @@ urlpatterns = patterns('',
 
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
+                       url(r'^patientsgridapi/?$', form_view.PatientsListingServerSideApi.as_view(),
+                           name='patientsgridapi'),
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
                        url(r'^login/?$', 'django.contrib.auth.views.login',

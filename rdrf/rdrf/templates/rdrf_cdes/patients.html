@@ -12,18 +12,35 @@
 
         $(document).ready(function() {
 
-            var ALL_RECORDS = -1;
+            $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }});
+
+            var SERVER_SIDE_API = "{% url 'patientsgridapi'  %}";
+
+            function getDrawLength() {
+                try {
+                    var length = $("#patient_list_table_length").val();
+                    if (length == undefined) {
+                        return 10;
+                    }
+                    return length;
+                }
+
+                catch(err) {
+                    return 10;
+                }
+            }
 
             function getSelectedRegistry() {
                 var code = $("#registry_options > option:selected").attr('id');
                 return code;
             }
 
-            function getApiUrl(registryCode, rowCount) {
-                var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-                return  api_url +
-                          "?registry_code=" + registryCode +
-                          "&rowCount=" + rowCount.toString();
+            function getApiUrl(registryCode, drawLength) {
+                return  SERVER_SIDE_API + "?registry_code=" + registryCode +
+                        "&length=" + drawLength;
             }
 
             $.fn.dataTable.ext.errMode = 'throw';
@@ -33,14 +50,14 @@
             }
 
             var registryCode = getSelectedRegistry();
-            var initialUrl = getApiUrl(registryCode, ALL_RECORDS);
 
             var patients_list = $("#patient_list_table").DataTable({
-                 "ajax": {
-                    "url": initialUrl,
-                    "dataSrc": "rows",
+                serverSide: true,
+                ajax: {
+                    url: getApiUrl(registryCode, getDrawLength()),
+                    dataSrc: "rows"
                 },
-                "columns": {{columns|safe}},
+                columns: {{columns|safe}}
             }).on("draw", function() {
                 $("#loading_text").hide();
                 $('button[data-toggle=popover]').popover({
@@ -55,9 +72,8 @@
             $("#registry_options").change(function() {
                 $("#loading_text").show();
                 var reg_code = getSelectedRegistry();
-                var rowCount = ALL_RECORDS;
-                //var pageNumber = patients_list.info.page;
-                var url  = getApiUrl(reg_code, rowCount);
+                var drawLength = getDrawLength();
+                var url = getApiUrl(reg_code, drawLength);
                 patients_list.ajax.url(url).load();
             });
 
