@@ -2035,6 +2035,11 @@ class CustomConsentFormView(View):
             else:
                 valid_forms.append(True)
 
+        try:
+            parent = ParentGuardian.objects.get(user=request.user)
+        except ParentGuardian.DoesNotExist:
+            parent = None
+    
         context = {
             "location": "Consents",
             "patient": patient_model,
@@ -2045,6 +2050,7 @@ class CustomConsentFormView(View):
             "previous_form_link": wizard.previous_link,
             "forms": form_sections,
             "error_messages": [],
+            "parent": parent
         }
 
         if all(valid_forms):
