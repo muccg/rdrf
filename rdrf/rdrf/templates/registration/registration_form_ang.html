@@ -74,6 +74,13 @@
             
             <div id="login_details">
                 <div class="form-group">
+                    <div class="alert alert-info">
+                        With your e-mail address and the password you choose here, you can login at any time to view or edit your data.
+                        In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive. Your password must be at least 6 characters long and contain a number.
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
                     <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
                 </div>
@@ -83,8 +90,10 @@
                 <div class="form-group">
                     <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
                 </div>
-                
-                <div class="alert alert-danger" id="password-error">
+
+                <div class="form-group">
+                    <div class="alert alert-danger" id="password-error">
+                    </div>
                 </div>
             </div>
             
