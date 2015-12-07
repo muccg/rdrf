@@ -33,6 +33,7 @@ from rdrf.contexts_api import ContextsApiView
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
 
+
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
 
@@ -85,18 +86,8 @@ urlpatterns = patterns('',
 
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
-#---- Context related URLs -----------------
-                       url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
-                           name="contextslisting"),
-
-                       url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/?$',
-                           RDRFContextCreateView.as_view(),
-                           name="context_add"),
-                       url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/edit/(?P<context_id>\d+)/?$',
-                           RDRFContextCreateView.as_view(),
-                           name="context_edit"),
-                       url(r'^contextsapi', ContextsApiView.as_view(), name="contextsapi"),
-
+                       url(r'^patientsgridapi/?$', form_view.PatientsListingServerSideApi.as_view(),
+                           name='patientsgridapi'),
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
                        url(r'^login/?$', 'django.contrib.auth.views.login',
