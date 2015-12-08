@@ -56,7 +56,6 @@ class FormProgress(object):
         self.loaded_data = None
         self.current_patient = None
 
-
     def _set_current(self, patient_model):
         if self.current_patient is None:
             self.current_patient = patient_model
