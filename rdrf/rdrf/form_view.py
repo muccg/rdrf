@@ -1953,10 +1953,13 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         page_number = (start / length) + 1
         logger.debug("page = %s" % page_number)
 
+        sort_field, sort_direction = self._get_ordering(request)
+
         context = {}
         context.update(csrf(request))
         columns = self.get_columns(request.user)
-        queryset = self._get_initial_queryset(request.user, registry_code)
+
+        queryset = self._get_initial_queryset(request.user, registry_code, sort_field, sort_direction)
         record_total = queryset.count()
         logger.debug("record_total = %s" % record_total)
 
@@ -1973,6 +1976,30 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
 
         return self._json(results_dict)
+
+    def _get_ordering(self, request):
+        #columns[0][data]:full_name
+        #...
+        #order[0][column]:1
+        #order[0][dir]:asc
+        sort_column_index = None
+        sort_direction = None
+        for key in request.GET:
+            if key.startswith("order"):
+                if "[column]" in key:
+                    sort_column_index = request.GET[key]
+                elif "[dir]" in key:
+                    sort_direction = request.GET[key]
+
+        column_name = "columns[%s][data]" % sort_column_index
+        sort_field = request.GET.get(column_name, None)
+        if sort_field == "full_name":
+            sort_field = "family_name"
+
+        if sort_field not in ["family_name", "date_of_birth"]:
+            sort_field = None
+
+        return sort_field, sort_direction
 
     def _apply_filter(self, queryset, search_phrase):
         queryset = queryset.filter(Q(given_names__icontains=search_phrase) |
@@ -2018,13 +2045,26 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
         def patient_func(field):
             def f(patient):
-                return str(getattr(patient, field))
+                try:
+                    return str(getattr(patient, field))
+                except Exception, ex:
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    logger.error(msg)
+                    return "GRID ERROR"
+
             return f
 
         def grid_func(obj, field):
             method = getattr(obj, field)
+
             def f(patient):
-                return method(patient)
+                try:
+                    return method(patient)
+                except Exception, ex:
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    logger.error(msg)
+                    return "GRID ERROR"
+
             return f
 
         def k(msg):
@@ -2055,7 +2095,12 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_grid_field_diagnosis_progress(self, patient_model):
         progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
-        return "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar' aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'><span class='progress-label'>%s%%</span></div></div>" % (progress_number, progress_number, progress_number)
+        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                   "<span class='progress-label'>%s%%</span></div></div>"\
+
+
+        return template % (progress_number, progress_number,progress_number)
 
     def _get_grid_field_data_modules(self, patient_model):
         return self.form_progress.get_data_modules(self.user, patient_model)
@@ -2093,10 +2138,10 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     def _get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
 
         #       {
-        # "draw": 2,
+        # "draw": 2,  <-- must be returned , is a counter used by DataTable
         # "recordsTotal": 57,
         # "recordsFiltered": 57,
-        # "data": [
+        # "rows": [
         #   {
         #     "first_name": "Charde",
         #     "last_name": "Marshall",
@@ -2104,7 +2149,7 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         #     "office": "San Francisco",
         #     "start_date": "16th Oct 08",
         #     "salary": "$470,600"
-        #   },
+        #   },..]
 
         results = {
             "draw": draw,
@@ -2113,12 +2158,9 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
             "rows": [row for row in rows]
         }
 
-        for row in rows:
-            logger.debug("*****  returned row: %s" % row)
-
         return results
 
-    def _get_initial_queryset(self, user, registry_code):
+    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
         registry_queryset = Registry.objects.filter(code=registry_code)
         patients = Patient.objects.all()
         if not user.is_superuser:
@@ -2144,6 +2186,12 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
                 patients = patients.none()
         else:
             patients = patients.filter(rdrf_registry__in=registry_queryset)
+
+        if all([sort_field, sort_direction]):
+            if sort_direction == "desc":
+                sort_field = "-" + sort_field
+                patients = patients.order_by(sort_field)
+                logger.debug("sort field = %s" % sort_field)
 
         logger.debug("found %s patients for initial query" % patients.count())
         return patients
