@@ -1963,6 +1963,7 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
         return rows
 
     def _get_row_dict(self, patient, func_map):
+        self.form_progress.reset() # we need to do this so that the progress data for this patient loaded!
         logger.debug("func_map = %s" % func_map)
         logger.debug("getting data for %s" % patient)
         row_dict = {}
