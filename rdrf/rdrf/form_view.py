@@ -46,6 +46,8 @@ from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
 from django.core.paginator import Paginator, InvalidPage
 
+from rdrf.form_progress import FormProgress
+
 
 
 logger = logging.getLogger("registry_log")
@@ -1851,6 +1853,8 @@ class GridColumnsViewer(object):
         return columns
 
 
+
+
 class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
 
     def get(self, request):
@@ -1877,11 +1881,13 @@ class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
 
 class PatientsListingServerSideApi(View, GridColumnsViewer):
     def get(self, request):
+        self.user = request.user
         # see http://datatables.net/manual/server-side
         for key in request.GET:
             logger.debug("key = %s" % key)
 
         registry_code = request.GET.get("registry_code", None)
+        self.registry_code = registry_code
         logger.debug("registry code = %s" % registry_code)
 
         if registry_code is None:
@@ -1894,23 +1900,26 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
             logger.error("patients listing api registry code %s does not exist" % registry_code)
             return self._json([])
 
-        if not registry_model.code in [r.code for r in request.user.registry.all()]:
-            logger.debug("user isn't in registry!")
-            return self._json([])
+        if not request.user.is_superuser:
+            if not registry_model.code in [r.code for r in request.user.registry.all()]:
+                logger.debug("user isn't in registry!")
+                return self._json([])
+
+        self.form_progress = FormProgress(registry_model)
 
         search_term = request.GET.get("search[value]", "")
         logger.debug("search term = %s" % search_term)
 
-        draw = int(request.GET.get("draw", 1))
+        draw = int(request.GET.get("draw", None))
         logger.debug("draw = %s" % draw)
 
-        start = int(request.GET.get("start", 0))
+        start = int(request.GET.get("start", None))
         logger.debug("start = %s" % start)
 
-        length = int(request.GET.get("length", 10))
+        length = int(request.GET.get("length", None))
         logger.debug("length = %s" % length)
 
-        page_number = start % length
+        page_number = (start % length) + 1
         logger.debug("page = %s" % page_number)
 
         context = {}
@@ -1918,39 +1927,130 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
         columns = self.get_columns(request.user)
         queryset = self._get_initial_queryset(request.user, registry_code)
         record_total = queryset.count()
+        logger.debug("record_total = %s" % record_total)
+
         if search_term:
             filtered_queryset = self._apply_filter(queryset, search_term)
         else:
             filtered_queryset = queryset
 
-        rows = self._run_query(filtered_queryset, page_number, columns)
-        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_queryset.count(), rows)
+        filtered_total = filtered_queryset.count()
+        logger.debug("filtered_total = %s" % filtered_total)
+
+        rows = self._run_query(filtered_queryset, length, page_number, columns)
+
+        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
 
         return self._json(results_dict)
 
     def _apply_filter(self, queryset, search_term):
         return queryset
 
-    def _run_query(self, query_set, page_number, columns):
+    def _run_query(self, query_set, records_per_page, page_number, columns):
         # return objects in requested page
         rows = []
-        paginator = Paginator(query_set, 30)
+        paginator = Paginator(query_set, records_per_page)
         try:
             page = paginator.page(page_number)
         except InvalidPage:
+            logger.error("invalid page number: %s" % page_number)
             return []
 
+        func_map = self._get_func_map(columns)
+
         for obj in page.object_list:
-            rows.append(self._get_row_dict(obj, columns))
+            rows.append(self._get_row_dict(obj, func_map))
         return rows
 
-    def _get_row_dict(self, patient, columns):
+    def _get_row_dict(self, patient, func_map):
+        logger.debug("func_map = %s" % func_map)
         logger.debug("getting data for %s" % patient)
         row_dict = {}
-        for column in columns:
-            logger.debug("getting %s" % column)
-        return {}
+        for field in func_map:
+            logger.debug("getting %s" % field)
+            try:
+                value = func_map[field](patient)
+            except KeyError:
+                value = "UNKNOWN COLUMN"
+            row_dict[field] = value
 
+        return row_dict
+
+    def _get_func_map(self, columns):
+        # we do this once
+        from registry.patients.models import Patient
+        patient_field_names = [field_object.name for field_object in Patient._meta.fields]
+        logger.debug("patient fields = %s" % patient_field_names)
+
+        def patient_func(field):
+            def f(patient):
+                return str(getattr(patient, field))
+            return f
+
+        def grid_func(obj, field):
+            method = getattr(obj, field)
+            def f(patient):
+                return method(patient)
+            return f
+
+        def k(msg):
+            # constant combinator
+            def f(patient):
+                return msg
+            return f
+
+        func_map = {}
+        for column in columns:
+            field = column["data"]
+            logger.debug("checking field %s" % field)
+            if field in patient_field_names:
+                logger.debug("field is a patient field")
+                func_map[field] = patient_func(field)
+                logger.debug("field %s is a patient function" % field)
+            else:
+                func_name = "_get_grid_field_%s" % field
+                logger.debug("checking %s" % func_name)
+                if hasattr(self, func_name):
+                    func_map[field] = grid_func(self, func_name)
+                    logger.debug("field %s is a serverside api func" % field)
+                else:
+                    logger.debug("field %s is unknown" % field)
+                    func_map[field] = k("UNKNOWN COLUMN!")
+
+        return func_map
+
+    def _get_grid_field_diagnosis_progress(self, patient_model):
+        progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
+        return "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar' aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'><span class='progress-label'>%s%%</span></div></div>" % (progress_number, progress_number, progress_number)
+
+    def _get_grid_field_data_modules(self, patient_model):
+        return self.form_progress.get_data_modules(self.user, patient_model)
+
+    def _get_grid_field_genetic_data_map(self, patient_model):
+        has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
+        icon = "ok" if has_genetic_data else "remove"
+        color = "green" if has_genetic_data else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+    def _get_grid_field_diagnosis_currency(self, patient_model):
+        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+        icon = "ok" if diagnosis_currency else "remove"
+        color = "green" if diagnosis_currency else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+    def _get_grid_field_diagnosis_currency(self, patient_model):
+        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+        icon = "ok" if diagnosis_currency else "remove"
+        color = "green" if diagnosis_currency else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+    def _get_grid_field_full_name(self, patient_model):
+        return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
+                                                                        "patient_id": patient_model.id}),
+                                        patient_model.display_name)
+
+    def _get_grid_field_working_groups_display(self, patient_model):
+        return patient_model.working_groups_display
 
     def _json(self, data):
         json_data = json.dumps(data)
