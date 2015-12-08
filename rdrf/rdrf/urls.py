@@ -27,6 +27,7 @@ from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
+from rdrf.lookup_views import UsernameLookup
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -178,9 +179,12 @@ urlpatterns = patterns('',
 
                        url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
 
-                       url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"))
+                       url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
 
-
+#---- Look-ups URLs -----------------------
+                       url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
+                           UsernameLookup.as_view(), name="lookup_username"))
+#-------------------------------------------
 
 
 

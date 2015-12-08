@@ -55,6 +55,8 @@ class QuickLinks(object):
     EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
     EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
     EmailNotificationHistory = QuickLink("admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
+    RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist", _("Registration Profiles"), True)
+    Sites = QuickLink("admin:sites_site_changelist", _("Sites"), True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
@@ -64,7 +66,8 @@ class QuickLinks(object):
     REPORTING = oset([Reports])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
-    REGISTRY_DESIGN = oset([Registries,
+    REGISTRY_DESIGN = oset([Sites,
+                            Registries,
                             RegistryForms,
                             Sections,
                             DataElements,
@@ -78,6 +81,7 @@ class QuickLinks(object):
                             Explorer,
                             DemographicsFields,
                             NextOfKinRelationship,
+                            RegistrationProfiles,
                             EmailNotification,
                             EmailTemplate,
                             EmailNotificationHistory])

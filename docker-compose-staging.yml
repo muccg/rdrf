@@ -1,26 +1,25 @@
-# data only container pattern
 datastaging:
   image: muccg/debian8-base
   volumes:
-    - data:/data
+    - ./data:/data
 
 dbstaging:
-  image: postgres:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - ":5432"
+  extends:
+    file: docker-compose-common.yml
+    service: db
 
 cachestaging:
-  image: memcached:1.4
+  extends:
+    file: docker-compose-common.yml
+    service: cache
 
 mongostaging:
-  image: mongo:3.0
-  command: mongod --smallfiles
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
 
-webstaging:
-  build: docker/unstable
+uwsgistaging:
+  image: muccg/angelman:next_release
   command: uwsgi
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings

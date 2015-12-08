@@ -13,7 +13,6 @@ from django.db.models.signals import post_save
 from django.db import models, transaction
 
 from django.dispatch import receiver
-from django.dispatch import receiver
 
 from registration.signals import user_registered
 
@@ -22,9 +21,6 @@ from rdrf.models import Registry
 import logging
 
 logger = logging.getLogger("registry_log")
-
-_OTHER_CLINICIAN = "clinician-other"
-_UNALLOCATED_GROUP = "Unallocated"
 
 
 class WorkingGroup(models.Model):
@@ -230,118 +226,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-    from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
-    from rdrf.email_notification import RdrfEmail
-    from django.conf import settings
-
-    registry_code = request.POST['registry_code']
-    registry = _get_registry_object(registry_code)
-
-    user = _create_django_user(request, user, registry)
-
-    try:
-        clinician_id, working_group_id = request.POST['clinician'].split("_")
-        clinician = CustomUser.objects.get(id=clinician_id)
-        working_group = WorkingGroup.objects.get(id=working_group_id)
-        user.working_groups = [working_group, ]
-    except ValueError:
-        clinician = None
-        working_group, status = WorkingGroup.objects.get_or_create(
-            name=_UNALLOCATED_GROUP, registry=registry)
-        user.working_groups = [working_group, ]
-
-    user.save()
-
-    patient = Patient.objects.create(
-        consent=True,
-        family_name=user.last_name,
-        given_names=user.first_name,
-        date_of_birth=request.POST["date_of_birth"],
-        sex=request.POST["gender"]
-    )
-
-    patient.rdrf_registry.add(registry.id)
-    patient.working_groups.add(working_group.id)
-    patient.clinician = clinician
-    patient.home_phone = getattr(request.POST, "phone_number", None)
-    patient.user = None
-
-    patient.save()
+    from patient_registration.fkrp import FkrpRegistration
+    from patient_registration.ang import AngelmanRegistration
     
-    if "clinician-other" in request.POST['clinician']:
-        other_clinician = ClinicianOther.objects.create(
-            patient=patient,
-            clinician_name=request.POST.get("other_clinician_name"),
-            clinician_hospital=request.POST.get("other_clinician_hospital"),
-            clinician_address=request.POST.get("other_clinician_address")
-        )
-        email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, request.LANGUAGE_CODE)
-        email_note.append("other_clinician", other_clinician).append("patient", patient)
-        email_note.send()
+    reg_code = request.POST['registry_code']
+
+    patient_reg = None    
+    if reg_code == "fkrp":
+        patient_reg = FkrpRegistration(user, request)
+    elif reg_code == "ang":
+        patient_reg = AngelmanRegistration(user, request)
         
-    address = _create_patient_address(patient, request)
-    address.save()
-
-    parent_guardian = _create_parent(request)
-    parent_guardian.patient.add(patient)
-    parent_guardian.user = user
-    parent_guardian.save()
-    
-
-def _create_django_user(request, django_user, registry):
-    user_group = _get_group("Parents")
-
-    django_user.groups = [user_group.id, ] if user_group else []
-
-    django_user.first_name = request.POST['first_name']
-    django_user.last_name = request.POST['surname']
-    django_user.registry = [registry, ] if registry else []
-    django_user.is_staff = True
-    return django_user
-
-
-def _create_patient_address(patient, request, address_type="POST"):
-    from registry.patients.models import PatientAddress, AddressType
-    address = PatientAddress.objects.create(
-        patient=patient,
-        address_type=AddressType.objects.get(description__icontains=address_type),
-        address=request.POST["address"],
-        suburb=request.POST["suburb"],
-        state=request.POST["state"],
-        postcode=request.POST["postcode"],
-        country=request.POST["country"]
-    )
-    return address
-
-
-def _create_parent(request):
-    from registry.patients.models import ParentGuardian
-    parent_guardian = ParentGuardian.objects.create(
-        first_name=request.POST["parent_guardian_first_name"],
-        last_name=request.POST["parent_guardian_last_name"],
-        date_of_birth=request.POST["parent_guardian_date_of_birth"],
-        gender=request.POST["parent_guardian_gender"],
-        address=request.POST["parent_guardian_address"],
-        suburb=request.POST["parent_guardian_suburb"],
-        state=request.POST["parent_guardian_state"],
-        postcode=request.POST["parent_guardian_postcode"],
-        country=request.POST["parent_guardian_country"],
-        phone=request.POST["parent_guardian_phone_number"]
-    )
-    return parent_guardian
-
-
-def _get_registry_object(registry_name):
-    try:
-        registry = Registry.objects.get(code__iexact=registry_name)
-        return registry
-    except Registry.DoesNotExist:
-        return None
-
-
-def _get_group(group_name):
-    try:
-        group, created = Group.objects.get_or_create(name=group_name)
-        return group
-    except Group.DoesNotExist:
-        return None
+    patient_reg.process()

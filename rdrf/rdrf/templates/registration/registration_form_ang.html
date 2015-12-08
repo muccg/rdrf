@@ -1,0 +1,230 @@
+{% load countries %}
+{% load static %}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#password-error").hide();
+        $("#username-error").hide();
+        
+        $("#id_password2").on("keyup", function() {
+            var password1 = $("#id_password1").val();
+            if (password1 != $(this).val()) {
+                $("#password-error").text("The passwords don't match!");
+                $("#password-error").show("fast");
+                $("#registration-submit").prop("disabled", true);
+            } else {
+                $("#password-error").hide("fast");
+                $("#registration-submit").prop("disabled", false);
+                password_regx = /^(?=.*[0-9])\S{6,}$/
+                if(!$(this).val().match(password_regx)) {
+                    $("#password-error").text("Password needs to be at least 6 characters long and contain 1 number");
+                    $("#password-error").show("fast");
+                    $("#registration-submit").prop("disabled", true);
+                } else {
+                    $("#password-error").hide("fast");
+                    $("#registration-submit").prop("disabled", false);
+                }
+            }
+        });
+        
+        $("#id_username").focusout(function() {
+            var url = "{% url 'lookup_username' 'replace-me@domain.com' %}";
+            url = url.replace("replace-me@domain.com", $(this).val());
+            
+            $.getJSON(url, function(data) {
+                if (data.existing == true) {
+                    $("#username-error").show("fast");
+                    $("#registration-submit").prop("disabled", true);
+                } else {
+                    $("#username-error").hide("fast");
+                    $("#registration-submit").prop("disabled", false);
+                }
+            });
+        });
+    });
+</script>
+
+<div class="alert alert-danger" id="username-error">
+    <p>
+        <b>Username error:  This username already exists, please choose a different username.</b>
+    </p>
+    <p>
+        If you have already registered with Angelman Registry and would like to update your data or add another patient, you
+        don't have to register again. Just go to the login page and login with the e-mail address and password you previously registered with.
+    </p>    
+    <p>
+        If you have forgotten your password, please  click on 'forgotten your password?'
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4><i>Parent/Guardians:</i></h4>
+        <ul>
+            <!--<li>To register a child or dependent as a patient, please fill out your own details first.</li>
+            <li>Please click 'Patient Details' to continue to register your child or dependent as a patient.</li>-->
+            <li>You may register one patient at this stage - if you have multiple patients to register, you will be able to enter their details once you have logged into the registry. Please note you must be the patient's parent or guardian to register on their behalf.</li>
+        </ul>
+    </div>
+    <div class="col-md-6" style="text-align: justify; border-left: dotted 1px #bbb;">
+        <form class="form-horizontal" id="registration-form" method="POST" style="padding-left: 20px; padding-right: 15px;">
+            {% csrf_token %}
+            <input type="hidden" name="registry_code" value="{{registry_code}}">
+            <input id="id_email" name="email" type="hidden" />
+            
+            <div id="login_details">
+                <div class="form-group">
+                    <div class="alert alert-info">
+                        With your e-mail address and the password you choose here, you can login at any time to view or edit your data.
+                        In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive. Your password must be at least 6 characters long and contain a number.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <h5><div class="label label-warning">Please provide valid email address as your username</div></h5>
+                    <input class="form-control" placeholder="Username" id="id_username" maxlength="50" name="username" type="email" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Password" id="id_password1" name="password1" type="password" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Repeat Password" id="id_password2" name="password2" type="password" required />
+                </div>
+
+                <div class="form-group">
+                    <div class="alert alert-danger" id="password-error">
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="padding-top: 30px;"><i>Parent/Guardian Details</i></h3>
+            
+            <div id="parent_guardian_form">
+                <div class="form-group top-separator">
+                    <input class="form-control" placeholder="Parent/Guardian First Name" id="id_parent_guardian_first_name" maxlength="30" name="parent_guardian_first_name" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Parent/Guardian Surname" id="id_parent_guardian_last_name" maxlength="30" name="parent_guardian_last_name" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Parent/Guardian Date of Birth" id="id_parent_guardian_date_of_birth" name="parent_guardian_date_of_birth" type="text" required />
+                </div>
+                <div class="form-group">
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M" /> Male
+                        </label> 
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="F" /> Female
+                        </label> 
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="I" /> Indeterminate
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group top-separator">
+                    <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Parent/Guardian Suburb / Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
+                </div>
+                <div class="form-group">
+                    <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
+                        <option value="-1">Country</option>
+                        {% countries as countries %}
+                        {% for con in countries %}
+                            <option value="{{con.alpha2}}">{{con.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" placeholder="Parent/Guardian State / County / Province / Region" id="id_parent_guardian_state" maxlength="30" name="parent_guardian_state" type="text" required>
+                        <option value="-1">Parent/Guardian State / County / Province / Region</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Parent/Guardian Zip / Postal Code" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Parent/Guardian Phone Number" id="id_parent_guardian_phone" name="parent_guardian_phone" type="text" />
+                </div>
+                
+            </div>
+            
+            <h3 style="padding-top: 30px;"><i>Patient Details</i></h3>
+
+            <div id="patient_form">
+                <div class="form-group top-separator">
+                    <input class="form-control" placeholder="First Name" id="id_first_name" maxlength="30" name="first_name" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Surname" id="id_surname" maxlength="30" name="surname" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Date of Birth" id="id_date_of_birth" name="date_of_birth" type="text" required />
+                </div>
+                <div class="form-group">
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_gender" name="gender" value="M" /> Male
+                        </label> 
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_gender" name="gender" value="F" /> Female
+                        </label> 
+                        <label class="btn btn-default">
+                            <input type="radio" id="id_gender" name="gender" value="I" /> Indeterminate
+                        </label>
+                    </div>
+                
+                </div>
+
+                <div class="form-group top-separator">
+                    <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" required />
+                </div>
+                <div class="form-group">
+                    <select class="form-control" placeholder="Country" id="id_country" name="country" required>
+                        <option value="-1">Country</option>
+                        {% countries as countries %}
+                        {% for con in countries %}
+                            <option value="{{con.alpha2}}">{{con.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" placeholder="State / County / Province / Region" id="id_state" maxlength="30" name="state" type="text" required >
+                        <option value="-1">State / County / Province / Region</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Zip / Postal Code" id="id_postcode" maxlength="30" name="postcode" type="text" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Phone Number" id="id_phone_number" name="phone_number" type="text" />
+                </div>
+                <div class="form-group top-separator">
+                    <select class="form-control" id="id_clinician" name="clinician">
+                        <option value="-1">Choose your preferred Clinician</option>
+                    </select>
+                </div>
+                <div id="form-other-clinician">
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Clinician's Name" id="id_other_clinician_name" name="other_clinician_name" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Clinician's Hospital" id="id_other_clinician_hospital" name="other_clinician_hospital" type="text" />
+                    </div>
+                    <div class="form-group bottom-separator">
+                        <input class="form-control" placeholder="Clinician's or Hospital's Address" id="id_other_clinician_address" name="other_clinician_address" type="text" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>

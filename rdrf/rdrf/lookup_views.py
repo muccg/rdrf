@@ -175,6 +175,16 @@ class FamilyLookup(View):
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
 
 
+class UsernameLookup(View):
 
-
-
+    def get(self, request, username):
+        result = {}
+        
+        try:
+            CustomUser.objects.get(username=username)
+            result["existing"] = True
+        except CustomUser.DoesNotExist:
+            result["existing"] = False
+        
+        return HttpResponse(json.dumps(result))
+        

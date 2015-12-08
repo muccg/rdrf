@@ -177,17 +177,19 @@ class PatientView(View):
         
     def _consent_status(self, registry_code, patient):
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+        answers = {}
+        valid = []
         for consent_section in consent_sections:
             if consent_section.applicable_to(patient):
-                answers = []
                 questions = ConsentQuestion.objects.filter(section=consent_section)
                 for question in questions:
                     try:
                         cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                        answers.append(cv.answer)
+                        answers[cv.consent_question.code] = cv.answer
                     except ConsentValue.DoesNotExist:
-                        answers.append(False)
-        return all(answers)
+                        pass
+            valid.append(consent_section.is_valid(answers))
+        return all(valid)
 
 
 class PatientMixin(object):
