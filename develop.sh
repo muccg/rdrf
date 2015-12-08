@@ -23,6 +23,15 @@ usage() {
 }
 
 
+ci_docker_login() {
+    if [ -n "$bamboo_DOCKER_USERNAME" ] && [ -n "$bamboo_DOCKER_EMAIL" ] && [ -n "$bamboo_DOCKER_PASSWORD" ]; then
+        docker login  -e "${bamboo_DOCKER_EMAIL}" -u ${bamboo_DOCKER_USERNAME} --password="${bamboo_DOCKER_PASSWORD}"
+    else
+        echo "Docker vars not set, not logging in to docker registry"
+    fi
+}
+
+
 # ssh setup, make sure our ccg commands can run in an automated environment
 ci_ssh_agent() {
     if [ -z ${CI_SSH_KEY+x} ]; then
@@ -53,6 +62,10 @@ dockerbuild() {
         gittag=$gitbranch
     fi
 
+    # create .version file for invalidating cache in Dockerfile
+    # we hit remote as the Dockerfile clones remote
+    git ls-remote https://bitbucket.org/ccgmurdoch/rdrf.git ${gittag} > .version
+
     echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
@@ -65,6 +78,8 @@ dockerbuild() {
         docker push ${tag}
         set +x
     done
+
+    rm -f .version || true
 }
 
 
@@ -241,6 +256,7 @@ jslint)
     jslint
     ;;
 dockerbuild)
+    ci_docker_login
     dockerbuild
     ;;
 rpmbuild)
