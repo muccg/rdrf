@@ -1952,7 +1952,7 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
         length = int(request.GET.get("length", None))
         logger.debug("length = %s" % length)
 
-        page_number = (start % length) + 1
+        page_number = (start / length) + 1
         logger.debug("page = %s" % page_number)
 
         context = {}
@@ -2111,6 +2111,9 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
             "recordsFiltered": total_filtered_records,
             "rows": [row for row in rows]
         }
+
+        for row in rows:
+            logger.debug("*****  returned row: %s" % row)
 
         return results
 

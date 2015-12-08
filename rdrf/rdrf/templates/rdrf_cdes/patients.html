@@ -80,7 +80,8 @@
             var registryCode = getSelectedRegistry();
 
             var patients_list = $("#patient_list_table").DataTable({
-                serverSide: true,
+                "processing": true,
+                "serverSide": true,
                 ajax: {
                     url: getApiUrl(registryCode, getDrawLength()),
                     dataSrc: "rows"
