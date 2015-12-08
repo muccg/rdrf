@@ -275,7 +275,7 @@ class FormProgress(object):
                             groups_progress[progress_group] = {"required": 0,
                                                                "filled": 0,
                                                                "percentage": 0,
-                                                               "current": False,
+                                                               "current": True,
                                                                "has_data": False}
 
                         groups_progress[progress_group]["required"] += form_progress_dict["required"]
