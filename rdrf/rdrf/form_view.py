@@ -1853,8 +1853,6 @@ class GridColumnsViewer(object):
         return columns
 
 
-
-
 class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
 
     def get(self, request):
@@ -1879,7 +1877,7 @@ class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
             context_instance=RequestContext(request))
 
 
-class PatientsListingServerSideApi(View, GridColumnsViewer):
+class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     def get(self, request):
         self.user = request.user
         # see http://datatables.net/manual/server-side
@@ -1943,7 +1941,9 @@ class PatientsListingServerSideApi(View, GridColumnsViewer):
 
         return self._json(results_dict)
 
-    def _apply_filter(self, queryset, search_term):
+    def _apply_filter(self, queryset, search_phrase):
+        queryset = queryset.filter(Q(given_names__icontains=search_phrase) |
+                                     Q(family_name__icontains=search_phrase))
         return queryset
 
     def _run_query(self, query_set, records_per_page, page_number, columns):
