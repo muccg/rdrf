@@ -54,10 +54,17 @@ class FormProgress(object):
         self.progress_collection = self._get_progress_collection()
         self.progress_cdes_map = self._build_progress_map()
         self.loaded_data = None
+        self.current_patient = None
 
-    def reset(self):
-        # must be called if patient model changes!
-        self.loaded_data = None
+
+    def _set_current(self, patient_model):
+        if self.current_patient is None:
+            self.current_patient = patient_model
+            self.reset()
+        else:
+            if self.current_patient.pk != patient_model.pk:
+                self.current_patient = patient_model
+                self.reset()
 
     def _get_progress_collection(self):
         from rdrf.utils import mongo_db_name
@@ -313,6 +320,7 @@ class FormProgress(object):
         return self.loaded_data
 
     def _get_metric(self, metric, patient_model, context_model=None):
+        self._set_current(patient_model) # if new model passed in this causes progress data reload
 
         # eg _get_metric((SomeFormModel, "progress"), fred, None)
         # or _get_metric("diagnosis_current", fred, context23) etc
@@ -345,8 +353,10 @@ class FormProgress(object):
         return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
             'position') if not f.is_questionnaire and user.can_view(f)]
 
-    ###############################################################################\
-    ###  Public Api  - getting the progress
+    # Public API
+    def reset(self):
+        self.loaded_data = None
+
     def get_form_progress_dict(self, form_model, patient_model, context_model=None):
         # returns a dict of required filled percentage numbers
         return self._get_metric((form_model, "progress"), patient_model, context_model)
@@ -377,6 +387,7 @@ class FormProgress(object):
         return self._get_metric(metric_name, patient_model, context_model)
 
     def get_data_modules(self, user, patient_model, context_model=None):
+        self._set_current(patient_model)
         viewable_forms = self._get_viewable_forms(user)
         content = ""
         if not viewable_forms:
