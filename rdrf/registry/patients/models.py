@@ -351,7 +351,12 @@ class Patient(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         from rdrf.form_progress import FormProgress
+        from rdrf.models import RegistryForm, Registry
         wrapper = DynamicDataWrapper(self)
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm(name=form_name, registry=registry_model)
+        wrapper.current_form_model = form_model
+
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         timestamp = "%s_timestamp" % form_name
