@@ -350,6 +350,7 @@ class Patient(models.Model):
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
+        from rdrf.form_progress import FormProgress
         wrapper = DynamicDataWrapper(self)
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
@@ -363,6 +364,13 @@ class Patient(models.Model):
             mongo_data[key] = value
             mongo_data[timestamp] = t
             wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+        # update form progress
+        registry_model = Registry.objects.get(code=registry_code)
+        form_progress_calculator = FormProgress(registry_model)
+        form_progress_calculator.save_for_patient(self)
+
+
 
     def in_registry(self, reg_code):
         """
