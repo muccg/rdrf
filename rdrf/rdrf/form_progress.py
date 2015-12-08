@@ -280,7 +280,7 @@ class FormProgress(object):
 
                         groups_progress[progress_group]["required"] += form_progress_dict["required"]
                         groups_progress[progress_group]["filled"] += form_progress_dict["filled"]
-                        groups_progress[progress_group]["current"] = groups_progress[progress_group]["current"] and form_currency
+                        groups_progress[progress_group]["current"] = groups_progress[progress_group]["current"] or form_currency
                         groups_progress[progress_group]['has_data'] = groups_progress[progress_group]["has_data"] or form_has_data
 
         for group_name in groups_progress:
