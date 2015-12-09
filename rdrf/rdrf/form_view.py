@@ -2201,6 +2201,45 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         return []
 
 
+class ContextsListingView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        if request.user.is_patient:
+            raise PermissionDenied()
+
+        context = {}
+        context.update(csrf(request))
+
+        if request.user.is_superuser:
+            registries = [registry_model for registry_model in Registry.objects.all()]
+        else:
+            registries = [registry_model for registry_model in request.user.registry.all()]
+
+        context["registries"] = registries
+        context["location"] = "Context List"
+
+        columns = []
+
+        sorted_by_order = sorted(settings.GRID_CONTEXT_LISTING, key=itemgetter('order'), reverse=False)
+
+        for definition in sorted_by_order:
+            if request.user.is_superuser or definition["access"]["default"] or \
+                    request.user.has_perm(definition["access"]["permission"]):
+                columns.append(
+                    {
+                        "data" : definition["data"],
+                        "label" : definition["label"]
+                    }
+                )
+
+        context["columns"] = columns
+
+        return render_to_response(
+            'rdrf_cdes/contexts.html',
+            context,
+            context_instance=RequestContext(request))
+
+
 class BootGridApi(View):
 
     def post(self, request):
