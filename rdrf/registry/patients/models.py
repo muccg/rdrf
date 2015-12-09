@@ -24,6 +24,7 @@ from rdrf.mongo_client import construct_mongo_client
 from django.db.models.signals import m2m_changed, post_delete
 
 
+
 import logging
 logger = logging.getLogger('registry_log')
 
@@ -879,7 +880,8 @@ def registry_changed_on_patient(sender, **kwargs):
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         run_hooks('registry_added', instance, registry_ids)
-        #run_consent_closures(instance, registry_ids)
+        from rdrf.contexts_api import create_rdrf_default_contexts
+        create_rdrf_default_contexts(instance, registry_ids)
 
 
 class ConsentValue(models.Model):

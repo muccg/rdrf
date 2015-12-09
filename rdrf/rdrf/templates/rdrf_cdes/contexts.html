@@ -4,31 +4,78 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+     <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
 
     <script>
         $(document).ready(function() {
+        var api_url = "{% url 'contextsgridapi'  %}";
+        var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
         $("contextmenu").popover({html: true});
 
-        var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-
-        var columns = {{columns | safe}};
+        $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+        }});
 
         $.fn.dataTable.ext.errMode = 'throw';
+
+
+        function getDrawLength() {
+            try {
+                var length = $("#patient_list_table_length").val();
+                if (length == undefined) {
+                    return 10;
+                }
+                return length;
+            }
+
+            catch(err) {
+                return 10;
+            }
+        }
+
+        function getSelectedRegistry() {
+            var code = $("#registry_options > option:selected").attr('id');
+            return code;
+        }
+
+        function getApiUrl(registryCode, drawLength) {
+            return  api_url + "?registry_code=" + registryCode +
+                    "&length=" + drawLength;
+        }
+
+        function getRegistryAndPatientFromRow(rowData) {
+            // full_name is actually a hyperlink to the patient demographics
+            var pattern = /.*patient\/(\d+)\'/;
+            var fullNameLink = rowData.full_name;
+            var patientId = parseInt(pattern.exec(fullNameLink)[1]);
+            var registryCode = $("#registry_options option:selected").attr("id");
+            return {patientId: patientId, registryCode: registryCode}
+        }
+
+        $.fn.dataTable.ext.errMode = 'throw';
+
+        if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
+            $("#add_patient").hide();
+        }
+
+        var registryCode = getSelectedRegistry();
+
 
         if ({{registries.0 | has_feature:"no_add_patient_button" | yesno:"false,true"}} == false) {
             $("#add_patient").hide();
         }
 
-        var api_url = "{% url 'contextsapi'  %}";
         var contexts_list = $("#context_list_table").DataTable({
-            "ajax": {
-                "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
-                "dataSrc": "rows",
+            "processing": true,
+            "serverSide": true,
+            ajax: {
+                    url: getApiUrl(registryCode, getDrawLength()),
+                    dataSrc: "rows"
             },
-            "columns": columns,
+            columns: {{columns|safe}}
         }).on("draw", function () {
             $("#loading_text").hide();
             $('button[data-toggle=popover]').popover({
@@ -67,14 +114,8 @@
             window.location.replace(location);
         });
 
-        function getRegistryAndPatientFromRow(rowData) {
-            // full_name is actually a hyperlink to the patient demographics
-            var pattern = /.*patient\/(\d+)\'/;
-            var fullNameLink = rowData.full_name;
-            var patientId = parseInt(pattern.exec(fullNameLink)[1]);
-            var registryCode = $("#registry_options option:selected").attr("id");
-            return {patientId: patientId, registryCode: registryCode}
-        }
+
+
 
 
         });

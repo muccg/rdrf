@@ -1875,7 +1875,7 @@ class AdjudicationResultsView(View):
 class GridColumnsViewer(object):
     def get_columns(self, user):
         columns = []
-        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
+        sorted_by_order = sorted(self.get_grid_definitions(), key=itemgetter('order'), reverse=False)
 
         for definition in sorted_by_order:
             if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
@@ -1887,6 +1887,9 @@ class GridColumnsViewer(object):
                 )
 
         return columns
+
+    def get_grid_definitions(self):
+        return settings.GRID_PATIENT_LISTING
 
 
 class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
@@ -1913,33 +1916,29 @@ class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
             context_instance=RequestContext(request))
 
 
-class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
+class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
+    MODEL = Patient
+
     def get(self, request):
         self.user = request.user
         # see http://datatables.net/manual/server-side
-        for key in request.GET:
-            logger.debug("key = %s" % key)
+        self.registry_code = request.GET.get("registry_code", None)
 
-        registry_code = request.GET.get("registry_code", None)
-        self.registry_code = registry_code
-        logger.debug("registry code = %s" % registry_code)
-
-        if registry_code is None:
+        if self.registry_code is None:
             return self._json([])
 
         try:
-            registry_model = Registry.objects.get(code=registry_code)
-            logger.debug("querying %s" % registry_model)
+            self.registry_model = Registry.objects.get(code=self.registry_code)
         except Registry.DoesNotExist:
-            logger.error("patients listing api registry code %s does not exist" % registry_code)
+            logger.error("patients listing api registry code %s does not exist" % self.registry_code)
             return self._json([])
 
-        if not request.user.is_superuser:
-            if not registry_model.code in [r.code for r in request.user.registry.all()]:
+        if not self.user.is_superuser:
+            if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
                 logger.debug("user isn't in registry!")
                 return self._json([])
 
-        self.form_progress = FormProgress(registry_model)
+        self.form_progress = FormProgress(self.registry_model)
 
         search_term = request.GET.get("search[value]", "")
         logger.debug("search term = %s" % search_term)
@@ -1960,9 +1959,9 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
         context = {}
         context.update(csrf(request))
-        columns = self.get_columns(request.user)
+        columns = self.get_columns(self.user)
 
-        queryset = self._get_initial_queryset(request.user, registry_code, sort_field, sort_direction)
+        queryset = self._get_initial_queryset(self.user, self.registry_code, sort_field, sort_direction)
         record_total = queryset.count()
         logger.debug("record_total = %s" % record_total)
 
@@ -2020,20 +2019,22 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
             return []
 
         func_map = self._get_func_map(columns)
+        self.append_rows(page, rows, func_map)
 
-        for obj in page.object_list:
-            rows.append(self._get_row_dict(obj, func_map))
         return rows
 
-    def _get_row_dict(self, patient, func_map):
-        self.form_progress.reset() # we need to do this so that the progress data for this patient loaded!
-        logger.debug("func_map = %s" % func_map)
-        logger.debug("getting data for %s" % patient)
+    def append_rows(self, page_object, row_list_to_update, func_map):
+        for obj in page_object.object_list:
+            row_list_to_update.append(self._get_row_dict(obj, func_map))
+
+    def _get_row_dict(self, instance, func_map):
+        # we need to do this so that the progress data for this instance loaded!
+        self.form_progress.reset()
         row_dict = {}
         for field in func_map:
             logger.debug("getting %s" % field)
             try:
-                value = func_map[field](patient)
+                value = func_map[field](instance)
             except KeyError:
                 value = "UNKNOWN COLUMN"
             row_dict[field] = value
@@ -2165,43 +2166,92 @@ class PatientsListingServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
         registry_queryset = Registry.objects.filter(code=registry_code)
-        patients = Patient.objects.all()
+        models = self.MODEL.objects.all()
         if not user.is_superuser:
             if user.is_curator:
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
                     working_groups__in=user.working_groups.all())
-                patients = patients.filter(query_patients)
+                models = models.filter(query_patients)
             elif user.is_genetic_staff:
-                patients = patients.filter(working_groups__in=user.working_groups.all())
+                models = models.filter(working_groups__in=user.working_groups.all())
             elif user.is_genetic_curator:
-                patients = patients.filter(working_groups__in=user.working_groups.all())
+                models = models.filter(working_groups__in=user.working_groups.all())
             elif user.is_working_group_staff:
-                patients = patients.filter(working_groups__in=user.working_groups.all())
+                models = models.filter(working_groups__in=user.working_groups.all())
             elif user.is_clinician and clinicians_have_patients:
-                patients = patients.filter(clinician=user)
+                models = models.filter(clinician=user)
             elif user.is_clinician and not clinicians_have_patients:
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
                     working_groups__in=user.working_groups.all())
-                patients = patients.filter(query_patients)
+                models = models.filter(query_patients)
             elif user.is_patient:
-                patients = patients.filter(user=user)
+                models = models.filter(user=user)
             else:
-                patients = patients.none()
+                models = models.none()
         else:
-            patients = patients.filter(rdrf_registry__in=registry_queryset)
+            models = models.filter(rdrf_registry__in=registry_queryset)
 
         if all([sort_field, sort_direction]):
             if sort_direction == "desc":
                 sort_field = "-" + sort_field
-                patients = patients.order_by(sort_field)
+                models = models.order_by(sort_field)
                 logger.debug("sort field = %s" % sort_field)
 
-        logger.debug("found %s patients for initial query" % patients.count())
-        return patients
+        logger.debug("found %s patients for initial query" % models.count())
+        return models
 
     def _get_grid_data(self, columns):
 
         return []
+
+
+class ContextDataTableServerSideApi(DataTableServerSideApi):
+    MODEL = RDRFContext
+
+    def get_grid_definitions(self):
+        return settings.GRID_CONTEXT_LISTING
+
+    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
+
+        # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
+
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get(model='patient')
+
+        contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
+
+        registry_queryset = Registry.objects.filter(code=registry_code)
+        if not user.is_superuser:
+            if user.is_curator:
+                query_patients = Q(registry__in=registry_queryset) & Q(working_groups__in=user.working_groups.all())
+                models = models.filter(query_patients)
+            elif user.is_genetic_staff:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_genetic_curator:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_working_group_staff:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_clinician and clinicians_have_patients:
+                models = models.filter(clinician=user)
+            elif user.is_clinician and not clinicians_have_patients:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+                models = models.filter(query_patients)
+            elif user.is_patient:
+                models = models.filter(user=user)
+            else:
+                models = models.none()
+        else:
+            models = models.filter(rdrf_registry__in=registry_queryset)
+
+        if all([sort_field, sort_direction]):
+            if sort_direction == "desc":
+                sort_field = "-" + sort_field
+                models = models.order_by(sort_field)
+                logger.debug("sort field = %s" % sort_field)
+
+        logger.debug("found %s patients for initial query" % models.count())
+        return models
 
 
 class ContextsListingView(LoginRequiredMixin, View):
