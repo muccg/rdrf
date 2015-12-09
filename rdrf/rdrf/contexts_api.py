@@ -1,25 +1,27 @@
-from django.http import HttpResponse
-from django.views.generic import View
-from django.core.urlresolvers import reverse
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-
 from rdrf.models import Registry
-from rdrf.context_browser import ContextBrowser
+from rdrf.models import RDRFContext
+from django.contrib.contenttypes.models import ContentType
 
-import json
+import logging
+
+logger = logging.getLogger("registry_log")
 
 
-class ContextsApiView(View):
-    def get(self, request):
-        registry_code = request.GET.get("registry_code")
-        row_count = int(request.GET.get('rowCount', 20))
-        search_phrase = request.GET.get("searchPhrase", None)
-        current = int(request.GET.get("current", 1))
-        registry_model = Registry.objects.get(code=registry_code)
+def create_rdrf_default_contexts(patient, registry_ids):
+    content_type = ContentType.objects.get_for_model(patient)
+    for registry_id in registry_ids:
+        try:
+            registry_model = Registry.objects.get(id=registry_id)
+        except Registry.DoesNotExist:
+            continue
 
-        context_browser = ContextBrowser(request.user, registry_model)
+        existing_contexts_count = RDRFContext.objects.filter(registry=registry_model,
+                                                             content_type=content_type,
+                                                             object_id=patient.pk).count()
 
-        results = context_browser.do_search(search_phrase, row_count, current)
-
-        return HttpResponse(json.dumps(results), content_type='application/json')
+        if existing_contexts_count == 0:
+            logger.debug("creating default context for patient %s registry %s" % (patient, registry_model))
+            rdrf_context = RDRFContext(registry=registry_model, content_object=patient)
+            rdrf_context.display_name = "default"
+            rdrf_context.save()
+            logger.debug("context saved ok")
