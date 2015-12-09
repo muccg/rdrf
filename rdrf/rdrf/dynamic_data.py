@@ -1081,6 +1081,14 @@ class DynamicDataWrapper(object):
         except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
 
+    def save_form_progress(self, registry_code, context_model=None):
+        from rdrf.form_progress import FormProgress
+        from rdrf.models import Registry
+        registry_model = Registry.objects.get(code=registry_code)
+        form_progress = FormProgress(registry_model)
+        dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
+        return form_progress.save_progress(self.obj, dynamic_data, context_model)
+
     def _convert_date_to_datetime(self, data):
         """
         pymongo doesn't allow saving datetime.Date
@@ -1164,7 +1172,6 @@ class DynamicDataWrapper(object):
                 for section_dict in form_dict['sections']:
                     for cde_dict in section_dict["cdes"]:
                         yield form_dict, section_dict, cde_dict
-
 
     def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
         try:

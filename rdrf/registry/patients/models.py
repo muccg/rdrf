@@ -23,6 +23,7 @@ from rdrf.hooking import run_hooks
 from rdrf.mongo_client import construct_mongo_client
 from django.db.models.signals import m2m_changed, post_delete
 
+
 import logging
 logger = logging.getLogger('registry_log')
 
@@ -263,63 +264,7 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
-    @property
-    def diagnosis_progress(self):
-        """
-        returns a map of reg code to an integer between 0-100 (%)
-        """
-        registry_diagnosis_progress = {}
 
-        for registry_model in self.rdrf_registry.all():
-            total_number_filled_in = 0
-            total_number_required_for_completion = 0
-            for form_model in registry_model.forms:
-                # hack
-                if not "genetic" in form_model.name.lower():
-                    number_filled_in, total_number_for_completion = self.form_progress(
-                        form_model, numbers_only=True)
-                    total_number_filled_in += number_filled_in
-                    total_number_required_for_completion += total_number_for_completion
-            try:
-                registry_diagnosis_progress[
-                    registry_model.code] = int(
-                    100.0 *
-                    float(total_number_filled_in) /
-                    float(total_number_required_for_completion))
-            except ZeroDivisionError as zderr:
-                pass  # don't have progress? skip
-
-        return registry_diagnosis_progress
-
-    @property
-    def diagnosis_progress_new(self):
-        """
-        returns a map of reg code to an integer between 0-100 (%)
-        """
-        registry_diagnosis_progress = {}
-
-        for registry_model in self.rdrf_registry.all():
-            forms = []
-            total_number_filled_in = 0
-            total_number_required_for_completion = 0
-            for form_model in registry_model.forms:
-                # hack
-                if not "genetic" in form_model.name.lower():
-                    forms.append(form_model)
-
-            total_number_filled_in, total_number_required_for_completion = self.forms_progress(
-                registry_model, forms)
-
-            try:
-                registry_diagnosis_progress[
-                    registry_model.code] = int(
-                    100.0 *
-                    float(total_number_filled_in) /
-                    float(total_number_required_for_completion))
-            except ZeroDivisionError as zderr:
-                pass  # don't have progress? skip
-
-        return registry_diagnosis_progress
 
     def clinical_data_currency(self, days=365):
         """
@@ -405,7 +350,13 @@ class Patient(models.Model):
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
+        from rdrf.form_progress import FormProgress
+        from rdrf.models import RegistryForm, Registry
         wrapper = DynamicDataWrapper(self)
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm(name=form_name, registry=registry_model)
+        wrapper.current_form_model = form_model
+
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         timestamp = "%s_timestamp" % form_name
@@ -418,6 +369,13 @@ class Patient(models.Model):
             mongo_data[key] = value
             mongo_data[timestamp] = t
             wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+        # update form progress
+        registry_model = Registry.objects.get(code=registry_code)
+        form_progress_calculator = FormProgress(registry_model)
+        form_progress_calculator.save_for_patient(self)
+
+
 
     def in_registry(self, reg_code):
         """

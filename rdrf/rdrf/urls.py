@@ -31,7 +31,6 @@ from rdrf.lookup_views import RDRFContextLookup
 from rdrf.contexts_api import ContextsApiView
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
-
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
 
@@ -84,7 +83,9 @@ urlpatterns = patterns('',
 
                        url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
                            name="patientslisting"),
-#---- Context related URLs -----------------
+                       url(r'^patientsgridapi/?$', form_view.PatientsListingServerSideApi.as_view(),
+                           name='patientsgridapi'),
+                       #---- Context related URLs -----------------
                        url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
                            name="contextslisting"),
 
