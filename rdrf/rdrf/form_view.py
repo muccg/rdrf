@@ -24,6 +24,7 @@ from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
+from rdrf.context_menu import PatientContextMenu
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import get_form_links, consent_status_for_patient
@@ -2078,19 +2079,18 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         for column in columns:
             field = column["data"]
             logger.debug("checking field %s" % field)
-            if field in patient_field_names:
+            func_name = "_get_grid_field_%s" % field
+            logger.debug("checking %s" % func_name)
+            if hasattr(self, func_name):
+                    func_map[field] = grid_func(self, func_name)
+                    logger.debug("field %s is a serverside api func" % field)
+            elif field in patient_field_names:
                 logger.debug("field is a patient field")
                 func_map[field] = patient_func(field)
                 logger.debug("field %s is a patient function" % field)
             else:
-                func_name = "_get_grid_field_%s" % field
-                logger.debug("checking %s" % func_name)
-                if hasattr(self, func_name):
-                    func_map[field] = grid_func(self, func_name)
-                    logger.debug("field %s is a serverside api func" % field)
-                else:
-                    logger.debug("field %s is unknown" % field)
-                    func_map[field] = k("UNKNOWN COLUMN!")
+                logger.debug("field %s is unknown" % field)
+                func_map[field] = k("UNKNOWN COLUMN!")
 
         return func_map
 
@@ -2252,6 +2252,22 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
         logger.debug("found %s contexts for initial query" % contexts.count())
         return contexts
+
+    def _get_grid_field_display_name(self, context_model):
+        return context_model.display_name
+
+    def _get_grid_field_context_menu(self, context_model):
+        patient_model = context_model.content_object
+        registry_code = self.registry_model.code
+        context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
+        return context_menu.html
+
+    def _get_grid_field_created_at(self, context_model):
+        return str(context_model.created_at)
+
+    def _get_grid_field_date_of_birth(self, context_model):
+        patient_model = context_model.content_object
+        return str(patient_model.date_of_birth)
 
 
 class ContextsListingView(LoginRequiredMixin, View):
