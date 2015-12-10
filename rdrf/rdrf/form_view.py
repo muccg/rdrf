@@ -2269,6 +2269,15 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         patient_model = context_model.content_object
         return str(patient_model.date_of_birth)
 
+    def _apply_filter(self, queryset, search_phrase):
+        context_filter = Q(display_name__icontains=search_phrase)
+        patient_filter = Q(given_names__icontains=search_phrase) | \
+                         Q(family_name__icontains=search_phrase)
+
+        matching_patients = Patient.objects.filter(rdrf_registry__in=[self.registry_model]).filter(patient_filter)
+
+        return queryset.filter(context_filter | Q(object_id__in=[p.pk for p in matching_patients]))
+
 
 class ContextsListingView(LoginRequiredMixin, View):
 
