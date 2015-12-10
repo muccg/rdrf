@@ -172,28 +172,28 @@ class FormView(View):
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
 
-    def set_rdrf_context(self, request):
-        if "rdrf_context_id" in request.session:
-            try:
-                self.rdrf_context = RDRFContext.objects.get(pk=int(request.session["rdrf_context_id"]))
-                logger.debug("set rdrf context on form view to RDRFContext model %s" % self.rdrf_context.pk)
-            except RDRFContext.DoesNotExist:
-                logger.error("error determining rdrf context for user %s rdrf context id %s does not exist" %
-                             (request.user, request.session["rdrf_context_id"]))
-
-                logger.debug("setting it to None on view")
-                self.rdrf_context = None
-        else:
-            logger.debug("no rdrf context in session so setting it on view to None")
+    def set_rdrf_context(self, context_id):
+        if context_id is None:
             self.rdrf_context = None
+        else:
+            try:
+                patient_model = Patient.objects.get(self.patient_id)
+                self.rdrf_context = RDRFContext.objects.get(registry=self.registry,
+                                                            content_object=patient_model,
+                                                            pk=context_id)
+            except RDRFContext.DoesNotExist:
+                raise Exception("Bad context")
+
+
+
 
 
     @method_decorator(login_required)
-    def get(self, request, registry_code, form_id, patient_id):
+    def get(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
-        self.set_rdrf_context(request)
+        self.set_rdrf_context(context_id)
 
         if self.rdrf_context is not None:
             rdrf_context_id = self.rdrf_context.pk
