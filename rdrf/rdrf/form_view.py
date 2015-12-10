@@ -2213,42 +2213,45 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
 
         from django.contrib.contenttypes.models import ContentType
+
         content_type = ContentType.objects.get(model='patient')
 
         contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
+
         if not user.is_superuser:
             if user.is_curator:
-                query_patients = Q(registry__in=registry_queryset) & Q(working_groups__in=user.working_groups.all())
-                models = models.filter(query_patients)
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=user.working_groups.all())
             elif user.is_genetic_staff:
-                models = models.filter(working_groups__in=user.working_groups.all())
+                query_patients = Q(working_groups__in=user.working_groups.all())
             elif user.is_genetic_curator:
-                models = models.filter(working_groups__in=user.working_groups.all())
+                query_patients = Q(working_groups__in=user.working_groups.all())
             elif user.is_working_group_staff:
-                models = models.filter(working_groups__in=user.working_groups.all())
+                query_patients = Q(working_groups__in=user.working_groups.all())
             elif user.is_clinician and clinicians_have_patients:
-                models = models.filter(clinician=user)
+                query_patients = Q(clinician=user)
             elif user.is_clinician and not clinicians_have_patients:
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
                     working_groups__in=user.working_groups.all())
-                models = models.filter(query_patients)
             elif user.is_patient:
-                models = models.filter(user=user)
+                query_patients = Q(user=user)
             else:
-                models = models.none()
+                query_patients = Patient.objects.none()
         else:
-            models = models.filter(rdrf_registry__in=registry_queryset)
+            query_patients = Q(rdrf_registry__in=registry_queryset)
+
+        patients = Patient.objects.filter(query_patients)
+        contexts = contexts.filter(object_id__in=[p.pk for p in patients])
 
         if all([sort_field, sort_direction]):
             if sort_direction == "desc":
                 sort_field = "-" + sort_field
-                models = models.order_by(sort_field)
+                contexts = contexts.order_by(sort_field)
                 logger.debug("sort field = %s" % sort_field)
 
-        logger.debug("found %s patients for initial query" % models.count())
-        return models
+        logger.debug("found %s contexts for initial query" % contexts.count())
+        return contexts
 
 
 class ContextsListingView(LoginRequiredMixin, View):
