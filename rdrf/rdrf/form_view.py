@@ -173,13 +173,19 @@ class FormView(View):
         return dynamic_data
 
     def set_rdrf_context(self, context_id):
+        from django.contrib.contenttypes.models import ContentType
         if context_id is None:
             self.rdrf_context = None
+            if self.registry.has_feature("contexts"):
+                raise Exception("context required")
+
         else:
             try:
-                patient_model = Patient.objects.get(self.patient_id)
+                patient_model = Patient.objects.get(pk=int(self.patient_id))
+                content_type = ContentType.objects.get(model='patient')
                 self.rdrf_context = RDRFContext.objects.get(registry=self.registry,
-                                                            content_object=patient_model,
+                                                            content_type=content_type,
+                                                            object_id=patient_model.pk,
                                                             pk=context_id)
             except RDRFContext.DoesNotExist:
                 raise Exception("Bad context")
@@ -193,6 +199,12 @@ class FormView(View):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
 
+
+        self.user = request.user
+        self.form_id = form_id
+        self.patient_id = patient_id
+        self.registry = self._get_registry(registry_code)
+
         self.set_rdrf_context(context_id)
 
         if self.rdrf_context is not None:
@@ -200,10 +212,7 @@ class FormView(View):
         else:
             rdrf_context_id = None
 
-        self.user = request.user
-        self.form_id = form_id
-        self.patient_id = patient_id
-        self.registry = self._get_registry(registry_code)
+
         self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                    registry_code=registry_code,
                                                    rdrf_context_id=rdrf_context_id)
