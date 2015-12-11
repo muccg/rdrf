@@ -485,6 +485,15 @@ GRID_PATIENT_LISTING = [
         "data": "data_modules",
         "label": "Modules",
         "order": 7
+    },
+    {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "diagnosis_progress",
+        "label": "Data Entry Progress",
+        "order": 8
     }
 ]
 

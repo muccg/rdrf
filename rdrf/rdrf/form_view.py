@@ -48,6 +48,7 @@ from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
 from django.core.paginator import Paginator, InvalidPage
+from django.contrib.contenttypes.models import ContentType
 
 from rdrf.form_progress import FormProgress
 
@@ -2107,8 +2108,7 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
         template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
                    " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
-                   "<span class='progress-label'>%s%%</span></div></div>"\
-
+                   "<span class='progress-label'>%s%%</span></div></div>"
 
         return template % (progress_number, progress_number,progress_number)
 
@@ -2121,11 +2121,6 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         color = "green" if has_genetic_data else "red"
         return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
-    def _get_grid_field_diagnosis_currency(self, patient_model):
-        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
-        icon = "ok" if diagnosis_currency else "remove"
-        color = "green" if diagnosis_currency else "red"
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
     def _get_grid_field_diagnosis_currency(self, patient_model):
         diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
@@ -2263,7 +2258,14 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         return contexts
 
     def _get_grid_field_display_name(self, context_model):
-        return context_model.display_name
+        registry_code = context_model.registry.code
+        patient_id = context_model.content_object.pk
+
+        return "<a href='%s'>%s</a>" % (reverse("context_edit", kwargs={"registry_code": registry_code,
+                                                                        "patient_id": patient_id,
+                                                                        "context_id": context_model.pk,
+                                                                        }),
+                                        context_model.display_name)
 
     def _get_grid_field_context_menu(self, context_model):
         patient_model = context_model.content_object
@@ -2277,6 +2279,15 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
     def _get_grid_field_date_of_birth(self, context_model):
         patient_model = context_model.content_object
         return str(patient_model.date_of_birth)
+
+    def _get_grid_field_diagnosis_progress(self, context_model):
+        patient_model = context_model.content_object
+        progress_number = self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
+        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                   "<span class='progress-label'>%s%%</span></div></div>"
+
+        return template % (progress_number, progress_number, progress_number)
 
     def _apply_filter(self, queryset, search_phrase):
         context_filter = Q(display_name__icontains=search_phrase)
