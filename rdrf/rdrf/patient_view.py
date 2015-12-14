@@ -26,7 +26,7 @@ from registry.patients.models import Patient, PatientAddress, PatientDoctor, Pat
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
-
+from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
 import logging
@@ -34,39 +34,7 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
-def get_error_messages(forms):
-    from rdrf.utils import de_camelcase
-    messages = []
 
-    def display(form_or_formset, field, error):
-        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
-        return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
-
-    for i, form in enumerate(forms):
-        if isinstance(form._errors, list):
-            logger.debug("checking formset %s for errors" % i)
-            if len(form._errors) == 0:
-                logger.debug("form._errors = []")
-            else:
-                logger.debug("form._errors = %s" % form._errors)
-            for error_dict in form._errors:
-                for field in error_dict:
-                    messages.append(display(form, field, error_dict[field]))
-        else:
-            if form._errors is None:
-                logger.debug("form._errors is None - skipping")
-                continue
-            else:
-                logger.debug("form._errors = %s" % form._errors)
-                for field in form._errors:
-                    for error in form._errors[field]:
-                        if "This field is required" in error:
-                            # these errors are indicated next to the field
-                            continue
-                        messages.append(display(form, field, error))
-    results = map(strip_tags, messages)
-    logger.debug("get_error_messages = %s" % results)
-    return results
 
 
 def calculate_age(born):
