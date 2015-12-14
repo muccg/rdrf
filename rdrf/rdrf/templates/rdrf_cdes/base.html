@@ -144,7 +144,7 @@
             {% if location %}
                 <div class="row">
                     <div class="col-md-12">
-                        <p><h3><span id="rdrf_context_glyph" class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans location %}</h3></p>
+                        <p><h3><span id="rdrf_context_glyph" class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|safe }}</h3></p>
                         {% if patient_name %}
                             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
                         {% endif %}
