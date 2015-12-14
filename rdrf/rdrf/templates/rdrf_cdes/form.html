@@ -301,6 +301,9 @@
         <ul class="dropdown-menu" role="menu">
             <li><a href="{% url 'consent_form_view' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Consents</a></li>
             <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
+            {% if my_contexts_url %}
+                <li><a href="{{my_contexts_url}}"><span class="glyphicon glyphicon-minus"></span>Other contexts for this patient</a></li>
+            {% endif %}
             {% for form_link in form_links %}
                 <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
             {% endfor %}

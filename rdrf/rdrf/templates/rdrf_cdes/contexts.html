@@ -9,6 +9,10 @@
 
     <script>
         $(document).ready(function() {
+
+        var initialRegistryCode = "{{registry_code}}";
+        var initialPatientId = "{{patient_id}}";
+
         var api_url = "{% url 'contextsgridapi'  %}";
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
@@ -42,8 +46,15 @@
         }
 
         function getApiUrl(registryCode, drawLength) {
-            return  api_url + "?registry_code=" + registryCode +
+            if (initialPatientId=='None'){
+                return  api_url + "?registry_code=" + registryCode +
                     "&length=" + drawLength;
+            }
+            else {
+                return  api_url + "?registry_code=" + registryCode +
+                    "&length=" + drawLength + "&patient_id=" + initialPatientId;
+            }
+
         }
 
         function getRegistryAndPatientFromRow(rowData) {

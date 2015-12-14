@@ -179,15 +179,23 @@ class FormView(View):
                 raise Exception("context required")
 
         else:
-            try:
+
                 patient_model = Patient.objects.get(pk=int(self.patient_id))
                 content_type = ContentType.objects.get(model='patient')
-                self.rdrf_context = RDRFContext.objects.get(registry=self.registry,
-                                                            content_type=content_type,
-                                                            object_id=patient_model.pk,
-                                                            pk=context_id)
-            except RDRFContext.DoesNotExist:
-                raise Exception("Bad context")
+
+                try:
+
+                    self.rdrf_context = RDRFContext.objects.get(registry=self.registry,
+                                                                content_type=content_type,
+                                                                object_id=patient_model.pk,
+                                                                pk=int(context_id))
+
+                    logger.debug("set rdrf_context to %s" % self.rdrf_context)
+
+                except RDRFContext.DoesNotExist:
+                    self.rdrf_context = None
+                    logger.debug("set rdrf_context to %s" % self.rdrf_context)
+                    raise Exception("Bad Context")
 
 
 
@@ -197,8 +205,6 @@ class FormView(View):
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
-
-
         self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
@@ -211,10 +217,10 @@ class FormView(View):
         else:
             rdrf_context_id = None
 
-
         self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                    registry_code=registry_code,
                                                    rdrf_context_id=rdrf_context_id)
+
         self.registry_form = self.get_registry_form(form_id)
         patient_model = Patient.objects.get(pk=patient_id)
         context = self._build_context(user=request.user, patient_model=patient_model)
@@ -234,6 +240,8 @@ class FormView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
+        context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
+
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -250,7 +258,7 @@ class FormView(View):
         return ",".join(ids)
 
     @method_decorator(login_required)
-    def post(self, request, registry_code, form_id, patient_id):
+    def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_superuser:
             pass
         elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
@@ -258,10 +266,14 @@ class FormView(View):
 
         self.user = request.user
 
-        self.set_rdrf_context(request)
+        registry = Registry.objects.get(code=registry_code)
+        self.registry = registry
 
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
+
+        self.set_rdrf_context(context_id)
+
         if self.rdrf_context:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
         else:
@@ -273,8 +285,7 @@ class FormView(View):
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
         self.registry_form = form_obj
-        registry = Registry.objects.get(code=registry_code)
-        self.registry = registry
+
         form_display_name = form_obj.name
         sections, display_names, ids = self._get_sections(form_obj)
         form_section = {}
@@ -392,11 +403,13 @@ class FormView(View):
 
         # progress saved to progress collection in mongo
         # the data is returned also
-        progress_dict = dyn_patient.save_form_progress(registry_code)
+        progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
 
         logger.debug("progress dict = %s" % progress_dict)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
+
+        logger.debug("rdrf context = %s" % self.rdrf_context)
 
         wizard = NavigationWizard(self.user,
                                   registry,
@@ -417,6 +430,7 @@ class FormView(View):
             'section_field_ids_map': section_field_ids_map,
             'section_ids': ids,
             'forms': form_section,
+            'my_contexts_url': patient.get_contexts_url(self.registry),
             'display_names': display_names,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
@@ -494,6 +508,8 @@ class FormView(View):
 
     def _get_formlinks(self, user):
 
+
+
         if user is not None:
             return [
                 FormLink(
@@ -501,7 +517,9 @@ class FormView(View):
                     self.registry,
                     form,
                     selected=(
-                        form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
+                        form.name == self.registry_form.name),
+                    context_model=self.rdrf_context
+                    ) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -1935,6 +1953,10 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         # see http://datatables.net/manual/server-side
         self.registry_code = request.GET.get("registry_code", None)
 
+
+        # can restrict on a particular patient for contexts - NOT usually set
+        self.patient_id = request.GET.get("patient_id", None)
+
         if self.registry_code is None:
             return self._json([])
 
@@ -2170,7 +2192,12 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
         registry_queryset = Registry.objects.filter(code=registry_code)
-        models = self.MODEL.objects.all()
+        if self.patient_id is None:
+            # Usual case
+            models = self.MODEL.objects.all()
+        else:
+            models = self.get_restricted_queryset(self.patient_id)
+
         if not user.is_superuser:
             if user.is_curator:
                 query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
@@ -2208,6 +2235,9 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
         return []
 
+    def get_restricted_queryset(self, patient_id):
+        return self.MODEL.objects.filter(pk=patient_id)
+
 
 class ContextDataTableServerSideApi(DataTableServerSideApi):
     MODEL = RDRFContext
@@ -2223,7 +2253,12 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
         content_type = ContentType.objects.get(model='patient')
 
-        contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
+        if self.patient_id is None:
+            contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
+        else:
+            contexts = RDRFContext.objects.filter(registry=self.registry_model,
+                                                 content_type=content_type,
+                                                 object_id=self.patient_id)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
 
@@ -2310,14 +2345,33 @@ class ContextsListingView(LoginRequiredMixin, View):
 
         context = {}
         context.update(csrf(request))
+        registry_model = None
 
-        if request.user.is_superuser:
-            registries = [registry_model for registry_model in Registry.objects.all()]
+        registry_code = request.GET.get("registry_code", None)
+        if registry_code is not None:
+            try:
+                registry_model = Registry.objects.get(code=registry_code)
+            except Registry.DoesNotExist:
+                return HttpResponseRedirect("/")
+
+        if registry_model is None:
+            if request.user.is_superuser:
+                registries = [registry_model for registry_model in Registry.objects.all()]
+            else:
+                registries = [registry_model for registry_model in request.user.registry.all()]
         else:
-            registries = [registry_model for registry_model in request.user.registry.all()]
+            registries = [registry_model]
+
+        patient_id = request.GET.get("patient_id", None)
+
+        if patient_id is not None:
+            if not self._allowed(request.user, registry_model, patient_id):
+                return HttpResponseRedirect("/")
 
         context["registries"] = registries
         context["location"] = "Context List"
+        context["patient_id"] = patient_id
+        context["registry_code"] = registry_code
 
         columns = []
 
@@ -2339,6 +2393,9 @@ class ContextsListingView(LoginRequiredMixin, View):
             'rdrf_cdes/contexts.html',
             context,
             context_instance=RequestContext(request))
+
+    def _allowed(self, user, registry_model, patient_id):
+        return True  #todo restrict
 
 
 class BootGridApi(View):

@@ -401,6 +401,17 @@ class Patient(models.Model):
 
         return None
 
+    def get_contexts_url(self, registry_model):
+        from django.core.urlresolvers import reverse
+        if not registry_model.has_feature("contexts"):
+            return None
+        else:
+            base_url = reverse("contextslisting")
+            full_url = "%s?registry_code=%s&patient_id=%s" % (base_url,
+                                                              registry_model.code,
+                                                              self.pk)
+            return full_url
+
     def sync_patient_relative(self):
         logger.debug("Attempting to sync PatientRelative")
         # If there is a patient relative ( from which I was created)
