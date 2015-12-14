@@ -19,6 +19,7 @@ class QuickLinks(object):
     users on the "Home" screen
     """
     PatientsListing = QuickLink("patientslisting", "Patient List")
+    ContextsListing = QuickLink("contextslisting", "Contexts List")
     Reports = QuickLink("reports", "Reports")
     Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
@@ -60,7 +61,7 @@ class QuickLinks(object):
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
-    DATA_ENTRY = oset([PatientsListing, ClinicianOther])
+    DATA_ENTRY = oset([PatientsListing, ContextsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
