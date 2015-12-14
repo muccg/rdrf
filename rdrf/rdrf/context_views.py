@@ -14,6 +14,9 @@ from django.contrib.contenttypes.models import ContentType
 
 from rdrf.models import Registry
 from rdrf.models import RDRFContext
+from rdrf.utils import get_error_messages
+from rdrf.utils import get_form_links
+
 from registry.patients.models import Patient
 
 
@@ -39,7 +42,12 @@ class RDRFContextCreateView(View):
         context_name = registry_model.metadata.get("context_name", "Context")
 
         context = {"location": "Add %s" % context_name,
+                   "registry": registry_model.code,
+                   "patient_id": patient_id,
+                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "patient_name": patient_model.display_name,
+                   "form_links": [],
+                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "form": ContextForm}
 
         return render_to_response(
@@ -50,7 +58,9 @@ class RDRFContextCreateView(View):
     def post(self, request, registry_code, patient_id):
         form = ContextForm(request.POST)
         registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(pk=patient_id)
         context_name = registry_model.metadata.get("context_name", "Context")
+
         if form.is_valid():
             patient_model = Patient.objects.get(id=patient_id)
             registry_model = Registry.objects.get(code=registry_code)
@@ -67,6 +77,9 @@ class RDRFContextCreateView(View):
         else:
             context = {"location": "Add %s" % context_name,
                        "error": "Invalid",
+                       "registry": registry_model.code,
+                       "patient_id": patient_id,
+                       "my_contexts_url": patient_model.get_contexts_url(registry_model),
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
@@ -94,10 +107,23 @@ class RDRFContextEditView(View):
         context_form = ContextForm(instance=rdrf_context_model)
 
         context_name = rdrf_context_model.registry.metadata.get("context_name", "Context")
-        patient_name = rdrf_context_model.content_object.display_name
+        patient_model = rdrf_context_model.content_object
+        registry_model = rdrf_context_model.registry
+        patient_name = patient_model.display_name
+
+        form_links = get_form_links(request.user,
+                                    rdrf_context_model.object_id,
+                                    rdrf_context_model.registry,
+                                    rdrf_context_model,
+                                    )
 
         context = {"location": "Edit %s" % context_name,
                    "patient_name": patient_name,
+                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
+                   "context_name": context_name,
+                   "form_links": form_links,
+                   "registry": registry_model.code,
+                   "patient_id": patient_id,
                    "form": context_form}
 
         return render_to_response(
@@ -122,13 +148,32 @@ class RDRFContextEditView(View):
             context_model.content_type = content_type
             context_model.content_object = patient_model
             context_model.save()
+
+            form_links = get_form_links(request.user,
+                                        patient_model.pk,
+                                        registry_model,
+                                        context_model)
+
             context = {"location": "Edit %s" % context_name,
                        "patient_name": patient_model.display_name,
+                       "my_contexts_url": patient_model.get_contexts_url(registry_model),
+                       "message": "%s saved successfully" % context_name,
+                       "error_messages": [],
+                       "registry": registry_model.code,
+                       "patient_id": patient_id,
+                       "form_links": form_links,
                        "form": form}
 
         else:
+
+            error_messages = get_error_messages([form])
+
             context = {"location": "Add %s" % context_name,
-                       "error": "Invalid",
+                       "errors": True,
+                       "registry": registry_model.code,
+                       "patient_id": patient_id,
+                       "error_messages": error_messages,
+                       "form_links": [],
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
@@ -136,6 +181,8 @@ class RDRFContextEditView(View):
             "rdrf_cdes/rdrf_context.html",
             context,
             context_instance=RequestContext(request))
+
+
 
 
 
