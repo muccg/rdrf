@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
+from django.core.urlresolvers import reverse
 
 import logging
 import re
@@ -168,7 +169,13 @@ def location_name(registry_form, current_rdrf_context_model=None):
     form_display_name = de_camelcase(registry_form.name)
     if registry_form.registry.has_feature("contexts"):
             if current_rdrf_context_model is not None:
-                s = "%s (%s)" % (form_display_name, current_rdrf_context_model)
+                registry_model = registry_form.registry
+                patient_model = current_rdrf_context_model.content_object
+                edit_link = reverse("context_edit", args=(registry_model.code,
+                                                          patient_model.pk,
+                                                          current_rdrf_context_model.pk))
+                context_link = """<a href="%s">%s</a>""" % (edit_link, current_rdrf_context_model.display_name)
+                s = "%s ( in %s)" % (form_display_name, context_link)
             else:
                 s = form_display_name
     else:
