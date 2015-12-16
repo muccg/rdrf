@@ -30,6 +30,8 @@ from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import get_form_links, consent_status_for_patient
 from rdrf.utils import location_name
 
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
 from django.shortcuts import redirect
 from django.db.models import Q
 from django.forms.models import inlineformset_factory
@@ -50,7 +52,13 @@ from rdrf.form_progress import FormProgress
 from django.core.paginator import Paginator, InvalidPage
 from django.contrib.contenttypes.models import ContentType
 
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
 from rdrf.form_progress import FormProgress
+
+
+class RDRFContextSwitchError(Exception):
+    pass
 
 logger = logging.getLogger("registry_log")
 
@@ -171,35 +179,32 @@ class FormView(View):
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
 
-    def set_rdrf_context(self, context_id):
-        from django.contrib.contenttypes.models import ContentType
-        if context_id is None:
-            self.rdrf_context = None
-            if self.registry.has_feature("contexts"):
-                raise Exception("context required")
+    def set_rdrf_context(self, patient_model, context_id):
+        # Ensure we always have a context , otherwise bail
+        self.rdrf_context = None
+        try:
+            if context_id is None:
+                if self.registry.has_feature("contexts"):
+                    raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
+                                           self.registry)
+                else:
+                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            else:
+                    self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
 
-        else:
+            if self.rdrf_context is None:
+                raise RDRFContextSwitchError
+            else:
+                logger.debug("switched context for patient %s to context %s" % (patient_model,
+                                                                                self.rdrf_context.id))
 
-                patient_model = Patient.objects.get(pk=int(self.patient_id))
-                content_type = ContentType.objects.get(model='patient')
+        except RDRFContextError, ex:
+            logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
+                                                                                        patient_model,
+                                                                                        self.registry,
+                                                                                        ex))
 
-                try:
-
-                    self.rdrf_context = RDRFContext.objects.get(registry=self.registry,
-                                                                content_type=content_type,
-                                                                object_id=patient_model.pk,
-                                                                pk=int(context_id))
-
-                    logger.debug("set rdrf_context to %s" % self.rdrf_context)
-
-                except RDRFContext.DoesNotExist:
-                    self.rdrf_context = None
-                    logger.debug("set rdrf_context to %s" % self.rdrf_context)
-                    raise Exception("Bad Context")
-
-
-
-
+            raise RDRFContextSwitchError
 
     @method_decorator(login_required)
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
@@ -208,21 +213,26 @@ class FormView(View):
         self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
+        patient_model = Patient.objects.get(pk=patient_id)
         self.registry = self._get_registry(registry_code)
 
-        self.set_rdrf_context(context_id)
+        self.rdrf_context_manager = RDRFContextManager(self.registry)
 
-        if self.rdrf_context is not None:
-            rdrf_context_id = self.rdrf_context.pk
-        else:
-            rdrf_context_id = None
+        try:
+            self.set_rdrf_context(patient_model, context_id)
+        except RDRFContextSwitchError:
+            return HttpResponseRedirect("/")
+
+        # context is not None here - always
+        rdrf_context_id = self.rdrf_context.pk
+        logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
 
         self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                    registry_code=registry_code,
                                                    rdrf_context_id=rdrf_context_id)
 
         self.registry_form = self.get_registry_form(form_id)
-        patient_model = Patient.objects.get(pk=patient_id)
+
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         context["header"] = self.registry_form.header
@@ -235,6 +245,7 @@ class FormView(View):
                                   self.registry_form)
 
         context["next_form_link"] = wizard.next_link
+        context["context_id"] = context_id
         context["previous_form_link"] = wizard.previous_link
 
         if request.user.is_parent:
@@ -272,12 +283,14 @@ class FormView(View):
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
 
-        self.set_rdrf_context(context_id)
+        self.rdrf_context_manager = RDRFContextManager(self.registry)
 
-        if self.rdrf_context:
-            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
-        else:
-            dyn_patient = DynamicDataWrapper(patient)
+        try:
+            self.set_rdrf_context(patient, context_id)
+        except RDRFContextSwitchError:
+            return HttpResponseRedirect("/")
+
+        dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
 
         if self.testing:
             dyn_patient.testing = True
@@ -616,9 +629,13 @@ class FormView(View):
 
             form_progress = FormProgress(self.registry_form.registry)
 
-            form_progress_percentage = form_progress.get_form_progress(self.registry_form, patient_model)
+            form_progress_percentage = form_progress.get_form_progress(self.registry_form,
+                                                                       patient_model,
+                                                                       self.rdrf_context)
 
-            form_cdes_status = form_progress.get_form_cdes_status(self.registry_form, patient_model)
+            form_cdes_status = form_progress.get_form_cdes_status(self.registry_form,
+                                                                  patient_model,
+                                                                  self.rdrf_context)
 
             #cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = form_progress_percentage
@@ -2307,8 +2324,11 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
     def _get_grid_field_context_menu(self, context_model):
         patient_model = context_model.content_object
-        registry_code = self.registry_model.code
-        context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
+        context_menu = PatientContextMenu(self.user,
+                                          self.registry_model,
+                                          self.form_progress,
+                                          patient_model,
+                                          context_model)
         return context_menu.html
 
     def _get_grid_field_created_at(self, context_model):
@@ -2439,7 +2459,7 @@ class ConstructorFormView(View):
 
 
 class CustomConsentFormView(View):
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -2460,13 +2480,23 @@ class CustomConsentFormView(View):
         except ParentGuardian.DoesNotExist:
             parent = None
 
+        try:
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+        except RDRFContextError, ex:
+            logger.error("context error on custom consent view patient id %s context id %s: %s" % (patient_id,
+                                                                                                   context_id,
+                                                                                                   ex))
+            return HttpResponseRedirect("/")
+
         context = {
             "location": "Consents",
             "forms": form_sections,
+            "context_id": context_id,
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
@@ -2548,7 +2578,7 @@ class CustomConsentFormView(View):
         return reverse("consent_form_view", args=[registry_model.code, patient_model.pk])
 
 
-    def post(self, request, registry_code, patient_id):
+    def post(self, request, registry_code, patient_id, context_id=None):
         logger.debug("******************** post of consents *********************")
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
@@ -2557,6 +2587,14 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+        except RDRFContextError, err:
+            logger.error("context wrong on consent post %s: %s" % (patient_model, err))
+            return HttpResponseRedirect("/")
+
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient_model,
@@ -2611,8 +2649,9 @@ class CustomConsentFormView(View):
             "location": "Consents",
             "patient": patient_model,
             "patient_id": patient_model.id,
+            "context_id": context_id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "forms": form_sections,
