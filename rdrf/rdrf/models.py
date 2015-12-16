@@ -775,6 +775,22 @@ class RegistryForm(models.Model):
         from rdrf.utils import FormLink
         return FormLink(patient_model.pk, self.registry, self).url
 
+    @property
+    def nice_name(self):
+        from rdrf.utils import de_camelcase
+        try:
+            return de_camelcase(self.name)
+        except:
+            return self.name
+
+    def get_link(self, patient_model, context_model=None):
+        if context_model is None:
+            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id))
+        else:
+            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
+
+
+
 
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
