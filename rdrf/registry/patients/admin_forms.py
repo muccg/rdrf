@@ -165,8 +165,8 @@ class PatientForm(forms.ModelForm):
     }
 
     next_of_kin_country = forms.ComboField(
-        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    next_of_kin_state = forms.ComboField(required=False, widget=StateWidget())
+        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}), label="Country")
+    next_of_kin_state = forms.ComboField(required=False, widget=StateWidget(), label="State")
     country_of_birth = forms.ComboField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
