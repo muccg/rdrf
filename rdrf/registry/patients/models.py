@@ -349,13 +349,24 @@ class Patient(models.Model):
             else:
                 return mongo_data[key]
 
-    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
+    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         from rdrf.form_progress import FormProgress
         from rdrf.models import RegistryForm, Registry
-        wrapper = DynamicDataWrapper(self)
         registry_model = Registry.objects.get(code=registry_code)
+        if registry_model.has_feature("contexts") and context_model is None:
+            raise Exception("No context model set")
+        elif not registry_model.has_feature("contexts") and context_model is not None:
+            raise Exception("context model should not be explicit for non-supporting registry")
+        elif not registry_model.has_feature("contexts") and context_model is None:
+            # the usual case
+            from rdrf.conexts_api import RDRFContextManager
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(patient_model)
+
+        wrapper = DynamicDataWrapper(self, context_model=context_model)
+
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
 
