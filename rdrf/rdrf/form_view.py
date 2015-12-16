@@ -2358,7 +2358,7 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                                           self.form_progress,
                                           patient_model,
                                           context_model)
-        return context_menu.html
+        return context_menu.menu_html
 
     def _get_grid_field_created_at(self, context_model):
         return str(context_model.created_at)
@@ -2366,6 +2366,16 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
     def _get_grid_field_date_of_birth(self, context_model):
         patient_model = context_model.content_object
         return str(patient_model.date_of_birth)
+
+    def _get_grid_field_patient_link(self, context_model):
+        patient_model = context_model.content_object
+        registry_code = self.registry_model.code
+        return "<a href='%s'>%s</a>" % \
+               (reverse("patient_edit",
+                        kwargs={"registry_code": registry_code,
+                                "patient_id": patient_model.id,
+                                "context_id": context_model.pk}),
+                patient_model.display_name)
 
     def _get_grid_field_diagnosis_progress(self, context_model):
         patient_model = context_model.content_object
