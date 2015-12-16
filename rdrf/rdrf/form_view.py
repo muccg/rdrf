@@ -2341,6 +2341,11 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                                                                         }),
                                         context_model.display_name)
 
+    def _get_grid_field_working_groups_display(self, context_model):
+        patient_model = context_model.content_object
+        return patient_model.working_groups_display
+
+
     def _get_grid_field_context_menu(self, context_model):
         patient_model = context_model.content_object
         context_menu = PatientContextMenu(self.user,
@@ -2365,6 +2370,13 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                    "<span class='progress-label'>%s%%</span></div></div>"
 
         return template % (progress_number, progress_number, progress_number)
+
+    def _get_grid_field_genetic_data_map(self, context_model):
+        patient_model = context_model.content_object
+        has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model, context_model)
+        icon = "ok" if has_genetic_data else "remove"
+        color = "green" if has_genetic_data else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
     def _apply_filter(self, queryset, search_phrase):
         context_filter = Q(display_name__icontains=search_phrase)
