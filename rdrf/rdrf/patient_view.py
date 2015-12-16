@@ -29,12 +29,12 @@ from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
+
 import logging
 
 logger = logging.getLogger("registry_log")
-
-
-
 
 
 def calculate_age(born):
@@ -679,7 +679,7 @@ class AddPatientView(PatientFormMixin, CreateView):
 
 class PatientEditView(View):
 
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -689,13 +689,23 @@ class PatientEditView(View):
             patient_id, registry_code, request)
         registry_model = Registry.objects.get(code=registry_code)
 
+        rdrf_context_manager = RDRFContextManager(registry_model)
+
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient)
+
+        except RDRFContextError, ex:
+            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+            return HttpResponseRedirect("/")
+
         context = {
             "location": "Demographics",
             "forms": form_sections,
             "patient": patient,
+            "context_id": context_id,
             "patient_id": patient.id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient.id, registry_model),
+            "form_links": get_form_links(request.user, patient.id, registry_model, context_model),
             "consent": consent_status_for_patient(registry_code, patient)
         }
 
@@ -716,7 +726,7 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, patient_id):
+    def post(self, request, registry_code, patient_id, context_id=None):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_relatives_forms = None
@@ -732,7 +742,14 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
+        rdrf_context_manager = RDRFContextManager(registry)
 
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient)
+
+        except RDRFContextError, ex:
+            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+            return HttpResponseRedirect("/")
 
         if registry.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
@@ -859,10 +876,13 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
-        context["form_links"] = get_form_links(request.user, patient.id, registry)
+        context["form_links"] = get_form_links(request.user, patient.id, registry, context_model)
         #context["consent"] = consent_status_for_patient(registry_code, patient)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
+
+        context["context_id"] = context_id
+
         return render_to_response(
             'rdrf_cdes/patient_edit.html',
             context,
