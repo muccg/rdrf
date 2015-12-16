@@ -61,3 +61,19 @@ class AngelmanRegistration(BaseRegistration, object):
         parent_guardian.patient.add(patient)
         parent_guardian.user = user
         parent_guardian.save()
+
+
+    def _create_parent(self, request):
+        parent_guardian = ParentGuardian.objects.create(
+            first_name=request.POST["parent_guardian_first_name"],
+            last_name=request.POST["parent_guardian_last_name"],
+            date_of_birth=request.POST["parent_guardian_date_of_birth"],
+            gender=request.POST["parent_guardian_gender"],
+            address=request.POST["parent_guardian_address"],
+            suburb=request.POST["parent_guardian_suburb"],
+            state=request.POST["parent_guardian_state"],
+            postcode=request.POST["parent_guardian_postcode"],
+            country=request.POST["parent_guardian_country"],
+            phone=request.POST["parent_guardian_phone"],
+        )
+        return parent_guardian
