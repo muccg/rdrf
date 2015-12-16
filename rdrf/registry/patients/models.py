@@ -361,7 +361,7 @@ class Patient(models.Model):
             raise Exception("context model should not be explicit for non-supporting registry")
         elif not registry_model.has_feature("contexts") and context_model is None:
             # the usual case
-            from rdrf.conexts_api import RDRFContextManager
+            from rdrf.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
             context_model = rdrf_context_manager.get_or_create_default_context(patient_model)
 
