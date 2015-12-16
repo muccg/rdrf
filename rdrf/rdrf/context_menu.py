@@ -8,11 +8,13 @@ from rdrf.form_progress import FormProgress
 
 # NB "Context" is not the same as RDRF Context, it's just a "normal" context menu that pops up
 
+
 class ContextMenuForm(object):
-    def __init__(self, title, link, progress_percentage=0):
+    def __init__(self, title, link, progress_percentage=0, currency=False):
         self.title = title
         self.link = link
         self.progress_percentage = progress_percentage
+        self.current = currency
 
 
 class ContextMenuAction(object):
@@ -56,16 +58,9 @@ class PatientContextMenu(object):
             form_name = form.nice_name
             form_link = form.get_link(self.patient_model, self.context_model)
             progress_percentage = self.form_progress.get_form_progress(form, self.patient_model, self.context_model)
-            context_menu_forms.append(ContextMenuForm(form_name, form_link, progress_percentage))
+            currency = self.form_progress.get_form_currency(form, self.patient_model, self.context_model)
+            context_menu_forms.append(ContextMenuForm(form_name, form_link, progress_percentage, currency))
         return context_menu_forms
-
-    @property
-    def html(self):
-        patient_edit_link = self.get_patient_edit_link()
-        #form_progress = self.get_form_progress()
-        #action_buttons = self.get_actions()
-        #return patient_edit_link
-        return patient_edit_link + self.menu_html
 
     def get_patient_edit_link(self):
         registry_code = self.registry_model.code
@@ -90,6 +85,7 @@ class PatientContextMenu(object):
 
         popup_template = loader.get_template(popup_template)
         context = Context({"forms": forms,
+                           "supports_contexts": self.registry_model.has_feature("contexts"),
                            "context_name": self.context_name,
                            "actions": actions,
                            "context": self.context_model,
