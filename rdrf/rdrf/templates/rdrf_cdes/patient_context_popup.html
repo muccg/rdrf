@@ -1,22 +1,22 @@
-{% for action in actions %}
-<a href="{{action.link}}">{{action.title}}</a>
-{% endfor %}
-<hr>
-
-           {% for form in forms %}
+<div class="panel panel-default">
+  {% if supports_contexts %}
+  <div class="panel-heading">
+     {% for action in actions %}
+        <a href="{{action.link}}">{{action.title}}</a><br>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="panel-body">
+    {% for form in forms %}
                 {% if form.current %}
                     <img src="/static/images/tick.png">
                 {% else %}
                     <img src="/static/images/cross.png">
-                {% endif %}
-                <a href="{{form.link}}">{{form.title}}</a>
+                {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
+    {% endfor %}
 
-                <strong><span class="badge">{{form.progress_percentage}}%</span></strong><br>
-
-        {% endfor %}
-
-
-
+  </div>
+</div>
 
 
 
