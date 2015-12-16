@@ -487,7 +487,8 @@ class ParentGuardianForm(forms.ModelForm):
             'country',
             'state',
             'suburb',
-            'postcode'
+            'postcode',
+            'phone'
         ]
         exclude = [
             'user',
