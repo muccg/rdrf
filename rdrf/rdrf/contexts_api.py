@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
+class RDRFContextError(Exception):
+    pass
+
+
 def create_rdrf_default_contexts(patient, registry_ids):
     content_type = ContentType.objects.get_for_model(patient)
     for registry_id in registry_ids:
@@ -25,3 +29,42 @@ def create_rdrf_default_contexts(patient, registry_ids):
             rdrf_context.display_name = "default"
             rdrf_context.save()
             logger.debug("context saved ok")
+
+
+class RDRFContextManager(object):
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+        self.supports_contexts = self.registry_model.has_feature("contexts")
+
+    def get_or_create_default_context(self, patient_model):
+        if not self.supports_contexts:
+            content_type = ContentType.objects.get_for_model(patient_model)
+            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                              content_type=content_type,
+                                                              object_id=patient_model.pk)]
+            if len(contexts) == 0:
+                # No default setup so create one
+                return self.create_context(patient_model, "default")
+            elif len(contexts) == 1:
+                return contexts[0]
+            else:
+                raise RDRFContextError("Patient %s in %s has more than 1 context" % (patient_model, self.registry_model))
+        else:
+            raise RDRFContextError("Registry %s supports contexts so there is no default context" % self.registry_model)
+
+    def create_context(self, patient_model, display_name):
+        return RDRFContext(registry=self.registry_model, content_object=patient_model, display_name=display_name)
+
+    def get_context(self, context_id, patient_model):
+        if context_id is None:
+            return self.get_or_create_default_context(patient_model)
+
+        content_type = ContentType.objects.get_for_model(patient_model)
+        try:
+            rdrf_context_model = RDRFContext.objects.get(pk=context_id,
+                                                         registry=self.registry_model,
+                                                         content_type=content_type,
+                                                         object_id=patient_model.pk)
+            return rdrf_context_model
+        except RDRFContext.DoesNotExist:
+            raise RDRFContextError("Context does not exist")
