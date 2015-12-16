@@ -219,8 +219,16 @@ class PatientFormMixin(PatientMixin):
         """
         registry_code = self.registry_model.code
         patient_id = self.object.pk
-        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
+        initial_context = self._get_initial_context(registry_code, self.object)
+        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, initial_context.pk])
         return patient_edit_url
+
+    def _get_initial_context(self, registry_code, patient_model):
+        from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+        from rdrf.models import Registry
+        registry_model = Registry.objects.get(code=registry_code)
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        return rdrf_context_manager.get_or_create_default_context(patient_model, new_patient=True)
 
     def set_patient_model(self, patient_model):
         self.patient_model = patient_model
