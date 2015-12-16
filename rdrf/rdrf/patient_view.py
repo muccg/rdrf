@@ -848,6 +848,7 @@ class PatientEditView(View):
             context = {
                 "forms": form_sections,
                 "patient": patient,
+                "context_id": context_id,
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
             }
