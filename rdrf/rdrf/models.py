@@ -465,6 +465,13 @@ class Registry(models.Model):
     def clean(self):
         self._check_metadata()
 
+    @property
+    def context_name(self):
+        try:
+            return self.metadata['context_name']
+        except KeyError:
+            return "Context"
+
     def _check_metadata(self):
         if self.metadata_json == "":
             return True
