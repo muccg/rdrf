@@ -1,4 +1,5 @@
 from base import BaseRegistration
+from rdrf.email_notification import process_notification
 from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
 from registry.groups.models import WorkingGroup
 
@@ -53,6 +54,11 @@ class AngelmanRegistration(BaseRegistration, object):
                 clinician_hospital=self.request.POST.get("other_clinician_hospital"),
                 clinician_address=self.request.POST.get("other_clinician_address")
             )
+            template_data = {
+                "other_clinician": other_clinician,
+                "patient": patient
+            }
+            process_notification(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE, template_data)
             
         address = self._create_patient_address(patient, self.request)
         address.save()
@@ -62,6 +68,12 @@ class AngelmanRegistration(BaseRegistration, object):
         parent_guardian.user = user
         parent_guardian.save()
 
+        template_data = {
+            "patient": patient,
+            "parent": parent_guardian,
+            "registration": RegistrationProfile.objects.get(user=user)
+        }
+        process_notification(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE, template_data)
 
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(
