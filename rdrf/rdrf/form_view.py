@@ -2376,6 +2376,14 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
         return template % (progress_number, progress_number, progress_number)
 
+    def _get_grid_field_diagnosis_currency(self, context_model):
+        patient_model = context_model.content_object
+        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+        icon = "ok" if diagnosis_currency else "remove"
+        color = "green" if diagnosis_currency else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+
     def _get_grid_field_genetic_data_map(self, context_model):
         patient_model = context_model.content_object
         has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model, context_model)
