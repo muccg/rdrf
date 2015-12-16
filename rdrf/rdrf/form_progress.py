@@ -385,7 +385,7 @@ class FormProgress(object):
         metric_name = "%s_group_has_data" % group_name
         return self._get_metric(metric_name, patient_model, context_model)
 
-    def get_data_modules(self, user, patient_model, context_model=None):
+    def get_data_modules(self, user, patient_model, context_model):
         self._set_current(patient_model)
         viewable_forms = self._get_viewable_forms(user)
         content = ""
@@ -395,9 +395,11 @@ class FormProgress(object):
             for form in viewable_forms:
                 is_current = self.get_form_currency(form, patient_model, context_model)
                 flag = "images/%s.png" % ("tick" if is_current else "cross")
-                url = reverse('registry_form', args=(self.registry_model.code, form.id, patient_model.pk))
-                link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
-                label = nice_name(form.name)
+                url = reverse('registry_form', args=(self.registry_model.code,
+                                                     form.id, patient_model.pk,
+                                                     context_model.pk))
+                link = "<a href=%s>%s</a>" % (url, form.nice_name)
+                label = form.nice_name
                 to_form = link
                 if user.is_working_group_staff:
                     to_form = label
