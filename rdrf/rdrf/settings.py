@@ -499,13 +499,23 @@ GRID_PATIENT_LISTING = [
 
 
 GRID_CONTEXT_LISTING = [
+     {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "patient_link",
+        "label": "Patient",
+        "model": "func",
+        "order": 0
+    },
     {
         "access": {
             "default": True,
             "permission": ""
         },
         "data": "context_menu",
-        "label": "Patient",
+        "label": "Modules",
         "model": "func",
         "order": 1
     }, {
