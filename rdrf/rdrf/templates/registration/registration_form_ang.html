@@ -41,6 +41,40 @@
                 }
             });
         });
+        
+        $("#same_address").on("click", function() {
+            if($(this).prop('checked')) {
+                $("#id_address").val($("#id_parent_guardian_address").val()).prop("readonly", true);
+                $("#id_suburb").val($("#id_parent_guardian_suburb").val()).prop("readonly", true);
+                
+                $("#id_country").val($("#id_parent_guardian_country").val()).prop("disabled", true);
+                
+                
+                $("#id_state").find('option').remove();
+                $("#id_state").append($('<option/>', { 
+                    value: $("#id_parent_guardian_state").val(),
+                    text : $("#id_parent_guardian_state option:selected").text()
+                })).prop("selected", "selected").prop("disabled", true);
+
+                
+                $("#id_postcode").val($("#id_parent_guardian_postcode").val()).prop("readonly", true);
+                $("#id_phone_number").val($("#id_parent_guardian_phone").val()).prop("readonly", true);                
+            } else {
+                $("#id_address").val("").prop("readonly", false);
+                $("#id_suburb").val("").prop("readonly", false);
+                $("#id_country").val("-1").prop("disabled", false);
+                
+                $("#id_state").find('option').remove();
+                $("#id_state").append($('<option/>', {
+                    value: "-1",
+                    text : "State / County / Province / Region"
+                })).prop("selected", "selected").prop("disabled", false);
+                
+                $("#id_postcode").val("").prop("readonly", false);
+                $("#id_phone_number").val("").prop("readonly", false)
+
+            }
+        });
     });
 </script>
 
@@ -177,8 +211,12 @@
                     </div>
                 
                 </div>
-
+                
                 <div class="form-group top-separator">
+                    <input type="checkbox" id="same_address"> Same details as person completing
+                </div>
+
+                <div class="form-group">
                     <input class="form-control" placeholder="Address" id="id_address" maxlength="100" name="address" type="text" required />
                 </div>
                 <div class="form-group">
