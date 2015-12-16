@@ -130,7 +130,7 @@
                 </div>
                 <div class="form-group">
                     <select class="form-control" placeholder="Parent/Guardian Country" id="id_parent_guardian_country" name="parent_guardian_country" required>
-                        <option value="-1">Country</option>
+                        <option value="-1">Parent/Guardian Country</option>
                         {% countries as countries %}
                         {% for con in countries %}
                             <option value="{{con.alpha2}}">{{con.name}}</option>
