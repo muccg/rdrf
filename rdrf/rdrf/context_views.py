@@ -118,6 +118,7 @@ class RDRFContextEditView(View):
                                     )
 
         context = {"location": "Edit %s" % context_name,
+                   "context_id": context_id,
                    "patient_name": patient_name,
                    "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "context_name": context_name,
@@ -181,11 +182,4 @@ class RDRFContextEditView(View):
             "rdrf_cdes/rdrf_context.html",
             context,
             context_instance=RequestContext(request))
-
-
-
-
-
-
-
 
