@@ -56,8 +56,14 @@ class RDRFContextManager(object):
                 raise RDRFContextError("Registry %s supports contexts so there is no default context" % self.registry_model)
 
     def _create_initial_context_for_new_patient(self, patient_model):
-        initial_context_name = "Initial %s" % self.registry_model.context_name
-        return self.create_context(patient_model, initial_context_name)
+        content_type = ContentType.objects.get_for_model(patient_model)
+        contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                           content_type=content_type,
+                                                           object_id=patient_model.pk).order_by("pk")]
+        if len(contexts) > 0:
+            return contexts[0]
+        else:
+            return self.create_context(patient_model, "default")
 
     def create_context(self, patient_model, display_name):
         rdrf_context = RDRFContext(registry=self.registry_model, content_object=patient_model, display_name=display_name)
