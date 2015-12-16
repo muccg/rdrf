@@ -362,9 +362,9 @@ class Patient(models.Model):
             # the usual case
             from rdrf.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
-            context_model = rdrf_context_manager.get_or_create_default_context(patient_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(self)
 
-        wrapper = DynamicDataWrapper(self, context_model=context_model)
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -385,9 +385,7 @@ class Patient(models.Model):
         # update form progress
         registry_model = Registry.objects.get(code=registry_code)
         form_progress_calculator = FormProgress(registry_model)
-        form_progress_calculator.save_for_patient(self)
-
-
+        form_progress_calculator.save_for_patient(self, context_model)
 
     def in_registry(self, reg_code):
         """
