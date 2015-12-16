@@ -1969,16 +1969,15 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         self.user = request.user
         # see http://datatables.net/manual/server-side
         self.registry_code = request.GET.get("registry_code", None)
-
-
         # can restrict on a particular patient for contexts - NOT usually set
         self.patient_id = request.GET.get("patient_id", None)
 
         if self.registry_code is None:
             return self._json([])
-
         try:
             self.registry_model = Registry.objects.get(code=self.registry_code)
+            self.supports_contexts = self.registry_model.has_feature("contexts")
+            self.rdrf_context_manager = RDRFContextManager(self.registry_model)
         except Registry.DoesNotExist:
             logger.error("patients listing api registry code %s does not exist" % self.registry_code)
             return self._json([])
@@ -2147,32 +2146,59 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         return func_map
 
     def _get_grid_field_diagnosis_progress(self, patient_model):
-        progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
-        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
-                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
-                   "<span class='progress-label'>%s%%</span></div></div>"
-
-        return template % (progress_number, progress_number,progress_number)
+        if not self.supports_contexts:
+            progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
+            template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                       " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                       "<span class='progress-label'>%s%%</span></div></div>"
+            return template % (progress_number, progress_number,progress_number)
+        else:
+            # if registry supports contexts, should use the context browser
+            return "N/A"
 
     def _get_grid_field_data_modules(self, patient_model):
-        return self.form_progress.get_data_modules(self.user, patient_model)
+        if not self.supports_contexts:
+            default_context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            return self.form_progress.get_data_modules(self.user, patient_model, default_context_model)
+        else:
+            return "N/A"
 
     def _get_grid_field_genetic_data_map(self, patient_model):
-        has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
-        icon = "ok" if has_genetic_data else "remove"
-        color = "green" if has_genetic_data else "red"
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-
+        if not self.supports_contexts:
+            has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
+            icon = "ok" if has_genetic_data else "remove"
+            color = "green" if has_genetic_data else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
 
     def _get_grid_field_diagnosis_currency(self, patient_model):
-        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
-        icon = "ok" if diagnosis_currency else "remove"
-        color = "green" if diagnosis_currency else "red"
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        if not self.supports_contexts:
+            diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+            icon = "ok" if diagnosis_currency else "remove"
+            color = "green" if diagnosis_currency else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
 
     def _get_grid_field_full_name(self, patient_model):
+        if not self.supports_contexts:
+            context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+        else:
+            # get first ?
+            patient_content_type = ContentType.objects.get(model='patient')
+            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                              content_type=patient_content_type,
+                                                              object_id=patient_model.pk).order_by("id")]
+
+            if len(contexts) > 0:
+                context_model = contexts[0]
+            else:
+                return "NO CONTEXT"
+
         return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
-                                                                        "patient_id": patient_model.id}),
+                                                                        "patient_id": patient_model.id,
+                                                                        "context_id": context_model.pk}),
                                         patient_model.display_name)
 
     def _get_grid_field_working_groups_display(self, patient_model):
@@ -2265,8 +2291,6 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
 
         # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
-
-        from django.contrib.contenttypes.models import ContentType
 
         content_type = ContentType.objects.get(model='patient')
 
