@@ -2568,14 +2568,15 @@ class CustomConsentFormView(View):
                 (patient_section_consent_file,)
             )]
 
-    def _get_success_url(self, registry_model, patient_model):
-        return reverse("consent_form_view", args=[registry_model.code, patient_model.pk])
-
+    def _get_success_url(self, registry_model, patient_model, context_model):
+        return reverse("consent_form_view", args=[registry_model.code,
+                                                  patient_model.pk,
+                                                  context_model.pk])
 
     def post(self, request, registry_code, patient_id, context_id=None):
         logger.debug("******************** post of consents *********************")
         if not request.user.is_authenticated():
-            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, context_id])
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
@@ -2665,7 +2666,7 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             logger.debug("******************** end of consent save *********************")
             context["message"] = "Consent details saved successfully"
-            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model, context_model))
 
         else:
             logger.debug("******************** forms invalid :( *********************")
