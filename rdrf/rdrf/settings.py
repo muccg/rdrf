@@ -418,6 +418,8 @@ CUSTOM_PERMISSIONS = {
     }
 }
 
+SEND_ACTIVATION_EMAIL = False
+
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
 EMAIL_NOTE_NEW_PATIENT = "new-patient"
 

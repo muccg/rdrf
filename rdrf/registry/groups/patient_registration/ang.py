@@ -1,4 +1,6 @@
 from base import BaseRegistration
+from rdrf.email_notification import process_notification
+from registration.models import RegistrationProfile
 from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
 from registry.groups.models import WorkingGroup
 
@@ -53,6 +55,11 @@ class AngelmanRegistration(BaseRegistration, object):
                 clinician_hospital=self.request.POST.get("other_clinician_hospital"),
                 clinician_address=self.request.POST.get("other_clinician_address")
             )
+            template_data = {
+                "other_clinician": other_clinician,
+                "patient": patient
+            }
+            process_notification(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE, template_data)
             
         address = self._create_patient_address(patient, self.request)
         address.save()
@@ -61,3 +68,25 @@ class AngelmanRegistration(BaseRegistration, object):
         parent_guardian.patient.add(patient)
         parent_guardian.user = user
         parent_guardian.save()
+
+        template_data = {
+            "patient": patient,
+            "parent": parent_guardian,
+            "registration": RegistrationProfile.objects.get(user=user)
+        }
+        process_notification(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE, template_data)
+
+    def _create_parent(self, request):
+        parent_guardian = ParentGuardian.objects.create(
+            first_name=request.POST["parent_guardian_first_name"],
+            last_name=request.POST["parent_guardian_last_name"],
+            date_of_birth=request.POST["parent_guardian_date_of_birth"],
+            gender=request.POST["parent_guardian_gender"],
+            address=request.POST["parent_guardian_address"],
+            suburb=request.POST["parent_guardian_suburb"],
+            state=request.POST["parent_guardian_state"],
+            postcode=request.POST["parent_guardian_postcode"],
+            country=request.POST["parent_guardian_country"],
+            phone=request.POST["parent_guardian_phone"],
+        )
+        return parent_guardian

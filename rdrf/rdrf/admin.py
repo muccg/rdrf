@@ -387,7 +387,11 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+    list_display = ("description", "registry", "recipient", "group_recipient", "templates")
+
+    def templates(self, obj):
+        return "\n".join([et.description for et in obj.email_templates.all()])
+
 
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate

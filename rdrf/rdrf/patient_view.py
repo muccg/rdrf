@@ -27,6 +27,7 @@ from registry.patients.admin_forms import PatientForm, PatientAddressForm, Patie
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 
 from rdrf.wizard import NavigationWizard, NavigationFormType
+from rdrf.utils import consent_status_for_patient
 
 import logging
 
@@ -424,8 +425,8 @@ class PatientFormMixin(PatientMixin):
             "next_of_kin_given_names",
             "next_of_kin_relationship",
             "next_of_kin_address",
-            "next_of_kin_country",
             "next_of_kin_suburb",
+            "next_of_kin_country",
             "next_of_kin_state",
             "next_of_kin_postcode",
             "next_of_kin_home_phone",
@@ -730,6 +731,7 @@ class PatientEditView(View):
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient.id, registry_model),
+            "consent": consent_status_for_patient(registry_code, patient)
         }
 
         wizard = NavigationWizard(request.user,
@@ -893,6 +895,7 @@ class PatientEditView(View):
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
         context["form_links"] = get_form_links(request.user, patient.id, registry)
+        context["consent"] = consent_status_for_patient(registry_code, patient)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         return render_to_response(
@@ -990,8 +993,8 @@ class PatientEditView(View):
             "next_of_kin_given_names",
             "next_of_kin_relationship",
             "next_of_kin_address",
-            "next_of_kin_country",
             "next_of_kin_suburb",
+            "next_of_kin_country",
             "next_of_kin_state",
             "next_of_kin_postcode",
             "next_of_kin_home_phone",
