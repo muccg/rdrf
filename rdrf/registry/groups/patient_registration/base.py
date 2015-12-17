@@ -55,9 +55,9 @@ class BaseRegistration(object):
             address_type=AddressType.objects.get(description__icontains=address_type),
             address=request.POST["address"],
             suburb=request.POST["suburb"],
-            state=request.POST["state"],
+            state=getattr(request.POST, "state", request.POST["parent_guardian_state"]),
             postcode=request.POST["postcode"],
-            country=request.POST["country"]
+            country=getattr(request.POST, "country", request.POST["parent_guardian_country"])
         )
         return address
     
