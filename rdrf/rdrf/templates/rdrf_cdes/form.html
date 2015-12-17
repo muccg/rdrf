@@ -316,7 +316,7 @@
     <br>
     <div class="row">
     <div class="col-md-10">
-        <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
+        <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
                     <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>
