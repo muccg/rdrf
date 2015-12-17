@@ -1745,5 +1745,6 @@ class MongoMigrationDummyModel(models.Model):
     """
     # Add to this VERSIONS tuple ONLY IF a mongo migration is required
     VERSIONS = (("initial", "initial"),
-                ("testing", "testing"))
+                ("testing", "testing"),
+                ("1.0.17", "populate context_id on all patient records"))
     version = models.CharField(max_length=80, choices=VERSIONS)
