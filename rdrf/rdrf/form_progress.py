@@ -148,6 +148,9 @@ class FormProgress(object):
         form_timestamp_key = "%s_timestamp" % form_model.name
         one_year_ago = datetime.now() - timedelta(weeks=52)
 
+        if dynamic_data is None:
+            return False
+
         if form_timestamp_key in dynamic_data:
             form_timeastamp_value = dynamic_data[form_timestamp_key]
             if form_timeastamp_value >= one_year_ago:
@@ -201,6 +204,8 @@ class FormProgress(object):
             return {}
 
     def _calculate_form_has_data(self, form_model, dynamic_data):
+        if dynamic_data is None:
+            return False
         for form_dict in dynamic_data['forms']:
             if form_dict["name"] == form_model.name:
                 for section_dict in form_dict["sections"]:
@@ -215,6 +220,8 @@ class FormProgress(object):
                                     return True
 
     def _calculate_form_cdes_status(self, form_model, dynamic_data):
+        if dynamic_data is None:
+            return {}
         from rdrf.models import CommonDataElement
 
         def get_name(cde_code):
