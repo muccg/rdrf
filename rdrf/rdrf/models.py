@@ -1695,3 +1695,55 @@ class RDRFContext(models.Model):
 
         if len(self.display_name) == 0:
             raise ValidationError("RDRF Context must have a display name")
+
+
+class MongoMigrationDummyModel(models.Model):
+    """
+    This model should never be instantiated.
+    It exists so that when a version of RDRF is created that alters the mongo
+    structure, the version can be entered as a pair in VERSIONS below
+    which will trigger a migration to be created in South.
+    This gives us a hook to write mongo transforming code that will act on the data
+
+    *ONLY* UPDATE THE VERSIONS TUPLE IF A MONGO TRANSFORMATION IS NECESSARY!
+
+    This hack works because Django picks up alterations to the allowed choices for the field
+    and creates an auto migration.
+
+    To use :
+
+    Precondition: You've made changes to RDRF which alters in some way the mongo structure
+
+    1. Add the new RDRF version V and a short description D to the VERSIONS tuple:
+
+    e.g  VERSIONS =(("1.4", "blah"),
+                    ("2.5","forms now nested"),
+                    ("4.9", "changing the structure of the progress dictionary"))
+
+    2. After editing the VERSIONS tuple, docker exec a shell inside rdrf web
+    docker exec -it rdrf_web_1 /bin/bash
+
+    run: django_admin makemmigrations rdrf
+
+    this will generate the auto migration as below:
+
+    operations = [
+        migrations.AlterField(
+            model_name='mongomigrationdummymodel',
+            name='version',
+            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing')]),
+        ),]
+
+
+    3. Add a migrations.RunPython(forward_func, backward_func) migration to the operations list ( implementing the mongo
+    manipulations via python functions forward_func and backward_func
+
+
+    I intended to write a module to make it easy to create the forward_func and backward_funcs
+
+
+    """
+    # Add to this VERSIONS tuple ONLY IF a mongo migration is required
+    VERSIONS = (("initial", "initial"),
+                ("testing", "testing"))
+    version = models.CharField(max_length=80, choices=VERSIONS)
