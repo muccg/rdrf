@@ -134,6 +134,20 @@
                 });
             });
         });
+        
+        $('#main-form').data('serialize', $('#main-form').serialize());
+        
+        $(window).bind('beforeunload', function(e){
+            if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+                return "You have unsaved changes!";
+            } else {
+                e=null;
+            }
+        });
+        
+        $("#main-form").submit(function() {
+            $(window).unbind("beforeunload");
+        });
     });
     
     function add_form(prefix) {

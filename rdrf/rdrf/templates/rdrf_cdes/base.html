@@ -22,25 +22,6 @@
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
       <script src="{% static 'js/rpc_module.js' %}"></script>
       <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
-      
-      <script>
-        $(document).ready(function() {
-            $('#main-form').data('serialize', $('#main-form').serialize());
-            
-            $(window).bind('beforeunload', function(e){
-                if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return "You have unsaved changes!";
-                } else {
-                    e=null;
-                }
-            });
-            
-            $("#main-form").submit(function() {
-                $(window).unbind("beforeunload");
-            });
-        });
-      </script>
-      
       {% block extrastyle %}
         <style>
             body {
