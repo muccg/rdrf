@@ -65,6 +65,19 @@
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
+            $('#main-form').data('serialize', $('#main-form').serialize());
+            
+            $(window).bind('beforeunload', function(e){
+                if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+                    return "You have unsaved changes!";
+                } else {
+                    e=null;
+                }
+            });
+            
+            $("#main-form").submit(function() {
+                $(window).unbind("beforeunload");
+            });
         });
     </script>
 
