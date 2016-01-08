@@ -45,37 +45,9 @@
 
             $.fn.dataTable.ext.errMode = 'throw';
 
-        var columns = {{columns | safe}};
-
-        var contextsColumn = {className: 'details-control',
-            orderable: false,
-            data: null,
-            defaultContent: unexpandedRowGlyph
-        };
-
-        var allColumns = [contextsColumn].concat(columns);
-
-             $("#add_patient").click(function() {
-                                        var registryCode = null;
-                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
-                                        try {
-                                            registryCode = $("#registry_select").val();
-                                            if (registryCode=="---") {
-                                                alert("Please select registry first");
-                                                return;
-                                             }
-
-                                            if (registryCode == undefined) {
-                                                registryCode = "{{registries.0.code}}";
-                                            }
-                                        }
-                                        catch(err) {
-                                            // one registry ?
-                                            registryCode = "{{registries.0.code}}";
-                                        }
-                                        var location = addPatientUrl.replace("xxx", registryCode);
-                                        window.location.replace(location);
-                                        });
+            if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
+                $("#add_patient").hide();
+            }
 
             var registryCode = getSelectedRegistry();
 
@@ -110,7 +82,7 @@
                 var registryCode = null;
                 var addPatientUrl = '{% url "patient_add" "xxx" %}';
                 try {
-                    registryCode = $("#registry_select").val();
+                    registryCode = $("#registry_options option:selected").attr('id');
                     if (registryCode=="---") {
                         alert("Please select registry first");
                         return;
@@ -125,105 +97,9 @@
                 }
                     var location = addPatientUrl.replace("xxx", registryCode);
                     window.location.replace(location);
-
-        $.fn.dataTable.ext.errMode = 'throw';
-
-        if ({{registries.0 | has_feature:"no_add_patient_button" | yesno:"false,true"}} == false) {
-            $("#add_patient").hide();
-        }
-
-        var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
-        var patients_list = $("#patient_list_table").DataTable({
-            "ajax": {
-                "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
-                "dataSrc": "rows",
-            },
-            "columns": allColumns,
-        }).on("draw", function () {
-            $("#loading_text").hide();
-            $('button[data-toggle=popover]').popover({
-                'html': true,
-                'title': 'Available Modules',
-                'trigger': 'click',
-                'placement': 'bottom',
-                'container': 'body'
             });
         });
-
-        $("#registry_options").change(function () {
-            $("#loading_text").show();
-            var reg_code = $("#registry_options > option:selected").attr("id");
-            patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
-        });
-
-        $("#add_patient").click(function () {
-            var registryCode = null;
-            var addPatientUrl = '{% url "patient_add" "xxx" %}';
-            try {
-                registryCode = $("#registry_options option:selected").attr('id');
-                if (registryCode == "---") {
-                    alert("Please select registry first");
-                    return;
-                }
-
-                if (registryCode == undefined) {
-                    registryCode = "{{registries.0.code}}";
-                }
-            } catch (err) {
-                // one registry ?
-                registryCode = "{{registries.0.code}}";
-            }
-            var location = addPatientUrl.replace("xxx", registryCode);
-            window.location.replace(location);
-        });
-
-        function getRegistryAndPatientFromRow(rowData) {
-            // full_name is actually a hyperlink to the patient demographics
-            var pattern = /.*patient\/(\d+)\'/;
-            var fullNameLink = rowData.full_name;
-            var patientId = parseInt(pattern.exec(fullNameLink)[1]);
-            var registryCode = $("#registry_options option:selected").attr("id");
-            return {patientId: patientId, registryCode: registryCode}
-        }
-
-        function getContextsTableHtml(contexts) {
-            var html = "<table><thead><th>Assessment</th><th>Created</th></thead>";
-            _.each(contexts, function(context){
-                html += "<tr><td>" + context.name + "</td><td>" + context.createdAt + "</td></tr>";
-            });
-
-            html += "</table";
-            return html;
-        }
-
-        // Add event listener for opening and closing details
-
-        $('#patient_list_table tbody').on('click', 'td.details-control', function () {
-
-            var tr = $(this).closest('tr');
-            var row = patients_list.row(tr);
-
-            if (row.child.isShown()) {
-                // This row is already open - close it
-                row.child.hide();
-                tr.removeClass('shown');
-            }
-            else {
-                // Open this row
-                var rowData = row.data();
-                var rpcArg = getRegistryAndPatientFromRow(rowData);
-                rpc.send("get_patient_contexts",[rpcArg.registryCode, rpcArg.patientId], function(response){
-                    if (response.status == "success") {
-                        var contextsTableHtml = getContextsTableHtml(response.result.data);
-                        row.child(contextsTableHtml).show();
-                    }
-
-                    tr.addClass('shown');
-                })
-            }
-        })
-        });
-
+        
     </script>
 {% endblock %}
 

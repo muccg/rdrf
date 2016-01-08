@@ -202,7 +202,7 @@ urlpatterns = patterns('',
 
 #---- Look-ups URLs -----------------------
                        url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
-                           UsernameLookup.as_view(), name="lookup_username"))
+                           UsernameLookup.as_view(), name="lookup_username"),
 #-------------------------------------------
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
