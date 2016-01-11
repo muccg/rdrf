@@ -40,31 +40,22 @@ class MongoContextFixer(object):
     def _create_default_context(self, registry_model, patient_model):
         from rdrf.contexts_api import RDRFContextManager
         rdrf_context_manager = RDRFContextManager(registry_model)
-        RDRFContext = self.apps.get_model("rdrf", "RDRFContext")
-        patient_contexts = [c for c in RDRFContext.objects.filter(content_type=patient_content_type,
-                                                                  object_id=patient_model.pk,
-                                                                  registry=registry_model)]
 
-        num_contexts = len(patient_contexts)
-
-        if num_contexts == 0:
-            default_context = rdrf_context_manager.create_context(patient_model, "default")
-            default_context.save()
-            print "created default context for patient %s" % patient_model
-            return default_context
-        else:
-            print "There are already %s contexts for patient %s in registry %s" % (num_contexts,
-                                                                                   patient_model.pk,
-                                                                                   registry_model.code)
+        default_rdrf_context = rdrf_context_manager.create_initial_context_for_new_patient(patient_model)
+        print "registry_code %s patient id %s %s default context = %s %s" % (registry_model.code,
+                                                                             patient_model.pk,
+                                                                             patient_model,
+                                                                             default_rdrf_context.pk,
+                                                                             default_rdrf_context.display_name)
+        return default_rdrf_context
 
     def _update_record(self, registry, patient_record, context_id):
         mongo_id = patient_record['_id']
         patient_record["context_id"] = context_id
+
         registry["cdes"].update({'_id': mongo_id}, {"$set": patient_record}, upsert=False)
         print "Updated patient %s mongo record with context_id %s" % (patient_record["django_id"],
                                                                       context_id)
-
-
 
     def fix_registries(self):
         for registry_code in self.registry_codes:
@@ -74,6 +65,7 @@ class MongoContextFixer(object):
             for patient_record in registry["cdes"].find({"django_model": "Patient"}):
                 if "context_id" not in patient_record:
                     patient_model = self._get_patient_model(patient_record)
+
                     default_context_model = self._create_default_context(registry_model, patient_model)
                     if default_context_model is not None:
                         self._update_record(registry, patient_record, default_context_model.pk)
