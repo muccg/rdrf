@@ -14,28 +14,46 @@ class MongoContextFixer(object):
         self.client = client
         self.apps = apps
         self.schema_editor = schema_editor
+        self.registry_klass = self._get_registry_class()
         self.registry_codes = self._get_registry_codes()
 
+
     def _get_registry_codes(self):
-        Registry = self.apps.get_model("rdrf", 'Registry')
-        codes = [r.code for r in Registry.objects.all()]
-        print "found codes: %s" % ",".join(codes)
-        return codes
+        #Registry = self.apps.get_model("rdrf", 'Registry')
+        if self.registry_klass:
+            codes = [r.code for r in self.registry_klass.objects.all()]
+            print "found codes: %s" % ",".join(codes)
+            return codes
+        else:
+            return []
 
     def _get_patient_model(self, patient_record):
         patient_id = None
         try:
             patient_id = patient_record.get("django_id", None)
-            Patient = self.apps.get_model("registry.patients", "Patient")
+            Patient = self._get_patient_class()
             patient_model = Patient.objects.get(pk=patient_id)
             return patient_model
         except Exception, ex:
             print "Error getting patient model for %s: %s" % (patient_id, ex)
             return None
 
+    def _get_registry_class(self):
+        #Registry = self.apps.get_model("rdrf", 'Registry')
+        from rdrf.models import Registry
+        return Registry
+
+    def _get_patient_class(self):
+        from registry.patients.models import Patient
+        return Patient
+
     def _get_registry_model(self, registry_code):
-        Registry = self.apps.get_model("rdrf", 'Registry')
-        return Registry.objects.get(code-registry_code)
+
+        try:
+            registry_model = self.registry_klass.objects.get(code=registry_code)
+            return registry_model
+        except self.registry_klass.DoesNotExist:
+            return None
 
     def _create_default_context(self, registry_model, patient_model):
         from rdrf.contexts_api import RDRFContextManager
@@ -58,9 +76,13 @@ class MongoContextFixer(object):
                                                                       context_id)
 
     def fix_registries(self):
+        self.registry_klass = self._get_registry_class()
         for registry_code in self.registry_codes:
             registry = self.client[mongo_db_name(registry_code)]
             registry_model = self._get_registry_model(registry_code)
+            if registry_model is None:
+                print "Registry %s not found - skipping" % registry_code
+                continue
 
             for patient_record in registry["cdes"].find({"django_model": "Patient"}):
                 if "context_id" not in patient_record:
