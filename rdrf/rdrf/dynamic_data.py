@@ -532,7 +532,7 @@ class DynamicDataWrapper(object):
         if filter_by_context:
             return {"django_model": django_model,
                     "django_id": django_id,
-                    "rdrf_context_id": self.rdrf_context_id}
+                    "context_id": self.rdrf_context_id}
         else:
             return {"django_model": django_model,
                     "django_id": django_id}
