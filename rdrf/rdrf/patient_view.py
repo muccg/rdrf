@@ -715,6 +715,7 @@ class PatientEditView(View):
             "patient": patient,
             "context_id": context_id,
             "patient_id": patient.id,
+            "index_context": self._get_index_context(registry_model, patient),
             "registry_code": registry_code,
             "form_links": get_form_links(request.user, patient.id, registry_model, context_model),
             "consent": consent_status_for_patient(registry_code, patient)
@@ -852,6 +853,7 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "context_id": context_id,
+                "index_context": self._get_index_context(registry, patient),
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
             }
@@ -873,6 +875,7 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "errors": True,
+                "index_context": self._get_index_context(registry_model, patient),
                 "error_messages": error_messages,
             }
 
@@ -899,6 +902,12 @@ class PatientEditView(View):
             'rdrf_cdes/patient_edit.html',
             context,
             context_instance=RequestContext(request))
+
+    def _get_index_context(self, registry_model, patient_model):
+        if not patient_model.is_index:
+            return patient_model.my_index.default_context(registry_model)
+
+
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
