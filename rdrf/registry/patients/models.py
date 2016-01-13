@@ -656,6 +656,17 @@ class Patient(models.Model):
             contexts.append(context_model)
         return contexts
 
+    def default_context(self, registry_model):
+        # return None if doesn't make sense
+        if not registry_model.has_feature("contexts"):
+            # good - default context makes sense only if registry does not allow multiple contexts
+            # return the one and only context
+            my_contexts = self.context_models
+            if len(my_contexts) == 1:
+                return my_contexts[0]
+
+        return None
+
 
 class ClinicianOther(models.Model):
     patient = models.ForeignKey(Patient, null=True)

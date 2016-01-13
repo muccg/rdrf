@@ -129,6 +129,7 @@ class IndexLookup(View):
 class FamilyLookup(View):
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
+        from rdrf.models import Registry
         result = {}
         try:
             index_patient_pk = request.GET.get("index_pk", None)
@@ -142,7 +143,10 @@ class FamilyLookup(View):
             result = {"error": "patient is not an index"}
             return HttpResponse(json.dumps(result))
 
-        link = reverse("patient_edit", args=[reg_code, patient.pk])
+        registry_model = Registry.objects.get(code=reg_code)
+        default_context = patient.default_context(registry_model)
+        assert default_context is not None
+        link = reverse("patient_edit", args=[reg_code, patient.pk, default_context.pk])
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
                            "family_name": patient.family_name,
@@ -157,7 +161,10 @@ class FamilyLookup(View):
             patient_created = relative.relative_patient
 
             if patient_created:
-                relative_link = reverse("patient_edit", args=[reg_code, patient_created.pk])
+                relatives_default_context = patient_created.default_context(registry_model)
+                relative_link = reverse("patient_edit", args=[reg_code,
+                                                              patient_created.pk,
+                                                              relatives_default_context.pk])
             else:
                 relative_link = None
 
