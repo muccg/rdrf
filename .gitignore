@@ -27,3 +27,7 @@ tests*.xml
 .ccgplatform
 .idea
 .gitignore
+.version
+
+*#
+*~
