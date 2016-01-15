@@ -28,3 +28,6 @@ tests*.xml
 .idea
 .gitignore
 .version
+
+*#
+*~
