@@ -516,18 +516,19 @@ GRID_CONTEXT_LISTING = [
             "default": True,
             "permission": ""
         },
-        "data": "context_menu",
-        "label": "Modules",
-        "model": "func",
+        "data": "date_of_birth",
+        "label": "Date of Birth",
+        "model": "Patient",
         "order": 1
-    }, {
+    },
+    {
         "access": {
             "default": True,
             "permission": ""
         },
-        "data": "date_of_birth",
-        "label": "Date of Birth",
-        "model": "Patient",
+        "data": "context_menu",
+        "label": "Modules",
+        "model": "func",
         "order": 2
     },
     {
@@ -587,5 +588,16 @@ GRID_CONTEXT_LISTING = [
         "label": "Genetic Data",
         "model": "Patient",
         "order": 8
+    },
+
+     {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "diagnosis_progress",
+        "label": "Data Entry Progress",
+        "model": "Patient",
+        "order": 9
     }
 ]
