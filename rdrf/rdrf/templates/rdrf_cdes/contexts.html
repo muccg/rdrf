@@ -12,6 +12,7 @@
 
         var initialRegistryCode = "{{registry_code}}";
         var initialPatientId = "{{patient_id}}";
+        var CONTEXT_LINK_COLUMN_INDEX = 3;
 
         var api_url = "{% url 'contextsgridapi'  %}";
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
@@ -55,6 +56,20 @@
                     "&length=" + drawLength + "&patient_id=" + initialPatientId;
             }
 
+        }
+
+        function setContextLinkColumnVisibility(registryCode) {
+            rpc.send('registry_supports_contexts', [registryCode], function (response) {
+                var contextColumn = contexts_list.column(CONTEXT_LINK_COLUMN_INDEX);
+                if (response.status == 'success') {
+                    var columnVisibility = response.result;
+                    contextColumn.visible(columnVisibility);
+                }
+                else {
+                    contextColumn.visible(false);
+
+                }
+            })
         }
 
         function getRegistryAndPatientFromRow(rowData) {
@@ -102,6 +117,7 @@
             $("#loading_text").show();
             var reg_code = $("#registry_options > option:selected").attr("id");
             contexts_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+            setContextLinkColumnVisibility(reg_code);
         });
 
         $("#add_patient").click(function () {
@@ -126,7 +142,7 @@
         });
 
 
-
+        $("#registry_options").trigger("change");
 
 
         });
