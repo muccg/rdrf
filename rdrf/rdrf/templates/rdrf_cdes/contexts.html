@@ -12,7 +12,11 @@
 
         var initialRegistryCode = "{{registry_code}}";
         var initialPatientId = "{{patient_id}}";
-        var CONTEXT_LINK_COLUMN_INDEX = 3;
+        var CONTEXT_LINK_COLUMN_INDEX= 2;
+        var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
+
+        var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
+
 
         var api_url = "{% url 'contextsgridapi'  %}";
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
@@ -58,16 +62,23 @@
 
         }
 
+        function updateContextColumnsVisibility(value) {
+          _.each(CONTEXT_COLUMNS, function (columnIndex) {
+                    var contextColumn = contexts_list.column(columnIndex);
+                    contextColumn.visible(value);
+
+                });
+        }
+
         function setContextLinkColumnVisibility(registryCode) {
             rpc.send('registry_supports_contexts', [registryCode], function (response) {
-                var contextColumn = contexts_list.column(CONTEXT_LINK_COLUMN_INDEX);
                 if (response.status == 'success') {
                     var columnVisibility = response.result;
-                    contextColumn.visible(columnVisibility);
+                    updateContextColumnsVisibility(columnVisibility);
+
                 }
                 else {
-                    contextColumn.visible(false);
-
+                    updateContextColumnsVisibility(false);
                 }
             })
         }
