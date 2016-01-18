@@ -458,6 +458,7 @@ class FormView(View):
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
+            "context_id": context_id
         }
 
         if request.user.is_parent:
