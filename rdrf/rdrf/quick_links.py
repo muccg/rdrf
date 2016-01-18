@@ -18,8 +18,8 @@ class QuickLinks(object):
     A convenience class to make it easy to see what links are provided to
     users on the "Home" screen
     """
-    PatientsListing = QuickLink("patientslisting", "Patient List")
-    ContextsListing = QuickLink("contextslisting", "Contexts List")
+    #PatientsListing = QuickLink("patientslisting", "Patient List")
+    ContextsListing = QuickLink("contextslisting", "Patient List")
     Reports = QuickLink("reports", "Reports")
     Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
@@ -61,7 +61,7 @@ class QuickLinks(object):
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
-    DATA_ENTRY = oset([PatientsListing, ContextsListing, ClinicianOther])
+    DATA_ENTRY = oset([ContextsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])

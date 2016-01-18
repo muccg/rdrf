@@ -10,8 +10,8 @@ def in_fkrp(user):
     return "fkrp" in user_reg_codes
 
 _ADMIN_PATIENT_LISTING = "admin:patients_patient_changelist"
-_NEW_PATIENT_LISTING = "patientslisting"
 _HOME_PAGE = "admin:index"
+_CONTEXTS_LISTING = "contextslisting"
 
 
 class RouterView(View):
@@ -23,17 +23,17 @@ class RouterView(View):
 
         if user.is_authenticated():
             if user.is_superuser:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_clinician:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_genetic_staff:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_working_group_staff:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_genetic_curator:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_curator:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
             elif user.is_parent and user.is_patient:
                 regs = user.get_registries()
                 if regs:
@@ -50,7 +50,7 @@ class RouterView(View):
                     if len(regs) == 1:
                         redirect_url = reverse("parent_page", args=[regs[0].code])
             else:
-                redirect_url = reverse(_NEW_PATIENT_LISTING)
+                redirect_url = reverse(_CONTEXTS_LISTING)
 
         else:
             redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
