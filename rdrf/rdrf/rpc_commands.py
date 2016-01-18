@@ -140,3 +140,12 @@ def rpc_get_patient_contexts(request, registry_code, patient_id):
     logger.debug("context data = %s" % context_data)
 
     return {"status": "success", "data": context_data}
+
+
+def rpc_registry_supports_contexts(request, registry_code):
+    from rdrf.models import Registry
+    try:
+        registry_model = Registry.objects.get(code=registry_code)
+        return registry_model.has_feature("contexts")
+    except Registry.DoesNotExist:
+        return False

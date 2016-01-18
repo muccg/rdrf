@@ -12,6 +12,11 @@
 
         var initialRegistryCode = "{{registry_code}}";
         var initialPatientId = "{{patient_id}}";
+        var CONTEXT_LINK_COLUMN_INDEX= 2;
+        var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
+
+        var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
+
 
         var api_url = "{% url 'contextsgridapi'  %}";
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
@@ -55,6 +60,27 @@
                     "&length=" + drawLength + "&patient_id=" + initialPatientId;
             }
 
+        }
+
+        function updateContextColumnsVisibility(value) {
+          _.each(CONTEXT_COLUMNS, function (columnIndex) {
+                    var contextColumn = contexts_list.column(columnIndex);
+                    contextColumn.visible(value);
+
+                });
+        }
+
+        function setContextLinkColumnVisibility(registryCode) {
+            rpc.send('registry_supports_contexts', [registryCode], function (response) {
+                if (response.status == 'success') {
+                    var columnVisibility = response.result;
+                    updateContextColumnsVisibility(columnVisibility);
+
+                }
+                else {
+                    updateContextColumnsVisibility(false);
+                }
+            })
         }
 
         function getRegistryAndPatientFromRow(rowData) {
@@ -102,6 +128,7 @@
             $("#loading_text").show();
             var reg_code = $("#registry_options > option:selected").attr("id");
             contexts_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+            setContextLinkColumnVisibility(reg_code);
         });
 
         $("#add_patient").click(function () {
@@ -126,7 +153,7 @@
         });
 
 
-
+        $("#registry_options").trigger("change");
 
 
         });
@@ -140,7 +167,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Contexts List</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>

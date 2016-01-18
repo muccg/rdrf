@@ -1938,30 +1938,6 @@ class GridColumnsViewer(object):
         return settings.GRID_PATIENT_LISTING
 
 
-class PatientsListingView(LoginRequiredMixin, View, GridColumnsViewer):
-
-    def get(self, request):
-        if request.user.is_patient:
-            raise PermissionDenied()
-
-        context = {}
-        context.update(csrf(request))
-
-        if request.user.is_superuser:
-            registries = [registry_model for registry_model in Registry.objects.all()]
-        else:
-            registries = [registry_model for registry_model in request.user.registry.all()]
-
-        context["registries"] = registries
-        context["location"] = "Patient List"
-        context["columns"] = self.get_columns(request.user)
-
-        return render_to_response(
-            'rdrf_cdes/patients.html',
-            context,
-            context_instance=RequestContext(request))
-
-
 class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     MODEL = Patient
 
