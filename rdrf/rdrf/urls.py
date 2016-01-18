@@ -80,8 +80,8 @@ urlpatterns = patterns('',
                        url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
 
-                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
-                           name="patientslisting"),
+                       # url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
+                       #     name="patientslisting"),
                        url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
                            name='patientsgridapi'),
                        #---- Context related URLs -----------------
