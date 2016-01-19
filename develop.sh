@@ -23,6 +23,15 @@ usage() {
 }
 
 
+ci_docker_login() {
+    if [ -n "$bamboo_DOCKER_USERNAME" ] && [ -n "$bamboo_DOCKER_EMAIL" ] && [ -n "$bamboo_DOCKER_PASSWORD" ]; then
+        docker login  -e "${bamboo_DOCKER_EMAIL}" -u ${bamboo_DOCKER_USERNAME} --password="${bamboo_DOCKER_PASSWORD}"
+    else
+        echo "Docker vars not set, not logging in to docker registry"
+    fi
+}
+
+
 # ssh setup, make sure our ccg commands can run in an automated environment
 ci_ssh_agent() {
     if [ -z ${CI_SSH_KEY+x} ]; then
@@ -38,7 +47,9 @@ dockerbuild() {
     make_virtualenv
 
     image="muccg/${PROJECT_NAME}"
+    set +e 
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
+    set -e 
     gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
 
     # only use tags when on master (release) branch
@@ -53,6 +64,10 @@ dockerbuild() {
         gittag=$gitbranch
     fi
 
+    # create .version file for invalidating cache in Dockerfile
+    # we hit remote as the Dockerfile clones remote
+    git ls-remote https://github.com/muccg/rdrf.git ${gittag} > .version
+
     echo "############################################################# ${PROJECT_NAME} ${gittag}"
 
     # attempt to warm up docker cache
@@ -65,6 +80,8 @@ dockerbuild() {
         docker push ${tag}
         set +x
     done
+
+    rm -f .version || true
 }
 
 
@@ -208,7 +225,7 @@ make_virtualenv() {
     . ${VIRTUALENV}/bin/activate
 
     pip install functools32 --upgrade || true
-    pip install 'docker-compose<=1.6' --upgrade || true
+    pip install 'docker-compose<1.6' --upgrade || true
     docker-compose --version
 }
 
@@ -241,6 +258,7 @@ jslint)
     jslint
     ;;
 dockerbuild)
+    ci_docker_login
     dockerbuild
     ;;
 rpmbuild)

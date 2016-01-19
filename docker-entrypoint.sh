@@ -40,8 +40,6 @@ function wait_for_services {
 
 
 function defaults {
-    : ${ENV_PATH:="/env/bin"}
-
     : ${DBSERVER:="db"}
     : ${DBPORT:="5432"}
 
@@ -55,6 +53,7 @@ function defaults {
     : ${RUNSERVERPORT="8000"}
     : ${CACHESERVER="cache"}
     : ${CACHEPORT="11211"}
+    : ${MEMCACHE="${CACHESERVER}:${CACHEPORT}"}
     : ${MONGOSERVER="mongo"}
     : ${MONGOPORT="27017"}
 
@@ -62,25 +61,12 @@ function defaults {
     : ${DBNAME="${DBUSER}"}
     : ${DBPASS="${DBUSER}"}
 
-    . ${ENV_PATH}/activate
-
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE
     export REPORTDBSERVER REPORTDBPORT REPORTDBUSER REPORTDBPASS
 }
 
 
 function django_defaults {
-    : ${DEPLOYMENT="dev"}
-    : ${PRODUCTION=0}
-    : ${DEBUG=1}
-    : ${MEMCACHE="${CACHESERVER}:${CACHEPORT}"}
-    : ${WRITABLE_DIRECTORY="/data/scratch"}
-    : ${STATIC_ROOT="/data/static"}
-    : ${MEDIA_ROOT="/data/static/media"}
-    : ${LOG_DIRECTORY="/data/log"}
-    : ${DJANGO_SETTINGS_MODULE="django.settings"}
-    : ${MONGO_DB_PREFIX="dev_"}
-
     echo "DEPLOYMENT is ${DEPLOYMENT}"
     echo "PRODUCTION is ${PRODUCTION}"
     echo "DEBUG is ${DEBUG}"
@@ -91,8 +77,6 @@ function django_defaults {
     echo "LOG_DIRECTORY is ${LOG_DIRECTORY}"
     echo "DJANGO_SETTINGS_MODULE is ${DJANGO_SETTINGS_MODULE}"
     echo "MONGO_DB_PREFIX is ${MONGO_DB_PREFIX}"
-    
-    export DEPLOYMENT PRODUCTION DEBUG DBSERVER MEMCACHE WRITABLE_DIRECTORY STATIC_ROOT MEDIA_ROOT LOG_DIRECTORY DJANGO_SETTINGS_MODULE MONGO_DB_PREFIX
 }
 
 echo "HOME is ${HOME}"

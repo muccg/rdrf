@@ -26,47 +26,15 @@ from registry.patients.models import Patient, PatientAddress, PatientDoctor, Pat
 from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
-
+from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
+
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
 
 import logging
 
 logger = logging.getLogger("registry_log")
-
-
-def get_error_messages(forms):
-    from rdrf.utils import de_camelcase
-    messages = []
-
-    def display(form_or_formset, field, error):
-        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
-        return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
-
-    for i, form in enumerate(forms):
-        if isinstance(form._errors, list):
-            logger.debug("checking formset %s for errors" % i)
-            if len(form._errors) == 0:
-                logger.debug("form._errors = []")
-            else:
-                logger.debug("form._errors = %s" % form._errors)
-            for error_dict in form._errors:
-                for field in error_dict:
-                    messages.append(display(form, field, error_dict[field]))
-        else:
-            if form._errors is None:
-                logger.debug("form._errors is None - skipping")
-                continue
-            else:
-                logger.debug("form._errors = %s" % form._errors)
-                for field in form._errors:
-                    for error in form._errors[field]:
-                        if "This field is required" in error:
-                            # these errors are indicated next to the field
-                            continue
-                        messages.append(display(form, field, error))
-    results = map(strip_tags, messages)
-    logger.debug("get_error_messages = %s" % results)
-    return results
 
 
 def calculate_age(born):
@@ -251,8 +219,16 @@ class PatientFormMixin(PatientMixin):
         """
         registry_code = self.registry_model.code
         patient_id = self.object.pk
-        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
+        initial_context = self._get_initial_context(registry_code, self.object)
+        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, initial_context.pk])
         return patient_edit_url
+
+    def _get_initial_context(self, registry_code, patient_model):
+        from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+        from rdrf.models import Registry
+        registry_model = Registry.objects.get(code=registry_code)
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        return rdrf_context_manager.get_or_create_default_context(patient_model, new_patient=True)
 
     def set_patient_model(self, patient_model):
         self.patient_model = patient_model
@@ -711,7 +687,7 @@ class AddPatientView(PatientFormMixin, CreateView):
 
 class PatientEditView(View):
 
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -721,13 +697,24 @@ class PatientEditView(View):
             patient_id, registry_code, request)
         registry_model = Registry.objects.get(code=registry_code)
 
+        rdrf_context_manager = RDRFContextManager(registry_model)
+
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient)
+
+        except RDRFContextError, ex:
+            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+            return HttpResponseRedirect("/")
+
         context = {
             "location": "Demographics",
             "forms": form_sections,
             "patient": patient,
+            "context_id": context_id,
             "patient_id": patient.id,
+            "index_context": self._get_index_context(registry_model, patient),
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient.id, registry_model),
+            "form_links": get_form_links(request.user, patient.id, registry_model, context_model),
             "consent": consent_status_for_patient(registry_code, patient)
         }
 
@@ -748,7 +735,7 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, patient_id):
+    def post(self, request, registry_code, patient_id, context_id=None):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_relatives_forms = None
@@ -762,21 +749,28 @@ class PatientEditView(View):
             patient_user = None
             logger.debug("patient user before save is None")
 
-        registry = Registry.objects.get(code=registry_code)
+        registry_model = Registry.objects.get(code=registry_code)
 
+        rdrf_context_manager = RDRFContextManager(registry_model)
 
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient)
 
-        if registry.patient_fields:
+        except RDRFContextError, ex:
+            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+            return HttpResponseRedirect("/")
+
+        if registry_model.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
                                                                                    PatientForm,
-                                                                                   registry,
+                                                                                   registry_model,
                                                                                    patient)
 
         else:
             patient_form_class = PatientForm
 
         patient_form = patient_form_class(
-            request.POST, request.FILES, instance=patient, user=request.user, registry_model=registry)
+            request.POST, request.FILES, instance=patient, user=request.user, registry_model=registry_model)
 
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
@@ -785,7 +779,7 @@ class PatientEditView(View):
 
         patient_relatives_forms = None
 
-        if patient.is_index and registry.get_metadata_item("family_linkage"):
+        if patient.is_index and registry_model.get_metadata_item("family_linkage"):
             patient_relatives_formset = inlineformset_factory(Patient,
                                                               PatientRelative,
                                                               fk_name='patient',
@@ -819,7 +813,7 @@ class PatientEditView(View):
             else:
                 valid_forms.append(True)
 
-        if registry.get_metadata_item("patient_form_doctors"):
+        if registry_model.get_metadata_item("patient_form_doctors"):
             patient_doctor_form_set = inlineformset_factory(
                 Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
             doctors_to_save = patient_doctor_form_set(
@@ -828,7 +822,7 @@ class PatientEditView(View):
 
         if all(valid_forms):
             logger.debug("All forms are valid")
-            if registry.get_metadata_item("patient_form_doctors"):
+            if registry_model.get_metadata_item("patient_form_doctors"):
                 doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
@@ -843,18 +837,20 @@ class PatientEditView(View):
                 patient_instance.user = patient_user
                 patient_instance.save()
 
-            registry_specific_fields_handler = RegistrySpecificFieldsHandler(registry, patient_instance)
+            registry_specific_fields_handler = RegistrySpecificFieldsHandler(registry_model, patient_instance)
             registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
 
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
 
             if patient_relatives_forms:
-                self.create_patient_relatives(patient_relatives_forms, patient, registry)
+                self.create_patient_relatives(patient_relatives_forms, patient, registry_model)
 
             context = {
                 "forms": form_sections,
                 "patient": patient,
+                "context_id": context_id,
+                "index_context": self._get_index_context(registry_model, patient),
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
             }
@@ -862,7 +858,7 @@ class PatientEditView(View):
             logger.debug("Not all forms are valid")
             error_messages = get_error_messages(forms)
             logger.debug("error messages = %s" % error_messages)
-            if not registry.get_metadata_item("patient_form_doctors"):
+            if not registry_model.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
             patient, form_sections = self._get_patient_and_forms_sections(patient_id,
                                                                           registry_code,
@@ -876,11 +872,12 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "errors": True,
+                "index_context": self._get_index_context(registry_model, patient),
                 "error_messages": error_messages,
             }
 
         wizard = NavigationWizard(request.user,
-                                  registry,
+                                  registry_model,
                                   patient,
                                   NavigationFormType.DEMOGRAPHICS,
                                   None)
@@ -891,14 +888,23 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
-        context["form_links"] = get_form_links(request.user, patient.id, registry)
+        context["form_links"] = get_form_links(request.user, patient.id, registry_model, context_model)
         #context["consent"] = consent_status_for_patient(registry_code, patient)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
+
+        context["context_id"] = context_id
+
         return render_to_response(
             'rdrf_cdes/patient_edit.html',
             context,
             context_instance=RequestContext(request))
+
+    def _get_index_context(self, registry_model, patient_model):
+        if registry_model.has_feature("family_linkage") and not patient_model.is_index:
+            return patient_model.my_index.default_context(registry_model)
+
+
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:

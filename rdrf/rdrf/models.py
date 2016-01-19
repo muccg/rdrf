@@ -11,6 +11,8 @@ from rdrf.utils import get_full_link
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 logger = logging.getLogger("registry_log")
 
@@ -463,6 +465,13 @@ class Registry(models.Model):
     def clean(self):
         self._check_metadata()
 
+    @property
+    def context_name(self):
+        try:
+            return self.metadata['context_name']
+        except KeyError:
+            return "Context"
+
     def _check_metadata(self):
         if self.metadata_json == "":
             return True
@@ -772,6 +781,22 @@ class RegistryForm(models.Model):
     def link(self, patient_model):
         from rdrf.utils import FormLink
         return FormLink(patient_model.pk, self.registry, self).url
+
+    @property
+    def nice_name(self):
+        from rdrf.utils import de_camelcase
+        try:
+            return de_camelcase(self.name)
+        except:
+            return self.name
+
+    def get_link(self, patient_model, context_model=None):
+        if context_model is None:
+            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id))
+        else:
+            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
+
+
 
 
 class Wizard(models.Model):
@@ -1604,6 +1629,7 @@ class ConsentQuestion(models.Model):
     
 
 
+
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
 
@@ -1644,3 +1670,81 @@ class EmailNotificationHistory(models.Model):
     language = models.CharField(max_length=10)
     email_notification = models.ForeignKey(EmailNotification)
     template_data = models.TextField(null=True, blank=True)
+
+
+class RDRFContextError(Exception):
+    pass
+
+
+class RDRFContext(models.Model):
+    registry = models.ForeignKey(Registry)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    display_name = models.CharField(max_length=80, blank=True, null=True)
+
+    def __unicode__(self):
+        return "%s %s" % (self.display_name, self.created_at)
+
+    def clean(self):
+        if not self.display_name:
+            raise ValidationError("RDRF Context must have a display name")
+        self.display_name = self.display_name.strip()
+
+        if len(self.display_name) == 0:
+            raise ValidationError("RDRF Context must have a display name")
+
+
+class MongoMigrationDummyModel(models.Model):
+    """
+    This model should never be instantiated.
+    It exists so that when a version of RDRF is created that alters the mongo
+    structure, the version can be entered as a pair in VERSIONS below
+    which will trigger a migration to be created in South.
+    This gives us a hook to write mongo transforming code that will act on the data
+
+    *ONLY* UPDATE THE VERSIONS TUPLE IF A MONGO TRANSFORMATION IS NECESSARY!
+
+    This hack works because Django picks up alterations to the allowed choices for the field
+    and creates an auto migration.
+
+    To use :
+
+    Precondition: You've made changes to RDRF which alters in some way the mongo structure
+
+    1. Add the new RDRF version V and a short description D to the VERSIONS tuple:
+
+    e.g  VERSIONS =(("1.4", "blah"),
+                    ("2.5","forms now nested"),
+                    ("4.9", "changing the structure of the progress dictionary"))
+
+    2. After editing the VERSIONS tuple, docker exec a shell inside rdrf web
+    docker exec -it rdrf_web_1 /bin/bash
+
+    run: django_admin makemmigrations rdrf
+
+    this will generate the auto migration as below:
+
+    operations = [
+        migrations.AlterField(
+            model_name='mongomigrationdummymodel',
+            name='version',
+            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing')]),
+        ),]
+
+
+    3. Add a migrations.RunPython(forward_func, backward_func) migration to the operations list ( implementing the mongo
+    manipulations via python functions forward_func and backward_func
+
+
+    I intended to write a module to make it easy to create the forward_func and backward_funcs
+
+
+    """
+    # Add to this VERSIONS tuple ONLY IF a mongo migration is required
+    VERSIONS = (("initial", "initial"),
+                ("testing", "testing"),
+                ("1.0.17", "populate context_id on all patient records"))
+    version = models.CharField(max_length=80, choices=VERSIONS)

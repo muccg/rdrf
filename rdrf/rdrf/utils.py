@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.db import IntegrityError
 from django.db import transaction
+from django.utils.html import strip_tags
+from django.core.urlresolvers import reverse
 
 import logging
 import re
@@ -13,6 +15,7 @@ logger = logging.getLogger("registry_log")
 
 class BadKeyError(Exception):
     pass
+
 
 def mongo_db_name(registry):
     return settings.MONGO_DB_PREFIX + registry
@@ -84,21 +87,31 @@ def de_camelcase(s):
 
 class FormLink(object):
 
-    def __init__(self, patient_id, registry, registry_form, selected=False):
+    def __init__(self, patient_id, registry, registry_form, selected=False, context_model=None):
         self.registry = registry
         self.patient_id = patient_id
         self.form = registry_form
         self.selected = selected
+        self.context_model = context_model
 
     @property
     def url(self):
         from django.core.urlresolvers import reverse
-        return reverse(
-            'registry_form',
-            args=(
-                self.registry.code,
-                self.form.pk,
-                self.patient_id))
+        if self.context_model is None:
+            return reverse(
+                'registry_form',
+                args=(
+                    self.registry.code,
+                    self.form.pk,
+                    self.patient_id))
+        else:
+            return reverse(
+                'registry_form',
+                args=(
+                    self.registry.code,
+                    self.form.pk,
+                    self.patient_id,
+                    self.context_model.id))
 
     @property
     def text(self):
@@ -152,8 +165,23 @@ def get_site_url(request, path="/"):
     return request.build_absolute_uri(path)
 
 
-def location_name(registry_form):
-    return de_camelcase(registry_form.name)
+def location_name(registry_form, current_rdrf_context_model=None):
+    form_display_name = de_camelcase(registry_form.name)
+    if registry_form.registry.has_feature("contexts"):
+            if current_rdrf_context_model is not None:
+                registry_model = registry_form.registry
+                patient_model = current_rdrf_context_model.content_object
+                edit_link = reverse("context_edit", args=(registry_model.code,
+                                                          patient_model.pk,
+                                                          current_rdrf_context_model.pk))
+                context_link = """<a href="%s">%s</a>""" % (edit_link, current_rdrf_context_model.display_name)
+                s = "%s ( in %s)" % (form_display_name, context_link)
+            else:
+                s = form_display_name
+    else:
+        s = form_display_name
+    logger.debug("location_name = %s" % s)
+    return s
 
 
 def cached(func):
@@ -227,7 +255,7 @@ def create_permission(app_label, model, code_name, name):
         pass
 
 
-def get_form_links(user, patient_id, registry_model):
+def get_form_links(user, patient_id, registry_model, context_model=None):
     if user is not None:
         return [
             FormLink(
@@ -235,7 +263,8 @@ def get_form_links(user, patient_id, registry_model):
                 registry_model,
                 form,
                 selected=(
-                    form.name == "")) for form in registry_model.forms
+                    form.name == ""),
+                context_model=context_model) for form in registry_model.forms
             if not form.is_questionnaire and user.can_view(form)]
     else:
         return []
@@ -267,3 +296,31 @@ def consent_status_for_patient(registry_code, patient):
                 except ConsentValue.DoesNotExist:
                     answers.append(False)
     return all(answers)
+
+
+def get_error_messages(forms):
+    from rdrf.utils import de_camelcase
+
+    messages = []
+
+    def display(form_or_formset, field, error):
+        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
+        return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
+
+    for i, form in enumerate(forms):
+        if isinstance(form._errors, list):
+            for error_dict in form._errors:
+                for field in error_dict:
+                    messages.append(display(form, field, error_dict[field]))
+        else:
+            if form._errors is None:
+                continue
+            else:
+                for field in form._errors:
+                    for error in form._errors[field]:
+                        if "This field is required" in error:
+                            # these errors are indicated next to the field
+                            continue
+                        messages.append(display(form, field, error))
+    results = map(strip_tags, messages)
+    return results

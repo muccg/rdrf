@@ -9,7 +9,6 @@ testhost:
   image: rdrf_runservertest
   command: runtests
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_RUNSERVER=1

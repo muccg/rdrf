@@ -27,6 +27,8 @@ from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
+from rdrf.lookup_views import RDRFContextLookup
+from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
 from ajax_select import urls as ajax_select_urls
 from tastypie.api import Api
@@ -53,7 +55,6 @@ def handlerApplicationError(request):
 v1_api = Api(api_name='v1')
 v1_api.register(PatientResource())
 
-
 urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
@@ -79,15 +80,30 @@ urlpatterns = patterns('',
                        url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
 
-                       url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
-                           name="patientslisting"),
+                       # url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
+                       #     name="patientslisting"),
+                       url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
+                           name='patientsgridapi'),
+                       #---- Context related URLs -----------------
+                       url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
+                           name="contextslisting"),
+
+                       url(r'^contextsgridapi/?$', form_view.ContextDataTableServerSideApi.as_view(),
+                           name='contextsgridapi'),
+
+                       url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/?$',
+                           RDRFContextCreateView.as_view(),
+                           name="context_add"),
+                       url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)/edit/?$',
+                           RDRFContextEditView.as_view(),
+                           name="context_edit"),
                        url(r'^bootgridapi', form_view.BootGridApi.as_view()),
 
                        url(r'^login/?$', 'django.contrib.auth.views.login',
                            {'template_name': 'admin/login.html'}, name='login'),
                        url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
-                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
+                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
                            form_view.FormView.as_view(), name='registry_form'),
 
                        url(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)$",
@@ -96,11 +112,12 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/?$",
                            registry_view.RegistryView.as_view(), name='registry'),
 
-                       url(r"^(?P<registry_code>\w+)/patient/?$",
+                       url(r"^(?P<registry_code>\w+)/patient/(?P<context_id>\d+)?$",
                            patient_view.PatientView.as_view(), name='patient_page'),
                        url(r"^(?P<registry_code>\w+)/patient/add/?$",
                            patient_view.AddPatientView.as_view(), name='patient_add'),
-                       url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/?$",
+
+                       url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
                            patient_view.PatientEditView.as_view(), name='patient_edit'),
 
                        url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
@@ -119,7 +136,7 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/consent/print/?$",
                            consent_view.PrintConsentList.as_view(), name='print_consent_list'),
 
-                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
+                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/(?P<context_id>\d+)?$",
                            form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 #-------------------------------------------
 
@@ -178,10 +195,11 @@ urlpatterns = patterns('',
 
                        url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
 
-                       url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"))
+                       url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
 
-
-
+                       url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
+                           RDRFContextLookup.as_view(),
+                           name="rdrf_context_lookup"))
 
 
 urlpatterns += patterns('',

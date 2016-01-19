@@ -91,7 +91,7 @@ class PatientAdmin(admin.ModelAdmin):
                PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list',
-                    'date_of_birth', 'demographic_btn', 'data_modules_btn']
+                    'date_of_birth', 'demographic_btn']
 
     if has_feature('adjudication'):
         list_display.append('adjudications_btn')
@@ -112,58 +112,6 @@ class PatientAdmin(admin.ModelAdmin):
 
     demographic_btn.allow_tags = True
     demographic_btn.short_description = 'Demographics'
-
-    def data_modules_btn(self, obj):
-        if obj.rdrf_registry.count() == 0:
-            return "No registry assigned"
-
-        rdrf_id = self.request.GET.get('registry')
-
-        user = self.request.user
-
-        if not rdrf_id and Registry.objects.count() > 1:
-            return "Please filter registry"
-
-        def nice_name(name):
-            try:
-                return de_camelcase(name)
-            except:
-                return name
-
-        rdrf = Registry.objects.get(pk=rdrf_id)
-        not_generated = lambda frm: not frm.name.startswith(rdrf.generated_questionnaire_name)
-        forms = [f for f in RegistryForm.objects.filter(registry=rdrf).order_by(
-            'position') if not_generated(f) and user.can_view(f)]
-
-        content = ''
-
-        if not forms:
-            content = "No modules available"
-
-        for form in forms:
-            if form.is_questionnaire:
-                continue
-            is_current = obj.form_currency(form)
-            flag = "images/%s.png" % ("tick" if is_current else "cross")
-
-            url = reverse('registry_form', args=(rdrf.code, form.id, obj.id))
-            link = "<a href=%s>%s</a>" % (url, nice_name(form.name))
-            label = nice_name(form.name)
-
-            to_form = link
-            if user.is_working_group_staff:
-                to_form = label
-
-            if form.has_progress_indicator:
-                content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
-                    static(flag), obj.form_progress(form)[1], to_form)
-            else:
-                content += "<img src=%s> %s</br>" % (static(flag), to_form)
-
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='data-modules-btn'>Show Modules</button>" % content
-
-    data_modules_btn.allow_tags = True
-    data_modules_btn.short_description = 'Data Modules'
 
     def adjudications_btn(self, obj):
         content = ""
