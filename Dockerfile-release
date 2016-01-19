@@ -1,11 +1,22 @@
 # Dockerfile template. ${GITTAG} needs to be set.
 FROM muccg/python-base:ubuntu14.04-2.7
-MAINTAINER https://bitbucket.org/ccgmurdoch/rdrf/
+MAINTAINER https://github.com/muccg/rdrf
 
 ARG GIT_TAG=next_release
 ARG PIP_OPTS="--no-cache-dir"
 
+ENV VIRTUAL_ENV /env
+ENV PATH $VIRTUAL_ENV/bin:$PATH
 ENV GITTAG $GIT_TAG
+ENV DEPLOYMENT prod
+ENV PRODUCTION 1
+ENV DEBUG 0
+ENV STATIC_ROOT /data/static
+ENV WRITABLE_DIRECTORY /data/scratch
+ENV MEDIA_ROOT /data/static/media
+ENV LOG_DIRECTORY /data/log
+ENV MONGO_DB_PREFIX=prod_
+ENV DJANGO_SETTINGS_MODULE rdrf.settings
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -26,25 +37,23 @@ RUN env --unset=DEBIAN_FRONTEND
 WORKDIR /app
 COPY .version /.version
 RUN echo $GIT_TAG \
-    && git clone --depth=1 --branch=$GIT_TAG https://bitbucket.org/ccgmurdoch/rdrf.git .
+    && git clone --depth=1 --branch=$GIT_TAG https://bitbucket.org/ccgmurdoch/rdrf.git . \
+    && rm -rf .git
 
 # install python deps
 # hgvs was failing due to lack of nose, hence the order
-RUN virtualenv /env
-RUN /env/bin/pip ${PIP_OPTS} install nose
-RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
-RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
+RUN virtualenv $VIRTUAL_ENV
+RUN pip ${PIP_OPTS} install nose
+RUN pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
+RUN pip ${PIP_OPTS} install -e rdrf
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
-
-RUN cp docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
 
 # Drop privileges, set home for ccg-user
 USER ccg-user
 ENV HOME /data
 WORKDIR /data
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["uwsgi"]

@@ -77,7 +77,6 @@ runserver:
   build: .
   command: runserver
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
@@ -90,7 +89,6 @@ uwsgi:
   image: rdrf_runserver
   command: uwsgi
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1

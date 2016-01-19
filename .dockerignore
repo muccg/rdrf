@@ -13,3 +13,7 @@ centos
 data
 */log/*
 */scratch/*
+Dockerfile
+Dockerfile-release
+virt_*
+develop.sh
