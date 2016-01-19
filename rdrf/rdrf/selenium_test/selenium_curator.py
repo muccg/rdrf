@@ -12,15 +12,16 @@ class Curator(Base):
         sel = self.selenium
         sel.open("/")
         sel.click("link=Registries on this site")
-        sel.click("link=FH Registry v0.1.6")
+        sel.click("link=Sample Registry")
         sel.wait_for_page_to_load("30000")
         self.assertEqual(
-            "National Registry for Familial Hypercholesterolemia",
-            sel.get_text("css=p.text-center"))
+            "Sample Registry",
+            sel.get_text("//div[@class='container']/h1/text()"))
+
         sel.click("link=Log in")
         sel.wait_for_page_to_load("30000")
-        sel.type("id=id_username", "fhcurator")
-        sel.type("id=id_password", "fhcurator")
+        sel.type("id=id_username", "curator")
+        sel.type("id=id_password", "curator")
         sel.click("//input[@value='Log in']")
         sel.wait_for_page_to_load("30000")
 

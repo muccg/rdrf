@@ -69,3 +69,4 @@ class Base(unittest.TestCase):
         sel.click("link=admin admin")
         sel.click("link=Logout")
         sel.wait_for_page_to_load("30000")
+
