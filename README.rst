@@ -10,9 +10,9 @@ The Rare Disease Registry Framework (RDRF) is an open source tool for the creati
 Contact
 -------
 
-Hosted on Bitbucket:
+Hosted on GitHub:
  
-https://bitbucket.org/ccgmurdoch/rdrf/
+https://github.com/muccg/rdrf
 
 Demo Site:
 
@@ -58,7 +58,7 @@ Some typical usages are:
         (replace localhost with ``$ boot2docker ip`` if using boot2docker) after this.
         You can login with one of the default users *admin/admin*.
 
-Note: Our docker containers are coordinated using fig (http://www.fig.sh/) but fig will be installed into a virtualenv environment automatically by the ``./develop.sh`` script for you.
+Note: Our docker containers are coordinated using docker-compose which will be installed into a virtualenv environment automatically by the ``./develop.sh`` script for you.
 
 Contributing
 ------------
