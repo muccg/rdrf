@@ -23,7 +23,7 @@ RUN pip ${PIP_OPTS} install --upgrade -r rdrf/runtime-requirements.txt
 
 # Copy code and install the app
 COPY . /app
-RUN /env/bin/pip ${PIP_OPTS} install --upgrade -e rdrf
+RUN pip ${PIP_OPTS} install --upgrade -e rdrf
 
 EXPOSE 8000 9000 9001 9100 9101
 VOLUME ["/app", "/data"]

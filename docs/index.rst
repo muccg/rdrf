@@ -61,7 +61,7 @@ Links
 
 `Demo Site <https://rdrf.ccgapps.com.au/demo/>`_
 
-`Source Code <https://bitbucket.org/ccgmurdoch/rdrf>`_
+`Source Code <https://github.com/muccg/rdrf>`_
 
 `RDRF Google Group <mailto:rdrf@ccg.murdoch.edu.au>`_
 

@@ -37,7 +37,7 @@ RUN env --unset=DEBIAN_FRONTEND
 WORKDIR /app
 COPY .version /.version
 RUN echo $GIT_TAG \
-    && git clone --depth=1 --branch=$GIT_TAG https://bitbucket.org/ccgmurdoch/rdrf.git . \
+    && git clone --depth=1 --branch=$GIT_TAG https://github.com/muccg/rdrf.git . \
     && rm -rf .git
 
 # install python deps
