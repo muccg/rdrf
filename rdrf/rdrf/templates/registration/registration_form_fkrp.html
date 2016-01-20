@@ -1,18 +1,19 @@
 {% load countries %}
 {% load static %}
 {% load i18n %}
+{% load recaptcha_site_key %}
 
 <script type="text/javascript">
     $(document).ready(function(){
         $("#password-error").hide();
         $("#username-error").hide();
+        $("#registration-submit").prop("disabled", true);
         
         $("#id_password2").on("keyup", function() {
             var password1 = $("#id_password1").val();
             if (password1 != $(this).val()) {
                 $("#password-error").text("The passwords don't match!");
                 $("#password-error").show("fast");
-                $("#registration-submit").prop("disabled", true);
             } else {
                 $("#password-error").hide("fast");
                 $("#registration-submit").prop("disabled", false);
@@ -20,10 +21,8 @@
                 if(!$(this).val().match(password_regx)) {
                     $("#password-error").text("Password needs to be at least 6 characters long and contain 1 number");
                     $("#password-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
                 } else {
                     $("#password-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
                 }
             }
         });
@@ -35,10 +34,8 @@
             $.getJSON(url, function(data) {
                 if (data.existing == true) {
                     $("#username-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
                 } else {
                     $("#username-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
                 }
             });
         });
@@ -221,6 +218,9 @@
                         <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Parent / Guardian Details
                     </button>
                 </div>
+                <div class="form-group">
+                    <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
+                </div>
             </div>
             <div class="form-group">
                 <button type="button" id="registration-submit" class="btn btn-warning pull-right">Continue</button>
@@ -228,3 +228,17 @@
         </div>
     </div>
 </form>
+
+
+<script>
+    function reCaptchaCallback() {
+        r = grecaptcha.getResponse();
+        url = "{% url 'recaptcha_validator'%}";
+        $.post(url, {"response_value": r, "csrfmiddlewaretoken" : "{{csrf_token}}"}, function(data){
+            json_result = $.parseJSON(data);
+            if(json_result.success) {
+                $("#registration-submit").prop("disabled", false);
+            }
+        });
+    }
+</script>

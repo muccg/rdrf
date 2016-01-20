@@ -29,6 +29,7 @@ from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RDRFContextLookup
+from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
 
@@ -203,6 +204,9 @@ urlpatterns = patterns('',
 #---- Look-ups URLs -----------------------
                        url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
                            UsernameLookup.as_view(), name="lookup_username"),
+                       
+                       url(r"^lookup/recaptcha/?$",
+                           RecaptchaValidator.as_view(), name="recaptcha_validator"),
 #-------------------------------------------
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
