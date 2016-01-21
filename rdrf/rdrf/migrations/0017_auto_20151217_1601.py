@@ -32,7 +32,11 @@ class MongoContextFixer(object):
         try:
             patient_id = patient_record.get("django_id", None)
             Patient = self._get_patient_class()
-            patient_model = Patient.objects.get(pk=patient_id)
+            try:
+                patient_model = Patient.objects.get(pk=patient_id)
+            except Patient.DoesNotExist:
+                print "Patient ID %s in mongo does not exist in SQL DB" % patient_id
+                return None
             return patient_model
         except Exception, ex:
             print "Error getting patient model for %s: %s" % (patient_id, ex)
@@ -88,11 +92,20 @@ class MongoContextFixer(object):
                 if "context_id" not in patient_record:
                     patient_model = self._get_patient_model(patient_record)
 
-                    default_context_model = self._create_default_context(registry_model, patient_model)
+                    if patient_model is None:
+                        continue
+                    try:
+                        default_context_model = self._create_default_context(registry_model, patient_model)
+                    except Exception, ex:
+                        print "Error creating default context in %s for patient id %s: %s" % (registry_model,
+                                                                                              patient_model.pk,
+                                                                                              ex)
+                        continue
+
                     if default_context_model is not None:
                         self._update_record(registry, patient_record, default_context_model.pk)
                     else:
-                        print ""
+                        print "default context None for patient %s - mongo not updated" % patient_model.pk
 
 
 def forwards_func(apps, schema_editor):
