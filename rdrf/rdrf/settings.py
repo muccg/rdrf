@@ -630,5 +630,5 @@ GRID_CONTEXT_LISTING = [
     }
 ]
 
-RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key")
-RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key")
+RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
+RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
