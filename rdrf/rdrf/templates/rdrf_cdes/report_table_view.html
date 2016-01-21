@@ -1,0 +1,27 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static from staticfiles %}
+
+{% block extrastyle %}
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> RDRF Report Table</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="well">
+        SQL QUERY
+        <br>
+        RESULT DATATABLE
+        <br>
+        COMMMAND MENU
+    </div>
+
+{% endblock %}

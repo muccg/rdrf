@@ -37,3 +37,20 @@ class ReportView(LoginRequiredMixin, View):
             'rdrf_cdes/reports.html',
             context,
             context_instance=RequestContext(request))
+
+
+class ReportDataTableView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        context = {}
+        context["location"] = 'Reports'
+        return render_to_response(
+            'rdrf_cdes/report_table_view.html',
+            context,
+            context_instance=RequestContext(request))
+
+    def post(self, request):
+        pass
+
+
+
