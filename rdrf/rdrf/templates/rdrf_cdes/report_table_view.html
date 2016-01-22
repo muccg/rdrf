@@ -8,6 +8,22 @@
 
 {% endblock %}
 
+{% block extrahead %}
+    <script>
+
+
+
+
+    $(document).ready(
+            function () {
+
+            }
+    )
+
+    </script>
+
+{% endblock %}
+
 {% block content %}
 
     <div class="row">
@@ -22,7 +38,15 @@
     <div class="well">
         SQL QUERY
         <br>
-        RESULT DATATABLE
+        <table id="report_table" class="table table-striped table-hover">
+        <thead>
+            <tr>
+                {% for column in columns %}
+                    <th>{{ column.label|safe }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    </table>
         <br>
         COMMMAND MENU
     </div>

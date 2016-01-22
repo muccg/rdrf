@@ -40,10 +40,14 @@ class ReportView(LoginRequiredMixin, View):
 
 
 class ReportDataTableView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request, query_model_id):
         user = request.user
+        if not self._sanity_check(query_model_id, user):
+            return
+        table_name = "report_%s_%s" % (query_model_id, user.pk)
         context = {}
         context["location"] = 'Reports'
+        context["columns"] = []
         return render_to_response(
             'rdrf_cdes/report_table_view.html',
             context,
