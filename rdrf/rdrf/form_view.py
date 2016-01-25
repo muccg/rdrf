@@ -1934,74 +1934,21 @@ class GridColumnsViewer(object):
         return settings.GRID_PATIENT_LISTING
 
 
+def dump(request):
+    for k in sorted(request.GET):
+        logger.debug("GET %s = %s" % (k, request.GET[k]))
+
+    for k in sorted(request.POST):
+        logger.debug("POST %s = %s" % (k, request.POST[k]))
+
+
+
+
 class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     MODEL = Patient
 
-    def xxx_get(self, request):
-        self.user = request.user
-        # see http://datatables.net/manual/server-side
-        self.registry_code = request.GET.get("registry_code", None)
-        # can restrict on a particular patient for contexts - NOT usually set
-        self.patient_id = request.GET.get("patient_id", None)
-
-        if self.registry_code is None:
-            return self._json([])
-        try:
-            self.registry_model = Registry.objects.get(code=self.registry_code)
-            self.supports_contexts = self.registry_model.has_feature("contexts")
-            self.rdrf_context_manager = RDRFContextManager(self.registry_model)
-        except Registry.DoesNotExist:
-            logger.error("patients listing api registry code %s does not exist" % self.registry_code)
-            return self._json([])
-
-        if not self.user.is_superuser:
-            if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
-                logger.debug("user isn't in registry!")
-                return self._json([])
-
-        self.form_progress = FormProgress(self.registry_model)
-
-        search_term = request.GET.get("search[value]", "")
-        logger.debug("search term = %s" % search_term)
-
-        draw = int(request.GET.get("draw", None))
-        logger.debug("draw = %s" % draw)
-
-        start = int(request.GET.get("start", None))
-        logger.debug("start = %s" % start)
-
-        length = int(request.GET.get("length", None))
-        logger.debug("length = %s" % length)
-
-        page_number = (start / length) + 1
-        logger.debug("page = %s" % page_number)
-
-        sort_field, sort_direction = self._get_ordering(request)
-
-        context = {}
-        context.update(csrf(request))
-        columns = self.get_columns(self.user)
-
-        queryset = self._get_initial_queryset(self.user, self.registry_code, sort_field, sort_direction)
-        record_total = queryset.count()
-        logger.debug("record_total = %s" % record_total)
-
-        if search_term:
-            filtered_queryset = self._apply_filter(queryset, search_term)
-        else:
-            filtered_queryset = queryset
-
-        filtered_total = filtered_queryset.count()
-        logger.debug("filtered_total = %s" % filtered_total)
-
-        rows = self._run_query(filtered_queryset, length, page_number, columns)
-
-        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
-
-        return self._json(results_dict)
-
-
     def _get_results(self, request):
+        dump(request)
         self.user = request.user
         # see http://datatables.net/manual/server-side
         try:
@@ -2036,10 +1983,10 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         draw = int(request.POST.get("draw", None))
         logger.debug("draw = %s" % draw)
 
-        start = int(request.POST.get("start", 0))
+        start = int(request.POST.get("start", None))
         logger.debug("start = %s" % start)
 
-        length = int(request.GET.get("length", 0))
+        length = int(request.POST.get("length", None))
         logger.debug("length = %s" % length)
 
         page_number = (start / length) + 1
