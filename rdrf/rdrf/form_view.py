@@ -2049,7 +2049,7 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         if sort_field == "full_name":
             sort_field = "family_name"
 
-        if sort_field not in ["family_name", "date_of_birth"]:
+        if sort_field not in ["family_name"]:
             sort_field = None
 
         return sort_field, sort_direction
