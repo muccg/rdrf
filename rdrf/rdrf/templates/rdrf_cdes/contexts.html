@@ -108,9 +108,11 @@
         var contexts_list = $("#context_list_table").DataTable({
             "processing": true,
             "serverSide": true,
+            "sAjaxDataProp" : "data",
             ajax: {
                     url: getApiUrl(registryCode, getDrawLength()),
-                    dataSrc: "rows"
+                    dataSrc: "rows",
+                    type: "POST"
             },
             columns: {{columns|safe}}
         }).on("draw", function () {
