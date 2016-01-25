@@ -1,3 +1,4 @@
+{% load static %}
 {% if supports_contexts %}
 <div class="panel panel-default">
 
@@ -10,9 +11,9 @@
   <div class="panel-body">
     {% for form in forms %}
                 {% if form.current %}
-                    <img src="/static/images/tick.png">
+                    <img src="{% static 'images/tick.png' %}">
                 {% else %}
-                    <img src="/static/images/cross.png">
+                    <img src="{% static 'images/cross.png' %}">
                 {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
     {% endfor %}
 
@@ -21,9 +22,9 @@
 {% else %}
         {% for form in forms %}
                 {% if form.current %}
-                    <img src="/static/images/tick.png">
+                     <img src="{% static 'images/tick.png' %}">
                 {% else %}
-                    <img src="/static/images/cross.png">
+                    <img src="{% static 'images/cross.png' %}">
                 {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
     {% endfor %}
 
