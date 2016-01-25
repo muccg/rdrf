@@ -1,5 +1,4 @@
-#
-FROM muccg/python-base:ubuntu14.04-2.7
+FROM muccg/python-base:debian8-2.7
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 ARG GIT_TAG=next_release
@@ -11,6 +10,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
   git \
   libpcre3 \
   libpcre3-dev \
