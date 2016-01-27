@@ -152,6 +152,7 @@ INSTALLED_APPS = [
     'registration',
     'explorer',
     'djangosecure',
+    'useraudit',
 ]
 
 
