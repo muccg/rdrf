@@ -332,6 +332,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'db'
         },
+         'access_logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'access.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': [],
@@ -355,6 +362,12 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        # The following logger used by django useraudit
+        'django.security': {
+            'handlers': ['access_logfile', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        }
     }
 }
 
