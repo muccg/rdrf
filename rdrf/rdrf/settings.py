@@ -384,7 +384,7 @@ PASSWORD_EXPIRY_DAYS = 180
 # How long before expiry will the frontend start bothering the user
 PASSWORD_EXPIRY_WARNING_DAYS = 30
 # Disable the user's account if they haven't logged in for this time
-#ACCOUNT_EXPIRY_DAYS = 100
+ACCOUNT_EXPIRY_DAYS = 100
 
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
