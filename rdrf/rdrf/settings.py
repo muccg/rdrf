@@ -362,6 +362,8 @@ LOGGING = {
 ################################################################################
 
 AUTH_USER_MODEL = 'groups.CustomUser'
+AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR = "password_change_date"
+
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
