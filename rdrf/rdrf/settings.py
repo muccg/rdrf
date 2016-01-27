@@ -142,7 +142,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django_extensions',
     'messages_ui',
-    'userlog',
     'rdrf',
     'registry.groups',
     'registry.patients',
