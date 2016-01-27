@@ -168,7 +168,9 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend'
+    'useraudit.password_expiry.AccountExpiryBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'useraudit.backend.AuthFailedLoggerBackend'
 ]
 
 # email
