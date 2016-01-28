@@ -30,3 +30,4 @@ https://bitbucket.org/ccgmurdoch/ccg-django-utils/get/0.3.1.tar.gz
 openpyxl
 SQLAlchemy
 django-useraudit
+django-iprestrict==0.4.1
