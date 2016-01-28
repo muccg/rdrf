@@ -2023,11 +2023,8 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
 
     def post(self, request):
-        logger.info("****** received POST OK")
         results_dict = self._get_results(request)
-        logger.info("****  got data: %s" % results_dict)
         json_packet = self._json(results_dict)
-        logger.info("created json packet OK")
         return json_packet
 
     def _get_ordering(self, request):
