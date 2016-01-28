@@ -2,6 +2,8 @@ from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.http import HttpResponseRedirect
+from django.http import Http404
 
 from explorer.models import Query
 
@@ -42,8 +44,14 @@ class ReportView(LoginRequiredMixin, View):
 class ReportDataTableView(LoginRequiredMixin, View):
     def get(self, request, query_model_id):
         user = request.user
-        if not self._sanity_check(query_model_id, user):
-            return
+        try:
+            query_model = Query.objects.get(pk=query_model_id)
+        except Query.DoesNotExist:
+            raise Http404("Report %s does not exist" % query_model_id)
+
+        if not self._sanity_check(query_model, user):
+            return HttpResponseRedirect("/")
+
         table_name = "report_%s_%s" % (query_model_id, user.pk)
         context = {}
         context["location"] = 'Reports'
@@ -53,8 +61,14 @@ class ReportDataTableView(LoginRequiredMixin, View):
             context,
             context_instance=RequestContext(request))
 
+    def sanity_check(self, query_model, user):
+        #todo sanity check
+        return True
+
+
     def post(self, request):
         pass
+
 
 
 
