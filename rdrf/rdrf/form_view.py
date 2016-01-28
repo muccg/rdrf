@@ -1939,43 +1939,59 @@ class GridColumnsViewer(object):
         return settings.GRID_PATIENT_LISTING
 
 
+def dump(request):
+    for k in sorted(request.GET):
+        logger.debug("GET %s = %s" % (k, request.GET[k]))
+
+    for k in sorted(request.POST):
+        logger.debug("POST %s = %s" % (k, request.POST[k]))
+
+
+
+
 class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     MODEL = Patient
 
-    def get(self, request):
+    def _get_results(self, request):
+        dump(request)
         self.user = request.user
         # see http://datatables.net/manual/server-side
-        self.registry_code = request.GET.get("registry_code", None)
+        try:
+            self.registry_code = request.GET.get("registry_code", None)
+            logger.info("got registry code OK = %s" % self.registry_code)
+        except Exception, ex:
+            logger.error("could not get registry_code from request GET: %s" % ex)
+
         # can restrict on a particular patient for contexts - NOT usually set
         self.patient_id = request.GET.get("patient_id", None)
 
         if self.registry_code is None:
-            return self._json([])
+            return []
         try:
             self.registry_model = Registry.objects.get(code=self.registry_code)
             self.supports_contexts = self.registry_model.has_feature("contexts")
             self.rdrf_context_manager = RDRFContextManager(self.registry_model)
         except Registry.DoesNotExist:
             logger.error("patients listing api registry code %s does not exist" % self.registry_code)
-            return self._json([])
+            return []
 
         if not self.user.is_superuser:
             if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
                 logger.debug("user isn't in registry!")
-                return self._json([])
+                return []
 
         self.form_progress = FormProgress(self.registry_model)
 
-        search_term = request.GET.get("search[value]", "")
+        search_term = request.POST.get("search[value]", "")
         logger.debug("search term = %s" % search_term)
 
-        draw = int(request.GET.get("draw", None))
+        draw = int(request.POST.get("draw", None))
         logger.debug("draw = %s" % draw)
 
-        start = int(request.GET.get("start", None))
+        start = int(request.POST.get("start", None))
         logger.debug("start = %s" % start)
 
-        length = int(request.GET.get("length", None))
+        length = int(request.POST.get("length", None))
         logger.debug("length = %s" % length)
 
         page_number = (start / length) + 1
@@ -2002,8 +2018,14 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         rows = self._run_query(filtered_queryset, length, page_number, columns)
 
         results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
+        return results_dict
 
-        return self._json(results_dict)
+
+
+    def post(self, request):
+        results_dict = self._get_results(request)
+        json_packet = self._json(results_dict)
+        return json_packet
 
     def _get_ordering(self, request):
         #columns[0][data]:full_name
@@ -2012,19 +2034,19 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         #order[0][dir]:asc
         sort_column_index = None
         sort_direction = None
-        for key in request.GET:
+        for key in request.POST:
             if key.startswith("order"):
                 if "[column]" in key:
-                    sort_column_index = request.GET[key]
+                    sort_column_index = request.POST[key]
                 elif "[dir]" in key:
-                    sort_direction = request.GET[key]
+                    sort_direction = request.POST[key]
 
         column_name = "columns[%s][data]" % sort_column_index
-        sort_field = request.GET.get(column_name, None)
+        sort_field = request.POST.get(column_name, None)
         if sort_field == "full_name":
             sort_field = "family_name"
 
-        if sort_field not in ["family_name", "date_of_birth"]:
+        if sort_field not in ["family_name"]:
             sort_field = None
 
         return sort_field, sort_direction
@@ -2184,6 +2206,15 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     def _json(self, data):
         json_data = json.dumps(data)
         return HttpResponse(json_data, content_type="application/json")
+
+
+    def _no_results(self, draw):
+        return {
+            "draw": draw,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "rows": []
+        }
 
     def _get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
 

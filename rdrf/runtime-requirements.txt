@@ -30,3 +30,4 @@ https://bitbucket.org/ccgmurdoch/ccg-django-utils/downloads/ccg-django-utils-0.3
 https://github.com/muccg/django-userlog/archive/2.0.0.tar.gz
 openpyxl
 SQLAlchemy
+django-useraudit

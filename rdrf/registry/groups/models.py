@@ -62,6 +62,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     working_groups = models.ManyToManyField(WorkingGroup, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
+    password_change_date = models.DateTimeField(auto_now_add=True, null=True)
     
     USERNAME_FIELD = "username"
     

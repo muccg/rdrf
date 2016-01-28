@@ -10,11 +10,11 @@
     <script>
         $(document).ready(function() {
 
-        var initialRegistryCode = "{{registry_code}}";
+        $.fn.dataTable.ext.errMode = 'throw';
+
         var initialPatientId = "{{patient_id}}";
         var CONTEXT_LINK_COLUMN_INDEX= 2;
         var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
-
         var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
 
 
@@ -28,12 +28,9 @@
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
         }});
 
-        $.fn.dataTable.ext.errMode = 'throw';
-
-
         function getDrawLength() {
             try {
-                var length = $("#patient_list_table_length").val();
+                var length = $("#context_list_table_length").val();
                 if (length == undefined) {
                     return 10;
                 }
@@ -83,23 +80,11 @@
             })
         }
 
-        function getRegistryAndPatientFromRow(rowData) {
-            // full_name is actually a hyperlink to the patient demographics
-            var pattern = /.*patient\/(\d+)\'/;
-            var fullNameLink = rowData.full_name;
-            var patientId = parseInt(pattern.exec(fullNameLink)[1]);
-            var registryCode = $("#registry_options option:selected").attr("id");
-            return {patientId: patientId, registryCode: registryCode}
-        }
-
-        $.fn.dataTable.ext.errMode = 'throw';
-
         if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
             $("#add_patient").hide();
         }
 
         var registryCode = getSelectedRegistry();
-
 
         if ({{registries.0 | has_feature:"no_add_patient_button" | yesno:"false,true"}} == false) {
             $("#add_patient").hide();
@@ -108,9 +93,11 @@
         var contexts_list = $("#context_list_table").DataTable({
             "processing": true,
             "serverSide": true,
+            //"sAjaxDataProp" : "data",
             ajax: {
                     url: getApiUrl(registryCode, getDrawLength()),
-                    dataSrc: "rows"
+                    dataSrc: "rows",
+                    type: "POST"
             },
             columns: {{columns|safe}}
         }).on("draw", function () {
@@ -126,10 +113,12 @@
 
         $("#registry_options").change(function () {
             $("#loading_text").show();
-            var reg_code = $("#registry_options > option:selected").attr("id");
-            contexts_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
-            setContextLinkColumnVisibility(reg_code);
+            var registryCode= $("#registry_options > option:selected").attr("id");
+            var apiUrl = getApiUrl(registryCode, getDrawLength());
+            contexts_list.ajax.url(apiUrl).load();
+            setContextLinkColumnVisibility(registryCode);
         });
+
 
         $("#add_patient").click(function () {
             var registryCode = null;

@@ -59,12 +59,16 @@ class QuickLinks(object):
     EmailNotificationHistory = QuickLink("admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
     RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist", _("Registration Profiles"), True)
 
+    LoginLog = QuickLink("admin:useraudit_loginlog_changelist", _("User Login Log"), True)
+    FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)
+
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
     DATA_ENTRY = oset([ContextsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
+    AUDITING = oset([LoginLog, FailedLoginLog])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries,
@@ -99,4 +103,4 @@ class QuickLinks(object):
 
     STATE_MANAGEMENT = oset([States])
 
-    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT
+    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | AUDITING | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT
