@@ -11,15 +11,24 @@
 {% block extrahead %}
     <script>
 
-
-
-
     $(document).ready(
             function () {
 
-            }
-    )
+                var reportTable = $("#report_table").DataTable({
+                    "processing": true,
+                    "serverSide": true,
+                    ajax: {
+                        url: getApiUrl(registryCode, getDrawLength()),
+                        dataSrc: "rows",
+                        type: "POST"
+                    },
+                    columns: {{columns|safe}}
+                }).on("draw", function () {
 
+
+                    });
+                });
+            });
     </script>
 
 {% endblock %}
