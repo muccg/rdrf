@@ -122,6 +122,7 @@ MESSAGE_TAGS = {
 }
 
 MIDDLEWARE_CLASSES = (
+    'iprestrict.middleware.IPRestrictMiddleware',
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -153,6 +154,7 @@ INSTALLED_APPS = [
     'explorer',
     'djangosecure',
     'useraudit',
+    'iprestrict'
 ]
 
 
