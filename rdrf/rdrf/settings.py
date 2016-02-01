@@ -122,6 +122,7 @@ MESSAGE_TAGS = {
 }
 
 MIDDLEWARE_CLASSES = (
+    'useraudit.middleware.RequestToThreadLocalMiddleware',
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -141,7 +142,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django_extensions',
     'messages_ui',
-    'userlog',
     'rdrf',
     'registry.groups',
     'registry.patients',
@@ -152,6 +152,7 @@ INSTALLED_APPS = [
     'registration',
     'explorer',
     'djangosecure',
+    'useraudit',
 ]
 
 
@@ -166,7 +167,9 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend'
+    'useraudit.password_expiry.AccountExpiryBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'useraudit.backend.AuthFailedLoggerBackend'
 ]
 
 # email
@@ -329,6 +332,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'db'
         },
+         'access_logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'access.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': [],
@@ -352,6 +362,12 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        # The following logger used by django useraudit
+        'django.security': {
+            'handlers': ['access_logfile', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        }
     }
 }
 
@@ -361,6 +377,15 @@ LOGGING = {
 ################################################################################
 
 AUTH_USER_MODEL = 'groups.CustomUser'
+AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR = "password_change_date"
+
+# How long a user's password is good for. None or 0 means no expiration.
+PASSWORD_EXPIRY_DAYS = 180
+# How long before expiry will the frontend start bothering the user
+PASSWORD_EXPIRY_WARNING_DAYS = 30
+# Disable the user's account if they haven't logged in for this time
+ACCOUNT_EXPIRY_DAYS = 100
+
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 

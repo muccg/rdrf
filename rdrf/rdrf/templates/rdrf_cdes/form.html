@@ -247,6 +247,20 @@
         });
 
         setupRDRFContextSwitching();
+        
+        $('#main-form').data('serialize', $('#main-form').serialize());
+        
+        $(window).bind('beforeunload', function(e){
+            if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+                return "You have unsaved changes!";
+            } else {
+                e=null;
+            }
+        });
+        
+        $("#main-form").submit(function() {
+            $(window).unbind("beforeunload");
+        });
     });
     
     function add_form(prefix) {
@@ -316,7 +330,7 @@
     <br>
     <div class="row">
     <div class="col-md-10">
-        <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
+        <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
                     <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>

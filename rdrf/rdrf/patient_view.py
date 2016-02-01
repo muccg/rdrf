@@ -722,6 +722,7 @@ class PatientEditView(View):
                                   registry_model,
                                   patient,
                                   NavigationFormType.DEMOGRAPHICS,
+                                  context_id,
                                   None)
 
         context["next_form_link"] = wizard.next_link

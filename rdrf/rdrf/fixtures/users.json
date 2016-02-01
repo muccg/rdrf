@@ -34,7 +34,6 @@
       "is_active": true,
       "is_superuser": true,
       "is_staff": true,
-      "last_login": "2014-09-16T13:20:26.780",
       "registry": [],
       "groups": [
         [
@@ -59,7 +58,6 @@
       "is_active": true,
       "is_superuser": false,
       "is_staff": true,
-      "last_login": "2014-09-16T10:08:00.541",
       "registry": [],
       "groups": [
         [
@@ -84,7 +82,6 @@
       "is_active": true,
       "is_superuser": false,
       "is_staff": true,
-      "last_login": "2014-05-06T15:13:59.173",
       "registry": [],
       "groups": [
         [
@@ -109,7 +106,6 @@
       "is_active": true,
       "is_superuser": false,
       "is_staff": true,
-      "last_login": "2014-05-06T15:13:59.178",
       "registry": [],
       "groups": [
         [
