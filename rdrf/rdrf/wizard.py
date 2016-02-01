@@ -18,8 +18,8 @@ class NavigationWizard(object):
     Forms are skipped if not viewale by the user and we don't link to a questionnaire
     form
     """
-
-    def __init__(self, user, registry_model, patient_model, form_type, current_form_model=None):
+    
+    def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
         """
         :param user:
         :param registry_model:
@@ -33,6 +33,7 @@ class NavigationWizard(object):
         self.patient_model = patient_model
         self.current_form_model = current_form_model
         self.form_type = form_type
+        self.context_id = context_id
         self.links = self._construct_links()
         self.current_index = self._get_current_index()
 
@@ -69,14 +70,16 @@ class NavigationWizard(object):
     def _construct_links(self):
         def form_link(form_model):
             link = reverse('registry_form', args=(self.registry_model.code,
-                                                  form_model.id, self.patient_model.pk))
+                                                  form_model.id, self.patient_model.pk, self.context_id))
             return "clinical", form_model.pk, link
 
+        patient_page_link = ("patient_page", None, reverse("patient_page", args=[self.registry_model.code, self.context_id]))
+            
         demographic_link = ("demographic", None, reverse("patient_edit",
-                                                         args=[self.registry_model.code, self.patient_model.pk]))
+                                                         args=[self.registry_model.code, self.patient_model.pk, self.context_id]))
 
         consents_link = ("consents", None, reverse("consent_form_view",
-                                                   args=[self.registry_model.code, self.patient_model.pk]))
+                                                   args=[self.registry_model.code, self.patient_model.pk, self.context_id]))
 
         clinical_form_links = [form_link(form) for form in self.registry_model.forms
                                if self.user.can_view(form) and not form.is_questionnaire]
