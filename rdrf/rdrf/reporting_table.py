@@ -10,6 +10,10 @@ logger = logging.getLogger("registry_log")
 from django.conf import settings
 
 
+def temporary_table_name(query_model, user):
+    return "report_%s_%s" % (query_model.id, user.pk)
+
+
 class ReportingTableGenerator(object):
     DEMOGRAPHIC_FIELDS = [('family_name', 'todo', alc.String),
                           ('given_names', 'todo', alc.String),
@@ -67,8 +71,7 @@ class ReportingTableGenerator(object):
 
     def set_table_name(self, obj):
         logger.debug("setting table name from %s %s" % (self.user.username, obj))
-        t = "report_%s_%s" % (obj.id, self.user.pk)
-        self.table_name = t
+        self.table_name = temporary_table_name(obj, self.user)
         logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
@@ -281,3 +284,41 @@ class MongoFieldSelector(object):
 
         logger.debug("projected cdes = %s" % projected_cdes)
         return json.dumps(projected_cdes)
+
+
+class ReportTable(object):
+    """
+    Used by report datatable view
+    """
+
+    def __init__(self, query_model, user):
+        self.query_model = query_model
+        self.user = user
+        self.engine = self._create_engine()
+        self.table_name = temporary_table_name(self.query_model, self.user)
+
+    @property
+    def title(self):
+        return "Report Table By Lee"
+
+    @property
+    def columns(self):
+        sql = "select column_name from information_schema.columns where table_name='%s'
+
+
+    def _create_engine(self):
+        report_db_data = settings.DATABASES["reporting"]
+        db_user = report_db_data["USER"]
+        db_pass = report_db_data["PASSWORD"]
+        database = report_db_data["NAME"]
+        host = report_db_data["HOST"]
+        port = report_db_data["PORT"]
+        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
+                                                                      db_pass,
+                                                                      host,
+                                                                      port,
+                                                                      database)
+        return create_engine(connection_string)
+
+
+

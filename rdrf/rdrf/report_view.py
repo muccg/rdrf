@@ -7,6 +7,8 @@ from django.http import Http404
 
 from explorer.models import Query
 
+from rdrf.reporting_table import ReportTable
+
 
 class LoginRequiredMixin(object):
 
@@ -52,22 +54,35 @@ class ReportDataTableView(LoginRequiredMixin, View):
         if not self._sanity_check(query_model, user):
             return HttpResponseRedirect("/")
 
-        table_name = "report_%s_%s" % (query_model_id, user.pk)
+        report_table = ReportTable(user, query_model)
+
         context = {}
-        context["location"] = 'Reports'
-        context["columns"] = []
+        context["location"] = report_table.title
+        context["columns"] = report_table.columns
         return render_to_response(
             'rdrf_cdes/report_table_view.html',
             context,
             context_instance=RequestContext(request))
 
-    def sanity_check(self, query_model, user):
+    def _sanity_check(self, query_model, user):
         #todo sanity check
         return True
 
+    def post(self, request, query_model_id):
+        user = request.user
+        try:
+            query_model = Query.objects.get(pk=query_model_id)
+        except Query.DoesNotExist:
+            raise Http404("Report %s does not exist" % query_model_id)
 
-    def post(self, request):
-        pass
+        if not self._sanity_check(query_model, user):
+            return HttpResponseRedirect("/")
+
+        report_table = ReportTable(user, query_model)
+
+
+
+
 
 
 
