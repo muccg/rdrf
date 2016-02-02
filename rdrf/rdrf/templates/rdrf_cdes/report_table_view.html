@@ -15,7 +15,7 @@
 
     var Report = function(registryCode, columns) {
         this.registryCode = registryCode;
-        this.baseApiUrl = "{% url 'contextsgridapi'  %}";
+        this.baseApiUrl = "{{ api_url  }}";
         this.table = $("#report_table").DataTable({"processing": true,
                                                    "serverSide": true,
                                                     ajax: {
