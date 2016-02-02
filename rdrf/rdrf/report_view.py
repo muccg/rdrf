@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 from django.http import Http404
+from django.core.urlresolvers import reverse
 
 from explorer.models import Query
 
@@ -55,10 +56,13 @@ class ReportDataTableView(LoginRequiredMixin, View):
             return HttpResponseRedirect("/")
 
         report_table = ReportTable(user, query_model)
+        registry_model = query_model.registry
 
         context = {}
         context["location"] = report_table.title
+        context["registry_code"] = registry_model.code
         context["columns"] = report_table.columns
+        context["api_url"] = reverse('report_datatable', args=[query_model_id])
         return render_to_response(
             'rdrf_cdes/report_table_view.html',
             context,
@@ -78,7 +82,17 @@ class ReportDataTableView(LoginRequiredMixin, View):
         if not self._sanity_check(query_model, user):
             return HttpResponseRedirect("/")
 
+        query_parameters = self._get_query_parameters(request)
         report_table = ReportTable(user, query_model)
+
+        results_dict = report_table.run_query(query_parameters)
+
+
+
+
+
+
+
 
 
 

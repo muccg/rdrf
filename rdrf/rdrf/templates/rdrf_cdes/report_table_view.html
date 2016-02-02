@@ -11,23 +11,44 @@
 {% block extrahead %}
     <script>
 
+    var COLUMNS = {{columns|safe }};
+
+    var Report = function(registryCode, columns) {
+        this.registryCode = registryCode;
+        this.baseApiUrl = "{% url 'contextsgridapi'  %}";
+        this.table = $("#report_table").DataTable({"processing": true,
+                                                   "serverSide": true,
+                                                    ajax: {
+                                                        url: this.getUrl(),
+                                                        dataSrc: "rows",
+                                                        type: "POST"
+                                                    },
+                                                    columns: columns});
+    };
+
+    Report.prototype.getApiUrl = function(registryCode, drawLength) {
+        return  this.baseApiUrl + "?registry_code=" + registryCode + "&length=" + drawLength;
+    };
+
+    Report.prototype.getDrawLength = function () {
+        return 100;
+    };
+
+    Report.prototype.getUrl = function () {
+        return this.getApiUrl(this.registryCode, this.getDrawLength());
+    }
+
+    Report.prototype.load = function() {
+        var url = this.getUrl();
+        this.table.ajax.url(url).load();
+    }
+
     $(document).ready(
             function () {
-
-                var reportTable = $("#report_table").DataTable({
-                    "processing": true,
-                    "serverSide": true,
-                    ajax: {
-                        url: getApiUrl(registryCode, getDrawLength()),
-                        dataSrc: "rows",
-                        type: "POST"
-                    },
-                    columns: {{columns|safe}}
-                }).on("draw", function () {
-
-
-                    });
-                });
+                var registryCode = "{{ registry_code }}";
+                var baseApiUrl = "{{ api_url }}";
+                var report = new Report(registryCode, baseApiUrl, COLUMNS);
+                report.load()
             });
     </script>
 

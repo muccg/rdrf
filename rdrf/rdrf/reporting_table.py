@@ -291,11 +291,12 @@ class ReportTable(object):
     Used by report datatable view
     """
 
-    def __init__(self, query_model, user):
+    def __init__(self,  user, query_model):
         self.query_model = query_model
         self.user = user
         self.engine = self._create_engine()
         self.table_name = temporary_table_name(self.query_model, self.user)
+        self.table = self._get_table()
 
     @property
     def title(self):
@@ -303,8 +304,10 @@ class ReportTable(object):
 
     @property
     def columns(self):
-        sql = "select column_name from information_schema.columns where table_name='%s'
+        return [{"data": col.name, "label": col.name} for col in self.table.columns]
 
+    def _get_table(self):
+        return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
 
     def _create_engine(self):
         report_db_data = settings.DATABASES["reporting"]
@@ -319,6 +322,10 @@ class ReportTable(object):
                                                                       port,
                                                                       database)
         return create_engine(connection_string)
+
+    def run_query(self, query=None):
+        pass
+
 
 
 
