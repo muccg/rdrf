@@ -242,6 +242,7 @@ class FormView(View):
                                   self.registry,
                                   patient_model,
                                   NavigationFormType.CLINICAL,
+                                  context_id,
                                   self.registry_form)
 
         context["next_form_link"] = wizard.next_link
@@ -428,6 +429,7 @@ class FormView(View):
                                   registry,
                                   patient,
                                   NavigationFormType.CLINICAL,
+                                  context_id,
                                   form_obj)
 
         context = {
@@ -2535,6 +2537,7 @@ class CustomConsentFormView(View):
                                   registry_model,
                                   patient_model,
                                   NavigationFormType.CONSENTS,
+                                  context_id,
                                   None)
 
         try:
@@ -2662,6 +2665,7 @@ class CustomConsentFormView(View):
                                   registry_model,
                                   patient_model,
                                   NavigationFormType.CONSENTS,
+                                  context_id,
                                   None)
 
         patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
