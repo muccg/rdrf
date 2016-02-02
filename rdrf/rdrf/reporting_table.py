@@ -297,6 +297,9 @@ class ReportTable(object):
         self.engine = self._create_engine()
         self.table_name = temporary_table_name(self.query_model, self.user)
         self.table = self._get_table()
+        self._converters = {
+            "date_of_birth": str,
+        }
 
     @property
     def title(self):
@@ -323,8 +326,28 @@ class ReportTable(object):
                                                                       database)
         return create_engine(connection_string)
 
-    def run_query(self, query=None):
-        pass
+    def run_query(self, params=None):
+        from sqlalchemy.sql import select
+        rows = []
+        columns = [col for col in self.table.columns]
+        if params is None:
+            select_all = select([self.table])
+            for row in self.engine.execute(select_all):
+                result_dict = {}
+                for i, col in enumerate(columns):
+                    result_dict[col.name] = self._format(col.name, row[i])
+                rows.append(result_dict)
+            return rows
+
+    def _format(self, column, data):
+        converter = self._converters.get(column, None)
+        if converter is None:
+            return data
+        else:
+            return converter(data)
+
+
+
 
 
 

@@ -4,11 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 from django.http import Http404
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 
 from explorer.models import Query
 
 from rdrf.reporting_table import ReportTable
+import json
 
 
 class LoginRequiredMixin(object):
@@ -84,10 +86,24 @@ class ReportDataTableView(LoginRequiredMixin, View):
 
         query_parameters = self._get_query_parameters(request)
         report_table = ReportTable(user, query_model)
+        rows = [row for row in report_table.run_query(query_parameters)]
+        return self._json(self._build_result_dict(rows))
 
-        results_dict = report_table.run_query(query_parameters)
 
+    def _json(self, result_dict):
+        json_data = json.dumps(result_dict)
+        return HttpResponse(json_data, content_type="application/json")
 
+    def _build_result_dict(self, rows):
+        return {
+            "draw": 100,
+            "recordsTotal": len(rows),
+            "recordsFiltered": 0,
+            "rows": rows,
+        }
+
+    def _get_query_parameters(self, request):
+        return None
 
 
 
