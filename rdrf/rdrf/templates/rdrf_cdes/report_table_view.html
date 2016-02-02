@@ -43,11 +43,18 @@
         this.table.ajax.url(url).load();
     }
 
+    function setUpCSRFToken() {
+         $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }});
+    }
+
     $(document).ready(
             function () {
+                setUpCSRFToken();
                 var registryCode = "{{ registry_code }}";
-                var baseApiUrl = "{{ api_url }}";
-                var report = new Report(registryCode, baseApiUrl, COLUMNS);
+                var report = new Report(registryCode, COLUMNS);
                 report.load()
             });
     </script>
