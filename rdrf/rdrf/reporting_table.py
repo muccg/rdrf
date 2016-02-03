@@ -327,17 +327,37 @@ class ReportTable(object):
         return create_engine(connection_string)
 
     def run_query(self, params=None):
+        logger.debug("params = %s" % params)
         from sqlalchemy.sql import select
         rows = []
         columns = [col for col in self.table.columns]
+        query = select([self.table])
         if params is None:
-            select_all = select([self.table])
-            for row in self.engine.execute(select_all):
+            pass
+        else:
+            if "sort_field" in params:
+                sort_field = params["sort_field"]
+                sort_direction = params["sort_direction"]
+
+                sort_column = getattr(self.table.c, sort_field)
+                logger.debug("sorting by %s" % sort_column.name)
+
+                if sort_direction == "asc":
+                    logger.debug("sort direction is ascending")
+                    sort_column = sort_column.asc()
+                else:
+                    logger.debug("sort direction is descending")
+                    sort_column = sort_column.desc()
+
+                query = query.order_by(sort_column)
+
+        for row in self.engine.execute(query):
                 result_dict = {}
                 for i, col in enumerate(columns):
                     result_dict[col.name] = self._format(col.name, row[i])
+                logger.debug(result_dict)
                 rows.append(result_dict)
-            return rows
+        return rows
 
     def _format(self, column, data):
         converter = self._converters.get(column, None)

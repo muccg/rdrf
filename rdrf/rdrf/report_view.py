@@ -96,7 +96,6 @@ class ReportDataTableView(LoginRequiredMixin, View):
 
     def _build_result_dict(self, rows):
         return {
-            "draw": 100,
             "recordsTotal": len(rows),
             "recordsFiltered": 0,
             "rows": rows,
@@ -106,6 +105,33 @@ class ReportDataTableView(LoginRequiredMixin, View):
         p = {}
         p["search"] = request.POST.get("search[value]", None)
         p["search_regex"] = request.POST.get("search[regex]", False)
+        sort_field, sort_direction = self._get_ordering(request)
+        p["sort_field"] = sort_field
+        p["sort_direction"] = sort_direction
+        p["start"] = request.POST.get("start", 0)
+        p["length"] = request.POST.get("length", 10)
+        return p
+
+    def _get_ordering(self, request):
+        #columns[0][data]:full_name
+        #...
+        #order[0][column]:1
+        #order[0][dir]:asc
+        sort_column_index = None
+        sort_direction = None
+        for key in request.POST:
+            if key.startswith("order"):
+                if "[column]" in key:
+                    sort_column_index = request.POST[key]
+                elif "[dir]" in key:
+                    sort_direction = request.POST[key]
+
+        column_name = "columns[%s][data]" % sort_column_index
+        sort_field = request.POST.get(column_name, None)
+
+        return sort_field, sort_direction
+
+
 
 
 
