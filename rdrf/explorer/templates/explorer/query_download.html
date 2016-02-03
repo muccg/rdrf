@@ -51,9 +51,18 @@
             </div>
         {% endfor %}
         <div class="form-group">
+
+            {%  if action == "download" %}
             <div class="col-sm-offset-2 col-sm-10">
                 <button class="btn btn-success" type="submit">Download</button>
             </div>
+            {%  endif %}
+
+            {% if action == "analyse" %}
+             <div class="col-sm-offset-2 col-sm-10">
+                <button class="btn btn-success" type="submit">Analyse</button>
+            </div>
+            {% endif %}
         </div>
     </form>
 {% endblock %}

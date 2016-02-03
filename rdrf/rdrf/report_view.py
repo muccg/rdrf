@@ -103,7 +103,10 @@ class ReportDataTableView(LoginRequiredMixin, View):
         }
 
     def _get_query_parameters(self, request):
-        return None
+        p = {}
+        p["search"] = request.POST.get("search[value]", None)
+        p["search_regex"] = request.POST.get("search[regex]", False)
+
 
 
 

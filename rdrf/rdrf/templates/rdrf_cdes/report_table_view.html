@@ -12,11 +12,14 @@
     <script>
 
     var COLUMNS = {{columns|safe }};
+    var TABLE_ID = "report_table";
+    var TABLE_LENGTH_SELECT = "report_table_length";
 
-    var Report = function(registryCode, columns) {
+    var Report = function(registryCode, columns, length) {
         this.registryCode = registryCode;
         this.baseApiUrl = "{{ api_url  }}";
-        this.table = $("#report_table").DataTable({"processing": true,
+        this.length = length;
+        this.table = $("#" + TABLE_ID).DataTable({"processing": true,
                                                    "serverSide": true,
                                                     ajax: {
                                                         url: this.getUrl(),
@@ -26,20 +29,18 @@
                                                     columns: columns});
     };
 
-    Report.prototype.getApiUrl = function(registryCode, drawLength) {
-        return  this.baseApiUrl + "?registry_code=" + registryCode + "&length=" + drawLength;
-    };
-
-    Report.prototype.getDrawLength = function () {
-        return 100;
+    Report.prototype.getApiUrl = function(registryCode) {
+        return  this.baseApiUrl + "?registry_code=" + registryCode + "&length=" + this.length;
     };
 
     Report.prototype.getUrl = function () {
-        return this.getApiUrl(this.registryCode, this.getDrawLength());
-    }
+        return this.getApiUrl(this.registryCode);
+    };
+
 
     Report.prototype.load = function() {
         var url = this.getUrl();
+        alert(url);
         this.table.ajax.url(url).load();
     }
 
@@ -50,12 +51,21 @@
                 }});
     }
 
+    function hookupLengthSelect(report) {
+        $("#" + TABLE_LENGTH_SELECT).change(function () {
+            report.length = $("#" + TABLE_LENGTH_SELECT).find("option:selected").val();
+            //report.load();
+        })
+    }
+
     $(document).ready(
             function () {
                 setUpCSRFToken();
                 var registryCode = "{{ registry_code }}";
-                var report = new Report(registryCode, COLUMNS);
-                report.load()
+                var initial_length = 10;
+                var report = new Report(registryCode, COLUMNS, initial_length);
+                hookupLengthSelect(report);
+
             });
     </script>
 

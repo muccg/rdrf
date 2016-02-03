@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
@@ -141,7 +142,10 @@ class QueryView(LoginRequiredMixin, View):
 
 class DownloadQueryView(LoginRequiredMixin, View):
 
-    def post(self, request, query_id):
+    def post(self, request, query_id, action):
+        if action not in ["download", "analyse"]:
+            raise Exception("bad action")
+
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
 
@@ -166,9 +170,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        if action == "analyse":
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            return self._extract(query_model.title, rtg)
 
-    def get(self, request, query_id):
+    def get(self, request, query_id, action):
+        if action not in ['download', 'analyse']:
+            raise Exception("bad action")
+
         user = request.user
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
@@ -178,6 +188,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         if query_params:
             params = _get_default_params(request, query_form)
+            params["action"] = action
             params['query_params'] = query_params
             if "registry" in query_params:
                 params["registry"] = Registry.objects.all()
@@ -195,7 +206,12 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        if action == 'analyse':
+            # allow user to view and manipulate
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            # download csv
+            return self._extract(query_model.title, rtg)
 
     def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
