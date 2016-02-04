@@ -143,7 +143,7 @@ class QueryView(LoginRequiredMixin, View):
 class DownloadQueryView(LoginRequiredMixin, View):
 
     def post(self, request, query_id, action):
-        if action not in ["download", "analyse"]:
+        if action not in ["download", "view"]:
             raise Exception("bad action")
 
         query_model = Query.objects.get(id=query_id)
@@ -170,16 +170,17 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        if action == "analyse":
+        if action == "view":
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
             return self._extract(query_model.title, rtg)
 
     def get(self, request, query_id, action):
-        if action not in ['download', 'analyse']:
+        if action not in ['download', 'view']:
             raise Exception("bad action")
 
         user = request.user
+        logger.debug("user = %s" % user)
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -193,11 +194,16 @@ class DownloadQueryView(LoginRequiredMixin, View):
             if "registry" in query_params:
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
-                if user.is_curator:
+                if user.is_superuser:
+                    params["working_group"] = WorkingGroup.objects.filter(registry=registry_model)
+                elif user.is_curator:
                     params["working_group"] = WorkingGroup.objects.filter(
                         id__in=[wg.id for wg in user.get_working_groups()])
                 else:
-                    params["working_group"] = WorkingGroup.objects.all()
+                    # only curators and admin
+                    pass
+
+
             return render_to_response('explorer/query_download.html', params)
 
         database_utils = DatabaseUtils(query_model)
@@ -206,7 +212,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        if action == 'analyse':
+        if action == 'view':
             # allow user to view and manipulate
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
