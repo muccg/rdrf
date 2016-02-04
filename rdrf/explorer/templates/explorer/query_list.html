@@ -19,10 +19,10 @@
                     <td>{{object}}</td>
                 {% endif %}
                 <td>
-                    <a href="{% url 'explorer_query_download' object.id %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                    <a href="{% url 'explorer_query_download' object.id "download" %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
                 </td>
                  <td>
-                    <a href="{% url 'report_datatable' object.id %}"><i class="glyphicon glyphicon-eye-open" style="font-size: 20px;"></i></a>
+                    <a href="{% url 'explorer_query_download' object.id "view" %}"><i class="glyphicon glyphicon-eye-open" style="font-size: 20px;"></i></a>
                 </td>
                 <td>
                     {% if request.user.is_superuser %}
