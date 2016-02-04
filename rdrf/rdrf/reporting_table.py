@@ -127,6 +127,8 @@ class ReportingTableGenerator(object):
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
+        logger.debug("**** cde %s datatype %s  --> column datatype %s" % (cde_model.code, cde_model.datatype,
+                                                                        column_data_type))
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         if section_model.allow_multiple:
             # This map is used when we unroll/"denormalise" the multisection data

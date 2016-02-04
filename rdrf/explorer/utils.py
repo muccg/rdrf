@@ -363,27 +363,36 @@ class DatabaseUtils(object):
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
+        logger.debug("*** _get_cde_value: form = %s section = %s cde = %s" % (form_model.name,
+                                                                          section_model.code,
+                                                                          cde_model.code))
         for form_dict in mongo_document["forms"]:
             if form_dict["name"] == form_model.name:
                 for section_dict in form_dict["sections"]:
                     if section_dict["code"] == section_model.code:
                         if section_dict["allow_multiple"]:
+                            logger.debug("multisection - returning values")
                             values = []
                             for section_item in section_dict["cdes"]:
                                 for cde_dict in section_item:
                                     if cde_dict["code"] == cde_model.code:
                                         values.append(self._get_sensible_value_from_cde(cde_model, cde_dict["value"]))
+
+                            logger.debug("values = %s" % values)
                             return values
                         else:
-                            logger.debug("section_dict = %s" % section_dict)
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_model.code:
-                                    return self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+                                    value = self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+                                    logger.debug("single value = %s" % value)
+                                    return value
 
         if section_model.allow_multiple:
             # no data filled in?
+            logger.debug("no data in multisection? returning [None]")
             return [None]
         else:
+            logger.debug("No data in single section - returning None")
             return None
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
