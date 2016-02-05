@@ -2245,6 +2245,8 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
         registry_queryset = Registry.objects.filter(code=registry_code)
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
+
         if self.patient_id is None:
             # Usual case
             models = self.MODEL.objects.all()
@@ -2312,6 +2314,8 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                                                  object_id=self.patient_id)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
+
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
 
         if not user.is_superuser:
             if user.is_curator:
