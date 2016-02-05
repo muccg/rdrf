@@ -11,6 +11,9 @@ from explorer.models import Query
 
 from rdrf.reporting_table import ReportTable
 import json
+from datetime import datetime
+import logging
+logger = logging.getLogger("registry_log")
 
 
 class LoginRequiredMixin(object):
@@ -64,6 +67,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
         context["location"] = report_table.title
         context["registry_code"] = registry_model.code
         context["columns"] = report_table.columns
+        context["report_title"] = query_model.title
         context["api_url"] = reverse('report_datatable', args=[query_model_id])
         return render_to_response(
             'rdrf_cdes/report_table_view.html',
@@ -85,10 +89,28 @@ class ReportDataTableView(LoginRequiredMixin, View):
             return HttpResponseRedirect("/")
 
         query_parameters = self._get_query_parameters(request)
+        logger.debug("query parameters = %s" % query_parameters)
         report_table = ReportTable(user, query_model)
-        rows = [row for row in report_table.run_query(query_parameters)]
-        return self._json(self._build_result_dict(rows))
 
+        a = datetime.now()
+        rows = report_table.run_query(query_parameters)
+        logger.info("number of rows returned = %s" % len(rows))
+        b = datetime.now()
+        logger.debug("time to run query = %s" % (b - a))
+
+        try:
+            c = datetime.now()
+            results_dict = self._build_result_dict(rows)
+
+            j = self._json(results_dict)
+            with open("tmp.json", "w") as f:
+                json.dump(results_dict, f)
+            d = datetime.now()
+            logger.info("time to jsonify = %s" % (d - c))
+            return j
+        except Exception, ex:
+            logger.error("Could not jsonify results: %s" % ex)
+            return self._json({})
 
     def _json(self, result_dict):
         json_data = json.dumps(result_dict)
