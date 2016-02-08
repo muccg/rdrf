@@ -123,11 +123,6 @@ class ParentView(BaseParentView):
             self.registry = registry
             self.rdrf_context_manager = RDRFContextManager(self.registry)
 
-            try:
-                self.set_rdrf_context(parent, context_id)
-            except RDRFContextSwitchError:
-                return HttpResponseRedirect("/")
-
             forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
             forms = []
             for form in forms_objects:
@@ -139,15 +134,19 @@ class ParentView(BaseParentView):
             patients_objects = parent.patient.all()
             patients = []
             for patient in patients_objects:
+                self.set_rdrf_context(patient, context_id)
                 patients.append({
                     "patient": patient,
-                    "consent": self._consent_status_for_patient(registry_code, patient)
+                    "consent": consent_status_for_patient(registry_code, patient),
+                    "context_id": self.rdrf_context.pk
                 })
 
             context['parent'] = parent
             context['patients'] = patients
             context['registry_code'] = registry_code
             context['registry_forms'] = forms
+            
+            self.set_rdrf_context(parent, context_id)
             context['context_id'] = self.rdrf_context.pk
 
         return render_to_response(
