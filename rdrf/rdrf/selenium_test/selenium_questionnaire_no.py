@@ -11,11 +11,11 @@ class NoQuestionnaire(Base):
         sel = self.selenium
         sel.open("/")
         sel.click("link=Registries on this site")
-        sel.click("link=FH Registry v0.1.6")
+        sel.click("link=Sample Registry")
         sel.wait_for_page_to_load("30000")
         self.assertEqual(
-            "National Registry for Familial Hypercholesterolemia",
-            sel.get_text("css=p.text-center"))
-        sel.open("/fh/questionnaire")
+            "Sample Registry",
+            sel.get_text("//div[@class='container']/h1/text()"))
+        sel.open("/sample/questionnaire")
         self.assertEqual(
-            "No questionnaire for registry fh", sel.get_text("css=div.alert.alert-danger"))
+            "No questionnaire for registry sample", sel.get_text("css=div.alert.alert-danger"))

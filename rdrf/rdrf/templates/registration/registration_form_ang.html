@@ -1,5 +1,6 @@
 {% load countries %}
 {% load static %}
+{% load recaptcha_site_key %}
 
 <script type="text/javascript">
     $(document).ready(function(){
@@ -259,10 +260,27 @@
                     </div>
                 </div>
             </div>
-            
+
+            <div class="form-group">
+                <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
+            </div>
+
             <div class="form-group">
                 <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function reCaptchaCallback() {
+        r = grecaptcha.getResponse();
+        url = "{% url 'recaptcha_validator'%}";
+        $.post(url, {"response_value": r, "csrfmiddlewaretoken" : "{{csrf_token}}"}, function(data){
+            json_result = $.parseJSON(data);
+            if(json_result.success) {
+                $("#registration-submit").prop("disabled", false);
+            }
+        });
+    }
+</script>

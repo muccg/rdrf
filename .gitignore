@@ -2,7 +2,7 @@ syntax: glob
 
 *.pyc
 *.swp
-
+scripts
 data
 build
 dist
@@ -27,3 +27,7 @@ tests*.xml
 .ccgplatform
 .idea
 .gitignore
+.version
+
+*#
+*~

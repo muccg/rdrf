@@ -28,7 +28,17 @@ class PatientRelativeLinkWidget(widgets.Widget):
             hidden_field = """<input type=hidden id="%s" name="%s" value="%s">""" % (
                 attrs['id'], name, value)  # ensure that the link to patient not lost on submission!
 
-            patient_url = reverse("patient_edit", args=[reg_code, value])
+            default_context = self._get_default_context(reg_code, value)
+
+            patient_url = reverse("patient_edit", args=[reg_code, value, default_context.pk])
 
             html = """<a  href='%s'>Patient in registry</a>%s""" % (patient_url, hidden_field)
             return html
+
+    def _get_default_context(self, reg_code, patient_id):
+        from rdrf.models import Registry
+        from registry.patients.models import Patient
+        patient_model = Patient.objects.get(pk=int(patient_id))
+        registry_model = Registry.objects.get(code=reg_code)
+        return patient_model.default_context(registry_model)
+

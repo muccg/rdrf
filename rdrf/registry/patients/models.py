@@ -23,13 +23,12 @@ from rdrf.hooking import run_hooks
 from rdrf.mongo_client import construct_mongo_client
 from django.db.models.signals import m2m_changed, post_delete
 
+
+
 import logging
 logger = logging.getLogger('registry_log')
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
-
-_MONGO_PATIENT_DATABASE = 'patients'
-_MONGO_PATIENT_COLLECTION = 'patient'
 
 _6MONTHS_IN_DAYS = 183
 
@@ -267,63 +266,7 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
-    @property
-    def diagnosis_progress(self):
-        """
-        returns a map of reg code to an integer between 0-100 (%)
-        """
-        registry_diagnosis_progress = {}
 
-        for registry_model in self.rdrf_registry.all():
-            total_number_filled_in = 0
-            total_number_required_for_completion = 0
-            for form_model in registry_model.forms:
-                # hack
-                if not "genetic" in form_model.name.lower():
-                    number_filled_in, total_number_for_completion = self.form_progress(
-                        form_model, numbers_only=True)
-                    total_number_filled_in += number_filled_in
-                    total_number_required_for_completion += total_number_for_completion
-            try:
-                registry_diagnosis_progress[
-                    registry_model.code] = int(
-                    100.0 *
-                    float(total_number_filled_in) /
-                    float(total_number_required_for_completion))
-            except ZeroDivisionError as zderr:
-                pass  # don't have progress? skip
-
-        return registry_diagnosis_progress
-
-    @property
-    def diagnosis_progress_new(self):
-        """
-        returns a map of reg code to an integer between 0-100 (%)
-        """
-        registry_diagnosis_progress = {}
-
-        for registry_model in self.rdrf_registry.all():
-            forms = []
-            total_number_filled_in = 0
-            total_number_required_for_completion = 0
-            for form_model in registry_model.forms:
-                # hack
-                if not "genetic" in form_model.name.lower():
-                    forms.append(form_model)
-
-            total_number_filled_in, total_number_required_for_completion = self.forms_progress(
-                registry_model, forms)
-
-            try:
-                registry_diagnosis_progress[
-                    registry_model.code] = int(
-                    100.0 *
-                    float(total_number_filled_in) /
-                    float(total_number_required_for_completion))
-            except ZeroDivisionError as zderr:
-                pass  # don't have progress? skip
-
-        return registry_diagnosis_progress
 
     def clinical_data_currency(self, days=365):
         """
@@ -406,10 +349,27 @@ class Patient(models.Model):
             else:
                 return mongo_data[key]
 
-    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value):
+    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
-        wrapper = DynamicDataWrapper(self)
+        from rdrf.form_progress import FormProgress
+        from rdrf.models import RegistryForm, Registry
+        registry_model = Registry.objects.get(code=registry_code)
+        if registry_model.has_feature("contexts") and context_model is None:
+            raise Exception("No context model set")
+        elif not registry_model.has_feature("contexts") and context_model is not None:
+            raise Exception("context model should not be explicit for non-supporting registry")
+        elif not registry_model.has_feature("contexts") and context_model is None:
+            # the usual case
+            from rdrf.contexts_api import RDRFContextManager
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(self)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+
+        form_model = RegistryForm(name=form_name, registry=registry_model)
+        wrapper.current_form_model = form_model
+
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         timestamp = "%s_timestamp" % form_name
@@ -422,6 +382,11 @@ class Patient(models.Model):
             mongo_data[key] = value
             mongo_data[timestamp] = t
             wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+        # update form progress
+        registry_model = Registry.objects.get(code=registry_code)
+        form_progress_calculator = FormProgress(registry_model)
+        form_progress_calculator.save_for_patient(self, context_model)
 
     def in_registry(self, reg_code):
         """
@@ -445,6 +410,17 @@ class Patient(models.Model):
                 pass
 
         return None
+
+    def get_contexts_url(self, registry_model):
+        from django.core.urlresolvers import reverse
+        if not registry_model.has_feature("contexts"):
+            return None
+        else:
+            base_url = reverse("contextslisting")
+            full_url = "%s?registry_code=%s&patient_id=%s" % (base_url,
+                                                              registry_model.code,
+                                                              self.pk)
+            return full_url
 
     def sync_patient_relative(self):
         logger.debug("Attempting to sync PatientRelative")
@@ -668,6 +644,29 @@ class Patient(models.Model):
             date_of_birth=str(self.date_of_birth)
         )
 
+    @property
+    def context_models(self):
+        from django.contrib.contenttypes.models import ContentType
+        from rdrf.models import RDRFContext
+        contexts = []
+        content_type = ContentType.objects.get_for_model(self)
+
+        for context_model in RDRFContext.objects.filter(content_type=content_type,
+                                                        object_id=self.pk).order_by("created_at"):
+            contexts.append(context_model)
+        return contexts
+
+    def default_context(self, registry_model):
+        # return None if doesn't make sense
+        if not registry_model.has_feature("contexts"):
+            # good - default context makes sense only if registry does not allow multiple contexts
+            # return the one and only context
+            my_contexts = self.context_models
+            if len(my_contexts) == 1:
+                return my_contexts[0]
+
+        return None
+
 
 class ClinicianOther(models.Model):
     patient = models.ForeignKey(Patient, null=True)
@@ -853,53 +852,10 @@ def delete_created_patient(sender, instance, **kwargs):
     if instance.relative_patient:
         instance.relative_patient.delete()
 
-@receiver(post_save, sender=Patient)
-def save_patient_mongo(sender, instance, **kwargs):
-    patient_obj = Patient.objects.prefetch_related('rdrf_registry').get(pk=instance.pk)
-    _save_patient_mongo(patient_obj)
-
 
 @receiver(post_save, sender=Patient)
 def clean_consents(sender, instance, **kwargs):
     instance.clean_consents()
-
-
-def _save_patient_mongo(patient_obj):
-    client = construct_mongo_client()
-    patient_db = client[mongo_db_name(_MONGO_PATIENT_DATABASE)]
-    patient_coll = patient_db[_MONGO_PATIENT_COLLECTION]
-
-    json_str = serializers.serialize("json", [patient_obj])
-    json_obj = json.loads(json_str)
-
-    mongo_doc = patient_coll.find_one({'django_id': json_obj[0]['pk']})
-
-    if mongo_doc:
-        _update_mongo_obj(mongo_doc, json_obj[0]['fields'])
-        patient_coll.save(mongo_doc)
-    else:
-        json_obj[0]['fields']['django_id'] = json_obj[0]['pk']
-        json_obj[0]['fields']['rdrf_registry'] = _get_registry_for_mongo(
-            patient_obj.rdrf_registry.all())
-        patient_coll.save(json_obj[0]['fields'])
-
-
-def _update_mongo_obj(mongo_doc, patient_model):
-    keys_to_delete = []
-    for key, value in mongo_doc.iteritems():
-        if key in ['rdrf_registry', ]:
-            mongo_doc[key] = _get_registry_for_mongo(patient_model[key])
-        if key not in ['django_id', '_id', 'rdrf_registry']:
-            if key in patient_model:
-                logger.info(
-                    "key %s is not present in patient_model and will be deleted from the mongo doc ..." %
-                    key)
-                mongo_doc[key] = patient_model[key]
-            else:
-                keys_to_delete.append(key)
-
-    for key in keys_to_delete:
-        del mongo_doc[key]
 
 
 def _get_registry_for_mongo(regs):
@@ -957,7 +913,8 @@ def registry_changed_on_patient(sender, **kwargs):
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         run_hooks('registry_added', instance, registry_ids)
-        #run_consent_closures(instance, registry_ids)
+        from rdrf.contexts_api import create_rdrf_default_contexts
+        create_rdrf_default_contexts(instance, registry_ids)
 
 
 class ConsentValue(models.Model):

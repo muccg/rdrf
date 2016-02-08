@@ -2,7 +2,7 @@ from base import BaseRegistration
 from rdrf.email_notification import process_notification
 from registration.models import RegistrationProfile
 from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
-from registry.groups.models import WorkingGroup
+from registry.groups.models import WorkingGroup, CustomUser
 
 from rdrf.email_notification import RdrfEmail
 from django.conf import settings

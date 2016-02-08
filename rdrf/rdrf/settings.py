@@ -45,7 +45,9 @@ USE_I18N = env.get("use_i18n", True)
 
 LANGUAGES = (
     ('ar', 'Arabic'),
+    ('de', 'German'),
     ('en', 'English'),
+    ('no', 'Norwegian'),
 )
 
 DATABASES = {
@@ -120,6 +122,8 @@ MESSAGE_TAGS = {
 }
 
 MIDDLEWARE_CLASSES = (
+    #'iprestrict.middleware.IPRestrictMiddleware',
+    'useraudit.middleware.RequestToThreadLocalMiddleware',
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -139,7 +143,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django_extensions',
     'messages_ui',
-    'userlog',
     'rdrf',
     'registry.groups',
     'registry.patients',
@@ -150,6 +153,8 @@ INSTALLED_APPS = [
     'registration',
     'explorer',
     'djangosecure',
+    'useraudit',
+    'iprestrict'
 ]
 
 
@@ -164,7 +169,9 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend'
+    'useraudit.password_expiry.AccountExpiryBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'useraudit.backend.AuthFailedLoggerBackend'
 ]
 
 # email
@@ -327,6 +334,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'db'
         },
+         'access_logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'access.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': [],
@@ -350,6 +364,12 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        # The following logger used by django useraudit
+        'django.security': {
+            'handlers': ['access_logfile', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        }
     }
 }
 
@@ -359,6 +379,15 @@ LOGGING = {
 ################################################################################
 
 AUTH_USER_MODEL = 'groups.CustomUser'
+AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR = "password_change_date"
+
+# How long a user's password is good for. None or 0 means no expiration.
+PASSWORD_EXPIRY_DAYS = 180
+# How long before expiry will the frontend start bothering the user
+PASSWORD_EXPIRY_WARNING_DAYS = 30
+# Disable the user's account if they haven't logged in for this time
+ACCOUNT_EXPIRY_DAYS = 100
+
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
@@ -485,5 +514,110 @@ GRID_PATIENT_LISTING = [
         "data": "data_modules",
         "label": "Modules",
         "order": 7
+    },
+    {
+        "access": {
+            "default": True,
+            "permission": ""
+        },
+        "data": "diagnosis_progress",
+        "label": "Data Entry Progress",
+        "order": 8
     }
 ]
+
+
+GRID_CONTEXT_LISTING = [
+     {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_full_name"
+        },
+        "data": "patient_link",
+        "label": "Patient",
+        "model": "func",
+        "order": 0
+    },
+    {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_dob",
+        },
+        "data": "date_of_birth",
+        "label": "Date of Birth",
+        "model": "Patient",
+        "order": 1
+    },
+
+    {
+        "access": {
+            "default": False,
+            "permission": ""
+        },
+        "data": "display_name",  # display name only visible for registries that provide contexts feature
+        "label": "Name",
+        "model": "RDRFContext",
+        "order": 2
+    },
+    {
+        "access": {
+            "default": False,
+            "permission": ""
+        },
+        "data": "created_at",
+        "label": "Created",
+        "model": "RDRFContext",
+        "order": 3
+    },
+
+    {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_working_groups"
+        },
+        "data": "working_groups_display",
+        "label": "Working Groups",
+        "model": "Patient",
+        "order": 4
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_progress"
+        },
+        "data": "diagnosis_progress",
+        "label": "Diagnosis Entry Progress",
+        "model": "Patient",
+        "order": 5
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_diagnosis_currency"
+        },
+        "data": "diagnosis_currency",
+        "label": "Updated < 365 days",
+        "model": "Patient",
+        "order": 6
+    }, {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_genetic_data_map"
+        },
+        "data": "genetic_data_map",
+        "label": "Genetic Data",
+        "model": "Patient",
+        "order": 7
+    },
+     {
+        "access": {
+            "default": False,
+            "permission": "patients.can_see_data_modules",
+        },
+        "data": "context_menu",
+        "label": "Modules",
+        "model": "func",
+        "order": 8
+    }
+]
+
+RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
+RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")

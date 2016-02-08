@@ -258,6 +258,8 @@ class FormTestCase(RDRFTestCase):
         print "Testing Mongo Reset OK"
 
     def create_patient(self):
+        from rdrf.contexts_api import RDRFContextManager
+
         p = Patient()
         p.consent = True
         p.name = "Harry"
@@ -265,6 +267,10 @@ class FormTestCase(RDRFTestCase):
         p.working_group = self.working_group
         p.save()
         p.rdrf_registry = [self.registry]
+
+        context_manager = RDRFContextManager(self.registry)
+        self.default_context = context_manager.get_or_create_default_context(p, new_patient=True)
+
         return p
 
     def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
@@ -283,7 +289,7 @@ class FormTestCase(RDRFTestCase):
         form.sections = ",".join([section.code for section in sections])
         form.is_questionnaire = is_questionnnaire
         form.save()
-        self.working_group
+        #self.working_group
         return form
 
     def create_forms(self):
@@ -329,6 +335,8 @@ class FormTestCase(RDRFTestCase):
 
 
 
+
+
         ff = FormFiller(self.simple_form)
         ff.sectionA.CDEName = "Fred"
         ff.sectionA.CDEAge = 20
@@ -343,10 +351,11 @@ class FormTestCase(RDRFTestCase):
         # This switches off messaging , which requires request middleware which
         # doesn't exist in RequestFactory requests
         view.testing = True
-        view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk)
+        view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
 
         mongo_query = {"django_id": self.patient.pk,
-                       "django_model": self.patient.__class__.__name__}
+                       "django_model": self.patient.__class__.__name__,
+                       "context_id": self.patient.default_context(self.registry).pk}
 
         mongo_db = self.client["testing_" + self.registry.code]
 
@@ -397,6 +406,13 @@ class LongitudinalTestCase(FormTestCase):
             assert "record" in snapshot, "Each snapshot should have a record field"
             assert "timestamp" in snapshot, "Each snapshot should have a timestamp field"
             assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
+
+
+class FormProgressTest(FormTestCase):
+    def test_progress_calcs(self):
+        mongo_db = self.client["testing_" + self.registry.code]
+        super(FormProgressTest, self).test_simple_form()
+        collection = mongo_db["progress"]
 
 
 class DeCamelcaseTestCase(TestCase):

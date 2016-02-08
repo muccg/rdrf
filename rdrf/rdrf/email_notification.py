@@ -34,7 +34,7 @@ class RdrfEmail(object):
             self._get_email_notification()
             email_subject, email_body = self._get_email_template()
             
-            send_mail(email_subject, email_body, self.email_from, self.recipient)
+            send_mail(email_subject, email_body, self.email_from, self.recipient, html_message=email_body)
             logger.info("Sent email %s" % self.description)
             
             self._save_notification_record()

@@ -1,0 +1,190 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static from staticfiles %}
+{% load has_feature %}
+
+{% block extrastyle %}
+    {{ block.super }}
+     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+     <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+        $.fn.dataTable.ext.errMode = 'throw';
+
+        var initialPatientId = "{{patient_id}}";
+        var CONTEXT_LINK_COLUMN_INDEX= 2;
+        var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
+        var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
+
+
+        var api_url = "{% url 'contextsgridapi'  %}";
+        var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+
+        $("contextmenu").popover({html: true});
+
+        $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+        }});
+
+        function getDrawLength() {
+            try {
+                var length = $("#context_list_table_length").val();
+                if (length == undefined) {
+                    return 10;
+                }
+                return length;
+            }
+
+            catch(err) {
+                return 10;
+            }
+        }
+
+        function getSelectedRegistry() {
+            var code = $("#registry_options > option:selected").attr('id');
+            return code;
+        }
+
+        function getApiUrl(registryCode, drawLength) {
+            if (initialPatientId=='None'){
+                return  api_url + "?registry_code=" + registryCode +
+                    "&length=" + drawLength;
+            }
+            else {
+                return  api_url + "?registry_code=" + registryCode +
+                    "&length=" + drawLength + "&patient_id=" + initialPatientId;
+            }
+
+        }
+
+        function updateContextColumnsVisibility(value) {
+          _.each(CONTEXT_COLUMNS, function (columnIndex) {
+                    var contextColumn = contexts_list.column(columnIndex);
+                    //contextColumn.visible(value);
+
+                });
+        }
+
+        function setContextLinkColumnVisibility(registryCode) {
+            rpc.send('registry_supports_contexts', [registryCode], function (response) {
+                if (response.status == 'success') {
+                    var columnVisibility = response.result;
+                    updateContextColumnsVisibility(columnVisibility);
+
+                }
+                else {
+                    updateContextColumnsVisibility(false);
+                }
+            })
+        }
+
+        if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
+            $("#add_patient").hide();
+        }
+
+        var registryCode = getSelectedRegistry();
+
+        if ({{registries.0 | has_feature:"no_add_patient_button" | yesno:"false,true"}} == false) {
+            $("#add_patient").hide();
+        }
+
+        var contexts_list = $("#context_list_table").DataTable({
+            "processing": true,
+            "serverSide": true,
+            //"sAjaxDataProp" : "data",
+            ajax: {
+                    url: getApiUrl(registryCode, getDrawLength()),
+                    dataSrc: "rows",
+                    type: "POST"
+            },
+            columns: {{columns|safe}}
+        }).on("draw", function () {
+            $("#loading_text").hide();
+            $('button[data-toggle=popover]').popover({
+                'html': true,
+                'title': '',
+                'trigger': 'click',
+                'placement': 'bottom',
+                'container': 'body'
+            });
+        });
+
+        $("#registry_options").change(function () {
+            $("#loading_text").show();
+            var registryCode= $("#registry_options > option:selected").attr("id");
+            var apiUrl = getApiUrl(registryCode, getDrawLength());
+            contexts_list.ajax.url(apiUrl).load();
+            setContextLinkColumnVisibility(registryCode);
+        });
+
+
+        $("#add_patient").click(function () {
+            var registryCode = null;
+            var addPatientUrl = '{% url "patient_add" "xxx" %}';
+            try {
+                registryCode = $("#registry_options option:selected").attr('id');
+                if (registryCode == "---") {
+                    alert("Please select registry first");
+                    return;
+                }
+
+                if (registryCode == undefined) {
+                    registryCode = "{{registries.0.code}}";
+                }
+            } catch (err) {
+                // one registry ?
+                registryCode = "{{registries.0.code}}";
+            }
+            var location = addPatientUrl.replace("xxx", registryCode);
+            window.location.replace(location);
+        });
+
+
+        $("#registry_options").trigger("change");
+
+
+        });
+
+
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
+            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="clearfix">
+        <button id="add_patient" class="btn btn-success pull-right">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Patient
+        </button>
+    </div>
+
+    <p>
+        <select id="registry_options">
+            {% for reg in registries %}
+                <option id="{{ reg.code }}">{{ reg.name }}</option>
+            {% endfor %}
+        </select>
+        <span id="loading_text"><i>Loading...</i></span>
+    </p>
+
+    <table id="context_list_table" class="table table-striped table-hover">
+        <thead>
+            <tr>
+                {% for column in columns %}
+                    <th>{{ column.label|safe }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    </table>
+{% endblock %}

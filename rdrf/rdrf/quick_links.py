@@ -18,7 +18,8 @@ class QuickLinks(object):
     A convenience class to make it easy to see what links are provided to
     users on the "Home" screen
     """
-    PatientsListing = QuickLink("patientslisting", "Patient List")
+    #PatientsListing = QuickLink("patientslisting", "Patient List")
+    ContextsListing = QuickLink("contextslisting", "Patient List")
     Reports = QuickLink("reports", "Reports")
     Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
@@ -58,12 +59,20 @@ class QuickLinks(object):
     RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist", _("Registration Profiles"), True)
     Sites = QuickLink("admin:sites_site_changelist", _("Sites"), True)
 
+    LoginLog = QuickLink("admin:useraudit_loginlog_changelist", _("User Login Log"), True)
+    FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)
+    
+    IPRestrictGroup = QuickLink("admin:iprestrict_ipgroup_changelist", _("IP Restrict Groups"), True)
+    IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
+
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
 
-    DATA_ENTRY = oset([PatientsListing, ClinicianOther])
+    DATA_ENTRY = oset([ContextsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
+    AUDITING = oset([LoginLog, FailedLoginLog])
+    IP_RESTRICT = oset([IPRestrictGroup, IPRestrictRule])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Sites,
@@ -97,4 +106,6 @@ class QuickLinks(object):
 
     CLINICIAN = DATA_ENTRY | QUESTIONNAIRE_HANDLING
 
-    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING
+    STATE_MANAGEMENT = oset([States])
+
+    ALL = DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | AUDITING | IP_RESTRICT | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT

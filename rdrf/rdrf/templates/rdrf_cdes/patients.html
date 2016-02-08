@@ -5,46 +5,60 @@
 {% block extrastyle %}
     {{ block.super }}
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
     
     <script>
+
         $(document).ready(function() {
+
+            $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }});
+
+            var SERVER_SIDE_API = "{% url 'patientsgridapi'  %}";
+
+            function getDrawLength() {
+                try {
+                    var length = $("#patient_list_table_length").val();
+                    if (length == undefined) {
+                        return 10;
+                    }
+                    return length;
+                }
+
+                catch(err) {
+                    return 10;
+                }
+            }
+
+            function getSelectedRegistry() {
+                var code = $("#registry_options > option:selected").attr('id');
+                return code;
+            }
+
+            function getApiUrl(registryCode, drawLength) {
+                return  SERVER_SIDE_API + "?registry_code=" + registryCode +
+                        "&length=" + drawLength;
+            }
+
             $.fn.dataTable.ext.errMode = 'throw';
 
             if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
                 $("#add_patient").hide();
             }
 
-             $("#add_patient").click(function() {
-                                        var registryCode = null;
-                                        var addPatientUrl = '{% url "patient_add" "xxx" %}';
-                                        try {
-                                            registryCode = $("#registry_select").val();
-                                            if (registryCode=="---") {
-                                                alert("Please select registry first");
-                                                return;
-                                             }
+            var registryCode = getSelectedRegistry();
 
-                                            if (registryCode == undefined) {
-                                                registryCode = "{{registries.0.code}}";
-                                            }
-                                        }
-                                        catch(err) {
-                                            // one registry ?
-                                            registryCode = "{{registries.0.code}}";
-                                        }
-                                        var location = addPatientUrl.replace("xxx", registryCode);
-                                        window.location.replace(location);
-                                        });
-
-            var api_url = "{% url 'api_get_search' 'v1' 'patient'  %}";
             var patients_list = $("#patient_list_table").DataTable({
-                "ajax": {
-                    "url": api_url + "?registry_code={{registries.0.code}}&rowCount=-1",
-                    "dataSrc": "rows",
+                "processing": true,
+                "serverSide": true,
+                ajax: {
+                    url: getApiUrl(registryCode, getDrawLength()),
+                    dataSrc: "rows"
                 },
-                "columns": {{columns|safe}},
+                columns: {{columns|safe}}
             }).on("draw", function() {
                 $("#loading_text").hide();
                 $('button[data-toggle=popover]').popover({
@@ -55,18 +69,20 @@
                     'container': 'body'
                 });
             });
-            
+
             $("#registry_options").change(function() {
                 $("#loading_text").show();
-                var reg_code = $("#registry_options option:selected").attr("id");
-                patients_list.ajax.url(api_url + "?registry_code=" + reg_code).load();
+                var reg_code = getSelectedRegistry();
+                var drawLength = getDrawLength();
+                var url = getApiUrl(reg_code, drawLength);
+                patients_list.ajax.url(url).load();
             });
 
             $("#add_patient").click(function() {
                 var registryCode = null;
                 var addPatientUrl = '{% url "patient_add" "xxx" %}';
                 try {
-                    registryCode = $("#registry_select").val();
+                    registryCode = $("#registry_options option:selected").attr('id');
                     if (registryCode=="---") {
                         alert("Please select registry first");
                         return;
@@ -116,6 +132,8 @@
     <table id="patient_list_table" class="table table-striped table-hover">
         <thead>
             <tr>
+
+                <th>Contexts</th>
                 {% for column in columns %}
                     <th>{{ column.label|safe }}</th>
                 {% endfor %}

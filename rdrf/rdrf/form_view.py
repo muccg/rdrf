@@ -23,11 +23,17 @@ from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
+from rdrf.models import RDRFContext
+from rdrf.context_menu import PatientContextMenu
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import get_form_links, consent_status_for_patient
+from rdrf.utils import location_name
+
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
 from django.shortcuts import redirect
+from django.db.models import Q
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm
@@ -42,6 +48,17 @@ from registry.groups.models import CustomUser
 import logging
 from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
+from rdrf.form_progress import FormProgress
+from django.core.paginator import Paginator, InvalidPage
+from django.contrib.contenttypes.models import ContentType
+
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
+from rdrf.form_progress import FormProgress
+
+
+class RDRFContextSwitchError(Exception):
+    pass
 
 logger = logging.getLogger("registry_log")
 
@@ -133,6 +150,7 @@ class FormView(View):
         self.form_id = None
         self.patient_id = None
         self.user = None
+        self.rdrf_context = None
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -148,41 +166,95 @@ class FormView(View):
             model_class = kwargs['model_class']
         else:
             model_class = Patient
+
+        if 'rdrf_context_id' in kwargs:
+            rdrf_context_id = kwargs['rdrf_context_id']
+        else:
+            rdrf_context_id = None
+            
         obj = model_class.objects.get(pk=kwargs['id'])
-        dyn_obj = DynamicDataWrapper(obj)
+        dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
         if self.testing:
             dyn_obj.testing = True
         dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
         return dynamic_data
 
+    def set_rdrf_context(self, patient_model, context_id):
+        # Ensure we always have a context , otherwise bail
+        self.rdrf_context = None
+        try:
+            if context_id is None:
+                if self.registry.has_feature("contexts"):
+                    raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
+                                           self.registry)
+                else:
+                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            else:
+                    self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
+
+            if self.rdrf_context is None:
+                raise RDRFContextSwitchError
+            else:
+                logger.debug("switched context for patient %s to context %s" % (patient_model,
+                                                                                self.rdrf_context.id))
+
+        except RDRFContextError, ex:
+            logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
+                                                                                        patient_model,
+                                                                                        self.registry,
+                                                                                        ex))
+
+            raise RDRFContextSwitchError
+
     @method_decorator(login_required)
-    def get(self, request, registry_code, form_id, patient_id):
+    def get(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
-
         self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
+        patient_model = Patient.objects.get(pk=patient_id)
         self.registry = self._get_registry(registry_code)
-        self.dynamic_data = self._get_dynamic_data(id=patient_id, registry_code=registry_code)
+
+        self.rdrf_context_manager = RDRFContextManager(self.registry)
+
+        try:
+            self.set_rdrf_context(patient_model, context_id)
+        except RDRFContextSwitchError:
+            return HttpResponseRedirect("/")
+
+        # context is not None here - always
+        rdrf_context_id = self.rdrf_context.pk
+        logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
+
+        self.dynamic_data = self._get_dynamic_data(id=patient_id,
+                                                   registry_code=registry_code,
+                                                   rdrf_context_id=rdrf_context_id)
+
         self.registry_form = self.get_registry_form(form_id)
-        context = self._build_context(user=request.user)
+
+        context = self._build_context(user=request.user, patient_model=patient_model)
+
         context["location"] = location_name(self.registry_form)
         context["header"] = self.registry_form.header
         context["show_print_button"] = True
 
-        patient_model = Patient.objects.get(pk=patient_id)
+
         wizard = NavigationWizard(self.user,
                                   self.registry,
                                   patient_model,
                                   NavigationFormType.CLINICAL,
+                                  context_id,
                                   self.registry_form)
 
         context["next_form_link"] = wizard.next_link
+        context["context_id"] = context_id
         context["previous_form_link"] = wizard.previous_link
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
+
+        context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
 
         return self._render_context(request, context)
 
@@ -200,24 +272,36 @@ class FormView(View):
         return ",".join(ids)
 
     @method_decorator(login_required)
-    def post(self, request, registry_code, form_id, patient_id):
+    def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_superuser:
             pass
         elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
             raise PermissionDenied()
 
         self.user = request.user
+
+        registry = Registry.objects.get(code=registry_code)
+        self.registry = registry
+
         patient = Patient.objects.get(pk=patient_id)
         self.patient_id = patient_id
-        dyn_patient = DynamicDataWrapper(patient)
+
+        self.rdrf_context_manager = RDRFContextManager(self.registry)
+
+        try:
+            self.set_rdrf_context(patient, context_id)
+        except RDRFContextSwitchError:
+            return HttpResponseRedirect("/")
+
+        dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+
         if self.testing:
             dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
         self.registry_form = form_obj
-        registry = Registry.objects.get(code=registry_code)
-        self.registry = registry
+
         form_display_name = form_obj.name
         sections, display_names, ids = self._get_sections(form_obj)
         form_section = {}
@@ -226,6 +310,7 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         error_count = 0
+
         # this is used by formset plugin:
         # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
         section_field_ids_map = {}
@@ -333,12 +418,21 @@ class FormView(View):
         # Save one snapshot after all sections have being persisted
         dyn_patient.save_snapshot(registry_code, "cdes")
 
+        # progress saved to progress collection in mongo
+        # the data is returned also
+        progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
+
+        logger.debug("progress dict = %s" % progress_dict)
+
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
+
+        logger.debug("rdrf context = %s" % self.rdrf_context)
 
         wizard = NavigationWizard(self.user,
                                   registry,
                                   patient,
                                   NavigationFormType.CLINICAL,
+                                  context_id,
                                   form_obj)
 
         context = {
@@ -354,6 +448,7 @@ class FormView(View):
             'section_field_ids_map': section_field_ids_map,
             'section_ids': ids,
             'forms': form_section,
+            'my_contexts_url': patient.get_contexts_url(self.registry),
             'display_names': display_names,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
@@ -362,18 +457,28 @@ class FormView(View):
             "form_links": self._get_formlinks(request.user),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator,
-            "location": location_name(self.registry_form),
+            "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
+            "context_id": context_id,
+            "show_print_button": True,
         }
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         if not self.registry_form.is_questionnaire:
-            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
-            context["form_progress"] = progress
-            context["form_progress_cdes"] = cdes_status
+            form_progress_map = progress_dict.get(self.registry_form.name + "_form_progress", {})
+            if "percentage" in form_progress_map:
+                progress_percentage = form_progress_map["percentage"]
+            else:
+                progress_percentage = 0
+
+            context["form_progress"] = progress_percentage
+            initial_completion_cdes = {cde_model.name: False for cde_model in
+                                       self.registry_form.complete_form_cdes.all()}
+            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status",
+                                                              initial_completion_cdes)
 
         context.update(csrf(request))
         if error_count == 0:
@@ -423,6 +528,8 @@ class FormView(View):
 
     def _get_formlinks(self, user):
 
+
+
         if user is not None:
             return [
                 FormLink(
@@ -430,7 +537,9 @@ class FormView(View):
                     self.registry,
                     form,
                     selected=(
-                        form.name == self.registry_form.name)) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
+                        form.name == self.registry_form.name),
+                    context_model=self.rdrf_context
+                    ) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -522,9 +631,22 @@ class FormView(View):
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
-            cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
-            context["form_progress"] = progress
-            context["form_progress_cdes"] = cdes_status
+
+            patient_model = self._get_patient_object()
+
+            form_progress = FormProgress(self.registry_form.registry)
+
+            form_progress_percentage = form_progress.get_form_progress(self.registry_form,
+                                                                       patient_model,
+                                                                       self.rdrf_context)
+
+            form_cdes_status = form_progress.get_form_cdes_status(self.registry_form,
+                                                                  patient_model,
+                                                                  self.rdrf_context)
+
+            #cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
+            context["form_progress"] = form_progress_percentage
+            context["form_progress_cdes"] = form_cdes_status
 
         context.update(kwargs)
         return context
@@ -1795,7 +1917,514 @@ class AdjudicationResultsView(View):
         return actions
 
 
-class PatientsListingView(LoginRequiredMixin, View):
+class GridColumnsViewer(object):
+    def get_columns(self, user):
+        columns = []
+        sorted_by_order = sorted(self.get_grid_definitions(), key=itemgetter('order'), reverse=False)
+
+        for definition in sorted_by_order:
+            if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
+                columns.append(
+                    {
+                        "data": definition["data"],
+                        "label": definition["label"]
+                    }
+                )
+
+        return columns
+
+    def get_grid_definitions(self):
+        return settings.GRID_PATIENT_LISTING
+
+
+def dump(request):
+    for k in sorted(request.GET):
+        logger.debug("GET %s = %s" % (k, request.GET[k]))
+
+    for k in sorted(request.POST):
+        logger.debug("POST %s = %s" % (k, request.POST[k]))
+
+
+
+
+class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
+    MODEL = Patient
+
+    def _get_results(self, request):
+        dump(request)
+        self.user = request.user
+        # see http://datatables.net/manual/server-side
+        try:
+            self.registry_code = request.GET.get("registry_code", None)
+            logger.info("got registry code OK = %s" % self.registry_code)
+        except Exception, ex:
+            logger.error("could not get registry_code from request GET: %s" % ex)
+
+        # can restrict on a particular patient for contexts - NOT usually set
+        self.patient_id = request.GET.get("patient_id", None)
+
+        if self.registry_code is None:
+            return []
+        try:
+            self.registry_model = Registry.objects.get(code=self.registry_code)
+            self.supports_contexts = self.registry_model.has_feature("contexts")
+            self.rdrf_context_manager = RDRFContextManager(self.registry_model)
+        except Registry.DoesNotExist:
+            logger.error("patients listing api registry code %s does not exist" % self.registry_code)
+            return []
+
+        if not self.user.is_superuser:
+            if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
+                logger.debug("user isn't in registry!")
+                return []
+
+        self.form_progress = FormProgress(self.registry_model)
+
+        search_term = request.POST.get("search[value]", "")
+        logger.debug("search term = %s" % search_term)
+
+        draw = int(request.POST.get("draw", None))
+        logger.debug("draw = %s" % draw)
+
+        start = int(request.POST.get("start", None))
+        logger.debug("start = %s" % start)
+
+        length = int(request.POST.get("length", None))
+        logger.debug("length = %s" % length)
+
+        page_number = (start / length) + 1
+        logger.debug("page = %s" % page_number)
+
+        sort_field, sort_direction = self._get_ordering(request)
+
+        context = {}
+        context.update(csrf(request))
+        columns = self.get_columns(self.user)
+
+        queryset = self._get_initial_queryset(self.user, self.registry_code, sort_field, sort_direction)
+        record_total = queryset.count()
+        logger.debug("record_total = %s" % record_total)
+
+        if search_term:
+            filtered_queryset = self._apply_filter(queryset, search_term)
+        else:
+            filtered_queryset = queryset
+
+        filtered_total = filtered_queryset.count()
+        logger.debug("filtered_total = %s" % filtered_total)
+
+        rows = self._run_query(filtered_queryset, length, page_number, columns)
+
+        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
+        return results_dict
+
+
+
+    def post(self, request):
+        logger.info("****** received POST OK")
+        results_dict = self._get_results(request)
+        logger.info("****  got data: %s" % results_dict)
+        json_packet = self._json(results_dict)
+        logger.info("created json packet OK")
+        return json_packet
+
+    def _get_ordering(self, request):
+        #columns[0][data]:full_name
+        #...
+        #order[0][column]:1
+        #order[0][dir]:asc
+        sort_column_index = None
+        sort_direction = None
+        for key in request.POST:
+            if key.startswith("order"):
+                if "[column]" in key:
+                    sort_column_index = request.POST[key]
+                elif "[dir]" in key:
+                    sort_direction = request.POST[key]
+
+        column_name = "columns[%s][data]" % sort_column_index
+        sort_field = request.POST.get(column_name, None)
+        if sort_field == "full_name":
+            sort_field = "family_name"
+
+        if sort_field not in ["family_name"]:
+            sort_field = None
+
+        return sort_field, sort_direction
+
+    def _apply_filter(self, queryset, search_phrase):
+        queryset = queryset.filter(Q(given_names__icontains=search_phrase) |
+                                     Q(family_name__icontains=search_phrase))
+        return queryset
+
+    def _run_query(self, query_set, records_per_page, page_number, columns):
+        # return objects in requested page
+        rows = []
+        paginator = Paginator(query_set, records_per_page)
+        try:
+            page = paginator.page(page_number)
+        except InvalidPage:
+            logger.error("invalid page number: %s" % page_number)
+            return []
+
+        func_map = self._get_func_map(columns)
+        self.append_rows(page, rows, func_map)
+
+        return rows
+
+    def append_rows(self, page_object, row_list_to_update, func_map):
+        for obj in page_object.object_list:
+            row_list_to_update.append(self._get_row_dict(obj, func_map))
+
+    def _get_row_dict(self, instance, func_map):
+        # we need to do this so that the progress data for this instance loaded!
+        self.form_progress.reset()
+        row_dict = {}
+        for field in func_map:
+            logger.debug("getting %s" % field)
+            try:
+                value = func_map[field](instance)
+            except KeyError:
+                value = "UNKNOWN COLUMN"
+            row_dict[field] = value
+
+        return row_dict
+
+    def _get_func_map(self, columns):
+        # we do this once
+        from registry.patients.models import Patient
+        patient_field_names = [field_object.name for field_object in Patient._meta.fields]
+        logger.debug("patient fields = %s" % patient_field_names)
+
+        def patient_func(field):
+            def f(patient):
+                try:
+                    return str(getattr(patient, field))
+                except Exception, ex:
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    logger.error(msg)
+                    return "GRID ERROR"
+
+            return f
+
+        def grid_func(obj, field):
+            method = getattr(obj, field)
+
+            def f(patient):
+                try:
+                    return method(patient)
+                except Exception, ex:
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    logger.error(msg)
+                    return "GRID ERROR"
+
+            return f
+
+        def k(msg):
+            # constant combinator
+            def f(patient):
+                return msg
+            return f
+
+        func_map = {}
+        for column in columns:
+            field = column["data"]
+            logger.debug("checking field %s" % field)
+            func_name = "_get_grid_field_%s" % field
+            logger.debug("checking %s" % func_name)
+            if hasattr(self, func_name):
+                    func_map[field] = grid_func(self, func_name)
+                    logger.debug("field %s is a serverside api func" % field)
+            elif field in patient_field_names:
+                logger.debug("field is a patient field")
+                func_map[field] = patient_func(field)
+                logger.debug("field %s is a patient function" % field)
+            else:
+                logger.debug("field %s is unknown" % field)
+                func_map[field] = k("UNKNOWN COLUMN!")
+
+        return func_map
+
+    def _get_grid_field_diagnosis_progress(self, patient_model):
+        if not self.supports_contexts:
+            progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
+            template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                       " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                       "<span class='progress-label'>%s%%</span></div></div>"
+            return template % (progress_number, progress_number,progress_number)
+        else:
+            # if registry supports contexts, should use the context browser
+            return "N/A"
+
+    def _get_grid_field_data_modules(self, patient_model):
+        if not self.supports_contexts:
+            default_context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            return self.form_progress.get_data_modules(self.user, patient_model, default_context_model)
+        else:
+            return "N/A"
+
+    def _get_grid_field_genetic_data_map(self, patient_model):
+        if not self.supports_contexts:
+            has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
+            icon = "ok" if has_genetic_data else "remove"
+            color = "green" if has_genetic_data else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
+
+    def _get_grid_field_diagnosis_currency(self, patient_model):
+        if not self.supports_contexts:
+            diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+            icon = "ok" if diagnosis_currency else "remove"
+            color = "green" if diagnosis_currency else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
+
+    def _get_grid_field_full_name(self, patient_model):
+        if not self.supports_contexts:
+            context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+        else:
+            # get first ?
+            patient_content_type = ContentType.objects.get(model='patient')
+            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                              content_type=patient_content_type,
+                                                              object_id=patient_model.pk).order_by("id")]
+
+            if len(contexts) > 0:
+                context_model = contexts[0]
+            else:
+                return "NO CONTEXT"
+
+        return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
+                                                                        "patient_id": patient_model.id,
+                                                                        "context_id": context_model.pk}),
+                                        patient_model.display_name)
+
+    def _get_grid_field_working_groups_display(self, patient_model):
+        return patient_model.working_groups_display
+
+    def _json(self, data):
+        json_data = json.dumps(data)
+        return HttpResponse(json_data, content_type="application/json")
+
+
+    def _no_results(self, draw):
+        return {
+            "draw": draw,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "rows": []
+        }
+
+    def _get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
+
+        #       {
+        # "draw": 2,  <-- must be returned , is a counter used by DataTable
+        # "recordsTotal": 57,
+        # "recordsFiltered": 57,
+        # "rows": [
+        #   {
+        #     "first_name": "Charde",
+        #     "last_name": "Marshall",
+        #     "position": "Regional Director",
+        #     "office": "San Francisco",
+        #     "start_date": "16th Oct 08",
+        #     "salary": "$470,600"
+        #   },..]
+
+        results = {
+            "draw": draw,
+            "recordsTotal": total_records,
+            "recordsFiltered": total_filtered_records,
+            "rows": [row for row in rows]
+        }
+
+        return results
+
+    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
+        registry_queryset = Registry.objects.filter(code=registry_code)
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
+
+        if self.patient_id is None:
+            # Usual case
+            models = self.MODEL.objects.all()
+        else:
+            models = self.get_restricted_queryset(self.patient_id)
+
+        if not user.is_superuser:
+            if user.is_curator:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+                models = models.filter(query_patients)
+            elif user.is_genetic_staff:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_genetic_curator:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_working_group_staff:
+                models = models.filter(working_groups__in=user.working_groups.all())
+            elif user.is_clinician and clinicians_have_patients:
+                models = models.filter(clinician=user)
+            elif user.is_clinician and not clinicians_have_patients:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+                models = models.filter(query_patients)
+            elif user.is_patient:
+                models = models.filter(user=user)
+            else:
+                models = models.none()
+        else:
+            models = models.filter(rdrf_registry__in=registry_queryset)
+
+        if all([sort_field, sort_direction]):
+            if sort_direction == "desc":
+                sort_field = "-" + sort_field
+                models = models.order_by(sort_field)
+                logger.debug("sort field = %s" % sort_field)
+
+        logger.debug("found %s patients for initial query" % models.count())
+        return models
+
+    def _get_grid_data(self, columns):
+
+        return []
+
+    def get_restricted_queryset(self, patient_id):
+        return self.MODEL.objects.filter(pk=patient_id)
+
+
+class ContextDataTableServerSideApi(DataTableServerSideApi):
+    MODEL = RDRFContext
+
+    def get_grid_definitions(self):
+        return settings.GRID_CONTEXT_LISTING
+
+    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
+
+        # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
+
+        content_type = ContentType.objects.get(model='patient')
+
+        if self.patient_id is None:
+            contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
+        else:
+            contexts = RDRFContext.objects.filter(registry=self.registry_model,
+                                                 content_type=content_type,
+                                                 object_id=self.patient_id)
+
+        registry_queryset = Registry.objects.filter(code=registry_code)
+
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
+
+        if not user.is_superuser:
+            if user.is_curator:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=user.working_groups.all())
+            elif user.is_genetic_staff:
+                query_patients = Q(working_groups__in=user.working_groups.all())
+            elif user.is_genetic_curator:
+                query_patients = Q(working_groups__in=user.working_groups.all())
+            elif user.is_working_group_staff:
+                query_patients = Q(working_groups__in=user.working_groups.all())
+            elif user.is_clinician and clinicians_have_patients:
+                query_patients = Q(clinician=user)
+            elif user.is_clinician and not clinicians_have_patients:
+                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
+                    working_groups__in=user.working_groups.all())
+            elif user.is_patient:
+                query_patients = Q(user=user)
+            else:
+                query_patients = Patient.objects.none()
+        else:
+            query_patients = Q(rdrf_registry__in=registry_queryset)
+
+        patients = Patient.objects.filter(query_patients)
+        contexts = contexts.filter(object_id__in=[p.pk for p in patients])
+
+        if all([sort_field, sort_direction]):
+            if sort_direction == "desc":
+                sort_field = "-" + sort_field
+                contexts = contexts.order_by(sort_field)
+                logger.debug("sort field = %s" % sort_field)
+
+        logger.debug("found %s contexts for initial query" % contexts.count())
+        return contexts
+
+    def _get_grid_field_display_name(self, context_model):
+        registry_code = context_model.registry.code
+        patient_id = context_model.content_object.pk
+
+        return "<a href='%s'>%s</a>" % (reverse("context_edit", kwargs={"registry_code": registry_code,
+                                                                        "patient_id": patient_id,
+                                                                        "context_id": context_model.pk,
+                                                                        }),
+                                        context_model.display_name)
+
+    def _get_grid_field_working_groups_display(self, context_model):
+        patient_model = context_model.content_object
+        return patient_model.working_groups_display
+
+
+    def _get_grid_field_context_menu(self, context_model):
+        patient_model = context_model.content_object
+        context_menu = PatientContextMenu(self.user,
+                                          self.registry_model,
+                                          self.form_progress,
+                                          patient_model,
+                                          context_model)
+        return context_menu.menu_html
+
+    def _get_grid_field_created_at(self, context_model):
+        return str(context_model.created_at)
+
+    def _get_grid_field_date_of_birth(self, context_model):
+        patient_model = context_model.content_object
+        return str(patient_model.date_of_birth)
+
+    def _get_grid_field_patient_link(self, context_model):
+        patient_model = context_model.content_object
+        registry_code = self.registry_model.code
+        return "<a href='%s'>%s</a>" % \
+               (reverse("patient_edit",
+                        kwargs={"registry_code": registry_code,
+                                "patient_id": patient_model.id,
+                                "context_id": context_model.pk}),
+                patient_model.display_name)
+
+    def _get_grid_field_diagnosis_progress(self, context_model):
+        patient_model = context_model.content_object
+        progress_number = self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
+        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                   "<span class='progress-label'>%s%%</span></div></div>"
+
+        return template % (progress_number, progress_number, progress_number)
+
+    def _get_grid_field_diagnosis_currency(self, context_model):
+        patient_model = context_model.content_object
+        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+        icon = "ok" if diagnosis_currency else "remove"
+        color = "green" if diagnosis_currency else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+
+    def _get_grid_field_genetic_data_map(self, context_model):
+        patient_model = context_model.content_object
+        has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model, context_model)
+        icon = "ok" if has_genetic_data else "remove"
+        color = "green" if has_genetic_data else "red"
+        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+
+    def _apply_filter(self, queryset, search_phrase):
+        context_filter = Q(display_name__icontains=search_phrase)
+        patient_filter = Q(given_names__icontains=search_phrase) | \
+                         Q(family_name__icontains=search_phrase)
+
+        matching_patients = Patient.objects.filter(rdrf_registry__in=[self.registry_model]).filter(patient_filter)
+
+        return queryset.filter(context_filter | Q(object_id__in=[p.pk for p in matching_patients]))
+
+
+class ContextsListingView(LoginRequiredMixin, View):
 
     def get(self, request):
         if request.user.is_patient:
@@ -1803,21 +2432,41 @@ class PatientsListingView(LoginRequiredMixin, View):
 
         context = {}
         context.update(csrf(request))
+        registry_model = None
 
-        if request.user.is_superuser:
-            registries = [registry_model for registry_model in Registry.objects.all()]
+        registry_code = request.GET.get("registry_code", None)
+        if registry_code is not None:
+            try:
+                registry_model = Registry.objects.get(code=registry_code)
+            except Registry.DoesNotExist:
+                return HttpResponseRedirect("/")
+
+        if registry_model is None:
+            if request.user.is_superuser:
+                registries = [registry_model for registry_model in Registry.objects.all()]
+            else:
+                registries = [registry_model for registry_model in request.user.registry.all()]
         else:
-            registries = [registry_model for registry_model in request.user.registry.all()]
+            registries = [registry_model]
+
+        patient_id = request.GET.get("patient_id", None)
+
+        if patient_id is not None:
+            if not self._allowed(request.user, registry_model, patient_id):
+                return HttpResponseRedirect("/")
 
         context["registries"] = registries
-        context["location"] = "Patient List"
-        
+        context["location"] = "Context List"
+        context["patient_id"] = patient_id
+        context["registry_code"] = registry_code
+
         columns = []
 
-        sorted_by_order = sorted(settings.GRID_PATIENT_LISTING, key=itemgetter('order'), reverse=False)
-        
+        sorted_by_order = sorted(settings.GRID_CONTEXT_LISTING, key=itemgetter('order'), reverse=False)
+
         for definition in sorted_by_order:
-            if request.user.is_superuser or definition["access"]["default"] or request.user.has_perm(definition["access"]["permission"]):
+            if request.user.is_superuser or definition["access"]["default"] or \
+                    request.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
                         "data" : definition["data"],
@@ -1828,9 +2477,12 @@ class PatientsListingView(LoginRequiredMixin, View):
         context["columns"] = columns
 
         return render_to_response(
-            'rdrf_cdes/patients.html',
+            'rdrf_cdes/contexts.html',
             context,
             context_instance=RequestContext(request))
+
+    def _allowed(self, user, registry_model, patient_id):
+        return True  #todo restrict
 
 
 class BootGridApi(View):
@@ -1874,7 +2526,7 @@ class ConstructorFormView(View):
 
 
 class CustomConsentFormView(View):
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -1888,6 +2540,7 @@ class CustomConsentFormView(View):
                                   registry_model,
                                   patient_model,
                                   NavigationFormType.CONSENTS,
+                                  context_id,
                                   None)
 
         try:
@@ -1895,13 +2548,23 @@ class CustomConsentFormView(View):
         except ParentGuardian.DoesNotExist:
             parent = None
 
+        try:
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+        except RDRFContextError, ex:
+            logger.error("context error on custom consent view patient id %s context id %s: %s" % (patient_id,
+                                                                                                   context_id,
+                                                                                                   ex))
+            return HttpResponseRedirect("/")
+
         context = {
             "location": "Consents",
             "forms": form_sections,
+            "context_id": context_id,
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
@@ -1978,23 +2641,33 @@ class CustomConsentFormView(View):
                 (patient_section_consent_file,)
             )]
 
-    def _get_success_url(self, registry_model, patient_model):
-        return reverse("consent_form_view", args=[registry_model.code, patient_model.pk])
+    def _get_success_url(self, registry_model, patient_model, context_model):
+        return reverse("consent_form_view", args=[registry_model.code,
+                                                  patient_model.pk,
+                                                  context_model.pk])
 
-
-    def post(self, request, registry_code, patient_id):
+    def post(self, request, registry_code, patient_id, context_id=None):
         logger.debug("******************** post of consents *********************")
         if not request.user.is_authenticated():
-            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, ])
+            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, context_id])
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        try:
+            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+        except RDRFContextError, err:
+            logger.error("context wrong on consent post %s: %s" % (patient_model, err))
+            return HttpResponseRedirect("/")
+
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient_model,
                                   NavigationFormType.CONSENTS,
+                                  context_id,
                                   None)
 
         patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
@@ -2045,8 +2718,9 @@ class CustomConsentFormView(View):
             "location": "Consents",
             "patient": patient_model,
             "patient_id": patient_model.id,
+            "context_id": context_id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model),
+            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "forms": form_sections,
@@ -2066,7 +2740,7 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             logger.debug("******************** end of consent save *********************")
             context["message"] = "Consent details saved successfully"
-            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model, context_model))
 
         else:
             logger.debug("******************** forms invalid :( *********************")
