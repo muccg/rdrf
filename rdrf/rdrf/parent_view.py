@@ -155,7 +155,7 @@ class ParentView(BaseParentView):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code):
+    def post(self, request, registry_code, context_id=None):
         parent = ParentGuardian.objects.get(user=request.user)
         registry = Registry.objects.get(code=registry_code)
 
