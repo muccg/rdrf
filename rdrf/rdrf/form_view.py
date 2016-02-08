@@ -457,7 +457,8 @@ class FormView(View):
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
-            "context_id": context_id
+            "context_id": context_id,
+            "show_print_button": True,
         }
 
         if request.user.is_parent:
@@ -2245,6 +2246,8 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
         registry_queryset = Registry.objects.filter(code=registry_code)
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
+
         if self.patient_id is None:
             # Usual case
             models = self.MODEL.objects.all()
@@ -2312,6 +2315,8 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                                                  object_id=self.patient_id)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
+
+        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
 
         if not user.is_superuser:
             if user.is_curator:
