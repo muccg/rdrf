@@ -192,7 +192,7 @@ class ParentView(BaseParentView):
 
 class ParentEditView(BaseParentView):
 
-    def get(self, request, registry_code, parent_id):
+    def get(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(user=request.user)
 
@@ -205,7 +205,7 @@ class ParentEditView(BaseParentView):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, parent_id):
+    def post(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
 
