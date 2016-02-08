@@ -258,7 +258,7 @@ class DatabaseUtils(object):
     def _get_mongo_metadata(self):
         import json
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        from rdrf.utils import forms_and_sections_containing_cde
+        from rdrf.utils import forms_and_sections_containing_cde, get_cached_instance
 
         def short_column_name(form_model, section_model, cde_code):
             return form_model.name[:5] + "_" + section_model.code + "_" + cde_model.code
@@ -271,8 +271,8 @@ class DatabaseUtils(object):
 
         for cde_dict in self.projection:
             logger.debug("projection cde_dict = %s" % cde_dict)
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=registry_model)
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
+            form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=registry_model)
+            section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
             forms_sections = forms_and_sections_containing_cde(registry_model, cde_model)
             if len(forms_sections) == 1:
