@@ -530,8 +530,8 @@ GRID_PATIENT_LISTING = [
 GRID_CONTEXT_LISTING = [
      {
         "access": {
-            "default": True,
-            "permission": ""
+            "default": False,
+            "permission": "patients.can_see_full_name"
         },
         "data": "patient_link",
         "label": "Patient",
@@ -540,8 +540,8 @@ GRID_CONTEXT_LISTING = [
     },
     {
         "access": {
-            "default": True,
-            "permission": ""
+            "default": False,
+            "permission": "patients.can_see_dob",
         },
         "data": "date_of_birth",
         "label": "Date of Birth",
@@ -551,17 +551,17 @@ GRID_CONTEXT_LISTING = [
 
     {
         "access": {
-            "default": True,
+            "default": False,
             "permission": ""
         },
-        "data": "display_name",
+        "data": "display_name",  # display name only visible for registries that provide contexts feature
         "label": "Name",
         "model": "RDRFContext",
         "order": 2
     },
     {
         "access": {
-            "default": True,
+            "default": False,
             "permission": ""
         },
         "data": "created_at",
@@ -609,24 +609,13 @@ GRID_CONTEXT_LISTING = [
     },
      {
         "access": {
-            "default": True,
-            "permission": ""
+            "default": False,
+            "permission": "patients.can_see_data_modules",
         },
         "data": "context_menu",
         "label": "Modules",
         "model": "func",
         "order": 8
-    },
-
-     {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "diagnosis_progress",
-        "label": "Data Entry Progress",
-        "model": "Patient",
-        "order": 9
     }
 ]
 

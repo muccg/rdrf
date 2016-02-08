@@ -45,8 +45,9 @@ class ContextBrowser(object):
         sorted_by_order = sorted(self.grid_config, key=itemgetter('order'), reverse=False)
 
         for definition in sorted_by_order:
-            if self.user.is_superuser or definition["access"]["default"] or \
-                    self.user.has_perm(definition["access"]["permission"]):
+
+            # I am now ignoring the default attribute ( was or definition["access"]["default"] or ..)
+            if self.user.is_superuser or self.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
                         "data": definition["data"],
