@@ -149,11 +149,13 @@ urlpatterns = patterns('',
                            ResendEmail.as_view(), name="resend_email"),
 #-------------------------------------------
 
-                       url(r"^(?P<registry_code>\w+)/parent/?$",
+#---- Parent URLs --------------------------
+                       url(r"^(?P<registry_code>\w+)/parent/(?P<context_id>\d+)?$",
                            parent_view.ParentView.as_view(), name='parent_page'),
 
-                       url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
+                       url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/(?P<context_id>\d+)?$",
                            parent_view.ParentEditView.as_view(), name='parent_edit'),
+#-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
                            FamilyLinkageView.as_view(), name='family_linkage'),

@@ -2549,7 +2549,10 @@ class CustomConsentFormView(View):
 
         try:
             rdrf_context_manager = RDRFContextManager(registry_model)
-            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+            if parent:
+                context_model = rdrf_context_manager.get_context(context_id, parent)
+            else:
+                context_model = rdrf_context_manager.get_context(context_id, patient_model)
         except RDRFContextError, ex:
             logger.error("context error on custom consent view patient id %s context id %s: %s" % (patient_id,
                                                                                                    context_id,
@@ -2654,10 +2657,18 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+        
+        try:
+            parent = ParentGuardian.objects.get(user=request.user)
+        except ParentGuardian.DoesNotExist:
+            parent = None
 
         rdrf_context_manager = RDRFContextManager(registry_model)
         try:
-            context_model = rdrf_context_manager.get_context(context_id, patient_model)
+            if parent:
+                context_model = rdrf_context_manager.get_context(context_id, parent)
+            else:
+                context_model = rdrf_context_manager.get_context(context_id, patient_model)
         except RDRFContextError, err:
             logger.error("context wrong on consent post %s: %s" % (patient_model, err))
             return HttpResponseRedirect("/")

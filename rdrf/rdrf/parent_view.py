@@ -12,7 +12,14 @@ from registry.patients.models import ParentGuardian, Patient, PatientAddress, Ad
 from models import Registry, RegistryForm, ConsentSection, ConsentQuestion
 from registry.patients.admin_forms import ParentGuardianForm
 
+from utils import consent_status_for_patient
+
+from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+
 from registry.groups.models import WorkingGroup
+from django.utils.translation import ugettext as _
+import logging
+
 
 logger = logging.getLogger("registry_log")
 
@@ -25,7 +32,16 @@ class LoginRequiredMixin(object):
             request, *args, **kwargs)
 
 
+class RDRFContextSwitchError(Exception):
+    pass
+
+
 class BaseParentView(LoginRequiredMixin, View):
+    
+    def __init__(self,):
+        self.registry = None
+        self.rdrf_context = None
+        self.rdrf_context_manager = None
 
     _OTHER_CLINICIAN = "clinician-other"
     _UNALLOCATED_GROUP = "Unallocated"
@@ -68,14 +84,50 @@ class BaseParentView(LoginRequiredMixin, View):
         return all(valid)
 
 
+    def set_rdrf_context(self, patient_model, context_id):
+        # Ensure we always have a context , otherwise bail
+        self.rdrf_context = None
+        try:
+            if context_id is None:
+                if self.registry.has_feature("contexts"):
+                    raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
+                                           self.registry)
+                else:
+                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            else:
+                    self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
+
+            if self.rdrf_context is None:
+                raise RDRFContextSwitchError
+            else:
+                logger.debug("switched context for patient %s to context %s" % (patient_model,
+                                                                                self.rdrf_context.id))
+
+        except RDRFContextError, ex:
+            logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
+                                                                                        patient_model,
+                                                                                        self.registry,
+                                                                                        ex))
+
+            raise RDRFContextSwitchError
+
+
 class ParentView(BaseParentView):
 
-    def get(self, request, registry_code):
+    def get(self, request, registry_code, context_id=None):
         context = {}
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
-            
+
+            self.registry = registry
+            self.rdrf_context_manager = RDRFContextManager(self.registry)
+
+            try:
+                self.set_rdrf_context(parent, context_id)
+            except RDRFContextSwitchError:
+                return HttpResponseRedirect("/")
+
             forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
             forms = []
             for form in forms_objects:
@@ -96,6 +148,7 @@ class ParentView(BaseParentView):
             context['patients'] = patients
             context['registry_code'] = registry_code
             context['registry_forms'] = forms
+            context['context_id'] = self.rdrf_context.pk
 
         return render_to_response(
             'rdrf_cdes/parent.html',
