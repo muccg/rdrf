@@ -137,7 +137,7 @@ class ParentView(BaseParentView):
                 self.set_rdrf_context(patient, context_id)
                 patients.append({
                     "patient": patient,
-                    "consent": consent_status_for_patient(registry_code, patient),
+                    "consent": self._consent_status_for_patient(registry_code, patient),
                     "context_id": self.rdrf_context.pk
                 })
 
