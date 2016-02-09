@@ -35,7 +35,7 @@
 
     {% if request.user.is_authenticated %}
 
-        {% if is_patient %}
+        {% if request.user.is_patient %}
             <div class="alert alert-success">Welcome {{request.user.first_name}}</div>
             
             <p>
@@ -77,7 +77,7 @@
                     Please sign the consent <a href="{% url 'consent_form_view' registry_code patient_id %}">here</a> to see avilable forms
                 </div>
             {% endif %}
-        {% elif is_admin %}
+        {% elif request.user.is_superuser %}
             <div class="alert alert-warning">Place for admins is <a href="{% url 'admin:index' %}">here</a></div>
         {% else %}
             <div class="alert alert-danger">Looks like you are not a patient. Please contact administrator!</div>
