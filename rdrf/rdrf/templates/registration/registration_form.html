@@ -82,22 +82,6 @@
                     $("#form-other-clinician").hide("blind");
                 }
             });
-
-            $("#id_date_of_birth").change(function() {
-                if ($("#parent_guardian_check").prop("checked")) {
-                    return;
-                }
-                date_str = $("#id_date_of_birth").val();
-                dob = new Date(date_str);
-                if (dateDiffInYears(new Date(),dob) >= 18 ) {
-                    $("#underage_msg").hide("blind");
-                    $("#patient_form").show("blind");
-                } else {
-                    $("#underage_msg").show();
-                    $("#patient_form").hide();
-                    $("#login_details").hide();
-                }
-            });
             
             $("#id_country").change(function() {
                 $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
