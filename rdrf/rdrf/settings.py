@@ -109,6 +109,7 @@ MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.eggs.Loader',
 ]
 
 TEMPLATE_DIRS = (
@@ -154,15 +155,14 @@ INSTALLED_APPS = [
     'explorer',
     'djangosecure',
     'useraudit',
-    'iprestrict'
+    'templatetag_handlebars',
+    'iprestrict',
 ]
 
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
     'django.core.context_processors.i18n',
     'django.core.context_processors.request',
-    'rdrf.user_context.is_admin',
-    'rdrf.user_context.is_patient'
 )
 
 # these determine which authentication method to use

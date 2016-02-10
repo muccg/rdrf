@@ -6,24 +6,25 @@
     $(document).ready(function(){
         $("#password-error").hide();
         $("#username-error").hide();
+        $("#registration-submit").prop("disabled", true);
+        $("#registration-submit").hide();
         
         $("#id_password2").on("keyup", function() {
             var password1 = $("#id_password1").val();
             if (password1 != $(this).val()) {
                 $("#password-error").text("The passwords don't match!");
                 $("#password-error").show("fast");
-                $("#registration-submit").prop("disabled", true);
+                $("#registration-submit").hide();
             } else {
                 $("#password-error").hide("fast");
-                $("#registration-submit").prop("disabled", false);
                 password_regx = /^(?=.*[0-9])\S{6,}$/
                 if(!$(this).val().match(password_regx)) {
                     $("#password-error").text("Password needs to be at least 6 characters long and contain 1 number");
                     $("#password-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
+                    $("#registration-submit").hide();
                 } else {
                     $("#password-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
+                    $("#registration-submit").show();
                 }
             }
         });
@@ -35,10 +36,10 @@
             $.getJSON(url, function(data) {
                 if (data.existing == true) {
                     $("#username-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
+                    $("#registration-submit").hide();
                 } else {
                     $("#username-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
+                    $("#registration-submit").show();
                 }
             });
         });
@@ -145,17 +146,20 @@
                     <input class="form-control" placeholder="Parent/Guardian Date of Birth" id="id_parent_guardian_date_of_birth" name="parent_guardian_date_of_birth" type="text" required />
                 </div>
                 <div class="form-group">
-                    <div class="btn-group" data-toggle="buttons">
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M" /> Male
-                        </label> 
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="F" /> Female
-                        </label> 
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="I" /> Indeterminate
-                        </label>
-                    </div>
+                    <fieldset>
+                        <p>
+                            <label>Male</label>
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M" required />
+                        </p>
+                        <p>
+                            <label>Female</label>
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="F" />
+                        </p>
+                        <p>
+                            <label>Indeterminate</label>
+                            <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="I" />
+                        </p>
+                    </fieldset>
                 </div>
                 <div class="form-group top-separator">
                     <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required />
@@ -199,18 +203,22 @@
                     <input class="form-control" placeholder="Date of Birth" id="id_date_of_birth" name="date_of_birth" type="text" required />
                 </div>
                 <div class="form-group">
-                    <div class="btn-group" data-toggle="buttons">
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_gender" name="gender" value="M" /> Male
-                        </label> 
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_gender" name="gender" value="F" /> Female
-                        </label> 
-                        <label class="btn btn-default">
-                            <input type="radio" id="id_gender" name="gender" value="I" /> Indeterminate
-                        </label>
-                    </div>
-                
+                    <fieldset>
+                        <p>
+                            <label>Male</label>
+                            <input type="radio" id="id_gender" name="gender" value="M" required />
+                        </p>
+                        
+                        <p>
+                            <label>Female</label>
+                            <input type="radio" id="id_gender" name="gender" value="F" />
+                        </p>
+                        
+                        <p>
+                            <label>Indeterminate</label>
+                            <input type="radio" id="id_gender" name="gender" value="I" />
+                        </p>
+                    </fieldset>
                 </div>
                 
                 <div class="form-group top-separator">
@@ -224,8 +232,8 @@
                     <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" required />
                 </div>
                 <div class="form-group">
-                    <select class="form-control" placeholder="Country" id="id_country" name="country" required>
-                        <option value="-1">Country</option>
+                    <select class="form-control" placeholder="Country" id="id_country" name="country" required title="Country is required">
+                        <option selected>Country</option>
                         {% countries as countries %}
                         {% for con in countries %}
                             <option value="{{con.alpha2}}">{{con.name}}</option>

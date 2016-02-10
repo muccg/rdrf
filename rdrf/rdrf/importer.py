@@ -277,17 +277,29 @@ class Importer(object):
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
                 existing_value_codes = set([pv.code for pv in existing_values])
+                logger.debug("existing value codes = %s" % existing_value_codes)
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
                 import_missing = existing_value_codes - import_value_codes
+                logger.debug("import missing = %s" % import_missing)
                 # ensure applied import "wins" - this potentially could affect other
                 # registries though
                 # but if value sets are inconsistent we can't help it
 
                 for value_code in import_missing:
-                    value = CDEPermittedValue.objects.get(code=value_code)
-                    logger.warning("deleting value %s.%s as it is not in import!" %
-                                   (pvg.code, value.code))
-                    value.delete()
+                    logger.info("checking pvg value code %s" % value_code)
+                    try:
+                        value = CDEPermittedValue.objects.get(code=value_code, pv_group=pvg)
+                        logger.warning("deleting value %s.%s as it is not in import!" % (pvg.code, value.code))
+                        value.delete()
+                    except CDEPermittedValue.DoesNotExist:
+                        logger.info("value does not exist?")
+                        pass
+
+                    except Exception, ex:
+                        logger.error("err: %s" % ex)
+                        raise
+
+
 
             for value_map in pvg_map["values"]:
                 value, created = CDEPermittedValue.objects.get_or_create(
