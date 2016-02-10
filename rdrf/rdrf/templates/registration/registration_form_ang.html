@@ -6,24 +6,25 @@
     $(document).ready(function(){
         $("#password-error").hide();
         $("#username-error").hide();
+        $("#registration-submit").prop("disabled", true);
+        $("#registration-submit").hide();
         
         $("#id_password2").on("keyup", function() {
             var password1 = $("#id_password1").val();
             if (password1 != $(this).val()) {
                 $("#password-error").text("The passwords don't match!");
                 $("#password-error").show("fast");
-                $("#registration-submit").prop("disabled", true);
+                $("#registration-submit").hide();
             } else {
                 $("#password-error").hide("fast");
-                $("#registration-submit").prop("disabled", false);
                 password_regx = /^(?=.*[0-9])\S{6,}$/
                 if(!$(this).val().match(password_regx)) {
                     $("#password-error").text("Password needs to be at least 6 characters long and contain 1 number");
                     $("#password-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
+                    $("#registration-submit").hide();
                 } else {
                     $("#password-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
+                    $("#registration-submit").show();
                 }
             }
         });
@@ -35,10 +36,10 @@
             $.getJSON(url, function(data) {
                 if (data.existing == true) {
                     $("#username-error").show("fast");
-                    $("#registration-submit").prop("disabled", true);
+                    $("#registration-submit").hide();
                 } else {
                     $("#username-error").hide("fast");
-                    $("#registration-submit").prop("disabled", false);
+                    $("#registration-submit").show();
                 }
             });
         });
@@ -231,8 +232,8 @@
                     <input class="form-control" placeholder="Suburb / Town" id="id_suburb" maxlength="30" name="suburb" type="text" required />
                 </div>
                 <div class="form-group">
-                    <select class="form-control" placeholder="Country" id="id_country" name="country" required>
-                        <option value="-1">Country</option>
+                    <select class="form-control" placeholder="Country" id="id_country" name="country" required title="Country is required">
+                        <option selected>Country</option>
                         {% countries as countries %}
                         {% for con in countries %}
                             <option value="{{con.alpha2}}">{{con.name}}</option>
