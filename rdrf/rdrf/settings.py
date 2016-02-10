@@ -109,6 +109,7 @@ MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.eggs.Loader',
 ]
 
 TEMPLATE_DIRS = (
@@ -153,6 +154,8 @@ INSTALLED_APPS = [
     'explorer',
     'djangosecure',
     'useraudit',
+    'templatetag_handlebars',
+    'iprestrict',
 ]
 
 
