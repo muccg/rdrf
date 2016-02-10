@@ -31,6 +31,5 @@ https://github.com/muccg/django-userlog/archive/2.0.0.tar.gz
 openpyxl
 SQLAlchemy
 django-useraudit
-django-iprestrict==0.4.1
 requests==2.9.1
 django-iprestrict
