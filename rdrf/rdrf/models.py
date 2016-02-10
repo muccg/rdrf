@@ -808,6 +808,12 @@ class RegistryForm(models.Model):
         else:
             return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
 
+    def clean(self):
+        if " " in self.name:
+            msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
+                    "Camel Case, instead."
+            raise ValidationError(msg)
+
 
 
 
