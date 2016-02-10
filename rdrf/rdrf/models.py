@@ -658,6 +658,18 @@ class CommonDataElement(models.Model):
         else:
             return None
 
+    def clean(self):
+        # this was causing issues with form progress completion cdes record
+        # todo update the way form progress completion cdes are recorded to
+        # only use code not cde.name!
+
+        if "." in self.name:
+            raise ValidationError("CDE %s  name error '%s' has dots - this causes problems please remove" % (self.code,
+                                                                                                             self.name))
+
+        if " " in self.code:
+            raise Exception("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
+
 
 class CdePolicy(models.Model):
     registry = models.ForeignKey(Registry)
