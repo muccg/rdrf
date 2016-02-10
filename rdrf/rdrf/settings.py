@@ -155,7 +155,6 @@ INSTALLED_APPS = [
     'explorer',
     'djangosecure',
     'useraudit',
-    'iprestrict'
     'templatetag_handlebars',
     'iprestrict',
 ]
