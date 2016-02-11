@@ -285,17 +285,19 @@ def consent_status_for_patient(registry_code, patient):
     from models import ConsentSection, ConsentQuestion
 
     consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-    answers = []
+    answers = {}
+    valid = []
     for consent_section in consent_sections:
         if consent_section.applicable_to(patient):
             questions = ConsentQuestion.objects.filter(section=consent_section)
             for question in questions:
                 try:
                     cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                    answers.append(cv.answer)
+                    answers[cv.consent_question.code] = cv.answer
                 except ConsentValue.DoesNotExist:
-                    answers.append(False)
-    return all(answers)
+                    pass
+        valid.append(consent_section.is_valid(answers))
+    return all(valid)
 
 
 def get_error_messages(forms):
