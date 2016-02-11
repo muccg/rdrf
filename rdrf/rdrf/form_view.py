@@ -1951,6 +1951,7 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
     MODEL = Patient
 
     def _get_results(self, request):
+        self.custom_ordering = None
         dump(request)
         self.user = request.user
         # see http://datatables.net/manual/server-side
@@ -2018,8 +2019,6 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
         return results_dict
 
-
-
     def post(self, request):
         logger.info("****** received POST OK")
         results_dict = self._get_results(request)
@@ -2047,10 +2046,10 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         if sort_field == "full_name":
             sort_field = "family_name"
 
-        if sort_field not in ["family_name"]:
-            sort_field = None
-
         return sort_field, sort_direction
+
+    def apply_custom_ordering(self, rows):
+        return rows
 
     def _apply_filter(self, queryset, search_phrase):
         queryset = queryset.filter(Q(given_names__icontains=search_phrase) |
@@ -2059,6 +2058,12 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _run_query(self, query_set, records_per_page, page_number, columns):
         # return objects in requested page
+        if self.custom_ordering:
+            # we have to retrieve all rows - otehrwise , queryset has already been
+            # ordered on base model
+            query_set = [r for r in query_set]
+            query_set = self.apply_custom_ordering(query_set)
+
         rows = []
         paginator = Paginator(query_set, records_per_page)
         try:
@@ -2277,10 +2282,13 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
             models = models.filter(rdrf_registry__in=registry_queryset)
 
         if all([sort_field, sort_direction]):
+            logger.debug("*** ordering %s %s" % (sort_field, sort_direction))
+
             if sort_direction == "desc":
                 sort_field = "-" + sort_field
-                models = models.order_by(sort_field)
-                logger.debug("sort field = %s" % sort_field)
+
+            models = models.order_by(sort_field)
+            logger.debug("sort field = %s" % sort_field)
 
         logger.debug("found %s patients for initial query" % models.count())
         return models
@@ -2296,12 +2304,96 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 class ContextDataTableServerSideApi(DataTableServerSideApi):
     MODEL = RDRFContext
 
+    def apply_custom_ordering(self, rows):
+        # we sometimes have to do none Django ( db level ) ordering
+        # on fields which are on the related (generic relation) patient model or not stored in django at all
+        # keys ['diagnosis_progress', 'display_name', 'context_menu', 'created_at', 'genetic_data_map',
+        # 'working_groups_display', 'diagnosis_currency', 'patient_link', 'date_of_birth']
+
+        key_func = None
+        if self.custom_ordering.startswith("-"):
+            ordering = self.custom_ordering[1:]
+            direction = "desc"
+        else:
+            ordering = self.custom_ordering
+            direction = "asc"
+
+        if ordering == "patient_link":
+            def get_name(context_model):
+                return context_model.content_object.family_name
+
+            key_func = get_name
+            logger.debug("key_func is by patient_link")
+
+        elif ordering == "date_of_birth":
+            def get_dob(context_model):
+                return context_model.content_object.date_of_birth
+            key_func = get_dob
+
+        elif ordering == "working_groups_display":
+            def get_wg(context_model):
+                try:
+                    wg = context_model.content_object.working_groups.get()
+                    return wg.name
+                except Exception,ex:
+                    logger.debug("error wg %s" % ex)
+                    return ""
+            key_func = get_wg
+
+        elif ordering == "diagnosis_progress":
+            #get_group_progress(self, group_name, patient_model, context_model=None):
+            self.form_progress.reset()
+
+            def get_dp(context_model):
+                patient_model = context_model.content_object
+                try:
+                    return self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
+                except:
+                    return 0
+
+            key_func = get_dp
+
+        elif ordering == "diagnosis_currency":
+            self.form_progress.reset()
+
+            def get_dc(context_model):
+                patient_model = context_model.content_object
+                try:
+                    return self.form_progress.get_group_currency("diagnosis", patient_model, context_model)
+                except:
+                    return False
+
+            key_func = get_dc
+
+        elif ordering == "genetic_data_map":
+            self.form_progress.reset()
+
+            def get_gendatamap(context_model):
+                patient_model = context_model.content_object
+                try:
+                    return self.form_progress.get_group_has_data("genetic", patient_model, context_model)
+                except:
+                    return False
+
+            key_func = get_gendatamap
+
+
+        if key_func is None:
+            logger.debug("key_func is none - not sorting")
+            return rows
+
+        d = direction == "desc"
+
+        return sorted(rows, key=key_func, reverse=d)
+
     def get_grid_definitions(self):
         return settings.GRID_CONTEXT_LISTING
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
 
         # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
+
+        logger.debug("******   sort_field = %s sort_direction = %s" % (sort_field, sort_direction))
 
         content_type = ContentType.objects.get(model='patient')
 
@@ -2341,10 +2433,27 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         contexts = contexts.filter(object_id__in=[p.pk for p in patients])
 
         if all([sort_field, sort_direction]):
+
+            # context model fields
+            #content_object, content_type, content_type_id, created_at, display_name, id,
+            # last_updated, object_id, registry, registry_id
+
+            if sort_field in ['display_name', 'created_at', 'last_updated']:
+                use_context_model = True
+            else:
+                use_context_model = False
+
             if sort_direction == "desc":
                 sort_field = "-" + sort_field
+
+            logger.debug("***  sorting %s" % sort_field)
+
+            if use_context_model:
                 contexts = contexts.order_by(sort_field)
-                logger.debug("sort field = %s" % sort_field)
+            else:
+                # we can't do ordering directly on context model
+
+                self.custom_ordering = sort_field
 
         logger.debug("found %s contexts for initial query" % contexts.count())
         return contexts
