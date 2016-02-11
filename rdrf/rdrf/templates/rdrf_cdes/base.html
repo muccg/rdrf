@@ -122,7 +122,7 @@
                         <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span> Admin Page</a></li>
                         <li class="divider"></li>
                     {% endif %}
-                    {% if request.user.is_parent and registry_code %}
+                    {% if request.user.is_parent and registry_code and parent %}
                         <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span> Account</a></li>
                     {% endif %}
                     <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> Password Reset</a></li>
