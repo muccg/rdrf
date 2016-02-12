@@ -19,6 +19,7 @@
                 yearRange: '-100:+0',
                 buttonImage: "/static/images/calendar.gif",
                 buttonImageOnly: true,
+                defaultDate: '-18Y'
             });
             
             $.get("{% url 'clinician_lookup' %}", { 'registry_code': "{{registry_code}}" }, function(data) {
