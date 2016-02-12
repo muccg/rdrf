@@ -4,6 +4,7 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
+        $(document).tooltip();
         $("#password-error").hide();
         $("#username-error").hide();
         $("#registration-submit").prop("disabled", true);
@@ -178,7 +179,7 @@
                     <div class="text-muted">YYYY-MM-DD</div>
                 </div>
                 <div class="form-group">
-                    <fieldset>
+                    <fieldset data-toggle="tooltip" title="Indeterminate also refers to Intersex/Unspecified">
                         <p>
                             <label>Male</label>
                             <input type="radio" id="id_parent_guardian_gender" name="parent_guardian_gender" value="M" required />
@@ -194,7 +195,9 @@
                     </fieldset>
                 </div>
                 <div class="form-group top-separator">
-                    <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required />
+                    <input class="form-control" placeholder="Parent/Guardian Address" id="id_parent_guardian_address" maxlength="100" name="parent_guardian_address" type="text" required
+                        data-toggle="tooltip"
+                        title="Please enter an address through which we can contact you"/>
                 </div>
                 <div class="form-group">
                     <input class="form-control" placeholder="Parent/Guardian Suburb / Town" id="id_parent_guardian_suburb" maxlength="30" name="parent_guardian_suburb" type="text" required />
@@ -217,7 +220,9 @@
                     <input class="form-control" placeholder="Parent/Guardian Zip / Postal Code" id="id_parent_guardian_postcode" maxlength="30" name="parent_guardian_postcode" type="text" required />
                 </div>
                 <div class="form-group">
-                    <input class="form-control" placeholder="Parent/Guardian Phone Number" id="id_parent_guardian_phone" name="parent_guardian_phone" type="text" />
+                    <input class="form-control" placeholder="Parent/Guardian Phone Number" id="id_parent_guardian_phone" name="parent_guardian_phone" type="text"
+                           data-toggle="tooltip"
+                           title="Please enter a phone number through which we can contact you, including the country code (e.g. +61 for Australia)"/>
                 </div>
                 
             </div>
@@ -236,7 +241,7 @@
                     <div class="text-muted">YYYY-MM-DD</div>
                 </div>
                 <div class="form-group">
-                    <fieldset>
+                    <fieldset data-toggle="tooltip" title="Indeterminate also refers to Intersex/Unspecified">
                         <p>
                             <label>Male</label>
                             <input type="radio" id="id_gender" name="gender" value="M" required />
