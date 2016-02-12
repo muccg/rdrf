@@ -77,6 +77,37 @@
 
             }
         });
+
+        $.validator.addMethod(
+            "dateFormat",
+            function(value, element) {
+                return value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            },
+            "Please enter a date in the format yyyy-mm-dd"
+        );
+
+        $.validator.addMethod(
+            "dateCorrect",
+            function(value, element) {
+                return Date.parse(value);
+            },
+            "Date is not correct"
+        );
+
+        
+        $('#registration-form')
+            .validate({
+                rules : {
+                    parent_guardian_date_of_birth : {
+                        dateFormat : true,
+                        dateCorrect : true
+                    },
+                    date_of_birth : {
+                        dateFormat : true,
+                        dateCorrect : true
+                    }
+                }
+            });
     });
 </script>
 
