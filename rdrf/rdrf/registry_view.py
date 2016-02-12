@@ -17,7 +17,10 @@ class RegistryView(View):
         
         parent = None
         if request.user.is_authenticated():
-            parent = ParentGuardian.objects.get(user=request.user)
+            try:
+                parent = ParentGuardian.objects.get(user=request.user)
+            except ParentGuardian.DoesNotExist:
+                pass
         
         try:
             registry = Registry.objects.get(code=registry_code)

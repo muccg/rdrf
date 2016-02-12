@@ -248,7 +248,7 @@
                                 {% with link=section|get_information_link %}
                                 {% with info_text=section|get_information_text %}
                                 {% with doc="docs/"|add:link %}
-                                    {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
+                                    {% if link %}<br><a href="{% static doc %}" target="_blank">Information Sheet - Please Read!</a>{% endif %}
                                     {% if info_text %}
                                         <br>
                                         <hr>
