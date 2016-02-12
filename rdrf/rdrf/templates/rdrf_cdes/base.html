@@ -87,7 +87,7 @@
 
                         {% for quick_link in request.user.quick_links %}
                             {% if not quick_link.admin_link %}
-                                <li><a href="{{quick_link.url}}{{context_id}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
+                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
                             {% endif %}
                         {% endfor %}
                         {% block extra_menu %}
@@ -103,7 +103,7 @@
                         <ul class="dropdown-menu" role="menu">
                             {% for quick_link in request.user.quick_links %}
                                 {% if quick_link.admin_link %}
-                                    <li><a href="{{quick_link.url}}{{context_id}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
+                                    <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
                                 {% endif %}
                             {% endfor %}
                         </ul>
