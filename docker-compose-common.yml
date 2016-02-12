@@ -74,8 +74,7 @@ nginx:
     - ./data/nginx:/data
 
 runserver:
-  build: .
-  command: runserver
+  image: muccg/rdrf-dev
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
@@ -86,7 +85,7 @@ runserver:
     - "8000:8000"
 
 uwsgi:
-  image: rdrf_runserver
+  image: muccg/yabi-dev
   command: uwsgi
   environment:
     - DBUSER=rdrfapp

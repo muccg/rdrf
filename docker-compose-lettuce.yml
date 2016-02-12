@@ -6,7 +6,7 @@ dataselenium:
 
 # runs the lettuce tests against docker-compose-seleniumstack.yml
 lettucehost:
-  image: rdrf_runserverselenium
+  image: muccg/yabi-dev
   command: lettuce
   environment:
     - DBUSER=rdrfapp

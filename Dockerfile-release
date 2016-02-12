@@ -1,52 +1,12 @@
-# Dockerfile template. ${GITTAG} needs to be set.
-FROM muccg/python-base:debian8-2.7
-MAINTAINER https://github.com/muccg/rdrf
+# 
+FROM muccg/rdrf-base
+MAINTAINER https://github.com/muccg/rdrf/
 
-ARG GIT_TAG=next_release
-ARG PIP_OPTS="--no-cache-dir"
+ARG ARG_GIT_TAG
 
-ENV VIRTUAL_ENV /env
-ENV PATH $VIRTUAL_ENV/bin:$PATH
-ENV GITTAG $GIT_TAG
-ENV DEPLOYMENT prod
-ENV PRODUCTION 1
-ENV DEBUG 0
-ENV STATIC_ROOT /data/static
-ENV WRITABLE_DIRECTORY /data/scratch
-ENV MEDIA_ROOT /data/static/media
-ENV LOG_DIRECTORY /data/log
-ENV MONGO_DB_PREFIX=prod_
-ENV DJANGO_SETTINGS_MODULE rdrf.settings
+ENV GIT_TAG $ARG_GIT_TAG
 
-ENV DEBIAN_FRONTEND noninteractive
-
-# Project specific deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  build-essential \
-  git \
-  libpcre3 \
-  libpcre3-dev \
-  libpq-dev \
-  libssl-dev \
-  libyaml-dev \
-  sendmail \
-  zlib1g-dev \
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN env --unset=DEBIAN_FRONTEND
-
-WORKDIR /app
-COPY .version /.version
-RUN echo $GIT_TAG \
-    && git clone --depth=1 --branch=$GIT_TAG https://github.com/muccg/rdrf.git . \
-    && rm -rf .git
-
-# install python deps
-# hgvs was failing due to lack of nose, hence the order
-RUN virtualenv $VIRTUAL_ENV
-RUN pip ${PIP_OPTS} install nose
-RUN pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
-RUN pip ${PIP_OPTS} install -e rdrf
+ADD build/rdrf-$GIT_TAG.tar.gz /
 
 EXPOSE 9100 9101
 VOLUME ["/data"]

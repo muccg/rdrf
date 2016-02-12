@@ -1,0 +1,52 @@
+# data only container pattern
+datarelease:
+  image: muccg/debian8-base:latest
+  volumes:
+    - ./data/release:/data
+
+smtprelease:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
+
+dbrelease:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+reportingrelease:
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
+
+cacherelease:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongorelease:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+nginxrelease:
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
+  links:
+    - uwsgirelease:uwsgi
+
+uwsgirelease:
+  image: muccg/rdrf:${GIT_TAG}
+  environment:
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - datarelease
+  links:
+    - dbrelease:db
+    - cacherelease:cache
+    - reportingrelease:reporting
+    - mongorelease:mongo

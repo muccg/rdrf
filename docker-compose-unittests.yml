@@ -6,7 +6,7 @@ datatest:
 
 # runs the tests against docker-compose-teststack.yml
 testhost:
-  image: rdrf_runservertest
+  image: muccg/yabi-dev
   command: runtests
   environment:
     - DBUSER=rdrfapp
