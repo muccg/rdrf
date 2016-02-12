@@ -1,0 +1,48 @@
+#
+FROM muccg/rdrf-build
+MAINTAINER https://github.com/muccg/rdrf
+
+#At build time changing these args allow us to use a local devpi mirror
+# Unchanged, these defaults allow pip to behave as noremal
+ARG ARG_PIP_OPTS="--no-cache-dir"
+ARG ARG_PIP_INDEX_URL="https://pypi.python.org/simple"
+ARG ARG_PIP_TRUSTED_HOST="127.0.0.1"
+
+# Runtime args, don't re-use build time args
+ENV DEPLOYMENT dev
+ENV PRODUCTION 0
+ENV DEBUG 1
+ENV PIP_OPTS="--no-cache-dir"
+ENV PIP_INDEX_URL="https://pypi.python.org/simple"
+ENV PIP_TRUSTED_HOST="127.0.0.1"
+
+# Strictly speaking not needed as we mount over the top
+# However let's make it explicit that we don't want /app from the build image
+RUN rm -rf /app && mkdir -p /app
+
+# # For dev we use root so we can shell in and do evil things
+USER root
+WORKDIR /app
+
+# install python deps
+COPY rdrf/*requirements.txt /app/rdrf/
+
+# Add our python deps in multiple docker layers
+# hgvs was failing due to lack of nose, hence the order
+RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/dev-requirements.txt
+RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/test-requirements.txt
+RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/runtime-requirements.txt
+
+# Copy code and install the app
+COPY . /app
+RUN pip ${PIP_OPTS} install --upgrade -e rdrf
+
+EXPOSE 8000 9000 9001 9100 9101
+VOLUME ["/app", "/data"]
+
+ENV HOME /data
+WORKDIR /data
+
+# entrypoint shell script that by default starts runserver
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["runserver"]

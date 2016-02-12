@@ -1,12 +1,12 @@
 #
 dataselenium:
   extends:
-    file: docker-compose-seleniumstack.yml
+    file: docker-compose-common.yml
     service: dataselenium
 
 # runs the selenium tests against the stack above
 seleniumtesthost:
-  image: angelman_runserverselenium
+  image: muccg/yabi-dev
   command: selenium
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings

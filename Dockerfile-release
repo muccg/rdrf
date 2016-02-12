@@ -1,40 +1,12 @@
-FROM muccg/python-base:debian8-2.7
+# 
+FROM muccg/rdrf-base
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
-ARG GIT_TAG=next_release
-ARG PIP_OPTS="--no-cache-dir"
+ARG ARG_GIT_TAG
 
-ENV GITTAG $GIT_TAG
+ENV GIT_TAG $ARG_GIT_TAG
 
-ENV DEBIAN_FRONTEND noninteractive
-
-# Project specific deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  build-essential \
-  git \
-  libpcre3 \
-  libpcre3-dev \
-  libpq-dev \
-  libssl-dev \
-  libyaml-dev \
-  sendmail \
-  zlib1g-dev \
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN env --unset=DEBIAN_FRONTEND
-
-WORKDIR /app
-COPY rdrf/*requirements.txt /app/rdrf/
-
-# install python deps
-# hgvs was failing due to lack of nose, hence the order
-RUN virtualenv /env
-RUN /env/bin/pip ${PIP_OPTS} install nose
-RUN /env/bin/pip ${PIP_OPTS} install -r rdrf/runtime-requirements.txt
-
-
-COPY . /app/
-RUN /env/bin/pip ${PIP_OPTS} install -e rdrf
+ADD build/rdrf-$GIT_TAG.tar.gz /
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
