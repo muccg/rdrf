@@ -86,6 +86,7 @@ if [ "$1" = 'tarball' ]; then
     # install python deps
     # Note: Environment vars are used to control the bahviour of pip (use local devpi for instance)
     pip install ${PIP_OPTS} --upgrade -r rdrf/runtime-requirements.txt
+    pip install ${PIP_OPTS} --upgrade -r rdrf/recalcitrant-requirements.txt
     pip install -e rdrf
     set +x
 
