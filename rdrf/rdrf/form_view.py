@@ -292,6 +292,7 @@ class FormView(View):
             return HttpResponseRedirect("/")
 
         dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        dyn_patient._set_client()
 
         if self.testing:
             dyn_patient.testing = True

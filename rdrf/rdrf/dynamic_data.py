@@ -614,6 +614,7 @@ class DynamicDataWrapper(object):
             return nested_data
 
     def load_contexts(self, registry_model):
+        self._set_client()
         logger.debug("registry model = %s" % registry_model)
         if not registry_model.has_feature("contexts"):
             raise Exception("Registry %s does not support use of contexts" % registry_model.code)

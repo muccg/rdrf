@@ -250,6 +250,7 @@ class PatientForm(forms.ModelForm):
         if patient_model is None:
             return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
+        mongo_wrapper._set_client()
         return mongo_wrapper.load_registry_specific_data(self.registry_model)
 
     def _update_initial_consent_data(self, patient_model, initial_data):

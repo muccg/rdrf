@@ -332,6 +332,7 @@ class Patient(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -365,6 +366,7 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper._set_client()
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -615,6 +617,8 @@ class Patient(models.Model):
 
     def get_form_timestamp(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
+        dynamic_store._set_client()
+        
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
             if "timestamp" in timestamp:
