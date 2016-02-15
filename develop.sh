@@ -307,16 +307,15 @@ _docker_release_build() {
     info 'docker release build'
 
     local dockerfile='Dockerfile-release'
-    local dockerimage=${DOCKER_IMAGE}
 
     _github_revision
 
     # attempt to warm up docker cache
     if [ ${DOCKER_USE_HUB} = "1" ]; then
-        docker pull ${dockerimage}:${gittag} || true
+        docker pull ${DOCKER_IMAGE}:${gittag} || true
     fi
 
-    for tag in "${dockerimage}:${gittag}" "${dockerimage}:${gittag}-${DATE}"; do
+    for tag in "${DOCKER_IMAGE}:${gittag}" "${DOCKER_IMAGE}:${gittag}-${DATE}"; do
         info "Building ${PROJECT_NAME} ${tag}"
         set -x
 	# don't try and pull the base image
