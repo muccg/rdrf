@@ -1,7 +1,7 @@
 #
 dataselenium:
   extends:
-    file: docker-compose-seleniumstack.yml
+    file: docker-compose-common.yml
     service: dataselenium
 
 # runs the lettuce tests against docker-compose-teststack.yml

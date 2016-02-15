@@ -11,6 +11,12 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
+dataselenium:
+  image: muccg/debian8-base:latest
+  volumes:
+    - .:/app
+    - ./data/selenium:/data
+
 jasper:
   image: muccg/jasper-reports-server:6.1.1
   command: development
