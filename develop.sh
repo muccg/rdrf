@@ -187,6 +187,13 @@ _github_revision() {
 
     success "$(cat .version)"
     success "git tag: ${gittag}"
+
+    # attempt to warm up docker cache
+    if [ ${DOCKER_USE_HUB} = "1" ]; then
+        info "Warming up docker cache"
+        docker pull ${DOCKER_IMAGE}:next_release || true
+        docker pull ${DOCKER_IMAGE}:${gittag} || true
+    fi
 }
 
 
@@ -309,11 +316,6 @@ _docker_release_build() {
     local dockerfile='Dockerfile-release'
 
     _github_revision
-
-    # attempt to warm up docker cache
-    if [ ${DOCKER_USE_HUB} = "1" ]; then
-        docker pull ${DOCKER_IMAGE}:${gittag} || true
-    fi
 
     for tag in "${DOCKER_IMAGE}:${gittag}" "${DOCKER_IMAGE}:${gittag}-${DATE}"; do
         info "Building ${PROJECT_NAME} ${tag}"
