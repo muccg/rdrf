@@ -6,7 +6,7 @@ dataselenium:
 
 # runs the selenium tests against docker-compose-seleniumstack.yml
 seleniumtesthost:
-  image: muccg/yabi-dev
+  image: muccg/rdrf-dev
   command: selenium
   environment:
     - DBUSER=rdrfapp
