@@ -668,6 +668,7 @@ class DynamicDataWrapper(object):
         return reg_codes
 
     def save_registry_specific_data(self, data):
+        self._set_client()
         logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
             registry_data = data[reg_code]
