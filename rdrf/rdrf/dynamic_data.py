@@ -505,7 +505,6 @@ class DynamicDataWrapper(object):
     def __init__(
             self,
             obj,
-            client=construct_mongo_client(),
             filestore_class=gridfs.GridFS,
             rdrf_context_id=None):
         # When set to True by integration tests, uses testing mongo database
@@ -514,7 +513,7 @@ class DynamicDataWrapper(object):
         self.django_id = obj.pk
         self.django_model = obj.__class__
         # We inject these to allow unit testing
-        self.client = client
+        self.client = None
         self.file_store_class = filestore_class
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
@@ -522,6 +521,12 @@ class DynamicDataWrapper(object):
 
         # holds reference to the complete data record for this object
         self.patient_record = None
+
+    def _set_client(self):
+        if self.client is None:
+            self.client = construct_mongo_client()
+            
+        
 
     def __unicode__(self):
         return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
@@ -569,6 +574,7 @@ class DynamicDataWrapper(object):
         :param flattened: use flattened to get data in a form suitable for the view
         :return: a dictionary of nested or flattened data for this instance
         """
+        self._set_client()
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
@@ -999,6 +1005,7 @@ class DynamicDataWrapper(object):
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None):
         from rdrf.models import Registry
+        self._set_client()
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 
