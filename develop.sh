@@ -43,7 +43,7 @@ usage() {
     echo " Use a pip proxy                SET_PIP_PROXY               ${SET_PIP_PROXY}"
     echo ""
     echo "Usage:"
-    echo " ./develop.sh (dev|dev_rebuild|dev_full|runtests|lettuce)"
+    echo " ./develop.sh (dev|dev_rebuild|dev_full|runtests|lettuce|selenium)"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|releaseimage)"
     echo " ./develop.sh (start_release|start_release_rebuild)"
     echo " ./develop.sh (pythonlint|jslint)"
@@ -444,8 +444,27 @@ lettuce() {
     set -x
     set +e
     ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force || exit 0 )
-    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build)
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
+    rval=$?
+    set -e
+    set +x
+
+    _test_stack_down
+    _selenium_stack_down
+
+    exit $rval
+}
+
+
+selenium() {
+    info 'selenium'
+    _selenium_stack_up
+    _test_stack_up
+
+    set -x
+    set +e
+    ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml rm --force || exit 0 )
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
     rval=$?
     set -e
     set +x
@@ -619,6 +638,12 @@ lettuce)
     create_build_image
     create_dev_image
     lettuce
+    ;;
+selenium)
+    create_base_image
+    create_build_image
+    create_dev_image
+    selenium
     ;;
 *)
     usage
