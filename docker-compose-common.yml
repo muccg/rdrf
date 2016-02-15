@@ -88,7 +88,7 @@ runserver:
     - "8000:8000"
 
 uwsgi:
-  image: muccg/yabi-dev
+  image: muccg/rdrf-dev
   command: uwsgi
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings

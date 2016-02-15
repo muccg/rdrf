@@ -6,7 +6,7 @@ datatest:
 
 # runs the tests against docker-compose-teststack.yml
 testhost:
-  image: muccg/yabi-dev
+  image: muccg/rdrf-dev
   command: runtests
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings

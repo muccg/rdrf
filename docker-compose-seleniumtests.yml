@@ -6,7 +6,7 @@ dataselenium:
 
 # runs the selenium tests against the stack above
 seleniumtesthost:
-  image: muccg/yabi-dev
+  image: muccg/rdrf-dev
   command: selenium
   environment:
     - DJANGO_SETTINGS_MODULE=rdrf.settings
