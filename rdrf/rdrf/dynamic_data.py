@@ -556,6 +556,7 @@ class DynamicDataWrapper(object):
         return collection
 
     def get_filestore(self, registry):
+        self._set_client()
         if not self.testing:
             db = self.client[mongo_db_name(registry)]
         else:
