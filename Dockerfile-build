@@ -22,10 +22,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN env --unset=DEBIAN_FRONTEND
 
-COPY .version /.version
-RUN cat /.version
-ADD https://raw.githubusercontent.com/muccg/rdrf/${GIT_TAG}/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+#COPY .version /.version
+#RUN cat /.version
+#ADD https://raw.githubusercontent.com/muccg/rdrf/${GIT_TAG}/docker-entrypoint.sh /app/docker-entrypoint.sh
+#RUN chmod +x /app/docker-entrypoint.sh
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 VOLUME ["/data"]
 
