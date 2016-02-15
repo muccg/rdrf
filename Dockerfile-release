@@ -1,5 +1,5 @@
 # 
-FROM muccg/rdrf-base
+FROM muccg/angelman-base
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 ARG ARG_GIT_TAG

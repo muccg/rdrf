@@ -1,5 +1,5 @@
 #
-FROM muccg/rdrf-build
+FROM muccg/angelman-build
 MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 #At build time changing these args allow us to use a local devpi mirror
