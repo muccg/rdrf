@@ -1,6 +1,6 @@
 #
 FROM muccg/rdrf-base
-MAINTAINER https://github.com/muccg/rdrf
+MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 ARG ARG_GIT_TAG=next_release
 

@@ -1,6 +1,6 @@
 #
 FROM muccg/python-base:debian8-2.7
-MAINTAINER https://github.com/muccg/rdrf
+MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 ENV DEPLOYMENT prod
 ENV PRODUCTION 1

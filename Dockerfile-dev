@@ -1,6 +1,6 @@
 #
 FROM muccg/rdrf-build
-MAINTAINER https://github.com/muccg/rdrf
+MAINTAINER https://bitbucket.org/ccgmurdoch/angelman/
 
 #At build time changing these args allow us to use a local devpi mirror
 # Unchanged, these defaults allow pip to behave as noremal
