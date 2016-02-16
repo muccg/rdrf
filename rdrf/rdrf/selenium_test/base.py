@@ -20,11 +20,10 @@ logger.addHandler(ch)
 
 class Base(unittest.TestCase):
 
-    HUB_SERVER = "hub"
-    HUB_PORT = "4444"
-    BROWSER = "*firefox"
-    #BROWSER = "*googlechrome"
-    URL = "http://web:8000"
+    HUB_SERVER =  os.environ.get('RDRF_HUB_SERVER', 'hub')
+    HUB_PORT = os.environ.get('RDRF_HUB_PORT', '4444')
+    BROWSER = os.environ.get('RDRF_BROWSER', "*googlechrome")
+    URL = os.environ.get('RDRF_URL', 'http://web:8000')
 
     def setUp(self):
         logger.info("{0} {1} {2} {3}".format(self.HUB_SERVER, self.HUB_PORT, self.BROWSER, self.URL))
