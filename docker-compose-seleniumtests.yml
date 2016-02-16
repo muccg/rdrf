@@ -12,9 +12,11 @@ seleniumtesthost:
     - DBUSER=rdrfapp
     - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
+    - WAIT_FOR_MONGO=1
   volumes_from:
     - dataselenium
   external_links:
     - rdrf_runservertest_1:web
     - rdrf_dbtest_1:db
     - rdrf_seleniumhub_1:hub
+    - rdrf_mongotest_1:mongo
