@@ -82,19 +82,18 @@ if [ "$1" = 'tarball' ]; then
     rm -rf /app/*
     echo $GIT_TAG
     set -x
-    git clone --depth=1 --branch=$GIT_TAG https://github.com/muccg/rdrf.git .
+    git clone --depth=1 --branch=$GIT_TAG git@bitbucket.org:ccgmurdoch/angelman.git
 
     # install python deps
     # Note: Environment vars are used to control the bahviour of pip (use local devpi for instance)
     pip install ${PIP_OPTS} --upgrade -r rdrf/runtime-requirements.txt
-    pip install ${PIP_OPTS} --upgrade -r rdrf/recalcitrant-requirements.txt
     pip install -e rdrf
     set +x
 
     # create release tarball
     DEPS="/env /app/uwsgi /app/docker-entrypoint.sh /app/rdrf"
     cd /data
-    exec tar -cpzf rdrf-${GIT_TAG}.tar.gz ${DEPS}
+    exec tar -cpzf angelman-${GIT_TAG}.tar.gz ${DEPS}
 fi
 
 # uwsgi entrypoint

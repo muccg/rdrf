@@ -24,8 +24,11 @@ RUN env --unset=DEBIAN_FRONTEND
 
 COPY .version /.version
 RUN cat /.version
-ADD https://raw.githubusercontent.com/muccg/rdrf/${GIT_TAG}/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+COPY docker-build.key /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa && \
+    echo "StrictHostKeyChecking no" > /root/.ssh/config && \
+    echo "UserKnownHostsFile /dev/null" >> /root/.ssh/config
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 VOLUME ["/data"]
 

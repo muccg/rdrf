@@ -159,10 +159,12 @@ _ci_ssh_agent() {
 
 
 # figure out what branch/tag we are on, write out .version file
-_github_revision() {
+_bb_revision() {
     info 'git revision'
 
+    set +e
     gittag=`git describe --abbrev=0 --tags 2> /dev/null`
+    set -e
     gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
 
     if [ $gitbranch = "HEAD" ]; then
@@ -183,7 +185,7 @@ _github_revision() {
 
     # create .version file for invalidating cache in Dockerfile
     # we hit remote as the Dockerfile clones remote
-    git ls-remote https://github.com/muccg/${PROJECT_NAME}.git ${gittag} > .version
+    git ls-remote git@bitbucket.org:ccgmurdoch/${PROJECT_NAME}.git ${gittag} > .version
 
     success "$(cat .version)"
     success "git tag: ${gittag}"
@@ -208,7 +210,7 @@ create_release_image() {
 
 create_build_image() {
     info 'create build image'
-    _github_revision
+    _bb_revision
 
     set -x
     # don't try and pull the build image
@@ -309,7 +311,7 @@ _docker_release_build() {
     local dockerfile='Dockerfile-release'
     local dockerimage=${DOCKER_IMAGE}
 
-    _github_revision
+    _bb_revision
 
     # attempt to warm up docker cache
     if [ ${DOCKER_USE_HUB} = "1" ]; then
