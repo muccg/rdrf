@@ -37,7 +37,7 @@ nginxrelease:
     - uwsgirelease:uwsgi
 
 uwsgirelease:
-  image: muccg/rdrf:${GIT_TAG}
+  image: muccg/angelman:${GIT_TAG}
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
