@@ -322,13 +322,15 @@ _docker_release_build() {
         set -x
 	# don't try and pull the base image
 	(${CMD_ENV}; docker build ${DOCKER_BUILD_PROXY} ${DOCKER_BUILD_NOCACHE} --build-arg ARG_GIT_TAG=${gittag} -t ${tag} -f ${dockerfile} .)
+        set +x
 	success "built ${tag}"
 
         if [ ${DOCKER_USE_HUB} = "1" ]; then
+            set -x
             docker push ${tag}
+            set +x
 	    success "pushed ${tag}"
         fi
-        set +x
     done
 
     rm -f .version || true
