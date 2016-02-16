@@ -139,7 +139,7 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    exec django-admin.py test rdrf
+    exec django-admin.py test -v 3 rdrf
 fi
 
 # lettuce entrypoint
@@ -151,7 +151,7 @@ fi
 # selenium entrypoint
 if [ "$1" = 'selenium' ]; then
     echo "[Run] Starting selenium"
-    exec django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
+    exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi]"
