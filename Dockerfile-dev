@@ -32,8 +32,6 @@ COPY rdrf/test-requirements.txt /app/rdrf/
 RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/test-requirements.txt
 COPY rdrf/runtime-requirements.txt /app/rdrf/
 RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/runtime-requirements.txt
-COPY rdrf/recalcitrant-requirements.txt /app/rdrf/
-RUN NO_PROXY=${ARG_PIP_TRUSTED_HOST} pip ${ARG_PIP_OPTS} --trusted-host ${ARG_PIP_TRUSTED_HOST} install -i ${ARG_PIP_INDEX_URL} --upgrade -r rdrf/recalcitrant-requirements.txt
 
 # Copy code and install the app
 COPY . /app
