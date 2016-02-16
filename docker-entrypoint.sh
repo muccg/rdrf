@@ -82,7 +82,7 @@ if [ "$1" = 'tarball' ]; then
     rm -rf /app/*
     echo $GIT_TAG
     set -x
-    git clone --depth=1 --branch=$GIT_TAG git@bitbucket.org:ccgmurdoch/angelman.git
+    git clone --depth=1 --branch=$GIT_TAG git@bitbucket.org:ccgmurdoch/angelman.git .
 
     # install python deps
     # Note: Environment vars are used to control the bahviour of pip (use local devpi for instance)
