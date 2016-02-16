@@ -5,14 +5,10 @@ seleniumhub:
 
 chrome:
   image: selenium/node-chrome
-  volumes:
-    - /dev/shm:/dev/shm
   links:
   - seleniumhub:hub
 
 firefox:
   image: selenium/node-firefox
-  volumes:
-    - /dev/shm:/dev/shm
   links:
   - seleniumhub:hub
