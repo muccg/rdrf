@@ -424,7 +424,7 @@ _selenium_stack_up() {
     chmod o+rwx data/selenium
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up -d
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up --force-recreate -d
     set +x
     success 'selenium stack up'
 }
