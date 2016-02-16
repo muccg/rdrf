@@ -1,0 +1,4 @@
+nose
+sphinxcontrib-httpdomain==1.4.0
+setuptools_scm==1.10.1
+hgtools==6.5.1
