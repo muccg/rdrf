@@ -73,11 +73,11 @@ DATABASES = {
     # }
     "reporting": {
         'ENGINE': env.get_db_engine("dbtype", "pgsql"),
-        'NAME': env.get("reportingdbname", "reporting"),
-        'USER': env.get("reportingdbuser", "reporting"),
-        'PASSWORD': env.get("reportingdbpassword", "reporting"),
-        'HOST': env.get("reportingdbserver", "reporting"),
-        'PORT': env.get("reportingdbport", "5432"),
+        'NAME': env.get("reportingdbname", "rdrf"),
+        'USER': env.get("reportingdbuser", "rdrf"),
+        'PASSWORD': env.get("reportingdbpassword", "rdrf"),
+        'HOST': env.get("reportingdbserver", ""),
+        'PORT': env.get("reportingdbport", ""),
     }
 }
 

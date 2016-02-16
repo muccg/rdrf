@@ -34,7 +34,7 @@ function wait_for_services {
     fi
 
     if [[ "$WAIT_FOR_REPORTING" ]]; then
-        dockerwait $REPORTDBSERVER $REPORTDBPORT
+        dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
     fi
 }
 
@@ -42,14 +42,17 @@ function wait_for_services {
 function defaults {
     : ${DBSERVER:="db"}
     : ${DBPORT:="5432"}
+    : ${DBUSER:="webapp"}
+    : ${DBNAME:="${DBUSER}"}
+    : ${DBPASS:="${DBUSER}"}
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
-    : ${REPORTDBSERVER:="reporting"}
-    : ${REPORTDBPORT:="5432"}
-    : ${REPORTDBUSER="reporting"}
-    : ${REPORTDBNAME="${DBUSER}"}
-    : ${REPORTDBPASS="${DBUSER}"}
+    : ${REPORTINGDBSERVER:=${DBSERVER}}
+    : ${REPORTINGDBPORT:=${DBPORT}}
+    : ${REPORTINGDBUSER:=${DBUSER}}
+    : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
+    : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
 
     : ${RUNSERVER="web"}
     : ${RUNSERVERPORT="8000"}
@@ -59,12 +62,9 @@ function defaults {
     : ${MONGOSERVER="mongo"}
     : ${MONGOPORT="27017"}
 
-    : ${DBUSER="webapp"}
-    : ${DBNAME="${DBUSER}"}
-    : ${DBPASS="${DBUSER}"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
-    export REPORTDBSERVER REPORTDBPORT REPORTDBUSER REPORTDBPASS
+    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
 }
 
 
