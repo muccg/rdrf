@@ -11,13 +11,10 @@ django-messages-ui==0.2.7
 django-nose
 django-templatetag-handlebars==1.2.0
 django-ajax-selects
-pysam==0.8.3
 nose
 sphinxcontrib-httpdomain==1.4.0
 setuptools_scm==1.10.1
 hgtools==6.5.1
-#bdi==0.1.13
-#hgvs==0.2.2
 django-positions 
 django-tastypie==0.12.2
 pycountry==1.12
