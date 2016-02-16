@@ -54,16 +54,19 @@ function defaults {
     : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
     : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
 
-    : ${RUNSERVER="web"}
-    : ${RUNSERVERPORT="8000"}
-    : ${CACHESERVER="cache"}
-    : ${CACHEPORT="11211"}
-    : ${MEMCACHE="${CACHESERVER}:${CACHEPORT}"}
-    : ${MONGOSERVER="mongo"}
-    : ${MONGOPORT="27017"}
+    : ${RUNSERVER:="web"}
+    : ${RUNSERVERPORT:="8000"}
+    : ${CACHESERVER:="cache"}
+    : ${CACHEPORT:="11211"}
+    : ${MEMCACHE:="${CACHESERVER}:${CACHEPORT}"}
+    : ${MONGOSERVER:="mongo"}
+    : ${MONGOPORT:="27017"}
 
+    : ${RDRF_URL:="http://$DOCKER_ROUTE:$RUNSERVERPORT/"}
+    #: ${RDRF_BROWSER:="*googlechrome"}
+    : ${RDRF_BROWSER:="*firefox"}
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE RDRF_URL RDRF_BROWSER
     export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
 }
 
@@ -138,7 +141,7 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    exec django-admin.py test rdrf
+    exec django-admin.py test -v 3 rdrf
 fi
 
 # lettuce entrypoint
@@ -150,7 +153,7 @@ fi
 # selenium entrypoint
 if [ "$1" = 'selenium' ]; then
     echo "[Run] Starting selenium"
-    exec django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
+    exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi]"
