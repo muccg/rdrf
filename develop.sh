@@ -43,7 +43,7 @@ usage() {
     echo " Use a pip proxy                SET_PIP_PROXY               ${SET_PIP_PROXY}"
     echo ""
     echo "Usage:"
-    echo " ./develop.sh (dev|dev_rebuild|dev_full|runtests|lettuce|selenium)"
+    echo " ./develop.sh (dev|dev_rebuild|runtests|lettuce|selenium)"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|releaseimage)"
     echo " ./develop.sh (start_release|start_release_rebuild)"
     echo " ./develop.sh (pythonlint|jslint)"
