@@ -269,16 +269,6 @@ start_dev() {
 }
 
 
-start_dev_full() {
-    info 'start dev full'
-    mkdir -p data/dev
-    chmod o+rwx data/dev
-    set -x
-    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-full.yml up)
-    set +x
-}
-
-
 # build RPMs
 rpm_build() {
     info 'rpm build'
