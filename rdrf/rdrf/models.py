@@ -1726,6 +1726,16 @@ class RDRFContext(models.Model):
         if len(self.display_name) == 0:
             raise ValidationError("RDRF Context must have a display name")
 
+    @property
+    def context_name(self):
+        if self.context_form_group:
+            return self.context_form_group.name # E.G. Assessment or Visit - used for display
+        else:
+            try:
+                return self.registry.metadata["context_name"]
+            except KeyError:
+                return "Context"
+
         
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
@@ -1733,9 +1743,13 @@ class ContextFormGroup(models.Model):
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
 
+    @property
+    def forms(self):
+        return [ item.registry_form for item in self.items.all()]
+    
 
 class ContextFormGroupItem(models.Model):
-    context_form_group = models.ForeignKey(ContextFormGroup)
+    context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
     registry_form = models.ForeignKey(RegistryForm)       
 
     

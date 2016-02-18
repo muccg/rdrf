@@ -43,8 +43,8 @@ class PatientContextMenu(object):
     def _get_context_name(self):
         if self.registry_model.has_feature("contexts"):
             try:
-                name = self.registry_model.metadata["context_name"]
-            except KeyError:
+                name = self.context_model.context_name
+            except Exception:
                 name = "Context"
         else:
             name = "Context"
@@ -108,7 +108,13 @@ class PatientContextMenu(object):
         def not_generated(frm):
             return not frm.name.startswith(self.registry_model.generated_questionnaire_name)
 
-        forms = [
+        if not self.context_model.context_form_group:
+            forms = [
             f for f in RegistryForm.objects.filter(
                 registry=self.registry_model).order_by('position') if not_generated(f) and self.user.can_view(f)]
+        else:
+            forms = [ f for f in self.context_model.context_form_group.forms
+                      if not_generated(f)
+                      and self.user.can_view(f)]
+            
         return forms
