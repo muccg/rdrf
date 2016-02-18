@@ -32,3 +32,4 @@ openpyxl
 SQLAlchemy
 django-useraudit
 django-iprestrict
+django_mailgun
