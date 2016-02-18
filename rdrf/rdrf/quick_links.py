@@ -65,6 +65,9 @@ class QuickLinks(object):
     IPRestrictGroup = QuickLink("admin:iprestrict_ipgroup_changelist", _("IP Restrict Groups"), True)
     IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
 
+    # Context Form Groups
+    ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Context Form Groups", True)
+
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
     IP_RESTRICT = oset([IPRestrictGroup, IPRestrictRule])
@@ -91,6 +94,7 @@ class QuickLinks(object):
                             DemographicsFields,
                             NextOfKinRelationship,
                             RegistrationProfiles,
+                            ContextFormGroups,
                             EmailNotification,
                             EmailTemplate,
                             EmailNotificationHistory])

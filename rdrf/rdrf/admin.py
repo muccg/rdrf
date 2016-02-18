@@ -21,8 +21,9 @@ from models import CdePolicy
 from models import EmailNotification
 from models import EmailTemplate
 from models import EmailNotificationHistory
+from models import ContextFormGroup
+from models import ContextFormGroupItem
 
-import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
@@ -37,6 +38,7 @@ from admin_forms import RegistryFormAdminForm
 from admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
+import logging
 logger = logging.getLogger("registry_log")
 
 
@@ -412,6 +414,21 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     resend.allow_tags = True
 
 
+class ContextFormGroupItemAdmin(admin.StackedInline):
+    model = ContextFormGroupItem
+
+class ContextFormGroupAdmin(admin.ModelAdmin):
+    model = ContextFormGroup
+    list_display = ('name', 'registry')
+    inlines = [ContextFormGroupItemAdmin]
+    
+    def registry(obj):
+        return obj.registry.name
+    
+
+    
+    
+
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(
@@ -460,6 +477,9 @@ admin.site.register(EmailNotification, EmailNotificationAdmin)
 admin.site.register(EmailTemplate, EmailTemplateAdmin)
 
 admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
+
+admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
+
 
 if has_feature('adjudication'):
     admin.site.register(Notification, NotificationAdmin)
