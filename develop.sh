@@ -342,6 +342,7 @@ _docker_release_build() {
 # docker build and push in CI
 ci_dockerbuild() {
     info 'ci docker build'
+    _ci_ssh_agent
     _ci_docker_login
     create_base_image
     create_build_image
