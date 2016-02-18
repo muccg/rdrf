@@ -1708,6 +1708,7 @@ class RDRFContextError(Exception):
 class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry)
     content_type = models.ForeignKey(ContentType)
+    context_form_group = models.ForeignKey("ContextFormGroup", null=True, blank=True)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1725,7 +1726,19 @@ class RDRFContext(models.Model):
         if len(self.display_name) == 0:
             raise ValidationError("RDRF Context must have a display name")
 
+        
+class ContextFormGroup(models.Model):
+    CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
+    registry = models.ForeignKey(Registry)
+    context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
+    name = models.CharField(max_length=80)
 
+
+class ContextFormGroupItem(models.Model):
+    context_form_group = models.ForeignKey(ContextFormGroup)
+    registry_form = models.ForeignKey(RegistryForm)       
+
+    
 class MongoMigrationDummyModel(models.Model):
     """
     This model should never be instantiated.
