@@ -464,6 +464,14 @@ class Registry(models.Model):
 
     def clean(self):
         self._check_metadata()
+        self._check_dupes()
+
+
+    def _check_dupes(self):
+        dupes = [ r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk ]
+        names = " ".join([ "%s %s" % (r.code, r.name) for r in dupes])
+        if len(dupes) > 0:
+            raise ValidationError("Code %s already exists ( ignore case) in: %s" % (self.code, names))
 
     @property
     def context_name(self):
