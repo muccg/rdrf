@@ -816,11 +816,28 @@ class RegistryForm(models.Model):
         else:
             return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
 
+    def _check_completion_cdes(self):
+        completion_cdes = set([cde.code for cde in self.complete_form_cdes.all()])
+        current_cdes = []
+        for section_model in self.section_models:
+            for cde_model in section_model.cde_models:
+                current_cdes.append(cde_model.code)
+
+        current_cdes = set(current_cdes)
+        extra = completion_cdes - current_cdes
+        
+        if len(extra) > 0:
+            msg = ",".join(extra)
+            raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
+
     def clean(self):
         if " " in self.name:
             msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
                     "Camel Case, instead."
             raise ValidationError(msg)
+
+        self._check_completion_cdes()
+        
 
 
 
