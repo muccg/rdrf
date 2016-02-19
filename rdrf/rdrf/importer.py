@@ -15,6 +15,9 @@ from registry.groups.models import WorkingGroup
 from explorer.models import Query
 
 from django.contrib.auth.models import Group
+from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import ValidationError
+
 
 from utils import create_permission
 
@@ -302,8 +305,13 @@ class Importer(object):
 
 
             for value_map in pvg_map["values"]:
-                value, created = CDEPermittedValue.objects.get_or_create(
-                    code=value_map["code"], pv_group=pvg)
+                try:
+                    value, created = CDEPermittedValue.objects.get_or_create(
+                        code=value_map["code"], pv_group=pvg)
+                except MultipleObjectsReturned:
+                    raise ValidationError("range %s code %s is duplicated" % (pvg.code,
+                                                                          value_map["code"]))
+            
                 if not created:
                     if value.value != value_map["value"]:
                         logger.warning("Existing value code %s.%s = '%s'" %
