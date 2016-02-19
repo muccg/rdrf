@@ -585,6 +585,9 @@ class CDEPermittedValue(models.Model):
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
     position = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        unique_together = (('pv_group', 'code'),)
+
     def pvg_link(self):
         url = reverse('admin:rdrf_cdepermittedvaluegroup_change', args=(self.pv_group.code,))
         return "<a href='%s'>%s</a>" % (url, self.pv_group.code)
