@@ -2,6 +2,8 @@
 FROM muccg/python-base:debian8-2.7
 MAINTAINER https://github.com/muccg/rdrf
 
+ENV PROJECT_NAME rdrf
+ENV PROJECT_SOURCE https://github.com/muccg/rdrf.git
 ENV DEPLOYMENT prod
 ENV PRODUCTION 1
 ENV DEBUG 0
@@ -12,15 +14,12 @@ ENV LOG_DIRECTORY /data/log
 ENV MONGO_DB_PREFIX=prod_
 ENV DJANGO_SETTINGS_MODULE rdrf.settings
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN env | sort
 
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
   libpcre3 \
   libpq5 \
-  sendmail \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN env --unset=DEBIAN_FRONTEND
 
 ENTRYPOINT ["/bin/sh"]

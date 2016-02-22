@@ -6,7 +6,9 @@ ARG ARG_GIT_TAG
 
 ENV GIT_TAG $ARG_GIT_TAG
 
-ADD build/rdrf-$GIT_TAG.tar.gz /
+RUN env | sort
+
+ADD build/${PROJECT_NAME}-${GIT_TAG}.tar.gz /
 
 EXPOSE 9100 9101
 VOLUME ["/data"]
