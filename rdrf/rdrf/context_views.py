@@ -136,11 +136,16 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             return HttpResponseRedirect("/")
 
         context_form = ContextForm(instance=rdrf_context_model)
-
-        context_name = rdrf_context_model.registry.metadata.get("context_name", "Context")
+    
         patient_model = rdrf_context_model.content_object
         registry_model = rdrf_context_model.registry
         patient_name = patient_model.display_name
+        if rdrf_context_model.context_form_group:
+            context_form_group_model = self.get_context_form_group(rdrf_context_model.context_form_group.pk)
+        else:
+            context_form_group_model = None
+
+        context_name = self.get_context_name(registry_model, contest_form_group_model)
 
         form_links = get_form_links(request.user,
                                     rdrf_context_model.object_id,
