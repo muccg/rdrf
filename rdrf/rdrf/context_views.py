@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from rdrf.models import Registry
 from rdrf.models import RDRFContext
+from rdrf.models import ContextFormGroup
 from rdrf.utils import get_error_messages
 from rdrf.utils import get_form_links
 
@@ -26,20 +27,41 @@ class ContextForm(ModelForm):
         fields = ['display_name']
 
 
-class RDRFContextCreateView(View):
+class ContextFormGroupHelperMixin(object):
+    def get_context_form_group(self, form_group_id):
+        if form_group_id is None:
+            return None
+        else:
+            return ContextFormGroup.objects.get(pk=form_group_id)
+
+    def get_context_name(self, registry_model, context_form_group):
+        if not registry_model.has_feature("contexts"):
+            raise Exception("Registry does not support contexts")
+        else:
+            if context_form_group is not None:
+                return context_form_group.name
+            else:
+                return registry_model.metadata.get("context_name", "Context")
+
+                
+
+
+class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     model = RDRFContext
 
     template_name = "rdrf_cdes/rdrf_context.html"
     success_url = reverse_lazy('contextslisting')
 
     @method_decorator(login_required)
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_form_group_id=None):
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(pk=patient_id)
+        context_form_group = self.get_context_form_group(context_form_group_id)
         if not registry_model.has_feature("contexts"):
             return HttpResponseRedirect("/")
 
-        context_name = registry_model.metadata.get("context_name", "Context")
+        context_name = self.get_context_name(registry_model, context_form_group)
+        
 
         context = {"location": "Add %s" % context_name,
                    "registry": registry_model.code,
@@ -55,11 +77,14 @@ class RDRFContextCreateView(View):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, patient_id):
+
+    def post(self, request, registry_code, patient_id, context_form_group_id=None):
         form = ContextForm(request.POST)
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(pk=patient_id)
-        context_name = registry_model.metadata.get("context_name", "Context")
+        context_form_group_model = self.get_context_form_group(context_form_group_id)
+        context_name = self.get_context_name(registry_model, context_form_group_model)
+        
 
         if form.is_valid():
             patient_model = Patient.objects.get(id=patient_id)
@@ -69,10 +94,16 @@ class RDRFContextCreateView(View):
             context_model.registry = registry_model
             context_model.content_type = content_type
             context_model.content_object = patient_model
+            if context_form_group_model:
+                context_model.context_form_group = context_form_group_model
+                
             context_model.save()
+            cfg_id = context_form_group_model.pk if context_form_group_model else None
             context_edit = reverse('context_edit', kwargs={"registry_code": registry_model.code,
                                                            "patient_id": patient_model.pk,
                                                            "context_id": context_model.pk})
+            
+                                                           
             return HttpResponseRedirect(context_edit)
         else:
             context = {"location": "Add %s" % context_name,
@@ -89,7 +120,7 @@ class RDRFContextCreateView(View):
             context_instance=RequestContext(request))
 
 
-class RDRFContextEditView(View):
+class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     model = RDRFContext
     template_name = "rdrf_cdes/rdrf_context.html"
     success_url = reverse_lazy('contextslisting')

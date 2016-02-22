@@ -1759,7 +1759,7 @@ class RDRFContext(models.Model):
         
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
 

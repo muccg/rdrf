@@ -75,13 +75,8 @@ class PatientContextMenu(object):
     def menu_html(self):
         popup_template = "rdrf_cdes/patient_context_popup.html"
         forms = self.get_context_menu_forms()
-        actions = []
+        actions = self._get_actions()
 
-        add_context_title = "Add %s" % self.context_name
-        add_context_link = reverse("context_add", args=(self.registry_model.code, str(self.patient_model.pk)))
-        add_context_action = ContextMenuAction(add_context_title, add_context_link)
-
-        actions.append(add_context_action)
 
         popup_template = loader.get_template(popup_template)
         context = Context({"forms": forms,
@@ -103,6 +98,33 @@ class PatientContextMenu(object):
                           aria-describedby="">Show</button>""" % escape(popup_content_html)
 
         return button_html
+
+    def _get_actions(self):
+        if not self.registry_model.has_feature("contexts"):
+            return []
+        elif self.registry_model.context_form_groups.count() == 0:
+            # no context form groups defined 
+            # show 1 add button to add a context containing all forms by default
+            add_context_title = "Add %s" % self.context_name
+            add_context_link = reverse("context_add", args=(self.registry_model.code, str(self.patient_model.pk)))
+            add_context_action = ContextMenuAction(add_context_title, add_context_link)
+            return [add_context_action]
+        else:
+            # there are context form groups defined for this registry which limit the number
+            # of forms created in a context
+            # add an action for each available form group
+            actions = []
+            for context_form_group in self.registry_model.context_form_groups.all():
+                action_title = "Add %s" % context_form_group.name
+                action_link = reverse("context_add", args=(self.registry_model.code,
+                                                           str(self.patient_model.pk),
+                                                           str(context_form_group.pk)))
+                
+                actions.append(ContextMenuAction(action_title, action_link))
+                
+            return actions
+        
+
 
     def get_forms(self):
         def not_generated(frm):
