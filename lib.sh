@@ -275,8 +275,8 @@ start_dev() {
 }
 
 
-_docker_prod_build() {
-    info 'docker prod build'
+create_prod_image() {
+    info 'create prod image'
 
     _git_tag
 
@@ -301,7 +301,7 @@ _docker_prod_build() {
         fi
     done
 
-    success 'docker prod build'
+    success 'create prod image'
 }
 
 

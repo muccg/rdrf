@@ -118,7 +118,7 @@ buildimage)
     create_build_image
     ;;
 prodimage)
-    _docker_prod_build
+    create_prod_image
     ;;
 devimage)
     create_dev_image
@@ -129,7 +129,7 @@ ci_dockerbuild)
     create_base_image
     create_build_image
     create_release_tarball
-    _docker_prod_build
+    create_prod_image
     ;;
 runtests)
     create_base_image
