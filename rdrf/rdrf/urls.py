@@ -242,8 +242,6 @@ urlpatterns += patterns('',
                         url(r'^i18n', include('django.conf.urls.i18n')),
                         )
 
-# pattern for serving statically
-if settings.DEBUG:
-    urlpatterns += patterns('',
-                            (r'^static/(?P<path>.*)$', 'django.views.static.serve',
-                             {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))
+urlpatterns += patterns('',
+                        (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+                        {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))
