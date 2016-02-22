@@ -38,6 +38,7 @@ nginxprod:
 
 uwsgiprod:
   image: muccg/angelman:${GIT_TAG}
+  command: uwsgi_fixtures
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
