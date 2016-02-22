@@ -43,8 +43,6 @@ class ContextFormGroupHelperMixin(object):
             else:
                 return registry_model.metadata.get("context_name", "Context")
 
-                
-
 
 class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     model = RDRFContext
@@ -145,12 +143,13 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
         else:
             context_form_group_model = None
 
-        context_name = self.get_context_name(registry_model, contest_form_group_model)
+        context_name = self.get_context_name(registry_model, context_form_group_model)
 
         form_links = get_form_links(request.user,
                                     rdrf_context_model.object_id,
                                     rdrf_context_model.registry,
                                     rdrf_context_model,
+                                    context_form_group_model,
                                     )
 
         context = {"location": "Edit %s" % context_name,
@@ -174,6 +173,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     def post(self, request, registry_code, patient_id, context_id):
         registry_model = Registry.objects.get(code=registry_code)
         context_model = RDRFContext.objects.get(pk=context_id)
+        context_form_group_model = context_model.context_form_group
         context_name = context_model.registry.metadata.get("context_name", "Context")
         patient_model = Patient.objects.get(id=patient_id)
         form = ContextForm(request.POST, instance=context_model)
@@ -189,7 +189,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             form_links = get_form_links(request.user,
                                         patient_model.pk,
                                         registry_model,
-                                        context_model)
+                                        context_model,
+                                        context_form_group_model)
 
             context = {"location": "Edit %s" % context_name,
                        "patient_name": patient_model.display_name,
