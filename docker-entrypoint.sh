@@ -34,38 +34,40 @@ function wait_for_services {
     fi
 
     if [[ "$WAIT_FOR_REPORTING" ]]; then
-        dockerwait $REPORTDBSERVER $REPORTDBPORT
+        dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
     fi
 }
 
 
 function defaults {
-    : ${ENV_PATH:="/env/bin"}
-
     : ${DBSERVER:="db"}
     : ${DBPORT:="5432"}
+    : ${DBUSER:="webapp"}
+    : ${DBNAME:="${DBUSER}"}
+    : ${DBPASS:="${DBUSER}"}
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
-    : ${REPORTDBSERVER:="reporting"}
-    : ${REPORTDBPORT:="5432"}
-    : ${REPORTDBUSER="reporting"}
-    : ${REPORTDBNAME="${DBUSER}"}
-    : ${REPORTDBPASS="${DBUSER}"}
+    : ${REPORTINGDBSERVER:=${DBSERVER}}
+    : ${REPORTINGDBPORT:=${DBPORT}}
+    : ${REPORTINGDBUSER:=${DBUSER}}
+    : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
+    : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
 
-    : ${RUNSERVER="web"}
-    : ${RUNSERVERPORT="8000"}
-    : ${CACHESERVER="cache"}
-    : ${CACHEPORT="11211"}
-    : ${MONGOSERVER="mongo"}
-    : ${MONGOPORT="27017"}
+    : ${RUNSERVER:="web"}
+    : ${RUNSERVERPORT:="8000"}
+    : ${CACHESERVER:="cache"}
+    : ${CACHEPORT:="11211"}
+    : ${MEMCACHE:="${CACHESERVER}:${CACHEPORT}"}
+    : ${MONGOSERVER:="mongo"}
+    : ${MONGOPORT:="27017"}
 
-    : ${DBUSER="webapp"}
-    : ${DBNAME="${DBUSER}"}
-    : ${DBPASS="${DBUSER}"}
+    : ${RDRF_URL:="http://$DOCKER_ROUTE:$RUNSERVERPORT/"}
+    #: ${RDRF_BROWSER:="*googlechrome"}
+    : ${RDRF_BROWSER:="*firefox"}
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
-    export REPORTDBSERVER REPORTDBPORT REPORTDBUSER REPORTDBPASS
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE RDRF_URL RDRF_BROWSER
+    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
 }
 
 
@@ -82,7 +84,8 @@ if [ "$1" = 'tarball' ]; then
     rm -rf /app/*
     echo $GIT_TAG
     set -x
-    git clone --depth=1 --branch=$GIT_TAG git@bitbucket.org:ccgmurdoch/angelman.git .
+    git clone --depth=1 --branch=${GIT_TAG} ${PROJECT_SOURCE} .
+    git ls-remote ${PROJECT_SOURCE} ${GIT_TAG} > .version
 
     # install python deps
     # Note: Environment vars are used to control the bahviour of pip (use local devpi for instance)
@@ -93,7 +96,7 @@ if [ "$1" = 'tarball' ]; then
     # create release tarball
     DEPS="/env /app/uwsgi /app/docker-entrypoint.sh /app/rdrf"
     cd /data
-    exec tar -cpzf angelman-${GIT_TAG}.tar.gz ${DEPS}
+    exec tar -cpzf ${PROJECT_NAME}-${GIT_TAG}.tar.gz ${DEPS}
 fi
 
 # uwsgi entrypoint
@@ -139,7 +142,7 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    exec django-admin.py test rdrf
+    exec django-admin.py test -v 3 rdrf
 fi
 
 # lettuce entrypoint
@@ -151,7 +154,7 @@ fi
 # selenium entrypoint
 if [ "$1" = 'selenium' ]; then
     echo "[Run] Starting selenium"
-    exec django-admin.py test /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
+    exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi]"

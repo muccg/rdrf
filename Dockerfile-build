@@ -9,6 +9,8 @@ ENV PIP_OPTS="--no-cache-dir"
 ENV PIP_INDEX_URL="https://pypi.python.org/simple"
 ENV PIP_TRUSTED_HOST="127.0.0.1"
 
+RUN env | sort
+
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential \
@@ -21,10 +23,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   zlib1g-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN env --unset=DEBIAN_FRONTEND
-
-COPY .version /.version
-RUN cat /.version
 COPY docker-build.key /root/.ssh/id_rsa
 RUN chmod 600 /root/.ssh/id_rsa && \
     echo "StrictHostKeyChecking no" > /root/.ssh/config && \
