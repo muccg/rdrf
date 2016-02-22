@@ -71,6 +71,27 @@ function defaults {
 }
 
 
+function _django_migrate {
+    echo "running migrate"
+    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
+    django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
+}
+
+
+function _django_collectstatic {
+    echo "running collectstatic"
+    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
+}
+
+
+function _django_dev_fixtures {
+    echo "loading rdrf fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
+
+    echo "loading users fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+}
+
 trap exit SIGHUP SIGINT SIGTERM
 defaults
 env | grep -iv PASS | sort
@@ -106,9 +127,22 @@ if [ "$1" = 'uwsgi' ]; then
     : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
 
-    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
-    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
-    django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
+    _django_collectstatic
+    _django_migrate
+
+    exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
+fi
+
+# uwsgi entrypoint, with fixtures, intended for use in local environment only
+if [ "$1" = 'uwsgi_fixtures' ]; then
+    echo "[Run] Starting uwsgi with fixtures"
+
+    : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
+    echo "UWSGI_OPTS is ${UWSGI_OPTS}"
+
+    _django_collectstatic
+    _django_migrate
+    _django_dev_fixtures
 
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
@@ -120,20 +154,9 @@ if [ "$1" = 'runserver' ]; then
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
     echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
 
-    echo "running collectstatic"
-    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-collectstatic.log
-
-    echo "running migrate ..."
-    django-admin.py migrate  --settings=${DJANGO_SETTINGS_MODULE}  2>&1 | tee /data/runserver-migrate.log
-
-    echo "updating permissions"
-    django-admin.py update_permissions  --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/runserver-permissions.log
-
-    echo "loading rdrf fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
-
-    echo "loading users fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+    _django_collectstatic
+    _django_migrate
+    _django_dev_fixtures
 
     echo "running runserver ..."
     exec django-admin.py ${RUNSERVER_OPTS}
@@ -157,7 +180,7 @@ if [ "$1" = 'selenium' ]; then
     exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 
-echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi]"
+echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi|uwsgi_fixtures]"
 echo "[RUN]: $@"
 
 exec "$@"
