@@ -65,7 +65,7 @@ fail () {
 }
 
 
-_docker_options() {
+docker_options() {
     DOCKER_ROUTE=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
     success "Docker ip ${DOCKER_ROUTE}"
 
