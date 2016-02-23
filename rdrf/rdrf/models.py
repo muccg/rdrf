@@ -1759,9 +1759,14 @@ class RDRFContext(models.Model):
         
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
+    NAMING_SCHEMES = [("D", "Automatic - Date"),
+                      ("N", "Automatic - Number"),
+                      ("M", "Manual - Free Text")]
+    
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
+    naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
 
     @property
     def forms(self):
