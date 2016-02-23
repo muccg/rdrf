@@ -167,15 +167,24 @@ def get_site_url(request, path="/"):
 
 def location_name(registry_form, current_rdrf_context_model=None):
     form_display_name = de_camelcase(registry_form.name)
+    context_form_group = None
     if registry_form.registry.has_feature("contexts"):
             if current_rdrf_context_model is not None:
                 registry_model = registry_form.registry
                 patient_model = current_rdrf_context_model.content_object
+                context_form_group = current_rdrf_context_model.context_form_group
+                if context_form_group is not None:
+                    # context type name
+                    context_type_name = context_form_group.name.upper() + " "
                 edit_link = reverse("context_edit", args=(registry_model.code,
                                                           patient_model.pk,
                                                           current_rdrf_context_model.pk))
                 context_link = """<a href="%s">%s</a>""" % (edit_link, current_rdrf_context_model.display_name)
-                s = "%s ( in %s)" % (form_display_name, context_link)
+                if context_form_group is not None:
+                    s = "%s ( in %s %s)" % (form_display_name, context_form_group, context_link)
+                else:
+                    s = "%s ( in %s)" % (form_display_name, context_link)
+
             else:
                 s = form_display_name
     else:
