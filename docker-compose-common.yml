@@ -83,7 +83,6 @@ nginx:
 runserver:
   image: muccg/angelman-dev
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
@@ -98,7 +97,6 @@ uwsgi:
   image: muccg/angelman-dev
   command: uwsgi
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
