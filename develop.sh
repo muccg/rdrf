@@ -136,6 +136,18 @@ runtests)
     create_dev_image
     run_unit_tests
     ;;
+start_test_stack)
+    start_test_stack
+    ;;
+start_seleniumhub)
+    start_seleniumhub
+    ;;
+start_seleniumtests)
+    start_seleniumtests
+    ;;
+start_prodseleniumtests)
+    start_prodseleniumtests
+    ;;
 ci_docker_staging)
     _ci_ssh_agent
     ci_docker_staging
