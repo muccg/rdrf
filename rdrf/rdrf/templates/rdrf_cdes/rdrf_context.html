@@ -80,6 +80,16 @@
               <div class="panel panel-default">
               <div class="panel-heading">{{context_name}} Metadata</div>
               <div class="panel-body">
+		{% if form.instance.context_form_group %}
+		<div class="form-group">
+                    <label for="Form Group" class="col-sm-3 control-label">
+		      Form Group Type
+		      </label>
+                                <div class="col-sm-9">
+                                    {{form.instance.context_form_group.name}}
+                                </div>
+		</div>
+		{% endif %}
                    <div class="form-group">
                                 <label for="created_at" class="col-sm-3 control-label">
                                     Created At
@@ -102,7 +112,7 @@
               </div>
 
               <div class="panel panel-default">
-              <div class="panel-heading">Form Data</div>
+              <div class="panel-heading">Context Data</div>
               <div class="panel-body">
                    {% for field in form %}
                             <div class="form-group">
@@ -113,7 +123,11 @@
                                     {% endif %}
                                 </label>
                                 <div class="col-sm-9">
-                                    {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
+				    {% if field.name != "display_name" %} 
+                                          {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
+				    {% else %}
+                                          {{field|safe}}<p class="text-muted"><i>{{naming_info}}</i></p>
+				    {% endif %}
                                     {% if field.errors %}
                                         <span class="label label-danger">{{field.errors.as_text}}</span>
                                     {% endif %}
@@ -122,6 +136,28 @@
                    {% endfor %}
               </div>
               </div>
+
+
+	     {% if form_links %}
+	      <div class="panel panel-default">
+		<div class="panel-heading">Form Links</div>
+		<div class="panel-body">
+		
+                   {% for form_link in form_links %}
+		 
+                            <div class="form-group">
+                                <label for="{{form_link.text}}" class="col-sm-3 control-label">
+                                    {{form_link.text}}
+                                </label>
+                                <div class="col-sm-9">
+				  <a href="{{ form_link.link }}">Link</a>
+                                </div>
+                            </div>
+                   {% endfor %}
+              </div>
+              </div>
+	     {% endif %}
+
 
 
 

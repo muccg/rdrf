@@ -44,6 +44,15 @@ class ContextFormGroupHelperMixin(object):
                 return registry_model.metadata.get("context_name", "Context")
 
 
+    def get_naming_info(self, form_group_id):
+        if form_group_id is not None:
+            context_form_group = ContextFormGroup.objects.get(id=form_group_id)
+            return context_form_group.naming_info
+        else:
+            return "Display Name will default to 'Modules' if left blank"
+        
+
+
 class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     model = RDRFContext
 
@@ -55,6 +64,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(pk=patient_id)
         context_form_group = self.get_context_form_group(context_form_group_id)
+        naming_info = self.get_naming_info(context_form_group_id)
         if not registry_model.has_feature("contexts"):
             return HttpResponseRedirect("/")
 
@@ -67,6 +77,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                    "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "patient_name": patient_model.display_name,
                    "form_links": [],
+                   "naming_info": naming_info,
                    "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "form": ContextForm}
 
@@ -76,11 +87,13 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
             context_instance=RequestContext(request))
 
 
+    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
         form = ContextForm(request.POST)
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(pk=patient_id)
         context_form_group_model = self.get_context_form_group(context_form_group_id)
+        naming_info = self.get_naming_info(context_form_group_id)
         context_name = self.get_context_name(registry_model, context_form_group_model)
         
 
@@ -108,6 +121,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                        "error": "Invalid",
                        "registry": registry_model.code,
                        "patient_id": patient_id,
+                       "naming_info": naming_info,
                        "my_contexts_url": patient_model.get_contexts_url(registry_model),
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
@@ -140,8 +154,10 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
         patient_name = patient_model.display_name
         if rdrf_context_model.context_form_group:
             context_form_group_model = self.get_context_form_group(rdrf_context_model.context_form_group.pk)
+            naming_info = context_form_group_model.naming_info
         else:
             context_form_group_model = None
+            naming_info = self.get_naming_info(None)
 
         context_name = self.get_context_name(registry_model, context_form_group_model)
 
@@ -159,6 +175,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                    "context_name": context_name,
                    "form_links": form_links,
                    "registry": registry_model.code,
+                   "naming_info": naming_info,
                    "patient_id": patient_id,
                    "form": context_form}
 
@@ -170,10 +187,15 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     def _allowed(self, user, registry_code, patient_id, context_id):
         return True #todo - do security check
 
+    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
         registry_model = Registry.objects.get(code=registry_code)
         context_model = RDRFContext.objects.get(pk=context_id)
         context_form_group_model = context_model.context_form_group
+        if context_form_group_model:
+            naming_info = context_form_group_model.naming_info
+        else:
+            naming_info = self.get_naming_info(None)
         context_name = context_model.registry.metadata.get("context_name", "Context")
         patient_model = Patient.objects.get(id=patient_id)
         form = ContextForm(request.POST, instance=context_model)
@@ -198,9 +220,11 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "message": "%s saved successfully" % context_name,
                        "error_messages": [],
                        "registry": registry_model.code,
+                       "naming_info" : naming_info,
                        "patient_id": patient_id,
                        "form_links": form_links,
-                       "form": form}
+                       "form": ContextForm(instance=context_model),
+                       }
 
         else:
 
@@ -211,6 +235,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "registry": registry_model.code,
                        "patient_id": patient_id,
                        "error_messages": error_messages,
+                       "naming_info": naming_info,
                        "form_links": [],
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
