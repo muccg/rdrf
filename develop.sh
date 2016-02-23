@@ -76,8 +76,7 @@ js_lint() {
 echo ''
 info "$0 $@"
 make_virtualenv
-
-_docker_options
+docker_options
 
 case $ACTION in
 pythonlint)
