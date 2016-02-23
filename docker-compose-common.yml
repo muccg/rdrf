@@ -11,6 +11,12 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
+dataselenium:
+  image: muccg/debian8-base:latest
+  volumes:
+    - .:/app
+    - ./data/selenium:/data
+
 jasper:
   image: muccg/jasper-reports-server:6.1.1
   command: development
@@ -74,8 +80,7 @@ nginx:
     - ./data/nginx:/data
 
 runserver:
-  build: .
-  command: runserver
+  image: muccg/rdrf-dev
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
@@ -86,7 +91,7 @@ runserver:
     - "8000:8000"
 
 uwsgi:
-  image: rdrf_runserver
+  image: muccg/rdrf-dev
   command: uwsgi
   environment:
     - DBUSER=rdrfapp

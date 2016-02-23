@@ -1,0 +1,22 @@
+# 
+FROM muccg/rdrf-base
+MAINTAINER https://github.com/muccg/rdrf/
+
+ARG ARG_GIT_TAG
+
+ENV GIT_TAG $ARG_GIT_TAG
+
+RUN env | sort
+
+ADD build/${PROJECT_NAME}-${GIT_TAG}.tar.gz /
+
+EXPOSE 9100 9101
+VOLUME ["/data"]
+
+# Drop privileges, set home for ccg-user
+USER ccg-user
+ENV HOME /data
+WORKDIR /data
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["uwsgi"]

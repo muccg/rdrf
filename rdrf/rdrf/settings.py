@@ -73,11 +73,11 @@ DATABASES = {
     # }
     "reporting": {
         'ENGINE': env.get_db_engine("dbtype", "pgsql"),
-        'NAME': env.get("reportingdbname", "reporting"),
-        'USER': env.get("reportingdbuser", "reporting"),
-        'PASSWORD': env.get("reportingdbpassword", "reporting"),
-        'HOST': env.get("reportingdbserver", "reporting"),
-        'PORT': env.get("reportingdbport", "5432"),
+        'NAME': env.get("reportingdbname", "rdrf"),
+        'USER': env.get("reportingdbuser", "rdrf"),
+        'PASSWORD': env.get("reportingdbpassword", "rdrf"),
+        'HOST': env.get("reportingdbserver", ""),
+        'PORT': env.get("reportingdbport", ""),
     }
 }
 
@@ -109,6 +109,7 @@ MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.eggs.Loader',
 ]
 
 TEMPLATE_DIRS = (
@@ -125,6 +126,7 @@ MIDDLEWARE_CLASSES = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -153,14 +155,14 @@ INSTALLED_APPS = [
     'explorer',
     'djangosecure',
     'useraudit',
+    'templatetag_handlebars',
+    'iprestrict',
 ]
 
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
     'django.core.context_processors.i18n',
     'django.core.context_processors.request',
-    'rdrf.user_context.is_admin',
-    'rdrf.user_context.is_patient'
 )
 
 # these determine which authentication method to use
@@ -183,10 +185,12 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # Django Notifications
-DEFAULT_FROM_EMAIL = env.get("default_from_email", "webmaster@localhost")
-
-
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>") 
+# Mail Gun
+EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
+MAILGUN_ACCESS_KEY = env.get('DJANGO_MAILGUN_API_KEY', "")
+MAILGUN_SERVER_NAME = env.get('DJANGO_MAILGUN_SERVER_NAME', "")
+SERVER_EMAIL = env.get('DJANGO_SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 
 # list of features  '*' means all , '' means none and ['x','y'] means site
 # supports features x and y

@@ -125,6 +125,7 @@ class REST(object):
                 patient = Patient.objects.get(pk=self.patient_id)
                 self._validate()
                 self.dyn_data_wrapper = dynamic_data.DynamicDataWrapper(patient)
+                self.dyn_data_wrapper._set_client()
             except Patient.DoesNotExist:
                 self.error_message = "Patient with id %s does not exist" % self.patient_id
                 self.dyn_data_wrapper = None

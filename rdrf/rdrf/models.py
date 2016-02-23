@@ -464,6 +464,14 @@ class Registry(models.Model):
 
     def clean(self):
         self._check_metadata()
+        self._check_dupes()
+
+
+    def _check_dupes(self):
+        dupes = [ r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk ]
+        names = " ".join([ "%s %s" % (r.code, r.name) for r in dupes])
+        if len(dupes) > 0:
+            raise ValidationError("Code %s already exists ( ignore case) in: %s" % (self.code, names))
 
     @property
     def context_name(self):
@@ -577,6 +585,9 @@ class CDEPermittedValue(models.Model):
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
     position = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        unique_together = (('pv_group', 'code'),)
+
     def pvg_link(self):
         url = reverse('admin:rdrf_cdepermittedvaluegroup_change', args=(self.pv_group.code,))
         return "<a href='%s'>%s</a>" % (url, self.pv_group.code)
@@ -657,6 +668,18 @@ class CommonDataElement(models.Model):
             return self.pv_group.members(get_code=get_code)
         else:
             return None
+
+    def clean(self):
+        # this was causing issues with form progress completion cdes record
+        # todo update the way form progress completion cdes are recorded to
+        # only use code not cde.name!
+
+        if "." in self.name:
+            raise ValidationError("CDE %s  name error '%s' has dots - this causes problems please remove" % (self.code,
+                                                                                                             self.name))
+
+        if " " in self.code:
+            raise Exception("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
 
 
 class CdePolicy(models.Model):
@@ -796,6 +819,29 @@ class RegistryForm(models.Model):
         else:
             return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
 
+    def _check_completion_cdes(self):
+        completion_cdes = set([cde.code for cde in self.complete_form_cdes.all()])
+        current_cdes = []
+        for section_model in self.section_models:
+            for cde_model in section_model.cde_models:
+                current_cdes.append(cde_model.code)
+
+        current_cdes = set(current_cdes)
+        extra = completion_cdes - current_cdes
+        
+        if len(extra) > 0:
+            msg = ",".join(extra)
+            raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
+
+    def clean(self):
+        if " " in self.name:
+            msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
+                    "Camel Case, instead."
+            raise ValidationError(msg)
+
+        self._check_completion_cdes()
+        
+
 
 
 
@@ -844,6 +890,8 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
+        
         if not self.has_mongo_data:
             raise ObjectDoesNotExist
 
@@ -863,6 +911,7 @@ class QuestionnaireResponse(models.Model):
     def has_mongo_data(self):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
         return wrapper.has_data(self.registry.code)
 
 

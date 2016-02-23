@@ -1,0 +1,53 @@
+# data only container pattern
+dataprod:
+  image: muccg/debian8-base:latest
+  volumes:
+    - ./data/prod:/data
+
+smtpprod:
+  extends:
+    file: docker-compose-common.yml
+    service: smtp
+
+dbprod:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
+reportingprod:
+  extends:
+    file: docker-compose-common.yml
+    service: reporting
+
+cacheprod:
+  extends:
+    file: docker-compose-common.yml
+    service: cache
+
+mongoprod:
+  extends:
+    file: docker-compose-common.yml
+    service: mongo
+
+nginxprod:
+  extends:
+    file: docker-compose-common.yml
+    service: nginx
+  links:
+    - uwsgiprod:uwsgi
+
+uwsgiprod:
+  image: muccg/rdrf:${GIT_TAG}
+  command: uwsgi_fixtures
+  environment:
+    - DBUSER=rdrfapp
+    - WAIT_FOR_DB=1
+    - WAIT_FOR_CACHE=1
+    - WAIT_FOR_MONGO=1
+  volumes_from:
+    - dataprod
+  links:
+    - dbprod:db
+    - cacheprod:cache
+    - reportingprod:reporting
+    - mongoprod:mongo
