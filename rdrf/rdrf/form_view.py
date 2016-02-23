@@ -452,7 +452,7 @@ class FormView(View):
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
-            "form_links": self._get_formlinks(request.user),
+            "form_links": self._get_formlinks(request.user, self.rdrf_context),
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
@@ -524,10 +524,11 @@ class FormView(View):
             is_superuser=self.request.user.is_superuser,
             user_groups=self.request.user.groups.all())
 
-    def _get_formlinks(self, user):
-
-
-
+    def _get_formlinks(self, user, context_model=None):
+        container_model = self.registry
+        if context_model is not None:
+            if context_model.context_form_group:
+                container_model = context_model.context_form_group
         if user is not None:
             return [
                 FormLink(
@@ -537,7 +538,7 @@ class FormView(View):
                     selected=(
                         form.name == self.registry_form.name),
                     context_model=self.rdrf_context
-                    ) for form in self.registry.forms if not form.is_questionnaire and user.can_view(form)]
+                    ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -555,7 +556,7 @@ class FormView(View):
         initial_forms_ids = {}
         formset_prefixes = {}
         section_field_ids_map = {}
-        form_links = self._get_formlinks(user)
+        form_links = self._get_formlinks(user, self.rdrf_context)
         if self.dynamic_data:
             if 'questionnaire_context' in kwargs:
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
