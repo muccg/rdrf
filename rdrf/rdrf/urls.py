@@ -11,7 +11,6 @@ import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
 import rdrf.import_registry_view as import_registry_view
 import rdrf.rest_interface as rest_interface
-import rdrf.hgvs_view as hgvs_view
 import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
@@ -82,12 +81,7 @@ urlpatterns = patterns('',
                        url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
                        url(r'^laboratory/?$', LaboratoryView.as_view(),
                            name='laboratory_source'),
-
-                       url(r'^hgvs/?$', hgvs_view.HGVSView.as_view(), name='hgvs_validator'),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
-
-                       # url(r'^patientslisting/?', form_view.PatientsListingView.as_view(),
-                       #     name="patientslisting"),
                        url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
                            name='patientsgridapi'),
                        #---- Context related URLs -----------------
@@ -248,8 +242,6 @@ urlpatterns += patterns('',
                         url(r'^i18n', include('django.conf.urls.i18n')),
                         )
 
-# pattern for serving statically
-if settings.DEBUG:
-    urlpatterns += patterns('',
-                            (r'^static/(?P<path>.*)$', 'django.views.static.serve',
-                             {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))
+urlpatterns += patterns('',
+                        (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+                        {'document_root': settings.STATIC_ROOT, 'show_indexes': True}))

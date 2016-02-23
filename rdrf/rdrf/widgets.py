@@ -104,23 +104,6 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         return super(OtherPleaseSpecifyWidget, self).render(name, value, attrs) + script
 
 
-class HgvsValidation(widgets.TextInput):
-
-    def __init__(self, attrs={}):
-        self.attrs = attrs
-        super(HgvsValidation, self).__init__(attrs=attrs)
-
-    def render(self, name, value, attrs):
-        return mark_safe(u'''<input type="text" name="%s" id="id_%s" value="%s"><div id="result_id_%s"></div>
-                         <script type="text/javascript">
-                            $("#id_%s").keyup(function() {
-                                hgvsValidation($(this));
-                            }).ready(function() {
-                                hgvsValidation($("#id_%s"));
-                            });
-                         </script>''' % (name, name, value or '', name, name, name))
-
-
 class CalculatedFieldWidget(widgets.TextInput):
 
     def __init__(self, script, attrs={}):

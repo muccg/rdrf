@@ -1,0 +1,27 @@
+#
+FROM muccg/python-base:debian8-2.7
+MAINTAINER https://bitbucket.org/ccgmurdoch/angelman
+
+ENV PROJECT_NAME angelman
+ENV PROJECT_SOURCE git@bitbucket.org:ccgmurdoch/angelman.git
+ENV DEPLOYMENT prod
+ENV PRODUCTION 1
+ENV DEBUG 0
+ENV STATIC_ROOT /data/static
+ENV WRITABLE_DIRECTORY /data/scratch
+ENV MEDIA_ROOT /data/static/media
+ENV LOG_DIRECTORY /data/log
+ENV MONGO_DB_PREFIX=prod_
+ENV DJANGO_SETTINGS_MODULE rdrf.settings
+
+RUN env | sort
+
+# Project specific deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  libpcre3 \
+  libpq5 \
+  sendmail \
+  mime-support \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENTRYPOINT ["/bin/sh"]

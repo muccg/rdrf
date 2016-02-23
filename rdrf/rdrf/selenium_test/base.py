@@ -5,13 +5,30 @@ import re
 import string
 import random
 import os
+import logging
+import sys
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 
 class Base(unittest.TestCase):
 
+    HUB_SERVER =  os.environ.get('RDRF_HUB_SERVER', 'hub')
+    HUB_PORT = os.environ.get('RDRF_HUB_PORT', '4444')
+    BROWSER = os.environ.get('RDRF_BROWSER', "*googlechrome")
+    URL = os.environ.get('RDRF_URL', 'http://web:8000')
+
     def setUp(self):
+        logger.info("{0} {1} {2} {3}".format(self.HUB_SERVER, self.HUB_PORT, self.BROWSER, self.URL))
         self.verificationErrors = []
-        #self.selenium = selenium("hub", 4444, "*firefox", "http://web:8000")
-        self.selenium = selenium("hub", 4444, "*googlechrome", "http://web:8000")
+        self.selenium = selenium(self.HUB_SERVER, self.HUB_PORT, self.BROWSER, self.URL)
         self.selenium.start()
 
     def tearDown(self):
@@ -40,9 +57,8 @@ class Base(unittest.TestCase):
         # absolute_path = os.path.abspath(yaml_file_name)
         import requests
         from requests.auth import HTTPBasicAuth
-        url = 'http://web:8000/import/'
         files = {'file': open(yaml_file_name, 'rb')}
-        requests.post(url, files=files, auth=HTTPBasicAuth('admin', 'admin'))
+        requests.post("{0}/import/".format(self.URL), files=files, auth=HTTPBasicAuth('admin', 'admin'))
         # sel.type("id=id_registry_yaml_file", absolute_path)
         # sel.click("id=submit-form-btn")
         # sel.wait_for_page_to_load("30000")

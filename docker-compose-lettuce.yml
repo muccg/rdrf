@@ -6,10 +6,9 @@ dataselenium:
 
 # runs the lettuce tests against docker-compose-seleniumstack.yml
 lettucehost:
-  image: angelman_runserverselenium
+  image: muccg/angelman-dev
   command: lettuce
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_WEB=1
