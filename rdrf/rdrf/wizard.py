@@ -1,4 +1,5 @@
 from django.core.urlresolvers import reverse
+from rdrf.models import RDRFContext, ContextFormGroup
 
 
 class NavigationError(Exception):
@@ -18,7 +19,7 @@ class NavigationWizard(object):
     Forms are skipped if not viewale by the user and we don't link to a questionnaire
     form
     """
-    
+
     def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
         """
         :param user:
@@ -34,6 +35,8 @@ class NavigationWizard(object):
         self.current_form_model = current_form_model
         self.form_type = form_type
         self.context_id = context_id
+        self.context_model = RDRFContext.objects.get(pk=self.context_id)
+        self.context_form_group = self.context_model.context_form_group
         self.links = self._construct_links()
         self.current_index = self._get_current_index()
 
@@ -68,6 +71,11 @@ class NavigationWizard(object):
             raise NavigationError("Form %s not in list" % self.current_form_model)
 
     def _construct_links(self):
+        if self.context_form_group:
+            container_model = self.context_form_group
+        else:
+            container_model = self.registry_model
+                
         def form_link(form_model):
             link = reverse('registry_form', args=(self.registry_model.code,
                                                   form_model.id, self.patient_model.pk, self.context_id))
@@ -81,7 +89,7 @@ class NavigationWizard(object):
         consents_link = ("consents", None, reverse("consent_form_view",
                                                    args=[self.registry_model.code, self.patient_model.pk, self.context_id]))
 
-        clinical_form_links = [form_link(form) for form in self.registry_model.forms
+        clinical_form_links = [form_link(form) for form in container_model.forms
                                if self.user.can_view(form) and not form.is_questionnaire]
 
         form_links = [demographic_link] + [consents_link] + clinical_form_links
