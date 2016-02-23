@@ -22,7 +22,6 @@ uwsgistaging:
   image: muccg/angelman:next_release
   command: uwsgi
   environment:
-    - DJANGO_SETTINGS_MODULE=rdrf.settings
     - DBSERVER=dbstaging
     - DBUSER=rdrfapp
     - CACHESERVER=cachestaging
