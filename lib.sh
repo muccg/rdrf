@@ -305,7 +305,7 @@ create_prod_image() {
 }
 
 
-_test_stack_up() {
+_start_test_stack() {
     info 'test stack up'
     mkdir -p data/tests
     chmod o+rwx data/tests
@@ -318,7 +318,7 @@ _test_stack_up() {
 }
 
 
-_test_stack_down() {
+_stop_test_stack() {
     info 'test stack down'
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
@@ -329,7 +329,7 @@ _test_stack_down() {
 
 run_unit_tests() {
     info 'run unit tests'
-    _test_stack_up
+    _start_test_stack
 
     set +e
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml rm --force
@@ -337,13 +337,13 @@ run_unit_tests() {
     rval=$?
     set -e
 
-    _test_stack_down
+    _stop_test_stack
 
     return $rval
 }
 
 
-_selenium_stack_up() {
+_start_selenium() {
     info 'selenium stack up'
     mkdir -p data/selenium
     chmod o+rwx data/selenium
@@ -355,7 +355,7 @@ _selenium_stack_up() {
 }
 
 
-_selenium_stack_down() {
+_stop_selenium() {
     info 'selenium stack down'
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml stop
@@ -366,8 +366,8 @@ _selenium_stack_down() {
 
 lettuce() {
     info 'lettuce'
-    _selenium_stack_up
-    _test_stack_up
+    _start_selenium
+    _start_test_stack
 
     set -x
     set +e
@@ -378,8 +378,8 @@ lettuce() {
     set -e
     set +x
 
-    _test_stack_down
-    _selenium_stack_down
+    _stop_test_stack
+    _stop_selenium
 
     exit $rval
 }
@@ -387,8 +387,8 @@ lettuce() {
 
 selenium() {
     info 'selenium'
-    _selenium_stack_up
-    _test_stack_up
+    _start_selenium
+    _start_test_stack
 
     set -x
     set +e
@@ -399,8 +399,8 @@ selenium() {
     set -e
     set +x
 
-    _test_stack_down
-    _selenium_stack_down
+    _stop_test_stack
+    _stop_selenium
 
     exit $rval
 }
