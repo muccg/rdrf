@@ -36,6 +36,10 @@ function wait_for_services {
     if [[ "$WAIT_FOR_REPORTING" ]]; then
         dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
     fi
+
+    if [[ "$WAIT_FOR_HOST_PORT" ]]; then
+        dockerwait $DOCKER_ROUTE $WAIT_FOR_HOST_PORT
+    fi
 }
 
 
@@ -62,12 +66,21 @@ function defaults {
     : ${MONGOSERVER:="mongo"}
     : ${MONGOPORT:="27017"}
 
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
+    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
+}
+
+
+function selenium_defaults {
     : ${RDRF_URL:="http://$DOCKER_ROUTE:$RUNSERVERPORT/"}
     #: ${RDRF_BROWSER:="*googlechrome"}
     : ${RDRF_BROWSER:="*firefox"}
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE RDRF_URL RDRF_BROWSER
-    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
+    if [ ${DEPLOYMENT} = "prod" ]; then
+        RDRF_URL="https://$DOCKER_ROUTE:8443/app/"
+    fi
+
+    export RDRF_URL RDRF_BROWSER
 }
 
 
@@ -177,6 +190,7 @@ fi
 # selenium entrypoint
 if [ "$1" = 'selenium' ]; then
     echo "[Run] Starting selenium"
+    selenium_defaults
     exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
 fi
 

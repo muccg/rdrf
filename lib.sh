@@ -35,12 +35,14 @@ usage() {
     echo " Use a pip proxy                SET_PIP_PROXY               ${SET_PIP_PROXY}"
     echo ""
     echo "Usage:"
-    echo " ./develop.sh (dev|dev_rebuild|runtests|lettuce|selenium)"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
+    echo " ./develop.sh (dev|dev_rebuild)"
     echo " ./develop.sh (start_prod|start_prod_rebuild)"
+    echo " ./develop.sh (runtests|lettuce|selenium)"
+    echo " ./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)"
     echo " ./develop.sh (pythonlint|jslint)"
-    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
     echo " ./develop.sh (ci_dockerbuild)"
+    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
     echo ""
     echo "Example, start dev with no proxy and rebuild everything:"
     echo "SET_PIP_PROXY=0 SET_HTTP_PROXY=0 ./develop.sh dev_rebuild"
@@ -65,7 +67,7 @@ fail () {
 }
 
 
-_docker_options() {
+docker_options() {
     DOCKER_ROUTE=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
     success "Docker ip ${DOCKER_ROUTE}"
 
@@ -305,20 +307,19 @@ create_prod_image() {
 }
 
 
-_test_stack_up() {
+_start_test_stack() {
     info 'test stack up'
     mkdir -p data/tests
     chmod o+rwx data/tests
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'
 }
 
 
-_test_stack_down() {
+_stop_test_stack() {
     info 'test stack down'
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
@@ -327,35 +328,39 @@ _test_stack_down() {
 }
 
 
+start_test_stack() {
+    _start_test_stack --force-recreate
+}
+
+
 run_unit_tests() {
     info 'run unit tests'
-    _test_stack_up
+    _start_test_stack --force-recreate -d
 
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up --force-recreate
     rval=$?
     set -e
 
-    _test_stack_down
+    _stop_test_stack
 
     return $rval
 }
 
 
-_selenium_stack_up() {
+_start_selenium() {
     info 'selenium stack up'
     mkdir -p data/selenium
     chmod o+rwx data/selenium
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up --force-recreate -d
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up $@
     set +x
     success 'selenium stack up'
 }
 
 
-_selenium_stack_down() {
+_stop_selenium() {
     info 'selenium stack down'
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml stop
@@ -364,43 +369,60 @@ _selenium_stack_down() {
 }
 
 
-lettuce() {
-    info 'lettuce'
-    _selenium_stack_up
-    _test_stack_up
+start_seleniumhub() {
+    _start_selenium --force-recreate
+}
 
+
+start_lettucetests() {
     set -x
     set +e
-    ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --force || exit 0 )
-    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml build)
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up
-    rval=$?
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up --force-recreate
+    local rval=$?
     set -e
     set +x
 
-    _test_stack_down
-    _selenium_stack_down
+    return $rval
+}
+
+
+lettuce() {
+    info 'lettuce'
+    _start_selenium --force-recreate -d
+    _start_test_stack --force-recreate -d
+
+    start_lettucetests
+    local rval=$?
+
+    _stop_test_stack
+    _stop_selenium
 
     exit $rval
 }
 
 
-selenium() {
-    info 'selenium'
-    _selenium_stack_up
-    _test_stack_up
-
+start_seleniumtests() {
     set -x
     set +e
-    ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml rm --force || exit 0 )
-    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml build)
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up
-    rval=$?
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up --force-recreate
+    local rval=$?
     set -e
     set +x
 
-    _test_stack_down
-    _selenium_stack_down
+    return $rval
+}
+
+
+selenium() {
+    info 'selenium'
+    _start_selenium --force-recreate -d
+    _start_test_stack --force-recreate -d
+
+    start_seleniumtests
+    local rval=$?
+
+    _stop_test_stack
+    _stop_selenium
 
     exit $rval
 }

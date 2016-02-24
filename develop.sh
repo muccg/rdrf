@@ -76,8 +76,7 @@ js_lint() {
 echo ''
 info "$0 $@"
 make_virtualenv
-
-_docker_options
+docker_options
 
 case $ACTION in
 pythonlint)
@@ -136,6 +135,18 @@ runtests)
     create_build_image
     create_dev_image
     run_unit_tests
+    ;;
+start_test_stack)
+    start_test_stack
+    ;;
+start_seleniumhub)
+    start_seleniumhub
+    ;;
+start_seleniumtests)
+    start_seleniumtests
+    ;;
+start_prodseleniumtests)
+    start_prodseleniumtests
     ;;
 ci_docker_staging)
     _ci_ssh_agent
