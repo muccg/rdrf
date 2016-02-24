@@ -50,6 +50,12 @@ class ContextFormGroupHelperMixin(object):
             return context_form_group.naming_info
         else:
             return "Display Name will default to 'Modules' if left blank"
+
+    def get_default_name(self, patient_model, context_form_group_model):
+        if context_form_group_model is None:
+            return "Modules"
+        else:
+            return context_form_group_model.get_default_name(patient_model)
         
 
 
@@ -69,7 +75,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
             return HttpResponseRedirect("/")
 
         context_name = self.get_context_name(registry_model, context_form_group)
-        
+        default_display_name = self.get_default_name(patient_model, context_form_group)
+        default_values = {"display_name": default_display_name}
 
         context = {"location": "Add %s" % context_name,
                    "registry": registry_model.code,
@@ -79,7 +86,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                    "form_links": [],
                    "naming_info": naming_info,
                    "my_contexts_url": patient_model.get_contexts_url(registry_model),
-                   "form": ContextForm}
+                   "form": ContextForm(initial=default_values)}
 
         return render_to_response(
             "rdrf_cdes/rdrf_context.html",

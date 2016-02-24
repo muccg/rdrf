@@ -1739,7 +1739,6 @@ class RDRFContext(models.Model):
         return "%s %s" % (self.display_name, self.created_at)
 
     def clean(self):
-        self.display_name = self.get_default_name()
         if not self.display_name:
             raise ValidationError("RDRF Context must have a display name")
 
@@ -1752,13 +1751,6 @@ class RDRFContext(models.Model):
                 return self.registry.metadata["context_name"]
             except KeyError:
                 return "Context"
-
-    def get_default_name(self):
-        if self.context_form_group:
-            return self.context_form_group.generate_name_for_context(self)
-        else:
-            return "Modules"
-
         
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
@@ -1778,24 +1770,24 @@ class ContextFormGroup(models.Model):
     def __unicode__(self):
         return self.name
 
-    def generate_name_for_context(self, context_model):
+    def get_default_name(self, patient_model):
         if self.naming_scheme == "M":
             return "Modules"
         elif self.naming_scheme == "D":
-            return "%s/%s" % (self.name, context_model.created_at)
+            from datetime import datetime
+            d = datetime.now()
+            return "%s/%s" % (self.name, d) 
         elif self.naming_scheme == "N":
-            patient_model = context_model.content_object
+            registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
-
             existing_contexts = [ c for c in RDRFContext.objects.filter(object_id=patient_model.pk,
                                                                         content_type=patient_content_type,
-                                                                        registry=context_model.registry,
-                                                                        context_form_group=self)
-                                  if c.id != context_model.id]
+                                                                        registry=registry_model,
+                                                                        context_form_group=self)]
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
         else:
-            return ""
+            return "Modules"
 
     @property
     def naming_info(self):
