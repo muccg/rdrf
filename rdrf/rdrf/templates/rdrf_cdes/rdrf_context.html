@@ -147,11 +147,8 @@
 		 
                             <div class="form-group">
                                 <label for="{{form_link.text}}" class="col-sm-3 control-label">
-                                    {{form_link.text}}
+                                    <a href="{{form_link.url}}">{{form_link.text}}</a>
                                 </label>
-                                <div class="col-sm-9">
-				  <a href="{{ form_link.link }}">Link</a>
-                                </div>
                             </div>
                    {% endfor %}
               </div>

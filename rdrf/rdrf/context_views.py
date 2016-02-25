@@ -20,6 +20,10 @@ from rdrf.utils import get_form_links
 
 from registry.patients.models import Patient
 
+import logging
+
+logger = logging.getLogger("registry_log")
+
 
 class ContextForm(ModelForm):
     class Meta:
@@ -174,6 +178,11 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                                     rdrf_context_model,
                                     context_form_group_model,
                                     )
+
+
+        for link in form_links:
+            logger.debug("form link %s = %s" % (link.text, link.url))
+            
 
         context = {"location": "Edit %s" % context_name,
                    "context_id": context_id,
