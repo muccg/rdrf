@@ -1959,7 +1959,6 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
     def _get_results(self, request):
         self.custom_ordering = None
-        dump(request)
         self.user = request.user
         # see http://datatables.net/manual/server-side
         try:
