@@ -176,7 +176,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                                     rdrf_context_model.object_id,
                                     rdrf_context_model.registry,
                                     rdrf_context_model,
-                                    context_form_group_model,
                                     )
 
 
@@ -227,8 +226,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             form_links = get_form_links(request.user,
                                         patient_model.pk,
                                         registry_model,
-                                        context_model,
-                                        context_form_group_model)
+                                        context_model)
 
             context = {"location": "Edit %s" % context_name,
                        "patient_name": patient_model.display_name,
