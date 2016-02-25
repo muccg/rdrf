@@ -32,5 +32,25 @@ def mark_created_patient_as_index(patient, registry_ids):
 
     if fh.has_feature('family_linkage') and fh.pk in registry_ids and has_no_mongo_data(patient, fh):
         # patient has just been added to fh
-        logger.debug("fh registry added hook running setting to index")
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
+        # get the current context form group
+        from rdrf.models import RDRFContext, ContextFormGroup
+        try:
+            cfg = ContextFormGroup.objects.filter(registry=fh, name="Default").get()
+            new_context = RDRFContext(registry=fh,
+                                      context_form_group=cfg,
+                                      content_object=patient)
+
+            new_context.display_name = cfg.get_default_name()
+            
+            new_context.save()
+            logger.debug("fh registry added hook running setting to index")
+            patient.set_form_value("fh",
+                                   "ClinicalData",
+                                   "fhDateSection",
+                                   "CDEIndexOrRelative",
+                                   "fh_is_index",
+                                   context_model=new_context)
+
+        except Exception, ex:
+            logger.error("error running hook: %s" % ex)
+            
