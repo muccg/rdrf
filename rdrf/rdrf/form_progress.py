@@ -55,6 +55,7 @@ class FormProgress(object):
         self.progress_cdes_map = self._build_progress_map()
         self.loaded_data = None
         self.current_patient = None
+        self.context_model = None
 
     def _set_current(self, patient_model):
         if self.current_patient is None:
@@ -327,7 +328,7 @@ class FormProgress(object):
 
     def _get_metric(self, metric, patient_model, context_model=None):
         self._set_current(patient_model) # if new model passed in this causes progress data reload
-
+        self.context_model = context_model
         # eg _get_metric((SomeFormModel, "progress"), fred, None)
         # or _get_metric("diagnosis_current", fred, context23) etc
 
@@ -356,8 +357,19 @@ class FormProgress(object):
             raise FormProgressError("Unknown metric: %s" % metric)
 
     def _get_viewable_forms(self, user):
-        return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
-            'position') if not f.is_questionnaire and user.can_view(f)]
+        form_container_model = self._get_form_container_model()
+
+        return [f for f in form_container_model.forms if not f.is_questionnaire and
+                user.can_view(f)]
+    
+        #return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
+        #    'position') if not f.is_questionnaire and user.can_view(f)]
+
+    def _get_form_container_model(self):
+        if self.context_model is not None:
+            if self.context_model.context_form_group:
+                return self.context_model.context_form_group
+        return self.registry_model
 
     # Public API
     def reset(self):
