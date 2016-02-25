@@ -112,7 +112,7 @@
               </div>
 
               <div class="panel panel-default">
-              <div class="panel-heading">Context Data</div>
+              <div class="panel-heading">{{context_name}} Data</div>
               <div class="panel-body">
                    {% for field in form %}
                             <div class="form-group">
@@ -140,7 +140,7 @@
 
 	     {% if form_links %}
 	      <div class="panel panel-default">
-		<div class="panel-heading">Form Links</div>
+		<div class="panel-heading">Forms in this {{context_name}}</div>
 		<div class="panel-body">
 		
                    {% for form_link in form_links %}
