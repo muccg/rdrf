@@ -180,11 +180,7 @@ def location_name(registry_form, current_rdrf_context_model=None):
                                                           patient_model.pk,
                                                           current_rdrf_context_model.pk))
                 context_link = """<a href="%s">%s</a>""" % (edit_link, current_rdrf_context_model.display_name)
-                if context_form_group is not None:
-                    s = "%s/%s" % (context_link, form_display_name)
-                else:
-                    s = "%s ( in %s)" % (form_display_name, context_link)
-
+                s = "%s/%s" % (context_link, form_display_name)
             else:
                 s = form_display_name
     else:
