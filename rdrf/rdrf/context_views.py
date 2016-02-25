@@ -19,6 +19,7 @@ from rdrf.utils import get_error_messages
 from rdrf.utils import get_form_links
 
 from registry.patients.models import Patient
+from registry.groups.models import WorkingGroup
 
 import logging
 
@@ -60,7 +61,37 @@ class ContextFormGroupHelperMixin(object):
             return "Modules"
         else:
             return context_form_group_model.get_default_name(patient_model)
-        
+
+    def allowed(self, user, registry_code, patient_id, context_id):
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
+            if not registry_model.has_feature("contexts"):
+                return False
+            patient_model = Patient.objects.get(pk=patient_id)
+            patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
+            context_model = RDRFContext.objects.get(pk=context_id)
+            if not user.is_superuser:
+                user_working_groups = set([wg for wg in user.working_groups.all()])
+            else:
+                user_working_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
+            
+            if not user.is_superuser and not user.in_registry(registry_model):
+                logger.debug("user not in registry")
+                return False
+            if context_model.registry.code != registry_model.code:
+                logger.debug("reg code mismatch")
+                return False
+            if not ( patient_working_groups <= user_working_groups):
+                logger.debug("patient not in user working groups")
+                return False
+            return True
+        except Exception, ex:
+            logger.error("error in context allowed check: %s" % ex)
+            return False
+
+    def sanity_check(self, registry_model):
+        if not registry_model.has_feature("contexts"):
+            return HttpResponseRedirect("/")
 
 
 class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
@@ -72,11 +103,10 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_form_group_id=None):
         registry_model = Registry.objects.get(code=registry_code)
+        self.sanity_check(registry_model)
         patient_model = Patient.objects.get(pk=patient_id)
         context_form_group = self.get_context_form_group(context_form_group_id)
         naming_info = self.get_naming_info(context_form_group_id)
-        if not registry_model.has_feature("contexts"):
-            return HttpResponseRedirect("/")
 
         context_name = self.get_context_name(registry_model, context_form_group)
         default_display_name = self.get_default_name(patient_model, context_form_group)
@@ -102,6 +132,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
         form = ContextForm(request.POST)
         registry_model = Registry.objects.get(code=registry_code)
+        self.sanity_check(registry_model)
         patient_model = Patient.objects.get(pk=patient_id)
         context_form_group_model = self.get_context_form_group(context_form_group_id)
         naming_info = self.get_naming_info(context_form_group_id)
@@ -155,7 +186,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
         except RDRFContext.DoesNotExist:
             raise Http404()
 
-        if not self._allowed(request.user, registry_code, patient_id, context_id):
+        if not self.allowed(request.user, registry_code, patient_id, context_id):
             return HttpResponseRedirect("/")
 
         context_form = ContextForm(instance=rdrf_context_model)
@@ -199,8 +230,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             context,
             context_instance=RequestContext(request))
 
-    def _allowed(self, user, registry_code, patient_id, context_id):
-        return True #todo - do security check
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
