@@ -1,72 +1,183 @@
+
+
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>RDRF - Rare Disease Registry Framework </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Rdrf : The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries.">
+    <!-- stylesheets -->
+    <link rel="stylesheet" type="text/css" href="stylesheets/compiled/theme.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/vendor/animate.css">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <!-- javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="javascripts/bootstrap/bootstrap.min.js"></script>
+    <script src="javascripts/theme.js"></script>
 
-    <title>Rdrf</title>
-  </head>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body id="home">
+    <header class="navbar navbar-inverse hero" role="banner">
+          <div class="container">
+            <div class="navbar-header">
+                  <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                  <a href="/demo/" class="navbar-brand">RDRF 1.1.5</a>
+            </div>
+            <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                  <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/muccg/rdrf">Source code</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                              Registries on this site <b class="caret"></b>
+                          </a>
+                          <ul class="dropdown-menu">
+                            
+                            <li>
+                                <a href="/demo/DC">
+                                    Demo Contact Registry
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a href="/demo/SIH">
+                                    SIH v1.0
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a href="/demo/1">
+                                    soap
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a href="/demo/atest">
+                                    ATEST v1.0
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a href="/demo/demo">
+                                    Demo Clinical Registry v0.3.2
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </li>
 
-  <body>
+                  </ul>
+            </nav>
+          </div>
+    </header>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/muccg/rdrf">View on GitHub</a>
+    <div id="hero">
+        <div class="container">
+            <h1 class="hero-text animated fadeInDown">
+                The Rare Disease Registry<br>
+                Framework
 
-          <h1 id="project_title">Rdrf</h1>
-          <h2 id="project_tagline">The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries.</h2>
+            </h1>
+            <p class="sub-text animated fadeInDown">
+                Create a patient registry without software development.
+            </p>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/muccg/rdrf/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/muccg/rdrf/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
+        </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+    <div id="features">
+        <div class="container">
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>Need a patient registry for your department, clinic or community?</h3>
+                    <p>RDRF allows for rapid creation of patient registries.</p>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>What is the Rare Disease Registry Framework?</h3>
+                    <p>The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
+                        based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at
+                        runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia in partnership with the Office of Population Health Genomics, Department of Health Western Australia.</p>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="row header">
+                <div class="col-md-12">
+                    <h3>Publications</h3>
+                    <p>
+M.I. Bellgard, L. Render, M. Radochonski, and A. Hunter, Second generation registry framework, Source Code for Biology and Medicine, 9 (2014), 14.
+                    </p>
+                    <p>
+M. Bellgard, C. Beroud, K. Parkinson, T. Harris, S. Ayme, G. Baynam, T. Weeramanthri, H. Dawkins, and A. Hunter, Dispelling myths about rare disease registry system development, Source Code for Biology and Medicine, 8 (2013), 21.
+                    </p>
+                    <p>
+M.I. Bellgard, A. Macgregor, F. Janon, A. Harvey, P. O'Leary, A. Hunter, and H. Dawkins, A modular approach to disease registry design: successful adoption of an Internet-based rare disease registry, Human Mutation, 33 (2012), E2356–66.
+                    </p>
+                    <p>
+M. Rodrigues, G. Hammond-Tooke, A. Kidd, D. Love, R. Patel, H. Dawkins, M. Bellgard, and R. Roxburgh, The New Zealand neuromuscular disease registry, Journal of Clinical Neuroscience, 19 (2012), 1749-1750.
+                    </p>
+                </div>
+            </div>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
-
-<h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
-
-<h3>
-<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating pages manually</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
-      </section>
+        </div>
     </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Rdrf maintained by <a href="https://github.com/muccg">muccg</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
-      </footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 menu">
+                    <ul>
+                        <li>
+                            <a href="mailto:rdrf@ccg.murdoch.edu.au">rdrf@ccg.murdoch.edu.au</a>
+                        </li>
+                        <li>
+                            <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a>
+                        </li>
+                        <li>
+                            <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 menu">
+                    <ul>
+                        <li>
+                            <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/muccg/rdrf">Source code</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 copyright">
+                    Authorised by Prof. Matthew Bellgard, Director, Centre for Comparative Genomics, Murdoch University.
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 copyright">
+                    Copyright © 2015. Murdoch University. Landing page React theme Copyright © 2014
+                </div>
+            </div>
+
+        </div>
     </div>
-
-    
-
-  </body>
+</body>
 </html>
