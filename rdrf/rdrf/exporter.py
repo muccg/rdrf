@@ -170,6 +170,7 @@ class Exporter(object):
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
         data["cde_policies"] = self._get_cde_policies()
+        data["context_form_groups"] = self._get_context_form_groups()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -465,3 +466,21 @@ class Exporter(object):
             cde_pol_dict["condition"] = cde_policy.condition
             cde_policies.append(cde_pol_dict)
         return cde_policies
+
+    def _get_context_form_groups(self):
+        from rdrf.models import ContextFormGroup
+        data = []
+        for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by("name"):
+            cfg_dict = {}
+            cfg_dict["context_type"] = cfg.context_type
+            cfg_dict["name"] = cfg.name
+            cfg_dict["naming_scheme"]  = cfg.naming_scheme
+            cfg_dict["is_default"] = cfg.is_default
+            cfg_dict["forms"] = []
+            for form in cfg.forms:
+                cfg_dict["forms"].append(form.name)
+            data.append(cfg_dict)
+        return data
+                
+
+            
