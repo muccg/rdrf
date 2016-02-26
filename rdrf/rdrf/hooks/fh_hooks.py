@@ -40,7 +40,7 @@ def mark_created_patient_as_index(patient, registry_ids):
                                       context_form_group=cfg,
                                       content_object=patient)
 
-            new_context.display_name = cfg.get_default_name()
+            new_context.display_name = cfg.get_default_name(patient)
             
             new_context.save()
             logger.debug("fh registry added hook running setting to index")
