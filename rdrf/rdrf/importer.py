@@ -582,7 +582,57 @@ class Importer(object):
             logger.info("imported cde policies OK")
         else:
             logger.info("no cde policies to import")
+
+        if "context_form_groups" in self.data:
+            self._create_context_form_groups(r)
+            logger.info("imported context form groups OK")
+        else:
+            logger.info("no context form groups to import")
+            
         logger.info("end of import registry objects!")
+
+    def _create_context_form_groups(self, registry):
+        from rdrf.models import ContextFormGroup, ContextFormGroupItem
+
+        def default_first(data):
+            default = None
+            l = []
+            for d in data["context_form_groups"]:
+                if d["is_default"]:
+                    default = d
+                else:
+                    l.append(d)
+            l.insert(0, default)
+            for d in l:
+                yield d
+
+        def get_form(name):
+            for form in registry.forms:
+                if form.name == name:
+                    return form
+            raise ImportError("CFG Error: Form name %s not found in registry" % name)
+        
+        for cfg_dict in default_first(self.data):
+            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, name=cfg_dict["name"])
+            cfg.context_type =  cfg_dict["context_type"]
+            cfg.name = cfg_dict["name"]
+            cfg.naming_scheme = cfg_dict["naming_scheme"]
+            cfg.is_default = cfg_dict["is_default"]
+            cfg.save()
+
+            # remove existing context form group items
+            for item in cfg.items.all():
+                item.delete()
+            
+            for form_name in cfg_dict["forms"]:
+                registry_form = get_form(form_name)
+                cfg_item, created = ContextFormGroupItem.objects.get_or_create(context_form_group=cfg,
+                                                registry_form=registry_form)
+                cfg_item.save()
+
+            logger.info("imported cfg %s" % cfg.name)
+                
+            
 
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
