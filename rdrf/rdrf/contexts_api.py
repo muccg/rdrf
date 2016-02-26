@@ -67,6 +67,13 @@ class RDRFContextManager(object):
 
     def create_context(self, patient_model, display_name):
         rdrf_context = RDRFContext(registry=self.registry_model, content_object=patient_model, display_name=display_name)
+
+        default_context_form_group = self.registry_model.default_context_form_group
+        if default_context_form_group is not None:
+            rdrf_context.context_form_group = default_context_form_group
+            rdrf_context.display_name = default_context_form_group.get_default_name(patient_model)
+            
+            
         rdrf_context.save()
         return rdrf_context
 
