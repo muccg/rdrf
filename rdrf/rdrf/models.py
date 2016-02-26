@@ -1762,6 +1762,7 @@ class ContextFormGroup(models.Model):
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
+    is_default = models.BooleanField(default=False)
 
     @property
     def forms(self):
