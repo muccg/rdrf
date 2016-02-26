@@ -35,7 +35,7 @@ def mark_created_patient_as_index(patient, registry_ids):
         # get the current context form group
         from rdrf.models import RDRFContext, ContextFormGroup
         try:
-            cfg = ContextFormGroup.objects.filter(registry=fh, name="Default").get()
+            cfg = fh.default_context_form_group
             new_context = RDRFContext(registry=fh,
                                       context_form_group=cfg,
                                       content_object=patient)
