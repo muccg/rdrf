@@ -482,7 +482,7 @@ class Registry(models.Model):
 
     @property
     def default_context_form_group(self):
-        for cfg in ContextFormGroup(registry=self):
+        for cfg in ContextFormGroup.objects.filter(registry=self):
             if cfg.is_default:
                 return cfg
 
