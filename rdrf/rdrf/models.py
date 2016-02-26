@@ -1817,6 +1817,20 @@ class ContextFormGroup(models.Model):
         if num_defaults == 0  and not self.is_default:
             raise ValidationError("One Context Form Group must be chosen as the default")
 
+    def patient_can_add(self, patient_model):
+        """
+        can this patient add a context of my type?
+        """
+        if self.context_type == "M":
+            return True
+        else:
+            # fixed - is there one already?
+            patient_content_type = ContentType.objects.get(model='patient')
+            return RDRFContext.objects.filter(registry=self.registry,
+                                              content_type=patient_content_type,
+                                              object_id=patient_model.id,
+                                              context_form_group=self).count() == 0
+
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
     registry_form = models.ForeignKey(RegistryForm)       

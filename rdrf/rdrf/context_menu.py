@@ -115,12 +115,13 @@ class PatientContextMenu(object):
             # add an action for each available form group
             actions = []
             for context_form_group in self.registry_model.context_form_groups.all():
-                action_title = "Add %s" % context_form_group.name
-                action_link = reverse("context_add", args=(self.registry_model.code,
+                if context_form_group.patient_can_add(self.patient_model):
+                    action_title = "Add %s" % context_form_group.name
+                    action_link = reverse("context_add", args=(self.registry_model.code,
                                                            str(self.patient_model.pk),
                                                            str(context_form_group.pk)))
                 
-                actions.append(ContextMenuAction(action_title, action_link))
+                    actions.append(ContextMenuAction(action_title, action_link))
                 
             return actions
         
