@@ -554,20 +554,10 @@ GRID_CONTEXT_LISTING = [
             "default": False,
             "permission": ""
         },
-        "data": "display_name",  # display name only visible for registries that provide contexts feature
-        "label": "Name",
-        "model": "RDRFContext",
-        "order": 2
-    },
-    {
-        "access": {
-            "default": False,
-            "permission": ""
-        },
         "data": "created_at",
         "label": "Created",
         "model": "RDRFContext",
-        "order": 3
+        "order": 2
     },
 
     {
@@ -578,7 +568,7 @@ GRID_CONTEXT_LISTING = [
         "data": "working_groups_display",
         "label": "Working Groups",
         "model": "Patient",
-        "order": 4
+        "order": 3
     }, {
         "access": {
             "default": False,
@@ -587,7 +577,7 @@ GRID_CONTEXT_LISTING = [
         "data": "diagnosis_progress",
         "label": "Diagnosis Entry Progress",
         "model": "Patient",
-        "order": 5
+        "order": 4
     }, {
         "access": {
             "default": False,
@@ -596,7 +586,7 @@ GRID_CONTEXT_LISTING = [
         "data": "diagnosis_currency",
         "label": "Updated < 365 days",
         "model": "Patient",
-        "order": 6
+        "order": 5
     }, {
         "access": {
             "default": False,
@@ -605,7 +595,7 @@ GRID_CONTEXT_LISTING = [
         "data": "genetic_data_map",
         "label": "Genetic Data",
         "model": "Patient",
-        "order": 7
+        "order": 6
     },
      {
         "access": {
@@ -615,6 +605,6 @@ GRID_CONTEXT_LISTING = [
         "data": "context_menu",
         "label": "Modules",
         "model": "func",
-        "order": 8
+        "order": 9
     }
 ]
