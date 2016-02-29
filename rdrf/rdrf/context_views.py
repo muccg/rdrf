@@ -64,6 +64,7 @@ class ContextFormGroupHelperMixin(object):
 
     def allowed(self, user, registry_code, patient_id, context_id):
         try:
+            is_normal_user = not user.is_superuser
             registry_model = Registry.objects.get(code=registry_code)
             if not registry_model.has_feature("contexts"):
                 return False
@@ -75,14 +76,11 @@ class ContextFormGroupHelperMixin(object):
             else:
                 user_working_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
             
-            if not user.is_superuser and not user.in_registry(registry_model):
-                logger.debug("user not in registry")
+            if is_normal_user and not user.in_registry(registry_model):
                 return False
             if context_model.registry.code != registry_model.code:
-                logger.debug("reg code mismatch")
                 return False
             if not ( patient_working_groups <= user_working_groups):
-                logger.debug("patient not in user working groups")
                 return False
             return True
         except Exception, ex:
@@ -159,6 +157,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                                                            
             return HttpResponseRedirect(context_edit)
         else:
+            logger.debug("form invalid")
+            logger.debug("form errors: %s" % form.errors)
             context = {"location": "Add %s" % context_name,
                        "error": "Invalid",
                        "registry": registry_model.code,
