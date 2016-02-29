@@ -1,13 +1,8 @@
 {% load static %}
-{% if supports_contexts %}
 <div class="panel panel-default">
-
   <div class="panel-heading">
-     {% for action in actions %}
-        <a href="{{action.link}}">{{action.title}}</a><br>
-    {% endfor %}
+    <b>{{ context.display_name }}</b>
   </div>
-
   <div class="panel-body">
     {% for form in forms %}
                 {% if form.current %}
@@ -16,28 +11,5 @@
                     <img src="{% static 'images/cross.png' %}">
                 {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
     {% endfor %}
-
   </div>
 </div>
-{% else %}
-        {% for form in forms %}
-                {% if form.current %}
-                     <img src="{% static 'images/tick.png' %}">
-                {% else %}
-                    <img src="{% static 'images/cross.png' %}">
-                {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
-    {% endfor %}
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-
-
