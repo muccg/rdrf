@@ -92,7 +92,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def in_registry(self, registry_model):
         for reg in self.registry.all():
-            if reg is registry_model:
+            if reg.pk == registry_model.pk:
                 return True
 
     @property
