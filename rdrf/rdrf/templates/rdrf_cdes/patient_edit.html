@@ -157,6 +157,20 @@
 {% endblock %}
 
 
+{% block actions %}
+{% if actions %}
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="glyphicon glyphicon-list"></span> Actions<span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+                    {% for action in actions %}
+                        <li><a href="{{action.link}}"><span class="glyphicon glyphicon-minus"></span> {{action.title}}</a></li>
+                    {% endfor %}
+        </ul>
+    </li>
+{% endif %} 
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-md-12">
