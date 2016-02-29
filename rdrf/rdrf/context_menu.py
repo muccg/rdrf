@@ -39,6 +39,7 @@ class PatientContextMenu(object):
         self.context_model = context_model
         self.form_progress = form_progress
         self.context_name = self._get_context_name()
+        self.has_contexts = self.registry_model.has_feature("contexts")
 
     def _get_context_name(self):
         if self.registry_model.has_feature("contexts"):
@@ -87,6 +88,7 @@ class PatientContextMenu(object):
                            "patient": self.patient_model})
 
         popup_content_html = popup_template.render(context)
+        button_caption = "Show" if not self.has_contexts else self.context_name
         button_html = """<button type="button"
                           class="contextmenu btn btn-primary btn-xs"
                           data-toggle="popover"
@@ -95,12 +97,12 @@ class PatientContextMenu(object):
                           id="patientcontextmenu"
                           data-original-title=""
                           title=""
-                          aria-describedby="">Show</button>""" % escape(popup_content_html)
+                          aria-describedby="">%s</button>""" % (escape(popup_content_html), self.context_name)
 
         return button_html
 
     def _get_actions(self):
-        if not self.registry_model.has_feature("contexts"):
+        if not self.has_contexts:
             return []
         elif self.registry_model.context_form_groups.count() == 0:
             # no context form groups defined 
@@ -124,6 +126,10 @@ class PatientContextMenu(object):
                     actions.append(ContextMenuAction(action_title, action_link))
                 
             return actions
+
+    @property
+    def actions(self):
+        return self._get_actions()
         
 
 
