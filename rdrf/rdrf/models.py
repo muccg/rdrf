@@ -845,7 +845,8 @@ class RegistryForm(models.Model):
                     "Camel Case, instead."
             raise ValidationError(msg)
 
-        self._check_completion_cdes()
+        if self.pk:
+            self._check_completion_cdes()
         
 
 
@@ -1783,7 +1784,8 @@ class ContextFormGroup(models.Model):
         elif self.naming_scheme == "D":
             from datetime import datetime
             d = datetime.now()
-            return "%s/%s" % (self.name, d) 
+            s = d.strftime("%d-%b-%Y") 
+            return "%s/%s" % (self.name, s) 
         elif self.naming_scheme == "N":
             registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
