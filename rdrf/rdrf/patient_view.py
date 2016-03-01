@@ -30,6 +30,7 @@ from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.context_menu import PatientContextMenu
 
 
 import logging
@@ -699,9 +700,17 @@ class PatientEditView(View):
 
         rdrf_context_manager = RDRFContextManager(registry_model)
 
+        actions = []
+
         try:
             context_model = rdrf_context_manager.get_context(context_id, patient)
-
+            patient_context_menu = PatientContextMenu(request.user,
+                                                      registry_model,
+                                                      None,
+                                                      patient,
+                                                      context_model)
+            actions = patient_context_menu.actions
+            
         except RDRFContextError, ex:
             logger.error("patient edit view context error patient %s: %s" % (patient, ex))
             return HttpResponseRedirect("/")
@@ -710,6 +719,7 @@ class PatientEditView(View):
             "location": "Demographics",
             "forms": form_sections,
             "patient": patient,
+            "actions" : actions,
             "context_id": context_id,
             "patient_id": patient.id,
             "index_context": self._get_index_context(registry_model, patient),
@@ -740,6 +750,7 @@ class PatientEditView(View):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_relatives_forms = None
+        actions = []
 
         logger.debug("Edit patient pk before save %s" % patient.pk)
 
@@ -756,6 +767,12 @@ class PatientEditView(View):
 
         try:
             context_model = rdrf_context_manager.get_context(context_id, patient)
+            patient_context_menu = PatientContextMenu(request.user,
+                                                      registry_model,
+                                                      None,
+                                                      patient,
+                                                      context_model)
+            actions = patient_context_menu.actions
 
         except RDRFContextError, ex:
             logger.error("patient edit view context error patient %s: %s" % (patient, ex))
@@ -851,6 +868,7 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "context_id": context_id,
+                "actions": actions,
                 "index_context": self._get_index_context(registry_model, patient),
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
@@ -872,6 +890,7 @@ class PatientEditView(View):
             context = {
                 "forms": form_sections,
                 "patient": patient,
+                "actions": actions,
                 "errors": True,
                 "index_context": self._get_index_context(registry_model, patient),
                 "error_messages": error_messages,
