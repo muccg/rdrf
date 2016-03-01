@@ -53,8 +53,8 @@ from django.core.paginator import Paginator, InvalidPage
 from django.contrib.contenttypes.models import ContentType
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
-
 from rdrf.form_progress import FormProgress
+from rdrf.locators import PatientLocator
 
 
 class RDRFContextSwitchError(Exception):
@@ -441,7 +441,7 @@ class FormView(View):
             'form_name': form_id,
             'form_display_name': form_display_name,
             'patient_id': patient_id,
-            'patient_name': patient_name,
+            'patient_link': PatientLocator(registry, patient).link,
             'sections': sections,
             'section_field_ids_map': section_field_ids_map,
             'section_ids': ids,
@@ -548,7 +548,7 @@ class FormView(View):
         :return: a context dictionary to render the template ( all form generation done here)
         """
         user = kwargs.get("user", None)
-
+        patient_model = kwargs.get("patient_model", None)
         sections, display_names, ids = self._get_sections(self.registry_form)
         form_section = {}
         section_element_map = {}
@@ -614,6 +614,7 @@ class FormView(View):
             'form_name': self.form_id,
             'form_display_name': self.registry_form.name,
             'patient_id': self._get_patient_id(),
+            'patient_link': PatientLocator(self.registry, patient_model).link,
             'patient_name': self._get_patient_name(),
             'sections': sections,
             'forms': form_section,
@@ -629,9 +630,10 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
+        
+
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
 
-            patient_model = self._get_patient_object()
 
             form_progress = FormProgress(self.registry_form.registry)
 
