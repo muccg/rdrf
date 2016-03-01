@@ -97,7 +97,7 @@ class PatientContextMenu(object):
                           id="patientcontextmenu"
                           data-original-title=""
                           title=""
-                          aria-describedby="">%s</button>""" % (escape(popup_content_html), self.context_name)
+                          aria-describedby="">%s</button>""" % (escape(popup_content_html), button_caption)
 
         return button_html
 
