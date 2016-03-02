@@ -179,6 +179,8 @@
         </div>
     </div>
     <br>
+
+
     <div class="row">
         <div class="col-md-10">
             {% if message %}
@@ -209,6 +211,10 @@
                     </div>
                 {% endif %}
             {% endif %}
+
+
+           {{ context_launcher | safe }}
+
     
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
             

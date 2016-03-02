@@ -31,6 +31,8 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.context_menu import PatientContextMenu
+from rdrf.components import RDRFContextLauncherComponent
+
 
 
 import logging
@@ -700,7 +702,7 @@ class PatientEditView(View):
 
         rdrf_context_manager = RDRFContextManager(registry_model)
 
-        actions = []
+        context_launcher = RDRFContextLauncherComponent(registry_model, patient)
 
         try:
             context_model = rdrf_context_manager.get_context(context_id, patient)
@@ -717,9 +719,9 @@ class PatientEditView(View):
 
         context = {
             "location": "Demographics",
+            "context_launcher" : context_launcher.html,
             "forms": form_sections,
             "patient": patient,
-            "actions" : actions,
             "context_id": context_id,
             "patient_id": patient.id,
             "index_context": self._get_index_context(registry_model, patient),
