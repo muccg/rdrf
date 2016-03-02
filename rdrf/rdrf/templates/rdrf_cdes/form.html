@@ -42,110 +42,9 @@
         }
     </style>
 
-
     <script type="text/javascript">
         window.IMAGES_URL = "{% static 'images/' %}";
     </script>
-
-
-    <script>
-
-
-        function activeContextBehaviour() {
-                $('#rdrf_context_table tr').on('click', function() {
-                    $("#rdrf_context_table tr").removeClass("highlight");
-                    $(this).addClass("highlight");
-
-                });
-          }
-
-      function addNewRDRFContext() {
-              // populate the tablE
-              function addRow(contextName) {
-                  var createdAt = new Date();
-                  var newRow = _.template("<tr id='new'><td><%= contextName %></td><td><%= createdAt %></td></td><td><span></span></td>");
-                  $("#rdrf_context_table > tbody").append(newRow({createdAt: createdAt, contextName: contextName}));
-
-
-              }
-              var contextName = $("#new_rdrf_context_name").val();
-              addRow(contextName);
-              activeContextBehaviour();
-          }
-
-
-
-      function setupRDRFContextSwitching() {
-
-          var ACTIVE_CLASS = "glyphicon glyphicon-asterisk";
-          var patientId = "{{patient_id}}";
-          var registryCode = "{{registry_code}}";
-          var rdrfContextApiUrl = "{% url 'rdrf_context_lookup' registry_code patient_id %}";
-          var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-
-          var tableRow = _.template("<tr id='rdrf_context_<%= id %>'><td><%= context_name %></td><td>" +
-                      "<%= created_at %></td><td><span class='<%= active_flag %>' style='color: red;' aria-hidden='true'></span></td></tr>");
-
-
-
-          activeContextBehaviour();
-
-          function createRDRFContextRow(rdrfContext) {
-              var activeFlag = "";
-              if (rdrfContext.active) {
-                  activeFlag = ACTIVE_CLASS;
-              }
-
-              $("#rdrf_context_table").append(tableRow({id: rdrfContext.id,
-                                                        context_name: rdrfContext.display_name,
-                                                        created_at: rdrfContext.created_at,
-                                                        active_flag: activeFlag
-                                                        }));
-
-          }
-
-          function populateRDRFContextData(data) {
-            $("#rdrf_context_table tbody > tr").remove();
-
-            _(data).forEach(function (rdrfContext) {
-                createRDRFContextRow(rdrfContext);
-            });
-            activeContextBehaviour();
-          }
-
-          $("#rdrf_context_glyph").click(function () {
-
-              $("#rdrf_context_modal").modal();
-
-              $.getJSON(rdrfContextApiUrl, function (data){
-                  populateRDRFContextData(data);
-                  $("#rdrf_context_modal").modal();
-              })
-          })
-
-          $("#rdrf_context_save_button").click(function() {
-              var activeContextId = $("#rdrf_context_table tr.highlight").attr('id');
-              var activeContextName =$("#rdrf_context_table tr.highlight td:nth-child(1)").text().trim();
-              var current_location = window.location;
-              var rdrfContextCommand = "activate";
-              var commandArgs = [activeContextId, activeContextName];
-              var commandObject = {command: rdrfContextCommand, args: commandArgs};
-
-              rpc.send("rdrf_context_command",[registryCode, patientId, commandObject], function (result) {
-                if (result.status == "success") {
-                    window.location = current_location;
-                }
-                else {
-                    alert("Could not change context: " + result.error);
-                }
-
-            });
-          });
-      }
-
-    </script>
-
-
 
     <style>
         .ui-autocomplete {
@@ -243,8 +142,6 @@
                 });
             });
         });
-
-        setupRDRFContextSwitching();
         
         $('#main-form').data('serialize', $('#main-form').serialize());
         
@@ -533,50 +430,6 @@
         </div>
     {% endfor %}
 {% endif %}
-
-
-<!-- Modal popup for rdrf context switch -->
-<div class="modal fade" id="rdrf_context_modal" tabindex="-1" role="dialog" aria-labelledby="rdrf_context_label">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="consent-header"></h4>
-            </div>
-            <div class="modal-body" id="rdrf_context_body">
-
-               <div class="panel panel-default">
-                <!-- Default panel contents -->
-                <div class="panel-heading">Assessments
-                  <input width="25%"id="new_rdrf_context_name" type="text" class="pull-right"/>
-                  <a class="btn btn-info btn-xs pull-right" onclick="addNewRDRFContext();">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                   </a>
-
-                </div>
-                    <!-- Table -->
-                    <table id="rdrf_context_table" class="table">
-                        <thead>
-                            <th>Name</th>
-                            <th>Created</th>
-                            <th>Active</th>
-                        </thead>
-                        <tbody>
-                        </tbody>
-
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                <button id="rdrf_context_save_button" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
 
 {% endblock %}
 
