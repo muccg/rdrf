@@ -59,27 +59,6 @@
 
         }
 
-        function updateContextColumnsVisibility(value) {
-          _.each(CONTEXT_COLUMNS, function (columnIndex) {
-                    var contextColumn = contexts_list.column(columnIndex);
-                    //contextColumn.visible(value);
-
-                });
-        }
-
-        function setContextLinkColumnVisibility(registryCode) {
-            rpc.send('registry_supports_contexts', [registryCode], function (response) {
-                if (response.status == 'success') {
-                    var columnVisibility = response.result;
-                    updateContextColumnsVisibility(columnVisibility);
-
-                }
-                else {
-                    updateContextColumnsVisibility(false);
-                }
-            })
-        }
-
         if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
             $("#add_patient").hide();
         }
@@ -116,7 +95,6 @@
             var registryCode= $("#registry_options > option:selected").attr("id");
             var apiUrl = getApiUrl(registryCode, getDrawLength());
             contexts_list.ajax.url(apiUrl).load();
-            setContextLinkColumnVisibility(registryCode);
         });
 
 
