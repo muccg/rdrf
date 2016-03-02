@@ -94,18 +94,3 @@ def rpc_reporting_command(request, queryId, registry_id, command, arg):
         return field_selector.field_data
     else:
         raise Exception("unknown command: %s" % command)
-
-
-# RDRF Context Switching
-def rpc_rdrf_context_command(request, registry_code, patient_id, context_command):
-    from rdrf_contexts import RDRFContextCommandHandler, RDRFContextError
-    try:
-        handler = RDRFContextCommandHandler(request, registry_code, patient_id)
-        result = handler.run(context_command)
-        return {"status": "success", "command_result": result}
-    except RDRFContextError, err:
-        logger.error("Error changing context for patient id %s registry code %s command %s: %s" % (patient_id,
-                                                                                                   registry_code,
-                                                                                                   context_command,
-                                                                                                   err))
-        return {"status": "failure", "error": err.message}
