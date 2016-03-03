@@ -260,12 +260,11 @@ def create_permission(app_label, model, code_name, name):
         pass
 
 
-def get_form_links(user, patient_id, registry_model, context_model=None):
+def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
     if user is not None:
         if context_model and context_model.context_form_group:
             # show links to forms restricted to this config object
             container_model = context_model.context_form_group
-        
         else:
             container_model = registry_model
             
@@ -275,7 +274,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None):
                 registry_model,
                 form,
                 selected=(
-                    form.name == ""),
+                    form.name == current_form_name),
                 context_model=context_model) for form in container_model.forms
             if not form.is_questionnaire and user.can_view(form)]
     else:
