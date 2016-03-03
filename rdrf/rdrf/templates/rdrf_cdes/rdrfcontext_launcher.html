@@ -1,12 +1,53 @@
 <!-- start demographics form launcher -->
 <div class="panel panel-default">
   <div class="panel-heading">
-    <b>Forms Available For This Patient</b>
+    <b>Existing Data</b>
   </div>
 
   <div class="panel-body">
-    <a href="{{patient_listing_link}}">Existing Data<a>
+    <a href="{{consents_link}}">Consents</a><br>
+    <a href="{{patient_listing_link}}">All Clinical Data</a><br>
+    {% if multiple_contexts %}
+    {% for multiple_context in multiple_contexts %}
+    <a href="{{multiple_context.url}}">{{multiple_context.text}}</a><br>
+    {% endfor %}
+    {% endif %}
   </div>
 </div>
+
+
+
+{% for fixed_context in fixed_contexts %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <b>{{fixed_context.name}}</b>
+  </div>
+  <div class="panel-body">
+    {% for form in fixed_context.forms %}
+    {% if form.current %}
+    <b>{{form.text}}</b>
+      {% else %}
+      <a href="{{form.url}}">{{form.text}}</a>
+      {% endif %}
+      <br>
+    {% endfor %}
+  </div>
+</div>
+
+{% endfor %}
+
+{% if actions %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <b>Actions Available</b>
+  </div>
+
+  <div class="panel-body">
+    {% for action in actions %}
+    <a href="{{action.link}}">{{action.title}}</a><br>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 <!-- end demographics form launcher -->
 
