@@ -660,14 +660,26 @@ class Patient(models.Model):
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
-        if not registry_model.has_feature("contexts"):
-            # good - default context makes sense only if registry does not allow multiple contexts
-            # return the one and only context
+        from rdrf.models import RegistryType
+        registry_type = registry_model.registry_type
+        if registry_type == RegistryType.NORMAL:
             my_contexts = self.context_models
-            if len(my_contexts) == 1:
+            num_contexts = len(my_contexts)
+            if num_contexts == 1:
                 return my_contexts[0]
+            else:
+                raise Exception("default context could not be returned: num contexts = %s" % num_contexts)
 
-        return None
+        elif registry_type == RegistryType.HAS_CONTEXTS:
+            return None
+        else:
+            # registry has context form groups defined
+            for context_model in self.context_models:
+                if context_model.context_form_group:
+                    if context_model.context_form_group.is_default:
+                        return context_model
+            raise Exception("no default context") 
+
 
 
 class ClinicianOther(models.Model):
