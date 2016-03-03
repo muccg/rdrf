@@ -212,10 +212,6 @@
                 {% endif %}
             {% endif %}
 
-
-           {{ context_launcher | safe }}
-
-    
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
             
                 {% csrf_token %}        
@@ -427,6 +423,11 @@
                             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
                         </a>
                     {% endif %}
+			<p></p>
+
+			{{ context_launcher | safe }}
+
+ 
                 </div>
             </div>
         </form>

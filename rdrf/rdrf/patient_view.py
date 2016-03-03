@@ -700,22 +700,7 @@ class PatientEditView(View):
             patient_id, registry_code, request)
         registry_model = Registry.objects.get(code=registry_code)
 
-        rdrf_context_manager = RDRFContextManager(registry_model)
-
-        context_launcher = RDRFContextLauncherComponent(registry_model, patient)
-
-        try:
-            context_model = rdrf_context_manager.get_context(context_id, patient)
-            patient_context_menu = PatientContextMenu(request.user,
-                                                      registry_model,
-                                                      None,
-                                                      patient,
-                                                      context_model)
-            actions = patient_context_menu.actions
-            
-        except RDRFContextError, ex:
-            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
-            return HttpResponseRedirect("/")
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
 
         context = {
             "location": "Demographics",
@@ -726,7 +711,7 @@ class PatientEditView(View):
             "patient_id": patient.id,
             "index_context": self._get_index_context(registry_model, patient),
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient.id, registry_model, context_model),
+            "form_links": [],
             "consent": consent_status_for_patient(registry_code, patient)
         }
 
@@ -765,20 +750,7 @@ class PatientEditView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        rdrf_context_manager = RDRFContextManager(registry_model)
-
-        try:
-            context_model = rdrf_context_manager.get_context(context_id, patient)
-            patient_context_menu = PatientContextMenu(request.user,
-                                                      registry_model,
-                                                      None,
-                                                      patient,
-                                                      context_model)
-            actions = patient_context_menu.actions
-
-        except RDRFContextError, ex:
-            logger.error("patient edit view context error patient %s: %s" % (patient, ex))
-            return HttpResponseRedirect("/")
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
 
         if registry_model.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
@@ -870,7 +842,7 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "context_id": context_id,
-                "actions": actions,
+                "context_launcher": context_launcher.html,
                 "index_context": self._get_index_context(registry_model, patient),
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
@@ -911,7 +883,7 @@ class PatientEditView(View):
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
         context["location"] = "Demographics"
-        context["form_links"] = get_form_links(request.user, patient.id, registry_model, context_model)
+        context["form_links"] = []
         #context["consent"] = consent_status_for_patient(registry_code, patient)
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
