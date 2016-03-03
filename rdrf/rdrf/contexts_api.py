@@ -74,7 +74,8 @@ class RDRFContextManager(object):
         else:
             # create any "fixed" contexts as a side effect and return the default one:
             # if there are context groups defined, check for "fixed" ones
-            # create one context for each. return the context associated with the fixed
+            # create one context for each (if it doesn't exist).
+            # return the context associated with the fixed
             # group marked is_default ( if there is one)
             
             default_context = None
@@ -82,12 +83,13 @@ class RDRFContextManager(object):
             for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
                                                                       context_type='F'):
                     # fixed type so create one for the supplied patient
-                    fixed_context = RDRFContext(registry=self.registry_model,
-                                                content_type=content_type,
-                                                object_id=patient_model.pk)
-                    fixed_context.context_form_group = context_form_group
-                    fixed_context.display_name = context_form_group.get_default_name(patient_model)
-                    fixed_context.save()
+                    fixed_context, created = RDRFContext.objects.get_or_create(registry=self.registry_model,
+                                                                               content_type=content_type,
+                                                                               object_id=patient_model.pk,
+                                                                               context_form_group=context_form_group)
+                    if created:
+                        fixed_context.display_name = context_form_group.get_default_name(patient_model)
+                        fixed_context.save()
                     if context_form_group.is_default:
                         default_context = fixed_context
             return default_context
