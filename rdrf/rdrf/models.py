@@ -82,6 +82,11 @@ class Section(models.Model):
                                   (self.display_name, self.code))
 
 
+class RegistryType:
+    NORMAL = 1                 # no exposed contexts - all forms stored in a default context
+    HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
+    HAS_CONTEXT_GROUPS = 3         #  registry has context form groups defined
+        
 class Registry(models.Model):
 
     class Meta:
@@ -100,6 +105,15 @@ class Registry(models.Model):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
     # a dictionary of configuration data -  GUI visibility
     metadata_json = models.TextField(blank=True)
+
+    @property
+    def registry_type(self):
+        if not self.has_feature("contexts"):
+            return RegistryType.NORMAL
+        elif ContextFormGroup.objects.filter(registry=self).count() == 0:
+            return RegistryType.HAS_CONTEXTS
+        else:
+            return RegistryType.HAS_CONTEXT_GROUPS
 
     @property
     def metadata(self):
