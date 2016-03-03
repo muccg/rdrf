@@ -1971,6 +1971,12 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
 
         # can restrict on a particular patient for contexts - NOT usually set
         self.patient_id = request.GET.get("patient_id", None)
+        self.context_form_group_id = request.GET.get("context_form_group_id", None)
+        if self.context_form_group_id:
+            raise Exception("dd")
+            self.context_form_group_model = ContextFormGroup.objects.get(pk=int(self.context_form_group_id))
+        else:
+            self.context_form_group_model = None
 
         if self.registry_code is None:
             return []
@@ -2396,10 +2402,6 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
 
-        # todo think I need to subquery here https://mattrobenolt.com/the-django-orm-and-subqueries/
-
-        logger.debug("******   sort_field = %s sort_direction = %s" % (sort_field, sort_direction))
-
         content_type = ContentType.objects.get(model='patient')
 
         if self.patient_id is None:
@@ -2408,6 +2410,10 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
             contexts = RDRFContext.objects.filter(registry=self.registry_model,
                                                  content_type=content_type,
                                                  object_id=self.patient_id)
+
+        if self.context_form_group_model is not None:
+            raise Exception("xxx")
+            contexts = contexts.filter(context_form_group=self.context_form_group_model)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
 
