@@ -13,6 +13,7 @@
         $.fn.dataTable.ext.errMode = 'throw';
 
         var initialPatientId = "{{patient_id}}";
+	var contextFormGroupId = "{{context_form_group_id}}";
         var CONTEXT_LINK_COLUMN_INDEX= 2;
         var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
         var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
@@ -48,14 +49,23 @@
         }
 
         function getApiUrl(registryCode, drawLength) {
+	var url;
+	
             if (initialPatientId=='None'){
-                return  api_url + "?registry_code=" + registryCode +
+                url =   api_url + "?registry_code=" + registryCode +
                     "&length=" + drawLength;
             }
             else {
-                return  api_url + "?registry_code=" + registryCode +
+                url =   api_url + "?registry_code=" + registryCode +
                     "&length=" + drawLength + "&patient_id=" + initialPatientId;
             }
+
+	if (contextFormGroupId != 'None') {
+	    url += "&context_form_group_id=" + contextFormGroupId;
+
+	}
+
+	return url;
 
         }
 

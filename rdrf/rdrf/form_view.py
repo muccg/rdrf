@@ -43,6 +43,7 @@ import os
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
+from rdrf.models import ContextFormGroup
 from rdrf.utils import FormLink
 from registry.groups.models import CustomUser
 import logging
@@ -2412,7 +2413,6 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
                                                  object_id=self.patient_id)
 
         if self.context_form_group_model is not None:
-            raise Exception("xxx")
             contexts = contexts.filter(context_form_group=self.context_form_group_model)
 
         registry_queryset = Registry.objects.filter(code=registry_code)
@@ -2575,9 +2575,13 @@ class ContextsListingView(LoginRequiredMixin, View):
             if not self._allowed(request.user, registry_model, patient_id):
                 return HttpResponseRedirect("/")
 
+        context_form_group_id = request.GET.get("context_form_group_id", None)
+        
+
         context["registries"] = registries
         context["location"] = "Context List"
         context["patient_id"] = patient_id
+        context["context_form_group_id"] = context_form_group_id
         context["registry_code"] = registry_code
 
         columns = []
