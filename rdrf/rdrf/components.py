@@ -51,12 +51,20 @@ class RDRFComponent(object):
 class RDRFContextLauncherComponent(RDRFComponent):
     TEMPLATE = "rdrf_cdes/rdrfcontext_launcher.html"
 
-    def __init__(self, user, registry_model, patient_model, current_form_name="Demographics"):
+    def __init__(self,
+                 user,
+                 registry_model,
+                 patient_model,
+                 current_form_name="Demographics",
+                 current_rdrf_context_model=None):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.current_form_name = current_form_name
         self.content_type = ContentType.objects.get(model='patient')
+        # below only used when navigating to form in a context
+        # associated with a multiple context form group
+        self.current_rdrf_context_model = current_rdrf_context_model
 
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
@@ -66,6 +74,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "actions": self._get_actions(),
             "fixed_contexts": self._get_fixed_contexts(),
             "multiple_contexts": self._get_multiple_contexts(),
+            "current_multiple_context": self._get_current_multiple_context(),
             }
 
     def _get_existing_data_link(self):
@@ -95,6 +104,32 @@ class RDRFContextLauncherComponent(RDRFComponent):
             links.append(_Form(filter_url, name))
                           
         return links
+
+    def _get_current_multiple_context(self):
+        #def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
+        # provide links to other forms in this current context
+        # used when landing on a form in multiple context
+        registry_type = self.registry_model.registry_type
+        fg = None
+        if registry_type == RegistryType.HAS_CONTEXT_GROUPS:
+            if self.current_rdrf_context_model and self.current_rdrf_context_model.context_form_group:
+                cfg = self.current_rdrf_context_model.context_form_group
+                if cfg.context_type == "M":
+                    fg = _FormGroup(self.current_rdrf_context_model.display_name)
+                    for form_link in get_form_links(self.user,
+                                                    self.patient_model.pk,
+                                                    self.registry_model,
+                                                    self.current_rdrf_context_model,
+                                                    self.current_form_name):
+                       form = _Form(form_link.url,
+                                    form_link.text,
+                                    current=form_link.selected)
+                       fg.forms.append(form)
+        return fg
+                        
+                    
+                    
+
 
 
     def _get_fixed_contexts(self):

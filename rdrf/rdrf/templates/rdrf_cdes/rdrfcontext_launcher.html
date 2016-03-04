@@ -1,5 +1,18 @@
 <!-- start demographics form launcher -->
-<div class="panel panel-default">
+<script>
+  var USE_ACCORDION = false;
+  var START_COLLAPSED = false;
+ 
+  $(function() {
+  if(USE_ACCORDION) {
+  $(".collapsible" ).accordion({
+  collapsible: true,
+  active: !START_COLLAPSED
+  }}
+  );
+  });
+  </script>
+<div class="panel panel-default collapsible">
   <div class="panel-heading">
     <b>Existing Data</b>
   </div>
@@ -15,10 +28,27 @@
   </div>
 </div>
 
+{% if current_multiple_context %}
+<div class="panel panel-default collapsible">
+  <div class="panel-heading">
+   <b>{{current_multiple_context.name}}</b> 
+  </div>
+
+  <div class="panel-body">
+    {% for form in current_multiple_context.forms %}
+       {% if form.current %}
+          <b>{{form.text}}</b>
+       {% else %}
+          <a href="{{form.url}}">{{form.text}}</a><br>
+       {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 
 {% for fixed_context in fixed_contexts %}
-<div class="panel panel-default">
+<div class="panel panel-default collapsible">
   <div class="panel-heading">
     <b>{{fixed_context.name}}</b>
   </div>
@@ -37,7 +67,7 @@
 {% endfor %}
 
 {% if actions %}
-<div class="panel panel-default">
+<div class="panel panel-default collapsible">
   <div class="panel-heading">
     <b>Actions Available</b>
   </div>
