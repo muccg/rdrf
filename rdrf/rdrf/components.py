@@ -77,6 +77,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "fixed_contexts": self._get_fixed_contexts(),
             "multiple_contexts": self._get_multiple_contexts(),
             "current_multiple_context": self._get_current_multiple_context(),
+            "consents_link" : self._get_consents_link(),
             "consent_locked" : self.consent_locked,
             }
 
@@ -86,6 +87,9 @@ class RDRFContextLauncherComponent(RDRFComponent):
                                               self.patient_model)
         else:
             return False
+
+    def _get_consents_link(self):
+        return reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk])
 
     def _get_existing_data_link(self):
         return self.patient_model.get_contexts_url(self.registry_model)
