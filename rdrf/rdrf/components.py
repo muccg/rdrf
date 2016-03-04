@@ -160,7 +160,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return fixed_contexts
 
     def _get_normal_form_links(self):
-        default_context = self.patient_model.get_default_context(self.registry_model)
+        default_context = self.patient_model.default_context(self.registry_model)
         if default_context is None:
             raise LauncherError("Expected a default context for patient")
         else:
