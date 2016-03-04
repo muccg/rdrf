@@ -56,6 +56,8 @@ from django.contrib.contenttypes.models import ContentType
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.form_progress import FormProgress
 from rdrf.locators import PatientLocator
+from rdrf.components import RDRFContextLauncherComponent
+
 
 
 class RDRFContextSwitchError(Exception):
@@ -234,6 +236,13 @@ class FormView(View):
 
         self.registry_form = self.get_registry_form(form_id)
 
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        self.registry,
+                                                        patient_model,
+                                                        self.registry_form.name,
+                                                        self.rdrf_context)
+
+
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         context["header"] = self.registry_form.header
@@ -249,6 +258,7 @@ class FormView(View):
         context["next_form_link"] = wizard.next_link
         context["context_id"] = context_id
         context["previous_form_link"] = wizard.previous_link
+        context["context_launcher"] = context_launcher.html
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
@@ -434,6 +444,12 @@ class FormView(View):
                                   context_id,
                                   form_obj)
 
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        registry,
+                                                        patient,
+                                                        self.registry_form.name,
+                                                        self.rdrf_context)
+
         context = {
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
@@ -461,6 +477,7 @@ class FormView(View):
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True,
+            "context_launcher" : context_launcher.html,
         }
 
         if request.user.is_parent:
