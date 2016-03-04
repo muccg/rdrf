@@ -1991,7 +1991,6 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         self.patient_id = request.GET.get("patient_id", None)
         self.context_form_group_id = request.GET.get("context_form_group_id", None)
         if self.context_form_group_id:
-            raise Exception("dd")
             self.context_form_group_model = ContextFormGroup.objects.get(pk=int(self.context_form_group_id))
         else:
             self.context_form_group_model = None
