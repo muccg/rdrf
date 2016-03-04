@@ -14,7 +14,7 @@
   </script>
 <div class="panel panel-default collapsible">
   <div class="panel-heading">
-    <b>Existing Data</b>
+    <h4>Existing Data</h4>
   </div>
 
   <div class="panel-body">
@@ -31,13 +31,13 @@
 {% if current_multiple_context %}
 <div class="panel panel-default collapsible">
   <div class="panel-heading">
-   <b>{{current_multiple_context.name}}</b> 
+   <h4>{{current_multiple_context.name}}</h4>
   </div>
 
   <div class="panel-body">
     {% for form in current_multiple_context.forms %}
        {% if form.current %}
-          <b>{{form.text}}</b>
+          <span class="glyphicon glyphicon-chevron-right"> </span>{{form.text}}
        {% else %}
           <a href="{{form.url}}">{{form.text}}</a><br>
        {% endif %}
@@ -50,13 +50,13 @@
 {% for fixed_context in fixed_contexts %}
 <div class="panel panel-default collapsible">
   <div class="panel-heading">
-    <b>{{fixed_context.name}}</b>
+    <h4>{{fixed_context.name}}</h4>
   </div>
   <div class="panel-body">
     {% for form in fixed_context.forms %}
     {% if form.current %}
-    <b>{{form.text}}</b>
-      {% else %}
+       <span class="glyphicon glyphicon-chevron-right"> </span>{{form.text}}
+    {% else %}
       <a href="{{form.url}}">{{form.text}}</a>
       {% endif %}
       <br>
@@ -69,7 +69,7 @@
 {% if actions %}
 <div class="panel panel-default collapsible">
   <div class="panel-heading">
-    <b>Actions Available</b>
+    <h4>Actions Available</h4>
   </div>
 
   <div class="panel-body">
