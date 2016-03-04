@@ -2,6 +2,7 @@ from django.template import loader, Context
 from rdrf.models import RegistryType, RDRFContext, ContextFormGroup
 from django.contrib.contenttypes.models import ContentType
 from rdrf.utils import get_form_links
+from rdrf.utils import consent_status_for_patient
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 import logging
@@ -65,6 +66,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # below only used when navigating to form in a context
         # associated with a multiple context form group
         self.current_rdrf_context_model = current_rdrf_context_model
+        self.consent_locked = self._is_consent_locked()
 
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
@@ -75,7 +77,15 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "fixed_contexts": self._get_fixed_contexts(),
             "multiple_contexts": self._get_multiple_contexts(),
             "current_multiple_context": self._get_current_multiple_context(),
+            "consent_locked" : self.consent_locked,
             }
+
+    def _is_consent_locked(self):
+        if self.registry_model.has_feature("consent_lock"):
+            return not consent_status_for_patient(self.registry_model.code,
+                                              self.patient_model)
+        else:
+            return False
 
     def _get_existing_data_link(self):
         return self.patient_model.get_contexts_url(self.registry_model)
