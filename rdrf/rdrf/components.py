@@ -153,7 +153,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         registry_type = self.registry_model.registry_type
         if registry_type == RegistryType.NORMAL:
             # just show all the forms
-            fg = _FormGroup("Forms")
+            fg = _FormGroup("Modules")
             for form_link in self._get_normal_form_links():
                 form = _Form(form_link.url, form_link.text, current=form_link.selected)
                 fg.forms.append(form)
