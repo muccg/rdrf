@@ -25,27 +25,13 @@
 {% endblock %}
 
 {% block formlinks %}
-    <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-        <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
-        <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'consent_form_view' registry patient_id context_id %}"><span class="glyphicon glyphicon-minus"></span>Consents</a></li>
-            <li><a href="{% url 'patient_edit' registry patient_id context_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
-            {% if my_contexts_url %}
-                <li><a href="{{my_contexts_url}}"><span class="glyphicon glyphicon-minus"></span>Other contexts for this patient</a></li>
-            {% endif %}
-            {% for form_link in form_links %}
-                <li><a href="{{form_link.url}}"><span class="glyphicon glyphicon-minus"></span>{{form_link.text}}</a></li>
-            {% endfor %}
-        </ul>
-    </li>
 {% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-md-12">
             <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{location}}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{ patient_name }}</i>
+	    {{ patient_link | safe}}
         </div>
     </div>
 
@@ -168,6 +154,9 @@
                 <a href="" class="btn btn-danger btn-block">
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
                 </a>
+		<p></p>
+		{{ context_launcher | safe }}
+
 
             </div>
         </div>

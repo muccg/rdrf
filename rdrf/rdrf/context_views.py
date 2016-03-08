@@ -17,6 +17,8 @@ from rdrf.models import RDRFContext
 from rdrf.models import ContextFormGroup
 from rdrf.utils import get_error_messages
 from rdrf.utils import get_form_links
+from rdrf.locators import PatientLocator
+from rdrf.components import RDRFContextLauncherComponent
 
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
@@ -47,6 +49,16 @@ class ContextFormGroupHelperMixin(object):
                 return context_form_group.name
             else:
                 return registry_model.metadata.get("context_name", "Context")
+
+    def get_context_launcher(self, user, registry_model, patient_model, context_model=None):
+        context_launcher = RDRFContextLauncherComponent(user,
+                                                        registry_model,
+                                                        patient_model,
+                                                        '',
+                                                        context_model)
+
+        return context_launcher.html
+
 
 
     def get_naming_info(self, form_group_id):
@@ -113,11 +125,14 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
         context = {"location": "Add %s" % context_name,
                    "registry": registry_model.code,
                    "patient_id": patient_id,
-                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
-                   "patient_name": patient_model.display_name,
                    "form_links": [],
+                   "context_name": context_name,
+                   'patient_link': PatientLocator(registry_model, patient_model).link,
+                   "patient_name": patient_model.display_name,
+                   "context_launcher": self.get_context_launcher(request.user,
+                                                                 registry_model,
+                                                                 patient_model),
                    "naming_info": naming_info,
-                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
                    "form": ContextForm(initial=default_values)}
 
         return render_to_response(
@@ -157,14 +172,18 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                                                            
             return HttpResponseRedirect(context_edit)
         else:
-            logger.debug("form invalid")
-            logger.debug("form errors: %s" % form.errors)
+            error_messages = get_error_messages([form])
             context = {"location": "Add %s" % context_name,
-                       "error": "Invalid",
+                       "errors": True,
+                       "error_messages": error_messages,
                        "registry": registry_model.code,
+                       'patient_link': PatientLocator(registry_model, patient_model).link,
                        "patient_id": patient_id,
+                       "form_links": [],
                        "naming_info": naming_info,
-                       "my_contexts_url": patient_model.get_contexts_url(registry_model),
+                       "context_launcher": self.get_context_launcher(request.user,
+                                                                 registry_model,
+                                                                 patient_model),
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
@@ -207,19 +226,17 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                                     rdrf_context_model.object_id,
                                     rdrf_context_model.registry,
                                     rdrf_context_model,
-                                    )
-
-
-        for link in form_links:
-            logger.debug("form link %s = %s" % (link.text, link.url))
-            
+                                    ) 
 
         context = {"location": "Edit %s" % context_name,
                    "context_id": context_id,
                    "patient_name": patient_name,
-                   "my_contexts_url": patient_model.get_contexts_url(registry_model),
-                   "context_name": context_name,
                    "form_links": form_links,
+                   'patient_link': PatientLocator(registry_model, patient_model).link,
+                   "context_launcher": self.get_context_launcher(request.user,
+                                                                 registry_model,
+                                                                 patient_model),
+                   "context_name": context_name,
                    "registry": registry_model.code,
                    "naming_info": naming_info,
                    "patient_id": patient_id,
@@ -251,21 +268,23 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             context_model.content_type = content_type
             context_model.content_object = patient_model
             context_model.save()
-
             form_links = get_form_links(request.user,
-                                        patient_model.pk,
-                                        registry_model,
+                                        context_model.object_id,
+                                        context_model.registry,
                                         context_model)
 
             context = {"location": "Edit %s" % context_name,
                        "patient_name": patient_model.display_name,
-                       "my_contexts_url": patient_model.get_contexts_url(registry_model),
+                       'patient_link': PatientLocator(registry_model, patient_model).link,
+                       "form_links": form_links,
+                       "context_launcher": self.get_context_launcher(request.user,
+                                                                 registry_model,
+                                                                 patient_model),
                        "message": "%s saved successfully" % context_name,
                        "error_messages": [],
                        "registry": registry_model.code,
                        "naming_info" : naming_info,
                        "patient_id": patient_id,
-                       "form_links": form_links,
                        "form": ContextForm(instance=context_model),
                        }
 
@@ -275,11 +294,16 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
 
             context = {"location": "Add %s" % context_name,
                        "errors": True,
+                       "error_messages": error_messages,
                        "registry": registry_model.code,
                        "patient_id": patient_id,
+                       "form_links": [],
+                       'patient_link': PatientLocator(registry_model, patient_model).link,
+                       "context_launcher": self.get_context_launcher(request.user,
+                                                                 registry_model,
+                                                                 patient_model),
                        "error_messages": error_messages,
                        "naming_info": naming_info,
-                       "form_links": [],
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
