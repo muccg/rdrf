@@ -35,8 +35,12 @@ class NavigationWizard(object):
         self.current_form_model = current_form_model
         self.form_type = form_type
         self.context_id = context_id
-        self.context_model = RDRFContext.objects.get(pk=self.context_id)
-        self.context_form_group = self.context_model.context_form_group
+        if self.context_id:
+            self.context_model = RDRFContext.objects.get(pk=self.context_id)
+            self.context_form_group = self.context_model.context_form_group
+        else:
+            self.context_model = None
+            self.context_form_group = None
         self.links = self._construct_links()
         self.current_index = self._get_current_index()
 
@@ -71,6 +75,7 @@ class NavigationWizard(object):
             raise NavigationError("Form %s not in list" % self.current_form_model)
 
     def _construct_links(self):
+        
         if self.context_form_group:
             container_model = self.context_form_group
         else:
@@ -81,14 +86,18 @@ class NavigationWizard(object):
                                                   form_model.id, self.patient_model.pk, self.context_id))
             return "clinical", form_model.pk, link
 
-        patient_page_link = ("patient_page", None, reverse("patient_page", args=[self.registry_model.code, self.context_id]))
+        patient_page_link = ("patient_page", None, reverse("patient_page", args=[self.registry_model.code]))
             
         demographic_link = ("demographic", None, reverse("patient_edit",
-                                                         args=[self.registry_model.code, self.patient_model.pk, self.context_id]))
+                                                         args=[self.registry_model.code, self.patient_model.pk]))
 
         consents_link = ("consents", None, reverse("consent_form_view",
-                                                   args=[self.registry_model.code, self.patient_model.pk, self.context_id]))
+                                                   args=[self.registry_model.code, self.patient_model.pk]))
 
+        if self.context_model is None:
+            return [demographic_link] + [consents_link]
+        
+        
         clinical_form_links = [form_link(form) for form in container_model.forms
                                if self.user.can_view(form) and not form.is_questionnaire]
 
