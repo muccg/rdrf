@@ -2688,14 +2688,8 @@ class CustomConsentFormView(View):
         except ParentGuardian.DoesNotExist:
             parent = None
 
-        try:
-            rdrf_context_manager = RDRFContextManager(registry_model)
-            context_model = rdrf_context_manager.get_context(context_id, patient_model)
-        except RDRFContextError, ex:
-            logger.error("context error on custom consent view patient id %s context id %s: %s" % (patient_id,
-                                                                                                   context_id,
-                                                                                                   ex))
-            return HttpResponseRedirect("/")
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
+
 
         context = {
             "location": "Consents",
@@ -2704,7 +2698,7 @@ class CustomConsentFormView(View):
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
+            "context_launcher": context_launcher.html,
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
@@ -2782,10 +2776,9 @@ class CustomConsentFormView(View):
                 (patient_section_consent_file,)
             )]
 
-    def _get_success_url(self, registry_model, patient_model, context_model):
+    def _get_success_url(self, registry_model, patient_model):
         return reverse("consent_form_view", args=[registry_model.code,
-                                                  patient_model.pk,
-                                                  context_model.pk])
+                                                  patient_model.pk])
 
     def post(self, request, registry_code, patient_id, context_id=None):
         logger.debug("******************** post of consents *********************")
@@ -2796,13 +2789,7 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
-
-        rdrf_context_manager = RDRFContextManager(registry_model)
-        try:
-            context_model = rdrf_context_manager.get_context(context_id, patient_model)
-        except RDRFContextError, err:
-            logger.error("context wrong on consent post %s: %s" % (patient_model, err))
-            return HttpResponseRedirect("/")
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
 
         wizard = NavigationWizard(request.user,
                                   registry_model,
@@ -2861,9 +2848,9 @@ class CustomConsentFormView(View):
             "patient_id": patient_model.id,
             "context_id": context_id,
             "registry_code": registry_code,
-            "form_links": get_form_links(request.user, patient_model.id, registry_model, context_model),
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
+            "context_launcher": context_launcher.html,
             "forms": form_sections,
             "error_messages": [],
             "parent": parent,
@@ -2881,7 +2868,7 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             logger.debug("******************** end of consent save *********************")
             context["message"] = "Consent details saved successfully"
-            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model, context_model))
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
 
         else:
             logger.debug("******************** forms invalid :( *********************")
