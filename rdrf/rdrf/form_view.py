@@ -2522,8 +2522,7 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         return "<a href='%s'>%s</a>" % \
                (reverse("patient_edit",
                         kwargs={"registry_code": registry_code,
-                                "patient_id": patient_model.id,
-                                "context_id": context_model.pk}),
+                                "patient_id": patient_model.id}),
                 patient_model.display_name)
 
     def _get_grid_field_diagnosis_progress(self, context_model):
