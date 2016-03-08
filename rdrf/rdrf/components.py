@@ -92,6 +92,9 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk])
 
     def _get_existing_data_link(self):
+        if self.registry_model.registry_type == RegistryType.NORMAL:
+            # No need
+            return None
         return self.patient_model.get_contexts_url(self.registry_model)
 
     def _get_actions(self):

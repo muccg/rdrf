@@ -20,7 +20,9 @@
 
   <div class="panel-body">
     <a href="{{consents_link}}">Consents</a><br>
+    {% if patient_listing_link %}
     <a href="{{patient_listing_link}}">All Clinical Data</a><br>
+    {% endif %}
     {% if multiple_contexts %}
     {% for multiple_context in multiple_contexts %}
     <a href="{{multiple_context.url}}">{{multiple_context.text}}</a><br>

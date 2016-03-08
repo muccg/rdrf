@@ -861,6 +861,7 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "actions": actions,
+                "context_launcher": context_launcher.html,
                 "errors": True,
                 "error_messages": error_messages,
             }
