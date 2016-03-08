@@ -690,7 +690,7 @@ class AddPatientView(PatientFormMixin, CreateView):
 
 class PatientEditView(View):
 
-    def get(self, request, registry_code, patient_id, context_id=None):
+    def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('login')
@@ -707,9 +707,7 @@ class PatientEditView(View):
             "context_launcher" : context_launcher.html,
             "forms": form_sections,
             "patient": patient,
-            "context_id": context_id,
             "patient_id": patient.id,
-            "index_context": self._get_index_context(registry_model, patient),
             "registry_code": registry_code,
             "form_links": [],
             "consent": consent_status_for_patient(registry_code, patient)
@@ -719,7 +717,7 @@ class PatientEditView(View):
                                   registry_model,
                                   patient,
                                   NavigationFormType.DEMOGRAPHICS,
-                                  context_id,
+                                  None,
                                   None)
 
         context["next_form_link"] = wizard.next_link
@@ -733,7 +731,7 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, patient_id, context_id=None):
+    def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_relatives_forms = None
@@ -841,9 +839,7 @@ class PatientEditView(View):
             context = {
                 "forms": form_sections,
                 "patient": patient,
-                "context_id": context_id,
                 "context_launcher": context_launcher.html,
-                "index_context": self._get_index_context(registry_model, patient),
                 "message": "Patient's details saved successfully",
                 "error_messages": [],
             }
@@ -866,7 +862,6 @@ class PatientEditView(View):
                 "patient": patient,
                 "actions": actions,
                 "errors": True,
-                "index_context": self._get_index_context(registry_model, patient),
                 "error_messages": error_messages,
             }
 
@@ -874,7 +869,7 @@ class PatientEditView(View):
                                   registry_model,
                                   patient,
                                   NavigationFormType.DEMOGRAPHICS,
-                                  context_id,
+                                  None,
                                   None)
 
         context["next_form_link"] = wizard.next_link
@@ -888,18 +883,10 @@ class PatientEditView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        context["context_id"] = context_id
-
         return render_to_response(
             'rdrf_cdes/patient_edit.html',
             context,
             context_instance=RequestContext(request))
-
-    def _get_index_context(self, registry_model, patient_model):
-        if registry_model.has_feature("family_linkage") and not patient_model.is_index:
-            return patient_model.my_index.default_context(registry_model)
-
-
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
