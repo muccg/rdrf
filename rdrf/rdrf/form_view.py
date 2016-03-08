@@ -2689,6 +2689,8 @@ class CustomConsentFormView(View):
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
 
+        
+
 
         context = {
             "location": "Consents",
@@ -2697,6 +2699,7 @@ class CustomConsentFormView(View):
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
+            'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_launcher": context_launcher.html,
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
@@ -2845,6 +2848,7 @@ class CustomConsentFormView(View):
             "location": "Consents",
             "patient": patient_model,
             "patient_id": patient_model.id,
+            'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_id": context_id,
             "registry_code": registry_code,
             "next_form_link": wizard.next_link,
