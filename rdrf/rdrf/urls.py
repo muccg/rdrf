@@ -113,7 +113,7 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/patient/add/?$",
                            patient_view.AddPatientView.as_view(), name='patient_add'),
 
-                       url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+                       url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/?$",
                            patient_view.PatientEditView.as_view(), name='patient_edit'),
 
                        url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
@@ -132,7 +132,7 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/consent/print/?$",
                            consent_view.PrintConsentList.as_view(), name='print_consent_list'),
 
-                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/(?P<context_id>\d+)?$",
+                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
                            form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 #-------------------------------------------
 
