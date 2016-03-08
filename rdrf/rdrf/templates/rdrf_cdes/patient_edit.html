@@ -135,25 +135,6 @@
 {% endblock %}
 
 {% block formlinks %}
-    <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-        <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
-        <ul class="dropdown-menu" role="menu">
-             <li><a href="{% url 'consent_form_view' registry_code patient.id context_id %}"><span class="glyphicon glyphicon-minus"></span> Consents</a></li>
-             <li><a href="{% url 'patient_edit' registry_code patient.id context_id %}"><span class="glyphicon glyphicon-minus"></span> {% trans 'Demographics' %}</a></li>
-            {% if patient|has_feature:"consent_lock" %}
-                {% if consent %}
-                    {% for form in form_links %}
-                        <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
-                    {% endfor %}
-                {% endif %}
-            {% else %}
-                {% for form in form_links %}
-                    <li><a href="{{form.url}}"><span class="glyphicon glyphicon-minus"></span> {{form.text}}</a></li>
-                {% endfor %}
-            {% endif %}
-        </ul>
-    </li>
 {% endblock %}
 
 
@@ -201,7 +182,7 @@
                         </div>
                         <div class="panel-body">
                             {% if patient.my_index %}
-                                This patient is a relative of index <a href="{% url 'patient_edit' registry_code patient.my_index.id index_context.pk %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                                This patient is a relative of index <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
                             {% else %}
                                 {% if patient.is_index %}
                                     This patient is an index
