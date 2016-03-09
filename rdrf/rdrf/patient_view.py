@@ -222,8 +222,7 @@ class PatientFormMixin(PatientMixin):
         """
         registry_code = self.registry_model.code
         patient_id = self.object.pk
-        initial_context = self._get_initial_context(registry_code, self.object)
-        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, initial_context.pk])
+        patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
         return patient_edit_url
 
     def _get_initial_context(self, registry_code, patient_model):
