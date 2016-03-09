@@ -16,6 +16,7 @@ In the *how to install* section we assume that you are going to install RDRF on 
 .. toctree::
     :maxdepth: 2
  
+    docker
     prerequisites
     apache
     database
