@@ -1,7 +1,7 @@
 .. highlight:: console
 
-Installation of the RDRF web application under Apache
-=====================================================
+RPM Installation of the RDRF web application under Apache
+=========================================================
 
 The IUS repository provides a ``httpd24u`` package that unfortunately conflicts with ``httpd``.
 Therefore if you try to install ``rdrf`` and you don't have one of the ``httpd`` packages already installed you will get a conflict error.

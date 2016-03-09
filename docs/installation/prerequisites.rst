@@ -2,8 +2,8 @@
 
 .. _prerequisites:
 
-Prerequisites
-=============
+RPM Prerequisites
+=================
 
 .. _extra-repos:
 
