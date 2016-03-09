@@ -107,7 +107,7 @@ function _django_dev_fixtures {
 
 function _rdrf_import_grdr {
     echo "importing grdr registry"
-    django-admin.py import_registry --file=grdr.yaml
+    django-admin.py import_registry --file=/app/grdr.yaml
 }
 
 
