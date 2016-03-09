@@ -105,6 +105,12 @@ function _django_dev_fixtures {
     django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
 }
 
+function _rdrf_import_grdr {
+    echo "importing grdr registry"
+    django-admin.py import_registry --file=grdr.yaml
+}
+
+
 trap exit SIGHUP SIGINT SIGTERM
 defaults
 env | grep -iv PASS | sort
@@ -174,6 +180,23 @@ if [ "$1" = 'runserver' ]; then
     echo "running runserver ..."
     exec django-admin.py ${RUNSERVER_OPTS}
 fi
+
+# grdr entrypoint
+if [ "$1" = 'grdr' ]; then
+    echo "[Run] Starting runserver with GRDR data elements"
+
+    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
+    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
+
+    _django_collectstatic
+    _django_migrate
+    _django_dev_fixtures
+    _rdrf_import_grdr
+
+    echo "running runserver ..."
+    exec django-admin.py ${RUNSERVER_OPTS}
+fi
+
 
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
