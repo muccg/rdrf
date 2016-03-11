@@ -70,8 +70,7 @@ DATABASES = {
     #     'PASSWORD': "legacyrdrf",
     #     'HOST': "legacydb",
     #     'PORT': "5432",
-    # }
-    "reporting": {
+    'reporting': {
         'ENGINE': env.get_db_engine("dbtype", "pgsql"),
         'NAME': env.get("reportingdbname", "rdrf"),
         'USER': env.get("reportingdbuser", "rdrf"),
