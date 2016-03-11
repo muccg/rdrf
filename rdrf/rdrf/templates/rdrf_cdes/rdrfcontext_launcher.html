@@ -44,7 +44,7 @@
   <div class="panel-body">
     {% for form in current_multiple_context.forms %}
        {% if form.current %}
-          <span class="glyphicon glyphicon-chevron-right"> </span>{{form.text}}
+          <i>{{form.text}}</i>
        {% else %}
           <a href="{{form.url}}">{{form.text}}</a><br>
        {% endif %}
@@ -62,7 +62,7 @@
   <div class="panel-body">
     {% for form in fixed_context.forms %}
     {% if form.current %}
-       <span class="glyphicon glyphicon-chevron-right"> </span>{{form.text}}
+        <i>{{form.text}}</i>
     {% else %}
       <a href="{{form.url}}">{{form.text}}</a>
       {% endif %}
