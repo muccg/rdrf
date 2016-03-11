@@ -15,18 +15,21 @@
   </script>
 
 {% if not consent_locked %}
-<div class="panel panel-default collapsible">
+<div width="100%" class="panel panel-default collapsible">
   <div class="panel-heading">
   </div>
 
   <div class="panel-body">
     <a href="{{consents_link}}">Consents</a><br>
-    {% if patient_listing_link %}
-    <a href="{{patient_listing_link}}">All Clinical Data</a><br>
-    {% endif %}
     {% if multiple_contexts %}
     {% for multiple_context in multiple_contexts %}
-    <a href="{{multiple_context.url}}">{{multiple_context.text}}</a><br>
+    <a href="{{multiple_context.url}}">{{multiple_context.text}}</a>
+    <a class="btn btn-primary btn-xs pull-right"
+       data-toggle="tooltip"
+       data-placement="right"
+       title="{{multiple_context.add_link_text}}"
+       onclick="location.href='{{multiple_context.add_link_url}}';">
+       <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a><br>
     {% endfor %}
     {% endif %}
   </div>
@@ -69,20 +72,6 @@
 </div>
 {% endfor %}
 
-{% if actions %}
-<div class="panel panel-default collapsible">
-  <div class="panel-heading">
-    <h4>Actions Available</h4>
-  </div>
-
-  <div class="panel-body">
-    {% for action in actions %}
-    <a href="{{action.link}}">{{action.title}}</a><br>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
 {% else %}
 <div class="panel panel-default collapsible">
   <div class="panel-heading">
@@ -92,7 +81,6 @@
     <a href="{{consents_link}}">Consents</a><br>
   </div>
 </div>
-
 {% endif %}
 <!-- end demographics form launcher -->
 

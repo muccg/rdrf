@@ -13,10 +13,13 @@ class LauncherError(Exception):
     pass
 
 class _Form(object):
-    def __init__(self, url, text, current=False):
+    def __init__(self, url, text, current=False, add_link_url=None, add_link_text=None):
         self.url = url
         self.text = text
         self.current = current
+        self.add_link_url = add_link_url
+        self.add_link_text = add_link_text
+        
 
     def __unicode__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
@@ -113,12 +116,18 @@ class RDRFContextLauncherComponent(RDRFComponent):
         links = []
         for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
                                                                   context_type="M").order_by("name"):
-            name = _("All ") + context_form_group.name
+            name = _("All " + context_form_group.name + "s") 
             filter_url = contexts_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
                                                                                                               self.patient_model.pk,
                                                                                                               context_form_group.pk)
-            
-            links.append(_Form(filter_url, name))
+            link_pair  = context_form_group.get_add_action(self.patient_model)
+            if link_pair:
+                add_link_url, add_link_text = link_pair
+                links.append(_Form(filter_url,
+                                   name,
+                                   add_link_url=add_link_url,
+                                   add_link_text=add_link_text))
+                
                           
         return links
 
