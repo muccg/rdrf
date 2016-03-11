@@ -1847,6 +1847,18 @@ class ContextFormGroup(models.Model):
                                               object_id=patient_model.id,
                                               context_form_group=self).count() == 0
 
+        
+    def get_add_action(self, patient_model):
+        if self.patient_can_add(patient_model):
+            action_title = "Add %s" % self.name
+            action_link = reverse("context_add", args=(self.registry.code,
+                                                       str(patient_model.pk),
+                                                       str(self.pk)))
+            return action_link, action_title
+        else:
+            return None
+
+
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
     registry_form = models.ForeignKey(RegistryForm)       
