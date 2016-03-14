@@ -35,23 +35,6 @@
   </div>
 </div>
 
-{% if current_multiple_context %}
-<div class="panel panel-default collapsible">
-  <div class="panel-heading">
-   <h4>{{current_multiple_context.name}}</h4>
-  </div>
-
-  <div class="panel-body">
-    {% for form in current_multiple_context.forms %}
-       {% if form.current %}
-          <i>{{form.text}}</i>
-       {% else %}
-          <a href="{{form.url}}">{{form.text}}</a><br>
-       {% endif %}
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
 
 
 {% for fixed_context in fixed_contexts %}
@@ -71,6 +54,24 @@
   </div>
 </div>
 {% endfor %}
+
+{% if current_multiple_context %}
+<div class="panel panel-default collapsible">
+  <div class="panel-heading">
+   <h4>{{current_multiple_context.name}}</h4>
+  </div>
+
+  <div class="panel-body">
+    {% for form in current_multiple_context.forms %}
+       {% if form.current %}
+          <i>{{form.text}}</i>
+       {% else %}
+          <a href="{{form.url}}">{{form.text}}</a><br>
+       {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 {% else %}
 <div class="panel panel-default collapsible">
