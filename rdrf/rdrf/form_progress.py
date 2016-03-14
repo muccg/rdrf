@@ -57,6 +57,17 @@ class FormProgress(object):
         self.current_patient = None
         self.context_model = None
 
+
+    def _get_forms(self):
+        if self.context_model is None:
+            return self.registry_model.forms
+        elif self.context_model.context_form_group is None:
+            return self.registry_model.forms
+        else:
+            return self.context_form_group.forms
+        
+        
+
     def _set_current(self, patient_model):
         if self.current_patient is None:
             self.current_patient = patient_model
