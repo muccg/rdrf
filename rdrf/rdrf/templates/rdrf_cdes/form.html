@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-2-cols.html" %}
 {% load get_display_name %}
 {% load get_section_id %}
 {% load is_formset %}
@@ -206,42 +206,12 @@
 {% block formlinks %}
 {% endblock %}
 
-    {% block sidebar %}
-    <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a href="#">
-                        Start Bootstrap
-                    </a>
-                </li>
-                <li>
-                    <a href="#">Dashboard</a>
-                </li>
-                <li>
-                    <a href="#">Shortcuts</a>
-                </li>
-                <li>
-                    <a href="#">Overview</a>
-                </li>
-                <li>
-                    <a href="#">Events</a>
-                </li>
-                <li>
-                    <a href="#">About</a>
-                </li>
-                <li>
-                    <a href="#">Services</a>
-                </li>
-                <li>
-                    <a href="#">Contact</a>
-                </li>
-            </ul>
-        </div>
-        <!-- /#sidebar-wrapper -->
-
-    
-    {% endblock %}
+{% block sidebar %}
+<!-- Sidebar -->
+	{{ context_launcher | safe }}
+<!-- /#sidebar-wrapper -->
+{% endblock %}
+	
 {% block content %}
     {{ block.super }}
     <br>
@@ -419,8 +389,6 @@
                 <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
                     <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
                 </a>
-
-
 
             </div>
         </div>
