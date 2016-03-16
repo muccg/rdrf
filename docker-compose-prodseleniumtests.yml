@@ -10,13 +10,14 @@ seleniumtesthost:
   command: selenium
   environment:
     - DBUSER=rdrfapp
-    - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
     - WAIT_FOR_MONGO=1
+    - WAIT_FOR_HOST_PORT=8443
+    - DEPLOYMENT=prod
   volumes_from:
     - dataselenium
   external_links:
-    - rdrf_runservertest_1:web
-    - rdrf_dbtest_1:db
+    - rdrf_uwsgiprod_1:web
+    - rdrf_dbprod_1:db
     - rdrf_seleniumhub_1:hub
-    - rdrf_mongotest_1:mongo
+    - rdrf_mongoprod_1:mongo

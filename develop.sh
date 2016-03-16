@@ -1,108 +1,19 @@
 #!/bin/sh
 #
-TOPDIR=$(cd `dirname $0`; pwd)
+# Script for dev, test and ci
+#
 
+: ${PROJECT_NAME:='rdrf'}
+. ./lib.sh
 
 # break on error
 set -e
 
 ACTION="$1"
 
-DATE=`date +%Y.%m.%d`
-: ${PROJECT_NAME:='rdrf'}
-VIRTUALENV="${TOPDIR}/virt_${PROJECT_NAME}"
-AWS_STAGING_INSTANCE='ccg_syd_nginx_staging'
-
-: ${DOCKER_BUILD_OPTIONS:="--pull=true"}
-: ${DOCKER_COMPOSE_BUILD_OPTIONS:="--pull"}
-
-
-usage() {
-    echo 'Usage ./develop.sh (pythonlint|jslint|start|dockerbuild|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging|registry_specific_tests)'
-    exit 1
-}
-
-
-ci_docker_login() {
-    if [ -n "$bamboo_DOCKER_USERNAME" ] && [ -n "$bamboo_DOCKER_EMAIL" ] && [ -n "$bamboo_DOCKER_PASSWORD" ]; then
-        docker login  -e "${bamboo_DOCKER_EMAIL}" -u ${bamboo_DOCKER_USERNAME} --password="${bamboo_DOCKER_PASSWORD}"
-    else
-        echo "Docker vars not set, not logging in to docker registry"
-    fi
-}
-
-
-# ssh setup, make sure our ccg commands can run in an automated environment
-ci_ssh_agent() {
-    if [ -z ${CI_SSH_KEY+x} ]; then
-        ssh-agent > /tmp/agent.env.sh
-        . /tmp/agent.env.sh
-        ssh-add ${CI_SSH_KEY}
-    fi
-}
-
-
-# docker build and push in CI
-dockerbuild() {
-    make_virtualenv
-
-    image="muccg/${PROJECT_NAME}"
-    set +e 
-    gittag=`git describe --abbrev=0 --tags 2> /dev/null`
-    set -e 
-    gitbranch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
-
-    # only use tags when on master (release) branch
-    if [ $gitbranch != "master" ]; then
-        echo "Ignoring tags, not on master branch"
-        gittag=$gitbranch
-    fi
-
-    # if no git tag, then use branch name
-    if [ -z ${gittag+x} ]; then
-        echo "No git tag set, using branch name"
-        gittag=$gitbranch
-    fi
-
-    # create .version file for invalidating cache in Dockerfile
-    # we hit remote as the Dockerfile clones remote
-    git ls-remote https://github.com/muccg/rdrf.git ${gittag} > .version
-
-    echo "############################################################# ${PROJECT_NAME} ${gittag}"
-
-    # attempt to warm up docker cache
-    docker pull ${image}:${gittag} || true
-
-    for tag in "${image}:${gittag}" "${image}:${gittag}-${DATE}"; do
-        echo "############################################################# ${PROJECT_NAME} ${tag}"
-        set -x
-        docker build ${DOCKER_BUILD_OPTIONS} --build-arg GIT_TAG=${gittag} -t ${tag} -f Dockerfile-release .
-        docker push ${tag}
-        set +x
-    done
-
-    rm -f .version || true
-}
-
-
-rpmbuild() {
-    mkdir -p data/rpmbuild
-    chmod o+rwx data/rpmbuild
-
-    make_virtualenv
-
-    set -x
-    docker-compose ${DOCKER_COMPOSE_OPTIONS} --project-name ${PROJECT_NAME} -f docker-compose-rpmbuild.yml up
-    set +x
-}
-
-
-rpm_publish() {
-    time ccg publish_testing_rpm:data/rpmbuild/RPMS/x86_64/${PROJECT_NAME}*.rpm,release=6
-}
-
-
-ci_staging() {
+# build a docker image and start stack on staging using docker-compose
+ci_docker_staging() {
+    info 'ci docker staging'
     ssh ubuntu@staging.ccgapps.com.au << EOF
       mkdir -p ${PROJECT_NAME}/data
       chmod o+w ${PROJECT_NAME}/data
@@ -121,33 +32,14 @@ EOF
 }
 
 
-_selenium_stack_up() {
-    mkdir -p data/selenium
-    chmod o+rwx data/selenium
-    find ./definitions -name "*.yaml" -exec cp "{}" data/selenium \;
-
-    make_virtualenv
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml up -d
-    set +x
-}
-
-_selenium_stack_down() {
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumstack.yml stop
-    set +x
-}
-
-
-lettuce() {
+docker_staging_lettuce() {
     _selenium_stack_up
 
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml run --rm lettucehost
+    ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml rm --force || exit 0 )
+    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml build)
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml up
     rval=$?
     set -e
     set +x
@@ -158,135 +50,122 @@ lettuce() {
 }
 
 
-selenium() {
-    _selenium_stack_up
-
-    set -x
-    set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml run --rm seleniumtesthost
-    rval=$?
-    set -e
-    set +x
-
-    _selenium_stack_down
-
-    exit $rval
+# lint using flake8
+python_lint() {
+    info "python lint"
+    pip install 'flake8>=2.0,<2.1'
+    flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
+    success "python lint"
 }
 
 
-registry_specific_tests() {
-    for yaml_file in definitions/registries/*.yaml; do
-        echo "running registry specific tests for $yaml_file ( if any)"
-    done
-}
-
-
-start() {
-    mkdir -p data/dev
-    chmod o+rwx data/dev
-
-    make_virtualenv
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} up
-    set +x
-}
-
-
-unit_tests() {
-    mkdir -p data/tests
-    chmod o+rwx data/tests
-
-    make_virtualenv
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml build ${DOCKER_COMPOSE_BUILD_OPTIONS}
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up -d
-
-    set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost
-    rval=$?
-    set -e
-
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
-    set +x
-
-    return $rval
-}
-
-
-make_virtualenv() {
-    which virtualenv > /dev/null
-    if [ ! -e ${VIRTUALENV} ]; then
-        virtualenv ${VIRTUALENV}
-    fi
-    . ${VIRTUALENV}/bin/activate
-
-    pip install functools32 --upgrade || true
-    pip install 'docker-compose<1.6' --upgrade || true
-    docker-compose --version
-}
-
-
-pythonlint() {
-    make_virtualenv
-    ${VIRTUALENV}/bin/pip install 'flake8>=2.0,<2.1'
-    ${VIRTUALENV}/bin/flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
-}
-
-
-jslint() {
-    make_virtualenv
-    ${VIRTUALENV}/bin/pip install 'closure-linter==2.3.13'
-
+# lint js, assumes closure compiler
+js_lint() {
+    info "js lint"
+    pip install 'closure-linter==2.3.13'
     JSFILES=`ls rdrf/rdrf/static/js/*.js | grep -v "\.min\."`
     EXCLUDES='-x rdrf/rdrf/static/js/gallery.js,rdrf/rdrf/static/js/ie_select.js,rdrf/rdrf/static/js/jquery.bootgrid.js,rdrf/rdrf/static/js/nv.d3.js'
     for JS in $JSFILES
     do
-        ${VIRTUALENV}/bin/gjslint ${EXCLUDES} --disable 0131,0110 --max_line_length 100 --nojsdoc $JS
+        gjslint ${EXCLUDES} --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
+    success "js lint"
 }
 
 
-case ${ACTION} in
+echo ''
+info "$0 $@"
+make_virtualenv
+docker_options
+
+case $ACTION in
 pythonlint)
-    pythonlint
+    python_lint
     ;;
 jslint)
-    jslint
+    js_lint
     ;;
-dockerbuild)
-    ci_docker_login
-    dockerbuild
+dev)
+    start_dev
     ;;
-rpmbuild)
-    rpmbuild
+dev_build)
+    create_base_image
+    create_build_image
+    create_dev_image
     ;;
-rpm_publish)
-    ci_ssh_agent
-    rpm_publish
+dev_full)
+    start_dev_full
     ;;
-ci_staging)
-    ci_ssh_agent
-    ci_staging
+releasetarball)
+    create_release_tarball
     ;;
-start)
-    start
+start_prod)
+    start_prod
     ;;
-unit_tests)
-    unit_tests
+prod_build)
+    create_base_image
+    create_build_image
+    create_release_tarball
+    create_prod_image
     ;;
-selenium)
-    selenium
+baseimage)
+    create_base_image
+    ;;
+buildimage)
+    create_build_image
+    ;;
+prodimage)
+    create_prod_image
+    ;;
+devimage)
+    create_dev_image
+    ;;
+ci_dockerbuild)
+    _ci_ssh_agent
+    _ci_docker_login
+    create_base_image
+    create_build_image
+    create_release_tarball
+    create_prod_image
+    ;;
+runtests)
+    create_base_image
+    create_build_image
+    create_dev_image
+    run_unit_tests
+    ;;
+start_test_stack)
+    start_test_stack
+    ;;
+start_seleniumhub)
+    start_seleniumhub
+    ;;
+start_seleniumtests)
+    start_seleniumtests
+    ;;
+start_prodseleniumtests)
+    start_prodseleniumtests
+    ;;
+ci_docker_staging)
+    _ci_ssh_agent
+    ci_docker_staging
+    ;;
+docker_staging_lettuce)
+    docker_staging_lettuce
     ;;
 lettuce)
+    create_base_image
+    create_build_image
+    create_dev_image
     lettuce
     ;;
-registry_specific_tests)
-    registry_specific_tests
+selenium)
+    create_base_image
+    create_build_image
+    create_dev_image
+    selenium
     ;;
 *)
     usage
+    ;;
 esac

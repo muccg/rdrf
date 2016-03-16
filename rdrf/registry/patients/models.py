@@ -14,7 +14,6 @@ from rdrf.models import Registry
 from registry.utils import stripspaces
 from django.conf import settings
 from rdrf.utils import mongo_db_name
-from rdrf.utils import requires_feature
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Section
 from rdrf.models import ConsentQuestion
@@ -332,6 +331,7 @@ class Patient(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -365,6 +365,7 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper._set_client()
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -615,6 +616,8 @@ class Patient(models.Model):
 
     def get_form_timestamp(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
+        dynamic_store._set_client()
+        
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
             if "timestamp" in timestamp:
@@ -869,30 +872,6 @@ def _get_registry_for_mongo(regs):
         json_final.append(reg['fields'])
 
     return json_final
-
-
-@receiver(post_save, sender=Patient)
-@requires_feature('email_notification')
-def send_notification(sender, instance, created, **kwargs):
-    if created:
-        try:
-            from django.core.mail import send_mail
-            from django.conf import settings
-            logger.debug("about to send welcome email to %s patient %s" %
-                         (instance.email, instance))
-            name = "%s %s" % (instance.given_names, instance.family_name)
-            send_mail(
-                'Welcome to FKRP!',
-                'Dear %s\nYou have been added to the FKRP registry.\nPlease note this is a test of the email subsystem only!' %
-                name,
-                settings.DEFAULT_FROM_EMAIL,
-                [
-                    instance.email],
-                fail_silently=False)
-            logger.debug("sent email ok to %s" % instance.email)
-        except Exception as ex:
-            logger.error("Error sending welddcome email  to %s with email %s: %s" %
-                         (instance, instance.email, ex))
 
 
 @receiver(post_save, sender=Patient)

@@ -53,6 +53,8 @@ class ReportingTableGenerator(object):
                                                                       host,
                                                                       port,
                                                                       database)
+
+        logger.debug("connection_string = %s" % connection_string)
         return create_engine(connection_string)
 
     def create_table(self):

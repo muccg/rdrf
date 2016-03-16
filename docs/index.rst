@@ -50,12 +50,6 @@ Screencasts are available to talk you through the creation of a Registry:
 If you prefer to read:
   - Here's some text explaining how to create a :ref:`registry in 10 minutes <howtocreatearegistry>`
 
-
-Third-party Libraries
-=====================
-
-  - HGVS - Python package to parse, format, and manipulate biological sequence variants according to recommendations of the Human Genome Variation Society. `Project URL <https://bitbucket.org/invitae/hgvs>`_ 
-
 Links
 =====
 

@@ -37,6 +37,7 @@ def patient_cdes(request, patient_id):
     try:
         patient = owner_model.objects.get(pk=patient_id)
         dyn_patient = DynamicDataWrapper(patient)
+        dyn_patient._set_client()
 
     except owner_model.DoesNotExist:
         raise Http404("Patient does not exist")

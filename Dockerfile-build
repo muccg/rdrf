@@ -1,0 +1,33 @@
+#
+FROM muccg/rdrf-base
+MAINTAINER https://github.com/muccg/rdrf
+
+ARG ARG_GIT_TAG=next_release
+
+ENV GIT_TAG $ARG_GIT_TAG
+ENV PIP_OPTS="--no-cache-dir"
+ENV PIP_INDEX_URL="https://pypi.python.org/simple"
+ENV PIP_TRUSTED_HOST="127.0.0.1"
+
+RUN env | sort
+
+# Project specific deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  git \
+  libpcre3-dev \
+  libpq-dev \
+  libssl-dev \
+  libyaml-dev \
+  zlib1g-dev \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+VOLUME ["/data"]
+
+ENV HOME /data
+WORKDIR /data
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["tarball"]

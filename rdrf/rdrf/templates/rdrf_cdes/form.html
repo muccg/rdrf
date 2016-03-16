@@ -16,7 +16,6 @@
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/hgvs.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
@@ -46,7 +45,6 @@
 
     <script type="text/javascript">
         window.IMAGES_URL = "{% static 'images/' %}";
-        window.HGVS_URL = "{% url 'hgvs_validator' %}";
     </script>
 
 
@@ -490,7 +488,7 @@
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
                 </a>
                 {% if show_print_button %}
-                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
                 </a>
                 {% endif %}

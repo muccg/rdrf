@@ -11,6 +11,12 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
+dataselenium:
+  image: muccg/debian8-base:latest
+  volumes:
+    - .:/app
+    - ./data/selenium:/data
+
 jasper:
   image: muccg/jasper-reports-server:6.1.1
   command: development
@@ -74,22 +80,30 @@ nginx:
     - ./data/nginx:/data
 
 runserver:
-  build: .
-  command: runserver
+  image: muccg/rdrf-dev
   environment:
     - DBUSER=rdrfapp
+    - REPORTING_DBUSER=reporting
+    - REPORTING_DBPASS=reporting
+    - REPORTING_DBPORT=5432
+    - REPORTING_DBNAME=reporting
+    - REPORTING_DBSERVER=reporting
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - WAIT_FOR_REPORTING=1
+    - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+    - DJANGO_MAILGUN_SERVER_NAME=${DJANGO_MAILGUN_SERVER_NAME}
   ports:
     - "8000:8000"
 
 uwsgi:
-  image: rdrf_runserver
+  image: muccg/rdrf-dev
   command: uwsgi
   environment:
     - DBUSER=rdrfapp
+    - REPORTING_DBUSER=reporting
+    - REPORTING_DBPASS=reporting
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
