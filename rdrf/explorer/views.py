@@ -392,17 +392,26 @@ class MultisectionUnRoller(object):
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
             
-            Assumption is that each list is same length
+            Lists _should_ be same length EXCEPT in case
+            where a cde has been added to the registry definition AFTER data has been saved to mongo:
+            in this case the return values list for that CDE will be empty ( see FH-15 )
+            In order to avoid index errors , in this case the list is padded with Nones up to the 
+            size of the list 
+            padded with None if not
             """
-            assert len(set(map,len,dl.values())) == 1 # all lists should be of same length
-
             l = []
             
-            indexes = range(max(map(len, dl.values())))
+            max_length = max(map(len, dl.values()))
+            indexes = range(max_length)
             for i in indexes:
                 d = {}
                 for k in dl:
-                    d[k] = dl[k][i]
+                    this_list = dl[k]
+                    this_list_length = len(this_list)
+                    if this_list_length < max_length:
+                        num_nones = max_length - this_list_length
+                        this_list.extend([None] * num_nones)
+                    d[k] = this_list[i]
                 l.append(d)
             return l
 
