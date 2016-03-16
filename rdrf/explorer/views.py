@@ -391,8 +391,13 @@ class MultisectionUnRoller(object):
             :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
+            
+            Assumption is that each list is same length
             """
+            assert len(set(map,len,dl.values())) == 1 # all lists should be of same length
+
             l = []
+            
             indexes = range(max(map(len, dl.values())))
             for i in indexes:
                 d = {}
