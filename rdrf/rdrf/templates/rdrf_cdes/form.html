@@ -80,6 +80,24 @@
         .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
             border-top: 0;
         }
+		
+		.next {
+			position: fixed;
+			width: 2%;
+			top: 50%;
+			right: 0;
+			font-size: 2em;
+			margin-right: 10px;
+		}
+
+		.previous {
+			position: fixed;
+			width: 2%;
+			top: 50%;
+			left: 0;
+			margin-left: 10px;
+			font-size: 2em;
+		}
     </style>
     
     <script>
@@ -156,6 +174,15 @@
         $("#main-form").submit(function() {
             $(window).unbind("beforeunload");
         });
+		
+		$('.next').hover(
+			function() {
+				$("#next-form-label").toggle("fast");
+			},
+			function() {
+				$("#next-form-label").toggle("fast");
+			}
+		);
     });
     
     function add_form(prefix) {
@@ -214,6 +241,14 @@
 	
 {% block content %}
     {{ block.super }}
+	<a class="previous" href="{{ previous_form_link }}">
+		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+	</a>
+
+	<a class="next" href="{{ next_form_link }}">
+		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+	</a>
+	
     <br>
     <div class="row">
     <div class="col-md-10">
@@ -381,15 +416,6 @@
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
                 </a>
                 {% endif %}
-
-                <a class="btn btn-info btn-block" href="{{ next_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
-                </a>
-
-                <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
-                </a>
-
             </div>
         </div>
 
