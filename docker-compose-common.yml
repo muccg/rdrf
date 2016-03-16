@@ -84,6 +84,9 @@ runserver:
   image: muccg/angelman-dev
   environment:
     - DBUSER=rdrfapp
+    - REPORTING_DBUSER=reporting
+    - REPORTING_DBPASS=reporting
+    - REPORTING_DBNAME=reporting
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
@@ -100,6 +103,8 @@ uwsgi:
   command: uwsgi
   environment:
     - DBUSER=rdrfapp
+    - REPORTING_DBUSER=reporting
+    - REPORTING_DBPASS=reporting
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
