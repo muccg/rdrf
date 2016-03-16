@@ -183,6 +183,10 @@
 				$("#next-form-label").toggle("fast");
 			}
 		);
+		
+		$("#submit-btn").click(function() {
+			$("#main-form").submit();
+		});
     });
     
     function add_form(prefix) {
@@ -242,7 +246,7 @@
 {% block formbtns %}
 	<br>
 	<div class="btn-group" role="group" aria-label="...">
-		<button type="submit" class="btn btn-default" value="Save">
+		<button id="submit-btn" type="submit" class="btn btn-default" value="Save">
 			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
 		</button>
 		<!--
