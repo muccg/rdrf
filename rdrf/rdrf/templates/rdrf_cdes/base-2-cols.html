@@ -188,8 +188,9 @@
 	<div class="banner">
 	  <div class="col-md-6 col-md-offset-1">
 		  <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|safe }}</h3></p>
-		  {{ patient_link | safe}}
-		  {% if patient %}
+		  {% if patient_link %}
+			{{ patient_link | safe}}
+		  {% elif patient %}
 			<i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
 		  {% endif %}
 	  </div>
