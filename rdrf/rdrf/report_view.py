@@ -114,7 +114,19 @@ class ReportDataTableView(LoginRequiredMixin, View):
 
     def _json(self, result_dict):
         json_data = json.dumps(result_dict)
-        return HttpResponse(json_data, content_type="application/json")
+
+        if self._validate_json(json_data):
+            return HttpResponse(json_data, content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(self._build_result_dict([])),
+                                content_type="application/json")
+
+    def _validate_json(self, json_data):
+        try:
+            data = json.loads(json_data)
+        except ValueError:
+            return False
+        return True
 
     def _build_result_dict(self, rows):
         return {
