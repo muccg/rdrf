@@ -269,7 +269,6 @@ class DatabaseUtils(object):
             return data
 
         for cde_dict in self.projection:
-            logger.debug("projection cde_dict = %s" % cde_dict)
             form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
             section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
@@ -292,15 +291,11 @@ class DatabaseUtils(object):
         return data
 
     def _get_mongo_fields(self):
-        logger.debug("registry id = %s" % self.registry_id)
-
-        registry_model = Registry.objects.get(pk=self.registry_id)
-
+        logger.debug("getting mongo fields from projection")
         for cde_dict in self.projection:
-            logger.debug("cde_dict = %s" % cde_dict)
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=registry_model)
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+            form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
+            section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
+            cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
 
             yield form_model, section_model, cde_model
 
