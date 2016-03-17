@@ -101,10 +101,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
         try:
             c = datetime.now()
             results_dict = self._build_result_dict(rows)
-
             j = self._json(results_dict)
-            with open("tmp.json", "w") as f:
-                json.dump(results_dict, f)
             d = datetime.now()
             logger.info("time to jsonify = %s" % (d - c))
             return j
