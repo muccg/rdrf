@@ -104,6 +104,9 @@ uwsgi:
     - DBUSER=rdrfapp
     - REPORTING_DBUSER=reporting
     - REPORTING_DBPASS=reporting
+    - REPORTING_DBPORT=5432
+    - REPORTING_DBNAME=reporting
+    - REPORTING_DBSERVER=reporting
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
