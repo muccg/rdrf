@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-1-col.html" %}
 {% load static from staticfiles %}
 {% load has_feature %}
 
@@ -140,15 +140,9 @@
     </script>
 {% endblock %}
 
+{% block location %}Patient List{% endblock %}
+
 {% block content %}
-
-    <div class="row">
-        <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Patient List</h3></p>
-        </div>
-    </div>
-
-    <hr>
 
     <div class="clearfix">
         <button id="add_patient" class="btn btn-success pull-right">
