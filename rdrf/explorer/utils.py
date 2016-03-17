@@ -11,6 +11,7 @@ from models import Query
 
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
+from rdrf.utils import forms_and_sections_containing_cde, get_cached_instance
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from models import Query
@@ -33,6 +34,7 @@ class DatabaseUtils(object):
             self.form_object = form_object
             self.query = form_object['sql_query'].value()
             self.registry_id = self.form_object['registry'].value()
+            self.registry_model = Registry.objects.get(pk=self.registry_id)
             if not verify:
                 self.collection = self.form_object['collection'].value()
                 self.criteria = self._string_to_json(self.form_object['criteria'].value())
@@ -43,6 +45,7 @@ class DatabaseUtils(object):
             self.form_object = form_object
             self.query = form_object.sql_query
             self.registry_id = self.form_object.registry.id
+            self.registry_model = Registry.objects.get(pk=self.registry_id)
             if not verify:
                 self.collection = self.form_object.collection
                 self.criteria = self._string_to_json(self.form_object.criteria)
@@ -217,21 +220,18 @@ class DatabaseUtils(object):
         return cursor
 
     def _get_mongo_metadata(self):
-        import json
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        from rdrf.utils import forms_and_sections_containing_cde
 
         def short_column_name(form_model, section_model, cde_code):
             return form_model.name[:5] + "_" + section_model.code + "_" + cde_model.code
 
-        registry_model = Registry.objects.get(pk=self.registry_id)
         data = {"multisection_column_map": {}}
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
+            logger.debug("projection cde_dict = %s" % cde_dict)
+            form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
+            section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
-            forms_sections = forms_and_sections_containing_cde(registry_model, cde_model)
+            forms_sections = forms_and_sections_containing_cde(self.registry_model, cde_model)
             if len(forms_sections) == 1:
                 using_form = forms_sections[0][0]
                 using_section = forms_sections[0][1]
