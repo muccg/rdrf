@@ -145,16 +145,17 @@ class ReportingTableGenerator(object):
     def run_explorer_query(self, database_utils):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
+        errors = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
-            logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
-                logger.debug("unrolled row = %s" % unrolled_row)
                 try:
                     self.insert_row(unrolled_row)
                 except Exception, ex:
+                    errors += 1
                     logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
                                                                               unrolled_row,
                                                                               ex))
+        logger.info("query errors: %s" % errors)
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
