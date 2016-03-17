@@ -43,11 +43,37 @@
 			  -moz-box-shadow: 0px 10px 20px #888888;
 			  -webkit-box-shadow: 0px 10px 20px #888888;
 			}
+			
+			.next {
+				position: fixed;
+				width: 2%;
+				top: 50%;
+				right: 0;
+				font-size: 2em;
+				margin-right: 10px;
+				z-index: 99;
+			}
+	
+			.previous {
+				position: fixed;
+				width: 2%;
+				top: 50%;
+				left: 0;
+				margin-left: 10px;
+				font-size: 2em;
+				z-index: 99;
+			}
         </style>
       {% endblock %}
       {% block extrahead %}
 	  {% endblock %}
-  
+	  <script>
+		$(document).ready(function() {		
+		  $("#submit-btn").click(function() {
+			  $("#main-form").submit();
+		  });
+		});
+	  </script>
   </head>
 <body>
 
@@ -163,6 +189,9 @@
 	  <div class="col-md-6 col-md-offset-1">
 		  <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|safe }}</h3></p>
 		  {{ patient_link | safe}}
+		  {% if patient %}
+			<i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
+		  {% endif %}
 	  </div>
 	  <div class="col-md-4" style="text-align: right">
 		{% block formbtns %}

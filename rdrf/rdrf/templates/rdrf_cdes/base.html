@@ -33,6 +33,13 @@
       {% endblock %}
       {% block extrahead %}{% endblock %}
   
+	  <script>
+		$(document).ready(function() {		
+		  $("#submit-btn").click(function() {
+			  $("#main-form").submit();
+		  });
+		});
+	  </script>
   </head>
 <body>
 

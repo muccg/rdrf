@@ -80,26 +80,6 @@
         .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
             border-top: 0;
         }
-		
-		.next {
-			position: fixed;
-			width: 2%;
-			top: 50%;
-			right: 0;
-			font-size: 2em;
-			margin-right: 10px;
-			z-index: 99;
-		}
-
-		.previous {
-			position: fixed;
-			width: 2%;
-			top: 50%;
-			left: 0;
-			margin-left: 10px;
-			font-size: 2em;
-			z-index: 99;
-		}
     </style>
     
     <script>
@@ -185,10 +165,6 @@
 				$("#next-form-label").toggle("fast");
 			}
 		);
-		
-		$("#submit-btn").click(function() {
-			$("#main-form").submit();
-		});
     });
     
     function add_form(prefix) {
