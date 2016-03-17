@@ -88,6 +88,7 @@
 			right: 0;
 			font-size: 2em;
 			margin-right: 10px;
+			z-index: 99;
 		}
 
 		.previous {
@@ -97,6 +98,7 @@
 			left: 0;
 			margin-left: 10px;
 			font-size: 2em;
+			z-index: 99;
 		}
     </style>
     
@@ -246,16 +248,16 @@
 {% block formbtns %}
 	<br>
 	<div class="btn-group" role="group" aria-label="...">
-		<button id="submit-btn" type="submit" class="btn btn-default" value="Save">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
 			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
 		</button>
-		<!--
-		<a href="" class="btn btn-default">
+
+		<a href="" class="btn btn-danger">
 			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
 		</a>
-		-->
+
 		{% if show_print_button %}
-			<a class="btn btn-default" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
 			</a>
 		{% endif %}
