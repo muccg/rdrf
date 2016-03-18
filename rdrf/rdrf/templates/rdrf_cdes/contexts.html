@@ -142,13 +142,16 @@
 
 {% block location %}Patient List{% endblock %}
 
-{% block content %}
+{% block formbtns %}
+	<br>
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="add_patient" class="btn btn-success">
+			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Patient
+		</button>
+	</div>
+{% endblock %}
 
-    <div class="clearfix">
-        <button id="add_patient" class="btn btn-success pull-right">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Patient
-        </button>
-    </div>
+{% block content %}
 
     <p>
         <select id="registry_options">
