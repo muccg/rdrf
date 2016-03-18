@@ -22,12 +22,6 @@ import logging
 logger = logging.getLogger("registry_log")
 
 
-def short_column_name(form_model, section_model, cde_model):
-    #return form_model.name[:20] + "_" + section_model.code + "_" + cde_model.code
-    return "column_%s_%s_%s" % (form_model.pk,
-                                section_model.pk,
-                                cde_model.pk)
-
 class MissingDataError(Exception):
     pass
 
@@ -255,10 +249,14 @@ class DatabaseUtils(object):
             form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=self.registry_model)
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
-            data["multisection_column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
-                                                                                               section_model,
-                                                                                               cde_model)
+            column_name = self._get_database_column_name(form_model, section_model, cde_model)
+            data["multisection_column_map"][(form_model, section_model, cde_model)] = column_name
         return data
+
+    def _get_database_column_name(self, form_model, section_model, cde_model):
+        return "column_%s_%s_%s" % (form_model.pk,
+                                    section_model.pk,
+                                    cde_model.pk)
 
     def _get_mongo_fields(self):
         logger.debug("getting mongo fields from projection")
@@ -269,42 +267,10 @@ class DatabaseUtils(object):
 
             yield form_model, section_model, cde_model
 
-    def _get_all_mongo_cdes_data(self, cdes_collection):
-        # stop gap until we put celery in or redesign
-        # aggregate into dictionary:
-        # patient_id -> [ list of context dictionaries ]
-        data = {}
-        for context_dict in cdes_collection.find({"django_model" : "Patient"}):
-            patient_id = context_dict["django_id"]
-            if patient_id in data:
-                data[patient_id].append(context_dict)
-            else:
-                data[patient_id] = [context_dict]
-        return data
-
-    def run_mongo_cdes(self, sql_column_data, cdes_data):
-        django_id = sql_column_data["id"]  # convention?
-        context_dicts = cdes_data.get(django_id, [])
-        for context_dict in context_dicts:
-            result = {}
-            result["context_id"] = mongo_document.get("context_id", None)
-            result['timestamp'] = mongo_document.get("timestamp", None)
-            logger.debug("context_id = %s" % result["context_id"])
-            for form_model, section_model, cde_model in self.mongo_models:
-                column_name = self.reverse_map[(form_model, section_model, cde_model)]
-                column_value = self._get_cde_value(form_model,
-                                                         section_model,
-                                                         cde_model,
-                                                         mongo_document)
-
-                result[column_name] = column_value
-                logger.debug("django id %s mongo column %s = %s" % (django_id, column_name, column_value))
-            yield result
 
     def run_mongo_one_row(self, sql_column_data, mongo_collection):
         django_model = "Patient"
         django_id = sql_column_data["id"]  # convention?
-        logger.debug("django_id =%s" % django_id)
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
@@ -312,7 +278,6 @@ class DatabaseUtils(object):
             result = {}
             result["context_id"] = mongo_document.get("context_id", None)
             result['timestamp'] = mongo_document.get("timestamp", None)
-            logger.debug("context_id = %s" % result["context_id"])
             for form_model, section_model, cde_model in self.mongo_models:
                 column_name = self.reverse_map[(form_model, section_model, cde_model)]
                 column_value = self._get_cde_value(form_model,
