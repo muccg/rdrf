@@ -161,8 +161,17 @@ class DownloadQueryView(LoginRequiredMixin, View):
         mongo_keys = _get_non_multiple_mongo_keys(registry_model)
         munged = _filler(result, mongo_keys)
         humaniser = Humaniser(registry_model)
-        munged = MultisectionUnRoller()
-        logger.debug("number of unrolled rows = %s" % len(munged))
+        multisection_unrollower = MultisectionUnRoller({})
+        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        rtg.set_table_name(query_model)
+        a = datetime.now()
+        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        b = datetime.now()
+        logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
+        if action == "view":
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            return self._extract(query_model.title, rtg)
 
         if not munged:
             messages.add_message(request, messages.WARNING, "No results")
