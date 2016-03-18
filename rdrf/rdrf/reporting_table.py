@@ -304,11 +304,26 @@ class ReportTable(object):
 
     @property
     def title(self):
-        return "Report Table By Lee"
+        return "Report Table"
 
     @property
     def columns(self):
-        return [{"data": col.name, "label": col.name} for col in self.table.columns]
+        return [{"data": col.name, "label": self._get_label(col.name)} for col in self.table.columns]
+
+    def _get_label(self, column_name):
+        # relies on the encoding of the column names
+        from rdrf.models import RegistryForm, Section, CommonDataElement
+        try:
+            dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            s = form_model.name + "/" + section_model.display_name + "/" + cde_model.name
+            return s.encode('ascii', 'replace')
+            
+        except Exception, ex:
+            logger.debug("error getting label: %s" % ex)
+            return column_name        
 
     def _get_table(self):
         return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
