@@ -326,3 +326,19 @@ def get_error_messages(forms):
                         messages.append(display(form, field, error))
     results = map(strip_tags, messages)
     return results
+
+
+def timed(func):
+    from logging import getLogger
+    from datetime import datetime
+    logger = logging.getLogger("registry_log")
+    def wrapper(*args, **kwargs):
+        a = datetime.now()
+        result = func(*args, **kwargs)
+        b = datetime.now()
+        c = b - a
+        func_name = func.__name__
+        logger.debug("%s time = %s secs" % (func_name, c))
+        return result
+    return wrapper
+        
