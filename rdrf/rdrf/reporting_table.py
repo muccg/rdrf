@@ -282,3 +282,104 @@ class MongoFieldSelector(object):
             projected_cdes.append(value_dict)
 
         return json.dumps(projected_cdes)
+
+
+class ReportTable(object):
+    """
+    Used by report datatable view
+    """
+
+    def __init__(self,  user, query_model):
+        self.query_model = query_model
+        self.user = user
+        self.engine = self._create_engine()
+        self.table_name = temporary_table_name(self.query_model, self.user)
+        self.table = self._get_table()
+        self._converters = {
+            "date_of_birth": str,
+        }
+
+    @property
+    def title(self):
+        return "Report Table"
+
+    @property
+    def columns(self):
+        return [{"data": col.name, "label": self._get_label(col.name)} for col in self.table.columns]
+
+    def _get_label(self, column_name):
+        # relies on the encoding of the column names
+        from rdrf.models import RegistryForm, Section, CommonDataElement
+        try:
+            dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            s = form_model.name + "/" + section_model.display_name + "/" + cde_model.name
+            return s.encode('ascii', 'replace')
+            
+        except Exception, ex:
+            logger.debug("error getting label: %s" % ex)
+            return column_name        
+
+    def _get_table(self):
+        return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
+
+    def _create_engine(self):
+        report_db_data = settings.DATABASES["reporting"]
+        db_user = report_db_data["USER"]
+        db_pass = report_db_data["PASSWORD"]
+        database = report_db_data["NAME"]
+        host = report_db_data["HOST"]
+        port = report_db_data["PORT"]
+        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
+                                                                      db_pass,
+                                                                      host,
+                                                                      port,
+                                                                      database)
+        return create_engine(connection_string)
+
+    def run_query(self, params=None):
+        from sqlalchemy.sql import select
+        rows = []
+        columns = [col for col in self.table.columns]
+        query = select([self.table])
+        if params is None:
+            pass
+        else:
+            if "sort_field" in params:
+                sort_field = params["sort_field"]
+                sort_direction = params["sort_direction"]
+
+                sort_column = getattr(self.table.c, sort_field)
+                logger.debug("sorting by %s" % sort_column.name)
+
+                if sort_direction == "asc":
+                    logger.debug("sort direction is ascending")
+                    sort_column = sort_column.asc()
+                else:
+                    logger.debug("sort direction is descending")
+                    sort_column = sort_column.desc()
+
+                query = query.order_by(sort_column)
+
+        for row in self.engine.execute(query):
+                result_dict = {}
+                for i, col in enumerate(columns):
+                    result_dict[col.name] = self._format(col.name, row[i])
+                rows.append(result_dict)
+        return rows
+
+    def _format(self, column, data):
+        converter = self._converters.get(column, None)
+        if converter is None:
+            return data
+        else:
+            return converter(data)
+
+
+
+
+
+
+
