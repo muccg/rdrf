@@ -169,7 +169,10 @@ class DownloadQueryView(LoginRequiredMixin, View):
         multisection_unrollower = MultisectionUnRoller({})
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
+        a = datetime.now()
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        b = datetime.now()
+        logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
         if action == "view":
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
