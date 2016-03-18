@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData
 from rdrf.dynamic_data import DynamicDataWrapper
 import explorer
 from explorer.utils import DatabaseUtils
+from rdrf.utils import timed
 
 import logging
 logger = logging.getLogger("registry_log")
@@ -57,10 +58,12 @@ class ReportingTableGenerator(object):
         logger.debug("connection_string = %s" % connection_string)
         return create_engine(connection_string)
 
+    @timed
     def create_table(self):
         self.table.create()
         logger.debug("created table based on schema")
 
+    @timed
     def drop_table(self):
         drop_table_sql = "DROP TABLE %s" % self.table_name
         conn = self.engine.connect()
@@ -78,8 +81,8 @@ class ReportingTableGenerator(object):
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
-        logger.debug("reverse map %s --> %s" % (key, value))
 
+    @timed
     def create_columns(self, sql_metadata, mongo_metadata):
         logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
@@ -106,7 +109,6 @@ class ReportingTableGenerator(object):
             self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
-        logger.debug("column metadata = %s" % column_metadata)
         column_name = column_metadata["name"]
         type_name = column_metadata["type_name"]
         # Not sure if this good idea ...
@@ -124,17 +126,13 @@ class ReportingTableGenerator(object):
         else:
             datatype = alc.String
 
-        logger.debug("mapped sql alc data type = %s" % datatype)
         return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
-        logger.debug("**** cde %s datatype %s  --> column datatype %s" % (cde_model.code, cde_model.datatype,
-                                                                        column_data_type))
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         if section_model.allow_multiple:
             # This map is used when we unroll/"denormalise" the multisection data
-            logger.debug("multisection_column_map = %s" % self.multisection_column_map)
             if section_model.code in self.multisection_column_map:
                 self.multisection_column_map[section_model.code].append(column_name)
             else:
@@ -142,6 +140,7 @@ class ReportingTableGenerator(object):
 
         return self._create_column(column_name, column_data_type)
 
+    @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
@@ -159,13 +158,11 @@ class ReportingTableGenerator(object):
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
-        logger.debug("inserting context dict: %s" % value_dict)
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
         column = alc.Column(name, datatype, nullable=True)
         self.columns.add(column)
-        logger.debug("added column %s type %s" % (name, datatype))
         return column
 
     def create_schema(self):
@@ -287,7 +284,6 @@ class MongoFieldSelector(object):
 
             projected_cdes.append(value_dict)
 
-        logger.debug("projected cdes = %s" % projected_cdes)
         return json.dumps(projected_cdes)
 
 
