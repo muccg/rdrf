@@ -661,6 +661,23 @@ class CommonDataElement(models.Model):
         else:
             return None
 
+    def get_display_value(self, stored_value):
+        if self.pv_group:
+            # if a range, return the display value
+            try:
+                values_dict = self.pv_group.as_dict()
+                for value_dict in values_dict["values"]:
+                    if value_dict["code"] == stored_value:
+                        display_value = value_dict["value"]
+                        return display_value
+
+            except Exception, ex:
+                logger.error("bad value for cde %s %s: %s" % (self.code,
+                                                              stored_value,
+                                                              ex))
+                
+        return stored_value
+
     def clean(self):
         # this was causing issues with form progress completion cdes record
         # todo update the way form progress completion cdes are recorded to
