@@ -38,8 +38,19 @@
                                                     colReorder: true,
                                                     stateSave: true,
                                                     scrollX: true,
-                                                    buttons: [
-                                                            'colvis', 'copy', 'csv','excel', 'print'
+                                                    buttons: ['colvis',
+                                                                {
+                                                                   extend: 'copy',
+                                                                            exportOptions: {
+                                                                                columns: ':visible'
+                                                                            }
+                                                                },
+                                                                {
+                                                                   extend: 'csv',
+                                                                            exportOptions: {
+                                                                                columns: ':visible'
+                                                                            }
+                                                                }
                                                     ],
                                                     fixedHeader: true
                                                    });
