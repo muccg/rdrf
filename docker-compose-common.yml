@@ -54,8 +54,8 @@ db:
 reporting:
   image: muccg/postgres-ssl:9.4
   environment:
-    - POSTGRES_USER=reporting
-    - POSTGRES_PASSWORD=reporting
+    - POSTGRES_USER=rdrfapp
+    - POSTGRES_PASSWORD=rdrfapp
   ports:
     - "15633:5432"
 
