@@ -341,7 +341,7 @@ class DatabaseUtils(object):
         if cde_model.datatype == "file":
             return "FILE"  # to do
         else:
-            return stored_value
+            return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
         client = self._get_mongo_client()
