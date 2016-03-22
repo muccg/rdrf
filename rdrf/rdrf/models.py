@@ -855,8 +855,8 @@ class RegistryForm(models.Model):
             msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
                     "Camel Case, instead."
             raise ValidationError(msg)
-
-        self._check_completion_cdes()
+        if self.pk:
+            self._check_completion_cdes()
         
 
 
