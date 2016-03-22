@@ -90,25 +90,40 @@ class FamilyLinkageManager(object):
                 self._set_as_relative(patient)
 
     def _index_changed(self):
-        return self.original_index != int(self.index_dict["pk"])
+        if self.original_index_dict["class"] != self.index_dict["class"]:
+            # ie patient relative being dragged to become an index
+            return True
+        else:
+            return self.original_index != int(self.index_dict["pk"])
 
     def _update_index(self):
+        logger.debug("updating index")
         old_index_patient = self.index_patient
+        logger.debug("old index = %s" % old_index_patient)
 
         if self.index_dict["class"] == "Patient":
+            logger.debug("updating index from Patient")
             new_index_patient = Patient.objects.get(pk=self.index_dict["pk"])
+            logger.debug("new_index_patient = %s" % new_index_patient)
             self._change_index(old_index_patient, new_index_patient)
 
         elif self.index_dict["class"] == "PatientRelative":
             patient_relative = PatientRelative.objects.get(pk=self.index_dict["pk"])
+            logger.debug("updating index from patient_relative %s" % patient_relative)
             if patient_relative.relative_patient:
+                logger.debug("patient has been created from this relative so setting index to it")
                 self._change_index(old_index_patient, patient_relative.relative_patient)
+                logger.debug("deleting patient relative %s" % patient_relative)
                 patient_relative.delete()
             else:
                 # create a new patient from relative first
+                logger.debug("setting PatientRelatibe with no patient to index - need to create patient first")
                 new_patient = patient_relative.create_patient_from_myself(self.registry_model, self.working_groups)
+                logger.debug("new patient created from relative = %s" % new_patient)
                 self._change_index(old_index_patient, new_patient)
+                logger.debug("changed index ok to new patient")
                 patient_relative.delete()
+                logger.debug("deleted old patient relative")
 
     def _change_index(self, old_index_patient, new_index_patient):
         self._set_as_index_patient(new_index_patient)
