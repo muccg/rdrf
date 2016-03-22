@@ -397,17 +397,27 @@ class Patient(models.Model):
 
     @property
     def my_index(self):
+        logger.debug("Finding index of %s" % self)
         # This property is only applicable to FH
         if self.in_registry("fh"):
             # try to find patient relative object corresponding to this patient and
             # then locate that relative's index patient
+            logger.debug("patient is in FH so this makes sense")
             try:
                 patient_relative = PatientRelative.objects.get(relative_patient=self)
+                logger.debug("There is a PatientRelative I was created from: %s" % patient_relative)
                 if patient_relative.patient:
+                    logger.debug("This patient relative has a patient property: index = %s" % patient_relative.patient) 
                     return patient_relative.patient
+                else:
+                    logger.debug("PatientRelative %s has no patient property (is null)" % patient_relative)
+                    return None
             except PatientRelative.DoesNotExist:
-                pass
+                logger.debug("no patient relative exists for %s so my index is None" % self)
+                return None
 
+        logger.debug("%s not in FH - so my_index is None" % self)
+        
         return None
 
     def get_contexts_url(self, registry_model):
@@ -849,7 +859,12 @@ class PatientRelative(models.Model):
 @receiver(post_delete, sender=PatientRelative)
 def delete_created_patient(sender, instance, **kwargs):
     if instance.relative_patient:
-        instance.relative_patient.delete()
+        #  when doing family linkage operation of moving
+        #  a relative to an index , we were seeing this
+        #  signal archive the newly "promoted" relative's patient
+        #  so don't do this!
+        if not instance.relative_patient.is_index:
+            instance.relative_patient.delete()
 
 
 @receiver(post_save, sender=Patient)
