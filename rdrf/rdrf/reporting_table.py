@@ -3,11 +3,16 @@ from sqlalchemy import create_engine, MetaData
 from rdrf.dynamic_data import DynamicDataWrapper
 import explorer
 from explorer.utils import DatabaseUtils
+from rdrf.utils import timed
 
 import logging
 logger = logging.getLogger("registry_log")
 
 from django.conf import settings
+
+
+def temporary_table_name(query_model, user):
+    return "report_%s_%s" % (query_model.id, user.pk)
 
 
 class ReportingTableGenerator(object):
@@ -49,12 +54,16 @@ class ReportingTableGenerator(object):
                                                                       host,
                                                                       port,
                                                                       database)
+
+        logger.debug("connection_string = %s" % connection_string)
         return create_engine(connection_string)
 
+    @timed
     def create_table(self):
         self.table.create()
         logger.debug("created table based on schema")
 
+    @timed
     def drop_table(self):
         drop_table_sql = "DROP TABLE %s" % self.table_name
         conn = self.engine.connect()
@@ -67,14 +76,13 @@ class ReportingTableGenerator(object):
 
     def set_table_name(self, obj):
         logger.debug("setting table name from %s %s" % (self.user.username, obj))
-        t = "report_%s_%s" % (obj.id, self.user.pk)
-        self.table_name = t
+        self.table_name = temporary_table_name(obj, self.user)
         logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
-        logger.debug("reverse map %s --> %s" % (key, value))
 
+    @timed
     def create_columns(self, sql_metadata, mongo_metadata):
         logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
@@ -101,7 +109,6 @@ class ReportingTableGenerator(object):
             self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
-        logger.debug("column metadata = %s" % column_metadata)
         column_name = column_metadata["name"]
         type_name = column_metadata["type_name"]
         # Not sure if this good idea ...
@@ -119,7 +126,6 @@ class ReportingTableGenerator(object):
         else:
             datatype = alc.String
 
-        logger.debug("mapped sql alc data type = %s" % datatype)
         return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
@@ -127,7 +133,6 @@ class ReportingTableGenerator(object):
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         if section_model.allow_multiple:
             # This map is used when we unroll/"denormalise" the multisection data
-            logger.debug("multisection_column_map = %s" % self.multisection_column_map)
             if section_model.code in self.multisection_column_map:
                 self.multisection_column_map[section_model.code].append(column_name)
             else:
@@ -135,29 +140,29 @@ class ReportingTableGenerator(object):
 
         return self._create_column(column_name, column_data_type)
 
+    @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
+        errors = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
-            logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
-                logger.debug("unrolled row = %s" % unrolled_row)
                 try:
                     self.insert_row(unrolled_row)
                 except Exception, ex:
+                    errors += 1
                     logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
                                                                               unrolled_row,
                                                                               ex))
+        logger.info("query errors: %s" % errors)
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
-        logger.debug("inserting context dict: %s" % value_dict)
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
         column = alc.Column(name, datatype, nullable=True)
         self.columns.add(column)
-        logger.debug("added column %s type %s" % (name, datatype))
         return column
 
     def create_schema(self):
@@ -279,5 +284,105 @@ class MongoFieldSelector(object):
 
             projected_cdes.append(value_dict)
 
-        logger.debug("projected cdes = %s" % projected_cdes)
         return json.dumps(projected_cdes)
+
+
+class ReportTable(object):
+    """
+    Used by report datatable view
+    """
+
+    def __init__(self,  user, query_model):
+        self.query_model = query_model
+        self.user = user
+        self.engine = self._create_engine()
+        self.table_name = temporary_table_name(self.query_model, self.user)
+        self.table = self._get_table()
+        self._converters = {
+            "date_of_birth": str,
+        }
+
+    @property
+    def title(self):
+        return "Report Table"
+
+    @property
+    def columns(self):
+        return [{"data": col.name, "label": self._get_label(col.name)} for col in self.table.columns]
+
+    def _get_label(self, column_name):
+        # relies on the encoding of the column names
+        from rdrf.models import RegistryForm, Section, CommonDataElement
+        try:
+            dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name
+            return s.upper().encode('ascii', 'replace')
+            
+        except Exception, ex:
+            logger.debug("error getting label: %s" % ex)
+            return column_name        
+
+    def _get_table(self):
+        return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
+
+    def _create_engine(self):
+        report_db_data = settings.DATABASES["reporting"]
+        db_user = report_db_data["USER"]
+        db_pass = report_db_data["PASSWORD"]
+        database = report_db_data["NAME"]
+        host = report_db_data["HOST"]
+        port = report_db_data["PORT"]
+        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
+                                                                      db_pass,
+                                                                      host,
+                                                                      port,
+                                                                      database)
+        return create_engine(connection_string)
+
+    def run_query(self, params=None):
+        from sqlalchemy.sql import select
+        rows = []
+        columns = [col for col in self.table.columns]
+        query = select([self.table])
+        if params is None:
+            pass
+        else:
+            if "sort_field" in params:
+                sort_field = params["sort_field"]
+                sort_direction = params["sort_direction"]
+
+                sort_column = getattr(self.table.c, sort_field)
+                logger.debug("sorting by %s" % sort_column.name)
+
+                if sort_direction == "asc":
+                    logger.debug("sort direction is ascending")
+                    sort_column = sort_column.asc()
+                else:
+                    logger.debug("sort direction is descending")
+                    sort_column = sort_column.desc()
+
+                query = query.order_by(sort_column)
+
+        for row in self.engine.execute(query):
+                result_dict = {}
+                for i, col in enumerate(columns):
+                    result_dict[col.name] = self._format(col.name, row[i])
+                rows.append(result_dict)
+        return rows
+
+    def _format(self, column, data):
+        converter = self._converters.get(column, None)
+        if converter is None:
+            return data
+        else:
+            return converter(data)
+
+
+
+
+
+
+

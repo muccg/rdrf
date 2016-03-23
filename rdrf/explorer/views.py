@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
@@ -141,7 +142,10 @@ class QueryView(LoginRequiredMixin, View):
 
 class DownloadQueryView(LoginRequiredMixin, View):
 
-    def post(self, request, query_id):
+    def post(self, request, query_id, action):
+        if action not in ["download", "view"]:
+            raise Exception("bad action")
+
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
 
@@ -165,11 +169,21 @@ class DownloadQueryView(LoginRequiredMixin, View):
         multisection_unrollower = MultisectionUnRoller({})
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
+        a = datetime.now()
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        b = datetime.now()
+        logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
+        if action == "view":
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            return self._extract(query_model.title, rtg)
 
-    def get(self, request, query_id):
+    def get(self, request, query_id, action):
+        if action not in ['download', 'view']:
+            raise Exception("bad action")
+
         user = request.user
+        logger.debug("user = %s" % user)
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -178,15 +192,21 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         if query_params:
             params = _get_default_params(request, query_form)
+            params["action"] = action
             params['query_params'] = query_params
             if "registry" in query_params:
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
-                if user.is_curator:
+                if user.is_superuser:
+                    params["working_group"] = WorkingGroup.objects.filter(registry=registry_model)
+                elif user.is_curator:
                     params["working_group"] = WorkingGroup.objects.filter(
                         id__in=[wg.id for wg in user.get_working_groups()])
                 else:
-                    params["working_group"] = WorkingGroup.objects.all()
+                    # only curators and admin
+                    pass
+
+
             return render_to_response('explorer/query_download.html', params)
 
         database_utils = DatabaseUtils(query_model)
@@ -195,7 +215,12 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        if action == 'view':
+            # allow user to view and manipulate
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            # download csv
+            return self._extract(query_model.title, rtg)
 
     def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
@@ -391,13 +416,27 @@ class MultisectionUnRoller(object):
             :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
+            
+            Lists _should_ be same length EXCEPT in case
+            where a cde has been added to the registry definition AFTER data has been saved to mongo:
+            in this case the return values list for that CDE will be empty ( see FH-15 )
+            In order to avoid index errors , in this case the list is padded with Nones up to the 
+            size of the list 
+            padded with None if not
             """
             l = []
-            indexes = range(max(map(len, dl.values())))
+            
+            max_length = max(map(len, dl.values()))
+            indexes = range(max_length)
             for i in indexes:
                 d = {}
                 for k in dl:
-                    d[k] = dl[k][i]
+                    this_list = dl[k]
+                    this_list_length = len(this_list)
+                    if this_list_length < max_length:
+                        num_nones = max_length - this_list_length
+                        this_list.extend([None] * num_nones)
+                    d[k] = this_list[i]
                 l.append(d)
             return l
 
