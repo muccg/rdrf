@@ -675,7 +675,9 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
-                
+        if stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN 
+            return ":NaN"
         return stored_value
 
     def clean(self):
