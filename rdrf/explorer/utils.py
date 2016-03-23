@@ -340,6 +340,11 @@ class DatabaseUtils(object):
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         if cde_model.datatype == "file":
             return "FILE"  # to do
+        elif cde_model.datatype == "calculated":
+            if stored_value == "NaN":
+                return ""
+            else:
+                return stored_value
         else:
             return cde_model.get_display_value(stored_value)
 
