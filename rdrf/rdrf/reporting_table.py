@@ -158,6 +158,11 @@ class ReportingTableGenerator(object):
 
     def insert_row(self, value_dict):
         # each row will be a denormalised section item
+        for k in value_dict:
+            value = value_dict[k]
+            if isinstance(value, basestring):
+                value_dict[k] = value.encode("ascii", "replace")
+                
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
