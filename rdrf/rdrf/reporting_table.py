@@ -154,7 +154,6 @@ class ReportingTableGenerator(object):
         logger.info("query errors: %s" % errors)
 
     def insert_row(self, value_dict):
-        # each row will be a denormalised section item
         for k in value_dict:
             value = value_dict[k]
             if isinstance(value, basestring):
