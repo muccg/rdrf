@@ -12,9 +12,17 @@ class SpreadSheetReportType:
     LONGITUDINAL = "LONGITUDINAL"
 
 
+def default_time_window():
+    from datetime import datetime, timedelta
+    one_year = timedelta(years=1)
+    today = datetime.now()
+    one_year_ago = today - one_year
+    return (one_year_ago, today)
+
+
 class SpreadSheetReport(object):
 
-    def __init__(self, user, registry_model, working_groups, cde_triples, time_window=None, report_format=SpreadSheetReportFormat.WIDE):
+    def __init__(self, user, registry_model, working_groups, cde_triples, time_window=default_time_window(), report_format=SpreadSheetReportFormat.WIDE):
         self.user = user
         self.output_filename = "%s_report.xlsx" % registry_model.code
         self.workbook = xl.Workbook(self.output_filename, {
@@ -60,6 +68,7 @@ class SpreadSheetReport(object):
         history_collection = wrapper._get_collection(
             self.registry_model.code, "history")
         lower_bound, upper_bound = self._get_timestamp_bounds()
+
         patient_snapshots = history_collection.find({"django_id": patient.pk,
                                                      "django_model": "Patient",
                                                      "timestamp": {
@@ -69,6 +78,12 @@ class SpreadSheetReport(object):
         # return a list of pairs [ (timestamp1, value1), (timestamp2, value2),
         # ...]
         return []
+
+    def _get_timestamp_bounds(self):
+        dt_lower, dt_upper = self.time_window
+        lower_bound = dt_lower
+        upper_bound = dt_upper
+        return (lower_bound, upper_bound)
 
     def _add_wide_row(self, patient, cde_triple, static_data, longitudinal_data):
         # id|sex|date_of_birth|diagnosis|etc|date1|cde value1|date2|cde value2|
