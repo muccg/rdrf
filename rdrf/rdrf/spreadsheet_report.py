@@ -54,7 +54,21 @@ class SpreadSheetReport(object):
                 "date_of_birth": patient.date_of_birth}
 
     def _get_longitudinal_data(self, patient, cde_triple):
-        return {}
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(patient)
+        # get all snapshots for this patient
+        history_collection = wrapper._get_collection(
+            self.registry_model.code, "history")
+        lower_bound, upper_bound = self._get_timestamp_bounds()
+        patient_snapshots = history_collection.find({"django_id": patient.pk,
+                                                     "django_model": "Patient",
+                                                     "timestamp": {
+                                                         "$gte": lower_bound,
+                                                         "$lte": upper_bound}})
+
+        # return a list of pairs [ (timestamp1, value1), (timestamp2, value2),
+        # ...]
+        return []
 
     def _add_wide_row(self, patient, cde_triple, static_data, longitudinal_data):
         # id|sex|date_of_birth|diagnosis|etc|date1|cde value1|date2|cde value2|
