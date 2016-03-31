@@ -346,4 +346,16 @@ def timed(func):
         logger.debug("%s time = %s secs" % (func_name, c))
         return result
     return wrapper
-        
+
+def get_cde_value(form_model, section_model, cde_model, patient_record):
+    # should refactor code everywhere to use this func 
+    for form_dict in patient_record["forms"]:
+        if form_dict["name"] == form_model.name:
+            for section_dict in form_dict["sections"]:
+                if section_dict["code"] == section_model.code:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == cde_model.code:
+                                return cde_dict["value"]
+                    else:
+                        return [ item["value"] for item in section_dict["cdes"] if item["code"] == cde_model.code]
