@@ -1,5 +1,8 @@
-import xlsxwriter as xl
-from xlsxwriter.utility import xl_rowcol_to_cell as get_cell
+from rdrf.utils import get_cde_value
+import openpyxl as xl
+import logging
+
+logger = logging.getLogger("registry_log")
 
 
 class SpreadSheetReportFormat:
@@ -14,7 +17,7 @@ class SpreadSheetReportType:
 
 def default_time_window():
     from datetime import datetime, timedelta
-    one_year = timedelta(years=1)
+    one_year = timedelta(days=365)
     today = datetime.now()
     one_year_ago = today - one_year
     return (one_year_ago, today)
@@ -22,11 +25,18 @@ def default_time_window():
 
 class SpreadSheetReport(object):
 
-    def __init__(self, user, registry_model, working_groups, cde_triples, time_window=default_time_window(), report_format=SpreadSheetReportFormat.WIDE):
+    def __init__(self,
+                 user,
+                 registry_model,
+                 working_groups,
+                 cde_triples,
+                 time_window=default_time_window(),
+                 report_format=SpreadSheetReportFormat.WIDE,
+                 mongo_client=None,
+                 testing=False):
         self.user = user
         self.output_filename = "%s_report.xlsx" % registry_model.code
-        self.workbook = xl.Workbook(self.output_filename, {
-                                    "default_date_format": "dd/mm/yyyy"})
+        self.work_book = None
         self.working_groups = working_groups
         self.registry_model = registry_model
         self.report_format = report_format
@@ -38,6 +48,8 @@ class SpreadSheetReport(object):
         # pair of datetimes (start, finish) ( inclusive)
         self.time_window = time_window
         self.cdes_triples = cde_triples  # triples of form_model, section_model, cde_model
+        self.mongo_client = mongo_client
+        self.testing = testing
 
     def generate(self):
         for cde_triple in self.cde_triples:
@@ -64,20 +76,36 @@ class SpreadSheetReport(object):
     def _get_longitudinal_data(self, patient, cde_triple):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(patient)
+        wrapper.testing = self.testing
+        wrapper.client = self.mongo_client
         # get all snapshots for this patient
         history_collection = wrapper._get_collection(
             self.registry_model.code, "history")
         lower_bound, upper_bound = self._get_timestamp_bounds()
 
         patient_snapshots = history_collection.find({"django_id": patient.pk,
+                                                     "registry_code": self.registry_model.code,
                                                      "django_model": "Patient",
-                                                     "timestamp": {
-                                                         "$gte": lower_bound,
-                                                         "$lte": upper_bound}})
+                                                     "record_type": "snapshot"})
 
-        # return a list of pairs [ (timestamp1, value1), (timestamp2, value2),
-        # ...]
-        return []
+        # return a list of date pairs [ (timestamp1, value1), (timestamp2,
+        # value2), ...]
+        pairs = self._get_value_pairs(patient_snapshots, cde_triple)
+        logger.debug("pairs = %s" % pairs)
+        return pairs
+
+    def _get_value_pairs(self, patient_snapshots, cde_triple):
+
+        pairs = []
+        form_model, section_model, cde_model = cde_triple
+        snapshots = [ s for s in patient_snapshots]
+        for snapshot in snapshots:
+            timestamp = snapshot["timestamp"]
+            patient_record = snapshot["record"]
+            value = get_cde_value(form_model, section_model,
+                                  cde_model, patient_record)
+            pairs.append((timestamp, value))
+        return pairs
 
     def _get_timestamp_bounds(self):
         dt_lower, dt_upper = self.time_window
