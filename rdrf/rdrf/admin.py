@@ -83,6 +83,35 @@ class RegistryFormAdmin(admin.ModelAdmin):
             return True
         return False
 
+def longitudinal_report_action(modeladmin, request, registry_models_selected):
+    from rdrf.spreadsheet_report import SpreadSheetReport
+    registrys = [r for r in registry_models_selected]
+    if len(registrys) == 1:
+        r = registrys[0]
+        report = SpreadSheetReport(request.user,
+                                   r,
+                                   [])
+        report.generate()
+        
+        myfile = StringIO.StringIO()
+        myfile.write(report.data)
+
+        myfile.write(excel_spreadsheet)
+        myfile.flush()
+        myfile.seek(0)
+
+        response = HttpResponse(FileWrapper(myfile), content_type='application/excel')
+        report_filename = "report.xlsx"
+        response['Content-Disposition'] = 'attachment; filename="%s"' % report_filename
+
+        return response
+    else:
+        messages.error(request, "select one registry only")
+        return None
+
+        
+    
+
 
 def export_registry_action(modeladmin, request, registry_models_selected):
     from datetime import datetime
