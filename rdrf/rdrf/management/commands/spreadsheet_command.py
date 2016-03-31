@@ -1,7 +1,18 @@
 import os
 from optparse import make_option
 from django.core.management.base import BaseCommand
+from rdrf.spreadsheet_report import SpreadSheetReport
+from rdrf.models import Registry
 
+def get_triple(registry_model, form_name, section_code, cde_code):
+    for form_model in registry_model.forms:
+        if form_model.name == form_name:
+            for section_model in form_model.section_models:
+                if section_model.code == section_code:
+                    for cde_model in section_model.cde_models:
+                        if cde_model.code == cde_code:
+                            return form_model, section_model, cde_model
+                        
 
 class Command(BaseCommand):
     help = 'Creates longitudinal report'
@@ -27,14 +38,22 @@ class Command(BaseCommand):
             action='store',
             dest='finish_date',
             default='today',
-            help="Finish date in DD-MM-YYYY format - defaults to today's date")
+             help="Finish date in DD-MM-YYYY format - defaults to today's date"),
          )
 
     def handle(self, *args, **options):
-        app_name = 'rdrf'
-        module = __import__(app_name)
-        path = '%s/features/' % (os.path.dirname(module.__file__))
-        runner = Runner(path, verbosity=options.get('verbosity'),
-                        enable_xunit=options.get('enable_xunit'),
-                        xunit_filename=options.get('xunit_file'),)
-        runner.run()
+        try:
+            registry_model = Registry.objects.get(
+                code=options.get("registry_code", None))
+        except Registry.DoesNotExist:
+            raise
+
+        triples = [get_triple(registry_model, "Clinical", "sectionxxx", "CDEHeight")]
+        
+        report = SpreadSheetReport(None,
+                                   registry_model,
+                                   [],
+                                   triples,
+                                   None)
+
+        report.generate()
