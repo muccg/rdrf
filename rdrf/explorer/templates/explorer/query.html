@@ -8,13 +8,27 @@
 
         function recalculateProjection() {
             // get ids of  all checked checkboxes
+
+	    function isLongId(s){
+		return s.slice(-5) === "_long";
+	    }
+		
             var checkedIds = $(FIELDS_TABLE + " :checkbox:checked").map(function () {return this.id}).get();
+	
+            var selectedCdesIds = _.filter(checkedIds, function(id) { return !isLongId(id);});
+	    console.log(selectedCdesIds.toString());
+	    
+	    var longitudinalIds = _.filter(checkedIds, function(id) { return isLongId(id);});
+	    console.log(longitudinalIds.toString());
+    
             // calculate server side
             var registryId = $("#id_registry").val();
             var parts = window.location.pathname.split("/");
             var reportId = parts[parts.length - 1];
+            var commandArg = {checkbox_ids: selectedCdesIds,
+                          longitudinal_ids: longitudinalIds};
 
-            rpc.send('reporting_command',[reportId, registryId, "get_projection", checkedIds], function(response){
+            rpc.send('reporting_command',[reportId, registryId, "get_projection", commandArg], function(response){
                 if (response.status == "success") {
                     $("#" + PROJECTION_FIELD).val(response.result);
                 }
@@ -40,7 +54,8 @@
             var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
                     "<td><%= section %></td>" +
                     "<td><%= fieldLabel %></td>" +
-                    "<td><%= checkBox %></td></tr>");
+                    "<td><%= checkBox %></td>" +
+                    "<td><%= longitudinalCheckBox %></td></tr>");
 
             var checkBoxTemplate = _.template('<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
                                                 "<%= checked %> />");
@@ -50,26 +65,34 @@
                 $(FIELDS_TABLE + " tr").has("td").remove();
             }
 
-            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue) {
-                var checked = "";
+            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue, longSelected) {
+		var checked = "";
+		var longChecked = "";
+		var longitudinalFieldId = fieldId + '_long';
+
                 if (currentValue) {
                     checked = "checked";
                 }
+
+                if (longSelected) {
+                    longChecked = "checked";
+                }
+                
                 var checkBoxHtml = checkBoxTemplate({id: fieldId,
                                            name: fieldId,
                                            checked: checked
-                                           });
+						      });
+                var longitudinalCheckBoxHtml = checkBoxTemplate({id: longitudinalFieldId,
+						      name: longitudinalFieldId,
+                                                      checked: longChecked});
 
                 var fieldRow = $(fieldRowTemplate({form: formName,
                                                 section: section,
                                                 fieldLabel: fieldLabel,
-                                                checkBox: checkBoxHtml}));
+                                                checkBox: checkBoxHtml,
+						longitudinalCheckBox: longitudinalCheckBoxHtml}));
 
                 $(FIELDS_TABLE).append(fieldRow);
-
-
-
-
 
             }
 
@@ -80,8 +103,9 @@
                     var fieldLabel = fieldInfo.label;
                     var formName = fieldInfo.form;
                     var section = fieldInfo.sectionName;
-                    var savedValue = fieldInfo.savedValue;
-                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue);
+		    var savedValue = fieldInfo.savedValue;
+		    var longSelected = fieldInfo.longSelected;			      
+                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue, longSelected);
                 });
 
 
@@ -211,6 +235,7 @@
                     <th>Section</th>
                     <th>Field</th>
                     <th>Include in Report</th>
+		    <th>Longitudinal</th>
                     </thead>
                     <tbody>
 
