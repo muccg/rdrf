@@ -197,11 +197,19 @@ class ReportingTableGenerator(object):
 
 
 class MongoFieldSelector(object):
-    def __init__(self, user, registry_model, query_model, checkbox_ids=[]):
+    def __init__(self,
+                 user,
+                 registry_model,
+                 query_model,
+                 checkbox_ids=[],
+                 longitudinal_ids=[],
+    ):
         if checkbox_ids is not None:
             self.checkbox_ids = checkbox_ids
         else:
             self.checkbox_ids = []
+
+        self.longitudinal_ids = longitudinal_ids
 
         self.user = user
         self.registry_model = registry_model
@@ -216,7 +224,7 @@ class MongoFieldSelector(object):
         try:
             return json.loads(query_model.projection)
         except:
-            return []
+            return {}
 
 
     @property
@@ -235,15 +243,22 @@ class MongoFieldSelector(object):
         return self.field_info
 
     def _get_saved_value(self, form_model, section_model, cde_model):
-        for value_dict in self.existing_data:
+        logger.debug("existing data = %s" % self.existing_data)
+        if self.existing_data is None:
+            return False, False
+        
+        for value_dict in self.existing_data["projected_cdes"]:
+            if value_dict is None:
+                continue
             if value_dict["formName"] == form_model.name:
                 if value_dict["sectionCode"] == section_model.code:
                     if value_dict["cdeCode"] == cde_model.code:
-                        return value_dict["value"]
-        return False
+                        return value_dict["value"], value_dict["long_selected"]
+        return False, False
 
     def _get_field_info(self, form_model, section_model, cde_model):
-        saved_value = self._get_saved_value(form_model, section_model, cde_model)
+        saved_value, long_selected = self._get_saved_value(form_model, section_model, cde_model)
+        
         field_id = "cb_%s_%s_%s_%s" % (self.registry_model.code,
                                        form_model.pk,
                                        section_model.pk,
@@ -255,22 +270,28 @@ class MongoFieldSelector(object):
                                 "cdeCode": cde_model.code,
                                 "id": field_id,
                                 "label": field_label,
-                                "savedValue": saved_value})
+                                "savedValue": saved_value,
+                                "longSelected": long_selected})
 
     @property
     def projections_json(self):
         # this method returns the new projection data back to the client based
-        # on the list of checked items passed in
+        # on the list of checked items passed in ( including longitudinal if mixed report)
         # the constructed json is independent of db ids ( as these will change
         # is import of registry definition occurs
         import json
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        projected_cdes = []
-        for checkbox_id in self.checkbox_ids:
+        projection_data = {"projected_cdes": [],
+                           "longitudinal_cdes": []}
+
+        def create_value_dict(checkbox_id, longitudinal=False):
             # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
-            # registry code, form pk, section pk, cde_code
-            # cb_fh_39_105_EchocardiogramResult
-            _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
+            if not longitudinal:
+                _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
+            else:
+            # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography_long" id="cb_fh_39_104_CarotidUltrasonography_long">
+                _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
+                
 
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
@@ -282,10 +303,16 @@ class MongoFieldSelector(object):
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
             value_dict["value"] = True  # we only need to store the true / checked cdes
+            
+        for checkbox_id in self.checkbox_ids:
+            value_dict = create_value_dict(checkbox_id)
+            projection_data["projected_cdes"].append(value_dict)
 
-            projected_cdes.append(value_dict)
+        for longitudinal_checkbox_id in self.longitudinal_ids:
+            value_dict = create_value_dict(longitudinal_checkbox_id, longitudinal=True)
+            projection_data["longitudinal_cdes"].append(value_dict)
 
-        return json.dumps(projected_cdes)
+        return json.dumps(projection_data)
 
 
 class ReportTable(object):
