@@ -8,7 +8,8 @@ from rdrf.models import Registry
 class Query(models.Model):
     MONGO_SEARCH_TYPES = (
         ('C', 'Current'),
-        ('L', 'Longitudinal')
+        ('L', 'Longitudinal'),
+        ('M', 'Mixed'),
     )
 
     title = models.CharField(max_length=255)
