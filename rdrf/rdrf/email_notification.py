@@ -115,3 +115,19 @@ class RdrfEmail(object):
     def append(self, key, obj):
         self.template_data[key] = obj
         return self
+
+
+
+
+def process_notification(reg_code=None, description=None, language="en", template_data = {}):
+    notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
+    for note in notes:
+        if note.disabled:
+            logger.warning("Email %s disabled" % note)
+
+        logger.info("Sending email %s" % note)
+        email = RdrfEmail(language=language, email_notification=note)
+        email.template_data = template_data
+        email.send()
+            
+        
