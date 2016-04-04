@@ -218,17 +218,18 @@ class MongoFieldSelector(object):
         self.user = user
         self.registry_model = registry_model
         self.query_model = query_model
+        self.longitudinal_map = self._get_longitudinal_cdes()
         if self.query_model:
             self.existing_data = self._get_existing_report_choices(self.query_model)
         else:
-            self.existing_data = {}
+            self.existing_data = []
 
     def _get_existing_report_choices(self, query_model):
         import json
         try:
             return json.loads(query_model.projection)
         except:
-            return {}
+            return []
 
 
     @property
@@ -251,13 +252,11 @@ class MongoFieldSelector(object):
         if self.existing_data is None:
             return False, False
         
-        for value_dict in self.existing_data["projected_cdes"]:
-            if value_dict is None:
-                continue
+        for value_dict in self.existing_data:
             if value_dict["formName"] == form_model.name:
                 if value_dict["sectionCode"] == section_model.code:
                     if value_dict["cdeCode"] == cde_model.code:
-                        return value_dict["value"], value_dict["long_selected"]
+                        return value_dict["value"], value_dict.get("longitudinal", False)
         return False, False
 
     def _get_field_info(self, form_model, section_model, cde_model):
@@ -285,17 +284,11 @@ class MongoFieldSelector(object):
         # is import of registry definition occurs
         import json
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        projection_data = {"projected_cdes": [],
-                           "longitudinal_cdes": []}
+        projection_data = []
 
-        def create_value_dict(checkbox_id, longitudinal=False):
+        def create_value_dict(checkbox_id):
             # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
-            if not longitudinal:
-                _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
-            else:
-            # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography_long" id="cb_fh_39_104_CarotidUltrasonography_long">
-                _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
-                
+            _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
 
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
@@ -307,16 +300,26 @@ class MongoFieldSelector(object):
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
             value_dict["value"] = True  # we only need to store the true / checked cdes
+            value_dict["longitudinal"] = self.longitudinal_map.get((form_model.name, section_model.code, cde_model.code), False)
+            return value_dict
             
         for checkbox_id in self.checkbox_ids:
             value_dict = create_value_dict(checkbox_id)
-            projection_data["projected_cdes"].append(value_dict)
-
-        for longitudinal_checkbox_id in self.longitudinal_ids:
-            value_dict = create_value_dict(longitudinal_checkbox_id, longitudinal=True)
-            projection_data["longitudinal_cdes"].append(value_dict)
+            projection_data.append(value_dict)
 
         return json.dumps(projection_data)
+
+    def _get_longitudinal_cdes(self):
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        d = {}
+        for checkbox_id in self.longitudinal_ids:
+            _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            d[(form_model.name, section_model.code, cde_model.code)] = True
+        return d
+            
 
 
 class ReportTable(object):

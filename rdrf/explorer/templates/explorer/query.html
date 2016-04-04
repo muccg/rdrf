@@ -48,6 +48,24 @@
                 recalculateProjection();
             })
         }
+    
+    function hideLongitudinalCheckboxes() {
+         var searchType = $("#id_mongo_search_type").val();
+         if (searchType != "M") {
+                 $(FIELDS_TABLE + " tr:first  th:last").text("");
+                 $(FIELDS_TABLE + " :checkbox[id$='_long']").prop("checked", false);
+                 $(FIELDS_TABLE + " :checkbox[id$='_long']").hide();
+         }
+         else {
+             $(FIELDS_TABLE + " tr:first  th:last").text("As Longitudinal");
+             $(FIELDS_TABLE + "  :checkbox[id$='_long']").show();
+         }
+    
+    }
+
+    $("#id_mongo_search_type").bind("change", function() {
+        hideLongitudinalCheckboxes();
+    });
 
         $("#id_registry").bind("change", function () {
 
@@ -108,8 +126,11 @@
                     addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue, longSelected);
                 });
 
+		wireUpFieldsTable();
 
-                wireUpFieldsTable();
+		$("#id_mongo_search_type").trigger("change"); // ensure checkboxes displayed on initial page load
+						      
+						     
 
             }
 
