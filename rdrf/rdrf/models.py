@@ -1748,6 +1748,7 @@ class EmailNotification(models.Model):
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     email_templates = models.ManyToManyField(EmailTemplate)
+    disabled = models.BooleanField(null=False, blank=False, default=False)
 
     def __unicode__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
