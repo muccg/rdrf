@@ -121,7 +121,6 @@ class QueryView(LoginRequiredMixin, View):
 
         if request.is_ajax():
             # populate temporary table
-            from rdrf.reporting_table import ReportingTableGenerator
             humaniser = Humaniser(registry_model)
             multisection_unrollower = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
