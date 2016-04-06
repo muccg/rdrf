@@ -123,6 +123,7 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             # user clicked Run
             # populate temporary table
+            
             humaniser = Humaniser(registry_model)
             multisection_unroller = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unroller, humaniser)
@@ -165,6 +166,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         registry_model = query_model.registry
 
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model) 
+
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_unrollower = MultisectionUnRoller({})
@@ -178,17 +182,17 @@ class DownloadQueryView(LoginRequiredMixin, View):
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
             # download
-            if query_model.search_type == "M":
-                # Mixed query so download spreadsheet
-                return self._spreadsheet(query_model, rtg)
-            else:
-                # csv download
-                return self._extract(query_model.title, rtg)
+            # csv download
+            return self._extract(query_model.title, rtg)
 
-    def _spreadsheet(self, title, rtg):
+    def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
         from rdrf.spreadsheet_report import SpreadSheetReport
-        spreadsheet_report = SpreadSheetReport(title, rtg)
+        spreadsheet_report = SpreadSheetReport(query_model)
+        response = HttpResponse(content_type='application/excel')
+        response['Content-Disposition'] = 'attachment; filename="query_%s.xlsx"' % query_model.pk
+        spreadsheet_report.write_on(response)
+        return response 
         
 
     def get(self, request, query_id, action):
@@ -221,6 +225,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
 
             return render_to_response('explorer/query_download.html', params)
+
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model)
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
