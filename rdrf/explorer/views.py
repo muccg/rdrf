@@ -121,6 +121,7 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
+            # user clicked Run
             # populate temporary table
             humaniser = Humaniser(registry_model)
             multisection_unroller = MultisectionUnRoller({})
@@ -132,6 +133,7 @@ class QueryView(LoginRequiredMixin, View):
             except Exception, ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
+            # user clicked Save
             if form.is_valid():
                 m = query_form.save(commit=False)
                 m.save()
@@ -175,7 +177,19 @@ class DownloadQueryView(LoginRequiredMixin, View):
         if action == "view":
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
-            return self._extract(query_model.title, rtg)
+            # download
+            if query_model.search_type == "M":
+                # Mixed query so download spreadsheet
+                return self._spreadsheet(query_model, rtg)
+            else:
+                # csv download
+                return self._extract(query_model.title, rtg)
+
+    def _spreadsheet(self, title, rtg):
+        # longitudinal spreadsheet required by FKRP
+        from rdrf.spreadsheet_report import SpreadSheetReport
+        spreadsheet_report = SpreadSheetReport(title, rtg)
+        
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
