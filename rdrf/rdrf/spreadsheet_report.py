@@ -22,6 +22,7 @@ class SpreadSheetReport(object):
     def __init__(self,
                  query_model,
                  testing=False):
+        self.query_model = query_model
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
@@ -31,6 +32,11 @@ class SpreadSheetReport(object):
         self.current_sheet = None
         self.current_row = 1
         self.current_col = 1
+
+    def write_on(self, response):
+        spreadsheet = ""
+        import StringIO
+        self.generate()
 
     def _build_longitudinal_column_map(self):
         d = {}
