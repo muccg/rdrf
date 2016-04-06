@@ -370,7 +370,7 @@ def report_function(func):
     func.is_report_function = True
     return func
     
-def evaluate_generalised_field_expresson(registry_model, patient_model, field_expression):
+def evaluate_generalised_field_expression(registry_model, patient_model, field_expression):
     # field expression looks like:
     # "clinical form/sectioncode/cdecode" gets that value
     # "given_names" gets directly from patient model

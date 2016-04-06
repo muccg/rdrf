@@ -3,7 +3,7 @@ import openpyxl as xl
 import logging
 import json
 from collections import OrderedDict
-from rdrf.utils import generalised_field_expression
+from rdrf.utils import evaluate_generalised_field_expression
 from rdrf.dynamic_data import DynamicDataWrapper
 
 logger = logging.getLogger("registry_log")
