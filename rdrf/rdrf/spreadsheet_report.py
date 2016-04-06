@@ -33,10 +33,14 @@ class SpreadSheetReport(object):
         self.current_row = 1
         self.current_col = 1
 
+    # Public interface
     def write_on(self, response):
         spreadsheet = ""
         import StringIO
-        self.generate()
+        self._generate()
+
+
+    # Private
 
     def _build_longitudinal_column_map(self):
         d = {}
@@ -50,22 +54,22 @@ class SpreadSheetReport(object):
                     d[(form_name, section_code)] = [cde_dict["cdeCode"]]
         return d
 
-    def _move_right(self):
+
+    
+
+    # Movement helper functions
+
+    def _next_cell(self):
         self.current_col += 1
 
-    def _move_down(self):
+    def _next_row(self):
         self.current_row += 1
 
-    def _move_beginning_row(self):
+    def _reset(self):
         self.current_col = 1
-
-    def _move_next_row(self):
-        self._move_down()
-        self._move_beginning_row()
-
-    def _move_reset(self):
         self.current_row = 1
-        self.current_col = 1
+
+    # Writing
 
     def _write_cell(self, value):
         # write value at current position
@@ -75,13 +79,13 @@ class SpreadSheetReport(object):
         logger.debug("cell updated: row %s col %s -> %s" % (self.current_row,
                                                             self.current_col,
                                                             value))
-
-    def generate(self):
+   
+    def _generate(self):
         config = json.loads(self.query_model.sql_query)
         static_sheets = config["static_sheets"]
         for static_sheet_dict in static_sheets:
-            name = registry_model.code.upper() + static_sheet["name"]
-            columns = static_sheet["columns"]
+            name = self.registry_model.code.upper() + static_sheet_dict["name"]
+            columns = static_sheet_dict["columns"]
             self._create_static_sheet(name, columns)
         # these columns are always included prior
         universal_columns = config["universal_columns"]
@@ -108,21 +112,21 @@ class SpreadSheetReport(object):
 
     def _write_row(self, patient, columns):
         for column in columns:
-            value = evaluate_field_expression(
+            value = evaluate_generalised_field_expression(
                 self.registry_model, patient, column)
             self._write_cell(value)
             self._next_cell()
 
-    def _create_longitudinal_section_sheet(self, form_model, section_model, universal_columns):
+    def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
         self._create_sheet(sheet_name)
         self._write_longitudinal_header(
             universal_columns, form_model, section_model)
-        self.next_row()
+        self._next_row()
         for patient in self._get_patients():
             self._write_row(patient, universal_columns)
             self._write_longitudinal_row(patient, form_model, section_model)
-            self.next_row()
+            self._next_row()
 
     def _create_sheet(self, name):
         sheet = self.work_book.create_sheet()
@@ -133,18 +137,20 @@ class SpreadSheetReport(object):
     def _write_header_row(self, columns):
         for column_name in columns:
             self._write_cell(column_name)
-            self.next_cell()
+            self._next_cell()
 
     def _get_patients(self):
-        from rdrf.registry.patients import Patient
-        return Patient.objects.filter(working_groups__in=[self.working_groups],
-                                      rdrf_registry__in=[self.registry_model]).order_by("id")
+        from registry.patients.models import Patient
+        return Patient.objects.filter(rdrf_registry__in=[self.registry_model]).order_by("id")
 
-    def _write_longitudinal_header(self, universal_columns, form_model):
-        pass
+    def _write_longitudinal_header(self, universal_columns, form_model, section_model):
+        for column_name in universal_columns:
+            self._write_cell(column_name)
+            self._next_cell()
+        
 
     def _write_longitudinal_row(self, patient, form_model, section_model):
-        cde_codes = self._longitudinal_column_map.get(
+        cde_codes = self.longitudinal_column_map.get(
             (form_model.name, section_model.code), [])
         for snapshot in self._get_snapshots(patient):
             timestamp = self._get_timestamp_from_snapshot(snapshot)
@@ -156,15 +162,13 @@ class SpreadSheetReport(object):
                                                           cde_code)
                 values.append(value)
             self._write_cell(timestamp)
-            self.next_cell()
+            self._next_cell()
             for value in values:
                 self._write_cell(value)
-                self.next_cell()
+                self._next_cell()
 
-    def _get_snapshots(self, patient_model):
+    def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
-        wrapper.testing = self.testing
-        wrapper.client = self.mongo_client
         history_collection = wrapper._get_collection(
             self.registry_model.code, "history")
         lower_bound, upper_bound = self._get_timestamp_bounds()
