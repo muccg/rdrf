@@ -135,6 +135,7 @@ class SpreadSheetReport(object):
                                       rdrf_registry__in=[self.registry_model]).order_by("id")
 
     def _write_longitudinal_header(self, universal_columns, form_model):
+        pass
 
     def _write_longitudinal_row(self, patient, form_model, section_model):
         cde_codes = self._longitudinal_column_map.get(
