@@ -26,7 +26,7 @@ class SpreadSheetReport(object):
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
         self.output_filename = "%s_report.xlsx" % self.registry_model.code
-        self.work_book = xl.WorkBook()
+        self.work_book = xl.Workbook()
         self.testing = testing
         self.current_sheet = None
         self.current_row = 1
