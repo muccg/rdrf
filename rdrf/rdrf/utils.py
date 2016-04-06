@@ -367,11 +367,8 @@ def report_function(func):
     ( for safety and also to allow us later to discover these functions and
       present in a menu )
     """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    wrapper.is_report_function = True
-    return wrapper
+    func.is_report_function = True
+    return func
     
 def evaluate_generalised_field_expresson(registry_model, patient_model, field_expression):
     # field expression looks like:
