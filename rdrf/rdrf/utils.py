@@ -378,7 +378,7 @@ def evaluate_generalised_field_expresson(registry_model, patient_model, field_ex
         cde_model = CommonDataElement.objects.get(code=cde_code)
         patient_record = DynamicDataWrapper(patient_model).load_dynamic_data(registry_model,"cdes",flattened=False)
         return get_cde_value(form_model, section_model, cde_model, patient_record)
-    elif field_expression.startswith("@")
+    elif field_expression.startswith("@"):
         # find denotation of custom function ?
         from rdrf import report_field_functions
         try:
