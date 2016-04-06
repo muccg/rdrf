@@ -359,3 +359,40 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                                 return cde_dict["value"]
                     else:
                         return [ item["value"] for item in section_dict["cdes"] if item["code"] == cde_model.code]
+
+
+def evaluate_generalised_field_expresson(registry_model, patient_model, field_expression):
+    # field expression looks like:
+    # "clinical form/sectioncode/cdecode" gets that value
+    # "given_names" gets directly from patient model
+    # "@function_name" applies report field function function_name to patient_model
+    from rdrf.registry.patients.models import Patient
+    from rdrf.dynamic_data import DynamicDataWrapper
+    patient_fields = [ field.name for field in Patient._meta.get_fields()]
+    if field_expression in patient_fields:
+        return getattr(patient_model, field_expression)
+    elif "/" in field_expression:
+        form_name, section_code, cde_code = field_expression.split("/")
+        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
+        section_model = Section.objects.get(code=section_code)
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        patient_record = DynamicDataWrapper(patient_model).load_dynamic_data(registry_model,"cdes",flattened=False)
+        return get_cde_value(form_model, section_model, cde_model, patient_record)
+    elif field_expression.startswith("@")
+        # find denotation of custom function ?
+        from rdrf import report_field_functions
+        try:
+            func = getattr(report_field_functions, field_expression[1:])
+            if callable(func):
+                return func(patient_model)
+        except:
+            pass
+            
+    
+        
+        
+        
+        
+        
+        
+    
