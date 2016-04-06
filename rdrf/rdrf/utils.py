@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 
 import logging
 import re
+import functools
 
 logger = logging.getLogger("registry_log")
 
@@ -359,6 +360,19 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                         return [ item["value"] for item in section_dict["cdes"] if item["code"] == cde_model.code]
 
 
+
+def report_function(func):
+    """
+    decorator to mark a function as available in the reporting interface
+    ( for safety and also to allow us later to discover these functions and
+      present in a menu )
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapper.is_report_function = True
+    return wrapper
+    
 def evaluate_generalised_field_expresson(registry_model, patient_model, field_expression):
     # field expression looks like:
     # "clinical form/sectioncode/cdecode" gets that value
@@ -381,7 +395,7 @@ def evaluate_generalised_field_expresson(registry_model, patient_model, field_ex
         from rdrf import report_field_functions
         try:
             func = getattr(report_field_functions, field_expression[1:])
-            if callable(func):
+            if callable(func) and hasattr(func, "report_function") and func.report_function:
                 return func(patient_model)
         except:
             pass
