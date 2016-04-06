@@ -25,7 +25,7 @@ class SpreadSheetReport(object):
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
-        self.output_filename = "%s_report.xlsx" % registry_model.code
+        self.output_filename = "%s_report.xlsx" % self.registry_model.code
         self.work_book = xl.WorkBook()
         self.testing = testing
         self.current_sheet = None
@@ -155,7 +155,6 @@ class SpreadSheetReport(object):
                 self._write_cell(value)
                 self.next_cell()
 
-    @cached
     def _get_snapshots(self, patient_model):
         wrapper = DynamicDataWrapper(patient)
         wrapper.testing = self.testing
