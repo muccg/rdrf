@@ -187,10 +187,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
+        from datetime import datetime
         from django.core.servers.basehttp import FileWrapper
         from rdrf.spreadsheet_report import SpreadSheetReport
         spreadsheet_report = SpreadSheetReport(query_model)
+        start = datetime.now()
         spreadsheet_report.run()
+        finish = datetime.now()
+        elapsed_time = finish - start
+        logger.debug("report took %s seconds" % elapsed_time)
         output = open(spreadsheet_report.output_filename)
         filename = "Longitudinal Report.xlsx"
         response =  HttpResponse(FileWrapper(output), content_type='application/excel')
