@@ -5,6 +5,8 @@ import json
 from collections import OrderedDict
 from rdrf.utils import evaluate_generalised_field_expression
 from rdrf.dynamic_data import DynamicDataWrapper
+import uuid
+from django.core.servers.basehttp import FileWrapper
 
 logger = logging.getLogger("registry_log")
 
@@ -26,21 +28,23 @@ class SpreadSheetReport(object):
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
-        self.output_filename = "%s_report.xlsx" % self.registry_model.code
+        self.output_filename = self._generate_filename()
         self.work_book = xl.Workbook()
         self.testing = testing
         self.current_sheet = None
         self.current_row = 1
         self.current_col = 1
+        self.time_window = default_time_window()
 
     # Public interface
-    def write_on(self, response):
-        spreadsheet = ""
-        import StringIO
+    def run(self):
         self._generate()
-
+        self.work_book.save(self.output_filename)
 
     # Private
+
+    def _generate_filename(self):
+        return "/tmp/%s.xlsx" % uuid.uuid4()
 
     def _build_longitudinal_column_map(self):
         d = {}
@@ -131,8 +135,7 @@ class SpreadSheetReport(object):
     def _create_sheet(self, name):
         sheet = self.work_book.create_sheet()
         self.current_sheet = sheet
-        self.current_row = 1
-        self.current_col = 1
+        self._reset()
 
     def _write_header_row(self, columns):
         for column_name in columns:
@@ -169,6 +172,7 @@ class SpreadSheetReport(object):
 
     def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
+        wrapper._set_client()
         history_collection = wrapper._get_collection(
             self.registry_model.code, "history")
         lower_bound, upper_bound = self._get_timestamp_bounds()
