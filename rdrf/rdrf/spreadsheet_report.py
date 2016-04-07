@@ -1,17 +1,18 @@
-from rdrf.utils import get_cde_value
 import openpyxl as xl
 import logging
 import json
-from collections import OrderedDict
-from rdrf.utils import evaluate_generalised_field_expression
-from rdrf.dynamic_data import DynamicDataWrapper
 import uuid
-from django.core.servers.basehttp import FileWrapper
-from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-from rdrf.utils import cached
 import functools
+from collections import OrderedDict
+from django.core.servers.basehttp import FileWrapper
+from rdrf.utils import get_cde_value
+from rdrf.utils import evaluate_generalised_field_expression
+from rdrf.utils import cached
+from rdrf.dynamic_data import DynamicDataWrapper
+from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 
 logger = logging.getLogger("registry_log")
+
 
 def attempt(func):
     @functools.wraps(func)
@@ -19,11 +20,9 @@ def attempt(func):
         try:
             return func(*args, **kwargs)
         except Exception, ex:
-            logger.error("Longitudinal report error: function = %s args = %s kwargs = %s" % func.__name__,
-                                                                                            args,
-                                                                                            kwargs,
-                                                                                            ex)
+            logger.error("report error with %s: %s" % (func.__name__, ex))
     return wrapper
+
 
 def default_time_window():
     from datetime import datetime, timedelta
@@ -51,6 +50,7 @@ class SpreadSheetReport(object):
         self.current_col = 1
         self.time_window = default_time_window()
         self.patient_fields = self._get_patient_fields()
+        self.cde_model_map = {}
 
     # Public interface
     def run(self):
@@ -59,11 +59,17 @@ class SpreadSheetReport(object):
 
     # Private
 
+    def _add_cde_models(self, cde_codes):
+        for cde_code in cde_codes:
+            if cde_code not in self.cde_model_map:
+                self.cde_model_map[
+                    cde_code] = CommonDataElement.objects.get(code=cde_code)
+
     def _get_patient_fields(self):
         from registry.patients.models import Patient
-        patient_fields = set([ field.name for field in Patient._meta.get_fields()])
+        patient_fields = set(
+            [field.name for field in Patient._meta.get_fields()])
         return patient_fields
-
 
     def _generate_filename(self):
         return "/tmp/%s.xlsx" % uuid.uuid4()
@@ -99,10 +105,13 @@ class SpreadSheetReport(object):
         # write value at current position
         cell = self.current_sheet.cell(
             row=self.current_row, column=self.current_col)
-        cell.value = value
+        try:
+            cell.value = value
+        except Exception, ex:
+            logger.error("error writing value %s to cell: %s" % (value, ex))
+            cell.value = "???"
         self._next_cell()
 
-    @attempt
     def _generate(self):
         config = json.loads(self.query_model.sql_query)
         static_sheets = config["static_sheets"]
@@ -141,23 +150,32 @@ class SpreadSheetReport(object):
                                                           self.patient_fields,
                                                           column,
                                                           patient_record)
-                                                          
+
             self._write_cell(value)
 
     def _get_timestamp_from_snapshot(self, snapshot):
         if "timestamp" in snapshot:
             return snapshot["timestamp"]
-    @attempt
-    @cached
+
     def _get_cde_value_from_snapshot(self, snapshot, form_model, section_model, cde_model):
         patient_record = snapshot["record"]
-        return get_cde_value(form_model, section_model, cde_model, patient_record)
+        try:
+            return get_cde_value(form_model, section_model, cde_model, patient_record)
+        except Exception, ex:
+            patient_id = patient_record["django_id"]
+            logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" % (form_model.name,
+                                                                                     section_model.code,
+                                                                                     cde_model.code,
+                                                                                     patient_id,
+                                                                                     ex))
+
+            return "???"
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
         logger.debug("write longitudinal sheet %s" % sheet_name)
         self._create_sheet(sheet_name)
-        # this just writes out bit at the beginning 
+        # this just writes out bit at the beginning
         self._write_header_universal_columns(universal_columns)
         first_longitudinal_date_col = self.current_col
         self._next_row()
@@ -165,11 +183,14 @@ class SpreadSheetReport(object):
         cde_codes = self.longitudinal_column_map.get(
             (form_model.name, section_model.code), [])
 
+        self._add_cde_models(cde_codes)
+
         logger.debug("longitudinal cde codes = %s" % cde_codes)
         for patient in self._get_patients():
             patient_record = self._get_patient_record(patient)
             self._write_row(patient, patient_record, universal_columns)
-            num_snapshots = self._write_longitudinal_row(patient, form_model, section_model, cde_codes)
+            num_snapshots = self._write_longitudinal_row(
+                patient, patient_record, form_model, section_model, cde_codes)
             if num_snapshots > max_snapshots:
                 max_snapshots = num_snapshots
             self._next_row()
@@ -186,7 +207,7 @@ class SpreadSheetReport(object):
             for cde_code in cde_codes:
                 self._write_cell(cde_code)
             self._write_cell("NO DATA RECORDED!")
-        
+
         else:
             for i in range(max_snapshots):
                 self._write_cell(date_column_name)
@@ -209,7 +230,6 @@ class SpreadSheetReport(object):
         else:
             return column_name
 
-
     def _get_patients(self):
         from registry.patients.models import Patient
         return Patient.objects.filter(rdrf_registry__in=[self.registry_model]).order_by("id")
@@ -224,15 +244,16 @@ class SpreadSheetReport(object):
         for column_name in universal_columns:
             self._write_cell(self._header_name(column_name))
 
-    def _write_longitudinal_row(self, patient, form_model, section_model, cde_codes):
-        num_snapshots = 0
-        
+    def _write_longitudinal_row(self, patient, patient_record, form_model, section_model, cde_codes):
+        num_blocks = 0  # a "block" is all cdes in one snapshot or the current set of cdes
+        # we will write the current set of cdes last
+
         for snapshot in self._get_snapshots(patient):
-            num_snapshots += 1
+            num_blocks += 1
             timestamp = self._get_timestamp_from_snapshot(snapshot)
             values = []
             for cde_code in cde_codes:
-                cde_model = CommonDataElement.objects.get(code=cde_code)
+                cde_model = self.cde_model_map[cde_code]
                 value = self._get_cde_value_from_snapshot(snapshot,
                                                           form_model,
                                                           section_model,
@@ -241,10 +262,41 @@ class SpreadSheetReport(object):
             self._write_cell(timestamp)
             for value in values:
                 self._write_cell(value)
-                               #                    snap1        snap2      
-        return num_snapshots   #  2 snapshots = [date A B C][date A B C] - we return number so we can write the header ...
+        # now write the current block
+        current_timestamp = self._get_timestamp_from_current_form_data(
+            patient_record, form_model)
+        self._write_cell(current_timestamp)
+        for cde_code in cde_codes:
+            cde_model = self.cde_model_map[cde_code]
+            current_value = self._get_cde_value_from_current_data(
+                patient_record, form_model, section_model, cde_model)
 
-    @cached
+            #                    snap1        snap2      current
+        # E.g 3 blocks  = [date A B C][date A B C][date A B C] - we return
+        # number so we can write the header ...
+        return num_blocks
+
+    def _get_timestamp_from_current_form_data(self, patient_record, form_model):
+        if patient_record is None:
+            return None
+        else:
+            for form_dict in patient_record["forms"]:
+                if form_dict["name"] == form_model.name:
+                    if "timestamp" in form_dict:
+                        return form_dict["timestamp"]
+
+    def _get_cde_value_from_current_data(self, patient_record, form_model, section_model, cde_model):
+        if patient_record is None:
+            return None
+        try:
+            return get_cde_value(form_model, section_model, cde_model, patient_record)
+        except Exception, ex:
+            cde = "%s/%s/%s" % (form_model.name, section_model.code, cde_model.code)
+            logger.error("Error getting current cde %s for %s: %s" % (cde,
+                                                                      patient_record["django_id"],
+                                                                      ex))
+            return "???"
+
     def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
         wrapper._set_client()
