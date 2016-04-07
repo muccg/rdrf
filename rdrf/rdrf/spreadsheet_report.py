@@ -7,6 +7,7 @@ from rdrf.utils import evaluate_generalised_field_expression
 from rdrf.dynamic_data import DynamicDataWrapper
 import uuid
 from django.core.servers.basehttp import FileWrapper
+from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 
 logger = logging.getLogger("registry_log")
 
@@ -58,9 +59,6 @@ class SpreadSheetReport(object):
                     d[(form_name, section_code)] = [cde_dict["cdeCode"]]
         return d
 
-
-    
-
     # Movement helper functions
 
     def _next_cell(self):
@@ -68,6 +66,7 @@ class SpreadSheetReport(object):
 
     def _next_row(self):
         self.current_row += 1
+        self.current_col = 1
 
     def _reset(self):
         self.current_col = 1
@@ -80,10 +79,11 @@ class SpreadSheetReport(object):
         cell = self.current_sheet.cell(
             row=self.current_row, column=self.current_col)
         cell.value = value
-        logger.debug("cell updated: row %s col %s -> %s" % (self.current_row,
-                                                            self.current_col,
-                                                            value))
-   
+        logger.debug("cell[%s,%s] -> %s" % (self.current_row,
+                                            self.current_col,
+                                            value))
+        self._next_cell()
+
     def _generate(self):
         config = json.loads(self.query_model.sql_query)
         static_sheets = config["static_sheets"]
@@ -119,7 +119,14 @@ class SpreadSheetReport(object):
             value = evaluate_generalised_field_expression(
                 self.registry_model, patient, column)
             self._write_cell(value)
-            self._next_cell()
+
+    def _get_timestamp_from_snapshot(self, snapshot):
+        if "timestamp" in snapshot:
+            return snapshot["timestamp"]
+
+    def _get_cde_value_from_snapshot(self, snapshot, form_model, section_model, cde_model):
+        patient_record = snapshot["record"]
+        return get_cde_value(form_model, section_model, cde_model, patient_record)
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
@@ -132,15 +139,16 @@ class SpreadSheetReport(object):
             self._write_longitudinal_row(patient, form_model, section_model)
             self._next_row()
 
-    def _create_sheet(self, name):
+    def _create_sheet(self, title):
         sheet = self.work_book.create_sheet()
+        sheet.title = title
         self.current_sheet = sheet
         self._reset()
 
     def _write_header_row(self, columns):
         for column_name in columns:
             self._write_cell(column_name)
-            self._next_cell()
+
 
     def _get_patients(self):
         from registry.patients.models import Patient
@@ -149,8 +157,6 @@ class SpreadSheetReport(object):
     def _write_longitudinal_header(self, universal_columns, form_model, section_model):
         for column_name in universal_columns:
             self._write_cell(column_name)
-            self._next_cell()
-        
 
     def _write_longitudinal_row(self, patient, form_model, section_model):
         cde_codes = self.longitudinal_column_map.get(
@@ -159,16 +165,15 @@ class SpreadSheetReport(object):
             timestamp = self._get_timestamp_from_snapshot(snapshot)
             values = []
             for cde_code in cde_codes:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
                 value = self._get_cde_value_from_snapshot(snapshot,
-                                                          form_model.name,
-                                                          section_model.code,
-                                                          cde_code)
+                                                          form_model,
+                                                          section_model,
+                                                          cde_model)
                 values.append(value)
             self._write_cell(timestamp)
-            self._next_cell()
             for value in values:
                 self._write_cell(value)
-                self._next_cell()
 
     def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
