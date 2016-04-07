@@ -183,12 +183,17 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
+        from django.core.servers.basehttp import FileWrapper
         from rdrf.spreadsheet_report import SpreadSheetReport
         spreadsheet_report = SpreadSheetReport(query_model)
-        response = HttpResponse(content_type='application/excel')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.xlsx"' % query_model.pk
-        spreadsheet_report.write_on(response)
-        return response 
+        spreadsheet_report.run()
+        output = open(spreadsheet_report.output_filename)
+        filename = "Longitudinal Report.xlsx"
+        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        return response
+    
+
         
 
         if not munged:
