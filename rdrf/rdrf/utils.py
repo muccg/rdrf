@@ -371,7 +371,7 @@ def report_function(func):
     ( for safety and also to allow us later to discover these functions and
       present in a menu )
     """
-    func.is_report_function = True
+    func.report_function = True
     return func
     
 def evaluate_generalised_field_expression(registry_model, patient_model, field_expression):
