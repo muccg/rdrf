@@ -291,9 +291,11 @@ class SpreadSheetReport(object):
         try:
             return get_cde_value(form_model, section_model, cde_model, patient_record)
         except Exception, ex:
-            cde = "%s/%s/%s" % (form_model.name, section_model.code, cde_model.code)
+            cde = "%s/%s/%s" % (form_model.name,
+                                section_model.code, cde_model.code)
             logger.error("Error getting current cde %s for %s: %s" % (cde,
-                                                                      patient_record["django_id"],
+                                                                      patient_record[
+                                                                          "django_id"],
                                                                       ex))
             return "???"
 
