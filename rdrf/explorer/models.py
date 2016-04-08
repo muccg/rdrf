@@ -38,3 +38,6 @@ class Query(models.Model):
 
     def __unicode__(self):
         return unicode(self.title)
+
+    def has_view(self):
+        return self.mongo_search_type in ['C', 'L']
