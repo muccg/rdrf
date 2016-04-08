@@ -10,9 +10,35 @@ from rdrf.utils import evaluate_generalised_field_expression
 from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+from rdrf.mongo_client import construct_mongo_client
 
 logger = logging.getLogger("registry_log")
 
+class Cache(object):
+    LIMIT_SNAPSHOT = 2000
+    LIMIT_CURRENT = 2000
+    
+    def __init__(self):
+        self.snapshots= {}
+        self.current = {}
+
+    def _get_data(self, patient, cached_data, limit, retriever):
+        if patient.id in cached_data:
+            return cached_data[patient.id]
+        else:
+            if len(cached_data) == self.LIMIT_CURRENT:
+                k = cached_data.keys()[0]
+                del cached_data[k]
+            patient_data  = retriever(patient)
+            cached_data[patient.id] = patient_data
+            return patient_data
+
+    def get_current(self, patient, current_retriever):
+        return self._get_data(patient, self.current, self.LIMIT_CURRENT, current_retriever)
+
+    def get_snapshots(self, patient, snapshots_retriever):
+        return self._get_data(patient, self.snapshots, self.LIMIT_SNAPSHOT, snapshots_retriever)
+    
 
 def attempt(func):
     @functools.wraps(func)
@@ -36,12 +62,12 @@ class SpreadSheetReport(object):
 
     def __init__(self,
                  query_model,
-                 testing=False):
+                 testing=False,
+                 testing_mongo_client=None):
         self.query_model = query_model
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
-        logger.debug("longitudinal map = %s" % self.longitudinal_column_map)
         self.output_filename = self._generate_filename()
         self.work_book = xl.Workbook()
         self.testing = testing
@@ -51,6 +77,12 @@ class SpreadSheetReport(object):
         self.time_window = default_time_window()
         self.patient_fields = self._get_patient_fields()
         self.cde_model_map = {}
+        self.cache = Cache()
+        if self.testing:
+            self.client = testing_mongo_client
+        else:
+            self.client = construct_mongo_client()
+        
 
     # Public interface
     def run(self):
@@ -139,7 +171,8 @@ class SpreadSheetReport(object):
         self._next_row()
 
         for patient in self._get_patients():
-            patient_record = self._get_patient_record(patient)
+            #patient_record = self._get_patient_record(patient)
+            patient_record = self.cache.get_current(patient, self._get_patient_record)
             self._write_row(patient, patient_record, columns)
             self._next_row()
 
@@ -173,7 +206,6 @@ class SpreadSheetReport(object):
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
-        logger.debug("write longitudinal sheet %s" % sheet_name)
         self._create_sheet(sheet_name)
         # this just writes out bit at the beginning
         self._write_header_universal_columns(universal_columns)
@@ -185,9 +217,8 @@ class SpreadSheetReport(object):
 
         self._add_cde_models(cde_codes)
 
-        logger.debug("longitudinal cde codes = %s" % cde_codes)
         for patient in self._get_patients():
-            patient_record = self._get_patient_record(patient)
+            patient_record = self.cache.get_current(patient, self._get_patient_record)
             self._write_row(patient, patient_record, universal_columns)
             num_snapshots = self._write_longitudinal_row(
                 patient, patient_record, form_model, section_model, cde_codes)
@@ -200,7 +231,6 @@ class SpreadSheetReport(object):
         self.current_row = 1
         column_prefix = "%s/%s" % (form_model.name.upper(),
                                    section_model.code)
-        logger.debug("max snapshots = %s" % max_snapshots)
         date_column_name = "DATE_%s" % column_prefix
         if max_snapshots == 0:
             self._write_cell(date_column_name)
@@ -213,6 +243,8 @@ class SpreadSheetReport(object):
                 self._write_cell(date_column_name)
                 for cde_code in cde_codes:
                     self._write_cell(cde_code)
+
+        logger.debug("created sheet %s" % sheet_name)
 
     def _create_sheet(self, title):
         sheet = self.work_book.create_sheet()
@@ -234,10 +266,9 @@ class SpreadSheetReport(object):
         from registry.patients.models import Patient
         return Patient.objects.filter(rdrf_registry__in=[self.registry_model]).order_by("id")
 
-    @cached
     def _get_patient_record(self, patient, collection="cdes"):
         wrapper = DynamicDataWrapper(patient)
-        wrapper._set_client()
+        wrapper.client = self.client
         return wrapper.load_dynamic_data(self.registry_model.code, collection, flattened=False)
 
     def _write_header_universal_columns(self, universal_columns):
@@ -248,7 +279,8 @@ class SpreadSheetReport(object):
         num_blocks = 0  # a "block" is all cdes in one snapshot or the current set of cdes
         # we will write the current set of cdes last
 
-        for snapshot in self._get_snapshots(patient):
+        #for snapshot in self._get_snapshots(patient):
+        for snapshot in self.cache.get_snapshots(patient, self._get_snapshots):
             num_blocks += 1
             timestamp = self._get_timestamp_from_snapshot(snapshot)
             values = []
@@ -301,7 +333,7 @@ class SpreadSheetReport(object):
 
     def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
-        wrapper._set_client()
+        wrapper.client = self.client
         history_collection = wrapper._get_collection(
             self.registry_model.code, "history")
         lower_bound, upper_bound = self._get_timestamp_bounds()
