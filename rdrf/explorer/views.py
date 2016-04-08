@@ -28,6 +28,7 @@ import collections
 import logging
 from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.utils import mongo_key_from_models
 
 logger = logging.getLogger("registry_log")
 
@@ -331,7 +332,6 @@ class Humaniser(object):
         return mongo_value
 
     def display_value2(self, form_model, section_model, cde_model, mongo_value):
-        from rdrf.utils import mongo_key_from_models
         mongo_key = mongo_key_from_models(form_model, section_model, cde_model)
         return self.display_value(mongo_key, mongo_value)
 
