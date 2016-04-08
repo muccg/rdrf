@@ -359,7 +359,13 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                             if cde_dict["code"] == cde_model.code:
                                 return cde_dict["value"]
                     else:
-                        return [ item["value"] for item in section_dict["cdes"] if item["code"] == cde_model.code]
+                        values = []
+                        items = section_dict["cdes"]
+                        for item in items:
+                            for cde_dict in item:
+                                if cde_dict['code'] == cde_model.code:
+                                    values.append(cde_dict["value"])
+                        return values
 
 
 
