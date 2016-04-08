@@ -186,7 +186,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
         from datetime import datetime
         from django.core.servers.basehttp import FileWrapper
         from rdrf.spreadsheet_report import SpreadSheetReport
-        spreadsheet_report = SpreadSheetReport(query_model)
+        humaniser = Humaniser(query_model.registry)
+        spreadsheet_report = SpreadSheetReport(query_model, humaniser)
         start = datetime.now()
         spreadsheet_report.run()
         finish = datetime.now()
@@ -328,6 +329,11 @@ class Humaniser(object):
                     if mongo_value == value_dict["code"]:
                         return value_dict["value"]
         return mongo_value
+
+    def display_value2(self, form_model, section_model, cde_model, mongo_value):
+        from rdrf.utils import mongo_key_from_models
+        mongo_key = mongo_key_from_models(form_model, section_model, cde_model)
+        return self.display_value(mongo_key, mongo_value)
 
 
 def _human_friendly(registry_model, result):
