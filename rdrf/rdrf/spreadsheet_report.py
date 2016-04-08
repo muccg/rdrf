@@ -63,9 +63,11 @@ class SpreadSheetReport(object):
 
     def __init__(self,
                  query_model,
+                 humaniser,
                  testing=False,
                  testing_mongo_client=None):
         self.query_model = query_model
+        self.humaniser = humaniser
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
@@ -197,7 +199,7 @@ class SpreadSheetReport(object):
     def _get_cde_value_from_snapshot(self, snapshot, form_model, section_model, cde_model):
         patient_record = snapshot["record"]
         try:
-            return get_cde_value(form_model, section_model, cde_model, patient_record)
+            return self._human(form_model, section_model, cde_model, get_cde_value(form_model, section_model, cde_model, patient_record))
         except Exception, ex:
             patient_id = patient_record["django_id"]
             logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" % (form_model.name,
@@ -209,6 +211,11 @@ class SpreadSheetReport(object):
             logger.debug(patient_record)
 
             return "?ERROR?"
+
+    @cached
+    def _human(self, form_model, section_model, cde_model, raw_cde_value):
+        return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value) 
+        
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
@@ -306,8 +313,8 @@ class SpreadSheetReport(object):
         self._write_cell(current_timestamp)
         for cde_code in cde_codes:
             cde_model = self.cde_model_map[cde_code]
-            current_value = self._get_cde_value_from_current_data(
-                patient_record, form_model, section_model, cde_model)
+            current_value = self._human(form_model, section_model, cde_model, self._get_cde_value_from_current_data(
+                patient_record, form_model, section_model, cde_model))
 
             #                    snap1        snap2      current
         # E.g 3 blocks  = [date A B C][date A B C][date A B C] - we return
