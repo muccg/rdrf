@@ -573,7 +573,6 @@ class DynamicDataWrapper(object):
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
         if nested_data is None:
-            logger.debug("loading dynamic data - nested data is None so returning None")
             return None
 
         if flattened:
