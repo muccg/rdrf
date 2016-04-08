@@ -138,9 +138,6 @@ class SpreadSheetReport(object):
 
     def _write_cell(self, value):
         # write value at current position
-        if type(value) is type([]):
-            value = ",".join(value)
-            
         cell = self.current_sheet.cell(
             row=self.current_row, column=self.current_col)
         try:
@@ -198,6 +195,8 @@ class SpreadSheetReport(object):
 
     def _get_cde_value_from_snapshot(self, snapshot, form_model, section_model, cde_model):
         patient_record = snapshot["record"]
+        if patient_record is None:
+            return ""
         try:
             return self._human(form_model, section_model, cde_model, get_cde_value(form_model, section_model, cde_model, patient_record))
         except Exception, ex:
@@ -214,7 +213,10 @@ class SpreadSheetReport(object):
 
     @cached
     def _human(self, form_model, section_model, cde_model, raw_cde_value):
-        return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value) 
+        if type(raw_cde_value) is not type([]):
+            return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value)
+        else:
+            return ",".join([ str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
         
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
