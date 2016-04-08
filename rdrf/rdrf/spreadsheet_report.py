@@ -22,22 +22,23 @@ class Cache(object):
         self.snapshots= {}
         self.current = {}
 
-    def _get_data(self, patient, cached_data, limit, retriever):
+    def _get_data(self, patient, name, cached_data, limit, retriever):
         if patient.id in cached_data:
             return cached_data[patient.id]
         else:
             if len(cached_data) == self.LIMIT_CURRENT:
                 k = cached_data.keys()[0]
                 del cached_data[k]
+                
             patient_data  = retriever(patient)
             cached_data[patient.id] = patient_data
             return patient_data
 
     def get_current(self, patient, current_retriever):
-        return self._get_data(patient, self.current, self.LIMIT_CURRENT, current_retriever)
+        return self._get_data(patient, "current", self.current, self.LIMIT_CURRENT, current_retriever)
 
     def get_snapshots(self, patient, snapshots_retriever):
-        return self._get_data(patient, self.snapshots, self.LIMIT_SNAPSHOT, snapshots_retriever)
+        return self._get_data(patient, "snapshots", self.snapshots, self.LIMIT_SNAPSHOT, snapshots_retriever)
     
 
 def attempt(func):
@@ -135,13 +136,16 @@ class SpreadSheetReport(object):
 
     def _write_cell(self, value):
         # write value at current position
+        if type(value) is type([]):
+            value = ",".join(value)
+            
         cell = self.current_sheet.cell(
             row=self.current_row, column=self.current_col)
         try:
             cell.value = value
         except Exception, ex:
             logger.error("error writing value %s to cell: %s" % (value, ex))
-            cell.value = "???"
+            cell.value = "?ERROR?"
         self._next_cell()
 
     def _generate(self):
@@ -202,7 +206,9 @@ class SpreadSheetReport(object):
                                                                                      patient_id,
                                                                                      ex))
 
-            return "???"
+            logger.debug(patient_record)
+
+            return "?ERROR?"
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
@@ -342,7 +348,7 @@ class SpreadSheetReport(object):
                                                      "registry_code": self.registry_model.code,
                                                      "django_model": "Patient",
                                                      "record_type": "snapshot"})
-        return patient_snapshots
+        return [ s for s in patient_snapshots ]
 
     def _get_timestamp_bounds(self):
         dt_lower, dt_upper = self.time_window
