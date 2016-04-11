@@ -465,15 +465,31 @@ class Patient(models.Model):
             cv.save()
         return cv
 
-    def get_consent(self, consent_model):
+    def get_consent(self, consent_model, field="answer"):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
-            return False    # ?
+            if field == "answer":
+                return False    # ?
+            else:
+                logger.debug("consent model not in patient registries")
+                return None
         try:
             cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)
-            return cv.answer
+            if field == "answer":
+                return cv.answer
+            elif field == "first_save":
+                return cv.first_save
+            elif field == "last_update":
+                return cv.last_update
+            else:
+                raise ValueError("only consent_value answer, first_save, last_update fields allowed")
+                
         except ConsentValue.DoesNotExist:
-            return False    # ?
+            if field == "answer":
+                return False    # ?
+            else:
+                logger.debug("consent value does not exist")
+                return None
 
     @property
     def consent_questions_data(self):
