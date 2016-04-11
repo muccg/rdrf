@@ -265,7 +265,24 @@ class SqlQueryView(View):
     def post(self, request):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
-        results = database_utils.run_sql().result
+        mongo_search_type = form.data["mongo_search_type"]
+        logger.debug("mongo search type = %s" % mongo_search_type)
+
+        def get_report_config_errors(form):
+            if not form.is_valid() and "__all__" in form.errors:
+                return form.errors["__all__"]
+            else:
+                return None
+        
+        if mongo_search_type == "M":
+            report_config_errors = get_report_config_errors(form)
+            if report_config_errors is not None:
+                results = {"error_msg": report_config_errors}
+            else:
+                results = {"success_msg": "Report config field is correct structure"}
+        else:
+            results = database_utils.run_sql().result
+
         response = HttpResponse(dumps(results, default=json_serial))
         return response
 
