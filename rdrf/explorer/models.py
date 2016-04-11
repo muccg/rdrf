@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 
 from rdrf.models import Registry
 
@@ -41,3 +42,32 @@ class Query(models.Model):
 
     def has_view(self):
         return self.mongo_search_type in ['C', 'L']
+
+    def clean(self):
+        if self.mongo_search_type == "M":
+            errors = self._get_mixed_query_errors()
+            if len(errors) > 0:
+                error_string = ",".join(errors)
+                raise ValidationError("Report Config Errors: %s" % error_string)
+
+    def _get_mixed_query_errors(self):
+        import json
+        errors = []
+        from rdrf.utils import evaluate_generalised_field_expression
+        try:
+            data = json.loads(self.sql_query)
+            static_sheets = data["static_sheets"]
+            for sheet in static_sheets:
+                sheet_name = sheet["name"]
+                columns = sheet["columns"]
+                for column in columns:
+                    if not isinstance(column, basestring):
+                        errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
+                            
+        except ValueError, ve:
+            errors.append("JSON malformed: %s" % ve.message)
+        except KeyError, ke:
+            errors.append("key error: %s" % ke.message)
+        return errors
+
+ 

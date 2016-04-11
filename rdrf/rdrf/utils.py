@@ -378,6 +378,10 @@ def report_function(func):
     func.report_function = True
     return func
 
+
+class FieldExpressionError(Exception):
+    pass
+
 def evaluate_consent(registry_model, patient_model, consent_expression):
     # used in GFE below
     # e.g. Consents/SomeSectionCode/SomeConsentCode/answer
@@ -389,15 +393,13 @@ def evaluate_consent(registry_model, patient_model, consent_expression):
         consent_section_model = ConsentSection.objects.get(code=consent_section_code,
                                                            registry=registry_model)
     except ConsentSection.DoesNotExist:
-        logger.debug("consent section does not exist")
-        return "??ERROR??"
+        raise FieldExpressionError("consent section does not exist")
     
     try:
         consent_question_model = ConsentQuestion.objects.get(code=consent_code,
                                                              section=consent_section_model)
     except ConsentQuestion.DoesNotExist:
-        logger.debug("consent question does not exist")
-        return "??ERROR??"
+        raise FieldExpressionError("consent question does not exist")
 
     if consent_expression.lower().endswith("/answer"):
         return patient_model.get_consent(consent_question_model, "answer")
@@ -406,9 +408,7 @@ def evaluate_consent(registry_model, patient_model, consent_expression):
     elif consent_expression.endswith("/first_save"):
         return str(patient_model.get_consent(consent_question_model, "first_save"))
     else:
-        logger.debug("unknown consent field: %s" % consent_field)
-        
-        return "??ERROR??"
+        raise FieldExpressionError("Unknown consent field: %s" % consent_expression)
     
 
 def evaluate_generalised_field_expression(registry_model, patient_model, patient_fields, field_expression, nested_patient_record):
@@ -418,36 +418,43 @@ def evaluate_generalised_field_expression(registry_model, patient_model, patient
     # 
     # "@function_name" applies report field function function_name to patient_model
     from registry.patients.models import Patient
-    if field_expression in patient_fields:
-        return getattr(patient_model, field_expression)
-    elif "/" in field_expression:
-        if field_expression.startswith("Consents/"):
-            return evaluate_consent(registry_model, patient_model, field_expression)
-        if nested_patient_record is None:
-            return None
-        from rdrf.models import RegistryForm, Section, CommonDataElement
-        form_name, section_code, cde_code = field_expression.split("/")
-        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
-        section_model = Section.objects.get(code=section_code)
-        cde_model = CommonDataElement.objects.get(code=cde_code)
+    try:
+        if field_expression in patient_fields:
+            return getattr(patient_model, field_expression)
+        elif "/" in field_expression:
+            if field_expression.startswith("Consents/"):
+                return evaluate_consent(registry_model, patient_model, field_expression)
+            if nested_patient_record is None:
+                return None
+            from rdrf.models import RegistryForm, Section, CommonDataElement
+            form_name, section_code, cde_code = field_expression.split("/")
+            form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
+            section_model = Section.objects.get(code=section_code)
+            cde_model = CommonDataElement.objects.get(code=cde_code)
 
-        return get_cde_value(form_model, section_model, cde_model, nested_patient_record)
+            try:
+                return get_cde_value(form_model, section_model, cde_model, nested_patient_record)
+            except Exception, ex:
+                raise FieldExpressionError("get_cde_value error - %s" % ex)
+
+        elif field_expression.startswith("@"):
+            # find denotation of custom function ?
+            from rdrf import report_field_functions
+            try:
+                func = getattr(report_field_functions, field_expression[1:])
+                if callable(func) and hasattr(func, "report_function") and func.report_function:
+                    return func(patient_model)
+            except Exception, ex:
+                raise FieldExpressionError("Error evaluating report function %s: %s" % (field_expression, ex))
+        else:
+            raise FieldExpressionError("Unknown field expression: %s" % field_expression)
+
+    except FieldExpressionError, fee:
+        logger.error("Field Expression Error for patient id %s: %s" % (patient_model.pk,
+                                                                       fee))
+        return "??ERROR??"
+
+
     
-    elif field_expression.startswith("@"):
-        # find denotation of custom function ?
-        from rdrf import report_field_functions
-        try:
-            func = getattr(report_field_functions, field_expression[1:])
-            if callable(func) and hasattr(func, "report_function") and func.report_function:
-                return func(patient_model)
-        except:
-            pass
-            
-    
         
         
-        
-        
-        
-        
-    
