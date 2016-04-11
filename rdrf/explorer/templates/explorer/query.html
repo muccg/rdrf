@@ -63,8 +63,19 @@
     
     }
 
+    function runButtonVisibility() {
+        var reportType = $("#id_mongo_search_type").val();
+        if (reportType == "M") {
+            $("#submit-query").hide();
+        }
+        else {
+            $("#submit-query").show();
+        }
+    }
+
     $("#id_mongo_search_type").bind("change", function() {
         hideLongitudinalCheckboxes();
+        runButtonVisibility();
     });
 
         $("#id_registry").bind("change", function () {
