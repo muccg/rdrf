@@ -380,16 +380,51 @@ def report_function(func):
     func.report_function = True
     return func
 
+def evaluate_consent(registry_model, patient_model, consent_expression):
+    # used in GFE below
+    # e.g. Consents/SomeSectionCode/SomeConsentCode/answer
+    from rdrf.models import ConsentSection, ConsentQuestion
+    
+    _, consent_section_code, consent_code, consent_field = consent_expression.split("/")
+    
+    try:
+        consent_section_model = ConsentSection.objects.get(code=consent_section_code,
+                                                           registry=registry_model)
+    except ConsentSection.DoesNotExist:
+        logger.debug("consent section does not exist")
+        return "??ERROR??"
+    
+    try:
+        consent_question_model = ConsentQuestion.objects.get(code=consent_code,
+                                                             section=consent_section_model)
+    except ConsentQuestion.DoesNotExist:
+        logger.debug("consent question does not exist")
+        return "??ERROR??"
+
+    if consent_expression.lower().endswith("/answer"):
+        return patient_model.get_consent(consent_question_model, "answer")
+    if consent_expression.lower().endswith("/last_update"):
+        return str(patient_model.get_consent(consent_question_model, "last_update"))
+    elif consent_expression.endswith("/first_save"):
+        return str(patient_model.get_consent(consent_question_model, "first_save"))
+    else:
+        logger.debug("unknown consent field: %s" % consent_field)
+        
+        return "??ERROR??"
+    
 
 def evaluate_generalised_field_expression(registry_model, patient_model, patient_fields, field_expression, nested_patient_record):
     # field expression looks like:
     # "clinical form/sectioncode/cdecode" gets that value
     # "given_names" gets directly from patient model
+    # 
     # "@function_name" applies report field function function_name to patient_model
     from registry.patients.models import Patient
     if field_expression in patient_fields:
         return getattr(patient_model, field_expression)
     elif "/" in field_expression:
+        if field_expression.startswith("Consents/"):
+            return evaluate_consent(registry_model, patient_model, field_expression)
         if nested_patient_record is None:
             return None
         from rdrf.models import RegistryForm, Section, CommonDataElement
