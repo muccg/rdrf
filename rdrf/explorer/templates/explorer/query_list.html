@@ -6,6 +6,7 @@
             <tr>
                 <th class="col-md-3">Query</th>
                 <th class="col-md-3">Download</th>
+                <th class="col-md-3">View</th>
                 <th class="col-md-3">Delete</th>
             </tr>
         </thead>
@@ -18,7 +19,14 @@
                     <td>{{object}}</td>
                 {% endif %}
                 <td>
-                    <a href="{% url 'explorer_query_download' object.id %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                    <a href="{% url 'explorer_query_download' object.id "download" %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                </td>
+                 <td>
+		   {% if object.has_view %}
+                   <a href="{% url 'explorer_query_download' object.id "view" %}"><i class="glyphicon glyphicon-eye-open" style="font-size: 20px;"></i></a>
+		   {% else %}
+		   <span class="glyphicon glyphicon-large glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span>
+		   {% endif %}
                 </td>
                 <td>
                     {% if request.user.is_superuser %}

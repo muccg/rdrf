@@ -2114,7 +2114,6 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         self.form_progress.reset()
         row_dict = {}
         for field in func_map:
-            logger.debug("getting %s" % field)
             try:
                 value = func_map[field](instance)
             except KeyError:

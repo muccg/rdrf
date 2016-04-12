@@ -3,11 +3,16 @@ from sqlalchemy import create_engine, MetaData
 from rdrf.dynamic_data import DynamicDataWrapper
 import explorer
 from explorer.utils import DatabaseUtils
+from rdrf.utils import timed
 
 import logging
 logger = logging.getLogger("registry_log")
 
 from django.conf import settings
+
+
+def temporary_table_name(query_model, user):
+    return "report_%s_%s" % (query_model.id, user.pk)
 
 
 class ReportingTableGenerator(object):
@@ -49,12 +54,16 @@ class ReportingTableGenerator(object):
                                                                       host,
                                                                       port,
                                                                       database)
+
+        logger.debug("connection_string = %s" % connection_string)
         return create_engine(connection_string)
 
+    @timed
     def create_table(self):
         self.table.create()
         logger.debug("created table based on schema")
 
+    @timed
     def drop_table(self):
         drop_table_sql = "DROP TABLE %s" % self.table_name
         conn = self.engine.connect()
@@ -67,14 +76,13 @@ class ReportingTableGenerator(object):
 
     def set_table_name(self, obj):
         logger.debug("setting table name from %s %s" % (self.user.username, obj))
-        t = "report_%s_%s" % (obj.id, self.user.pk)
-        self.table_name = t
+        self.table_name = temporary_table_name(obj, self.user)
         logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
-        logger.debug("reverse map %s --> %s" % (key, value))
 
+    @timed
     def create_columns(self, sql_metadata, mongo_metadata):
         logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
@@ -101,7 +109,6 @@ class ReportingTableGenerator(object):
             self.columns.add(column_from_mongo)
 
     def _create_column_from_sql(self, column_metadata):
-        logger.debug("column metadata = %s" % column_metadata)
         column_name = column_metadata["name"]
         type_name = column_metadata["type_name"]
         # Not sure if this good idea ...
@@ -119,7 +126,6 @@ class ReportingTableGenerator(object):
         else:
             datatype = alc.String
 
-        logger.debug("mapped sql alc data type = %s" % datatype)
         return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
@@ -127,7 +133,6 @@ class ReportingTableGenerator(object):
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         if section_model.allow_multiple:
             # This map is used when we unroll/"denormalise" the multisection data
-            logger.debug("multisection_column_map = %s" % self.multisection_column_map)
             if section_model.code in self.multisection_column_map:
                 self.multisection_column_map[section_model.code].append(column_name)
             else:
@@ -135,29 +140,34 @@ class ReportingTableGenerator(object):
 
         return self._create_column(column_name, column_data_type)
 
+    @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
+        errors = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
-            logger.debug("rolled row = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
-                logger.debug("unrolled row = %s" % unrolled_row)
                 try:
                     self.insert_row(unrolled_row)
                 except Exception, ex:
+                    errors += 1
                     logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
                                                                               unrolled_row,
                                                                               ex))
+        logger.info("query errors: %s" % errors)
 
     def insert_row(self, value_dict):
-        # each row will be a denormalised section item
-        logger.debug("inserting context dict: %s" % value_dict)
+        for k in value_dict:
+            value = value_dict[k]
+            if isinstance(value, basestring):
+                value_dict[k] = value.encode("ascii", "replace")
+                
+                
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
         column = alc.Column(name, datatype, nullable=True)
         self.columns.add(column)
-        logger.debug("added column %s type %s" % (name, datatype))
         return column
 
     def create_schema(self):
@@ -191,19 +201,28 @@ class ReportingTableGenerator(object):
 
 
 class MongoFieldSelector(object):
-    def __init__(self, user, registry_model, query_model, checkbox_ids=[]):
+    def __init__(self,
+                 user,
+                 registry_model,
+                 query_model,
+                 checkbox_ids=[],
+                 longitudinal_ids=[],
+    ):
         if checkbox_ids is not None:
             self.checkbox_ids = checkbox_ids
         else:
             self.checkbox_ids = []
 
+        self.longitudinal_ids = longitudinal_ids
+
         self.user = user
         self.registry_model = registry_model
         self.query_model = query_model
+        self.longitudinal_map = self._get_longitudinal_cdes()
         if self.query_model:
             self.existing_data = self._get_existing_report_choices(self.query_model)
         else:
-            self.existing_data = {}
+            self.existing_data = []
 
     def _get_existing_report_choices(self, query_model):
         import json
@@ -229,15 +248,20 @@ class MongoFieldSelector(object):
         return self.field_info
 
     def _get_saved_value(self, form_model, section_model, cde_model):
+        logger.debug("existing data = %s" % self.existing_data)
+        if self.existing_data is None:
+            return False, False
+        
         for value_dict in self.existing_data:
             if value_dict["formName"] == form_model.name:
                 if value_dict["sectionCode"] == section_model.code:
                     if value_dict["cdeCode"] == cde_model.code:
-                        return value_dict["value"]
-        return False
+                        return value_dict["value"], value_dict.get("longitudinal", False)
+        return False, False
 
     def _get_field_info(self, form_model, section_model, cde_model):
-        saved_value = self._get_saved_value(form_model, section_model, cde_model)
+        saved_value, long_selected = self._get_saved_value(form_model, section_model, cde_model)
+        
         field_id = "cb_%s_%s_%s_%s" % (self.registry_model.code,
                                        form_model.pk,
                                        section_model.pk,
@@ -249,21 +273,21 @@ class MongoFieldSelector(object):
                                 "cdeCode": cde_model.code,
                                 "id": field_id,
                                 "label": field_label,
-                                "savedValue": saved_value})
+                                "savedValue": saved_value,
+                                "longSelected": long_selected})
 
     @property
     def projections_json(self):
         # this method returns the new projection data back to the client based
-        # on the list of checked items passed in
+        # on the list of checked items passed in ( including longitudinal if mixed report)
         # the constructed json is independent of db ids ( as these will change
         # is import of registry definition occurs
         import json
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        projected_cdes = []
-        for checkbox_id in self.checkbox_ids:
+        projection_data = []
+
+        def create_value_dict(checkbox_id):
             # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
-            # registry code, form pk, section pk, cde_code
-            # cb_fh_39_105_EchocardiogramResult
             _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
 
             form_model = RegistryForm.objects.get(pk=int(form_pk))
@@ -276,8 +300,124 @@ class MongoFieldSelector(object):
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
             value_dict["value"] = True  # we only need to store the true / checked cdes
+            value_dict["longitudinal"] = self.longitudinal_map.get((form_model.name, section_model.code, cde_model.code), False)
+            return value_dict
+            
+        for checkbox_id in self.checkbox_ids:
+            value_dict = create_value_dict(checkbox_id)
+            projection_data.append(value_dict)
 
-            projected_cdes.append(value_dict)
+        return json.dumps(projection_data)
 
-        logger.debug("projected cdes = %s" % projected_cdes)
-        return json.dumps(projected_cdes)
+    def _get_longitudinal_cdes(self):
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        d = {}
+        for checkbox_id in self.longitudinal_ids:
+            _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            d[(form_model.name, section_model.code, cde_model.code)] = True
+        return d
+            
+
+
+class ReportTable(object):
+    """
+    Used by report datatable view
+    """
+
+    def __init__(self,  user, query_model):
+        self.query_model = query_model
+        self.user = user
+        self.engine = self._create_engine()
+        self.table_name = temporary_table_name(self.query_model, self.user)
+        self.table = self._get_table()
+        self._converters = {
+            "date_of_birth": str,
+        }
+
+    @property
+    def title(self):
+        return "Report Table"
+
+    @property
+    def columns(self):
+        return [{"data": col.name, "label": self._get_label(col.name)} for col in self.table.columns]
+
+    def _get_label(self, column_name):
+        # relies on the encoding of the column names
+        from rdrf.models import RegistryForm, Section, CommonDataElement
+        try:
+            dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name
+            return s.upper().encode('ascii', 'replace')
+            
+        except Exception, ex:
+            logger.debug("error getting label: %s" % ex)
+            return column_name        
+
+    def _get_table(self):
+        return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
+
+    def _create_engine(self):
+        report_db_data = settings.DATABASES["reporting"]
+        db_user = report_db_data["USER"]
+        db_pass = report_db_data["PASSWORD"]
+        database = report_db_data["NAME"]
+        host = report_db_data["HOST"]
+        port = report_db_data["PORT"]
+        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
+                                                                      db_pass,
+                                                                      host,
+                                                                      port,
+                                                                      database)
+        return create_engine(connection_string)
+
+    def run_query(self, params=None):
+        from sqlalchemy.sql import select
+        rows = []
+        columns = [col for col in self.table.columns]
+        query = select([self.table])
+        if params is None:
+            pass
+        else:
+            if "sort_field" in params:
+                sort_field = params["sort_field"]
+                sort_direction = params["sort_direction"]
+
+                sort_column = getattr(self.table.c, sort_field)
+                logger.debug("sorting by %s" % sort_column.name)
+
+                if sort_direction == "asc":
+                    logger.debug("sort direction is ascending")
+                    sort_column = sort_column.asc()
+                else:
+                    logger.debug("sort direction is descending")
+                    sort_column = sort_column.desc()
+
+                query = query.order_by(sort_column)
+
+        for row in self.engine.execute(query):
+                result_dict = {}
+                for i, col in enumerate(columns):
+                    result_dict[col.name] = self._format(col.name, row[i])
+                rows.append(result_dict)
+        return rows
+
+    def _format(self, column, data):
+        converter = self._converters.get(column, None)
+        if converter is None:
+            return data
+        else:
+            return converter(data)
+
+
+
+
+
+
+

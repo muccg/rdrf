@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
@@ -28,6 +29,7 @@ import collections
 import logging
 from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.utils import mongo_key_from_models
 
 logger = logging.getLogger("registry_log")
 
@@ -120,8 +122,9 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
+            # user clicked Run
             # populate temporary table
-            from rdrf.reporting_table import ReportingTableGenerator
+            
             humaniser = Humaniser(registry_model)
             multisection_unroller = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unroller, humaniser)
@@ -132,6 +135,7 @@ class QueryView(LoginRequiredMixin, View):
             except Exception, ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
+            # user clicked Save
             if form.is_valid():
                 m = query_form.save(commit=False)
                 m.save()
@@ -141,7 +145,10 @@ class QueryView(LoginRequiredMixin, View):
 
 class DownloadQueryView(LoginRequiredMixin, View):
 
-    def post(self, request, query_id):
+    def post(self, request, query_id, action):
+        if action not in ["download", "view"]:
+            raise Exception("bad action")
+
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
 
@@ -160,16 +167,52 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         registry_model = query_model.registry
 
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model) 
+
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_unrollower = MultisectionUnRoller({})
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
+        a = datetime.now()
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        b = datetime.now()
+        logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
+        if action == "view":
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            # download
+            # csv download
+            return self._extract(query_model.title, rtg)
 
-    def get(self, request, query_id):
+    def _spreadsheet(self, query_model):
+        # longitudinal spreadsheet required by FKRP
+        from datetime import datetime
+        from django.core.servers.basehttp import FileWrapper
+        from rdrf.spreadsheet_report import SpreadSheetReport
+        humaniser = Humaniser(query_model.registry)
+        spreadsheet_report = SpreadSheetReport(query_model, humaniser)
+        start = datetime.now()
+        spreadsheet_report.run()
+        finish = datetime.now()
+        elapsed_time = finish - start
+        logger.debug("report took %s seconds" % elapsed_time)
+        output = open(spreadsheet_report.output_filename)
+        filename = "Longitudinal Report.xlsx"
+        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        return response
+    
+
+        
+
+    def get(self, request, query_id, action):
+        if action not in ['download', 'view']:
+            raise Exception("bad action")
+
         user = request.user
+        logger.debug("user = %s" % user)
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -178,16 +221,25 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         if query_params:
             params = _get_default_params(request, query_form)
+            params["action"] = action
             params['query_params'] = query_params
             if "registry" in query_params:
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
-                if user.is_curator:
+                if user.is_superuser:
+                    params["working_group"] = WorkingGroup.objects.filter(registry=registry_model)
+                elif user.is_curator:
                     params["working_group"] = WorkingGroup.objects.filter(
                         id__in=[wg.id for wg in user.get_working_groups()])
                 else:
-                    params["working_group"] = WorkingGroup.objects.all()
+                    # only curators and admin
+                    pass
+
+
             return render_to_response('explorer/query_download.html', params)
+
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model)
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
@@ -195,7 +247,12 @@ class DownloadQueryView(LoginRequiredMixin, View):
         rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        if action == 'view':
+            # allow user to view and manipulate
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            # download csv
+            return self._extract(query_model.title, rtg)
 
     def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
@@ -208,7 +265,24 @@ class SqlQueryView(View):
     def post(self, request):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
-        results = database_utils.run_sql().result
+        mongo_search_type = form.data["mongo_search_type"]
+        logger.debug("mongo search type = %s" % mongo_search_type)
+
+        def get_report_config_errors(form):
+            if not form.is_valid() and "__all__" in form.errors:
+                return form.errors["__all__"]
+            else:
+                return None
+        
+        if mongo_search_type == "M":
+            report_config_errors = get_report_config_errors(form)
+            if report_config_errors is not None:
+                results = {"error_msg": report_config_errors}
+            else:
+                results = {"success_msg": "Report config field is correct structure"}
+        else:
+            results = database_utils.run_sql().result
+
         response = HttpResponse(dumps(results, default=json_serial))
         return response
 
@@ -286,6 +360,10 @@ class Humaniser(object):
                     if mongo_value == value_dict["code"]:
                         return value_dict["value"]
         return mongo_value
+
+    def display_value2(self, form_model, section_model, cde_model, mongo_value):
+        mongo_key = mongo_key_from_models(form_model, section_model, cde_model)
+        return self.display_value(mongo_key, mongo_value)
 
 
 def _human_friendly(registry_model, result):
@@ -391,13 +469,27 @@ class MultisectionUnRoller(object):
             :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
+            
+            Lists _should_ be same length EXCEPT in case
+            where a cde has been added to the registry definition AFTER data has been saved to mongo:
+            in this case the return values list for that CDE will be empty ( see FH-15 )
+            In order to avoid index errors , in this case the list is padded with Nones up to the 
+            size of the list 
+            padded with None if not
             """
             l = []
-            indexes = range(max(map(len, dl.values())))
+            
+            max_length = max(map(len, dl.values()))
+            indexes = range(max_length)
             for i in indexes:
                 d = {}
                 for k in dl:
-                    d[k] = dl[k][i]
+                    this_list = dl[k]
+                    this_list_length = len(this_list)
+                    if this_list_length < max_length:
+                        num_nones = max_length - this_list_length
+                        this_list.extend([None] * num_nones)
+                    d[k] = this_list[i]
                 l.append(d)
             return l
 

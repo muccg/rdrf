@@ -86,9 +86,12 @@ def rpc_reporting_command(request, queryId, registry_id, command, arg):
 
     registry_model = Registry.objects.get(pk=int(registry_id))
     if command == "get_projection":
-        checkbox_ids = arg
-        field_selector = MongoFieldSelector(user, registry_model, query_model, checkbox_ids)
-        return field_selector.projections_json
+        checkbox_ids = arg["checkbox_ids"]
+        longitudinal_ids = arg['longitudinal_ids']
+        field_selector = MongoFieldSelector(user, registry_model, query_model, checkbox_ids, longitudinal_ids)
+        result = field_selector.projections_json
+        logger.debug("projections_json = %s" % result)
+        return result
     elif command == "get_field_data":
         field_selector = MongoFieldSelector(user, registry_model, query_model)
         return field_selector.field_data
