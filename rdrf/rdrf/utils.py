@@ -417,16 +417,16 @@ def evaluate_address(patient_model, address_expression):
 
     gets first by default
 
-    /Demographics/Address/Home/Address
-    /Demographics/Address/Home/Suburb
-    /Demographics/Address/Home/State
-    /Demographics/Address/Home/State
-    /Demographics/Address/Home/Country
-    /Demographics/Address/Postal/Address
-    /Demographics/Address/Postal/Suburb
-    /Demographics/Address/Postal/State
-    /Demographics/Address/Postal/State
-    /Demographics/Address/Postal/Country
+    Demographics/Address/Home/Address
+    Demographics/Address/Home/Suburb
+    Demographics/Address/Home/State
+    Demographics/Address/Home/State
+    Demographics/Address/Home/Country
+    Demographics/Address/Postal/Address
+    Demographics/Address/Postal/Suburb
+    Demographics/Address/Postal/State
+    Demographics/Address/Postal/State
+    Demographics/Address/Postal/Country
     """
     from registry.patients.models import PatientAddress, AddressType
     try:
