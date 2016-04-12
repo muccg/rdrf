@@ -488,7 +488,6 @@ class Patient(models.Model):
             if field == "answer":
                 return False    # ?
             else:
-                logger.debug("consent value does not exist")
                 return None
 
     @property
