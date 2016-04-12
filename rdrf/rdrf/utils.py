@@ -410,6 +410,7 @@ def evaluate_consent(registry_model, patient_model, consent_expression):
     else:
         raise FieldExpressionError("Unknown consent field: %s" % consent_expression)
 
+
 def evaluate_address(patient_model, address_expression):
     """
     maybe this expression language should expressed in pyparsing later or some equiv
