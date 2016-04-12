@@ -6,6 +6,7 @@ from registry.patients.models import PatientAddress
 def professionals(patient_model):
     return patient_model.clinician
 
+
 @report_function
 def country(patient_model):
     try:
@@ -13,6 +14,7 @@ def country(patient_model):
         return patient_address.country
     except:
         pass
+
 
 @report_function
 def last_login(patient_model):
@@ -22,5 +24,3 @@ def last_login(patient_model):
     user = patient_model.user
     if user is not None:
         return user.last_login
-    
-    
