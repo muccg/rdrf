@@ -80,24 +80,6 @@
         .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
             border-top: 0;
         }
-		
-		.next {
-			position: fixed;
-			width: 2%;
-			top: 50%;
-			right: 0;
-			font-size: 2em;
-			margin-right: 10px;
-		}
-
-		.previous {
-			position: fixed;
-			width: 2%;
-			top: 50%;
-			left: 0;
-			margin-left: 10px;
-			font-size: 2em;
-		}
     </style>
     
     <script>
@@ -238,20 +220,40 @@
 	{{ context_launcher | safe }}
 <!-- /#sidebar-wrapper -->
 {% endblock %}
-	
+
+{% block formbtns %}
+	<br>
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+		</a>
+
+		{% if show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+			</a>
+		{% endif %}
+	</div>
+{% endblock %}	
+
 {% block content %}
     {{ block.super }}
-	<a class="previous" href="{{ previous_form_link }}">
+	
+	<a class="previous-form" href="{{ previous_form_link }}">
 		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 	</a>
 
-	<a class="next" href="{{ next_form_link }}">
+	<a class="next-form" href="{{ next_form_link }}">
 		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 	</a>
 	
     <br>
     <div class="row">
-    <div class="col-md-10">
+    <div class="col-md-12">
         <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
@@ -402,23 +404,6 @@
                 </div>
             {% endfor %}
         </div>
-
-        <div class="col-md-2">
-            <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-                {% if show_print_button %}
-                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
-                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
-                </a>
-                {% endif %}
-            </div>
-        </div>
-
     </form>
 
  </div>

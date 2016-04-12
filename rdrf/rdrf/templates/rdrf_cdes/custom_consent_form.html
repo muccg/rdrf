@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-2-cols.html" %}
 
 {% load add_attr %}
 {% load static from staticfiles %}
@@ -86,17 +86,56 @@
 {% block formlinks %}
 {% endblock %}
 
+{% block sidebar %}
+<!-- Sidebar -->
+	{{ context_launcher | safe }}
+<!-- /#sidebar-wrapper -->
+{% endblock %}
+
+{% block formbtns %}
+	<br>
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+		</a>
+
+		{% if show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+			</a>
+		{% endif %}
+	</div>
+{% endblock %}	
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{location}}</h3></p>
-	    {{ patient_link | safe}}
-        </div>
-    </div>
+
+	{% if patient|has_feature:"consent_lock" %}
+		{% if consent %}
+			<a class="previous" href="{{ previous_form_link }}">
+				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			</a>
+		
+			<a class="next" href="{{ next_form_link }}">
+				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			</a>
+		{% endif %}
+	{% else %}
+		<a class="previous-form" href="{{ previous_form_link }}">
+			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+		</a>
+	
+		<a class="next-form" href="{{ next_form_link }}">
+			<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+		</a>		
+	{% endif %}
+
     <br>
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-12">
             {% if message %}
                 <div class="alert alert-success" role="alert">
                     {{ message }}
@@ -285,40 +324,7 @@
                         {% endfor %}
                     {% endif %}
                 {% endfor %}
-        </div>
-
-            <div class="col-md-2">
-                <div data-spy="affix" style="width: 150px;">
-                    <button type="submit" class="btn btn-success btn-block" value="Save">
-                        <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                    </button>
-
-                    <a href="" class="btn btn-danger btn-block">
-                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                    </a>
-
-                    {% if patient|has_feature:"consent_lock" %}
-                        {% if consent %}
-                            <a class="btn btn-info btn-block" href="{{ next_form_link }}">
-                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
-                            </a>
-                            <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
-                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
-                            </a>
-
-                        {% endif %}
-                    {% else %}
-                        <a class="btn btn-info btn-block" href="{{ next_form_link }}">
-                            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
-                        </a>
-                        <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
-                            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
-                        </a>
-                    {% endif %}
-		            <p></p>
-			    {{ context_launcher | safe }}
-                </div>
-            </div>
+			</div>
         </form>
     </div>
 {% endblock %}

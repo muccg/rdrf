@@ -1,24 +1,27 @@
 {% load version_number %}
 
-<div id="footer" class="footer">
-  <div class="content">
-
-    <div class="tools">
-        <a href="mailto:rdrf@ccg.murdoch.edu.au" class="icon"><i class="icon-question-sign"></i>Support</a>
-        <a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
-        <i class="icon-wrench"></i> Version {% version_number %}
+<div class="footer-wrap">
+  <div class="row">
+    <div class="col-md-4 version">
+      <div>
+          <a href="mailto:rdrf@ccg.murdoch.edu.au" class="icon"><i class="icon-question-sign"></i>Support</a>
+          <a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
+          <i class="icon-wrench"></i> Version {% version_number %}
+      </div>
     </div>
-
-    <div class="copyright">
-        <a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">Disclaimer &amp; Copyright Notice</a> &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
-        <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a><br>
-        <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Documentation</a> | 
-        <a href="https://github.com/muccg/rdrf" target="_blank">Source Code</a> |
-        <a href="mailto:rdrf@ccg.murdoch.edu.au">Email RDRF</a>
+    <div class="col-md-4 disclaimer">
+      <div>
+          <a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">Disclaimer &amp; Copyright Notice</a> &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
+          <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a><br>
+          <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/" target="_blank">Documentation</a> | 
+          <a href="https://github.com/muccg/rdrf" target="_blank">Source Code</a> |
+          <a href="mailto:rdrf@ccg.murdoch.edu.au">Email RDRF</a>
+      </div>
     </div>
-
-    <div class="branding">
-        Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
+    <div class="col-md-4 authorised">  
+      <div>
+          Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
+      </div>
     </div>
   </div>
 </div>

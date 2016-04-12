@@ -152,20 +152,20 @@
     </nav>
 
 	{% if location %}
-	<div class="banner">
-	  <div class="col-md-6 col-md-offset-1">
-		  <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|safe }}</h3></p>
-		  {% if patient_link %}
-			{{ patient_link | safe}}
-		  {% elif patient %}
-			<i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
-		  {% endif %}
+	  <div class="banner">
+		<div class="col-md-6 col-md-offset-1">
+			<p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe }}{% endblock %}</h3></p>
+			{% if patient_link %}
+			  {{ patient_link | safe}}
+			{% elif patient %}
+			  <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
+			{% endif %}
+		</div>
+		<div class="col-md-4" style="text-align: right">
+		  {% block formbtns %}
+		  {% endblock %}
+		</div>
 	  </div>
-	  <div class="col-md-4" style="text-align: right">
-		{% block formbtns %}
-		{% endblock %}
-	  </div>
-	</div>
 	{% endif %}
 
     <div class="container-fluid" style="padding-top: 110px;">
@@ -182,14 +182,7 @@
 		{% endif %}
 		
 		<div class="row">
-		  <div class="col-md-offset-1 col-md-2">
-			<br>
-			<div class="well" style="background-color: #eeeeee;">
-			  {% block sidebar %}
-			  {% endblock %}
-			</div>
-		  </div>
-		  <div class="col-md-8"> 
+		  <div class="col-md-10 col-md-offset-1"> 
 			{% block content %}
 				
 				{% if header %}
