@@ -411,14 +411,59 @@ def evaluate_consent(registry_model, patient_model, consent_expression):
         return str(patient_model.get_consent(consent_question_model, "first_save"))
     else:
         raise FieldExpressionError("Unknown consent field: %s" % consent_expression)
+
+def evaluate_address(patient_model, address_expression):
+    """
+    maybe this expression language should expressed in pyparsing later or some equiv
+
+    gets first by default
+
+    /Demographics/Address/Home/Address
+    /Demographics/Address/Home/Suburb
+    /Demographics/Address/Home/State
+    /Demographics/Address/Home/State
+    /Demographics/Address/Home/Country
+    /Demographics/Address/Postal/Address
+    /Demographics/Address/Postal/Suburb
+    /Demographics/Address/Postal/State
+    /Demographics/Address/Postal/State
+    /Demographics/Address/Postal/Country
+    """
+    from registry.patients.models import PatientAddress, AddressType
+    try:
+        _, _, address_type, field = address_expression.split("/")
+        if address_type not in ["Home","Postal"]:
+            raise FieldExpressionError("Unknown address type: %s" % address_type)
+        if field not in ["Address", "Suburb", "State","Country","Postcode"]:
+            raise FieldExpressionError("Unknown address field: %s" % field)
+
+        try:
+            address_type_model = AddressType.objects.get(type=address_type)
+        except AddressType.DoesNotExist:
+            raise FieldExpressionError("Address type does not exist: %s" % address_type)
+        
+        try: 
+            address_model = PatientAddress.objects.get(patient=patient_model,
+                                                       address_type=address_type_model)
+        except PatientAddress.DoesNotExist:
+            return None
+
+        return getattr(address_model, field.lower())
+    except Exception, ex:
+        raise FieldExpressionError("Error in address expression %s: %s" % (address_expression,
+                                                                           ex))
+            
+        
+    
     
 
 def evaluate_generalised_field_expression(registry_model, patient_model, patient_fields, field_expression, nested_patient_record):
     # field expression looks like:
-    # "clinical form/sectioncode/cdecode" gets that value
+    # "clinical form name/sectioncode/cdecode" gets that value
     # "given_names" gets directly from patient model
-    # 
     # "@function_name" applies report field function function_name to patient_model
+    # "Consents/<ConsentSectionCode>/<ConsentQuestionCode>/[answer|last_update|first_save]
+
     from registry.patients.models import Patient
     try:
         if field_expression in patient_fields:
@@ -426,6 +471,8 @@ def evaluate_generalised_field_expression(registry_model, patient_model, patient
         elif "/" in field_expression:
             if field_expression.startswith("Consents/"):
                 return evaluate_consent(registry_model, patient_model, field_expression)
+            if field_expression.startswith("Demographics/Address/"):
+                return evaluate_address(patient_model, field_expression)
             if nested_patient_record is None:
                 return None
             from rdrf.models import RegistryForm, Section, CommonDataElement
