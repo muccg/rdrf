@@ -6,6 +6,7 @@ from pymongo.errors import ConnectionFailure
 
 from django.db import ProgrammingError
 from django.db import connection
+from collections import OrderedDict
 
 from models import Query
 
@@ -261,7 +262,8 @@ class DatabaseUtils(object):
 
     @timed
     def _get_mongo_metadata(self):
-        data = {"multisection_column_map": {}}
+        #TODO not sure why this called multisection_column_map as it contains any selected mongo fields
+        data = {"multisection_column_map": OrderedDict()}
 
         if not self.projection:
             return data
