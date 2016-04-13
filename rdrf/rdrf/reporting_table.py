@@ -83,8 +83,9 @@ class ReportingTableGenerator(object):
     def create_columns(self, sql_metadata, mongo_metadata):
         logger.debug("creating columns from sql and mongo metadata")
         self.columns = set([])
-        self.columns.add(self._create_column("context_id", alc.Integer))
+
         # These columns will always appear
+        self.columns.add(self._create_column("context_id", alc.Integer))
         self._add_reverse_mapping("context_id", "context_id")
 
         self.columns.add(self._create_column("timestamp", alc.String))
@@ -93,6 +94,7 @@ class ReportingTableGenerator(object):
         self.columns.add(self._create_column("snapshot", alc.Boolean))
         self._add_reverse_mapping("snapshot", "snapshot")
 
+        # Columns from sql query
         for i, column_metadata in enumerate(sql_metadata):
             column_from_sql = self._create_column_from_sql(column_metadata)
             self.columns.add(column_from_sql)
@@ -100,10 +102,26 @@ class ReportingTableGenerator(object):
             # map the column's index in tuple to the column name in the dict
             self._add_reverse_mapping(i, column_metadata["name"])
 
+        # Columns from Mongo fields selection
         for form_model, section_model, cde_model in mongo_metadata["multisection_column_map"]:
             column_name = mongo_metadata["multisection_column_map"][(form_model, section_model, cde_model)]
-            column_from_mongo = self._create_column_from_mongo(column_name, form_model, section_model, cde_model)
-            self.columns.add(column_from_mongo)
+            if section_model.allow_multiple:
+                # FH-22 - make cdes in mutlisection in diff columns per item ie if  drugname, drugdose were in
+                # multisection, we would have cols drugname_1, drugname_2 ,.. up to some max number
+                num_columns_to_create = self._get_max_multisection_columns(form_model, section_model)
+                for i in range(num_columns_to_create):
+                    column_index = i + 1
+                    ms_column_name = "%s_%s" % (column_name, column_index)
+                    column_from_mongo = self._create_column_from_mongo(ms_column_name, form_model, section_model, cde_model)
+                    self.columns.add(column_from_mongo)
+            else:        
+                column_from_mongo = self._create_column_from_mongo(column_name, form_model, section_model, cde_model)
+                self.columns.add(column_from_mongo)
+
+
+    def _get_max_multisection_columns(self, form_model, section_model):
+        # to do this dynamically would mean querying mongo for every multisection
+        return 5
 
     def _create_column_from_sql(self, column_metadata):
         column_name = column_metadata["name"]
@@ -143,7 +161,8 @@ class ReportingTableGenerator(object):
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
         errors = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
-            for unrolled_row in self.multisection_unroller.unroll(result_dict):
+            logger.debug("result dict = %s" % result_dict)
+            for unrolled_row in self.multisection_unroller.unroll_wide(result_dict):
                 try:
                     self.insert_row(unrolled_row)
                 except Exception, ex:

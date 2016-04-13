@@ -430,6 +430,11 @@ class MultisectionUnRoller(object):
         self.multisection_column_map = multisection_column_map
         self.row_count = 0
 
+
+    def unroll_wide(self, row_dict):
+        for key in row_dict:
+            logger.debug("column = %s  value = %s" % (key, row_dict[key]))
+
     def unroll(self, row):
         """
         Basic idea is to use cartesian product to display all combinations of list elements
