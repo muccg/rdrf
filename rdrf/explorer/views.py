@@ -128,8 +128,11 @@ class QueryView(LoginRequiredMixin, View):
             multisection_unrollower = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
             rtg.set_table_name(query_model)
-            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-            return HttpResponse("Temporary Table created")
+            try:
+                database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+                return HttpResponse("")
+            except Exception, ex:
+                return HttpResponse("Report Error: %s" % ex)
         else:
             # user clicked Save
             if form.is_valid():
