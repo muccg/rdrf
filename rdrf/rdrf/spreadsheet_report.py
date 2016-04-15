@@ -11,6 +11,7 @@ from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from rdrf.mongo_client import construct_mongo_client
+from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
 logger = logging.getLogger("registry_log")
 
@@ -86,6 +87,10 @@ class SpreadSheetReport(object):
             self.client = testing_mongo_client
         else:
             self.client = construct_mongo_client()
+
+        self.gfe_func_map = {}
+        self.parser = GeneralisedFieldExpressionParser(self.registry_model)
+        
         
 
     # Public interface
@@ -185,12 +190,8 @@ class SpreadSheetReport(object):
 
     def _write_row(self, patient, patient_record, columns):
         for column in columns:
-            value = evaluate_generalised_field_expression(self.registry_model,
-                                                          patient,
-                                                          self.patient_fields,
-                                                          column,
-                                                          patient_record)
-
+            value_retriever = self._get_value_retriever(column)
+            value = value_retriever(patient, patient_record)
             self._write_cell(value)
 
     def _get_timestamp_from_snapshot(self, snapshot):
@@ -209,8 +210,6 @@ class SpreadSheetReport(object):
                                                                                      patient_id,
                                                                                      ex))
 
-            logger.debug(patient_record)
-
             return "?ERROR?"
 
     @cached
@@ -220,6 +219,15 @@ class SpreadSheetReport(object):
         else:
             return ",".join([ str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
 
+
+    def _get_value_retriever(self, column):
+        if column in self.gfe_func_map:
+            return self.gfe_func_map[column]
+        else:
+            value_retriever = self.parser.parse(column)
+            self.gfe_func_map[column] = value_retriever
+            return value_retriever
+
     def _write_universal_columns(self, patient, patient_record, universal_columns):
         patient_id = patient.pk
         if patient_id in self._universal_column_map:
@@ -228,12 +236,8 @@ class SpreadSheetReport(object):
         else:
             self._universal_column_map[patient_id] = {}
             for column in universal_columns:
-                value = evaluate_generalised_field_expression(self.registry_model,
-                                                          patient,
-                                                          self.patient_fields,
-                                                          column,
-                                                          patient_record)
-
+                value_retriever = self._get_value_retriever(column)
+                value = value_retriever(patient, patient_record)
                 self._write_cell(value)
                 self._universal_column_map[patient_id][column] = value
                 
