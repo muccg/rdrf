@@ -81,6 +81,7 @@ class SpreadSheetReport(object):
         self.patient_fields = self._get_patient_fields()
         self.cde_model_map = {}
         self.cache = Cache()
+        self._universal_column_map = {}
         if self.testing:
             self.client = testing_mongo_client
         else:
@@ -214,7 +215,33 @@ class SpreadSheetReport(object):
 
     @cached
     def _human(self, form_model, section_model, cde_model, raw_cde_value):
-        return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value) 
+        if type(raw_cde_value) is not type([]):
+            return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value)
+        else:
+            return ",".join([ str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
+
+    def _write_universal_columns(self, patient, patient_record, universal_columns):
+        patient_id = patient.pk
+        if patient_id in self._universal_column_map:
+            for column  in universal_columns:
+                self._write_cell(self._universal_column_map[patient_id][column])
+        else:
+            self._universal_column_map[patient_id] = {}
+            for column in universal_columns:
+                value = evaluate_generalised_field_expression(self.registry_model,
+                                                          patient,
+                                                          self.patient_fields,
+                                                          column,
+                                                          patient_record)
+
+                self._write_cell(value)
+                self._universal_column_map[patient_id][column] = value
+                
+
+                                 
+                                 
+                                
+            
         
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
@@ -232,7 +259,8 @@ class SpreadSheetReport(object):
 
         for patient in self._get_patients():
             patient_record = self.cache.get_current(patient, self._get_patient_record)
-            self._write_row(patient, patient_record, universal_columns)
+            self._write_universal_columns(patient, patient_record, universal_columns)
+            #self._write_row(patient, patient_record, universal_columns)
             num_snapshots = self._write_longitudinal_row(
                 patient, patient_record, form_model, section_model, cde_codes)
             if num_snapshots > max_snapshots:
@@ -342,7 +370,7 @@ class SpreadSheetReport(object):
                                                                       patient_record[
                                                                           "django_id"],
                                                                       ex))
-            return "???"
+            return "??ERROR??"
 
     def _get_snapshots(self, patient):
         wrapper = DynamicDataWrapper(patient)
