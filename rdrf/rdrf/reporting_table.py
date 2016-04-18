@@ -368,7 +368,7 @@ class ReportTable(object):
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
             cde_model = CommonDataElement.objects.get(code=cde_code)
-            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name
+            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
             return s.upper().encode('ascii', 'replace')
             
         except Exception, ex:
