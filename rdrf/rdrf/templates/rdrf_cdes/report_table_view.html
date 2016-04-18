@@ -26,7 +26,7 @@
         this.registryCode = registryCode;
         this.baseApiUrl = "{{ api_url  }}";
         this.length = length;
-        var tableHeight = Math.floor(screen.height / 3).toString() + "px";
+        var tableHeight = Math.floor(screen.height / 2).toString() + "px";
         this.table = $("#" + TABLE_ID).DataTable({"processing": true,
                                                    "serverSide": true,
                                                     ajax: {
