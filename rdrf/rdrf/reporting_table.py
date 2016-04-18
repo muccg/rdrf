@@ -160,15 +160,18 @@ class ReportingTableGenerator(object):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
         errors = 0
+        row_num = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
             logger.debug("result dict = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll_wide(result_dict):
                 try:
                     self.insert_row(unrolled_row)
+                    row_num += 1
                 except Exception, ex:
                     errors += 1
-                    logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
-                                                                              unrolled_row,
+                    src = "query"
+                    logger.error("report error: query %s row after %s error: %s" % (src,
+                                                                              row_num,
                                                                               ex))
         logger.info("query errors: %s" % errors)
 
@@ -372,7 +375,6 @@ class ReportTable(object):
             return s.upper().encode('ascii', 'replace')
             
         except Exception, ex:
-            logger.debug("error getting label: %s" % ex)
             return column_name        
 
     def _get_table(self):
