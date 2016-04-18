@@ -6,7 +6,6 @@ import functools
 from collections import OrderedDict
 from django.core.servers.basehttp import FileWrapper
 from rdrf.utils import get_cde_value
-from rdrf.utils import evaluate_generalised_field_expression
 from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
