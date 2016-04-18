@@ -26,6 +26,7 @@
         this.registryCode = registryCode;
         this.baseApiUrl = "{{ api_url  }}";
         this.length = length;
+        var tableHeight = Math.floor(screen.height / 3).toString() + "px";
         this.table = $("#" + TABLE_ID).DataTable({"processing": true,
                                                    "serverSide": true,
                                                     ajax: {
@@ -38,7 +39,7 @@
                                                     colReorder: true,
                                                     stateSave: true,
                                                     sScrollX: "100%",
-                                                    sScrollY: "100px",
+                                                    sScrollY: tableHeight,
                                                     buttons: ['colvis',
                                                                 {
                                                                    extend: 'copy',
@@ -68,7 +69,6 @@
 
     Report.prototype.load = function() {
         var url = this.getUrl();
-        alert(url);
         this.table.ajax.url(url).load();
     }
 
@@ -79,14 +79,32 @@
                 }});
     }
 
+    
+
     $(document).ready(
             function () {
                 setUpCSRFToken();
                 var registryCode = "{{ registry_code }}";
                 var initial_length = 10;
+                var resizeExpand = "glyphicon-resize-full";
+                var resizeContract = "glyphicon-resize-small";
+                var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
+                var containerState = ContainerStates.CONTRACTED;
+                
+                $("#resize_report").click(function () {
+                    if (containerState == ContainerStates.CONTRACTED) {
+                        $(".container").addClass("container-fluid").removeClass("container");
+                        $("." + resizeExpand).removeClass(resizeExpand).addClass(resizeContract);
+                        containerState = ContainerStates.EXPANDED;
+    
+                    }
+                    else {
+                        $(".container-fluid").addClass("container").removeClass("container-fluid");
+                        $("." + resizeContract).removeClass(resizeContract).addClass(resizeExpand);
+                        containerState = ContainerStates.CONTRACTED;
+                    }});
                 var report = new Report(registryCode, COLUMNS, initial_length);
-
-            });
+           }); 
     </script>
 
 {% endblock %}
@@ -95,8 +113,11 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+          <p>
+	    <h3>
+	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }} <span id="resize_report"><span class="glyphicon glyphicon-resize-full" aria-hidden="true"></span></span>
+	    </h3>
+	  </p>
         </div>
     </div>
 
