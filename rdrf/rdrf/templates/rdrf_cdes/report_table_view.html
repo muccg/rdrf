@@ -79,8 +79,6 @@
                 }});
     }
 
-    
-
     $(document).ready(
             function () {
                 setUpCSRFToken();
@@ -90,19 +88,7 @@
                 var resizeContract = "glyphicon-resize-small";
                 var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
                 var containerState = ContainerStates.CONTRACTED;
-                
-                $("#resize_report").click(function () {
-                    if (containerState == ContainerStates.CONTRACTED) {
-                        $(".container").addClass("container-fluid").removeClass("container");
-                        $("." + resizeExpand).removeClass(resizeExpand).addClass(resizeContract);
-                        containerState = ContainerStates.EXPANDED;
-    
-                    }
-                    else {
-                        $(".container-fluid").addClass("container").removeClass("container-fluid");
-                        $("." + resizeContract).removeClass(resizeContract).addClass(resizeExpand);
-                        containerState = ContainerStates.CONTRACTED;
-                    }});
+                $(".container").addClass("container-fluid").removeClass("container");
                 var report = new Report(registryCode, COLUMNS, initial_length);
            }); 
     </script>
@@ -115,7 +101,7 @@
         <div class="col-md-12">
           <p>
 	    <h3>
-	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }} <span id="resize_report"><span class="glyphicon glyphicon-resize-full" aria-hidden="true"></span></span>
+	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
 	    </h3>
 	  </p>
         </div>
