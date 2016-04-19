@@ -53,7 +53,6 @@ class Query(models.Model):
     def _get_mixed_query_errors(self):
         import json
         errors = []
-        from rdrf.utils import evaluate_generalised_field_expression
         try:
             data = json.loads(self.sql_query)
             static_sheets = data["static_sheets"]
