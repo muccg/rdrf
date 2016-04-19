@@ -95,8 +95,10 @@
                             $("#response_error").fadeIn().delay(3000).fadeOut();
                         })
                         .done(function( data ) {
-                            $("#response_error").text(data);
-                            $("#response_error").fadeIn().delay(3000).fadeOut();
+	                      if (data != "") {
+                                 $("#response_error").text(data);
+                                 $("#response_error").fadeIn().delay(3000).fadeOut();
+	                      }
 //                            var response = jQuery.parseJSON(data);
 //                            if ($.isEmptyObject(response)) {
 //                                $("#response_error").text("No results");

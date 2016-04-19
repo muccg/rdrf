@@ -131,7 +131,7 @@ class QueryView(LoginRequiredMixin, View):
             rtg.set_table_name(query_model)
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-                return HttpResponse("Temporary Table created")
+                return HttpResponse("")
             except Exception, ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
@@ -141,6 +141,9 @@ class QueryView(LoginRequiredMixin, View):
                 m.save()
                 query_form.save_m2m()
                 return redirect(m)
+            else:
+                return redirect(query_model)
+                
 
 
 class DownloadQueryView(LoginRequiredMixin, View):
