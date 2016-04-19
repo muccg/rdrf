@@ -73,7 +73,7 @@ DATABASES = {
     # }
 }
 
-# Reporing Database ( defaults to main db if not specified 
+# Reporing Database ( defaults to main db if not specified
 DATABASES["reporting"] = {}
 
 DATABASES["reporting"]['ENGINE']   = env.get_db_engine("reporting_dbtype", "pgsql")
@@ -160,6 +160,7 @@ INSTALLED_APPS = [
     'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
+    'storages',
 ]
 
 
@@ -188,7 +189,7 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # Django Notifications
-DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>") 
+DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>")
 # Mail Gun
 EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
 MAILGUN_ACCESS_KEY = env.get('DJANGO_MAILGUN_API_KEY', "")
@@ -633,3 +634,8 @@ GRID_CONTEXT_LISTING = [
         "order": 8
     }
 ]
+
+DEFAULT_FILE_STORAGE = 'rdrf.storage.GridFSStorage'
+GRIDFS_HOST = MONGOSERVER
+GRIDFS_PORT = MONGOPORT
+GRIDFS_COLLECTION = "test_files"

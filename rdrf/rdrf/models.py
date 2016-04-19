@@ -1819,3 +1819,16 @@ class MongoMigrationDummyModel(models.Model):
                 ("testing", "testing"),
                 ("1.0.17", "populate context_id on all patient records"))
     version = models.CharField(max_length=80, choices=VERSIONS)
+
+
+# Experimental GridFS storage
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
+
+class FileUplodItem(models.Model):
+    description = models.CharField(max_length=255)
+    item = models.FileField()
+
+@receiver(pre_delete, sender=FileUplodItem)
+def fileuploaditem_delete(sender, instance, **kwargs):
+    instance.item.delete(False)

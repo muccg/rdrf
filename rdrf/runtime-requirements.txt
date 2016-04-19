@@ -29,6 +29,7 @@ djangorestframework==3.3.3
 openpyxl
 SQLAlchemy
 django_mailgun
+django-storages==1.4.1
 ccg-django-utils==0.4.2
 django-useraudit
 django-iprestrict

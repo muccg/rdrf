@@ -21,6 +21,7 @@ from models import CdePolicy
 from models import EmailNotification
 from models import EmailTemplate
 from models import EmailNotificationHistory
+from models import FileUplodItem
 
 import logging
 from django.http import HttpResponse
@@ -468,3 +469,11 @@ if has_feature('adjudication'):
     admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
     admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
     admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
+
+
+class FileUplodItemAdmin(admin.ModelAdmin):
+    model = FileUplodItem
+    
+    list_display = ("description", "item")
+
+admin.site.register(FileUplodItem, FileUplodItemAdmin)
