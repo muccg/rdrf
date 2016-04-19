@@ -84,7 +84,8 @@ class NextOfKinRelationship(models.Model):
 class PatientManager(models.Manager):
 
     def get_by_registry(self, registry):
-        return self.model.objects.filter(rdrf_registry__in=registry)
+        registries = registry if hasattr(registry, '__iter__') else (registry,)
+        return self.model.objects.filter(rdrf_registry__in=registries)
 
     def get_by_working_group(self, user):
         return self.model.objects.filter(working_groups__in=get_working_groups(user))
@@ -133,7 +134,7 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry)
+    rdrf_registry = models.ManyToManyField(Registry, related_name='patients')
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(

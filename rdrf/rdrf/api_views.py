@@ -1,0 +1,181 @@
+import pycountry
+
+from rest_framework import generics
+from rest_framework import mixins
+from rest_framework import viewsets
+from rest_framework import serializers
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import APIException
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+
+
+from registry.genetic.models import Gene, Laboratory
+from registry.patients.models import Patient, Registry
+from registry.groups.models import CustomUser, WorkingGroup
+from serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer
+
+
+import logging
+logger = logging.getLogger('registry_log')
+
+
+class BadRequestError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class PatientViewSet(viewsets.ModelViewSet):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+
+class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+
+class PatientList(generics.ListCreateAPIView):
+
+    serializer_class = PatientSerializer
+
+    def _get_registry_by_code(self, registry_code):
+        try:
+            return Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            raise BadRequestError("Invalid registry code '%s'" % registry_code)
+
+    def get_queryset(self):
+        """We're always filtering the patients by the registry code form the url"""
+        registry_code = self.kwargs.get('registry_code')
+        registry = self._get_registry_by_code(registry_code)
+        return Patient.objects.get_by_registry(registry)
+
+    def post(self, request, *args, **kwargs):
+        registry_code = kwargs.get('registry_code')
+        request.data['registry'] = self._get_registry_by_code(registry_code)
+        return super(PatientList, self).post(request, *args, **kwargs)
+
+
+class RegistryViewSet(viewsets.ModelViewSet):
+    queryset = Registry.objects.all()
+    serializer_class = RegistrySerializer
+
+    # Overriding get_object to make registry lookup be based on the registry code
+    # instead of the pk
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = generics.get_object_or_404(queryset, code=self.kwargs['pk'])
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
+
+
+class WorkingGroupViewSet(viewsets.ModelViewSet):
+    queryset = WorkingGroup.objects.all()
+    serializer_class = WorkingGroupSerializer
+
+
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+
+@api_view()
+def country(request):
+    countries = sorted(pycountry.countries, key=lambda c: c.name)
+
+    def to_dict(country):
+        # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
+        WANTED_FIELDS = ('name', 'numeric', 'official_name')
+        ALIASES = {
+            'alpha2': 'country_code',
+            'alpha3': 'country_code3',
+        }
+
+        d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
+        for attr, alias in ALIASES.items():
+            d[alias] = getattr(country, attr)
+        d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
+
+        return d
+
+    return Response(map(to_dict, countries))
+
+
+@api_view()
+def state_lookup(request, country_code):
+    try:
+        states = sorted(pycountry.subdivisions.get(
+            country_code=country_code.upper()), key=lambda x: x.name)
+    except KeyError:
+        # For now returning empty list because the old api view was doing the same
+        # raise BadRequestError("Invalid country code '%s'" % country_code)
+        states = []
+
+    WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
+    to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
+
+    return Response(map(to_dict, states))
+
+
+@api_view()
+def clinitian_lookup(request, registry_code):
+    users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
+    clinitians = filter(lambda u: u.is_clinician, users)
+
+
+    def to_dict(c, wg):
+        return {
+            'id': "%d_%d" % (c.id, wg.id),
+            'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
+        }
+
+    return Response([to_dict(c, wg) for c in clinitians for wg in c.working_groups.all()])
+
+
+@api_view()
+def genes(request):
+    query = None
+    try:
+        query = request.GET['term']
+    except KeyError:
+        pass
+        # raise BadRequestError("Required query parameter 'term' not received")
+
+    def to_dict(gene):
+        return {
+            'value': gene.symbol,
+            'label': gene.name,
+        }
+
+    genes = None
+    if query is None:
+        genes = Gene.objects.all()
+    else:
+        genes = Gene.objects.filter(symbol__icontains=query)
+    return Response(map(to_dict, genes))
+
+
+@api_view()
+def laboratories(request):
+    query = None
+    try:
+        query = request.GET['term']
+    except KeyError:
+        pass
+        # raise BadRequestError("Required query parameter 'term' not received")
+
+    def to_dict(lab):
+        return {
+            'value': lab.symbol,
+            'label': lab.name,
+        }
+
+    labs = None
+    if query is None:
+        labs = Laboratory.objects.all()
+    else:
+        labs = Laboratory.objects.filter(name__icontains=query)
+    return Response(map(to_dict, labs))

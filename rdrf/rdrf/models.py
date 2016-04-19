@@ -1,6 +1,7 @@
 from django.db import models
 import logging
 from django.core.exceptions import ValidationError
+from rest_framework.reverse import reverse as rest_reverse
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string

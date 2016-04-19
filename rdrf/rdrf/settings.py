@@ -159,6 +159,7 @@ INSTALLED_APPS = [
     'useraudit',
     'templatetag_handlebars',
     'iprestrict',
+    'rest_framework',
 ]
 
 
@@ -449,6 +450,11 @@ CUSTOM_PERMISSIONS = {
             ("can_see_data_modules", "Can see Data Modules column"),
         )
     }
+}
+
+REST_FRAMEWORK = {
+        'DEFAULT_VERSIONING_CLASS' : 'rest_framework.versioning.NamespaceVersioning',
+        'DEFAULT_VERSION': 'v1',
 }
 
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
