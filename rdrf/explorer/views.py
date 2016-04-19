@@ -141,6 +141,9 @@ class QueryView(LoginRequiredMixin, View):
                 m.save()
                 query_form.save_m2m()
                 return redirect(m)
+            else:
+                return redirect(query_model)
+                
 
 
 class DownloadQueryView(LoginRequiredMixin, View):
