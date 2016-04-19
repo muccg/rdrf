@@ -95,8 +95,10 @@
                             $("#response_error").fadeIn().delay(3000).fadeOut();
                         })
                         .done(function( data ) {
-                            $("#response_error").text(data);
-                            $("#response_error").fadeIn().delay(3000).fadeOut();
+	                      if (data != "") {
+                                 $("#response_error").text(data);
+                                 $("#response_error").fadeIn().delay(3000).fadeOut();
+	                      }
 //                            var response = jQuery.parseJSON(data);
 //                            if ($.isEmptyObject(response)) {
 //                                $("#response_error").text("No results");
@@ -151,7 +153,8 @@
                         type: "POST",
                         data: {
                             'sql_query': $('#sql_query').val(),
-                            'registry': $('#id_registry').val()
+                            'registry': $('#id_registry').val(),
+	                    'mongo_search_type': $('#id_mongo_search_type').val()
                         },
                         headers: {
                             'X-CSRFToken': $.cookie('{{ csrf_token_name }}')
@@ -162,7 +165,13 @@
                                 $('#query-result-count').empty();
                                 $("#query-error").show('blind');
                                 $("#query-error").html(response['error_msg']);
-                            } else {
+	                         
+                             } else if ("success_msg" in response)  {
+	                        $('#query-result-count').empty();
+	                        $('#query-result-count').html(response['success_msg']);
+	                    }
+	    
+	                    else {
                                 $('#query-result-count').empty();
                                 $('#query-result-count').html("Valid query | <strong>" + response.length + "</strong> record(s) found");
                             }

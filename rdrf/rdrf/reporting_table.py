@@ -145,14 +145,17 @@ class ReportingTableGenerator(object):
         self.create_table()
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
         errors = 0
+        row_num = 0
         for result_dict in database_utils.generate_results(self.reverse_map):
             for unrolled_row in self.multisection_unroller.unroll(result_dict):
                 try:
                     self.insert_row(unrolled_row)
+                    row_num += 1
                 except Exception, ex:
                     errors += 1
-                    logger.error("report error: query %s row %s error: %s" % (database_utils.form_object.title,
-                                                                              unrolled_row,
+                    src = "query"
+                    logger.error("report error: query %s row after %s error: %s" % (src,
+                                                                              row_num,
                                                                               ex))
         logger.info("query errors: %s" % errors)
 
@@ -161,6 +164,7 @@ class ReportingTableGenerator(object):
             value = value_dict[k]
             if isinstance(value, basestring):
                 value_dict[k] = value.encode("ascii", "replace")
+                
                 
         self.engine.execute(self.table.insert().values(**value_dict))
 
@@ -200,19 +204,28 @@ class ReportingTableGenerator(object):
 
 
 class MongoFieldSelector(object):
-    def __init__(self, user, registry_model, query_model, checkbox_ids=[]):
+    def __init__(self,
+                 user,
+                 registry_model,
+                 query_model,
+                 checkbox_ids=[],
+                 longitudinal_ids=[],
+    ):
         if checkbox_ids is not None:
             self.checkbox_ids = checkbox_ids
         else:
             self.checkbox_ids = []
 
+        self.longitudinal_ids = longitudinal_ids
+
         self.user = user
         self.registry_model = registry_model
         self.query_model = query_model
+        self.longitudinal_map = self._get_longitudinal_cdes()
         if self.query_model:
             self.existing_data = self._get_existing_report_choices(self.query_model)
         else:
-            self.existing_data = {}
+            self.existing_data = []
 
     def _get_existing_report_choices(self, query_model):
         import json
@@ -238,15 +251,20 @@ class MongoFieldSelector(object):
         return self.field_info
 
     def _get_saved_value(self, form_model, section_model, cde_model):
+        logger.debug("existing data = %s" % self.existing_data)
+        if self.existing_data is None:
+            return False, False
+        
         for value_dict in self.existing_data:
             if value_dict["formName"] == form_model.name:
                 if value_dict["sectionCode"] == section_model.code:
                     if value_dict["cdeCode"] == cde_model.code:
-                        return value_dict["value"]
-        return False
+                        return value_dict["value"], value_dict.get("longitudinal", False)
+        return False, False
 
     def _get_field_info(self, form_model, section_model, cde_model):
-        saved_value = self._get_saved_value(form_model, section_model, cde_model)
+        saved_value, long_selected = self._get_saved_value(form_model, section_model, cde_model)
+        
         field_id = "cb_%s_%s_%s_%s" % (self.registry_model.code,
                                        form_model.pk,
                                        section_model.pk,
@@ -258,21 +276,21 @@ class MongoFieldSelector(object):
                                 "cdeCode": cde_model.code,
                                 "id": field_id,
                                 "label": field_label,
-                                "savedValue": saved_value})
+                                "savedValue": saved_value,
+                                "longSelected": long_selected})
 
     @property
     def projections_json(self):
         # this method returns the new projection data back to the client based
-        # on the list of checked items passed in
+        # on the list of checked items passed in ( including longitudinal if mixed report)
         # the constructed json is independent of db ids ( as these will change
         # is import of registry definition occurs
         import json
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        projected_cdes = []
-        for checkbox_id in self.checkbox_ids:
+        projection_data = []
+
+        def create_value_dict(checkbox_id):
             # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
-            # registry code, form pk, section pk, cde_code
-            # cb_fh_39_105_EchocardiogramResult
             _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
 
             form_model = RegistryForm.objects.get(pk=int(form_pk))
@@ -285,10 +303,26 @@ class MongoFieldSelector(object):
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
             value_dict["value"] = True  # we only need to store the true / checked cdes
+            value_dict["longitudinal"] = self.longitudinal_map.get((form_model.name, section_model.code, cde_model.code), False)
+            return value_dict
+            
+        for checkbox_id in self.checkbox_ids:
+            value_dict = create_value_dict(checkbox_id)
+            projection_data.append(value_dict)
 
-            projected_cdes.append(value_dict)
+        return json.dumps(projection_data)
 
-        return json.dumps(projected_cdes)
+    def _get_longitudinal_cdes(self):
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        d = {}
+        for checkbox_id in self.longitudinal_ids:
+            _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            d[(form_model.name, section_model.code, cde_model.code)] = True
+        return d
+            
 
 
 class ReportTable(object):
@@ -322,11 +356,10 @@ class ReportTable(object):
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
             cde_model = CommonDataElement.objects.get(code=cde_code)
-            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name
+            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
             return s.upper().encode('ascii', 'replace')
             
         except Exception, ex:
-            logger.debug("error getting label: %s" % ex)
             return column_name        
 
     def _get_table(self):

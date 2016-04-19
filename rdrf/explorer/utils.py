@@ -62,6 +62,7 @@ class DatabaseUtils(object):
         except ConnectionFailure as e:
             return False, e
 
+
     def run_sql(self):
         try:
             cursor = self.create_cursor()
@@ -70,6 +71,37 @@ class DatabaseUtils(object):
             self.result = {'error_msg': error.message}
 
         return self
+
+    def validate_mixed_query(self):
+        # not really parsing - 
+        errors = []
+        if hasattr(self,"query") and self.query.mongo_search_type == "M":
+            import json
+            from rdrf.utils import evaluate_generalised_field_expression
+            try:
+                data = json.loads(self.query.sql_query)
+                static_sheets = data["static_sheets"]
+                for sheet in static_sheets:
+                    sheet_name = sheet["name"]
+                    columns = sheet["columns"]
+                    for column in columns:
+                        if not isinstance(column, basestring):
+                            errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
+                            
+            except ValueError, ve:
+                errors.append("JSON malformed: %s" % ve.message)
+            except KeyError, ke:
+                errors.append("key error: %s" % ke.message)
+
+            if len(errors) > 0:
+                self.result = {'error_msg': error.message}
+                return self
+            else:
+                # client assumed a dict made from cursor - not sure what to put here
+                self.result = {}
+                return self
+        else:
+            return self
 
     @timed
     def dump_results_into_reportingdb(self, reporting_table_generator):

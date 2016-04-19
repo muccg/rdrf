@@ -29,6 +29,7 @@ import collections
 import logging
 from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.utils import mongo_key_from_models
 
 logger = logging.getLogger("registry_log")
 
@@ -121,23 +122,28 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
+            # user clicked Run
             # populate temporary table
-            from rdrf.reporting_table import ReportingTableGenerator
+            
             humaniser = Humaniser(registry_model)
             multisection_unroller = MultisectionUnRoller({})
             rtg = ReportingTableGenerator(request.user, registry_model, multisection_unroller, humaniser)
             rtg.set_table_name(query_model)
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-                return HttpResponse("Temporary Table created")
+                return HttpResponse("")
             except Exception, ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
+            # user clicked Save
             if form.is_valid():
                 m = query_form.save(commit=False)
                 m.save()
                 query_form.save_m2m()
                 return redirect(m)
+            else:
+                return redirect(query_model)
+                
 
 
 class DownloadQueryView(LoginRequiredMixin, View):
@@ -164,6 +170,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         registry_model = query_model.registry
 
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model) 
+
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_unrollower = MultisectionUnRoller({})
@@ -176,7 +185,30 @@ class DownloadQueryView(LoginRequiredMixin, View):
         if action == "view":
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
+            # download
+            # csv download
             return self._extract(query_model.title, rtg)
+
+    def _spreadsheet(self, query_model):
+        # longitudinal spreadsheet required by FKRP
+        from datetime import datetime
+        from django.core.servers.basehttp import FileWrapper
+        from rdrf.spreadsheet_report import SpreadSheetReport
+        humaniser = Humaniser(query_model.registry)
+        spreadsheet_report = SpreadSheetReport(query_model, humaniser)
+        start = datetime.now()
+        spreadsheet_report.run()
+        finish = datetime.now()
+        elapsed_time = finish - start
+        logger.debug("report took %s seconds" % elapsed_time)
+        output = open(spreadsheet_report.output_filename)
+        filename = "Longitudinal Report.xlsx"
+        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        return response
+    
+
+        
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
@@ -209,6 +241,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
             return render_to_response('explorer/query_download.html', params)
 
+        if query_model.mongo_search_type == "M":
+            return self._spreadsheet(query_model)
+
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_unrollower = MultisectionUnRoller({})
@@ -233,7 +268,24 @@ class SqlQueryView(View):
     def post(self, request):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
-        results = database_utils.run_sql().result
+        mongo_search_type = form.data["mongo_search_type"]
+        logger.debug("mongo search type = %s" % mongo_search_type)
+
+        def get_report_config_errors(form):
+            if not form.is_valid() and "__all__" in form.errors:
+                return form.errors["__all__"]
+            else:
+                return None
+        
+        if mongo_search_type == "M":
+            report_config_errors = get_report_config_errors(form)
+            if report_config_errors is not None:
+                results = {"error_msg": report_config_errors}
+            else:
+                results = {"success_msg": "Report config field is correct structure"}
+        else:
+            results = database_utils.run_sql().result
+
         response = HttpResponse(dumps(results, default=json_serial))
         return response
 
@@ -311,6 +363,10 @@ class Humaniser(object):
                     if mongo_value == value_dict["code"]:
                         return value_dict["value"]
         return mongo_value
+
+    def display_value2(self, form_model, section_model, cde_model, mongo_value):
+        mongo_key = mongo_key_from_models(form_model, section_model, cde_model)
+        return self.display_value(mongo_key, mongo_value)
 
 
 def _human_friendly(registry_model, result):

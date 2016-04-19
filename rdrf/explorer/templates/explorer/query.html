@@ -8,13 +8,27 @@
 
         function recalculateProjection() {
             // get ids of  all checked checkboxes
+
+	    function isLongId(s){
+		return s.slice(-5) === "_long";
+	    }
+		
             var checkedIds = $(FIELDS_TABLE + " :checkbox:checked").map(function () {return this.id}).get();
+	
+            var selectedCdesIds = _.filter(checkedIds, function(id) { return !isLongId(id);});
+	    console.log(selectedCdesIds.toString());
+	    
+	    var longitudinalIds = _.filter(checkedIds, function(id) { return isLongId(id);});
+	    console.log(longitudinalIds.toString());
+    
             // calculate server side
             var registryId = $("#id_registry").val();
             var parts = window.location.pathname.split("/");
             var reportId = parts[parts.length - 1];
+            var commandArg = {checkbox_ids: selectedCdesIds,
+                          longitudinal_ids: longitudinalIds};
 
-            rpc.send('reporting_command',[reportId, registryId, "get_projection", checkedIds], function(response){
+            rpc.send('reporting_command',[reportId, registryId, "get_projection", commandArg], function(response){
                 if (response.status == "success") {
                     $("#" + PROJECTION_FIELD).val(response.result);
                 }
@@ -34,13 +48,43 @@
                 recalculateProjection();
             })
         }
+    
+    function hideLongitudinalCheckboxes() {
+         var searchType = $("#id_mongo_search_type").val();
+         if (searchType != "M") {
+                 $(FIELDS_TABLE + " tr:first  th:last").text("");
+                 $(FIELDS_TABLE + " :checkbox[id$='_long']").prop("checked", false);
+                 $(FIELDS_TABLE + " :checkbox[id$='_long']").hide();
+         }
+         else {
+             $(FIELDS_TABLE + " tr:first  th:last").text("As Longitudinal");
+             $(FIELDS_TABLE + "  :checkbox[id$='_long']").show();
+         }
+    
+    }
+
+    function runButtonVisibility() {
+        var reportType = $("#id_mongo_search_type").val();
+        if (reportType == "M") {
+            $("#submit-query").hide();
+        }
+        else {
+            $("#submit-query").show();
+        }
+    }
+
+    $("#id_mongo_search_type").bind("change", function() {
+        hideLongitudinalCheckboxes();
+        runButtonVisibility();
+    });
 
         $("#id_registry").bind("change", function () {
 
             var fieldRowTemplate = _.template("<tr><td><%= form %></td>" +
                     "<td><%= section %></td>" +
                     "<td><%= fieldLabel %></td>" +
-                    "<td><%= checkBox %></td></tr>");
+                    "<td><%= checkBox %></td>" +
+                    "<td><%= longitudinalCheckBox %></td></tr>");
 
             var checkBoxTemplate = _.template('<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
                                                 "<%= checked %> />");
@@ -50,26 +94,34 @@
                 $(FIELDS_TABLE + " tr").has("td").remove();
             }
 
-            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue) {
-                var checked = "";
+            function addFieldTableRow(formName, section, fieldId, fieldLabel, currentValue, longSelected) {
+		var checked = "";
+		var longChecked = "";
+		var longitudinalFieldId = fieldId + '_long';
+
                 if (currentValue) {
                     checked = "checked";
                 }
+
+                if (longSelected) {
+                    longChecked = "checked";
+                }
+                
                 var checkBoxHtml = checkBoxTemplate({id: fieldId,
                                            name: fieldId,
                                            checked: checked
-                                           });
+						      });
+                var longitudinalCheckBoxHtml = checkBoxTemplate({id: longitudinalFieldId,
+						      name: longitudinalFieldId,
+                                                      checked: longChecked});
 
                 var fieldRow = $(fieldRowTemplate({form: formName,
                                                 section: section,
                                                 fieldLabel: fieldLabel,
-                                                checkBox: checkBoxHtml}));
+                                                checkBox: checkBoxHtml,
+						longitudinalCheckBox: longitudinalCheckBoxHtml}));
 
                 $(FIELDS_TABLE).append(fieldRow);
-
-
-
-
 
             }
 
@@ -80,12 +132,16 @@
                     var fieldLabel = fieldInfo.label;
                     var formName = fieldInfo.form;
                     var section = fieldInfo.sectionName;
-                    var savedValue = fieldInfo.savedValue;
-                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue);
+		    var savedValue = fieldInfo.savedValue;
+		    var longSelected = fieldInfo.longSelected;			      
+                    addFieldTableRow(formName, section, fieldId, fieldLabel, savedValue, longSelected);
                 });
 
+		wireUpFieldsTable();
 
-                wireUpFieldsTable();
+		$("#id_mongo_search_type").trigger("change"); // ensure checkboxes displayed on initial page load
+						      
+						     
 
             }
 
@@ -121,7 +177,7 @@
         <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
 
         <div class="pull-right">
-            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">Validate SQL</button>
+            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">Validate</button>
             <button type="submit" class="btn btn-primary btn-sm">Save</button>
             <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">Run</button>
         </div>
@@ -161,7 +217,7 @@
             <div id="search_type" class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="mongo_search_type">Mongo Search Type</label>
+                        <label for="mongo_search_type">Report Type</label>
                             {{form.mongo_search_type}}
                     </div>
                 </div>
@@ -211,6 +267,7 @@
                     <th>Section</th>
                     <th>Field</th>
                     <th>Include in Report</th>
+		    <th>Longitudinal</th>
                     </thead>
                     <tbody>
 
