@@ -195,7 +195,7 @@ class FamilyLinkageView(View):
         context = {}
         context.update(csrf(request))
         context['registry_code'] = registry_code
-        context['index_lookup_url'] = reverse("index_lookup", args=(registry_code,))
+        context['index_lookup_url'] = reverse("v1:index-list", args=(registry_code,))
         context["initial_index"] = initial_index
 
         return render_to_response(

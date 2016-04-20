@@ -1,5 +1,6 @@
 import pycountry
 
+from django.db.models import Q
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -224,3 +225,33 @@ class LookupLaboratories(APIView):
         else:
             labs = Laboratory.objects.filter(name__icontains=query)
         return Response(map(to_dict, labs))
+
+
+class LookupIndex(APIView):
+    queryset = Patient.objects.none()
+
+    def get(self, request, registry_code, format=None):
+        term = ""
+        try:
+            term = request.GET['term']
+        except KeyError:
+            pass
+            # raise BadRequestError("Required query parameter 'term' not received")
+        registry = Registry.objects.get(code=registry_code)
+
+        if not registry.has_feature('family_linkage'):
+            return Response([])
+
+        working_groups = list(request.user.working_groups.all())
+        query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                 Q(working_groups__in=working_groups)
+
+        def to_dict(patient):
+            return {
+                'pk': patient.pk,
+                "class": "Patient",
+                'value': patient.pk,
+                'label': "%s" % patient,
+            }
+
+        return Response(map(to_dict, filter(lambda p: p.is_index, Patient.objects.filter(query))))
