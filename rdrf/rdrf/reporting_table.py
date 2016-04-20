@@ -134,13 +134,14 @@ class ReportingTableGenerator(object):
         column_operations = []
 
         class ColumnOp(object):
-            def __init__(self, columns, form_model, section_model, cde_model, column_name):
+            def __init__(self, rtg, columns, form_model, section_model, cde_model, column_name):
+                self.rtg = rtg
                 self.columns = columns
                 self.form_model = form_model
                 self.section_model = section_model
                 self.cde_model = cde_model
                 self.column_name = column_name
-                self.section_order = 
+                self.section_order = (form_model, section_model)
                 self.column_index = None
                 self.has_run = False
             def run(self):
@@ -149,8 +150,19 @@ class ReportingTableGenerator(object):
                 self.has_run = True
 
             def _create_column(self):
-                pass
-
+                if self.column_index is None:
+                    column = self.rtg._create_column_from_mongo(self.column_name,
+                                                       self.form_model,
+                                                       self.section_model,
+                                                       self.cde_model)
+                else:
+                    column_name = "%_%" % (self.column_name, self.column_index)
+                    column = self.rtg._create_column_from_mongo(column_name,
+                                                       self.form_model,
+                                                       self.section_model,
+                                                       self.cde_model)
+                    
+                    
 
         class ColumnOps(object):
             def __init__(self, max_items):
@@ -164,12 +176,22 @@ class ReportingTableGenerator(object):
                 self._create_multisection_columns()
                 self._reorder()
                 self._create_columns()
+
+            def _create_multisection_columns(self):
+                new_ops = []
+                for op in self.column_ops:
+                    if op.section_model.allow_multiple:
+                        for i in range(1, self.max_items + 1):
+                            pass
+                            
+
                 
 
         column_ops = ColumnOps(max_items=5)
         
         for ( (form_model, section_model, cde_model), column_name) in column_map.items():
-            column_op = ColumnOp(self.columns,
+            column_op = ColumnOp(self,
+                                 self.columns,
                                  form_model,
                                  section_model,
                                  cde_model,
@@ -177,7 +199,7 @@ class ReportingTableGenerator(object):
 
             column_ops.add(column_op)
 
-        column_ops.
+        column_ops.run()
 
                 
 
