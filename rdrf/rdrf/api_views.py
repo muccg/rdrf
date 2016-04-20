@@ -5,11 +5,11 @@ from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-
+from rest_framework.views import APIView
 
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry
@@ -25,9 +25,15 @@ class BadRequestError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
 
-class PatientViewSet(viewsets.ModelViewSet):
-    queryset = Patient.objects.all()
-    serializer_class = PatientSerializer
+class RegistryDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Registry.objects.all()
+    serializer_class = RegistrySerializer
+    lookup_field = 'code'
+
+
+class RegistryList(generics.ListCreateAPIView):
+    queryset = Registry.objects.all()
+    serializer_class = RegistrySerializer
 
 
 class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -60,6 +66,7 @@ class PatientList(generics.ListCreateAPIView):
 class RegistryViewSet(viewsets.ModelViewSet):
     queryset = Registry.objects.all()
     serializer_class = RegistrySerializer
+    lookup_field = 'code'
 
     # Overriding get_object to make registry lookup be based on the registry code
     # instead of the pk
@@ -69,7 +76,6 @@ class RegistryViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
-
 
 
 class WorkingGroupViewSet(viewsets.ModelViewSet):
@@ -82,100 +88,110 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
 
 
-@api_view()
-def country(request):
-    countries = sorted(pycountry.countries, key=lambda c: c.name)
+class ListCountries(APIView):
+    permission_classes = (IsAuthenticated,)
 
-    def to_dict(country):
-        # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
-        WANTED_FIELDS = ('name', 'numeric', 'official_name')
-        ALIASES = {
-            'alpha2': 'country_code',
-            'alpha3': 'country_code3',
-        }
+    def get(self, request, format=None):
+        countries = sorted(pycountry.countries, key=lambda c: c.name)
 
-        d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
-        for attr, alias in ALIASES.items():
-            d[alias] = getattr(country, attr)
-        d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
+        def to_dict(country):
+            # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
+            WANTED_FIELDS = ('name', 'numeric', 'official_name')
+            ALIASES = {
+                'alpha2': 'country_code',
+                'alpha3': 'country_code3',
+            }
 
-        return d
+            d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
+            for attr, alias in ALIASES.items():
+                d[alias] = getattr(country, attr)
+            d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
 
-    return Response(map(to_dict, countries))
+            return d
 
-
-@api_view()
-def state_lookup(request, country_code):
-    try:
-        states = sorted(pycountry.subdivisions.get(
-            country_code=country_code.upper()), key=lambda x: x.name)
-    except KeyError:
-        # For now returning empty list because the old api view was doing the same
-        # raise BadRequestError("Invalid country code '%s'" % country_code)
-        states = []
-
-    WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
-    to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
-
-    return Response(map(to_dict, states))
+        return Response(map(to_dict, countries))
 
 
-@api_view()
-def clinitian_lookup(request, registry_code):
-    users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
-    clinitians = filter(lambda u: u.is_clinician, users)
+class ListStates(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, country_code, format=None):
+        try:
+            states = sorted(pycountry.subdivisions.get(
+                country_code=country_code.upper()), key=lambda x: x.name)
+        except KeyError:
+            # For now returning empty list because the old api view was doing the same
+            # raise BadRequestError("Invalid country code '%s'" % country_code)
+            states = []
+
+        WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
+        to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
+
+        return Response(map(to_dict, states))
 
 
-    def to_dict(c, wg):
-        return {
-            'id': "%d_%d" % (c.id, wg.id),
-            'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
-        }
+class ListClinitians(APIView):
+    queryset = CustomUser.objects.none()
 
-    return Response([to_dict(c, wg) for c in clinitians for wg in c.working_groups.all()])
-
-
-@api_view()
-def genes(request):
-    query = None
-    try:
-        query = request.GET['term']
-    except KeyError:
-        pass
-        # raise BadRequestError("Required query parameter 'term' not received")
-
-    def to_dict(gene):
-        return {
-            'value': gene.symbol,
-            'label': gene.name,
-        }
-
-    genes = None
-    if query is None:
-        genes = Gene.objects.all()
-    else:
-        genes = Gene.objects.filter(symbol__icontains=query)
-    return Response(map(to_dict, genes))
+    def get(self, request, registry_code, format=None):
+        users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
+        clinitians = filter(lambda u: u.is_clinician, users)
 
 
-@api_view()
-def laboratories(request):
-    query = None
-    try:
-        query = request.GET['term']
-    except KeyError:
-        pass
-        # raise BadRequestError("Required query parameter 'term' not received")
+        def to_dict(c, wg):
+            return {
+                'id': "%d_%d" % (c.id, wg.id),
+                'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
+            }
 
-    def to_dict(lab):
-        return {
-            'value': lab.symbol,
-            'label': lab.name,
-        }
+        return Response([to_dict(c, wg) for c in clinitians for wg in c.working_groups.all()])
 
-    labs = None
-    if query is None:
-        labs = Laboratory.objects.all()
-    else:
-        labs = Laboratory.objects.filter(name__icontains=query)
-    return Response(map(to_dict, labs))
+
+class LookupGenes(APIView):
+    queryset = Gene.objects.none()
+
+    def get(self, request, format=None):
+        query = None
+        try:
+            query = request.GET['term']
+        except KeyError:
+            pass
+            # raise BadRequestError("Required query parameter 'term' not received")
+
+        def to_dict(gene):
+            return {
+                'value': gene.symbol,
+                'label': gene.name,
+            }
+
+        genes = None
+        if query is None:
+            genes = Gene.objects.all()
+        else:
+            genes = Gene.objects.filter(symbol__icontains=query)
+        return Response(map(to_dict, genes))
+
+
+class LookupLaboratories(APIView):
+    queryset = Laboratory.objects.none()
+
+    def get(self, request, format=None):
+        query = None
+        try:
+            query = request.GET['term']
+        except KeyError:
+            pass
+            # raise BadRequestError("Required query parameter 'term' not received")
+
+        def to_dict(lab):
+            return {
+                'value': lab.symbol,
+                'label': lab.name,
+            }
+
+        labs = None
+        if query is None:
+            labs = Laboratory.objects.all()
+        else:
+            labs = Laboratory.objects.filter(name__icontains=query)
+        return Response(map(to_dict, labs))

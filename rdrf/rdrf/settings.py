@@ -453,8 +453,15 @@ CUSTOM_PERMISSIONS = {
 }
 
 REST_FRAMEWORK = {
-        'DEFAULT_VERSIONING_CLASS' : 'rest_framework.versioning.NamespaceVersioning',
-        'DEFAULT_VERSION': 'v1',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.DjangoModelPermissions',
+    ),
+    'DEFAULT_VERSIONING_CLASS' : 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_VERSION': 'v1',
 }
 
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
