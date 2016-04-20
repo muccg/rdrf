@@ -90,6 +90,9 @@ class PatientManager(models.Manager):
     def get_by_working_group(self, user):
         return self.model.objects.filter(working_groups__in=get_working_groups(user))
 
+    def get_by_registry_and_working_group(self, registry, user):
+        return self.model.objects.filter(rdrf_registry=registry, working_groups__in=get_working_groups(user))
+
     def get_filtered(self, user):
         return self.model.objects.filter(
             rdrf_registry__id__in=get_registries(user)).filter(

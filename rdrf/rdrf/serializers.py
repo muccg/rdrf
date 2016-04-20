@@ -4,13 +4,24 @@ from registry.patients.models import Patient, Registry
 from registry.groups.models import CustomUser, WorkingGroup
 
 
+# Needed so we can display the URL to the patient that also has the registry code in it
+class PatientHyperlinkId(serializers.HyperlinkedRelatedField):
+    view_name = 'patient-detail'
+
+    def get_url(self, obj, view_name, request, format):
+        url_kwargs = {
+            'pk': obj.pk,
+            'registry_code': request.resolver_match.kwargs['registry_code'],
+        }
+        return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
+
+
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
+    url = PatientHyperlinkId(read_only=True, source='*')
 
     class Meta:
         model = Patient
-        # TODO including url currently breaks things
-        exclude = ('url',)
         extra_kwargs = {
             'rdrf_registry': {'required': False, 'lookup_field': 'code'},
             'consent': {'required': True},

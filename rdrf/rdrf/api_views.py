@@ -40,6 +40,28 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
 
+    def _get_registry_by_code(self, registry_code):
+        try:
+            return Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            raise BadRequestError("Invalid registry code '%s'" % registry_code)
+
+    def check_object_permissions(self, request, patient):
+        """We're always filtering the patients by the registry code form the url and the user's working groups"""
+        super(PatientDetail, self).check_object_permissions(request, patient)
+        registry_code = self.kwargs.get('registry_code')
+        registry = self._get_registry_by_code(registry_code)
+        if registry not in patient.rdrf_registry.all():
+            self.permission_denied(request, message='Patient not available in requested registry')
+        if request.user.is_superuser:
+            return
+        if registry not in request.user.registry.all():
+            self.permission_denied(request, message='Not allowed to get Patients from this Registry')
+
+        working_groups = patient.working_groups.all()
+        if not any(map(lambda wg: wg in working_groups, request.user.working_groups.all())):
+            self.permission_denied(request, message='Patient not in your working group')
+
 
 class PatientList(generics.ListCreateAPIView):
 
@@ -52,14 +74,18 @@ class PatientList(generics.ListCreateAPIView):
             raise BadRequestError("Invalid registry code '%s'" % registry_code)
 
     def get_queryset(self):
-        """We're always filtering the patients by the registry code form the url"""
+        """We're always filtering the patients by the registry code form the url and the user's working groups"""
         registry_code = self.kwargs.get('registry_code')
         registry = self._get_registry_by_code(registry_code)
-        return Patient.objects.get_by_registry(registry)
+        if self.request.user.is_superuser:
+            return Patient.objects.get_by_registry(registry.pk)
+        return Patient.objects.get_by_registry_and_working_group(registry, self.request.user)
 
     def post(self, request, *args, **kwargs):
         registry_code = kwargs.get('registry_code')
         request.data['registry'] = self._get_registry_by_code(registry_code)
+        if not (request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
+            self.permission_denied(request, message='Not allowed to create Patient in this Registry')
         return super(PatientList, self).post(request, *args, **kwargs)
 
 
