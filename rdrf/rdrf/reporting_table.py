@@ -131,6 +131,9 @@ class ReportingTableGenerator(object):
         column_operations = []
 
         class ColumnOp(object):
+            """
+            Allows us to load column data first and then create in correct order after all column data collected
+            """
             def __init__(self, rtg, columns, form_model, section_model, cde_model, column_name):
                 self.rtg = rtg
                 self.columns = columns
