@@ -19,7 +19,7 @@ import rdrf.report_view as report_view
 import rdrf.consent_view as consent_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import IndexLookup, FamilyLookup
+from rdrf.lookup_views import FamilyLookup
 from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
@@ -173,7 +173,6 @@ urlpatterns = patterns('',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
 
-                       url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
 
