@@ -81,16 +81,16 @@ class ReportingTableGenerator(object):
 
     def _create_must_exist_columns(self):
         # These columns will always appear
-        self.columns.add(self._create_column("context_id", alc.Integer))
+        self.columns.append(self._create_column("context_id", alc.Integer))
         self._add_reverse_mapping("context_id", "context_id")
         logger.debug("COLUMN: context_id")
 
 
-        self.columns.add(self._create_column("timestamp", alc.String))
+        self.columns.append(self._create_column("timestamp", alc.String))
         self._add_reverse_mapping("timestamp", "timestamp")
         logger.debug("COLUMN: timestamp")
 
-        self.columns.add(self._create_column("snapshot", alc.Boolean))
+        self.columns.append(self._create_column("snapshot", alc.Boolean))
         self._add_reverse_mapping("snapshot", "snapshot")
         logger.debug("COLUMN: snapshot")
         
@@ -99,16 +99,16 @@ class ReportingTableGenerator(object):
         # Columns from sql query
         for i, column_metadata in enumerate(sql_metadata):
             column_from_sql = self._create_column_from_sql(column_metadata)
-            self.columns.add(column_from_sql)
+            self.columns.append(column_from_sql)
             #to get from tuple
             # map the column's index in tuple to the column name in the dict
             self._add_reverse_mapping(i, column_metadata["name"])
 
     @timed
     def create_columns(self, sql_metadata, mongo_metadata):
-        self.columns = set([])
-        self._create_must_exist_columns()
+        self.columns = []
         self._create_sql_columns(sql_metadata)
+        self._create_must_exist_columns()
         self._create_mongo_columns(mongo_metadata)
 
     def _create_mongo_columns(self, mongo_metadata):
@@ -173,21 +173,25 @@ class ReportingTableGenerator(object):
                 self.column_ops.append(column_op)
 
             def run(self):
-                self._create_multisection_columns()
-                self._reorder()
-                self._create_columns()
+                for column_op in self.column_ops:
+                    if isinstance(column_op, ColumnOp):
+                        column_name = column_op.run()
+                        self.column_names.append(column_name)
+                    else:
+                        # multisection key
+                        multisection_column_ops = self.multisection_map[column_op]
+                        max_items = self._get_max_items(column_op)
+                        for i in range(1, max_items + 1):
+                            for column_op in multisection_column_ops:
+                                column_op.column_index = i
+                                column_name = column_op.run()
+                                self.column_names.append(column_name)
 
-            def _create_multisection_columns(self):
-                new_ops = []
-                for op in self.column_ops:
-                    if op.section_model.allow_multiple:
-                        for i in range(1, self.max_items + 1):
-                            pass
-                            
+            def _get_max_items(self, multisection_key):
+                # we either query or return a constant
+                return self.max_items
 
-                
-
-        column_ops = ColumnOps(max_items=5)
+        column_ops = ColumnOps(max_items=3)
         
         for ( (form_model, section_model, cde_model), column_name) in column_map.items():
             column_op = ColumnOp(self,
@@ -241,12 +245,12 @@ class ReportingTableGenerator(object):
     @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
+        return 
         self.multisection_unroller.multisection_column_map = self.multisection_column_map
         errors = 0
         row_num = 0
         
         for result_dict in database_utils.generate_results(self.reverse_map):
-            logger.debug("result dict = %s" % result_dict)
             for unrolled_row in self.multisection_unroller.unroll_wide(result_dict):
                 try:
                     self.insert_row(unrolled_row)
@@ -269,7 +273,7 @@ class ReportingTableGenerator(object):
 
     def _create_column(self, name, datatype=alc.String):
         column = alc.Column(name, datatype, nullable=True)
-        self.columns.add(column)
+        self.columns.append(column)
         return column
 
     def create_schema(self):
