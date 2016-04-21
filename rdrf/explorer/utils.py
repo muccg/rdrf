@@ -308,18 +308,36 @@ class DatabaseUtils(object):
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
+
+        log_prefix = "*** MONGO DATA FOR PATIENT %s" % django_id 
+
         for mongo_document in mongo_collection.find(mongo_query):
             result = {}
             result["context_id"] = mongo_document.get("context_id", None)
             result['timestamp'] = mongo_document.get("timestamp", None)
             for form_model, section_model, cde_model in self.mongo_models:
-                column_name = self.reverse_map[(form_model, section_model, cde_model)]
+                logger.debug("form name = %s section code = %s cde code = %s" % (form_model.name,
+                                                                                 section_model.code,
+                                                                                 cde_model.code))
+                
+                # section_index is None for non multisections
+                column_name, section_index = self.reverse_map[(form_model, section_model, cde_model)]
                 column_value = self._get_cde_value(form_model,
                                                          section_model,
                                                          cde_model,
                                                          mongo_document)
 
-                result[column_name] = column_value
+                if section_model.allow_multiple:
+                    #column_value is actually a list of values
+                    try:
+                        result[column_name] = column_value[section_index]
+                    except IndexError:
+                        result[column_name] = None
+                else:
+                    result[column_name] = column_value
+
+                logger.debug("%s:> result[%s] = %s" % (log_prefix, column_name, result[column_name]))
+
             yield result
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection):
