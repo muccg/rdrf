@@ -27,9 +27,8 @@ class ReportingTableGenerator(object):
                 "string": alc.String,
                 }
 
-    def __init__(self, user, registry_model, multisection_unroller, humaniser, type_overrides={}):
+    def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}):
         self.user = user
-        self.counter = 0
         self.col_map = {}
         self.registry_model = registry_model
         self.type_overrides = type_overrides
@@ -38,8 +37,7 @@ class ReportingTableGenerator(object):
         self.table_name = ""
         self.table = None
         self.reverse_map = {}
-        self.multisection_column_map = {}
-        self.multisection_unroller = multisection_unroller
+        self.multisection_handler = multisection_handler
         self.humaniser = humaniser
 
     def _create_engine(self):
@@ -112,7 +110,7 @@ class ReportingTableGenerator(object):
         self.columns = []
         self._create_sql_columns(sql_metadata)
         self._create_must_exist_columns()
-        self._create_mongo_columns(mongo_metadata)
+        self.col_map = self._create_mongo_columns(mongo_metadata)
 
     def _create_mongo_columns(self, mongo_metadata):
         # FH-22 ...
@@ -127,6 +125,7 @@ class ReportingTableGenerator(object):
         # we create columns:
         # |secA P|secA Q|secA R|secM X_1|secM Y_1|secM X_2|secM X_3|secM Y_3| ...|secM X_ITEM_MAX|secM Y_ITEM_MAX| 
         # If ITEM_MAX is too small we could miss out some data ; we could calculate it but that's another query .. 
+        # so for now we have a constant
         column_map = mongo_metadata["multisection_column_map"]
         multisection_map = {}
         current_form = None
@@ -145,7 +144,6 @@ class ReportingTableGenerator(object):
                 self.in_multisection = section_model.allow_multiple
                 self.cde_model = cde_model
                 self.column_name = column_name
-                self.section_order = (form_model, section_model)
                 self.column_index = None
                 self.has_run = False
                 self.column_names = []
@@ -188,6 +186,7 @@ class ReportingTableGenerator(object):
                 self.column_ops = []
                 self.column_names = []
                 self.multisection_map = {}
+                self.mongo_column_map = {} # used to retrieve data later
 
             def report(self):
                 logger.info("*******************************")
@@ -215,6 +214,11 @@ class ReportingTableGenerator(object):
                     if isinstance(column_op, ColumnOp):
                         column_name = column_op.run()
                         self.column_names.append(column_name)
+                        self.mongo_column_map[(column_op.form_model,
+                                               column_op.section_model,
+                                               column_op.cde_model,
+                                               None)] = column_name
+                        
                     else:
                         # multisection key
                         multisection_column_ops = self.multisection_map[column_op]
@@ -224,6 +228,11 @@ class ReportingTableGenerator(object):
                                 column_op.column_index = i
                                 column_name = column_op.run()
                                 self.column_names.append(column_name)
+                                self.mongo_column_map[(column_op.form_model,
+                                                       column_op.section_model,
+                                                       column_op.cde_model,
+                                                       column_op.column_index)] = column_index
+                                
 
             def _get_max_items(self, multisection_key):
                 # we either query or return a constant
@@ -243,6 +252,7 @@ class ReportingTableGenerator(object):
 
         column_ops.run()
         column_ops.report()
+        return column_ops.mongo_column_map
 
                 
 
@@ -270,27 +280,17 @@ class ReportingTableGenerator(object):
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
-        if section_model.allow_multiple:
-            # This map is used when we unroll/"denormalise" the multisection data
-            if section_model.code in self.multisection_column_map:
-                self.multisection_column_map[section_model.code].append(column_name)
-            else:
-                self.multisection_column_map[section_model.code] = [column_name]
-
-
-        logger.debug("COLUMN: %s" % column_name)
         return self._create_column(column_name, column_data_type)
 
     @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
-        return 
-        self.multisection_unroller.multisection_column_map = self.multisection_column_map
         errors = 0
         row_num = 0
+        self.multisection_handler.reverse_map = self.col_map
         
         for result_dict in database_utils.generate_results(self.reverse_map):
-            for unrolled_row in self.multisection_unroller.unroll_wide(result_dict):
+            for unrolled_row in self.multisection_handler.unroll_wide(result_dict):
                 try:
                     self.insert_row(unrolled_row)
                     row_num += 1
