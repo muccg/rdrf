@@ -503,7 +503,7 @@ class MultisectionHandler(object):
 
             sublists[multisection_code] = dl2ld(section_data)
 
-        row_count =  0
+        row_count = 0
         # choice tuple is one choice from each sublist
         for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
