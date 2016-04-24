@@ -84,9 +84,10 @@ class PatientList(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         registry_code = kwargs.get('registry_code')
-        if len(request.POST) > 0:
+        if len(request.data) > 0:
             # For empty posts don't set the registry as it fails because request.data
             # is immutable for empty posts. Post request will fail on validation anyways.
+
             request.data['registry'] = self._get_registry_by_code(registry_code)
         if not (request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
             self.permission_denied(request, message='Not allowed to create Patient in this Registry')
