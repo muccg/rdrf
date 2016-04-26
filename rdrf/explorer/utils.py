@@ -328,6 +328,7 @@ class DatabaseUtils(object):
             logger.debug("get value for key %s to dump into %s" % (key, column_name))
             if isinstance(key, tuple):
                 if len(key) == 4:
+                    # NB section index is 1 based in report
                     form_model, section_model, cde_model, section_index = key
                 else:
                     logger.error("can't unpack report fields: %s" % key)
@@ -343,7 +344,7 @@ class DatabaseUtils(object):
                                              record)
 
                 try:
-                    result[column_name] = values[section_index]
+                    result[column_name] = values[section_index - 1]
                 except IndexError:
                     result[column_name] = None
 
