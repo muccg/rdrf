@@ -126,7 +126,11 @@ class QueryView(LoginRequiredMixin, View):
             
             humaniser = Humaniser(registry_model)
             multisection_handler = MultisectionHandler({})
-            rtg = ReportingTableGenerator(request.user, registry_model, multisection_handler, humaniser)
+            rtg = ReportingTableGenerator(request.user,
+                                          registry_model,
+                                          multisection_handler,
+                                          humaniser,
+                                          max_items=query_model.max_items)
             rtg.set_table_name(query_model)
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
@@ -246,7 +250,11 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_handler = MultisectionHandler({})
-        rtg = ReportingTableGenerator(request.user, registry_model, multisection_handler, humaniser)
+        rtg = ReportingTableGenerator(request.user,
+                                      registry_model,
+                                      multisection_handler,
+                                      humaniser,
+                                      max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         return self._extract(query_model.title, rtg)
