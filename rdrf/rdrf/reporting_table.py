@@ -503,15 +503,39 @@ class ReportTable(object):
         # relies on the encoding of the column names
         from rdrf.models import RegistryForm, Section, CommonDataElement
         try:
-            dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+            column_tuple = column_name.split("_")
+            num_parts = len(column_tuple)
+
+            if num_parts == 4:
+                dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+                column_index = ""
+            elif num_parts == 5:
+                dontcare, form_pk, section_pk, cde_code, column_index = column_name.split("_")
+            elif num_parts == 1:
+                # non clinical/mongo field
+                return self._get_sql_field_label(column_name)
+            else:
+                return column_name
+                
+                
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
             cde_model = CommonDataElement.objects.get(code=cde_code)
-            s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
+            if column_index:
+                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30] + "_" + column_index
+            else:
+                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
+                
+        
             return s.upper().encode('ascii', 'replace')
             
         except Exception, ex:
             return column_name        
+
+    def _get_sql_field_label(self, field_name):
+        # we can try to second guess here but these names come from the sql query so can be named
+        # by report author anyway
+        return field_name
 
     def _get_table(self):
         return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
