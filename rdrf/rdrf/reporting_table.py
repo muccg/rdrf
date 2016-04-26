@@ -138,6 +138,7 @@ class ReportingTableGenerator(object):
             """
             def __init__(self, rtg, columns, form_model, section_model, cde_model, column_name):
                 self.rtg = rtg
+                self.registry_model = rtg.registry_model
                 self.columns = columns
                 self.form_model = form_model
                 self.section_model = section_model
@@ -177,6 +178,7 @@ class ReportingTableGenerator(object):
                                                        self.section_model,
                                                        self.cde_model)
 
+                logger.debug("created column %s" % column_name)
                 return column_name
                     
                     
@@ -186,7 +188,7 @@ class ReportingTableGenerator(object):
                 self.column_ops = []
                 self.column_names = []
                 self.multisection_map = {}
-                self.mongo_column_map = {} # used to retrieve data later
+                self.mongo_column_map = {} # used to retrieve data later : maps
 
             def report(self):
                 logger.info("*******************************")
@@ -228,10 +230,13 @@ class ReportingTableGenerator(object):
                                 column_op.column_index = i
                                 column_name = column_op.run()
                                 self.column_names.append(column_name)
+                                # when we retrieve the data from mongo this bookmarking
+                                # allows the value to be slotted into the correct column
+                                # in the report ...
                                 self.mongo_column_map[(column_op.form_model,
                                                        column_op.section_model,
                                                        column_op.cde_model,
-                                                       column_op.column_index)] = column_index
+                                                       column_op.column_index)] = column_name
                                 
 
             def _get_max_items(self, multisection_key):
@@ -241,6 +246,10 @@ class ReportingTableGenerator(object):
         column_ops = ColumnOps(max_items=3)
         
         for ( (form_model, section_model, cde_model), column_name) in column_map.items():
+            logger.debug("creating column op for %s %s %s ( %s )" % (form_model.name,
+                                                                     section_model.code,
+                                                                     cde_model.code,
+                                                                     column_name))
             column_op = ColumnOp(self,
                                  self.columns,
                                  form_model,
@@ -252,6 +261,7 @@ class ReportingTableGenerator(object):
 
         column_ops.run()
         column_ops.report()
+
         return column_ops.mongo_column_map
 
                 
@@ -287,17 +297,15 @@ class ReportingTableGenerator(object):
         self.create_table()
         errors = 0
         row_num = 0
-        self.multisection_handler.reverse_map = self.col_map
         
-        for result_dict in database_utils.generate_results(self.reverse_map):
-            for unrolled_row in self.multisection_handler.unroll_wide(result_dict):
-                try:
-                    self.insert_row(unrolled_row)
-                    row_num += 1
-                except Exception, ex:
-                    errors += 1
-                    src = "query"
-                    logger.error("report error: query %s row after %s error: %s" % (src,
+        for row in database_utils.generate_results(self.reverse_map, self.col_map):
+            try:
+                self.insert_row(row)
+                row_num += 1
+            except Exception, ex:
+                errors += 1
+                src = "query"
+                logger.error("report error: query %s row after %s error: %s" % (src,
                                                                               row_num,
                                                                               ex))
         logger.info("query errors: %s" % errors)
