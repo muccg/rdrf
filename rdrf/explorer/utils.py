@@ -147,9 +147,10 @@ class DatabaseUtils(object):
             raise
 
     @timed
-    def generate_results(self, reverse_column_map):
+    def generate_results(self, reverse_column_map, col_map):
         logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
+        self.col_map = col_map
         self.mongo_client = self._get_mongo_client()
         logger.debug("created mongo client")
         self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
@@ -299,60 +300,62 @@ class DatabaseUtils(object):
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
-
-        log_prefix = "*** MONGO DATA FOR PATIENT %s" % django_id 
-
         for mongo_document in mongo_collection.find(mongo_query):
-            result = {}
-            result["context_id"] = mongo_document.get("context_id", None)
-            result['timestamp'] = mongo_document.get("timestamp", None)
-            for form_model, section_model, cde_model in self.mongo_models:
-                logger.debug("form name = %s section code = %s cde code = %s" % (form_model.name,
-                                                                                 section_model.code,
-                                                                                 cde_model.code))
-                
-                # section_index is None for non multisections
-                column_name, section_index = self.reverse_map[(form_model, section_model, cde_model)]
-                column_value = self._get_cde_value(form_model,
-                                                         section_model,
-                                                         cde_model,
-                                                         mongo_document)
+            yield self._get_result_map(mongo_document)
 
-                if section_model.allow_multiple:
-                    #column_value is actually a list of values
-                    try:
-                        result[column_name] = column_value[section_index]
-                    except IndexError:
-                        result[column_name] = None
+    def _get_result_map(self, mongo_document, is_snapshot=False):
+        result = {}
+        if is_snapshot:
+            # snapshots copy entire patient record into record field
+            record = mongo_document["record"]
+        else:
+            record = mongo_document
+        result["context_id"] = record.get("context_id", None)
+
+        # timestamp from top level in for current and snapshot
+        result['timestamp'] = mongo_document.get("timestamp", None)
+
+        for key, column_name in self.col_map.items():
+            logger.debug("get value for key %s to dump into %s" % (key, column_name))
+            if isinstance(key, tuple):
+                if len(key) == 4:
+                    form_model, section_model, cde_model, section_index = key
                 else:
-                    result[column_name] = column_value
+                    logger.error("can't unpack report fields: %s" % key)
+                    raise Exception("report key error: %s" % key)
+                    
+            else:
+                continue
+                
+            if section_model.allow_multiple:
+                values = self._get_cde_value(form_model,
+                                             section_model,
+                                             cde_model,
+                                             record)
 
-                logger.debug("%s:> result[%s] = %s" % (log_prefix, column_name, result[column_name]))
+                try:
+                    result[column_name] = values[section_index]
+                except IndexError:
+                    result[column_name] = None
 
-            yield result
+            else:
+                value = self._get_cde_value(form_model,
+                                             section_model,
+                                             cde_model,
+                                             record)
+                result[column_name] = value
+        return result
+
+        
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection):
         django_id = sql_column_data["id"]
-
         mongo_query = {"django_id": django_id,
                        "django_model": "Patient",
                        "record_type": "snapshot"}
 
-
         for snapshot_document in history_collection.find(mongo_query):
-            result = {}
-            result["timestamp"] = snapshot_document["timestamp"]
-            result["context_id"] = snapshot_document["record"].get("context_id", None)
-            for form_model, section_model, cde_model in self.mongo_models:
-                column_name = self.reverse_map[(form_model, section_model, cde_model)]
-                column_value = self._get_cde_value(form_model,
-                                                   section_model,
-                                                   cde_model,
-                                                   snapshot_document["record"])
-                result[column_name] = column_value
-
-
-            yield result
+            yield self._get_result_map(snapshot_document, is_snapshot=True)
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
