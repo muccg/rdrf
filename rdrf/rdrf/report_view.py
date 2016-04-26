@@ -56,6 +56,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
         context = {}
         context["location"] = report_table.title
         context["registry_code"] = registry_model.code
+        context["max_items"] = query_model.max_items
         context["columns"] = report_table.columns
         context["report_title"] = query_model.title
         context["api_url"] = reverse('report_datatable', args=[query_model_id])
