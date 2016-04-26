@@ -32,6 +32,9 @@ class DatabaseUtils(object):
     result = None
 
     def __init__(self, form_object=None, verify=False):
+        self.error_messages = []
+        self.warning_messages = []
+
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
             self.query = form_object['sql_query'].value()
@@ -146,13 +149,13 @@ class DatabaseUtils(object):
             raise
 
         try:
-            reporting_table_generator.run_explorer_query(self)
+            return reporting_table_generator.run_explorer_query(self)
         except Exception, ex:
             logger.error("Error running explorer query: %s" % ex)
             raise
 
     @timed
-    def generate_results(self, reverse_column_map, col_map):
+    def generate_results(self, reverse_column_map, col_map, max_items):
         logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
         self.col_map = col_map
@@ -179,7 +182,7 @@ class DatabaseUtils(object):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     mongo_columns_dict["snapshot"] = False
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
@@ -192,12 +195,12 @@ class DatabaseUtils(object):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     mongo_columns_dict["snapshot"] = False
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
 
-                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection):
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection, max_items):
                     mongo_columns_dict["snapshot"] = True
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
@@ -303,16 +306,16 @@ class DatabaseUtils(object):
             yield form_model, section_model, cde_model
 
 
-    def run_mongo_one_row(self, sql_column_data, mongo_collection):
+    def run_mongo_one_row(self, sql_column_data, mongo_collection, max_items):
         django_model = "Patient"
         django_id = sql_column_data["id"]  # convention?
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
         for mongo_document in mongo_collection.find(mongo_query):
-            yield self._get_result_map(mongo_document)
+            yield self._get_result_map(mongo_document, max_items=max_items)
 
-    def _get_result_map(self, mongo_document, is_snapshot=False):
+    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
         if is_snapshot:
             # snapshots copy entire patient record into record field
@@ -325,13 +328,11 @@ class DatabaseUtils(object):
         result['timestamp'] = mongo_document.get("timestamp", None)
 
         for key, column_name in self.col_map.items():
-            logger.debug("get value for key %s to dump into %s" % (key, column_name))
             if isinstance(key, tuple):
                 if len(key) == 4:
                     # NB section index is 1 based in report
                     form_model, section_model, cde_model, section_index = key
                 else:
-                    logger.error("can't unpack report fields: %s" % key)
                     raise Exception("report key error: %s" % key)
                     
             else:
@@ -341,8 +342,14 @@ class DatabaseUtils(object):
                 values = self._get_cde_value(form_model,
                                              section_model,
                                              cde_model,
-                                             record)
 
+                                             record)
+                
+                if len(values) > max_items:
+                    self.warning_messages.append("%s %s has more than %s items in the section" % (form_model.name,
+                                                                                                  section_model.display_name,
+                                                                                                  max_items))
+                    
                 try:
                     result[column_name] = values[section_index - 1]
                 except IndexError:
@@ -358,14 +365,14 @@ class DatabaseUtils(object):
 
         
 
-    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection):
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection, max_items):
         django_id = sql_column_data["id"]
         mongo_query = {"django_id": django_id,
                        "django_model": "Patient",
                        "record_type": "snapshot"}
 
         for snapshot_document in history_collection.find(mongo_query):
-            yield self._get_result_map(snapshot_document, is_snapshot=True)
+            yield self._get_result_map(snapshot_document, is_snapshot=True, max_items=max_items)
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde

@@ -176,10 +176,14 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
         multisection_handler = MultisectionHandler({})
-        rtg = ReportingTableGenerator(request.user, registry_model, multisection_handler, humaniser)
+        rtg = ReportingTableGenerator(request.user,
+                                      registry_model,
+                                      multisection_handler,
+                                      humaniser,
+                                      max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         a = datetime.now()
-        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        messages_dict = database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         b = datetime.now()
         logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
         if action == "view":

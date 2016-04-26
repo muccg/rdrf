@@ -27,7 +27,7 @@ class ReportingTableGenerator(object):
                 "string": alc.String,
                 }
 
-    def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}):
+    def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}, max_items=3):
         self.user = user
         self.col_map = {}
         self.registry_model = registry_model
@@ -39,6 +39,10 @@ class ReportingTableGenerator(object):
         self.reverse_map = {}
         self.multisection_handler = multisection_handler
         self.humaniser = humaniser
+        self.max_items = max_items
+
+        self.error_messages = []
+        self.warning_messages = []
 
     def _create_engine(self):
         report_db_data = settings.DATABASES["reporting"]
@@ -243,7 +247,7 @@ class ReportingTableGenerator(object):
                 # we either query or return a constant
                 return self.max_items
 
-        column_ops = ColumnOps(max_items=3)
+        column_ops = ColumnOps(max_items=self.max_items)
         
         for ( (form_model, section_model, cde_model), column_name) in column_map.items():
             logger.debug("creating column op for %s %s %s ( %s )" % (form_model.name,
@@ -292,13 +296,21 @@ class ReportingTableGenerator(object):
         self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
         return self._create_column(column_name, column_data_type)
 
+
+    def _get_result_messages_dict(self):
+        return { "error_messages" : self.error_messages,
+                 "warning_messages": self.warning_messages}
+    
+
     @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
         errors = 0
         row_num = 0
         
-        for row in database_utils.generate_results(self.reverse_map, self.col_map):
+        for row in database_utils.generate_results(self.reverse_map,
+                                                   self.col_map,
+                                                   max_items=self.max_items):
             try:
                 self.insert_row(row)
                 row_num += 1
@@ -308,7 +320,13 @@ class ReportingTableGenerator(object):
                 logger.error("report error: query %s row after %s error: %s" % (src,
                                                                               row_num,
                                                                               ex))
-        logger.info("query errors: %s" % errors)
+        if errors > 0:
+            logger.info("query errors: %s" % errors)
+            self.error_messages.append("There were %s errors running the report" % errors)
+
+
+
+        return self._get_result_messages_dict()
 
     def insert_row(self, value_dict):
         for k in value_dict:
