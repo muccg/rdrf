@@ -11,6 +11,55 @@ logger = logging.getLogger("registry_log")
 from django.conf import settings
 
 
+def temporary_table_name(query_model, user):
+    return "report_%s_%s" % (query_model.id, user.pk)
+
+
+class ColumnLabeller(object):
+    def get_label(self, column_name):
+        s = self._get_label(column_name)
+
+        return s.upper().encode('ascii', 'replace')
+    
+    def _get_label(self, column_name):
+        # relies on the encoding of the column names
+        from rdrf.models import RegistryForm, Section, CommonDataElement
+        try:
+            column_tuple = column_name.split("_")
+            num_parts = len(column_tuple)
+
+            if num_parts == 4:
+                dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+                column_index = ""
+            elif num_parts == 5:
+                dontcare, form_pk, section_pk, cde_code, column_index = column_name.split("_")
+            elif num_parts == 1:
+                # non clinical/mongo field
+                return self._get_sql_field_label(column_name)
+            else:
+                return column_name
+                
+                
+            form_model = RegistryForm.objects.get(pk=int(form_pk))
+            section_model = Section.objects.get(pk=int(section_pk))
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            if column_index:
+                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30] + "_" + column_index
+            else:
+                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
+                
+        
+            return s
+            
+        except Exception, ex:
+            return column_name        
+
+    def _get_sql_field_label(self, field_name):
+        # we can try to second guess here but these names come from the sql query so can be named
+        # by report author anyway
+        return field_name
+
+
 class ReportingTableGenerator(object):
     DEMOGRAPHIC_FIELDS = [('family_name', 'todo', alc.String),
                           ('given_names', 'todo', alc.String),
@@ -36,6 +85,7 @@ class ReportingTableGenerator(object):
         self.multisection_handler = multisection_handler
         self.humaniser = humaniser
         self.max_items = max_items
+        self.column_labeller = ColumnLabeller()
 
         self.error_messages = []
         self.warning_messages = []
@@ -338,7 +388,7 @@ class ReportingTableGenerator(object):
         select_query = alc.sql.select([self.table])
         db_connection = self.engine.connect()
         result = db_connection.execute(select_query)
-        writer.writerow(result.keys())
+        writer.writerow([self.column_labeller.get_label(key) for key in result.keys()])
         writer.writerows(result)
         db_connection.close()
         return stream
@@ -476,6 +526,7 @@ class ReportTable(object):
         self.user = user
         self.engine = self._create_engine()
         self.table_name = temporary_table_name(self.query_model, self.user)
+        self.column_labeller = ColumnLabeller()
         self.table = self._get_table()
         self._converters = {
             "date_of_birth": str,
@@ -487,45 +538,7 @@ class ReportTable(object):
 
     @property
     def columns(self):
-        return [{"data": col.name, "label": self._get_label(col.name)} for col in self.table.columns]
-
-    def _get_label(self, column_name):
-        # relies on the encoding of the column names
-        from rdrf.models import RegistryForm, Section, CommonDataElement
-        try:
-            column_tuple = column_name.split("_")
-            num_parts = len(column_tuple)
-
-            if num_parts == 4:
-                dontcare, form_pk, section_pk, cde_code = column_name.split("_")
-                column_index = ""
-            elif num_parts == 5:
-                dontcare, form_pk, section_pk, cde_code, column_index = column_name.split("_")
-            elif num_parts == 1:
-                # non clinical/mongo field
-                return self._get_sql_field_label(column_name)
-            else:
-                return column_name
-                
-                
-            form_model = RegistryForm.objects.get(pk=int(form_pk))
-            section_model = Section.objects.get(pk=int(section_pk))
-            cde_model = CommonDataElement.objects.get(code=cde_code)
-            if column_index:
-                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30] + "_" + column_index
-            else:
-                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
-                
-        
-            return s.upper().encode('ascii', 'replace')
-            
-        except Exception, ex:
-            return column_name        
-
-    def _get_sql_field_label(self, field_name):
-        # we can try to second guess here but these names come from the sql query so can be named
-        # by report author anyway
-        return field_name
+        return [{"data": col.name, "label": self.column_labeller.get_label(col.name)} for col in self.table.columns]
 
     def _get_table(self):
         return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
