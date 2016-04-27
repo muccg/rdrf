@@ -8,7 +8,6 @@ build
 dist
 *.rpm
 *.log
-
 virt_*/*
 django_rdrf.egg-info*
 rdrf.egg-info*
@@ -19,15 +18,13 @@ rdrf/media
 ^docs/_static
 ^docs/_build
 ^docs/_templates
-
 build-number.txt
 tests*.xml
 *komodo*
-
 .ccgplatform
 .idea
 .gitignore
 .version
-
 *#
 *~
+flycheck_*
