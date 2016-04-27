@@ -915,7 +915,7 @@ class PatientEditView(View):
             context_instance=RequestContext(request))
 
     def _get_index_context(self, registry_model, patient_model):
-        if registry_model.has_feature("family_linkage") and not patient_model.is_index:
+        if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
             return patient_model.my_index.default_context(registry_model)
 
 
