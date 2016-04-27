@@ -129,6 +129,7 @@ class FamilyLinkageManager(object):
                 fml_log("new patient created from relative = %s" % new_patient)
                 self._change_index(old_index_patient, new_patient)
                 fml_log("changed index ok to new patient")
+                patient_relative.skip_archiving = True
                 patient_relative.delete()
                 fml_log("deleted old patient relative")
 
