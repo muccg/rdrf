@@ -881,7 +881,8 @@ def delete_created_patient(sender, instance, **kwargs):
         #  signal archive the newly "promoted" relative's patient
         #  so don't do this!
         if not instance.relative_patient.is_index:
-            instance.relative_patient.delete()
+            if not hasattr(instance, "skip_archiving"):
+                instance.relative_patient.delete()
 
 
 @receiver(post_save, sender=Patient)
@@ -943,4 +944,8 @@ def delete_associated_patient_if_any(sender, instance, **kwargs):
     logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
     if instance.relative_patient:
         logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
-        instance.relative_patient.delete()
+        if not hasattr(instance, "skip_archiving"):
+            logger.debug("no skip_archiving attribute so deleting the PatientRelative.relative_patient")
+            instance.relative_patient.delete()
+        else:
+            logger.debug("skip_archiving is set on PatientRelative so won't archive")
