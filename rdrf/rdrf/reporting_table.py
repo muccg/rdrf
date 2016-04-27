@@ -16,11 +16,12 @@ def temporary_table_name(query_model, user):
 
 
 class ColumnLabeller(object):
+
     def get_label(self, column_name):
         s = self._get_label(column_name)
 
         return s.upper().encode('ascii', 'replace')
-    
+
     def _get_label(self, column_name):
         # relies on the encoding of the column names
         from rdrf.models import RegistryForm, Section, CommonDataElement
@@ -29,30 +30,32 @@ class ColumnLabeller(object):
             num_parts = len(column_tuple)
 
             if num_parts == 4:
-                dontcare, form_pk, section_pk, cde_code = column_name.split("_")
+                dontcare, form_pk, section_pk, cde_code = column_name.split(
+                    "_")
                 column_index = ""
             elif num_parts == 5:
-                dontcare, form_pk, section_pk, cde_code, column_index = column_name.split("_")
+                dontcare, form_pk, section_pk, cde_code, column_index = column_name.split(
+                    "_")
             elif num_parts == 1:
                 # non clinical/mongo field
                 return self._get_sql_field_label(column_name)
             else:
                 return column_name
-                
-                
+
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
             cde_model = CommonDataElement.objects.get(code=cde_code)
             if column_index:
-                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30] + "_" + column_index
+                s = form_model.name[:3] + "_" + section_model.display_name[
+                    :3] + "_" + cde_model.name[:30] + "_" + column_index
             else:
-                s = form_model.name[:3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
-                
-        
+                s = form_model.name[
+                    :3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
+
             return s
-            
+
         except Exception, ex:
-            return column_name        
+            return column_name
 
     def _get_sql_field_label(self, field_name):
         # we can try to second guess here but these names come from the sql query so can be named
@@ -66,7 +69,9 @@ class ReportingTableGenerator(object):
                           ('home_phone', 'todo', alc.String),
                           ('email', 'todo', alc.String)]
     TYPE_MAP = {"float": alc.Float,
-                "calculated": alc.String, #todo fix this - some calculated field are strings some numbers
+                # todo fix this - some calculated field are strings some
+                # numbers
+                "calculated": alc.String,
                 "integer": alc.Integer,
                 "int": alc.Integer,
                 "string": alc.String,
@@ -123,9 +128,9 @@ class ReportingTableGenerator(object):
         conn.close()
 
     def set_table_name(self, obj):
-        logger.debug("setting table name from %s %s" % (self.user.username, obj))
-        t = "report_%s_%s" % (obj.id, self.user.pk)
-        self.table_name = t
+        logger.debug("setting table name from %s %s" %
+                     (self.user.username, obj))
+        self.table_name = temporary_table_name(obj, self.user)
         logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
@@ -137,7 +142,6 @@ class ReportingTableGenerator(object):
         self._add_reverse_mapping("context_id", "context_id")
         logger.debug("COLUMN: context_id")
 
-
         self.columns.append(self._create_column("timestamp", alc.String))
         self._add_reverse_mapping("timestamp", "timestamp")
         logger.debug("COLUMN: timestamp")
@@ -145,14 +149,13 @@ class ReportingTableGenerator(object):
         self.columns.append(self._create_column("snapshot", alc.Boolean))
         self._add_reverse_mapping("snapshot", "snapshot")
         logger.debug("COLUMN: snapshot")
-        
 
     def _create_sql_columns(self, sql_metadata):
         # Columns from sql query
         for i, column_metadata in enumerate(sql_metadata):
             column_from_sql = self._create_column_from_sql(column_metadata)
             self.columns.append(column_from_sql)
-            #to get from tuple
+            # to get from tuple
             # map the column's index in tuple to the column name in the dict
             self._add_reverse_mapping(i, column_metadata["name"])
 
@@ -174,8 +177,8 @@ class ReportingTableGenerator(object):
         # if secA is non-multiple with CDEs P, Q and R
         # and secM is multiple with CDEs X and Y
         # we create columns:
-        # |secA P|secA Q|secA R|secM X_1|secM Y_1|secM X_2|secM X_3|secM Y_3| ...|secM X_ITEM_MAX|secM Y_ITEM_MAX| 
-        # If ITEM_MAX is too small we could miss out some data ; we could calculate it but that's another query .. 
+        # |secA P|secA Q|secA R|secM X_1|secM Y_1|secM X_2|secM X_3|secM Y_3| ...|secM X_ITEM_MAX|secM Y_ITEM_MAX|
+        # If ITEM_MAX is too small we could miss out some data ; we could calculate it but that's another query ..
         # so for now we have a constant
         column_map = mongo_metadata["multisection_column_map"]
         multisection_map = {}
@@ -187,6 +190,7 @@ class ReportingTableGenerator(object):
             """
             Allows us to load column data first and then create in correct order after all column data collected
             """
+
             def __init__(self, rtg, columns, form_model, section_model, cde_model, column_name):
                 self.rtg = rtg
                 self.registry_model = rtg.registry_model
@@ -197,46 +201,70 @@ class ReportingTableGenerator(object):
                 self.column_name = column_name
                 self.column_index = None
                 self.has_run = False
+                self.column_names = []
+
+            @property
+            def multisection_key(self):
+                return (self.form_model, self.section_model)
+
             def run(self):
-                column = self._create_column()
-                self.columns.add(column)
-                self.has_run = True
+                if not self.has_run:
+                    column = self._create_column()
+                    if not self.in_multisection:
+                        self.has_run = True
+                    return column
+                else:
+                    return None
 
             def _create_column(self):
                 if self.column_index is None:
                     column = self.rtg._create_column_from_mongo(self.column_name,
-                                                       self.form_model,
-                                                       self.section_model,
-                                                       self.cde_model)
+                                                                self.form_model,
+                                                                self.section_model,
+                                                                self.cde_model)
+                    column_name = self.column_name
                 else:
-                    column_name = "%_%" % (self.column_name, self.column_index)
+                    column_name = "%s_%s" % (
+                        self.column_name, self.column_index)
                     column = self.rtg._create_column_from_mongo(column_name,
-                                                       self.form_model,
-                                                       self.section_model,
-                                                       self.cde_model)
+                                                                self.form_model,
+                                                                self.section_model,
+                                                                self.cde_model)
 
                 logger.debug("created column %s" % column_name)
                 return column_name
-                    
-                    
 
         class ColumnOps(object):
+
             def __init__(self, max_items):
                 self.max_items = max_items
                 self.column_ops = []
                 self.column_names = []
                 self.multisection_map = {}
-                self.mongo_column_map = {} # used to retrieve data later : maps
+                self.mongo_column_map = {}  # used to retrieve data later : maps
 
             def report(self):
                 logger.info("*******************************")
-                logger.info("There are %s mongo derived columns" % len(self.column_names))
+                logger.info("There are %s mongo derived columns" %
+                            len(self.column_names))
                 for i, column_name in enumerate(self.column_names):
                     logger.info("MONGO COLUMN %s %s" % (i, column_name))
                 logger.info("*******************************")
 
             def add(self, column_op):
-                self.column_ops.append(column_op)
+                # rigmarole to preserve column order for the multisection items
+                if column_op.in_multisection:
+                    multisection_key = column_op.multisection_key
+                    if multisection_key in self.multisection_map:
+                        self.multisection_map[
+                            multisection_key].append(column_op)
+                    else:
+                        self.multisection_map[multisection_key] = [column_op]
+                        # first time we've hit a cde in the multisection so add the key to allow us
+                        # to sequence the the items in the multisection
+                        self.column_ops.append(multisection_key)
+                else:
+                    self.column_ops.append(column_op)
 
             def run(self):
                 for column_op in self.column_ops:
@@ -247,10 +275,11 @@ class ReportingTableGenerator(object):
                                                column_op.section_model,
                                                column_op.cde_model,
                                                None)] = column_name
-                        
+
                     else:
                         # multisection key
-                        multisection_column_ops = self.multisection_map[column_op]
+                        multisection_column_ops = self.multisection_map[
+                            column_op]
                         max_items = self._get_max_items(column_op)
                         for i in range(1, max_items + 1):
                             for column_op in multisection_column_ops:
@@ -264,15 +293,14 @@ class ReportingTableGenerator(object):
                                                        column_op.section_model,
                                                        column_op.cde_model,
                                                        column_op.column_index)] = column_name
-                                
 
             def _get_max_items(self, multisection_key):
                 # we either query or return a constant
                 return self.max_items
 
         column_ops = ColumnOps(max_items=self.max_items)
-        
-        for ( (form_model, section_model, cde_model), column_name) in column_map.items():
+
+        for ((form_model, section_model, cde_model), column_name) in column_map.items():
             logger.debug("creating column op for %s %s %s ( %s )" % (form_model.name,
                                                                      section_model.code,
                                                                      cde_model.code,
@@ -290,8 +318,6 @@ class ReportingTableGenerator(object):
         column_ops.report()
 
         return column_ops.mongo_column_map
-
-                
 
     def _create_column_from_sql(self, column_metadata):
         column_name = column_metadata["name"]
@@ -316,21 +342,20 @@ class ReportingTableGenerator(object):
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
         column_data_type = self._get_sql_alchemy_datatype(cde_model)
-        self._add_reverse_mapping((form_model, section_model, cde_model), column_name)
+        self._add_reverse_mapping(
+            (form_model, section_model, cde_model), column_name)
         return self._create_column(column_name, column_data_type)
 
-
     def _get_result_messages_dict(self):
-        return { "error_messages" : self.error_messages,
-                 "warning_messages": self.warning_messages}
-    
+        return {"error_messages": self.error_messages,
+                "warning_messages": self.warning_messages}
 
     @timed
     def run_explorer_query(self, database_utils):
         self.create_table()
         errors = 0
         row_num = 0
-        
+
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
@@ -341,13 +366,12 @@ class ReportingTableGenerator(object):
                 errors += 1
                 src = "query"
                 logger.error("report error: query %s row after %s error: %s" % (src,
-                                                                              row_num,
-                                                                              ex))
+                                                                                row_num,
+                                                                                ex))
         if errors > 0:
             logger.info("query errors: %s" % errors)
-            self.error_messages.append("There were %s errors running the report" % errors)
-
-
+            self.error_messages.append(
+                "There were %s errors running the report" % errors)
 
         return self._get_result_messages_dict()
 
@@ -356,7 +380,7 @@ class ReportingTableGenerator(object):
             value = value_dict[k]
             if isinstance(value, basestring):
                 value_dict[k] = value.encode("ascii", "replace")
-                
+
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
@@ -369,7 +393,8 @@ class ReportingTableGenerator(object):
         logger.debug("creating table schema")
         logger.debug("There are %s columns" % len(self.columns))
         logger.debug("table name will be = %s" % self.table_name)
-        self.table = alc.Table(self.table_name, MetaData(self.engine), *self.columns, schema=None)
+        self.table = alc.Table(self.table_name, MetaData(
+            self.engine), *self.columns, schema=None)
 
     def _generate_temporary_table_name(self):
         return "reporting_table" + self.user.username
@@ -388,20 +413,22 @@ class ReportingTableGenerator(object):
         select_query = alc.sql.select([self.table])
         db_connection = self.engine.connect()
         result = db_connection.execute(select_query)
-        writer.writerow([self.column_labeller.get_label(key) for key in result.keys()])
+        writer.writerow([self.column_labeller.get_label(key)
+                         for key in result.keys()])
         writer.writerows(result)
         db_connection.close()
         return stream
 
 
 class MongoFieldSelector(object):
+
     def __init__(self,
                  user,
                  registry_model,
                  query_model,
                  checkbox_ids=[],
                  longitudinal_ids=[],
-    ):
+                 ):
         if checkbox_ids is not None:
             self.checkbox_ids = checkbox_ids
         else:
@@ -414,7 +441,8 @@ class MongoFieldSelector(object):
         self.query_model = query_model
         self.longitudinal_map = self._get_longitudinal_cdes()
         if self.query_model:
-            self.existing_data = self._get_existing_report_choices(self.query_model)
+            self.existing_data = self._get_existing_report_choices(
+                self.query_model)
         else:
             self.existing_data = []
 
@@ -424,7 +452,6 @@ class MongoFieldSelector(object):
             return json.loads(query_model.projection)
         except:
             return []
-
 
     @property
     def field_data(self):
@@ -437,7 +464,8 @@ class MongoFieldSelector(object):
             if self.user.can_view(form_model) and not form_model.is_questionnaire:
                 for section_model in form_model.section_models:
                     for cde_model in section_model.cde_models:
-                        self._get_field_info(form_model, section_model, cde_model)
+                        self._get_field_info(
+                            form_model, section_model, cde_model)
 
         return self.field_info
 
@@ -445,7 +473,7 @@ class MongoFieldSelector(object):
         logger.debug("existing data = %s" % self.existing_data)
         if self.existing_data is None:
             return False, False
-        
+
         for value_dict in self.existing_data:
             if value_dict["formName"] == form_model.name:
                 if value_dict["sectionCode"] == section_model.code:
@@ -454,8 +482,9 @@ class MongoFieldSelector(object):
         return False, False
 
     def _get_field_info(self, form_model, section_model, cde_model):
-        saved_value, long_selected = self._get_saved_value(form_model, section_model, cde_model)
-        
+        saved_value, long_selected = self._get_saved_value(
+            form_model, section_model, cde_model)
+
         field_id = "cb_%s_%s_%s_%s" % (self.registry_model.code,
                                        form_model.pk,
                                        section_model.pk,
@@ -482,7 +511,8 @@ class MongoFieldSelector(object):
 
         def create_value_dict(checkbox_id):
             # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
-            _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split("_")
+            _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split(
+                "_")
 
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
@@ -493,10 +523,12 @@ class MongoFieldSelector(object):
             value_dict["formName"] = form_model.name
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
-            value_dict["value"] = True  # we only need to store the true / checked cdes
-            value_dict["longitudinal"] = self.longitudinal_map.get((form_model.name, section_model.code, cde_model.code), False)
+            # we only need to store the true / checked cdes
+            value_dict["value"] = True
+            value_dict["longitudinal"] = self.longitudinal_map.get(
+                (form_model.name, section_model.code, cde_model.code), False)
             return value_dict
-            
+
         for checkbox_id in self.checkbox_ids:
             value_dict = create_value_dict(checkbox_id)
             projection_data.append(value_dict)
@@ -507,13 +539,13 @@ class MongoFieldSelector(object):
         from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
         d = {}
         for checkbox_id in self.longitudinal_ids:
-            _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split("_")
+            _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split(
+                "_")
             form_model = RegistryForm.objects.get(pk=int(form_pk))
             section_model = Section.objects.get(pk=int(section_pk))
             cde_model = CommonDataElement.objects.get(code=cde_code)
             d[(form_model.name, section_model.code, cde_model.code)] = True
         return d
-            
 
 
 class ReportTable(object):
@@ -582,10 +614,10 @@ class ReportTable(object):
                 query = query.order_by(sort_column)
 
         for row in self.engine.execute(query):
-                result_dict = {}
-                for i, col in enumerate(columns):
-                    result_dict[col.name] = self._format(col.name, row[i])
-                rows.append(result_dict)
+            result_dict = {}
+            for i, col in enumerate(columns):
+                result_dict[col.name] = self._format(col.name, row[i])
+            rows.append(result_dict)
         return rows
 
     def _format(self, column, data):
@@ -594,10 +626,3 @@ class ReportTable(object):
             return data
         else:
             return converter(data)
-
-
-
-
-
-
-
