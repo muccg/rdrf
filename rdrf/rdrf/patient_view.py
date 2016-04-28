@@ -888,7 +888,12 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-        if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
+    #def _get_index_context(self, registry_model, patient_model):
+    #    #todo this probabably doesn't apply anymore in fhcontexts branch
+    #    if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
+    #        return patient_model.my_index.default_context(registry_model)
+
+        
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
             patient_relative_formset.instance = patient_model

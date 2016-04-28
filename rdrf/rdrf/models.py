@@ -878,7 +878,6 @@ class RegistryForm(models.Model):
                     "Camel Case, instead."
             raise ValidationError(msg)
         if self.pk:
-        if self.pk:
             self._check_completion_cdes()
         
 
