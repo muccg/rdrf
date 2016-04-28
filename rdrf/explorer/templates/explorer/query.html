@@ -217,12 +217,13 @@
             <div id="search_type" class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="mongo_search_type">Mongo Search Type</label>
+                        <label for="mongo_search_type">Report Type</label>
                             {{form.mongo_search_type}}
                     </div>
                 </div>
             </div>
-    
+
+	       
             <div class="row">
                 <div class="col-md-12">
                     <div class="alert alert-danger" id="query-error">
@@ -246,6 +247,18 @@
                     </table>
                 </div>
             </div>
+
+
+	     <div id="max_items" class="row">
+	       <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="max_items">Maximum number of items in multisection to return</label>
+                            {{form.max_items}}
+                    </div>
+                </div>
+
+	    </div>
+
     
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">

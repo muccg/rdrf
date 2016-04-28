@@ -888,6 +888,7 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
+        if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
             patient_relative_formset.instance = patient_model

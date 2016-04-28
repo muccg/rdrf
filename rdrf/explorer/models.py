@@ -30,6 +30,8 @@ class Query(models.Model):
     created_by = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    max_items = models.IntegerField(default=3) # max number of multisection items to show in datatable
+
     def get_absolute_url(self):
         return reverse('explorer_query', kwargs={'query_id': self.pk})
 
@@ -53,7 +55,6 @@ class Query(models.Model):
     def _get_mixed_query_errors(self):
         import json
         errors = []
-        from rdrf.utils import evaluate_generalised_field_expression
         try:
             data = json.loads(self.sql_query)
             static_sheets = data["static_sheets"]
