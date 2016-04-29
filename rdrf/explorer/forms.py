@@ -10,7 +10,6 @@ class QueryForm(ModelForm):
             'id',
             'title',
             'description',
-
             'registry',
             'access_group',
             'collection',
@@ -19,6 +18,6 @@ class QueryForm(ModelForm):
             'aggregation',
             'mongo_search_type',
             'sql_query',
-
+            'max_items',
             'created_by'
         ]

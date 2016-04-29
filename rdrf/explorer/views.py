@@ -126,8 +126,12 @@ class QueryView(LoginRequiredMixin, View):
             # populate temporary table
             
             humaniser = Humaniser(registry_model)
-            multisection_unroller = MultisectionUnRoller({})
-            rtg = ReportingTableGenerator(request.user, registry_model, multisection_unroller, humaniser)
+            multisection_handler = MultisectionHandler({})
+            rtg = ReportingTableGenerator(request.user,
+                                          registry_model,
+                                          multisection_handler,
+                                          humaniser,
+                                          max_items=query_model.max_items)
             rtg.set_table_name(query_model)
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
@@ -175,11 +179,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
-        multisection_unrollower = MultisectionUnRoller({})
-        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        multisection_handler = MultisectionHandler({})
+        rtg = ReportingTableGenerator(request.user,
+                                      registry_model,
+                                      multisection_handler,
+                                      humaniser,
+                                      max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         a = datetime.now()
-        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        messages_dict = database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         b = datetime.now()
         logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
         if action == "view":
@@ -246,8 +254,12 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
-        multisection_unrollower = MultisectionUnRoller({})
-        rtg = ReportingTableGenerator(request.user, registry_model, multisection_unrollower, humaniser)
+        multisection_handler = MultisectionHandler({})
+        rtg = ReportingTableGenerator(request.user,
+                                      registry_model,
+                                      multisection_handler,
+                                      humaniser,
+                                      max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         if action == 'view':
@@ -439,12 +451,16 @@ def _final_cleanup(results):
     return results
 
 
-class MultisectionUnRoller(object):
-    def __init__(self, multisection_column_map):
-        # section_code --> column names in the report in that multisection
-        # E.g.{ "social": ["friends"], "health": ["drug", "dose"]}
-        self.multisection_column_map = multisection_column_map
+class MultisectionHandler(object):
+    def __init__(self, reverse_column_map):
+        # (form_model, section_model, cde_model, section_index) -> column_name
+        self.reverse_map = reverse_column_map
         self.row_count = 0
+
+
+    def unroll_wide(self, row_dict):
+        for key in row_dict:
+            logger.debug("unroll_wide key = %s  value = %s" % (key, row_dict[key]))
 
     def unroll(self, row):
         """
