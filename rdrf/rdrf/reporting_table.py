@@ -197,6 +197,7 @@ class ReportingTableGenerator(object):
                 self.columns = columns
                 self.form_model = form_model
                 self.section_model = section_model
+                self.in_multisection = section_model.allow_multiple
                 self.cde_model = cde_model
                 self.column_name = column_name
                 self.column_index = None
