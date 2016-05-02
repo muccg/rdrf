@@ -248,6 +248,7 @@ class SpreadSheetReport(object):
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
+        sheet_name = sheet_name[:30] # 31 max char sheet name size ...
         self._create_sheet(sheet_name)
         # this just writes out bit at the beginning
         self._write_header_universal_columns(universal_columns)
