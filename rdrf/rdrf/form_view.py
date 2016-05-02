@@ -171,7 +171,7 @@ class FormView(View):
             rdrf_context_id = kwargs['rdrf_context_id']
         else:
             rdrf_context_id = None
-            
+
         obj = model_class.objects.get(pk=kwargs['id'])
         dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
         if self.testing:
@@ -672,17 +672,16 @@ class FormView(View):
         from utils import id_on_page
         for section in registry_form.get_sections():
             metadata = {}
-            section_model = Section.objects.get(code=section)
-            for cde_code in section_model.get_elements():
-                try:
-                    cde = CommonDataElement.objects.get(code=cde_code)
-                    cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                    if cde.datatype.lower() == "date":
-                        # date widgets are complex
-                        metadata[cde_code_on_page] = {}
-                        metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
-                except CommonDataElement.DoesNotExist:
-                    continue
+            section_model = Section.objects.filter(code=section).first()
+            if section_model:
+                for cde_code in section_model.get_elements():
+                    cde = CommonDataElement.objects.filter(code=cde_code).first()
+                    if cde:
+                        cde_code_on_page = id_on_page(registry_form, section_model, cde)
+                        if cde.datatype.lower() == "date":
+                            # date widgets are complex
+                            metadata[cde_code_on_page] = {}
+                            metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
 
             if metadata:
                 json_dict[section] = json.dumps(metadata)
@@ -697,7 +696,7 @@ class FormView(View):
 
 
 class FormPrintView(FormView):
-    
+
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
 
@@ -2820,7 +2819,7 @@ class CustomConsentFormView(View):
                             error_messages.append(error)
             else:
                 valid_forms.append(True)
-                
+
         try:
             parent = ParentGuardian.objects.get(user=request.user)
         except ParentGuardian.DoesNotExist:
@@ -2865,4 +2864,3 @@ class CustomConsentFormView(View):
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,
                                   context_instance=RequestContext(request))
-
