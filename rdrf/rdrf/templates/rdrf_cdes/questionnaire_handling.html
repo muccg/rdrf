@@ -1,0 +1,152 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+<script type="text/javascript">
+  function QuestionnaireHandlerGui(patientInfoPanelId, patientInfoResultPanelId, patientDataPanelId, questionnaireDataPanelId) {
+      this.patientInfoPanel = $("#" + patientInfoPanelId);
+      this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
+      this.patientDataPanel = $("#" + patientDataPanelId);
+  this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
+  
+  
+  }
+
+  QuestionnaireHandlerGui.prototype.wireUp = function () {
+     var self = this;
+     this.patientInfoPanel.delegate('input[type=radio]', 'click', function() {
+     var action = this.value;
+     if(action == "create") {
+         self.patientInfoResultPanel.hide();
+         self.patientDataPanel.hide();
+         self.questionnaireDataPanel.parent.class("col-md-12");
+  }
+  
+  
+});
+      
+  }
+
+  $(document).on("ready", function() {
+  var gui = new QuestionnaireHandlerGui("patient-info", "patient-info-result", "patient-data", "questionnaire-data");
+  gui.wireUp();
+  });
+
+</script>
+{% endblock %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        {{ block.super }}
+        <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
+        </div>
+        </div>
+    <br>
+        <div class="row">
+            <div class="col-md-10">
+
+             <div id="patient-info" class="panel panel-info">
+               <div class="panel-heading">Existing Patient Lookup <i>Type name to find a patient to match with or leave blank to create a new patient from the questionnaire response</i></div>
+                    <div class="panel-body">
+                        <div class="row">
+			    <input  type="radio" name="handle_action" value="create" checked>Create New Patient From Questionnaire Response
+			    <input  type="radio" name="handle_action" value="update">Update Existing Patient From Questionnaire Response<br>
+			    <div id="load_patient">
+			      Lookup Patient: <input id="patient_lookup" name="patient_lookup" value=""/>
+                              <button onclick="load_patient(this);">Load this patient</button>
+			    </div>
+                        </div>
+                    </div>
+
+               </div>
+
+             <div id="patient-info-result" class="panel panel-default">
+               <div class="panel-heading">Patient Info</div>
+
+                            <div class="panel-body">
+                                <div id="patient" >
+                                    <table class="table table-bordered">
+                                        <tbody>
+
+
+                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+		    </div>
+
+	  
+	     <div class="row">
+	       
+		 <div class="col-md-6">
+		   <div id="patient-data" class="panel panel-default">
+                     <div class="panel panel-heading">Patient Data</div>
+                     <div class="panel panel-body">
+                       <div id="patient_data">
+			 <table class="table table-bordered table-striped">
+                           <tbody>
+                             <tr>
+                               <th>Form</th>
+                               <th>Section</th>
+                               <th>Data Element</th>
+                             </tr>
+                           </tbody>
+                         </table>
+                       </div><!-- patient data -->
+                     </div><!-- panel body -->
+                   </div><!-- panel -->
+		 </div><!-- col -->
+
+		  <div class="col-md-6">
+		   <div id="questionnaire_data" class="panel panel-default">
+                     <div class="panel panel-heading">Questionnaire Data</div>
+                     <div class="panel panel-body">
+                       <div id="patient_data">
+			 <table class="table table-bordered table-striped">
+                           <tbody>
+                             <tr>
+                               <th>Form</th>
+                               <th>Section</th>
+                               <th>Data Element</th>
+                             </tr>
+                           </tbody>
+                         </table>
+                       </div><!-- patient data -->
+                     </div><!-- panel body -->
+                   </div><!-- panel -->
+		  </div><!-- col -->
+
+             </div>
+	     
+
+
+	    </div>  <!-- col10 -->
+	      
+	     
+   
+
+
+	      <div class="col-md-2">
+              <div data-spy="affix" style="width: 150px;">
+                <button id="savebutton" type="submit" class="btn btn-success btn-block" value="Save">
+                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger btn-block">
+                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+              </div>
+              </div>
+	      
+	    </div>
+
+
+
+    {% else %}
+        <div class="alert alert-info">Please log in to access the registry.</div>
+    {% endif %}
+{% endblock%}
+
