@@ -56,16 +56,17 @@ from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
 from rdrf.form_progress import FormProgress
 
+logger = logging.getLogger("registry_log")
+login_required_method = method_decorator(login_required)
+
 
 class RDRFContextSwitchError(Exception):
     pass
 
-logger = logging.getLogger("registry_log")
-
 
 class LoginRequiredMixin(object):
 
-    @method_decorator(login_required)
+    @login_required_method
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
@@ -206,7 +207,7 @@ class FormView(View):
 
             raise RDRFContextSwitchError
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
@@ -269,7 +270,7 @@ class FormView(View):
         ids = [field for field in dummy.fields.keys()]
         return ",".join(ids)
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_superuser:
             pass
@@ -1111,7 +1112,7 @@ class QuestionnaireResponseView(FormView):
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, registry_code, questionnaire_response_id):
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
@@ -1182,7 +1183,7 @@ class QuestionnaireResponseView(FormView):
 
         return [WorkingGroupOption(wg) for wg in user.working_groups.all()]
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
@@ -1227,7 +1228,7 @@ class QuestionnaireResponseView(FormView):
 
 class FileUploadView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, registry_code, gridfs_file_id):
         from bson.objectid import ObjectId
         import gridfs
@@ -1271,7 +1272,7 @@ class QuestionnaireConfigurationView(View):
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, form_pk):
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
@@ -1425,7 +1426,7 @@ class RPCHandler(View):
 
 class AdjudicationInitiationView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, def_id, patient_id):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
@@ -1447,7 +1448,7 @@ class AdjudicationInitiationView(View):
             context,
             context_instance=RequestContext(request))
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, def_id, patient_id):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
@@ -1574,7 +1575,7 @@ class AdjudicationInitiationView(View):
 
 class AdjudicationRequestView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, adjudication_request_id):
         user = request.user
         from rdrf.models import AdjudicationRequest, AdjudicationRequestState
@@ -1606,7 +1607,7 @@ class AdjudicationRequestView(View):
             context,
             context_instance=RequestContext(request))
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, adjudication_request_id):
         arid = request.POST["arid"]
         if arid != adjudication_request_id:
@@ -1839,7 +1840,7 @@ class AdjudicationResultsView(View):
                 responses.append(adj_resp)
         return stats, responses
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, adjudication_definition_id, requesting_user_id, patient_id):
         from rdrf.models import AdjudicationDefinition, AdjudicationState, AdjudicationDecision
         try:
