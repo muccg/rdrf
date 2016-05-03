@@ -933,6 +933,16 @@ class QuestionnaireResponse(models.Model):
         wrapper._set_client()
         return wrapper.has_data(self.registry.code)
 
+    @property
+    def data(self):
+        # return the filled in questionnaire data
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
+        return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
+
+        
+
 
 def appears_in(cde, registry, registry_form, section):
     if section.code not in registry_form.get_sections():
