@@ -1103,6 +1103,56 @@ class QuestionnaireView(FormView):
             registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
+class QuestionnaireHandlingView(View):
+    @method_decorator(login_required)
+    def get(self, request, registry_code, questionnaire_response_id):
+        context = {}
+        template_name = "rdrf_cdes/questionnaire_handling.html"
+        context["registry_model"] = Registry.objects.get(code=registry_code)
+        context["form_model"]  = context["registry_model"].questionnaire
+        context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        context["qr_data"] = context["qr_model"].data
+
+        context.update(csrf(request))
+        
+        return render_to_response(
+            template_name,
+            context,
+            context_instance=RequestContext(request))
+
+    def post(self, request, registry_code, questionnaire_response_id):
+        registry_model = Registry.objects.get(code=registry_code)
+        existing_patient_id = request.POST.get("existing_patient_id", None)
+        qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        form_data = request.POST.get("form_data")
+        
+        if existing_patient_id is None:
+            self._create_patient(registry_model,
+                                 qr_model,
+                                 form_data)
+        else:
+           patient_model = Patient.objects.get(pk=existing_patient_id)
+           self._update_existing_patient(patient_model,
+                                         registry_model,
+                                         qr_model,
+                                         form_data)
+
+    def _create_patient(self, registry_model, qr_model, form_data):
+        pass
+
+    def _update_existing_patient(self,
+                                 patient_model,
+                                 registry_model,
+                                 qr_model,
+                                 form_data):
+        pass
+
+        
+    
+    
+        
+        
+
 class QuestionnaireResponseView(FormView):
 
     def __init__(self, *args, **kwargs):
@@ -1111,6 +1161,8 @@ class QuestionnaireResponseView(FormView):
 
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
+
+
 
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):

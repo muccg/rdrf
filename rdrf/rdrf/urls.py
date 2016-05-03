@@ -154,7 +154,7 @@ urlpatterns = patterns('',
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
-                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireResponseView.as_view(),
+                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
                            name='questionnaire_response'),
                        url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',
                            form_view.FileUploadView.as_view(), name='file_upload'),
