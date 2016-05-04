@@ -2,11 +2,15 @@
 {% load static %}
 
 {% block extrahead %}
+<script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
 <script type="text/javascript">
-  function QuestionnaireHandlerGui(patientInfoPanelId, patientInfoResultPanelId, patientDataPanelId, questionnaireDataPanelId) {
+  function QuestionnaireHandlerGui(patientInfoPanelId, patientInfoResultPanelId, patientDataPanelId, questionnaireContainerId,questionnaireDataPanelId) {
       this.patientInfoPanel = $("#" + patientInfoPanelId);
       this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
-      this.patientDataPanel = $("#" + patientDataPanelId);
+  this.patientDataPanel = $("#" + patientDataPanelId);
+  this.patientDataTable = this.patientDataPanel.closed("table");
+  
+  this.questionnaieContainer = $("#" + questionnaireContainerId);
   this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
   
   
@@ -15,21 +19,109 @@
   QuestionnaireHandlerGui.prototype.wireUp = function () {
      var self = this;
      this.patientInfoPanel.delegate('input[type=radio]', 'click', function() {
-     var action = this.value;
-     if(action == "create") {
+         var action = this.value;
+         if(action == "create") {
          self.patientInfoResultPanel.hide();
          self.patientDataPanel.hide();
-         self.questionnaireDataPanel.parent.class("col-md-12");
-  }
-  
-  
-});
-      
+         self.questionnaireContainer
+            .removeClass('col-md-6')
+            .addClass('col-md-12');
+         self.patientInfoPanel.hide();
+     }
+  else {
+  }});
   }
 
-  $(document).on("ready", function() {
-  var gui = new QuestionnaireHandlerGui("patient-info", "patient-info-result", "patient-data", "questionnaire-data");
-  gui.wireUp();
+  QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
+  var self = this;
+  
+  _.each(data.cdes, function (cde) {
+     self.addPatientCde(cde);
+        
+  });}
+
+  QuestionnaireHandlerGui.prototype.addPatientCde = function (cde) {
+      this.patientDataTable;
+  }
+    
+   
+      
+  
+
+  $(document).ready(function() {
+      $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+      }});
+
+
+    $("#patient_lookup").keyup(function() {
+                                         lookupPatient($(this), '{{patient_lookup_url}}');
+    });
+
+
+
+   function lookupPatient(element, source_url) {
+            element.autocomplete({
+              source: source_url,
+              minLength: 1,
+              select: function(event, ui) {
+                  $(element).data("patient_id", ui.item.pk);
+              }
+            }).data("ui-autocomplete")._renderItem = function(ul, item) {
+              item.pk = item.value;  // so we can load
+              item.value = item.label;
+              return $("<li>")
+                .append("<a>" + item.label + "</a>")
+                .appendTo(ul);
+            };
+        }
+
+
+    $("#load_patient_button").click(function () {
+    var qrModelId = {{qr_model.pk}}
+    var lookedUpPatientId = $("#patient_lookup").data("patient_id");
+    $.ajax({
+                     url: "{% url 'questionnaire_handling'  %}",
+                     type: "POST",
+    data: {patient_id: lookedUpPatientId,
+           qr_id:  qrModelId
+    
+                     },
+                        success: function(response) {
+                           if (response.status == "OK") {
+    gui.clearPatientData();
+    gui.loadPatientData(response.patientData);
+    gui.showPatientPanel();
+    
+                           }
+                           else {
+                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+
+
+                           }
+
+                           $(".alert").fadeOut(3000, function () {
+                               $(this).remove();
+                           });
+
+                        }
+                    });
+
+    
+    
+    });
+    
+
+     
+
+
+      var gui = new QuestionnaireHandlerGui("patient-info",
+                                            "patient-info-result",
+                                            "patient-data",
+                                            "questionnaire-container",
+                                            "questionnaire-data");
+      gui.wireUp();
   });
 
 </script>
@@ -55,7 +147,7 @@
 			    <input  type="radio" name="handle_action" value="update">Update Existing Patient From Questionnaire Response<br>
 			    <div id="load_patient">
 			      Lookup Patient: <input id="patient_lookup" name="patient_lookup" value=""/>
-                              <button onclick="load_patient(this);">Load this patient</button>
+                              <button id="load_patient_button">Load this patient</button>
 			    </div>
                         </div>
                     </div>
@@ -82,7 +174,7 @@
 	  
 	     <div class="row">
 	       
-		 <div class="col-md-6">
+		 <div id="patient-data-container" class="col-md-6">
 		   <div id="patient-data" class="panel panel-default">
                      <div class="panel panel-heading">Patient Data</div>
                      <div class="panel panel-body">
@@ -92,9 +184,11 @@
                              <tr>
                                <th>Form</th>
                                <th>Section</th>
+			       <th>Item</th>
                                <th>Data Element</th>
+			       <th>Use</th>
                              </tr>
-                           </tbody>
+			                               </tbody>
                          </table>
                        </div><!-- patient data -->
                      </div><!-- panel body -->
@@ -109,10 +203,18 @@
 			 <table class="table table-bordered table-striped">
                            <tbody>
                              <tr>
-                               <th>Form</th>
-                               <th>Section</th>
                                <th>Data Element</th>
+			       <th>Value</th>
+			       <th>Use</th>
                              </tr>
+			      {% for question in questions %}
+			     <tr>
+			       <td>{{question.name}}</td>
+			       <td><span class="badge success">{{question.answer}}</span></td>
+			       <td><input id="{{answer.id}}" type="checkbox" checked="checked">
+			     </tr>
+			     {% endfor %}
+
                            </tbody>
                          </table>
                        </div><!-- patient data -->
