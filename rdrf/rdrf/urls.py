@@ -18,7 +18,7 @@ import rdrf.report_view as report_view
 import rdrf.consent_view as consent_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup
+from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup, PatientLookup
 from rdrf.views import RegistryList
 from rdrf.api import PatientResource
 from registry.patients.views import update_session
@@ -194,6 +194,7 @@ urlpatterns = patterns('',
                        url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+                       url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
                            RDRFContextLookup.as_view(),
