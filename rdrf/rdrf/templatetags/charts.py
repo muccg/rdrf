@@ -1,7 +1,8 @@
+import json
 from django import template
 from django.utils.html import escapejs
+from django.core.serializers.json import DjangoJSONEncoder
 
-import json
 register = template.Library()
 
 
@@ -53,3 +54,8 @@ def create_chart_node(parser, token):
 
 register.tag('bar_chart', create_chart_node)
 register.tag('pie_chart', create_chart_node)
+
+def json_filter(value):
+    return json.dumps(value, indent=2, cls=DjangoJSONEncoder)
+
+register.filter('json', json_filter)
