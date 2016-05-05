@@ -40,3 +40,19 @@ body {
     float:right;
     text-align:right
 }
+
+.invisibutton-container .invisibutton {
+  visibility: hidden;
+}
+
+.invisibutton-container:hover .invisibutton {
+  visibility: visible;
+}
+
+input.cde-value-updated {
+  background-color: #5bc0de;
+}
+
+.cde-history-chart {
+  min-height: 300px;
+}

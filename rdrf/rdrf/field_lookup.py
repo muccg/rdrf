@@ -269,6 +269,11 @@ class FieldFactory(object):
             logger.info("could not locate widget from widget string: %s" % widget_string)
 
     def create_field(self):
+        field = self._create_field()
+        field.cde = self.cde
+        return field
+
+    def _create_field(self):
         """
         :param cde: Common Data Element instance
         :return: A field object ( with widget possibly)

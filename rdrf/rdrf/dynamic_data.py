@@ -6,10 +6,10 @@ from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimi
 from rdrf.utils import is_file_cde, is_uploaded_file, is_gridfs_file_wrapper
 
 from django.conf import settings
-import datetime
+from datetime import datetime
 from rdrf.file_upload import FileUpload
 from copy import deepcopy
-
+from operator import itemgetter
 
 
 
@@ -294,7 +294,6 @@ class FormDataParser(object):
         self.parse_all_forms = parse_all_forms
 
     def update_timestamps(self, form_model):
-        from datetime import datetime
         t = datetime.now()
         form_timestamp = form_model.name + "_timestamp"
         self.global_timestamp = t
@@ -532,8 +531,8 @@ class DynamicDataWrapper(object):
     def _set_client(self):
         if self.client is None:
             self.client = construct_mongo_client()
-            
-        
+
+
 
     def __unicode__(self):
         return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
@@ -618,6 +617,41 @@ class DynamicDataWrapper(object):
             return flattened_data
         else:
             return nested_data
+
+    def get_cde_val(self, registry_code, form_name, section_code, cde_code):
+        data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
+        return self._find_cde_val(data, registry_code, form_name, section_code, cde_code)
+
+    @staticmethod
+    def _find_cde_val(record, registry_code, form_name, section_code, cde_code):
+        form_map = {f.get("name"): f for f in record.get("forms", [])}
+        sections = form_map.get(form_name, {}).get("sections", [])
+        section_map = {s.get("code"): s for s in sections}
+        cdes = section_map.get(section_code, {}).get("cdes", [])
+        cde_map = {c.get("code"): c for c in cdes}
+        return cde_map.get(cde_code, {}).get("value")
+
+    def get_cde_history(self, registry_code, form_name, section_code, cde_code):
+        def fmt(snapshot):
+            return {
+                "timestamp": datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
+                "value": self._find_cde_val(snapshot["record"], registry_code,
+                                                     form_name, section_code,
+                                                     cde_code),
+                "id": str(snapshot["_id"]),
+            }
+        def collapse_same(snapshots):
+            prev = { "": None }  # nonlocal works in python3
+            def is_different(snap):
+                diff = prev[""] is None or snap["value"] != prev[""]["value"]
+                prev[""] = snap
+                return diff
+            return list(filter(is_different, snapshots))
+        record_query = self._get_record_query(filter_by_context=False)
+        record_query["record_type"] = "snapshot"
+        collection = self._get_collection(registry_code, "history")
+        data = map(fmt, collection.find(record_query))
+        return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
         self._set_client()
@@ -1020,7 +1054,7 @@ class DynamicDataWrapper(object):
 
         existing_record = self.load_dynamic_data(registry, collection_name, flattened=False)
 
-        form_data["timestamp"] = datetime.datetime.now()
+        form_data["timestamp"] = datetime.now()
 
         if self.current_form_model:
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
@@ -1073,7 +1107,6 @@ class DynamicDataWrapper(object):
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:
-            from datetime import datetime
             timestamp = str(datetime.now())
             patient_id = record['django_id']
             history = self._get_collection(registry_code, "history")
@@ -1205,5 +1238,3 @@ class DynamicDataWrapper(object):
         form_timestamp = collection.find_one(self._get_record_query(), {"timestamp": True})
 
         return form_timestamp
-
-
