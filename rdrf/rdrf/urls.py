@@ -11,7 +11,6 @@ import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
 import rdrf.import_registry_view as import_registry_view
-import rdrf.rest_interface as rest_interface
 import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
