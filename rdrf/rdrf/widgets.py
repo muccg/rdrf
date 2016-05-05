@@ -177,11 +177,11 @@ class LookupWidget2(LookupWidget):
 
 
 class GeneLookupWidget(LookupWidget):
-    SOURCE_URL = reverse_lazy('gene_source')
+    SOURCE_URL = reverse_lazy('v1:gene-list')
 
 
 class LaboratoryLookupWidget(LookupWidget2):
-    SOURCE_URL = reverse_lazy('laboratory_source')
+    SOURCE_URL = reverse_lazy('v1:laboratory-list')
 
     def render(self, name, value, attrs):
         widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
