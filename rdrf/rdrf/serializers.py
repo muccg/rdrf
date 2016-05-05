@@ -44,8 +44,8 @@ class RegistryHyperlink(serializers.HyperlinkedRelatedField):
         return reverse(self.view_name, kwargs=url_kwargs, request=request, format=format)
 
 
-class ClinitiansHyperlink(RegistryHyperlink):
-    view_name = 'clinitian-list'
+class CliniciansHyperlink(RegistryHyperlink):
+    view_name = 'clinician-list'
 
 
 class PatientsHyperlink(RegistryHyperlink):
@@ -55,11 +55,11 @@ class PatientsHyperlink(RegistryHyperlink):
 class RegistrySerializer(serializers.HyperlinkedModelSerializer):
     # Add some more urls for better browsability
     patients_url = PatientsHyperlink(read_only=True, source='*')
-    clinitians_url = ClinitiansHyperlink(read_only=True, source='*')
+    clinicians_url = CliniciansHyperlink(read_only=True, source='*')
 
     class Meta:
         model = Registry
-        fields = ('pk', 'name', 'code', 'desc', 'version', 'url', 'patients_url', 'clinitians_url')
+        fields = ('pk', 'name', 'code', 'desc', 'version', 'url', 'patients_url', 'clinicians_url')
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }

@@ -59,8 +59,7 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
         if registry not in request.user.registry.all():
             self.permission_denied(request, message='Not allowed to get Patients from this Registry')
 
-        working_groups = patient.working_groups.all()
-        if not any(map(lambda wg: wg in working_groups, request.user.working_groups.all())):
+        if not patient.working_groups.filter(pk__in=request.user.working_groups.all()).exists():
             self.permission_denied(request, message='Patient not in your working group')
 
 
@@ -161,12 +160,12 @@ class ListStates(APIView):
         return Response(map(to_dict, states))
 
 
-class ListClinitians(APIView):
+class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
-        clinitians = filter(lambda u: u.is_clinician, users)
+        clinicians = filter(lambda u: u.is_clinician, users)
 
 
         def to_dict(c, wg):
@@ -175,7 +174,7 @@ class ListClinitians(APIView):
                 'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
             }
 
-        return Response([to_dict(c, wg) for c in clinitians for wg in c.working_groups.all()])
+        return Response([to_dict(c, wg) for c in clinicians for wg in c.working_groups.all()])
 
 
 class LookupGenes(APIView):
@@ -243,7 +242,6 @@ class LookupIndex(APIView):
         if not registry.has_feature('family_linkage'):
             return Response([])
 
-        working_groups = list(request.user.working_groups.all())
         query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
                  Q(working_groups__in=working_groups)
 

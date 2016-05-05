@@ -21,7 +21,7 @@
                 });
             });
             
-            $.get("{% url 'v1:clinitian_list' registry_code %}", function(data) {
+            $.get("{% url 'v1:clinician_list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
@@ -76,7 +76,7 @@
             </div>
 
             <div class="form-group">
-                <label for="clinitian" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
+                <label for="clinician" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
                 <div class="col-md-6">
                     <select class="form-control" id="id_clinician" name="clinician" required>
                         <option value="-1">Choose your preferred Clinician</option>

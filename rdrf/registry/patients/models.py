@@ -83,8 +83,7 @@ class NextOfKinRelationship(models.Model):
 
 class PatientManager(models.Manager):
 
-    def get_by_registry(self, registry):
-        registries = registry if hasattr(registry, '__iter__') else (registry,)
+    def get_by_registry(self, *registries):
         return self.model.objects.filter(rdrf_registry__in=registries)
 
     def get_by_working_group(self, user):
