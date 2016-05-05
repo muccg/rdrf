@@ -1,5 +1,5 @@
-from django.shortcuts import render_to_response, RequestContext
-from django.views.generic.base import View
+from django.shortcuts import render_to_response, RequestContext, get_object_or_404
+from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
@@ -245,6 +245,7 @@ class FormView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
+        context["context_id"] = rdrf_context_id
 
         return self._render_context(request, context)
 
@@ -680,6 +681,8 @@ class FormView(View):
 
         return json_dict
 
+
+    # fixme: could replace with TemplateView.get_template_names()
     def _get_template(self):
         if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
@@ -691,6 +694,40 @@ class FormPrintView(FormView):
 
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
+
+class FormFieldHistoryView(TemplateView):
+    template_name = "rdrf_cdes/form_field_history.html"
+
+    @login_required_method
+    def get(self, request, **kwargs):
+        if request.user.is_working_group_staff:
+            raise PermissionDenied()
+        return super(FormFieldHistoryView, self).get(request, **kwargs)
+
+    def get_context_data(self, registry_code, form_id, patient_id, context_id, section_code, cde_code):
+        context = super(FormFieldHistoryView, self).get_context_data()
+
+        # find database objects from url route params
+        reg = get_object_or_404(Registry, code=registry_code)
+        reg_form = get_object_or_404(RegistryForm, registry=reg, pk=form_id)
+        section = get_object_or_404(Section, code=section_code)
+        cde = get_object_or_404(CommonDataElement, code=cde_code)
+        patient = get_object_or_404(Patient, pk=patient_id)
+        rdrf_context = get_object_or_404(RDRFContext, registry=reg, pk=context_id)
+
+        # grab snapshot values out of mongo documents
+        dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=rdrf_context.id)
+        val = dyn_patient.get_cde_val(registry_code, reg_form.name,
+                                      section_code, cde_code)
+        history = dyn_patient.get_cde_history(registry_code, reg_form.name,
+                                              section_code, cde_code)
+
+        context.update({
+            "cde": cde,
+            "value": val,
+            "history": history,
+        })
+        return context
 
 
 class ConsentFormWrapper(object):
