@@ -37,7 +37,7 @@
             $("#id_password1").passStrengthify();
 
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
-            var state_lookup_url = "{% url 'state_lookup' 999 %}";
+            var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
 
             function dateDiffInYears(a, b) {
                 var utc2 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
@@ -106,7 +106,7 @@
                 $("#parent_guardian_form").show();
             });
             
-            $.get("{% url 'clinician_lookup' %}", { 'registry_code': registry_code }, function(data) {
+            $.get("{% url 'v1:clinician_list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
@@ -150,7 +150,7 @@
                 var states = $("#id_state");
                 states.empty();
                 states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
-                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
+                $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
@@ -161,7 +161,7 @@
                 var states = $("#id_parent_guardian_state");
                 states.empty();
                 states.append($('<option>', { value : -1 }).text("Parent/Guardian State / County / Province / Region"));
-                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
+                $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
