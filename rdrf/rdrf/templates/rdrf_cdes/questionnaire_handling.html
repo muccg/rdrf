@@ -75,53 +75,38 @@
                 .append("<a>" + item.label + "</a>")
                 .appendTo(ul);
             };
-        }
+    }
+
+
+    var gui = new QuestionnaireHandlerGui("patient-info",
+                                            "patient-info-result",
+                                            "patient-data",
+                                            "questionnaire-container",
+                                            "questionnaire-data");
+    gui.wireUp();
 
 
     $("#load_patient_button").click(function () {
-    var qrModelId = {{qr_model.pk}}
+    var qrModelId = {{qr_model.pk}};
     var lookedUpPatientId = $("#patient_lookup").data("patient_id");
-    $.ajax({
-                     url: "{% url 'questionnaire_handling'  %}",
-                     type: "POST",
-    data: {patient_id: lookedUpPatientId,
-           qr_id:  qrModelId
+
+    rpc.send("load_existing_questionnaire_data", [lookedUpPatientId, qrModelId], function(result) {
+    if(result.status = "success") {
+        gui.clearPatientData();
+        gui.loadPatientData(result.data);
+        gui.showPatientPanel();
+    }
+    else {
+    gui.showError(result.errorMessage);
+
+    }
     
-                     },
-                        success: function(response) {
-                           if (response.status == "OK") {
-    gui.clearPatientData();
-    gui.loadPatientData(response.patientData);
-    gui.showPatientPanel();
-    
-                           }
-                           else {
-                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
-
-
-                           }
-
-                           $(".alert").fadeOut(3000, function () {
-                               $(this).remove();
-                           });
-
-                        }
-                    });
-
-    
-    
-    });
     
 
      
 
 
-      var gui = new QuestionnaireHandlerGui("patient-info",
-                                            "patient-info-result",
-                                            "patient-data",
-                                            "questionnaire-container",
-                                            "questionnaire-data");
-      gui.wireUp();
+     
   });
 
 </script>

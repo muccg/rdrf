@@ -368,7 +368,6 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                         return values
 
 
-
 def report_function(func):
     """
     decorator to mark a function as available in the reporting interface
@@ -379,8 +378,36 @@ def report_function(func):
     return func
 
 
-
-
-    
-        
-        
+def iterate_record(patient_record, selector=None, visitor=None):
+    for form_dict in patient_record["forms"]:
+        for section_dict in form_dict["sections"]:
+            if not section_dict["allow_multiple"]:
+                for cde_dict in section_dict["cdes"]:
+                    if selector is not None:
+                        if selector(form_dict, section_dict, 0, cde_dict):
+                            if visitor is not None:
+                                yield visitor(form_dict, section_dict, 0, cde_dict)
+                            else:
+                                yield form_dict, section_dict, 0, cde_dict
+                        else:
+                            if visitor is not None:
+                                yield visitor(form_dict, section_dict, 0, cde_dict)
+                            else:
+                                yield form_dict, section_dict, 0, cde_dict
+            else:
+                for item_index, item in enumerate(section_dict["cdes"]):
+                    for cde_dict in item:
+                        if selector is not None:
+                            if selector(form_dict, section_dict, item_index, cde_dict):
+                                if visitor is not None:
+                                    yield visitor(form_dict, section_dict, item_index, cde_dict)
+                                else:
+                                    yield form_dict, section_dict, item_index, cde_dict
+                        else:
+                            if visitor is not None:
+                                yield visitor(form_dict, section_dict, item_index, cde_dict)
+                            else:
+                                yield form_dict, section_dict, item_index, cde_dict
+                                
+                        
+            

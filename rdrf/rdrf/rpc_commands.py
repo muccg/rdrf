@@ -153,3 +153,66 @@ def rpc_registry_supports_contexts(request, registry_code):
         return registry_model.has_feature("contexts")
     except Registry.DoesNotExist:
         return False
+
+
+# questionnaire handling
+
+
+def rpc_load_patient_data(request, patient_id, questionnaire_response_id):
+    """
+    Retrieve any data already entered for the questions in questionnaire
+    """
+    from rdrf.models import QuestionnaireResponse
+    from registry.patients.models import Patient
+    from rdrf.utils import iterate_record
+    from explorer.views import Humaniser
+    from rdrf.models import RegistryForm, Section, CommonDataElement
+    
+    questionnaire_response_model = QuestionnaireResponse.objects.get(questionnaire_response_id)
+    
+    patient_model = Patient.objects.get(pk=patient_id)
+    
+    patient_data = patient_model.get_dynamic_data(questionnnaire_response_model.registry)
+
+    questionaire_data = questionnaire_response_model.data
+
+    humaniser = Humaniser(questionnaire_response_model.registry)
+
+    cdes_to_check = OrderedSet([])
+
+    for form_dict, section_dict, index, cde_dict in iterate_record(questionnaire_data):
+        cdes_to_check.add((form_dict["name"], section_dict["code"], cde_dict["code"]))
+
+    patient_values = []
+
+    for form_dict, section_dict, index, cde_dict in iterate_record(patient_data):
+        triple = (form_dict["name"], section_dict["code"], cde_dict["code"])
+        if triple in cdes_to_check:
+            form_model = RegistryForm.objects.get(registry=registry_model,
+                                                  name=form_dict["name"])
+            section_model = Section.objects.get(code=section_dict["code"])
+            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
+            display_value = humaniser.display_value2(form_model,
+                                                     section_model,
+                                                     cde_model,
+                                                     cde_dict["value")
+
+                    
+            item = {"name": cde_dict["name"
+
+
+    return patient_values
+            
+        
+    
+
+    
+    
+
+
+
+    
+    
+    
+        
+    

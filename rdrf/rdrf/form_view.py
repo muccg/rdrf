@@ -1112,6 +1112,7 @@ class QuestionnaireHandlingView(View):
         context["form_model"]  = context["registry_model"].questionnaire
         context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
+        context["load_patient_data_url"] = reverse("questionnaire_data_lookup")
 
         context["questions"] = self._wrap_questionnaire_questions(context["registry_model"],
                                                               context["qr_model"].data)

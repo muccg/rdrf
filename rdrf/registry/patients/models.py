@@ -694,6 +694,12 @@ class Patient(models.Model):
 
         return None
 
+    
+    def get_dynamic_data(self, registry_model, collection="cdes"):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(self)
+        return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
+
 
 class ClinicianOther(models.Model):
     patient = models.ForeignKey(Patient, null=True)
