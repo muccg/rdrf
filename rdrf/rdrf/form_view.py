@@ -162,22 +162,13 @@ class FormView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry %s does not exist" % registry_code)
 
-    def _get_dynamic_data(self, **kwargs):
-        if 'model_class' in kwargs:
-            model_class = kwargs['model_class']
-        else:
-            model_class = Patient
-
-        if 'rdrf_context_id' in kwargs:
-            rdrf_context_id = kwargs['rdrf_context_id']
-        else:
-            rdrf_context_id = None
-
-        obj = model_class.objects.get(pk=kwargs['id'])
+    def _get_dynamic_data(self, registry_code=None, rdrf_context_id=None,
+                          model_class=Patient, id=None):
+        obj = model_class.objects.get(pk=id)
         dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
         if self.testing:
             dyn_obj.testing = True
-        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
+        dynamic_data = dyn_obj.load_dynamic_data(registry_code, "cdes")
         return dynamic_data
 
     def set_rdrf_context(self, patient_model, context_id):
