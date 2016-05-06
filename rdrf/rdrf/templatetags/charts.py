@@ -15,30 +15,30 @@ class ChartNode(template.Node):
     def render(self, context):
         # the data to written as json for the chart wrapper
         data = self.data_variable.resolve(context)
-        chart_data_json = escapejs(json.dumps(data))
+        chart_data_json = json.dumps(data)
         canvas_id = self.chart_id.resolve(context)
-        chart_method = "Bar"
-        if self.chart_type == "pie_chart":
-            chart_method = "Pie"
+        chart_method = "pie" if self.chart_type == "pie_chart" else "bar"
 
         # create a chart using Chart.js
         # NB the curly brace escapes to please .format
         # NB a closure is created to avoid variable name clashes
         html = """<script>
-                        (function() {{
-                            var chartDataJSON = "{chart_data_json}";
-                            var chartData = jQuery.parseJSON(chartDataJSON);
-                            $(document).ready(function() {{
-                                var ctx = $("#{canvas_id}")[0].getContext("2d");
-                                window.my{chart_method} = new Chart(ctx).{chart_method}(chartData, {{
-                                    responsive : false
-                                }})
-                            }})
-                        }})();
-                    </script>
-                    <div width="100%">
-                        <canvas id="{canvas_id}" height="200" width="200"></canvas>
-                    </div>"""
+                    (function() {{
+                        $(document).ready(function() {{
+                            var ctx = $("#{canvas_id}");
+                            window.charts["{chart_method}"] = new Chart(ctx, {{
+                              type: "{chart_method}",
+                              data: {chart_data_json},
+                              options: {{
+                                responsive: false
+                              }}
+                            }});
+                        }});
+                    }})();
+                  </script>
+                  <div width="100%">
+                      <canvas id="{canvas_id}" height="200" width="200"></canvas>
+                  </div>"""
 
         return html.format(
             canvas_id=canvas_id,
