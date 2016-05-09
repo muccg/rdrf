@@ -130,7 +130,10 @@ class CalculatedFieldParser(object):
                     subjects: "%s",
                     prefix: "%s",
                     api_url: "%s",
-                    calculation: function (%s) { %s },
+                    calculation: function (%s) {
+                      %s
+                      // */
+                    },
                     observer: "%s",
                     injected_model: "%s",
                     injected_model_id: %s
