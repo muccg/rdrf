@@ -670,7 +670,12 @@ class CommonDataElement(models.Model):
             return None
 
     def get_display_value(self, stored_value):
-        if self.pv_group:
+        if stored_value is None:
+            return ""
+        elif stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN
+            return ":NaN"
+        elif self.pv_group:
             # if a range, return the display value
             try:
                 values_dict = self.pv_group.as_dict()
@@ -683,9 +688,7 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
-        if stored_value == "NaN":
-            # the DataTable was not escaping this value and interpreting it as NaN 
-            return ":NaN"
+
         return stored_value
 
     def clean(self):
@@ -706,7 +709,7 @@ class CdePolicy(models.Model):
     cde = models.ForeignKey(CommonDataElement)
     groups_allowed = models.ManyToManyField(Group, blank=True)
     condition = models.TextField(blank=True)
-    
+
     def is_allowed(self, user_groups, patient_model=None):
         logger.debug("checking cde policy %s %s" % (self.registry, self.cde))
         for ug in user_groups:
@@ -847,7 +850,7 @@ class RegistryForm(models.Model):
 
         current_cdes = set(current_cdes)
         extra = completion_cdes - current_cdes
-        
+
         if len(extra) > 0:
             msg = ",".join(extra)
             raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
@@ -859,7 +862,7 @@ class RegistryForm(models.Model):
             raise ValidationError(msg)
         if self.pk:
             self._check_completion_cdes()
-        
+
 
 
 
@@ -910,7 +913,7 @@ class QuestionnaireResponse(models.Model):
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
         wrapper._set_client()
-        
+
         if not self.has_mongo_data:
             raise ObjectDoesNotExist
 
@@ -1694,7 +1697,7 @@ class ConsentQuestion(models.Model):
 
     def __unicode__(self):
         return "%s" % self.question_label
-    
+
 
 
 
@@ -1716,10 +1719,10 @@ class EmailTemplate(models.Model):
     description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()
-    
+
     def __unicode__(self):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
-    
+
 
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
