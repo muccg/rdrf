@@ -379,9 +379,16 @@ def report_function(func):
 
 
 def iterate_record(patient_record, selector=None, visitor=None):
+    logger.debug("iterate_record")
+    logger.debug("patient_record = %s" % patient_record)
     for form_dict in patient_record["forms"]:
+        logger.debug("iterating through form %s" % form_dict["name"])
         for section_dict in form_dict["sections"]:
+            logger.debug("iterating through section %s" % section_dict["code"])
             if not section_dict["allow_multiple"]:
+                logger.debug("section not multiple")
+                num_cdes = len(section_dict["cdes"])
+                logger.debug("Number of cdes entered = %s" % num_cdes)
                 for cde_dict in section_dict["cdes"]:
                     if selector is not None:
                         if selector(form_dict, section_dict, 0, cde_dict):
@@ -389,14 +396,17 @@ def iterate_record(patient_record, selector=None, visitor=None):
                                 yield visitor(form_dict, section_dict, 0, cde_dict)
                             else:
                                 yield form_dict, section_dict, 0, cde_dict
+                    else:
+                        if visitor is not None:
+                            yield visitor(form_dict, section_dict, 0, cde_dict)
                         else:
-                            if visitor is not None:
-                                yield visitor(form_dict, section_dict, 0, cde_dict)
-                            else:
-                                yield form_dict, section_dict, 0, cde_dict
+                            logger.debug("yielding pure values ...")
+                            yield form_dict, section_dict, 0, cde_dict
             else:
                 for item_index, item in enumerate(section_dict["cdes"]):
+                    logger.debug("section is multiple")
                     for cde_dict in item:
+                        logger.debug("item index %s cde_code %s" % (item_index, cde_dict["code"]))
                         if selector is not None:
                             if selector(form_dict, section_dict, item_index, cde_dict):
                                 if visitor is not None:
@@ -407,6 +417,7 @@ def iterate_record(patient_record, selector=None, visitor=None):
                             if visitor is not None:
                                 yield visitor(form_dict, section_dict, item_index, cde_dict)
                             else:
+                                logger.debug("yield pure values")
                                 yield form_dict, section_dict, item_index, cde_dict
                                 
                         
