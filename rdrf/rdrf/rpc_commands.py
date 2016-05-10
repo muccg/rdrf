@@ -178,5 +178,8 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
+    existing_data = questionnaire.existing_data(patient_model)
 
-    return questionnaire.existing_data(patient_model) 
+    return { "link": existing_data.link,
+             "name": existing_data.name,
+             "questions": existing_data.questions}

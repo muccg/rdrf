@@ -4,7 +4,9 @@
 {% block extrahead %}
 <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
 <script type="text/javascript">
-  function QuestionnaireHandlerGui(rpc, patientInfoPanelId, patientInfoResultPanelId, patientDataPanelId, questionnaireContainerId,questionnaireDataPanelId) {
+  function QuestionnaireHandlerGui(rpc,
+  patientInfoPanelId,
+  patientInfoResultPanelId, patientDataPanelId, questionnaireContainerId,questionnaireDataPanelId) {
   this.rpc = rpc;
   this.patientInfoPanel = $("#" + patientInfoPanelId);
   this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
@@ -31,12 +33,12 @@
   };});}
 
   QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
-  var self = this;
-  
-  _.each(data.cdes, function (cde) {
-     self.addPatientCde(cde);
+      var patientName = data.name;
+      var patientLink = "<a href='" + data.link + "'>" + patientName + "</a>";
+      this.patientInfoResultPanel.text(patientLink);
+  }
         
-  });}
+  
 
   QuestionnaireHandlerGui.prototype.addPatientCde = function (cde) {
       this.patientDataTable;
@@ -98,10 +100,10 @@
           var lookedUpPatientId = $("#patient_lookup").data("patient_id");
 
           rpc.send("load_matched_patient_data", [lookedUpPatientId, qrModelId],
-                  function (result) {
-                      if (result.status == "success") {
+                  function (response) {
+                      if (response.status == "success") {
                           gui.clearPatientData();
-                          gui.loadPatientData(result.data);
+                          gui.loadPatientData(response.result);
                           gui.showPatientPanel();
                       }
                       else {
@@ -141,19 +143,11 @@
 
              </div>
 
-             <div id="patient-info-result" class="panel panel-default">
+             <div class="panel panel-default">
                <div class="panel-heading">Patient Info</div>
 
-                            <div class="panel-body">
-                                <div id="patient" >
-                                    <table class="table table-bordered">
-                                        <tbody>
-
-
-                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div id="patient-info-result" class="panel-body">
+			      
                             </div>
 
 		    </div>

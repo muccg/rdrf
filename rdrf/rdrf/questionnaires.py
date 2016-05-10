@@ -1,10 +1,25 @@
 from rdrf.models import RegistryForm, Section, CommonDataElement
 from rdrf.utils import de_camelcase
 from explorer.views import Humaniser
+from django.core.urlresolvers import reverse
 import logging
 
 logger = logging.getLogger("registry_log")
 
+class _ExistingDataWrapper(object):
+    def __init__(self, registry_model, patient_model):
+        self.registry_model = registry_model
+        self.patient_model = patient_model
+        self.default_context_model = patient_model.default_context(registry_model)
+        self.name = "%s" % self.patient_model
+        self.questions = []
+
+    @property
+    def link(self):
+        demographic_link = reverse("patient_edit", args=[self.registry_model.code,
+                                                         self.patient_model.pk,
+                                                         self.default_context_model.pk])
+        return demographic_link
 
 class _Question(object):
     """
@@ -107,7 +122,10 @@ class Questionnaire(object):
                             questions.append(question)
         return questions
 
+    
     def existing_data(self, patient_model):
-        return []
+        wrapper = _ExistingDataWrapper(self.registry_model,
+                                       patient_model)
+        return wrapper
 
 
