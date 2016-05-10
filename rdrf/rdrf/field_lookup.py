@@ -160,10 +160,7 @@ class FieldFactory(object):
         return False
 
     def _is_calculated_field(self):
-        if self.cde.calculation:
-            return True
-        else:
-            return False
+        return bool(self.cde.calculation)
 
     def _is_complex(self):
         return self.complex_field_factory._is_complex()
