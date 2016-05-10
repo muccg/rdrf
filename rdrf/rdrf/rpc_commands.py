@@ -158,27 +158,25 @@ def rpc_registry_supports_contexts(request, registry_code):
 # questionnaire handling
 
 
-def rpc_load_existing_questionnaire_data(request, patient_id, questionnaire_response_id):
+def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
     """
-    Retrieve any data already entered for the questions in questionnaire ( by a normal
-    user) in order that a choice to use the new questionnaire data - or not, can be
-    made.
+    Try to return any existing data for a patient corresponding the filled in values
+    of a questionnaire filled out by on the questionnaire interface 
+    NB. The curator is responsible for matching an existing patient to the incoming
+    questionnaire data.
+    See RDR-1229 for a description of the use case.
+    
+    The existing data returned is the existing questionnaire values for this matched patient ( not the data
+    provided in the questionnaire response itself - which potentially may overwrite the matched data if
+    the curator indicates in the approval GUI.
     """
     from registry.patients.models import Patient
     from rdrf.models import QuestionnaireResponse
-    from rdrf.questonnaires import Questionnaire
+    from rdrf.questionnaires import Questionnaire
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
-    registry_model = questionnaire_response_model.Registry
+    registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
 
     return questionnaire.existing_data(patient_model) 
-
-
-    
-    
-    
-       
-       
-
