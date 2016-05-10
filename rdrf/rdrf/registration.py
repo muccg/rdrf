@@ -180,7 +180,7 @@ class QuestionnaireReverseMapper(object):
         # "GenQxyfooFoobarSection" : [ 	{ 	"GeneratedQuestionnaireForxy____GenQxyfooFoobarSection____CDEHeight" : 1, ..
         # to
         # "FoobarSection" : [ 	{ 	"foo____FoobarSection____CDEHeight" : 1
-        original_form, original_multisection = self._parse_generated_section_code(
+        original_form, original_multisection = self.parse_generated_section_code(
             generated_multisectionkey)
         new_items = []
         for item_dict in item_dicts:
@@ -197,7 +197,7 @@ class QuestionnaireReverseMapper(object):
                 logger.debug("value = %s" % value)
                 generated_item_form, generated_item_section, cde_code = k.split(
                     settings.FORM_SECTION_DELIMITER)
-                orig_item_form, orig_item_section = self._parse_generated_section_code(
+                orig_item_form, orig_item_section = self.parse_generated_section_code(
                     generated_item_section)
                 new_item_key = settings.FORM_SECTION_DELIMITER.join(
                     [orig_item_form, orig_item_section, cde_code])
@@ -219,7 +219,7 @@ class QuestionnaireReverseMapper(object):
                 logger.debug("yielding dynamic %s" % k)
                 generated_form_name, generated_section_code, cde_code = self._get_key_components(
                     k)
-                original_form_name, original_section_code = self._parse_generated_section_code(
+                original_form_name, original_section_code = self.parse_generated_section_code(
                     generated_section_code)
 
                 yield self.registry.code, original_form_name, original_section_code, cde_code, self.questionnaire_data[k]
@@ -291,7 +291,7 @@ class QuestionnaireReverseMapper(object):
     def _get_key_components(self, delimited_key):
         return delimited_key.split(settings.FORM_SECTION_DELIMITER)
 
-    def _parse_generated_section_code(self, generated_section_code):
+    def parse_generated_section_code(self, generated_section_code):
         """
         GenQbfrGeneralFormbfrsec01
         :param generated_section_code:
