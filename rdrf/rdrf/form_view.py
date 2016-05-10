@@ -1106,16 +1106,17 @@ class QuestionnaireView(FormView):
 class QuestionnaireHandlingView(View):
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
         context = {}
         template_name = "rdrf_cdes/questionnaire_handling.html"
         context["registry_model"] = Registry.objects.get(code=registry_code)
         context["form_model"]  = context["registry_model"].questionnaire
         context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
-        context["load_patient_data_url"] = reverse("questionnaire_data_lookup")
 
-        context["questions"] = self._wrap_questionnaire_questions(context["registry_model"],
-                                                              context["qr_model"].data)
+        context["questionnaire"] = Questionnaire(context["registry_model"],
+                                                 context["qr_model"])
+        
 
         context.update(csrf(request))
         
@@ -1124,78 +1125,10 @@ class QuestionnaireHandlingView(View):
             context,
             context_instance=RequestContext(request))
 
-    def _wrap_questionnaire_questions(self, registry_model, data):
-        # data is nested cde data dict from mongo 
-        from explorer.views import Humaniser
-        from rdrf.utils import de_camelcase
-        from rdrf.models import RegistryForm, Section, CommonDataElement
-
-        questions = []
-        humaniser = Humaniser(registry_model)
-
-        class Question(object):
-            def __init__(self, form_name, section_code, section_index, cde_code, value):
-                self.form_name = form_name
-                self.form_model = RegistryForm.objects.get(registry=registry_model,
-                                                           name=form_name)
-
-                self.section_model = Section.objects.get(code=section_code)
-                self.cde_model = CommonDataElement.objects.get(code=cde_code)
-                self.section_code = section_code
-                self.index = section_index
-                self.cde_code = cde_code
-                # used on form:
-                self.name =self._get_name()
-                self.answer = self._get_display_value(value)
-                self.id = self._construct_id()
-
-            def _construct_id(self):
-                return "id__%s__%s__%s" % (self.form_name,
-                                          self.section_code,
-                                          self.cde_code)
-
-            def _get_name(self):
-                # return a short name for the GUI
-                return self.cde_model.name
-
-            def _get_display_value(self, value):
-                return humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
-
-                
-
-        for form_dict  in data["forms"]:
-            for section_dict in form_dict["sections"]:
-                if not section_dict["allow_multiple"]:
-                    for cde_dict in section_dict["cdes"]:
-                        display_value = self._get_display_value(cde_dict["code"],
-                                                                cde_dict["value"])
-                        question = Question(form_dict["name"],
-                                                 section_dict["code"],
-                                                 0,
-                                                 cde_dict["code"],
-                                                 display_value)
-
-                        questions.append(question)
-                    
-                else:
-                    for section_index, section_item in enumerate(section_dict["cdes"]):
-                        for cde_dict in section_item:
-                            display_value = self._get_display_value(cde_dict["code"],
-                                                                    cde_dict["value"])
-                            question = Question(form_dict["name"],
-                                                     section_dict["code"],
-                                                     section_index,
-                                                     cde_dict["code"],
-                                                     display_value)
-
-                            questions.append(question)
-        return questions
-                        
+                           
 
 
-    def _get_display_value(self, cde_code, value):
-        return value
-
+   
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
         existing_patient_id = request.POST.get("existing_patient_id", None)
@@ -1230,6 +1163,9 @@ class QuestionnaireHandlingView(View):
         
 
 class QuestionnaireResponseView(FormView):
+    """
+    DEAD!
+    """
 
     def __init__(self, *args, **kwargs):
         super(QuestionnaireResponseView, self).__init__(*args, **kwargs)
@@ -1242,12 +1178,16 @@ class QuestionnaireResponseView(FormView):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(
             id=questionnaire_response_id,
             registry_code=registry_code,
             model_class=QuestionnaireResponse)
+
+        questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+        
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -1262,6 +1202,9 @@ class QuestionnaireResponseView(FormView):
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
         context["show_print_button"] = False
+        
+        context["questionnaire"] = Questionnaire(self.registry,
+                                                 questionnaire_response_model)
 
         return self._render_context(request, context)
 
