@@ -158,61 +158,27 @@ def rpc_registry_supports_contexts(request, registry_code):
 # questionnaire handling
 
 
-def rpc_load_patient_data(request, patient_id, questionnaire_response_id):
+def rpc_load_existing_questionnaire_data(request, patient_id, questionnaire_response_id):
     """
-    Retrieve any data already entered for the questions in questionnaire
+    Retrieve any data already entered for the questions in questionnaire ( by a normal
+    user) in order that a choice to use the new questionnaire data - or not, can be
+    made.
     """
-    from rdrf.models import QuestionnaireResponse
     from registry.patients.models import Patient
-    from rdrf.utils import iterate_record
-    from explorer.views import Humaniser
-    from rdrf.models import RegistryForm, Section, CommonDataElement
-    
-    questionnaire_response_model = QuestionnaireResponse.objects.get(questionnaire_response_id)
-    
+    from rdrf.models import QuestionnaireResponse
+    from rdrf.questonnaires import Questionnaire
+
+    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
-    
-    patient_data = patient_model.get_dynamic_data(questionnnaire_response_model.registry)
+    registry_model = questionnaire_response_model.Registry
+    questionnaire = Questionnaire(registry_model, questionnaire_response_model)
 
-    questionaire_data = questionnaire_response_model.data
-
-    humaniser = Humaniser(questionnaire_response_model.registry)
-
-    cdes_to_check = OrderedSet([])
-
-    for form_dict, section_dict, index, cde_dict in iterate_record(questionnaire_data):
-        cdes_to_check.add((form_dict["name"], section_dict["code"], cde_dict["code"]))
-
-    patient_values = []
-
-    for form_dict, section_dict, index, cde_dict in iterate_record(patient_data):
-        triple = (form_dict["name"], section_dict["code"], cde_dict["code"])
-        if triple in cdes_to_check:
-            form_model = RegistryForm.objects.get(registry=registry_model,
-                                                  name=form_dict["name"])
-            section_model = Section.objects.get(code=section_dict["code"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
-            display_value = humaniser.display_value2(form_model,
-                                                     section_model,
-                                                     cde_model,
-                                                     cde_dict["value")
-
-                    
-            item = {"name": cde_dict["name"
-
-
-    return patient_values
-            
-        
-    
-
-    
-    
-
+    return questionnaire.existing_data(patient_model) 
 
 
     
     
     
-        
-    
+       
+       
+
