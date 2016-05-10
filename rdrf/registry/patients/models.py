@@ -695,9 +695,18 @@ class Patient(models.Model):
         return None
 
     
-    def get_dynamic_data(self, registry_model, collection="cdes"):
+    def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
-        wrapper = DynamicDataWrapper(self)
+        logger.debug("in get_dynamic_data")
+        if context_id is None:
+            default_context = self.default_context(registry_model)
+            if default_context is not None:
+                context_id = default_context.pk
+            else:
+                raise Exception("need context id to get dynamic data for patient %s" % self.pk)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
+            
         return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
 
 
