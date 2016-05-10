@@ -198,6 +198,11 @@ def cached(func):
     return wrapped
 
 
+@cached
+def get_cached_instance(klass, *args, **kwargs):
+    return klass.objects.get(*args, **kwargs)
+
+
 def is_multisection(code):
     try:
         from rdrf.models import Section
