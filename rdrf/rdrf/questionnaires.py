@@ -412,6 +412,9 @@ class PatientCreator(object):
 
 
 class _ExistingDataWrapper(object):
+    """
+    return to qr view to show data already saved on a patient
+    """
     def __init__(self, registry_model, patient_model, questionnaire):
         self.registry_model = registry_model
         self.humaniser = Humaniser(self.registry_model)
@@ -423,10 +426,14 @@ class _ExistingDataWrapper(object):
         self.default_context_model = patient_model.default_context(registry_model)
         self.name = "%s" % self.patient_model
 
-    def _get_clinical_data(self, clinical_field_expression):
-        retrieval_function = self.gfe_parser.parse(clinical_field_expression)
-        return retrieval_function(self.patient_model, self.patient_data)
-        
+    def _get_field_data(self, field_expression):
+        logger.debug("getting field data for %s" % field_expression)
+        retrieval_function = self.gfe_parser.parse(field_expression)
+        try:
+            return retrieval_function(self.patient_model, self.patient_data)
+
+        except Exception, ex:
+            return "Error[!%s]" % ex
 
     @property
     def link(self):
@@ -440,13 +447,40 @@ class _ExistingDataWrapper(object):
         """
         If data already filled in for patient
         grab and return as list of wrappers for view
+        There are two special sections PatientData and PatientAddressData
         """
         l = []
         for question in self.questionnaire.questions:
-            clinical_field_expression  = question.target
-            l.append({"name": question.source_name,
-                      "answer": self._get_clinical_data(clinical_field_expression)})
+            if question.section_code == "PatientData":
+                logger.debug("getting PatientData for %s" % question.cde_code)
+                field_name = self._get_patient_data_field_name(question.cde_code)
+                field_expression = question.cde_code
+            elif question.section_code == 'PatientAddressSection':
+                logger.debug("getting PatientAddressData for %s" % question.cde_code)
+                field_name = self._get_patient_address_field_name(question.cde_code)
+                field_expression = "address field expression"
+            else:
+                logger.debug("getting existing answer to question %s" % question.cde_code)
+                try:
+                    field_name, field_expression  = question.target
+                except Exception, ex:
+                    logger.debug("could not get target for %s %s" % (question.section_code,
+                                                                     question.cde_code))
+                    continue
+            
+            answer = {"name": field_name,
+                      "answer": self._get_field_data(field_expression)}
+            logger.debug("existing data = %s" % answer)
+            l.append(answer)
         return l
+
+    
+    def _get_patient_data_field_name(self, cde_code):
+        return cde_code
+
+    def _get_patient_address_field_name(self, cde_code):\
+        return cde_code
+        
             
             
 
@@ -454,12 +488,16 @@ class _Question(object):
     """
     Read only view of entered questionnaire data
     """
-    def __init__(self, registry_model, form_name, section_code, section_index, cde_code, value):
+    def __init__(self, registry_model, questionnaire, form_name, section_code, section_index, cde_code, value):
         self.registry_model = registry_model
+        self.questionnaire = questionnaire
         self.humaniser = Humaniser(self.registry_model)
         self.form_name = form_name
-        self.form_model = RegistryForm.objects.get(registry=self.registry_model,
+        try:
+            self.form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                    name=form_name)
+        except RegistryForm.DoesNotExist:
+            raise Exception("xxx")
 
         self.section_model = Section.objects.get(code=section_code)
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -467,6 +505,7 @@ class _Question(object):
         self.index = section_index
         self.cde_code = cde_code
         self.value = value # raw value to be stored in Mongo
+
         # used on form:
         self.name = self._get_name()
         self.answer = self._get_display_value(value)
@@ -491,38 +530,32 @@ class _Question(object):
         This step is necessary because we decided early on to present one questionnaire form
         comprised of selected questions from potentially many clinical forms.
         """
-        questionnaire_form_name = self.form_name
-        questionnaire_section_code = self.section_code
-        questionnaire_cde_code = self.cde_code
 
-        original_form_name, original_section_code, original_cde_code = self._parse_questionnaire_codes(self.registry_model.code,
-                                                                                                 questionnaire_form_name,
-                                                                                                 questionnaire_section_code,
-                                                                                                 questionnaire_cde_code)
-        
-        return "%s/%s/%s" % (original_form_name,
-                             original_section_code,
-                             original_cde_code)
+        # the generated section code in a questionnaire encodes the original form name and
+        # original section code ... ugh
+        t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(self.section_code)
 
-    def _parse_questionnaire_codes(self,
-                                   registry_code,
-                                   questionnaire_form_name,
-                                   questionnaire_section_code,
-                                   questionnaire_cde_code):
+        original_form_name = t[0]
+        original_section_code = t[1]
 
-        """
-        A questionnaire question id looks like:
+        target_display_name = self._get_target_display_name(original_form_name, original_section_code, self.cde_code)
         
-        id_GeneratedQuestionnaireForDM1____GenQDM1ClinicalDataDM1FeedingFunction____DM1Dysphagia
-                ^ generated form name        ^prefix   ^ original section code        ^ cde code      
-        
-        """
-        import re
-        prefix = "GenQ" + self.registry_model.code
-        pattern = re.compile(r"^%s(.*)$" % prefix)
-        
-                                   
+        target_expression = "%s/%s/%s" % (original_form_name,
+                                          original_section_code,
+                                          self.cde_code)
 
+        return target_display_name, target_expression
+
+    def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
+        target_form_model = RegistryForm.objects.get(registry=self.registry_model,
+                                                     name=target_form_name)
+        target_section_model = Section.objects.get(code=target_section_code)
+        target_cde_model = CommonDataElement.objects.get(code=target_cde_code)
+
+        return "%s/%s/%s" % (target_form_model.name,
+                            target_section_model.display_name,
+                            target_cde_model.name)
+        
 
 class Questionnaire(object):
     """
@@ -542,8 +575,11 @@ class Questionnaire(object):
         self.registry_model = registry_model
         self.questionnaire_response_model = questionnaire_response_model
         self.data = self.questionnaire_response_model.data
-        self.questionnaire_reverse_mapper = _QuestionnaireReverseMapper()
-        self.patient_creator = _PatientCreator()
+
+        self.questionnaire_reverse_mapper = QuestionnaireReverseMapper(self.registry_model,
+                                                                       None,
+                                                                       self.data)
+        #self.patient_creator = PatientCreator()
 
     def _get_display_value(self, cde_code, value):
         return value
@@ -554,50 +590,51 @@ class Questionnaire(object):
 
     @property
     def questions(self):
+        logger.debug("getting questions")
         questions = []
 
         for form_dict in self.data["forms"]:
             logger.debug("getting questionnaire data form %s" % form_dict["name"])
             for section_dict in form_dict["sections"]:
+                logger.debug("section %s" % section_dict["code"])
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
+                        logger.debug("cde code %s" % cde_dict["code"])
                         display_value = self._get_display_value(cde_dict["code"],
                                                                 cde_dict["value"])
                         question = _Question(self.registry_model,
-                                            form_dict["name"],
-                                            section_dict["code"],
-                                            0,
-                                            cde_dict["code"],
-                                            display_value)
+                                             self,
+                                             form_dict["name"],
+                                             section_dict["code"],
+                                             0,
+                                             cde_dict["code"],
+                                             display_value)
+
+
+                        logger.debug("created question object ok")
 
                         questions.append(question)
 
                 else:
                     for section_index, section_item in enumerate(section_dict["cdes"]):
                         for cde_dict in section_item:
+                            logger.debug("section index %s cde code %s" % (section_index, cde_dict["code"]))
                             display_value = self._get_display_value(cde_dict["code"],
                                                                     cde_dict["value"])
                             question = _Question(self.registry_model,
-                                                form_dict["name"],
-                                                section_dict["code"],
-                                                section_index,
-                                                cde_dict["code"],
-                                                display_value)
-
+                                                 self,
+                                                 form_dict["name"],
+                                                 section_dict["code"],
+                                                 section_index,
+                                                 cde_dict["code"],
+                                                 display_value)
+                            logger.debug("added multisection question OK")
                             questions.append(question)
         return questions
 
     
     def existing_data(self, patient_model):
-        wrapper = _ExistingDataWrapper(self.registry_model,
+        return  _ExistingDataWrapper(self.registry_model,
                                        patient_model,
                                        self,
                                        )
-
-
-
-        
-            
-        return wrapper
-
-
