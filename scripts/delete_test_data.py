@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import django
 import sys
 django.setup()
@@ -103,16 +104,7 @@ def delete_single_patient(patient_id):
     patient_model.delete()
     print "deleted patient %s sucessfully" % patient_id
 
-
-if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        patient_id = sys.argv[1]
-        try:
-            delete_single_patient(patient_id)
-            sys.exit(0)
-        except Exception, ex:
-            print "Error deleting patient %s: %s" % (patient_id, ex)
-            sys.exit(1)
+def delete_all_patients():
     print SKULL_ASCII
     print "**** This utlity is for deleting TEST patient data ONLY! ****"
     print "**** DO NOT USE ON A LIVE (POPULATED) SITE ! ****"
@@ -132,3 +124,33 @@ if __name__ == "__main__":
                 display("Skipping deletion of test data in registry %s" % r.code)
     else:
         display("Aborting! Nothing deleted! Bye")
+
+
+
+def usage():
+    print "Usage:"
+    print "delete_test_data.py --all ( to interactively delete all patient data)"
+    print "delete_test_data.py <patient_id> ( to delete one patient non-interactively)"
+    print "delete_test_data.py --usage ( print this usage message)"
+
+
+if __name__ == "__main__":
+    import re
+    number = re.compile(r"^\d+$")
+    
+    if len(sys.argv) == 2:
+        arg = sys.argv[1]
+        if arg == "--usage":
+            usage()
+        elif arg == "--all":
+            delete_all_patients()
+        elif number.match(arg):
+            try:
+                delete_single_patient(arg)
+            except Exception, ex:
+                print "Error deleting patient %s: %s" % (arg, ex)
+                sys.exit(1)
+        else:
+            usage()
+    else:
+        usage()
