@@ -16,7 +16,7 @@ from datetime import datetime
 from django.forms.models import model_to_dict
 import yaml
 from django.contrib.auth import get_user_model
-from rdrf.utils import de_camelcase
+from rdrf.utils import de_camelcase, check_calculation
 from rdrf.mongo_client import construct_mongo_client
 
 
@@ -467,3 +467,38 @@ class DeCamelcaseTestCase(TestCase):
         self.assertEqual(de_camelcase(test_value), self._EXPECTED_VALUE)
 
 
+class JavascriptCheckTestCase(TestCase):
+    def test_empty_script(self):
+        err = check_calculation("")
+        self.assertEqual(err, "")
+
+    def test_simple(self):
+        err = check_calculation("var test = 42;")
+        self.assertEqual(err, "")
+
+    def test_context_result(self):
+        err = check_calculation("context.result = 42;")
+        self.assertEqual(err, "")
+
+    def test_patient_context(self):
+        err = check_calculation("context.result = patient.age / 2 + 7;")
+        self.assertEqual(err, "")
+
+    def test_adsafe_this(self):
+        err = check_calculation("this.test = true;")
+        self.assertTrue(err)
+
+    def test_lint_dodgy(self):
+        err = check_calculation("// </script>")
+        self.assertTrue(err)
+
+    def test_adsafe_subscript(self):
+        err = check_calculation("""
+           var i = 42;
+           context[i] = "hello";
+        """)
+        self.assertTrue(err)
+
+    def test_date(self):
+        err = check_calculation("context.result = new Date();")
+        self.assertEqual(err, "")
