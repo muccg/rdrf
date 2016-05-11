@@ -1,7 +1,8 @@
 syntax: glob
 *.pyc
 *.swp
-^docs/virt
+^rst/virt
+^rst/build
 .gitignore
 *#
 *~
