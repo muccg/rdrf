@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>How To Create a Registry in Ten Minutes &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="index.html" />
+    <link rel="next" title="Importing and Exporting Registries" href="import.html" />
+    <link rel="prev" title="Permissible Values and Permitted Value Groups" href="permittedvaluegroups.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="import.html" title="Importing and Exporting Registries"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="permittedvaluegroups.html" title="Permissible Values and Permitted Value Groups"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="how-to-create-a-registry-in-ten-minutes">
+<h1>How To Create a Registry in Ten Minutes<a class="headerlink" href="#how-to-create-a-registry-in-ten-minutes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="modelling">
+<h2>Modelling<a class="headerlink" href="#modelling" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Do this first on pen and paper!</li>
+<li>Gather requirements of the data fields ( <a class="reference internal" href="cdes.html#des"><span class="std std-ref">&#8220;DEs&#8221;</span></a> ) required</li>
+<li>For each data field required, decide its <span class="xref std std-ref">datatype</span>. If a field is logically a <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">range</span></a>,
+work out the allowed <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">permitted values</span></a>. Depending on the <span class="xref std std-ref">datatype</span>, decide any validation rules
+for a numeric or float data type (max and/or min), and for a string data type,
+the maximum length or pattern. Decide if any Derived Data Elements (calculated data type) are required.</li>
+<li>Split them into logical groups (<a class="reference internal" href="registries.html#registries"><span class="std std-ref">sections</span></a>). Decide whether a section might be multiple</li>
+<li>Portion related sections into <a class="reference internal" href="registries.html#registries"><span class="std std-ref">forms</span></a></li>
+<li>If a questionnaire is required for the registry, nominate a single form as a questionnaire</li>
+</ol>
+</div>
+<div class="section" id="creation">
+<h2>Creation<a class="headerlink" href="#creation" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Login as an admin and <span class="xref std std-ref">navigate</span> to &#8220;Registries&#8221; via the &#8220;Settings&#8221; button</li>
+<li>Create a <a class="reference internal" href="registries.html#registries"><span class="std std-ref">registry</span></a> object and give it a name and code</li>
+<li>Create any <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">permitted value groups</span></a> required ( adding</li>
+</ol>
+<blockquote>
+<div>any <span class="xref std std-ref">permitted values</span> to the range.</div></blockquote>
+<ol class="arabic simple" start="4">
+<li>Create DEs (one per data field ) - OR note an existing DE that does the job (<em>IMPORTANT</em> deleting a DE</li>
+</ol>
+<blockquote>
+<div>may affect other registries which use this cde - in the current version there are no safeguards to prevent
+a used DE from being deleted. Proceed with caution!)</div></blockquote>
+<ol class="arabic simple" start="5">
+<li>Create the section objects and enter the cde codes required into the elements field</li>
+</ol>
+<blockquote>
+<div>NB. This <em>MUST</em> be a comma-delimited list (E,g  &#8220;CDEName, CDEAge&#8221; - no quotes)</div></blockquote>
+<ol class="arabic simple" start="6">
+<li>Create forms and link them to the registry</li>
+<li>Add section codes to the sections field</li>
+</ol>
+<p>That&#8217;s it as far as registry definition goes. The RDRF database now contains the definition of the registry.
+It is already usable by end users without any re-start - the defined forms are created entirely dynamically.</p>
+</div>
+<div class="section" id="registry-use">
+<h2>Registry Use<a class="headerlink" href="#registry-use" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>To begin using the registry, login as a curator and assign patients to the registry.</li>
+<li>Patients can be added by navigating to the &#8220;Patient List&#8221; from the &#8220;Menu&#8221; button. Forms are then accessed for each Patient by clicking on &#8220;Modules&#8221;.</li>
+</ul>
+</div>
+<div class="section" id="demo-site">
+<h2>Demo Site<a class="headerlink" href="#demo-site" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">A demo site is up and running at: <a class="reference external" href="https://rdrf.ccgapps.com.au/demo/">https://rdrf.ccgapps.com.au/demo/</a></p>
+</li>
+<li><dl class="first docutils">
+<dt>Logins Provided (username/password):</dt>
+<dd><ul class="first last simple">
+<li>admin/admin (for definition of new registries)</li>
+<li>curator/curator (for data entry)</li>
+<li>clinical/clinical (for data entry on clinical forms)</li>
+<li>genetic/genetic (for data entry on genetic forms)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">A Demo Contact Registry and Demo Clinical Registry for Myotonic Dystrophy are provided.</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">How To Create a Registry in Ten Minutes</a><ul>
+<li><a class="reference internal" href="#modelling">Modelling</a></li>
+<li><a class="reference internal" href="#creation">Creation</a></li>
+<li><a class="reference internal" href="#registry-use">Registry Use</a></li>
+<li><a class="reference internal" href="#demo-site">Demo Site</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="permittedvaluegroups.html"
+                        title="previous chapter">Permissible Values and Permitted Value Groups</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="import.html"
+                        title="next chapter">Importing and Exporting Registries</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/howtocreatearegistry.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="import.html" title="Importing and Exporting Registries"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="permittedvaluegroups.html" title="Permissible Values and Permitted Value Groups"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

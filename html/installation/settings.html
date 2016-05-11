@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Settings File &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="settings-file">
+<span id="settings"></span><span id="index-0"></span><h1>Settings File<a class="headerlink" href="#settings-file" title="Permalink to this headline">¶</a></h1>
+<p>As RDRF uses the Django web application framework, much of its configuration is
+through the settings.py file. For most settings in this file you can consult
+the <a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/settings/">Django documentation</a>.</p>
+<p>RDRF supports the pattern advocated in the <a class="reference external" href="http://12factor.net/config/">Twelve-Factor app document</a>.</p>
+<p>This means that most of the configuration you need to do can be done by setting
+simple variables in your <code class="docutils literal"><span class="pre">/etc/rdrf/rdrf.conf</span></code> file. For the full
+list of variables you can edit in your config file refer to your
+<code class="docutils literal"><span class="pre">rdrf/settings.py</span></code> file and look for the settings that are set using <code class="docutils literal"><span class="pre">env.get</span></code>.</p>
+<p>A list of variables you would like to edit for a usual RDRF server are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Variable</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>dbserver</td>
+<td>The hostname of your Postgres DB server.</td>
+</tr>
+<tr class="row-odd"><td>dbname</td>
+<td>The DB name that rdrf uses.</td>
+</tr>
+<tr class="row-even"><td>dbuser</td>
+<td>DB user name.</td>
+</tr>
+<tr class="row-odd"><td>dbpass</td>
+<td>DB user&#8217;s password.</td>
+</tr>
+<tr class="row-even"><td>allowed_hosts</td>
+<td>Space-separated list of allowed hosts.</td>
+</tr>
+<tr class="row-odd"><td>memcache</td>
+<td>Space-separated list of memcache servers to use.</td>
+</tr>
+<tr class="row-even"><td>secret_key</td>
+<td>Secret key of this RDRF installation.</td>
+</tr>
+<tr class="row-odd"><td>admin_email</td>
+<td>The email address that will receive Admin emails.</td>
+</tr>
+</tbody>
+</table>
+<p>If you need more control you can always edit your <code class="docutils literal"><span class="pre">/etc/rdrf/settings.py</span></code>
+file directly. The settings in this file will overwrite the settings in <code class="docutils literal"><span class="pre">rdrf/settings.py</span></code> and the config options you set in <code class="docutils literal"><span class="pre">/etc/rdrf/rdrf.conf</span></code>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/installation/settings.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

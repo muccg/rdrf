@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RDRF Graphical User Interface &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="index.html" />
+    <link rel="next" title="Registries, Forms and Sections" href="registries.html" />
+    <link rel="prev" title="Creation of a Registry: Workflows for Design and User Modes" href="workflow.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="registries.html" title="Registries, Forms and Sections"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="workflow.html" title="Creation of a Registry: Workflows for Design and User Modes"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rdrf-graphical-user-interface">
+<span id="gui"></span><h1>RDRF Graphical User Interface<a class="headerlink" href="#rdrf-graphical-user-interface" title="Permalink to this headline">¶</a></h1>
+<p>RDRF is a Django web application and accessed via any web browser (f.g. Chrome or Firefox).</p>
+<p>The system uses the standard Django views (generic class-based views) with bootstrap-styling to provide access to the application.</p>
+<p>As an admin user, regularly used links are  links are accessed via &#8220;Settings&#8221;, while the &#8220;Admin Page&#8221; contains the complete list of links.</p>
+<div class="section" id="admin-page">
+<h2>Admin Page<a class="headerlink" href="#admin-page" title="Permalink to this headline">¶</a></h2>
+<p>The Admin Page consists of:</p>
+</div>
+<div class="section" id="patient-list">
+<h2>Patient List<a class="headerlink" href="#patient-list" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit patient information (contact details)</p>
+</div>
+<div class="section" id="doctors">
+<h2>Doctors<a class="headerlink" href="#doctors" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit Doctors</p>
+</div>
+<div class="section" id="reports">
+<h2>Reports<a class="headerlink" href="#reports" title="Permalink to this headline">¶</a></h2>
+<p>Access Reports that have been defined with the Explorer tool</p>
+</div>
+<div class="section" id="users">
+<h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit users</p>
+</div>
+<div class="section" id="genes">
+<h2>Genes<a class="headerlink" href="#genes" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit genes</p>
+</div>
+<div class="section" id="laboratories">
+<h2>Laboratories<a class="headerlink" href="#laboratories" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit laboratories</p>
+</div>
+<div class="section" id="registries">
+<h2>Registries<a class="headerlink" href="#registries" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit registries</p>
+</div>
+<div class="section" id="registry-form">
+<h2>Registry Form<a class="headerlink" href="#registry-form" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit forms (created forms are accessed under &#8216;Modules&#8217; in the Patient List)</p>
+</div>
+<div class="section" id="sections">
+<h2>Sections<a class="headerlink" href="#sections" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit sections (Sctions are compiled into Forms)</p>
+</div>
+<div class="section" id="data-elements">
+<h2>Data Elements<a class="headerlink" href="#data-elements" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit CDEs (CDEs are compiled into sections)</p>
+</div>
+<div class="section" id="permissible-value-groups">
+<h2>Permissible Value Groups<a class="headerlink" href="#permissible-value-groups" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit PVGs</p>
+</div>
+<div class="section" id="permissible-values">
+<h2>Permissible Values<a class="headerlink" href="#permissible-values" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit PVs (assigned to a pemritted value group)</p>
+</div>
+<div class="section" id="groups">
+<h2>Groups<a class="headerlink" href="#groups" title="Permalink to this headline">¶</a></h2>
+<p>Administer available permissions for user groups (working group curators, clinicians, etc)</p>
+</div>
+<div class="section" id="importer">
+<h2>Importer<a class="headerlink" href="#importer" title="Permalink to this headline">¶</a></h2>
+<p>Import a registry definition (yaml file)</p>
+</div>
+<div class="section" id="demographics-fields">
+<h2>Demographics Fields<a class="headerlink" href="#demographics-fields" title="Permalink to this headline">¶</a></h2>
+<p>Configure Demographics fields to be hidden or readonly by registry and group</p>
+</div>
+<div class="section" id="working-groups">
+<h2>Working Groups<a class="headerlink" href="#working-groups" title="Permalink to this headline">¶</a></h2>
+<p>Add or edit working groups (e.g. States, Hospitals, Clinics)</p>
+</div>
+<div class="section" id="questionnaire-responses">
+<h2>Questionnaire Responses<a class="headerlink" href="#questionnaire-responses" title="Permalink to this headline">¶</a></h2>
+<p>Questionnaire responses are stored here when submitted by a patient, awaiting validation or rejection by an admin or curator</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">RDRF Graphical User Interface</a><ul>
+<li><a class="reference internal" href="#admin-page">Admin Page</a></li>
+<li><a class="reference internal" href="#patient-list">Patient List</a></li>
+<li><a class="reference internal" href="#doctors">Doctors</a></li>
+<li><a class="reference internal" href="#reports">Reports</a></li>
+<li><a class="reference internal" href="#users">Users</a></li>
+<li><a class="reference internal" href="#genes">Genes</a></li>
+<li><a class="reference internal" href="#laboratories">Laboratories</a></li>
+<li><a class="reference internal" href="#registries">Registries</a></li>
+<li><a class="reference internal" href="#registry-form">Registry Form</a></li>
+<li><a class="reference internal" href="#sections">Sections</a></li>
+<li><a class="reference internal" href="#data-elements">Data Elements</a></li>
+<li><a class="reference internal" href="#permissible-value-groups">Permissible Value Groups</a></li>
+<li><a class="reference internal" href="#permissible-values">Permissible Values</a></li>
+<li><a class="reference internal" href="#groups">Groups</a></li>
+<li><a class="reference internal" href="#importer">Importer</a></li>
+<li><a class="reference internal" href="#demographics-fields">Demographics Fields</a></li>
+<li><a class="reference internal" href="#working-groups">Working Groups</a></li>
+<li><a class="reference internal" href="#questionnaire-responses">Questionnaire Responses</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="workflow.html"
+                        title="previous chapter">Creation of a Registry: Workflows for Design and User Modes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="registries.html"
+                        title="next chapter">Registries, Forms and Sections</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gui.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="registries.html" title="Registries, Forms and Sections"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="workflow.html" title="Creation of a Registry: Workflows for Design and User Modes"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

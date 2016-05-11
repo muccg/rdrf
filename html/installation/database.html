@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Database Setup &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="../index.html" />
+    <link rel="up" title="Installation" href="index.html" />
+    <link rel="next" title="Caching and Sessions" href="caching.html" />
+    <link rel="prev" title="RPM Installation of the RDRF web application under Apache" href="apache.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="caching.html" title="Caching and Sessions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="apache.html" title="RPM Installation of the RDRF web application under Apache"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Installation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="database-setup">
+<span id="id1"></span><h1>Database Setup<a class="headerlink" href="#database-setup" title="Permalink to this headline">¶</a></h1>
+<p>We assume that you have a database server (preferably Postgres) installed, that is accessible from the server you&#8217;re performing the RDRF installation on.</p>
+<div class="section" id="create-the-rdrf-database">
+<h2>Create the RDRF database<a class="headerlink" href="#create-the-rdrf-database" title="Permalink to this headline">¶</a></h2>
+<p>Please create a database (ex. <code class="docutils literal"><span class="pre">rdrf_prod</span></code>) that will be used by the RDRF application.
+We recommend creating a user called <code class="docutils literal"><span class="pre">rdrfapp</span></code> with no special privileges that will be the owner of the database.</p>
+</div>
+<div class="section" id="configure-rdrf-to-use-rdrf-database">
+<h2>Configure RDRF to use RDRF database<a class="headerlink" href="#configure-rdrf-to-use-rdrf-database" title="Permalink to this headline">¶</a></h2>
+<p>To change the database that RDRF points at you will need to alter the RDRF settings file.
+Open up <code class="docutils literal"><span class="pre">/etc/rdrf/rdrf.conf</span></code> in your editor and make sure the variables in the <em>database options</em> section (<code class="docutils literal"><span class="pre">dbserver</span></code>, <code class="docutils literal"><span class="pre">dbname</span></code>, <code class="docutils literal"><span class="pre">dbuser</span></code> etc.) are set correctly.</p>
+<p>For more details see <a class="reference internal" href="settings.html#settings"><span class="std std-ref">Settings File</span></a>.</p>
+</div>
+<div class="section" id="initialise-the-rdrf-database">
+<h2>Initialise the RDRF database<a class="headerlink" href="#initialise-the-rdrf-database" title="Permalink to this headline">¶</a></h2>
+<p>The RDRF codebase employs <a class="reference external" href="http://south.aeracode.org/">South</a> to manage schema and data migrations.
+To initialise the database:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span> rdrf syncdb --noinput
+<span class="gp">#</span> rdrf migrate
+</pre></div>
+</div>
+<p>These will create the schema, insert setup data, and create initial users.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Database Setup</a><ul>
+<li><a class="reference internal" href="#create-the-rdrf-database">Create the RDRF database</a></li>
+<li><a class="reference internal" href="#configure-rdrf-to-use-rdrf-database">Configure RDRF to use RDRF database</a></li>
+<li><a class="reference internal" href="#initialise-the-rdrf-database">Initialise the RDRF database</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="apache.html"
+                        title="previous chapter">RPM Installation of the RDRF web application under Apache</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="caching.html"
+                        title="next chapter">Caching and Sessions</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/installation/database.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="caching.html" title="Caching and Sessions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="apache.html" title="RPM Installation of the RDRF web application under Apache"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Installation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

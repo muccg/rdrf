@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Last steps &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="../index.html" />
+    <link rel="up" title="Installation" href="index.html" />
+    <link rel="next" title="Development Environment" href="../development.html" />
+    <link rel="prev" title="Caching and Sessions" href="caching.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../development.html" title="Development Environment"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="caching.html" title="Caching and Sessions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Installation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="last-steps">
+<span id="laststeps"></span><h1>Last steps<a class="headerlink" href="#last-steps" title="Permalink to this headline">¶</a></h1>
+<p>At this stage we should have everything installed, the database, caching and sessions configured.</p>
+<p>As a last step before starting the applications you should go through all the variables in <code class="docutils literal"><span class="pre">/etc/rdrf/rdrf.conf</span></code> and make sure everything is set to sensible values. See :ref:<code class="docutils literal"><span class="pre">settings</span></code>.</p>
+<div class="section" id="restart-apache">
+<h2>Restart apache<a class="headerlink" href="#restart-apache" title="Permalink to this headline">¶</a></h2>
+<p>To start up the RDRF web application restart Apache:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span> service httpd restart
+</pre></div>
+</div>
+</div>
+<div class="section" id="start-mongodb">
+<h2>Start MongoDB<a class="headerlink" href="#start-mongodb" title="Permalink to this headline">¶</a></h2>
+<p>To start up the MongoDB:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span> service mongod start
+</pre></div>
+</div>
+</div>
+<div class="section" id="load-fixtures">
+<h2>Load fixtures<a class="headerlink" href="#load-fixtures" title="Permalink to this headline">¶</a></h2>
+<p>Create initial users and sample data elements (both files must be loaded in order):</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span> django-admin.py  load_fixture --file<span class="o">=</span>rdrf.json
+<span class="gp">#</span> django-admin.py   load_fixture --file<span class="o">=</span>users.json
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>The following users/password are created:</dt>
+<dd><ul class="first last simple">
+<li>curator/curator</li>
+<li>genetic/genetic</li>
+<li>fhcurator/fhcurator</li>
+<li>clinical/clinical</li>
+<li>admin/admin</li>
+</ul>
+</dd>
+</dl>
+<p>The sample registries are purely for demonstration purposes</p>
+<p>NB. After designing a registry ( along with its working groups) - users will need to be assigned to a working and registry
+before they will be able to see any data - this is accomplished by logging in as an admin and editing the given user.</p>
+<p>At this stage you should be able to access the RDRF web application by browsing to <a class="reference external" href="https://YOURHOST/rdrf/">https://YOURHOST/rdrf/</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Last steps</a><ul>
+<li><a class="reference internal" href="#restart-apache">Restart apache</a></li>
+<li><a class="reference internal" href="#start-mongodb">Start MongoDB</a></li>
+<li><a class="reference internal" href="#load-fixtures">Load fixtures</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="caching.html"
+                        title="previous chapter">Caching and Sessions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../development.html"
+                        title="next chapter">Development Environment</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/installation/laststeps.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../development.html" title="Development Environment"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="caching.html" title="Caching and Sessions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Installation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

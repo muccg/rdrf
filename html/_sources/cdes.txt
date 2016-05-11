@@ -1,0 +1,119 @@
+.. _des:
+
+Data Elements (DEs)
+===================
+
+RDRF allows creation of resusable fields, which can be dropped into the definition of sections of :ref:`forms <registries>`, simply by entering their code into the elements field of the section definition (in a comma separated list).
+
+A DE is created by an admin user navigating to "Data Elements"  in "Settings"
+
+DEs can be shared by all registries created within the framework. A DE definition consists of:
+
+
+Code
+----
+
+A DE must have a *globally unique code* (e.g. CDEAge, CDEInsulinLevel) which must not contain a space.
+
+A meaningful code prefixed with CDE or the Registry Code is recommended. 
+
+
+
+Name
+----
+
+A non blank "name" must also be entered, which will be used as the label of the component when it appears
+on the form.
+
+
+Desc
+----
+
+Origin of the field if externally loaded.
+
+
+Datatype
+--------
+
+Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.
+
+
+The allowed :ref:`datatypes` are as follows (NB. These are the literal words to type into the datatype field, *except* for ComplexField) 
+
+
+* string
+* integer
+* alphanumeric
+* boolean
+* float
+* range
+* calculated
+* file
+* date
+* ComplexField
+
+
+
+
+Pv group
+--------
+*IF* a range, select the desired :ref:`permitted value group <permittedvaluegroup>` here.
+
+
+Allow multiple
+-------------
+*IF* a range, checking this box will allow multple selections to be chosen from the range.
+
+Example
+^^^^^^^
+
+* Brands of cars owned
+* Medications taken
+
+
+Max length
+----------
+*IF* a string value, the maximum number of characters allowed.
+
+
+Max value
+---------
+*IF* an integer or a float value, the maximum magnitude allowed.
+
+
+Min value
+---------
+*IF* an integer or a float value, the minimum magnitude allowed.
+
+
+Is required
+-----------
+A check box indicating whether this field is mandatory (any datatype)
+
+
+Pattern
+-------
+*IF* a string value, a regular expression used to indicate admissible values
+(note these are always case sensitive in the current version).
+
+
+Widget name
+-----------
+The name of a custom widget to visually present the data, or an an alternative widget 
+from the default. *IMPORTANT!* The custom widget must already be provided in the codebase otherwise an error
+will occur. If this field is left blank ( the default ), the default widget for the specified datatype
+will be used, which should be good enough in 99% per cent of cases.
+
+
+
+Derived Data Element (DDE)
+--------------------------
+
+*IF* a calculated field, a fragment of javascript outlined in :ref:`Derived Data Elements <datatypes>`.
+Leave blank if not a calculated field.
+
+
+
+
+
+

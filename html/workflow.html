@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creation of a Registry: Workflows for Design and User Modes &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="index.html" />
+    <link rel="next" title="RDRF Graphical User Interface" href="gui.html" />
+    <link rel="prev" title="About the Rare Disease Registry Framework" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="gui.html" title="RDRF Graphical User Interface"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="About the Rare Disease Registry Framework"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="creation-of-a-registry-workflows-for-design-and-user-modes">
+<span id="workflows"></span><h1>Creation of a Registry: Workflows for Design and User Modes<a class="headerlink" href="#creation-of-a-registry-workflows-for-design-and-user-modes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>There are two basic modes in which RDRF is intended to be used: Design mode (for creating new registries)
+and User Mode (for adding/editing and viewing patient data in a registry that has been created).</p>
+<p>Only administrators can add new registries, forms, sections or data elements.</p>
+<p>Important Point: Once data elements and sections  are created they can be used by more than one registry.
+But altering a data element or section that is in use will immediately affect any registries which use it.</p>
+<p>Additionally, a public interface is provided when a registry form is nominated to be a questionnaire.
+See <a class="reference internal" href="questionnaires.html#questionnaires"><span class="std std-ref">questionnaires</span></a>.</p>
+</div>
+<div class="section" id="roles">
+<h2>Roles<a class="headerlink" href="#roles" title="Permalink to this headline">¶</a></h2>
+<p>Each workflow in RDRF is intended to be performed by a user with a distinct role.</p>
+</div>
+<div class="section" id="admin">
+<h2>Admin<a class="headerlink" href="#admin" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Can do anything</li>
+<li>Create and modify registry definitions</li>
+<li>Import and Export registries</li>
+<li>Manage user permissions</li>
+</ul>
+</div>
+<div class="section" id="curators">
+<h2>Curators<a class="headerlink" href="#curators" title="Permalink to this headline">¶</a></h2>
+<p>Manage membership of patients in working groups within a registry</p>
+</div>
+<div class="section" id="clinicians">
+<h2>Clinicians<a class="headerlink" href="#clinicians" title="Permalink to this headline">¶</a></h2>
+<p>Enter and view data on patients in a working group within a registry</p>
+</div>
+<div class="section" id="design-mode-workflow">
+<h2>Design Mode Workflow<a class="headerlink" href="#design-mode-workflow" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="modelling">
+<h2>Modelling<a class="headerlink" href="#modelling" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Do this first on pen and paper!</li>
+<li>Gather requirements of the data fields ( <a class="reference internal" href="cdes.html#des"><span class="std std-ref">&#8220;DEs&#8221;</span></a> ) required</li>
+<li>For each data field required, decide its <span class="xref std std-ref">datatype</span>. If a field is logically a <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">range</span></a>,
+work out the allowed <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">permitted values</span></a>. Depending on the <span class="xref std std-ref">datatype</span>, decide any validation rules
+for a numeric or float data type (max and/or min), and for a string data type,
+the maximum length or pattern. Decide if any Derived Data Elements (calculated data type) are required.</li>
+<li>Split them into logical groups (<a class="reference internal" href="registries.html#registries"><span class="std std-ref">sections</span></a>). Decide whether a section might be multiple</li>
+<li>Portion related sections into <a class="reference internal" href="registries.html#registries"><span class="std std-ref">forms</span></a></li>
+<li>If a questionnaire is required for the registry, nominate a single form as a questionnaire</li>
+</ol>
+</div>
+<div class="section" id="creating-a-registry">
+<h2>Creating a Registry<a class="headerlink" href="#creating-a-registry" title="Permalink to this headline">¶</a></h2>
+<p>Assuming all <a class="reference internal" href="cdes.html#des"><span class="std std-ref">Data Elements (DEs)</span></a> have already been created</p>
+<ol class="arabic simple">
+<li>Admin logs in and navigates to &#8220;Registries&#8221; from &#8220;Settings&#8221;</li>
+<li>Admin clicks on green &#8220;Add&#8221; button</li>
+<li>Admin fills in Name, code and description of registry (code must be unique and not contain spaces)</li>
+<li>Admin pastes a html splash screen into the Splash screen field (this will be linked to on the main page)</li>
+<li>Admin navigates to &#8220;Registry Forms&#8221; from &#8220;Settings&#8221; and for each desired form in the registry, clicks the green &#8220;Add&#8221; button.</li>
+<li>Admin Selects the registry just created from the drop down list</li>
+<li>Admin enters a name into the name field (this name will appear on the form, eg &#8220;Physical Info&#8221;)</li>
+<li>Admin enters a comma-separated list of form section codes (E.g. &#8220;FHPhysicalSection,FHPersonalitySection,FHAmbulatorySection&#8221; (Note: The codes  should be unique and have no spaces - no quotes! - prefixing with registry code is conventional but
+advised). If the form is intended to be a public questionnaire form, check the questionnaire checkbox</li>
+<li>Save the form definition</li>
+<li>For each section referred to in the comma separated list, add a section object by navigating to &#8220;Sections&#8221; from &#8220;Settings&#8221;</li>
+<li>Click the green &#8220;Add&#8221; button and enter the section code (used in the form definition)</li>
+<li>Enter a display name for the section (this will appear on the form above the fields defined for the section)</li>
+<li>Enter the DE codes of any fields required in the elements list (as a comma-separated list) E.g. &#8220;CDEName,CDEAge,CDEHeight&#8221; (Note- The system will check whether any entered DE codes exist when the section object is saved - if any DE code cannot be found in the system, the section object will not be created)</li>
+</ol>
+</div>
+<div class="section" id="user-mode-workflows">
+<h2>User Mode Workflows<a class="headerlink" href="#user-mode-workflows" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="adding-a-user-curator-or-clinician-or-genetic-staff">
+<h2>Adding a user (curator or clinician, or genetic staff)<a class="headerlink" href="#adding-a-user-curator-or-clinician-or-genetic-staff" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Admin logs in</li>
+<li>Clicks on &#8220;Users&#8221; from the &#8220;Menu&#8221; button</li>
+<li>Clicks Add User button on right</li>
+<li>Enters Username and password</li>
+<li>Clicks Next</li>
+<li>Enters personal information</li>
+<li>Checks &#8220;Staff Status&#8221;</li>
+<li>Control-Clicks Working Group Curators for curator (or Clinical Staff for clinician, or Genetic Staff for
+genetic staff)</li>
+<li>Control-clicks the required working groups and registries (if more than one)</li>
+<li>Clicks save</li>
+</ol>
+</div>
+<div class="section" id="adding-a-patient-to-a-registry">
+<h2>Adding a Patient to a Registry<a class="headerlink" href="#adding-a-patient-to-a-registry" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Curator or clinician logs in</li>
+<li>Click &#8220;Add Patient&#8221; (or click on the Patients name to edit patient)</li>
+<li>Control-click on each registry that is listed that you would like the patient to be a member of
+(NB. If a clinician or curator has access to only one registry, it will already be assigned)</li>
+</ol>
+</div>
+<div class="section" id="entering-and-viewing-existing-demographic-data-for-a-patient">
+<h2>Entering (and viewing existing) Demographic Data for a Patient<a class="headerlink" href="#entering-and-viewing-existing-demographic-data-for-a-patient" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Login as a clinician</li>
+<li>Click the Patient&#8217;s name in the Patient column of the Patient List</li>
+<li>Edit contact details for the patient</li>
+<li>Click Save button</li>
+</ol>
+</div>
+<div class="section" id="changing-working-group-for-a-patient">
+<h2>Changing Working Group for a Patient<a class="headerlink" href="#changing-working-group-for-a-patient" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Login as curator</li>
+<li>Click the Patient&#8217;s name in the Patient column of the Patient List</li>
+<li>Select required working group (NB. workings group in the dropdown will only be those for which the curator has access)</li>
+</ol>
+</div>
+<div class="section" id="entering-editing-existing-clinical-data-for-a-patient">
+<h2>Entering / editing existing Clinical Data for a Patient<a class="headerlink" href="#entering-editing-existing-clinical-data-for-a-patient" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Login in as a clinician</li>
+<li>If clinician has access to more than one registry a drop down of registries is shown in the search area, otherwise no
+registry dropdown will appear and all operations will occur in the one registry</li>
+<li>Click the &#8220;Show Modules&#8221; button in the patients list for the required patient - a pop up of available forms will
+appear (except if there is only one defined clinical data form)</li>
+<li>Click the desired clinical data entry form</li>
+<li>The screen will show the required form</li>
+<li>Edit and click Save</li>
+</ol>
+</div>
+<div class="section" id="approving-rejecting-a-questionnaire-response">
+<h2>Approving/Rejecting a Questionnaire response<a class="headerlink" href="#approving-rejecting-a-questionnaire-response" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Curator or clinician logs in.</p>
+</li>
+<li><p class="first">Click &#8220;Questionnaire Responses&#8221; under &#8220;Menu&#8221;</p>
+</li>
+<li><p class="first">Click &#8220;Review&#8221; under &#8220;Process Questionnaire&#8221; to approve/reject a questionanaire</p>
+</li>
+<li><dl class="first docutils">
+<dt>User reviews information in the submitted form and clicks approve (or reject)</dt>
+<dd><ul class="first last simple">
+<li>If approve is clicked, a new patient will be created in the registry and working group indicated in the form</li>
+<li>If reject is clicked, no patient record will be created</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+<div class="section" id="adding-a-new-working-group">
+<h2>Adding a new working group<a class="headerlink" href="#adding-a-new-working-group" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Admin logs in</li>
+<li>Click on &#8220;Working Groups&#8221; under the &#8220;Menu&#8221; button</li>
+<li>Click the green &#8220;Add&#8221; button</li>
+<li>Enter name and save</li>
+</ol>
+</div>
+<div class="section" id="changing-the-working-groups-of-a-curator">
+<h2>Changing the Working Groups of a Curator<a class="headerlink" href="#changing-the-working-groups-of-a-curator" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>As an admin, click on &#8220;Users&#8221; under the &#8220;Menu&#8221; button</li>
+<li>Click on the username of the curator required</li>
+<li>Control-click (command-click for Mac) on each working group in the combo box required for that user (a curator in 2 working groups will see patients in both groups)</li>
+<li>Click the Save button</li>
+</ol>
+</div>
+<div class="section" id="assigning-a-curator-or-clinician-to-a-registry">
+<h2>Assigning a curator (or clinician) to a registry<a class="headerlink" href="#assigning-a-curator-or-clinician-to-a-registry" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>As an admin, login and then click on &#8220;Users&#8221; under the &#8220;Menu&#8221; button</li>
+<li>Click on the username of the user required</li>
+<li>Control-click (command-click for Mac) on each registry the user is meant to have access to</li>
+<li>Click the Save button</li>
+</ol>
+</div>
+<div class="section" id="adding-genes">
+<h2>Adding Genes<a class="headerlink" href="#adding-genes" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Admin logs in</li>
+<li>Click on &#8220;Genes&#8221; under the &#8220;Menu&#8221; button</li>
+<li>Click on &#8220;Add&#8221; and add details</li>
+<li>Click Save</li>
+</ol>
+</div>
+<div class="section" id="adding-laboratory">
+<h2>Adding Laboratory<a class="headerlink" href="#adding-laboratory" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Admin logs in</li>
+<li>Click on &#8220;Laboratories&#8221; under &#8220;Menu&#8221;</li>
+<li>Click on &#8220;Add&#8221; and add details</li>
+<li>Click Save</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Creation of a Registry: Workflows for Design and User Modes</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#roles">Roles</a></li>
+<li><a class="reference internal" href="#admin">Admin</a></li>
+<li><a class="reference internal" href="#curators">Curators</a></li>
+<li><a class="reference internal" href="#clinicians">Clinicians</a></li>
+<li><a class="reference internal" href="#design-mode-workflow">Design Mode Workflow</a></li>
+<li><a class="reference internal" href="#modelling">Modelling</a></li>
+<li><a class="reference internal" href="#creating-a-registry">Creating a Registry</a></li>
+<li><a class="reference internal" href="#user-mode-workflows">User Mode Workflows</a></li>
+<li><a class="reference internal" href="#adding-a-user-curator-or-clinician-or-genetic-staff">Adding a user (curator or clinician, or genetic staff)</a></li>
+<li><a class="reference internal" href="#adding-a-patient-to-a-registry">Adding a Patient to a Registry</a></li>
+<li><a class="reference internal" href="#entering-and-viewing-existing-demographic-data-for-a-patient">Entering (and viewing existing) Demographic Data for a Patient</a></li>
+<li><a class="reference internal" href="#changing-working-group-for-a-patient">Changing Working Group for a Patient</a></li>
+<li><a class="reference internal" href="#entering-editing-existing-clinical-data-for-a-patient">Entering / editing existing Clinical Data for a Patient</a></li>
+<li><a class="reference internal" href="#approving-rejecting-a-questionnaire-response">Approving/Rejecting a Questionnaire response</a></li>
+<li><a class="reference internal" href="#adding-a-new-working-group">Adding a new working group</a></li>
+<li><a class="reference internal" href="#changing-the-working-groups-of-a-curator">Changing the Working Groups of a Curator</a></li>
+<li><a class="reference internal" href="#assigning-a-curator-or-clinician-to-a-registry">Assigning a curator (or clinician) to a registry</a></li>
+<li><a class="reference internal" href="#adding-genes">Adding Genes</a></li>
+<li><a class="reference internal" href="#adding-laboratory">Adding Laboratory</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">About the Rare Disease Registry Framework</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gui.html"
+                        title="next chapter">RDRF Graphical User Interface</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/workflow.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="gui.html" title="RDRF Graphical User Interface"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="About the Rare Disease Registry Framework"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

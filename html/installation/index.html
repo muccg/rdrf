@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="../index.html" />
+    <link rel="next" title="Running installation with Docker" href="docker.html" />
+    <link rel="prev" title="Questionnaires" href="../questionnaires.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="docker.html" title="Running installation with Docker"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../questionnaires.html" title="Questionnaires"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>We currently install RDRF on CentOS servers which is the supported platform.
+There is nothing preventing you to install RDRF on any other Linux distribution, but installing on CentOS is easiest using the RPMs we provide.</p>
+<p>Theoretically, you could install on any platform that can run a Python WSGI application. Additionally you will need access to a database server (Postgresql), MongoDB, and Memcached.</p>
+<div class="section" id="how-to-install">
+<h2>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h2>
+<p>In the <em>how to install</em> section we assume that you are going to install RDRF on CentOS using our provided RPMs.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docker.html">Running installation with Docker</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="docker.html#local-deployment">Local deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">RPM Prerequisites</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="prerequisites.html#extra-centos-repositories">Extra CentOS repositories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prerequisites.html#mongodb">MongoDB</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="apache.html">RPM Installation of the RDRF web application under Apache</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="database.html#create-the-rdrf-database">Create the RDRF database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html#configure-rdrf-to-use-rdrf-database">Configure RDRF to use RDRF database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html#initialise-the-rdrf-database">Initialise the RDRF database</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="caching.html">Caching and Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laststeps.html">Last steps</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="laststeps.html#restart-apache">Restart apache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="laststeps.html#start-mongodb">Start MongoDB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="laststeps.html#load-fixtures">Load fixtures</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#how-to-install">How to install</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../questionnaires.html"
+                        title="previous chapter">Questionnaires</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="docker.html"
+                        title="next chapter">Running installation with Docker</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/installation/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="docker.html" title="Running installation with Docker"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../questionnaires.html" title="Questionnaires"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

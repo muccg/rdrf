@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Data Elements (DEs) &mdash; rdrf 1.2.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="rdrf 1.2.2 documentation" href="index.html" />
+    <link rel="next" title="Datatypes" href="datatypes.html" />
+    <link rel="prev" title="Registries, Forms and Sections" href="registries.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="datatypes.html" title="Datatypes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="registries.html" title="Registries, Forms and Sections"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="data-elements-des">
+<span id="des"></span><h1>Data Elements (DEs)<a class="headerlink" href="#data-elements-des" title="Permalink to this headline">¶</a></h1>
+<p>RDRF allows creation of resusable fields, which can be dropped into the definition of sections of <a class="reference internal" href="registries.html#registries"><span class="std std-ref">forms</span></a>, simply by entering their code into the elements field of the section definition (in a comma separated list).</p>
+<p>A DE is created by an admin user navigating to &#8220;Data Elements&#8221;  in &#8220;Settings&#8221;</p>
+<p>DEs can be shared by all registries created within the framework. A DE definition consists of:</p>
+<div class="section" id="code">
+<h2>Code<a class="headerlink" href="#code" title="Permalink to this headline">¶</a></h2>
+<p>A DE must have a <em>globally unique code</em> (e.g. CDEAge, CDEInsulinLevel) which must not contain a space.</p>
+<p>A meaningful code prefixed with CDE or the Registry Code is recommended.</p>
+</div>
+<div class="section" id="name">
+<h2>Name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h2>
+<p>A non blank &#8220;name&#8221; must also be entered, which will be used as the label of the component when it appears
+on the form.</p>
+</div>
+<div class="section" id="desc">
+<h2>Desc<a class="headerlink" href="#desc" title="Permalink to this headline">¶</a></h2>
+<p>Origin of the field if externally loaded.</p>
+</div>
+<div class="section" id="datatype">
+<h2>Datatype<a class="headerlink" href="#datatype" title="Permalink to this headline">¶</a></h2>
+<p>Each cde must have a data type specified by a text descriptor. Currently this descriptor is specified as free text although this may change.</p>
+<p>The allowed <a class="reference internal" href="datatypes.html#datatypes"><span class="std std-ref">Datatypes</span></a> are as follows (NB. These are the literal words to type into the datatype field, <em>except</em> for ComplexField)</p>
+<ul class="simple">
+<li>string</li>
+<li>integer</li>
+<li>alphanumeric</li>
+<li>boolean</li>
+<li>float</li>
+<li>range</li>
+<li>calculated</li>
+<li>file</li>
+<li>date</li>
+<li>ComplexField</li>
+</ul>
+</div>
+<div class="section" id="pv-group">
+<h2>Pv group<a class="headerlink" href="#pv-group" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> a range, select the desired <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">permitted value group</span></a> here.</p>
+</div>
+<div class="section" id="allow-multiple">
+<h2>Allow multiple<a class="headerlink" href="#allow-multiple" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> a range, checking this box will allow multple selections to be chosen from the range.</p>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Brands of cars owned</li>
+<li>Medications taken</li>
+</ul>
+</div>
+</div>
+<div class="section" id="max-length">
+<h2>Max length<a class="headerlink" href="#max-length" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> a string value, the maximum number of characters allowed.</p>
+</div>
+<div class="section" id="max-value">
+<h2>Max value<a class="headerlink" href="#max-value" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> an integer or a float value, the maximum magnitude allowed.</p>
+</div>
+<div class="section" id="min-value">
+<h2>Min value<a class="headerlink" href="#min-value" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> an integer or a float value, the minimum magnitude allowed.</p>
+</div>
+<div class="section" id="is-required">
+<h2>Is required<a class="headerlink" href="#is-required" title="Permalink to this headline">¶</a></h2>
+<p>A check box indicating whether this field is mandatory (any datatype)</p>
+</div>
+<div class="section" id="pattern">
+<h2>Pattern<a class="headerlink" href="#pattern" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> a string value, a regular expression used to indicate admissible values
+(note these are always case sensitive in the current version).</p>
+</div>
+<div class="section" id="widget-name">
+<h2>Widget name<a class="headerlink" href="#widget-name" title="Permalink to this headline">¶</a></h2>
+<p>The name of a custom widget to visually present the data, or an an alternative widget
+from the default. <em>IMPORTANT!</em> The custom widget must already be provided in the codebase otherwise an error
+will occur. If this field is left blank ( the default ), the default widget for the specified datatype
+will be used, which should be good enough in 99% per cent of cases.</p>
+</div>
+<div class="section" id="derived-data-element-dde">
+<h2>Derived Data Element (DDE)<a class="headerlink" href="#derived-data-element-dde" title="Permalink to this headline">¶</a></h2>
+<p><em>IF</em> a calculated field, a fragment of javascript outlined in <a class="reference internal" href="datatypes.html#datatypes"><span class="std std-ref">Derived Data Elements</span></a>.
+Leave blank if not a calculated field.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Data Elements (DEs)</a><ul>
+<li><a class="reference internal" href="#code">Code</a></li>
+<li><a class="reference internal" href="#name">Name</a></li>
+<li><a class="reference internal" href="#desc">Desc</a></li>
+<li><a class="reference internal" href="#datatype">Datatype</a></li>
+<li><a class="reference internal" href="#pv-group">Pv group</a></li>
+<li><a class="reference internal" href="#allow-multiple">Allow multiple</a><ul>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#max-length">Max length</a></li>
+<li><a class="reference internal" href="#max-value">Max value</a></li>
+<li><a class="reference internal" href="#min-value">Min value</a></li>
+<li><a class="reference internal" href="#is-required">Is required</a></li>
+<li><a class="reference internal" href="#pattern">Pattern</a></li>
+<li><a class="reference internal" href="#widget-name">Widget name</a></li>
+<li><a class="reference internal" href="#derived-data-element-dde">Derived Data Element (DDE)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="registries.html"
+                        title="previous chapter">Registries, Forms and Sections</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="datatypes.html"
+                        title="next chapter">Datatypes</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cdes.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="datatypes.html" title="Datatypes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="registries.html" title="Registries, Forms and Sections"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rdrf 1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, CCG.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>
