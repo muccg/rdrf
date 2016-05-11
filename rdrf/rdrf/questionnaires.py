@@ -10,11 +10,53 @@ from dynamic_data import DynamicDataWrapper
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
-from datetime import datetime
+from datetime import datetime, date, time
 import pycountry
 
 import logging
 logger = logging.getLogger("registry_log")
+
+
+class Func(object):
+
+    def __init__(self, func_name):
+        self.name = func_name
+
+class TargetCDE(object):
+    def __init__(self, display_name, field_expression):
+        self.display_name = display_name
+        self.field_expression = field_expression
+        
+
+# Map special patient data section cdes to patient attributes
+KEY_MAP = {
+    "CDEPatientGivenNames": ("given_names", None),
+    "CDEPatientFamilyName": ("family_name", None),
+    "CDEPatientSex": ("sex", None),
+    "CDEPatientEmail": ("email", None),
+    "PatientConsentPartOfRegistry": ("consent", None),
+    "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
+    "PatientConsentSentInfo": ("consent_sent_information", None),
+    "CDEPatientDateOfBirth": ("date_of_birth", None),
+    "CDEPatientCentre": ("working_groups", Func("get_working_group")),
+    "CDEPatientMobilePhone": ("mobile_phone", None),
+    "CDEPatientHomePhone": ("home_phone", None),
+
+    "CDEPatientNextOfKinFamilyName": ("next_of_kin_family_name", None),
+    "CDEPatientNextOfKinGivenNames": ("next_of_kin_given_names", None),
+    "CDEPatientNOKRelationship": ("next_of_kin_relationship", Func("set_next_of_kin_relationship")),
+    "CDEPatientNextOfKinAddress": ("next_of_kin_address", None),
+    "CDEPatientNextOfKinSuburb": ("next_of_kin_suburb", None),
+    "CDEPatientNextOfKinCountry": ("next_of_kin_country", None),
+    "CDEPatientNextOfKinState": ("next_of_kin_state", None),
+    "CDEPatientNextOfKinPostCode": ("next_of_kin_postcode", None),
+    "PatientConsentByGuardian": ("consent_provided_by_parent_guardian", None),
+    # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
+    # "CDEPatientNextOfKinMobilePhone": ("next_of_kin_mobile_phone", None),
+    # "CDEPatientNextOfKinWorkPhone": ("next_of_kin_work_phone", None),
+    "CDEPatientNextOfKinEmail": ("next_of_kin_email", None),
+    # "CDEPatientNextOfKinParentPlace": ("next_of_kin_parent_place_of_birth", None),
+}
 
 
 class PatientCreatorState:
@@ -22,6 +64,13 @@ class PatientCreatorState:
     CREATED_OK = "PATIENT CREATED OK"
     FAILED_VALIDATION = "PATIENT NOT CREATED DUE TO VALIDATION ERRORS"
     FAILED = "PATIENT NOT CREATED"
+
+ 
+class QuestionType:
+    CLINICAL = 1
+    DEMOGRAPHIC = 2
+    ADDRESS = 3
+    CONSENT = 4 
 
 
 class QuestionnaireReverseMapper(object):
@@ -41,7 +90,8 @@ class QuestionnaireReverseMapper(object):
             if attr == 'working_groups':
                 working_groups = value
                 continue
-            logger.debug("setting patient demographic field: %s = %s" % (attr, value))
+            logger.debug(
+                "setting patient demographic field: %s = %s" % (attr, value))
             setattr(self.patient, attr, value)
 
         self.patient.save()
@@ -78,7 +128,8 @@ class QuestionnaireReverseMapper(object):
         def get_address_type(address_map):
             value = getcde(address_map, "AddressType")
             logger.debug("address type = %s" % value)
-            value = value.replace("AddressType", "")  # AddressTypeHome --> Home etc
+            # AddressTypeHome --> Home etc
+            value = value.replace("AddressType", "")
             try:
                 address_type_obj = AddressType.objects.get(type=value)
             except:
@@ -108,7 +159,8 @@ class QuestionnaireReverseMapper(object):
         address.country = self._get_country(getcde(address_map, "Country"))
         logger.debug("set country")
 
-        address.state = self._get_state(getcde(address_map, "State"), address.country)
+        address.state = self._get_state(
+            getcde(address_map, "State"), address.country)
         logger.debug("set state")
 
         return address
@@ -128,7 +180,8 @@ class QuestionnaireReverseMapper(object):
                 state_code = "%s-%s" % (country_code, state_code)
 
             logger.debug("state_code to check = %s" % state_code)
-            pycountry_states = list(pycountry.subdivisions.get(country_code=country_code))
+            pycountry_states = list(
+                pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
                 logger.debug("checking state code %s" % state.code.lower())
                 if state.code.lower() == state_code.lower():
@@ -139,7 +192,8 @@ class QuestionnaireReverseMapper(object):
         except Exception as ex:
             logger.debug("Error setting state: state = %s country code = %s error = %s" % (
                 cde_value, country_code, ex))
-            logger.error("could not find state code for for %s %s" % (country_code, cde_value))
+            logger.error("could not find state code for for %s %s" %
+                         (country_code, cde_value))
 
     def save_dynamic_fields(self):
         wrapper = DynamicDataWrapper(self.patient)
@@ -154,12 +208,14 @@ class QuestionnaireReverseMapper(object):
 
         for original_multiple_section, element_list in self._get_multiple_sections():
             if original_multiple_section in dynamic_data_dict:
-                dynamic_data_dict[original_multiple_section].extend(element_list)
+                dynamic_data_dict[
+                    original_multiple_section].extend(element_list)
             else:
                 dynamic_data_dict[original_multiple_section] = element_list
 
         self._update_timestamps(form_names, dynamic_data_dict)
-        wrapper.save_dynamic_data(self.registry.code, "cdes", dynamic_data_dict, parse_all_forms=True)
+        wrapper.save_dynamic_data(
+            self.registry.code, "cdes", dynamic_data_dict, parse_all_forms=True)
 
     def _update_timestamps(self, form_names, dynamic_data_dict):
         # These timestamps are used by the form progress indicator in the
@@ -244,7 +300,7 @@ class QuestionnaireReverseMapper(object):
             from django.db.models import Q
 
             return [WorkingGroup.objects.get(Q(name__iexact=working_group_name.strip())
-                        & Q(registry=self.registry) )]
+                                             & Q(registry=self.registry))]
 
         def set_next_of_kin_relationship(relationship_name):
             from registry.patients.models import NextOfKinRelationship
@@ -257,35 +313,13 @@ class QuestionnaireReverseMapper(object):
             except:
                 return None
 
-        key_map = {
-            "CDEPatientGivenNames": ("given_names", None),
-            "CDEPatientFamilyName": ("family_name", None),
-            "CDEPatientSex": ("sex", None),
-            "CDEPatientEmail": ("email", None),
-            "PatientConsentPartOfRegistry": ("consent", None),
-            "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
-            "PatientConsentSentInfo": ("consent_sent_information", None),
-            "CDEPatientDateOfBirth": ("date_of_birth", None),
-            "CDEPatientCentre": ("working_groups", get_working_group),
-            "CDEPatientMobilePhone": ("mobile_phone", None),
-            "CDEPatientHomePhone": ("home_phone", None),
+        value = KEY_MAP[cde_code]
 
-            "CDEPatientNextOfKinFamilyName": ("next_of_kin_family_name", None),
-            "CDEPatientNextOfKinGivenNames": ("next_of_kin_given_names", None),
-            "CDEPatientNOKRelationship": ("next_of_kin_relationship", set_next_of_kin_relationship),
-            "CDEPatientNextOfKinAddress": ("next_of_kin_address", None),
-            "CDEPatientNextOfKinSuburb": ("next_of_kin_suburb", None),
-            "CDEPatientNextOfKinCountry": ("next_of_kin_country", None),
-            "CDEPatientNextOfKinState": ("next_of_kin_state", None),
-            "CDEPatientNextOfKinPostCode": ("next_of_kin_postcode", None),
-            "PatientConsentByGuardian": ("consent_provided_by_parent_guardian", None),
-            # "CDEPatientNextOfKinHomePhone": ("next_of_kin_home_phone", None),
-            # "CDEPatientNextOfKinMobilePhone": ("next_of_kin_mobile_phone", None),
-            # "CDEPatientNextOfKinWorkPhone": ("next_of_kin_work_phone", None),
-            "CDEPatientNextOfKinEmail": ("next_of_kin_email", None),
-            # "CDEPatientNextOfKinParentPlace": ("next_of_kin_parent_place_of_birth", None),
-        }
-        return key_map[cde_code]
+        if isinstance(value, Func):
+            function_name = value.name
+            return eval(function_name)
+        else:
+            return value
 
     def _get_demographic_data(self):
         return self._get_field_data(dynamic=False)
@@ -324,7 +358,8 @@ class PatientCreator(object):
         before_creation = transaction.savepoint()
         patient = Patient()
         patient.consent = True
-        mapper = QuestionnaireReverseMapper(self.registry, patient, questionnaire_data)
+        mapper = QuestionnaireReverseMapper(
+            self.registry, patient, questionnaire_data)
 
         try:
             mapper.save_patient_fields()
@@ -353,7 +388,8 @@ class PatientCreator(object):
             transaction.savepoint_rollback(before_creation)
             return
 
-        # set custom consents here as these need access to the patients registr(y|ies)
+        # set custom consents here as these need access to the patients
+        # registr(y|ies)
         try:
             logger.debug("creating custom consents")
             custom_consent_data = questionnaire_data["custom_consent_data"]
@@ -388,7 +424,8 @@ class PatientCreator(object):
                 return
 
         self.state = PatientCreatorState.CREATED_OK
-        # RDR-667 we don't need to preserve the approved QRs once patient created
+        # RDR-667 we don't need to preserve the approved QRs once patient
+        # created
         transaction.savepoint_commit(before_creation)
 
         questionnaire_response.delete()
@@ -406,8 +443,10 @@ class PatientCreator(object):
             logger.debug(field_key)
             value = custom_consent_dict[field_key]
             answer = value == "on"
-            _, registry_pk, consent_section_pk, consent_question_pk = field_key.split("_")
-            consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
+            _, registry_pk, consent_section_pk, consent_question_pk = field_key.split(
+                "_")
+            consent_question_model = ConsentQuestion.objects.get(
+                pk=int(consent_question_pk))
             patient_model.set_consent(consent_question_model, answer)
 
 
@@ -415,22 +454,38 @@ class _ExistingDataWrapper(object):
     """
     return to qr view to show data already saved on a patient
     """
+
     def __init__(self, registry_model, patient_model, questionnaire):
         self.registry_model = registry_model
         self.humaniser = Humaniser(self.registry_model)
         self.patient_model = patient_model
-        self.patient_data = self.patient_model.get_dynamic_data(self.registry_model)
-        
+        self.patient_data = self.patient_model.get_dynamic_data(
+            self.registry_model)
+
         self.questionnaire = questionnaire
         self.gfe_parser = GeneralisedFieldExpressionParser(self.registry_model)
-        self.default_context_model = patient_model.default_context(registry_model)
+        self.default_context_model = patient_model.default_context(
+            registry_model)
         self.name = "%s" % self.patient_model
 
-    def _get_field_data(self, field_expression):
+    def _get_field_data(self, field_expression, form_model, section_model, cde_model):
         logger.debug("getting field data for %s" % field_expression)
+        if field_expression in KEY_MAP.keys():
+            original_expression = field_expression
+            logger.debug("%s is in KEY_MAP - using lookup" % field_expression)
+            field_expression = KEY_MAP[field_expression][0] # the demographic field
+            logger.debug("%s ---> %s" % (original_expression, field_expression))
+            
         retrieval_function = self.gfe_parser.parse(field_expression)
         try:
-            return retrieval_function(self.patient_model, self.patient_data)
+            value = retrieval_function(self.patient_model, self.patient_data)
+            value = self.humaniser.display_value2(form_model,section_model,cde_model, value)
+
+            logger.debug("field %s = %s" % (field_expression, value))
+            if isinstance(value, datetime) or isinstance(value, date):
+                logger.debug("converting datetime")
+                value = str(value)
+            return value
 
         except Exception, ex:
             return "Error[!%s]" % ex
@@ -451,43 +506,54 @@ class _ExistingDataWrapper(object):
         """
         l = []
         for question in self.questionnaire.questions:
+            
             if question.section_code == "PatientData":
                 logger.debug("getting PatientData for %s" % question.cde_code)
-                field_name = self._get_patient_data_field_name(question.cde_code)
+                field_name = self._get_patient_data_field_name(
+                    question.cde_code)
                 field_expression = question.cde_code
             elif question.section_code == 'PatientAddressSection':
-                logger.debug("getting PatientAddressData for %s" % question.cde_code)
-                field_name = self._get_patient_address_field_name(question.cde_code)
+                logger.debug("getting PatientAddressData for %s" %
+                             question.cde_code)
+                field_name = self._get_patient_address_field_name(
+                    question.cde_code)
                 field_expression = "address field expression"
             else:
-                logger.debug("getting existing answer to question %s" % question.cde_code)
+                logger.debug("getting existing answer to question %s" %
+                             question.cde_code)
                 try:
-                    field_name, field_expression  = question.target
+                    target = question.target
+                    field_name = target.display_name
+                    field_expression = target.field_expression
                 except Exception, ex:
-                    logger.debug("could not get target for %s %s" % (question.section_code,
-                                                                     question.cde_code))
+                    logger.debug("could not get target for %s %s: %s" % (question.section_code,
+                                                                         question.cde_code,
+                                                                         ex))
                     continue
+
+            if field_name in KEY_MAP:
+                field_name = question.cde_model.name
+
             
+
             answer = {"name": field_name,
-                      "answer": self._get_field_data(field_expression)}
+                      "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
             logger.debug("existing data = %s" % answer)
             l.append(answer)
         return l
 
-    
     def _get_patient_data_field_name(self, cde_code):
         return cde_code
 
-    def _get_patient_address_field_name(self, cde_code):\
+    def _get_patient_address_field_name(self, cde_code):
         return cde_code
-        
-            
-            
+
 
 class _Question(object):
     """
     Read only view of entered questionnaire data
     """
+
     def __init__(self, registry_model, questionnaire, form_name, section_code, section_index, cde_code, value):
         self.registry_model = registry_model
         self.questionnaire = questionnaire
@@ -495,7 +561,7 @@ class _Question(object):
         self.form_name = form_name
         try:
             self.form_model = RegistryForm.objects.get(registry=self.registry_model,
-                                                   name=form_name)
+                                                       name=form_name)
         except RegistryForm.DoesNotExist:
             raise Exception("xxx")
 
@@ -504,7 +570,7 @@ class _Question(object):
         self.section_code = section_code
         self.index = section_index
         self.cde_code = cde_code
-        self.value = value # raw value to be stored in Mongo
+        self.value = value  # raw value to be stored in Mongo
 
         # used on form:
         self.name = self._get_name()
@@ -533,18 +599,20 @@ class _Question(object):
 
         # the generated section code in a questionnaire encodes the original form name and
         # original section code ... ugh
-        t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(self.section_code)
+        t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
+            self.section_code)
 
         original_form_name = t[0]
         original_section_code = t[1]
 
-        target_display_name = self._get_target_display_name(original_form_name, original_section_code, self.cde_code)
-        
+        target_display_name = self._get_target_display_name(
+            original_form_name, original_section_code, self.cde_code)
+
         target_expression = "%s/%s/%s" % (original_form_name,
                                           original_section_code,
                                           self.cde_code)
 
-        return target_display_name, target_expression
+        return TargetCDE(target_display_name, target_expression)
 
     def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
         target_form_model = RegistryForm.objects.get(registry=self.registry_model,
@@ -553,9 +621,9 @@ class _Question(object):
         target_cde_model = CommonDataElement.objects.get(code=target_cde_code)
 
         return "%s/%s/%s" % (target_form_model.name,
-                            target_section_model.display_name,
-                            target_cde_model.name)
-        
+                             target_section_model.display_name,
+                             target_cde_model.name)
+
 
 class Questionnaire(object):
     """
@@ -587,19 +655,18 @@ class Questionnaire(object):
     def _generated_secton_code(self, original_form_name, original_section_code):
         return self.registry_model._generated_section_questionnaire_code(form_name, section_code)
 
-
     @property
     def questions(self):
         logger.debug("getting questions")
         questions = []
 
         for form_dict in self.data["forms"]:
-            logger.debug("getting questionnaire data form %s" % form_dict["name"])
+            logger.debug("getting questionnaire data form %s" %
+                         form_dict["name"])
             for section_dict in form_dict["sections"]:
                 logger.debug("section %s" % section_dict["code"])
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
-                        logger.debug("cde code %s" % cde_dict["code"])
                         display_value = self._get_display_value(cde_dict["code"],
                                                                 cde_dict["value"])
                         question = _Question(self.registry_model,
@@ -610,7 +677,6 @@ class Questionnaire(object):
                                              cde_dict["code"],
                                              display_value)
 
-
                         logger.debug("created question object ok")
 
                         questions.append(question)
@@ -618,7 +684,8 @@ class Questionnaire(object):
                 else:
                     for section_index, section_item in enumerate(section_dict["cdes"]):
                         for cde_dict in section_item:
-                            logger.debug("section index %s cde code %s" % (section_index, cde_dict["code"]))
+                            logger.debug("section index %s cde code %s" %
+                                         (section_index, cde_dict["code"]))
                             display_value = self._get_display_value(cde_dict["code"],
                                                                     cde_dict["value"])
                             question = _Question(self.registry_model,
@@ -632,9 +699,8 @@ class Questionnaire(object):
                             questions.append(question)
         return questions
 
-    
     def existing_data(self, patient_model):
-        return  _ExistingDataWrapper(self.registry_model,
-                                       patient_model,
-                                       self,
-                                       )
+        return _ExistingDataWrapper(self.registry_model,
+                                    patient_model,
+                                    self,
+                                    )

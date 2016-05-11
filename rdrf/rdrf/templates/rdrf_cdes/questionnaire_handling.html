@@ -6,14 +6,15 @@
 <script type="text/javascript">
   function QuestionnaireHandlerGui(rpc,
   patientInfoPanelId,
-  patientInfoResultPanelId, patientDataPanelId, questionnaireContainerId,questionnaireDataPanelId) {
+  patientInfoResultPanelId, patientDataPanelId, patientDataTableId,questionnaireContainerId,questionnaireDataPanelId) {
   this.rpc = rpc;
   this.patientInfoPanel = $("#" + patientInfoPanelId);
   this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
   this.patientDataPanel = $("#" + patientDataPanelId);
-  this.patientDataTable = this.patientDataPanel.closest("table");
+  this.patientDataTable = $("#" + patientDataTableId);
   this.questionnaieContainer = $("#" + questionnaireContainerId);
   this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
+  this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
   }
   
   QuestionnaireHandlerGui.prototype.wireUp = function () {
@@ -34,18 +35,29 @@
 
   QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
       var patientName = data.name;
-      var patientLink = "<a href='" + data.link + "'>" + patientName + "</a>";
-      this.patientInfoResultPanel.text(patientLink);
+      var patientLink = $('<a>', { href: data.link, text: patientName});
+      var self = this;
+      this.patientInfoResultPanel.empty();
+      this.patientInfoResultPanel.append(patientLink);
+      _.each(data.questions, function (question) {
+             console.log("add cde " + question.name);
+             self.addPatientCde(question);
+    });
   }
         
   
 
-  QuestionnaireHandlerGui.prototype.addPatientCde = function (cde) {
-      this.patientDataTable;
+  QuestionnaireHandlerGui.prototype.addPatientCde = function (question) {
+    var rowHtml = this.cdeRowTemplate({name: question.name, value: question.answer});
+    this.patientDataTable.append(rowHtml);
   }
 
   QuestionnaireHandlerGui.prototype.clearPatientData = function () {
       console.log("clearing table");
+  }
+
+  QuestionnaireHandlerGui.prototype.showPatientPanel = function () {
+      console.log("shjow panel");
   }
 
   QuestionnaireHandlerGui.prototype.showError = function (errorMessage) {
@@ -89,6 +101,7 @@
                                           "patient-info",
                                           "patient-info-result",
                                           "patient-data",
+                                          "patient-table",
                                           "questionnaire-container",
                                           "questionnaire-data");
 
@@ -160,7 +173,7 @@
                      <div class="panel panel-heading">Patient Data</div>
                      <div class="panel panel-body">
                        <div id="patient_data">
-			 <table class="table table-bordered table-striped">
+			 <table id="patient-table" class="table table-bordered table-striped">
                            <tbody>
                              <tr>
                                <th>Data Element</th>
