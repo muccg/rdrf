@@ -83,6 +83,20 @@ class FamilyLookup(View):
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
 
 
+class UsernameLookup(View):
+
+    def get(self, request, username):
+        result = {}
+        
+        try:
+            CustomUser.objects.get(username=username)
+            result["existing"] = True
+        except CustomUser.DoesNotExist:
+            result["existing"] = False
+        
+        return HttpResponse(json.dumps(result))
+
+
 # TODO I think that for this one the get will be replaced by Django REST framework view
 # The put that switches contexts should be moved. It isn't a lookup view for sure, but also
 # it doesn't feel "right" to mix it into the REST API because it changes things in the

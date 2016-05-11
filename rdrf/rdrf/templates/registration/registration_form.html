@@ -39,7 +39,7 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
-            $("#id_password1").passStrengthify();
+            //$("#id_password1").passStrengthify();
 
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
             var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
@@ -101,7 +101,7 @@
                 $("#parent_guardian_form").show();
             });
             
-            $.get("{% url 'v1:clinician_list' registry_code %}", function(data) {
+            $.get("{% url 'v1:clinician-list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
