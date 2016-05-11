@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -162,11 +162,11 @@ class ListStates(APIView):
 
 class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
         clinicians = filter(lambda u: u.is_clinician, users)
-
 
         def to_dict(c, wg):
             return {
