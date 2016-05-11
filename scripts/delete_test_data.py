@@ -67,13 +67,14 @@ SKULL_ASCII = """
 """
 
 
-
 def display(msg):
     print "%s %s" % (prompt, msg)
+
 
 def safe(question):
     response = raw_input(prompt + question + blurb)
     return response == "Y"
+
 
 def num_patients(registry_model):
     return Patient.objects.filter(rdrf_registry__in=[registry_model]).count()
@@ -88,29 +89,46 @@ def delete_test_data(registry_model):
             patient.delete()
             patient.delete()
             n += 1
-            display("Successfully deleted patient %s in registry %s" % (name, registry_model))
+            display("Successfully deleted patient %s in registry %s" %
+                    (name, registry_model))
         except Exception, ex:
-            display("Error deleting patient %s  in registry %s: %s" % (name, ex, registry_model.code))
+            display("Error deleting patient %s  in registry %s: %s" %
+                    (name, ex, registry_model.code))
     return n, m
 
 
-if __name__=="__main__":
+def delete_single_patient(patient_id):
+    patient_model = Patient.objects.get(pk=patient_id)
+    patient_model.delete()
+    patient_model.delete()
+    print "deleted patient %s sucessfully" % patient_id
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        patient_id = sys.argv[1]
+        try:
+            delete_single_patient(patient_id)
+            sys.exit(0)
+        except Exception, ex:
+            print "Error deleting patient %s: %s" % (patient_id, ex)
+            sys.exit(1)
     print SKULL_ASCII
     print "**** This utlity is for deleting TEST patient data ONLY! ****"
     print "**** DO NOT USE ON A LIVE (POPULATED) SITE ! ****"
-    print "**** USE _ONLY_ TO CLEAN UP TEST PATIENTS CREATED FOR TESTING PURPOSES PRIOR TO LAUNCH ****" 
-
+    print "**** USE _ONLY_ TO CLEAN UP TEST PATIENTS CREATED FOR TESTING PURPOSES PRIOR TO LAUNCH ****"
 
     if safe("You are about to DELETE (NOT ARCHIVE!) PATIENT data for RDRF! Do you wish to continue?"):
         for r in Registry.objects.all():
             size = num_patients(r)
             if safe("Delete all %s patients in registry %s?" % (size, r.code)):
                 try:
-                    n, m  = delete_test_data(r)
+                    n, m = delete_test_data(r)
                     display("Deleted %s out of %s patients successfully" % (n, m))
                 except Exception, ex:
-                    display("Error deleting test data for registry %s: %s" % (r.code, ex))
+                    display("Error deleting test data for registry %s: %s" %
+                            (r.code, ex))
             else:
-                    display("Skipping deletion of test data in registry %s" % r.code)
+                display("Skipping deletion of test data in registry %s" % r.code)
     else:
         display("Aborting! Nothing deleted! Bye")
