@@ -33,6 +33,7 @@ make_virtualenv() {
 
     if ! which sphinx-build > /dev/null; then
       pip install 'Sphinx' --upgrade || true
+      pip install sphinx_rtd_theme -- upgrade || true
     fi
     success "$(shpinx-build --version)"
 }

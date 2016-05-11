@@ -43,8 +43,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'rdrf'
-copyright = u'2014, CCG'
+project = u'RDRF'
+copyright = u'2016, Centre for Comparative Genomics, Murdoch University'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -67,7 +67,7 @@ release = '1.2.2'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['html', 'virt', 'doctrees']
+exclude_patterns = ['virt']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -98,7 +98,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
