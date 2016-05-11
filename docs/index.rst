@@ -15,7 +15,7 @@ own Patient Registries, without the need for software development.
 The RDRF is unique in that data entry forms and questionnaires are based on reusable data element definitions 
 (called :ref:`des`), which can be created and/or loaded into the system at runtime. 
 This means that registries can be created and modified without changes to the source code. The RDRF has 
-been developed at the `Centre for Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia 
+been developed at the `Centre for Comparative Genomics <https://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia 
 in partnership with the Office of Population Health Genomics, Department of Health 
 Western Australia.
 
@@ -53,13 +53,13 @@ If you prefer to read:
 Links
 =====
 
+`Project Site <https://muccg.github.io/rdrf/>`_
+
 `Demo Site <https://rdrf.ccgapps.com.au/demo/>`_
 
 `Source Code <https://github.com/muccg/rdrf>`_
 
-`RDRF Google Group <mailto:rdrf@ccg.murdoch.edu.au>`_
-
-`Documentation <http://rare-disease-registry-framework.readthedocs.org/en/latest/>`_
+`Contact <mailto:rdrf@ccg.murdoch.edu.au>`_
 
 
 Citations
