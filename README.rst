@@ -12,7 +12,7 @@ Contact
 
 Hosted on GitHub:
  
-https://github.com/muccg/rdrf
+https://muccg.github.io/rdrf/
 
 Demo Site:
 
@@ -24,7 +24,7 @@ rdrf@ccg.murdoch.edu.au
 
 Documentation:
 
-http://rare-disease-registry-framework.readthedocs.org/en/latest/
+https://muccg.github.io/rdrf/docs/
 
 
 Publications
