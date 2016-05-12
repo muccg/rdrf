@@ -183,3 +183,22 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     return { "link": existing_data.link,
              "name": existing_data.name,
              "questions": existing_data.questions}
+
+
+def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnaire_response_id, questionnaire_checked_ids):
+    from registry.patients.models import Patient
+    from rdrf.models import QuestionnaireResponse
+    from rdrf.questionnaires import Questionnaire
+
+    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    patient_model = Patient.objects.get(pk=patient_id)
+    registry_model = questionnaire_response_model.registry
+    questionnaire = Questionnaire(registry_model, questionnaire_response_model)
+
+    data_to_update = [question for question in questionnaire.questions if question.id in questionnaire_checked_ids]
+    result = questionnaire.update_patient(patient_model, data_to_update)
+
+    return result
+    
+
+    

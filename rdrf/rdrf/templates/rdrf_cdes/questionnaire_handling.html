@@ -4,6 +4,45 @@
 {% block extrahead %}
 <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
 <script type="text/javascript">
+  function saveButtonUsesAjax(flag) {
+      if(flag) {
+	  $("#savebutton").unbind();
+	  $("#savebutton").click(function(event) {
+	      var loadedPatientId = getLoadedPatientId();
+	      if (loadedPatientId == null) {
+		  alert("Load a patient first!");
+		  return;
+	      }
+	      var checkedQuestionIds = getCheckedQuestionIds();
+	      alert("bound ok");
+              alert("sending data to update existing patient");
+	      sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds);
+	  });
+      }
+      else {
+	  // just use normal submit
+	  $("#savebutton").unbind();
+	  $("#savebutton").click(function () {
+              alert("submitting form to create a new patient");
+	      $("#contentform").submit();});
+      }
+	  
+  }
+
+function getLoadedPatientId() {
+    return $("#patient_lookup").data;
+}
+
+function getCheckedQuestionIds() {
+    var ids = _.map($("#questions  input:checkbox:checked"),
+		    function (el){return el.id;});
+    return ids;
+}
+
+function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
+    console.log("sending checkedIds for loaded patient with id " + loadedPatientId);
+  }
+   
   function QuestionnaireHandlerGui(rpc,
   patientInfoPanelId,
   patientInfoResultPanelId, patientDataPanelId, patientDataTableId,questionnaireContainerId,questionnaireDataPanelId) {
@@ -22,15 +61,14 @@
   this.patientInfoPanel.delegate('input[type=radio]', 'click', function() {
   var action = this.value;
          if(action == "create") {
-         self.patientInfoResultPanel.hide();
-         self.patientDataPanel.hide();
-         self.questionnaireContainer
-            .removeClass('col-md-6')
-            .addClass('col-md-12');
-         self.patientInfoPanel.hide();
+	     $("#load_patient").hide();
+	     $("#patient-blurb").hide();
+	     saveButtonUsesAjax(false);
      }
   else {
-     console.log("to do update"); 
+      $("#load_patient").show();
+      $("#patient-blurb").show();
+       saveButtonUsesAjax(true);
   };});}
 
   QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
@@ -55,7 +93,7 @@
   }
 
   QuestionnaireHandlerGui.prototype.showPatientPanel = function () {
-      console.log("shjow panel");
+      console.log("show panel");
   }
 
   QuestionnaireHandlerGui.prototype.showError = function (errorMessage) {
@@ -65,6 +103,7 @@
   $(document).ready(function() {
 
       $.ajaxSetup({
+	  timeout: 30000, 
           beforeSend: function (xhr) {
               var csrfToken = '{{ csrf_token }}';
               xhr.setRequestHeader('X-CSRFToken', csrfToken);
@@ -115,7 +154,6 @@
                       if (response.status == "success") {
                           gui.clearPatientData();
                           gui.loadPatientData(response.result);
-                          gui.showPatientPanel();
                       }
                       else {
                           gui.showError(result.errorMessage);
@@ -128,6 +166,8 @@
 {% endblock %}
 
 {% block content %}
+    <form id="qrform">
+  
     {% if request.user.is_authenticated %}
         {{ block.super }}
         <div class="row">
@@ -154,20 +194,21 @@
 
              </div>
 
-             <div class="panel panel-default">
+             <div id="patient-blurb" class="panel panel-default">
                <div class="panel-heading">Patient Info</div>
 
                             <div id="patient-info-result" class="panel-body">
 			      
                             </div>
 
-		    </div>
+	       </div>
+    
 	     <div class="row">
 		  <div class="col-md-12">
 		   <div id="questionnaire_data" class="panel panel-default">
                      <div class="panel panel-heading">Questionnaire Data</div>
                      <div class="panel panel-body">
-                       <div id="patient_data">
+                       <div id="questions">
 			 <table class="table table-bordered table-striped">
                            <tbody>
                              <tr>
@@ -216,5 +257,6 @@
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>
     {% endif %}
+</form>
 {% endblock%}
 

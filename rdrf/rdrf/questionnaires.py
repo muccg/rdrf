@@ -470,21 +470,16 @@ class _ExistingDataWrapper(object):
         self.name = "%s" % self.patient_model
 
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
-        logger.debug("getting field data for %s" % field_expression)
         if field_expression in KEY_MAP.keys():
             original_expression = field_expression
-            logger.debug("%s is in KEY_MAP - using lookup" % field_expression)
             field_expression = KEY_MAP[field_expression][0] # the demographic field
-            logger.debug("%s ---> %s" % (original_expression, field_expression))
-            
+
         retrieval_function = self.gfe_parser.parse(field_expression)
         try:
             value = retrieval_function(self.patient_model, self.patient_data)
             value = self.humaniser.display_value2(form_model,section_model,cde_model, value)
 
-            logger.debug("field %s = %s" % (field_expression, value))
             if isinstance(value, datetime) or isinstance(value, date):
-                logger.debug("converting datetime")
                 value = str(value)
             return value
 
@@ -509,24 +504,19 @@ class _ExistingDataWrapper(object):
         for question in self.questionnaire.questions:
             
             if question.section_code == "PatientData":
-                logger.debug("getting PatientData for %s" % question.cde_code)
                 field_name = self._get_patient_data_field_name(
                     question.cde_code)
                 field_expression = question.cde_code
             elif question.section_code == 'PatientAddressSection':
-                logger.debug("getting PatientAddressData for %s" %
-                             question.cde_code)
                 field_name = self._get_patient_address_field_name(
                     question.cde_code)
                 field_expression = "address field expression"
             else:
-                logger.debug("getting existing answer to question %s" %
-                             question.cde_code)
                 try:
                     field_name = question.target.display_name
                     field_expression = question.target.field_expression
                 except Exception, ex:
-                    logger.debug("could not get target for %s %s: %s" % (question.section_code,
+                    logger.error("could not get target for %s %s: %s" % (question.section_code,
                                                                          question.cde_code,
                                                                          ex))
                     continue
@@ -589,8 +579,8 @@ class _Question(object):
                                    self.section_code,
                                    self.cde_code)
 
-    def __unicode__(self):
-        return "Question %s = %s" % (self.name, self.answer)
+    def __str__(self):
+        return "Q[%s] %s = %s" % (self.pos, self.name, self.answer)
 
     @property
     def is_multi(self):
@@ -637,10 +627,6 @@ class _Question(object):
         return TargetCDE(target_display_name, target_expression)
 
     def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
-        logger.debug("_get_target_display_name")
-        logger.debug("target_form_name = %s" % target_form_name)
-        logger.debug("target_section_code = %s" % target_section_code)
-        logger.debug("target_cde_code = %s" % target_cde_code)
         try: 
             target_form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                      name=target_form_name)
@@ -699,15 +685,11 @@ class Questionnaire(object):
 
     @property
     def questions(self):
-        logger.debug("getting questions")
         l = []
         n = 0
 
         for form_dict in self.data["forms"]:
-            logger.debug("getting questionnaire data form %s" %
-                         form_dict["name"])
             for section_dict in form_dict["sections"]:
-                logger.debug("section %s" % section_dict["code"])
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
                         display_value = self._get_display_value(cde_dict["code"],
@@ -719,18 +701,16 @@ class Questionnaire(object):
                                              cde_dict["code"],
                                              display_value)
 
-                        logger.debug("retrieved questionnaire question %s" % question)
                         n += 1
                         question.pos = n
                         l.append(question)
+                        logger.debug("question %s added" % question)
 
                 else:
                     cde_map = OrderedDict()
                     for section_index, section_item in enumerate(section_dict["cdes"]):
                         for cde_dict in section_item:
                             cde_code = cde_dict["code"]
-                            logger.debug("section index %s cde code %s" %
-                                         (section_index, cde_dict["code"]))
                             display_value = self._get_display_value(cde_dict["code"],
                                                                     cde_dict["value"])
 
@@ -749,12 +729,10 @@ class Questionnaire(object):
                                              cde_map[cde_code])
                         n += 1
                         question.pos  = n
-
-                        logger.debug("retrieved questionnaire question %s" % question)
                         l.append(question)
-                                
-                            
+                        logger.debug("question %s added" % question)
                   
+        logger.debug("questions total = %s" % len(l))
         return l
 
     def existing_data(self, patient_model):
@@ -762,3 +740,18 @@ class Questionnaire(object):
                                     patient_model,
                                     self,
                                     )
+
+    def update_patient(self, patient_model, selected_questions):
+        # begin transaction ... etc
+        multisection_questions = {}
+        errors = []
+        
+        for question in selected_questions:
+           if not question.is_multi:
+               field_expression = question.field_expression
+               value = question.value
+               patient_model.set_field_expression(self.registry_model, field_expression, value)
+           else:
+               pass
+        return "OK"
+               
