@@ -523,9 +523,8 @@ class _ExistingDataWrapper(object):
                 logger.debug("getting existing answer to question %s" %
                              question.cde_code)
                 try:
-                    target = question.target
-                    field_name = target.display_name
-                    field_expression = target.field_expression
+                    field_name = question.target.display_name
+                    field_expression = question.target.field_expression
                 except Exception, ex:
                     logger.debug("could not get target for %s %s: %s" % (question.section_code,
                                                                          question.cde_code,
@@ -538,7 +537,9 @@ class _ExistingDataWrapper(object):
             
 
             answer = {"name": field_name,
+                      "pos" : str(question.pos),
                       "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
+            
             logger.debug("existing data = %s" % answer)
             l.append(answer)
 
@@ -561,6 +562,7 @@ class _Question(object):
         self.questionnaire = questionnaire
         self.humaniser = Humaniser(self.registry_model)
         self.form_name = form_name
+        self.pos = 0
         try:
             self.form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                        name=form_name)
@@ -573,23 +575,35 @@ class _Question(object):
         self.cde_code = cde_code
         self.value = value  # raw value to be stored in Mongo ( or a list of values if from a multisection)
 
+        self.target = self._get_target()
+        
+
         # used on form:
         self.name = self._get_name()
         self.answer = self._get_display_value(value)  # or list of answers if cde in multisection
-        self.question_id = self._construct_id()
+        self.dest_id = "foo" 
+        self.src_id = self._construct_id()
 
     def _construct_id(self):
         return "id__%s__%s__%s" % (self.form_name,
                                    self.section_code,
                                    self.cde_code)
 
+    def __unicode__(self):
+        return "Question %s = %s" % (self.name, self.answer)
+
     @property
     def is_multi(self):
         return self.section_model.allow_multiple
 
     def _get_name(self):
-        # return a short name for the GUI
-        return self.cde_model.name
+        # return a short name for the GUI - use the target display name not the generated
+        # questionnaire name
+        try:
+            return self.target.display_name
+        except Exception, ex:
+            logger.error("error getting target: %s" % ex)
+            return "%s/%s/%s" % (self.form_name, self.section_model.display_name, self.cde_model.name)
 
     def _get_display_value(self, value):
         if not self.is_multi:
@@ -598,8 +612,7 @@ class _Question(object):
             return  ",".join([ self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
                      for single_value in value]) 
 
-    @property
-    def target(self):
+    def _get_target(self):
         """
         Return the generalised field expression that data for this field should be put into.
         This step is necessary because we decided early on to present one questionnaire form
@@ -624,14 +637,34 @@ class _Question(object):
         return TargetCDE(target_display_name, target_expression)
 
     def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
-        target_form_model = RegistryForm.objects.get(registry=self.registry_model,
+        logger.debug("_get_target_display_name")
+        logger.debug("target_form_name = %s" % target_form_name)
+        logger.debug("target_section_code = %s" % target_section_code)
+        logger.debug("target_cde_code = %s" % target_cde_code)
+        try: 
+            target_form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                      name=target_form_name)
-        target_section_model = Section.objects.get(code=target_section_code)
-        target_cde_model = CommonDataElement.objects.get(code=target_cde_code)
+        except RegistryForm.DoesNotExist:
+            target_form_model = None
 
-        return "%s/%s/%s" % (target_form_model.name,
-                             target_section_model.display_name,
-                             target_cde_model.name)
+        try:
+            target_section_model = Section.objects.get(code=target_section_code)
+        except Section.DoesNotExist:
+            target_section_model = None
+
+        try:
+            target_cde_model = CommonDataElement.objects.get(code=target_cde_code)
+        except CommonDataElement.DoesNotExist:
+            target_cde_model = None
+
+        if None in [target_form_model, target_section_model, target_cde_model]:
+            return "%s/%s/%s" % (target_form_name,
+                                 target_section_code,
+                                 target_cde_code)
+        else:
+            return "%s/%s/%s" % (target_form_model.name,
+                                 target_section_model.display_name,
+                                 target_cde_model.name)
 
 
 class Questionnaire(object):
@@ -667,7 +700,8 @@ class Questionnaire(object):
     @property
     def questions(self):
         logger.debug("getting questions")
-        questions = []
+        l = []
+        n = 0
 
         for form_dict in self.data["forms"]:
             logger.debug("getting questionnaire data form %s" %
@@ -685,15 +719,13 @@ class Questionnaire(object):
                                              cde_dict["code"],
                                              display_value)
 
-                        logger.debug("created question object ok")
-
-                        questions.append(question)
+                        logger.debug("retrieved questionnaire question %s" % question)
+                        n += 1
+                        question.pos = n
+                        l.append(question)
 
                 else:
-                    # present cde in a multisection as a comma seperated list of values
-                    
                     cde_map = OrderedDict()
-                    
                     for section_index, section_item in enumerate(section_dict["cdes"]):
                         for cde_dict in section_item:
                             cde_code = cde_dict["code"]
@@ -715,11 +747,15 @@ class Questionnaire(object):
                                              section_dict["code"],
                                              cde_dict["code"],
                                              cde_map[cde_code])
-                        questions.append(question)
+                        n += 1
+                        question.pos  = n
+
+                        logger.debug("retrieved questionnaire question %s" % question)
+                        l.append(question)
                                 
                             
                   
-        return questions
+        return l
 
     def existing_data(self, patient_model):
         return _ExistingDataWrapper(self.registry_model,
