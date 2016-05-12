@@ -164,29 +164,8 @@
                             </div>
 
 		    </div>
-
-	  
 	     <div class="row">
-	       
-		 <div id="patient-data-container" class="col-md-6">
-		   <div id="patient-data" class="panel panel-default">
-                     <div class="panel panel-heading">Patient Data</div>
-                     <div class="panel panel-body">
-                       <div id="patient_data">
-			 <table id="patient-table" class="table table-bordered table-striped">
-                           <tbody>
-                             <tr>
-                               <th>Data Element</th>
-			       <th>Existing Value</th>
-                             </tr>
-			   </tbody>
-                         </table>
-                       </div><!-- patient data -->
-                     </div><!-- panel body -->
-                   </div><!-- panel -->
-		 </div><!-- col -->
-
-		  <div class="col-md-6">
+		  <div class="col-md-12">
 		   <div id="questionnaire_data" class="panel panel-default">
                      <div class="panel panel-heading">Questionnaire Data</div>
                      <div class="panel panel-body">
@@ -195,13 +174,15 @@
                            <tbody>
                              <tr>
                                <th>Data Element</th>
-			       <th>Value</th>
+			       <th>Existing Data</th>
+			       <th>Questionnaire Value</th>
 			       <th>Use</th>
                              </tr>
 			      {% for question in questionnaire.questions %}
 			     <tr>
 			       <td>{{question.name}}</td>
-			       <td><span class="badge success">{{question.answer}}</span></td>
+			       <td><span class="label label-info">NO DATA</span></td>
+			       <td><span class="label label-success">{{question.answer}}</span></td>
 			       <td><input id="{{answer.id}}" type="checkbox" checked="checked"/></td>
 			     </tr>
 			     {% endfor %}
