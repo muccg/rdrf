@@ -71,15 +71,17 @@ DATABASES = {
     #     'HOST': "legacydb",
     #     'PORT': "5432",
     # }
-    "reporting": {
-        'ENGINE': env.get_db_engine("dbtype", "pgsql"),
-        'NAME': env.get("reportingdbname", "reporting"),
-        'USER': env.get("reportingdbuser", "reporting"),
-        'PASSWORD': env.get("reportingdbpassword", "reporting"),
-        'HOST': env.get("reportingdbserver", "reporting"),
-        'PORT': env.get("reportingdbport", "5432"),
-    }
 }
+
+# Reporing Database ( defaults to main db if not specified 
+DATABASES["reporting"] = {}
+
+DATABASES["reporting"]['ENGINE']   = env.get_db_engine("reporting_dbtype", "pgsql")
+DATABASES["reporting"]['NAME']     = env.get("reporting_dbname",   DATABASES["default"]["NAME"])
+DATABASES["reporting"]['USER']     = env.get("reporting_dbuser",   DATABASES["default"]["USER"])
+DATABASES["reporting"]['PASSWORD'] = env.get("reporting_dbpass",   DATABASES["default"]["PASSWORD"])
+DATABASES["reporting"]['HOST']     = env.get("reporting_dbserver", DATABASES["default"]["HOST"])
+DATABASES["reporting"]['PORT']     = env.get("reporting_dbport",   DATABASES["default"]["PORT"])
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
 # These settings ( and only )  are consumed by rdrf.mongo_client
@@ -158,6 +160,7 @@ INSTALLED_APPS = [
     'useraudit',
     'templatetag_handlebars',
     'iprestrict',
+    'rest_framework',
 ]
 
 
@@ -451,6 +454,18 @@ CUSTOM_PERMISSIONS = {
 }
 
 SEND_ACTIVATION_EMAIL = False
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.DjangoModelPermissions',
+    ),
+    'DEFAULT_VERSIONING_CLASS' : 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_VERSION': 'v1',
+}
 
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
 EMAIL_NOTE_NEW_PATIENT = "new-patient"

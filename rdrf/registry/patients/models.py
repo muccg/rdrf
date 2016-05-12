@@ -84,11 +84,14 @@ class NextOfKinRelationship(models.Model):
 
 class PatientManager(models.Manager):
 
-    def get_by_registry(self, registry):
-        return self.model.objects.filter(rdrf_registry__in=registry)
+    def get_by_registry(self, *registries):
+        return self.model.objects.filter(rdrf_registry__in=registries)
 
     def get_by_working_group(self, user):
         return self.model.objects.filter(working_groups__in=get_working_groups(user))
+
+    def get_by_registry_and_working_group(self, registry, user):
+        return self.model.objects.filter(rdrf_registry=registry, working_groups__in=get_working_groups(user))
 
     def get_filtered(self, user):
         return self.model.objects.filter(
@@ -134,7 +137,7 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry)
+    rdrf_registry = models.ManyToManyField(Registry, related_name='patients')
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
     consent = models.BooleanField(
@@ -397,17 +400,27 @@ class Patient(models.Model):
 
     @property
     def my_index(self):
+        logger.debug("Finding index of %s" % self)
         # This property is only applicable to FH
         if self.in_registry("fh"):
             # try to find patient relative object corresponding to this patient and
             # then locate that relative's index patient
+            logger.debug("patient is in FH so this makes sense")
             try:
                 patient_relative = PatientRelative.objects.get(relative_patient=self)
+                logger.debug("There is a PatientRelative I was created from: %s" % patient_relative)
                 if patient_relative.patient:
+                    logger.debug("This patient relative has a patient property: index = %s" % patient_relative.patient) 
                     return patient_relative.patient
+                else:
+                    logger.debug("PatientRelative %s has no patient property (is null)" % patient_relative)
+                    return None
             except PatientRelative.DoesNotExist:
-                pass
+                logger.debug("no patient relative exists for %s so my index is None" % self)
+                return None
 
+        logger.debug("%s not in FH - so my_index is None" % self)
+        
         return None
 
     def get_contexts_url(self, registry_model):
@@ -454,15 +467,30 @@ class Patient(models.Model):
             cv.save()
         return cv
 
-    def get_consent(self, consent_model):
+    def get_consent(self, consent_model, field="answer"):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
-            return False    # ?
+            if field == "answer":
+                return False    # ?
+            else:
+                logger.debug("consent model not in patient registries")
+                return None
         try:
             cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)
-            return cv.answer
+            if field == "answer":
+                return cv.answer
+            elif field == "first_save":
+                return cv.first_save
+            elif field == "last_update":
+                return cv.last_update
+            else:
+                raise ValueError("only consent_value answer, first_save, last_update fields allowed")
+                
         except ConsentValue.DoesNotExist:
-            return False    # ?
+            if field == "answer":
+                return False    # ?
+            else:
+                return None
 
     @property
     def consent_questions_data(self):
@@ -849,7 +877,13 @@ class PatientRelative(models.Model):
 @receiver(post_delete, sender=PatientRelative)
 def delete_created_patient(sender, instance, **kwargs):
     if instance.relative_patient:
-        instance.relative_patient.delete()
+        #  when doing family linkage operation of moving
+        #  a relative to an index , we were seeing this
+        #  signal archive the newly "promoted" relative's patient
+        #  so don't do this!
+        if not instance.relative_patient.is_index:
+            if not hasattr(instance, "skip_archiving"):
+                instance.relative_patient.delete()
 
 
 @receiver(post_save, sender=Patient)
@@ -904,11 +938,15 @@ class ConsentValue(models.Model):
             self.patient, self.consent_question, self.answer)
 
 
-# @receiver(post_delete, sender=PatientRelative)
-# def delete_associated_patient_if_any(sender, instance, **kwargs):
-#     logger.debug("post_delete of patient relative")
-#     logger.debug("instance = %s" % instance)
-#     logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
-#     if instance.relative_patient:
-#         logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
-#         instance.relative_patient.delete()
+@receiver(post_delete, sender=PatientRelative)
+def delete_associated_patient_if_any(sender, instance, **kwargs):
+    logger.debug("post_delete of patient relative")
+    logger.debug("instance = %s" % instance)
+    logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
+    if instance.relative_patient:
+        logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
+        if not hasattr(instance, "skip_archiving"):
+            logger.debug("no skip_archiving attribute so deleting the PatientRelative.relative_patient")
+            instance.relative_patient.delete()
+        else:
+            logger.debug("skip_archiving is set on PatientRelative so won't archive")

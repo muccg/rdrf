@@ -17,6 +17,9 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
+def fml_log(msg):
+    logger.info("***FAMILY LINKAGE: %s" % msg)
+
 
 class FamilyLinkageError(Exception):
     pass
@@ -43,7 +46,6 @@ class FamilyLinkageManager(object):
     def __init__(self,  registry_model, packet):
         self.registry_model = registry_model
         self.packet = packet
-        logger.debug("packet = %s" % self.packet)
         if not registry_model.has_feature("family_linkage"):
             raise FamilyLinkageError("need family linkages feature to use FamilyManager")
         self.index_dict = self.packet["index"]
@@ -64,10 +66,10 @@ class FamilyLinkageManager(object):
 
     def run(self):
         if self._index_changed():
-            logger.debug("index has changed")
+            fml_log("index has changed")
             self._update_index()
         else:
-            logger.debug("index unchanged")
+            fml_log("index unchanged")
             self._update_relatives()
 
     def _update_relatives(self):
@@ -90,25 +92,46 @@ class FamilyLinkageManager(object):
                 self._set_as_relative(patient)
 
     def _index_changed(self):
-        return self.original_index != int(self.index_dict["pk"])
+        if self.original_index_dict["class"] != self.index_dict["class"]:
+            # ie patient relative being dragged to become an index
+            fml_log("index class changed")
+            return True
+        else:
+            return self.original_index != int(self.index_dict["pk"])
 
     def _update_index(self):
+        fml_log("updating index")
         old_index_patient = self.index_patient
+        fml_log("old index = %s" % old_index_patient)
 
         if self.index_dict["class"] == "Patient":
+            fml_log("updating index from Patient")
             new_index_patient = Patient.objects.get(pk=self.index_dict["pk"])
+            fml_log("new_index_patient = %s" % new_index_patient)
             self._change_index(old_index_patient, new_index_patient)
 
         elif self.index_dict["class"] == "PatientRelative":
             patient_relative = PatientRelative.objects.get(pk=self.index_dict["pk"])
+            fml_log("updating index from patient_relative %s" % patient_relative)
             if patient_relative.relative_patient:
+                fml_log("patient has been created from this relative so setting index to it")
                 self._change_index(old_index_patient, patient_relative.relative_patient)
+                fml_log("deleting patient relative %s" % patient_relative)
+                # set a flag on patient_relative so the delete signal doesn't archive the patient..
+                fml_log("setting skip_archiving attribute on PatientRelative")
+                patient_relative.skip_archiving = True
                 patient_relative.delete()
+                fml_log("deleted patient relative")
             else:
                 # create a new patient from relative first
+                fml_log("setting PatientRelatibe with no patient to index - need to create patient first")
                 new_patient = patient_relative.create_patient_from_myself(self.registry_model, self.working_groups)
+                fml_log("new patient created from relative = %s" % new_patient)
                 self._change_index(old_index_patient, new_patient)
+                fml_log("changed index ok to new patient")
+                patient_relative.skip_archiving = True
                 patient_relative.delete()
+                fml_log("deleted old patient relative")
 
     def _change_index(self, old_index_patient, new_index_patient):
         self._set_as_index_patient(new_index_patient)
@@ -137,10 +160,10 @@ class FamilyLinkageManager(object):
                 new_patient_relative.save()
                 updated_rels.add(new_patient_relative.pk)
             else:
-                logger.debug("???? %s" % relative_dict)
+                fml_log("???? %s" % relative_dict)
 
         promoted_relatives = original_relatives - updated_rels
-        logger.debug("promoted rels = %s" % promoted_relatives)
+        fml_log("promoted rels = %s" % promoted_relatives)
 
     def _get_new_relationship(self, relative_pk):
         for item in self.relatives:
@@ -156,12 +179,12 @@ class FamilyLinkageManager(object):
 
     def _set_as_relative(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
-        logger.debug("set patient %s to relative" % patient)
+        fml_log("set patient %s to relative" % patient)
         self._add_undo(patient, "fh_is_relative")
 
     def _set_as_index_patient(self, patient):
         patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
-        logger.debug("set patient %s to index" % patient)
+        fml_log("set patient %s to index" % patient)
         self._add_undo(patient, "fh_is_index")
 
 
@@ -180,7 +203,7 @@ class FamilyLinkageView(View):
         context = {}
         context.update(csrf(request))
         context['registry_code'] = registry_code
-        context['index_lookup_url'] = reverse("index_lookup", args=(registry_code,))
+        context['index_lookup_url'] = reverse("v1:index-list", args=(registry_code,))
         context["initial_index"] = initial_index
 
         return render_to_response(
@@ -195,7 +218,7 @@ class FamilyLinkageView(View):
             import json
             registry_model = Registry.objects.get(code=registry_code)
             packet = json.loads(request.POST["packet_json"])
-            logger.debug("packet = %s" % packet)
+            fml_log("packet = %s" % packet)
             self._process_packet(registry_model, packet)
             #messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
             return HttpResponse("OK")
@@ -205,7 +228,7 @@ class FamilyLinkageView(View):
             return HttpResponse("FAIL: %s" % err)
 
     def _process_packet(self, registry_model,  packet):
-        logger.debug("packet = %s" % packet)
+        fml_log("packet = %s" % packet)
         flm = FamilyLinkageManager(registry_model, packet)
         try:
             with transaction.atomic():

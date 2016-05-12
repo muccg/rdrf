@@ -39,7 +39,10 @@
     
     <script type="text/javascript">
         $(document).ready(function() {
-            var state_lookup_url = "{% url 'state_lookup' 999 %}";
+            //$("#id_password1").passStrengthify();
+
+            var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
+            var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
 
             $("#form-other-clinician").hide();
             $("#underage_msg").hide();
@@ -60,7 +63,45 @@
             $("#id_date_of_birth").datepicker(dateOptions);
             $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
             
-            $.get("{% url 'clinician_lookup' %}", { 'registry_code': registry_code }, function(data) {
+            $("#parent_guardian_check1").click(function() {
+                $("#parent_guardian_form").hide();
+                $("#patient_form").show();
+                $("#parent_guardian_form_btn").hide();
+                $("#id_is_parent").val(false);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check2").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(false);
+            });
+
+            $("#parent_guardian_check3").click(function() {
+                $("#parent_guardian_form").show();
+                $("#patient_form").hide();
+                $("#parent_guardian_form_btn").show();
+                $("#login_details").show();
+                $("#id_is_parent").val(true);
+                $("#id_self_patient").val(true);
+            });
+            
+            $("#parent_guardian_check1").trigger("click");
+
+            $("#patient_form_btn").click(function() {
+                $("#patient_form").show();
+                $("#parent_guardian_form").hide();
+            });
+            
+            $("#parent_guardian_form_btn").click(function() {
+                $("#patient_form").hide();
+                $("#parent_guardian_form").show();
+            });
+            
+            $.get("{% url 'v1:clinician-list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
@@ -85,9 +126,10 @@
             });
             
             $("#id_country").change(function() {
-                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_state");
-                    states.empty();
+                var states = $("#id_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
+                $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
@@ -95,9 +137,10 @@
             });
             
             $("#id_parent_guardian_country").change(function() {
-                $.getJSON( state_lookup_url.replace(999, this.value), function( data ) {
-                    var states = $("#id_parent_guardian_state");
-                    states.empty();
+                var states = $("#id_parent_guardian_state");
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("Parent/Guardian State / County / Province / Region"));
+                $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });

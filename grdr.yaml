@@ -1,0 +1,1001 @@
+EXPORT_TIME: '2016-03-04 10:20:51.182575'
+EXPORT_TYPE: REGISTRY_PLUS_CDES
+RDRF_VERSION: 1.1.5
+REGISTRY_VERSION: '1.02'
+adjudication_definitions: []
+cde_policies: []
+cdes:
+- {allow_multiple: false, calculation: '', code: GRDR034oz, datatype: float, desc: '',
+  instructions: oz, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent weight (oz)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR032, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'Was the participant born at or close to his/her due date?', pattern: '',
+  pv_group: GRDRyesnoukrefused, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDRNameRegistrar, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Name of person entering data in the registry, pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR035, datatype: range, desc: '',
+  instructions: years, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How old was the participant when this weight was measured (years)?', pattern: '',
+  pv_group: GRDRYears, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR053, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'For adult female participants, what is the number of live births?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR052, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'For adult female participants, what is the total number of pregnancies, including
+    living children, deceased children, and abortions (spontaneous and therapeutic)?',
+  pattern: '', pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR051, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'If the participant lives in a group house, how many people live in the group
+    house including participant?', pattern: '', pv_group: GRDR051, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR050, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: The name of the country from which a person or their biological family had
+    previous residence or past ancestors, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: CountryWidget}
+- {allow_multiple: false, calculation: '', code: GRDR057, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How much did pain interfere with the participant''s enjoyment of life?',
+  pattern: '', pv_group: GRDR057, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR031oz, datatype: float, desc: '',
+  instructions: oz, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How much did the participant weigh when he/she was born (oz)?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR055, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'In general, would the participant say his/her health is…', pattern: '', pv_group: GRDR055,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR054, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the number of living children of the participant?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientEmail, datatype: email,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: Email, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR059, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: The participant feels depressed…, pattern: '', pv_group: GRDRfatiguedepression,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR058, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How often does the participant feel tired?', pattern: '', pv_group: GRDRfatiguedepression,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientGivenNames, datatype: string,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: Given Names, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: AddressType, datatype: range, desc: home
+    or postal, instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Address type, pattern: '', pv_group: AddressType, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: true, calculation: '', code: GRDR019, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What type of health insurance does the participant currently have? (Select
+    all that apply.)', pattern: '', pv_group: GRDR019, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR036ft, datatype: float, desc: '',
+  instructions: ft, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent height (ft)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR015, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Is the participant of Hispanic, Latino or Spanish origin?', pattern: '',
+  pv_group: GRDRethnicity, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR014, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s race?', pattern: '', pv_group: GRDRrace, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR056, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'Does the participant''s health now limit him/her in doing vigorous activities?',
+  pattern: '', pv_group: GRDR056, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR012, datatype: integer, desc: '',
+  instructions: YYYY (not applicable if the patient is not deceased), is_required: false,
+  max_length: null, max_value: null, min_value: null, name: 'What was the year the
+    participant died, as shown on their death certificate?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR011, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Has the participant died?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR031lb, datatype: float, desc: '',
+  instructions: lb, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How much did the participant weigh when he/she was born (lb)?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR031uk, datatype: boolean, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: Don't know birth weight, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientHomePhone, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Home Phone, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinState, datatype: range,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian State, pattern: '', pv_group: State, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR040, datatype: range, desc: '',
+  instructions: 'Each registry pre-defines a set of diagnosis responses (Permissible
+    Values) that are presented in the survey. ', is_required: false, max_length: null,
+  max_value: null, min_value: null, name: 'Has the participant had any of the following
+    surgeries to treat his/her rare disease?', pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR041, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'In the past 12 months, how many times has the participant been admitted to
+    a hospital due to their condition?', pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR042, datatype: string, desc: '',
+  instructions: 'Each registry pre-defines a set of responses (Permissible Values)
+    that are presented in the survey. ', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: 'Does the participant use any type of medical or assistive
+    device to help them move around, communicate, or do things?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR043, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Has the participant previously participated in any clinical trials related
+    to their rare disease?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR044, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Does the participant currently participate in any clinical trials related
+    to their rare disease?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR045, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Is the participant willing to be contacted in the future about research related
+    to their rare disease?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR046, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Is the participant willing to be contacted about donating a sample of blood,
+    tissue, or other biospecimen for research in the future?', pattern: '', pv_group: GRDRyesnoukrefused,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR047, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Has the participant donated a sample of blood, tissue, or other biospecimen
+    for research in the past?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR048, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'If a biospecimen was donated in the past, what type was it?', pattern: '',
+  pv_group: GRDR048, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDRContact, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'How does the participant prefer to be contacted?', pattern: '', pv_group: GRDRContactMethod,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientSex, datatype: range, desc: sex,
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: Sex, pattern: '', pv_group: MeteorSexes, questionnaire_text: 'What is your
+    sex?', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR008, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Did the participant provide the information for this registry update?', pattern: '',
+  pv_group: GRDRyesnoukrefused, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR009, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'What is the relationship of the person answering questions for the participant?',
+  pattern: '', pv_group: GRDR009, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR034kg, datatype: float, desc: '',
+  instructions: kg, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent weight (kg)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinSuburb, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Suburb, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDRRegistrar, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Is data entered by anyone other than the participant?', pattern: '', pv_group: GRDRyesno,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientDateOfBirth, datatype: date,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: Date of Birth, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: DateWidget}
+- {allow_multiple: false, calculation: '', code: postcode, datatype: string, desc: Postcode,
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: Postcode, pattern: '', pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinGivenNames, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Given Names, pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientMobilePhone, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Mobile Phone, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: SuburbTown, datatype: string, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: Suburb/Town, pattern: '', pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: State, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: State, pattern: '', pv_group: State, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR036in, datatype: float, desc: '',
+  instructions: in, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent height (in)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR034g, datatype: float, desc: '',
+  instructions: g, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent weight (g)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR036m, datatype: float, desc: '',
+  instructions: m, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent height (m)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDRCommunication, datatype: range,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: 'How does the participant prefer to communicate?', pattern: '',
+  pv_group: GRDRCommunication, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR039, datatype: range, desc: '',
+  instructions: Each registry defines a set of responses  (Permissible Values) that
+    are presented in the survey., is_required: false, max_length: null, max_value: null,
+  min_value: null, name: 'Does the participant take any medical foods or follow a
+    special diet for treatment of his/her rare disease?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR038, datatype: range, desc: '',
+  instructions: Each registry defines a set of responses (Permissible Values) that
+    are presented in the survey., is_required: false, max_length: null, max_value: null,
+  min_value: null, name: 'What are the medications that this participant is currently
+    taking?', pattern: '', pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR031g, datatype: float, desc: '',
+  instructions: g, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How much did the participant weigh when he/she was born (g)?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR031kg, datatype: float, desc: '',
+  instructions: kg, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How much did the participant weigh when he/she was born (kg)?', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR033, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How many weeks away from his/her due date was the participant born?', pattern: '',
+  pv_group: GRDR033, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR035b, datatype: range, desc: '',
+  instructions: months, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How old was the participant when this weight was measured (months)?', pattern: '',
+  pv_group: GRDRMonths, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientCentre, datatype: string,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: Centre, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: 'DataSourceSelect:PatientCentres'}
+- {allow_multiple: false, calculation: '', code: GRDR037, datatype: range, desc: '',
+  instructions: years, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How old was the participant when this height was measured (years)?', pattern: '',
+  pv_group: GRDRYears, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR051b, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: If other - enter number, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: Address, datatype: string, desc: Address,
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: Address, pattern: '', pv_group: null, questionnaire_text: '', widget_name: Textarea}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinEmail, datatype: email,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Email, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientNOKRelationship, datatype: range,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Relationship, pattern: '', pv_group: NextOfKinRelationship,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: Country, datatype: range, desc: Country,
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: Country, pattern: '', pv_group: Country, questionnaire_text: '', widget_name: CountryWidget}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinAddress, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Address, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: TextArea}
+- {allow_multiple: false, calculation: '', code: CDEPatientFamilyName, datatype: string,
+  desc: '', instructions: '', is_required: true, max_length: null, max_value: null,
+  min_value: null, name: Family Name, pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR027, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'What was the participant''s age in years when the formal diagnosis was made?',
+  pattern: '', pv_group: GRDR027, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR024, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the annual gross income for the household in which the participant
+    lives (in U.S. dollars)?', pattern: '', pv_group: GRDR024, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR025, datatype: integer, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How many people (including the participant) currently live in the participant’s
+    house, apartment, or mobile home?', pattern: '', pv_group: null, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR022, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the highest level of education the participant''s mother finished?',
+  pattern: '', pv_group: GRDR021, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR023, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the highest level of education the participant’s father finished?',
+  pattern: '', pv_group: GRDR021, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR020, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'If the participant is less than 18 years old, what is the highest grade the
+    participant has started?', pattern: '', pv_group: GRDR020, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR021, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'If the participant is 18 years or older, what is the highest grade or level
+    of school the participant has completed or the highest degree the participant
+    has received?', pattern: '', pv_group: GRDR021, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR060, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'Has the participant ever been admitted to the hospital due to this rare disease
+    or condition?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR061, datatype: string, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the name of the hospital/clinic where the biospecimen was donated?',
+  pattern: '', pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR034lb, datatype: float, desc: '',
+  instructions: lb, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent weight (lb)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR028, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'What was the participant''s age in years when they first began experiencing
+    symptoms of the rare disease?', pattern: '', pv_group: GRDR028, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR029, datatype: string, desc: '',
+  instructions: Each registry defines a set of responses (Permissible Values) that
+    are presented in the survey., is_required: true, max_length: null, max_value: null,
+  min_value: null, name: 'What test(s) did physicians or other health professionals
+    do to make the rare disease diagnosis? (Select all that apply)', pattern: '',
+  pv_group: null, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR026, datatype: string, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s rare disease diagnosis?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR037b, datatype: range, desc: '',
+  instructions: months, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'How old was the participant when this height was measured (months)?', pattern: '',
+  pv_group: GRDRMonths, questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR018, datatype: range, desc: '',
+  instructions: '', is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'Is the participant covered by any kind of health insurance or some other
+    kind of health care plan?', pattern: '', pv_group: GRDRyesnoukrefused, questionnaire_text: '',
+  widget_name: ''}
+- {allow_multiple: false, calculation: '', code: CDEPatientNextOfKinFamilyName, datatype: string,
+  desc: '', instructions: '', is_required: false, max_length: null, max_value: null,
+  min_value: null, name: Parent/Guardian Family Name, pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR036cm, datatype: float, desc: '',
+  instructions: cm, is_required: false, max_length: null, max_value: null, min_value: null,
+  name: 'What is the participant’s most recent height (cm)?', pattern: '', pv_group: null,
+  questionnaire_text: '', widget_name: ''}
+- {allow_multiple: false, calculation: '', code: GRDR030, datatype: range, desc: '',
+  instructions: '', is_required: true, max_length: null, max_value: null, min_value: null,
+  name: 'Which family members also are known to have the participant’s rare disease?',
+  pattern: '', pv_group: GRDR030, questionnaire_text: '', widget_name: ''}
+code: GRDR
+complete_fields: []
+consent_sections:
+- applicability_condition: ''
+  code: GRDRassent
+  information_link: ''
+  information_text: If the participant is less than 18 years, or if the participant
+    is not competent to provide consent, was assent given by participant to enter
+    participant's data?
+  questions:
+  - {code: GRDRassentyes, instructions: '', position: 1, question_label: 'Yes', questionnaire_label: ''}
+  - {code: GRDRassentno, instructions: '', position: 2, question_label: 'No', questionnaire_label: ''}
+  - {code: GRDRassentconsent, instructions: '', position: 3, question_label: Participant
+      gives own consent, questionnaire_label: ''}
+  - {code: GRDRassentunable, instructions: '', position: 4, question_label: Participant
+      is unable to assent, questionnaire_label: ''}
+  section_label: Assent
+  validation_rule: GRDRassentyes or GRDRassentno or GRDRassentconsent or GRDRassentunable
+- applicability_condition: patient.age >= 18
+  code: GRDRadultconsent
+  information_link: ''
+  information_text: If the participant is 18 years or older, was consent given to
+    enter participant's data?
+  questions:
+  - {code: GRDRconsentyes, instructions: '', position: 1, question_label: 'Yes', questionnaire_label: ''}
+  - {code: GRDRconsentno, instructions: '', position: 2, question_label: 'No', questionnaire_label: ''}
+  section_label: Consent
+  validation_rule: GRDRconsentyes or GRDRconsentno
+demographic_fields:
+- {field: living_status, group: Working Group Curators, hidden: true, readonly: null,
+  registry: GRDR}
+- {field: ethnic_origin, group: Working Group Curators, hidden: true, readonly: null,
+  registry: GRDR}
+- {field: clinician, group: Working Group Curators, hidden: true, readonly: null,
+  registry: GRDR}
+desc: The GRDR Registry Model Common Data Elements (CDEs)
+forms:
+- header: ''
+  is_questionnaire: false
+  name: ModelCommonDataElements
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: GRDRCurrentContactInformation
+    display_name: Current Contact Information
+    elements: [GRDRRegistrar, GRDRNameRegistrar, GRDR008, GRDR009]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRsociodemographic
+    display_name: Sociodemographic Information
+    elements: [GRDR011, GRDR012, GRDR014, GRDR015, GRDR050, GRDR018, GRDR019, GRDR020,
+      GRDR021, GRDR022, GRDR023, GRDR024, GRDR025, GRDR051, GRDR051b]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRdiagnosis
+    display_name: Diagnosis
+    elements: [GRDR026, GRDR027, GRDR028, GRDR029]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRfamilyhistory
+    display_name: Family History
+    elements: [GRDR030, GRDR031g, GRDR031kg, GRDR031oz, GRDR031lb, GRDR031uk, GRDR032,
+      GRDR033, GRDR052, GRDR053, GRDR054]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRDanthropometric
+    display_name: Anthropometric (body measurement) information
+    elements: [GRDR034g, GRDR034kg, GRDR034oz, GRDR034lb, GRDR035, GRDR035b, GRDR036cm,
+      GRDR036m, GRDR036in, GRDR036ft, GRDR037, GRDR037b]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRpatientreportedoutcomes
+    display_name: Patient Reported Outcomes
+    elements: [GRDR055, GRDR056, GRDR057, GRDR058, GRDR059]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRmedications
+    display_name: Medications, Devices and Health Services
+    elements: [GRDR038, GRDR039, GRDR040, GRDR060, GRDR041, GRDR042]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRClinResearchPartBiospecimens
+    display_name: Clinical Research Participation & Biospecimens
+    elements: [GRDR043, GRDR044, GRDR045, GRDR046, GRDR047, GRDR048, GRDR061]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: GRDRContactCommunication
+    display_name: Contact and Communication Preferences
+    elements: [GRDRCommunication, GRDRContact]
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+forms_allowed_groups:
+  ModelCommonDataElements: []
+generic_sections:
+- allow_multiple: false
+  code: PatientData
+  display_name: Personal Information
+  elements: [CDEPatientCentre, CDEPatientFamilyName, CDEPatientGivenNames, CDEPatientDateOfBirth,
+    CDEPatientSex, CDEPatientHomePhone, CDEPatientMobilePhone, CDEPatientEmail, CDEPatientNextOfKinFamilyName,
+    CDEPatientNextOfKinGivenNames, CDEPatientNOKRelationship, CDEPatientNextOfKinEmail,
+    CDEPatientNextOfKinAddress, CDEPatientNextOfKinSuburb, CDEPatientNextOfKinState]
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+- allow_multiple: true
+  code: PatientDataAddressSection
+  display_name: Addresses
+  elements: [AddressType, Address, Country, State, SuburbTown, postcode]
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+metadata_json: ''
+name: GRDR
+patient_data_section: {}
+pvgs:
+- code: GRDRyesno
+  values:
+  - {code: '1', desc: 'Yes', position: 1, questionnaire_value: '', value: 'Yes'}
+  - {code: '2', desc: 'No', position: 2, questionnaire_value: '', value: 'No'}
+- code: GRDRethnicity
+  values:
+  - {code: '1', desc: Hispanic or Latino, position: 1, questionnaire_value: '', value: Hispanic
+      or Latino}
+  - {code: '2', desc: Central American, position: 2, questionnaire_value: '', value: Central
+      American}
+  - {code: '3', desc: ' Cuban', position: 3, questionnaire_value: '', value: ' Cuban'}
+  - {code: '4', desc: Dominican (Republic), position: 4, questionnaire_value: '',
+    value: Dominican (Republic)}
+  - {code: '5', desc: Mexican, position: 5, questionnaire_value: '', value: Mexican}
+  - {code: '6', desc: Puerto Rican, position: 6, questionnaire_value: '', value: Puerto
+      Rican}
+  - {code: '7', desc: South American, position: 7, questionnaire_value: '', value: South
+      American}
+  - {code: '8', desc: Other Latin American, position: 8, questionnaire_value: '',
+    value: Other Latin American}
+  - {code: '9', desc: Other Hispanic/Latino/Spanish, position: 9, questionnaire_value: '',
+    value: Other Hispanic/Latino/Spanish}
+  - {code: '10', desc: Non-Hispanic or Latino, position: 10, questionnaire_value: '',
+    value: Non-Hispanic or Latino}
+  - {code: '11', desc: Ashkenazi Jewish, position: 11, questionnaire_value: '', value: Ashkenazi
+      Jewish}
+  - {code: '12', desc: Unknown/No answer, position: 12, questionnaire_value: '', value: Unknown/No
+      answer}
+- code: GRDR051
+  values:
+  - {code: '0', desc: Participant does not live in a group house, position: 1, questionnaire_value: '',
+    value: Participant does not live in a group house}
+  - {code: '2', desc: '2', position: 2, questionnaire_value: '', value: '2'}
+  - {code: '3', desc: '3', position: 3, questionnaire_value: '', value: '3'}
+  - {code: '4', desc: '4', position: 4, questionnaire_value: '', value: '4'}
+  - {code: '5', desc: '5', position: 5, questionnaire_value: '', value: '5'}
+  - {code: '6', desc: '6', position: 6, questionnaire_value: '', value: '6'}
+  - {code: '7', desc: '7', position: 7, questionnaire_value: '', value: '7'}
+  - {code: '8', desc: '8', position: 8, questionnaire_value: '', value: '8'}
+  - {code: '9', desc: '9', position: 9, questionnaire_value: '', value: '9'}
+  - {code: '10', desc: '10', position: 10, questionnaire_value: '', value: '10'}
+  - {code: '11', desc: '11', position: 11, questionnaire_value: '', value: '11'}
+  - {code: '12', desc: '12', position: 12, questionnaire_value: '', value: '12'}
+  - {code: '13', desc: '13', position: 13, questionnaire_value: '', value: '13'}
+  - {code: '14', desc: '14', position: 14, questionnaire_value: '', value: '14'}
+  - {code: '15', desc: '15', position: 15, questionnaire_value: '', value: '15'}
+  - {code: '16', desc: '16', position: 16, questionnaire_value: '', value: '16'}
+  - {code: '17', desc: '17', position: 17, questionnaire_value: '', value: '17'}
+  - {code: '18', desc: '18', position: 18, questionnaire_value: '', value: '18'}
+  - {code: '19', desc: '19', position: 19, questionnaire_value: '', value: '19'}
+  - {code: '20', desc: '20', position: 20, questionnaire_value: '', value: '20'}
+  - {code: GRDR051Other, desc: Other - enter number, position: 21, questionnaire_value: '',
+    value: Other - enter number}
+- code: GRDR057
+  values:
+  - {code: '1', desc: Not at all, position: 1, questionnaire_value: '', value: Not
+      at all}
+  - {code: '2', desc: A little bit, position: 2, questionnaire_value: '', value: A
+      little bit}
+  - {code: '3', desc: Somewhat, position: 3, questionnaire_value: '', value: Somewhat}
+  - {code: '4', desc: 'Quite a bit ', position: 4, questionnaire_value: '', value: 'Quite
+      a bit '}
+  - {code: '5', desc: Very much, position: 5, questionnaire_value: '', value: Very
+      much}
+- code: GRDR056
+  values:
+  - {code: '1', desc: Not at all, position: 1, questionnaire_value: '', value: Not
+      at all}
+  - {code: '2', desc: Very little, position: 2, questionnaire_value: '', value: Very
+      little}
+  - {code: '3', desc: Somewhat, position: 3, questionnaire_value: '', value: Somewhat}
+  - {code: '4', desc: ' Quite a lot', position: 4, questionnaire_value: '', value: ' Quite
+      a lot'}
+  - {code: '5', desc: Cannot do, position: 5, questionnaire_value: '', value: Cannot
+      do}
+- code: GRDR055
+  values:
+  - {code: '1', desc: Excellent, position: 1, questionnaire_value: '', value: Excellent}
+  - {code: '2', desc: Very good, position: 2, questionnaire_value: '', value: Very
+      good}
+  - {code: '3', desc: Good, position: 3, questionnaire_value: '', value: Good}
+  - {code: '4', desc: Fair, position: 4, questionnaire_value: '', value: Fair}
+  - {code: '5', desc: Poor, position: 5, questionnaire_value: '', value: Poor}
+- code: NextOfKinRelationship
+  values:
+  - {code: Other, desc: Other, position: 3, questionnaire_value: Other, value: Other}
+  - {code: Mother, desc: Mother, position: 2, questionnaire_value: Mother, value: Mother}
+  - {code: Father, desc: Father, position: 1, questionnaire_value: Father, value: Father}
+- code: GRDRMonths
+  values:
+  - {code: '1', desc: < 3 months, position: 1, questionnaire_value: '', value: < 3
+      months}
+  - {code: '2', desc: '> 3 to ≤ 6 months', position: 2, questionnaire_value: '', value: '>
+      3 to ≤ 6 months'}
+  - {code: '3', desc: '> 6 to ≤ 9 months', position: 3, questionnaire_value: '', value: '>
+      6 to ≤ 9 months'}
+  - {code: '4', desc: '> 9 to ≤ 12 months', position: 4, questionnaire_value: '',
+    value: '> 9 to ≤ 12 months'}
+  - {code: '5', desc: '> 0 to ≤ 3 months', position: 5, questionnaire_value: '', value: '>
+      0 to ≤ 3 months'}
+  - {code: '6', desc: '> 0 to ≤ 6 months', position: 6, questionnaire_value: '', value: '>
+      0 to ≤ 6 months'}
+- code: AddressType
+  values:
+  - {code: AddressTypePostal, desc: Postal, position: 2, questionnaire_value: Postal,
+    value: Postal}
+  - {code: AddressTypeHome, desc: Home, position: 1, questionnaire_value: Home, value: Home}
+- code: GRDR019
+  values:
+  - {code: '1', desc: Private health insurance, position: 1, questionnaire_value: '',
+    value: Private health insurance}
+  - {code: '2', desc: Medicare, position: 2, questionnaire_value: '', value: Medicare}
+  - {code: '3', desc: Medi-gap, position: 3, questionnaire_value: '', value: Medi-gap}
+  - {code: '4', desc: Medicaid, position: 4, questionnaire_value: '', value: Medicaid}
+  - {code: '5', desc: ' SCHIP (Children’s Health Insurance Program)', position: 5,
+    questionnaire_value: '', value: ' SCHIP (Children’s Health Insurance Program)'}
+  - {code: '6', desc: ' Military health care (Tricare/VA, Champ-VA) ', position: 6,
+    questionnaire_value: '', value: ' Military health care (Tricare/VA, Champ-VA) '}
+  - {code: '7', desc: Indian health service, position: 7, questionnaire_value: '',
+    value: Indian health service}
+  - {code: '8', desc: State-sponsored health plan, position: 8, questionnaire_value: '',
+    value: State-sponsored health plan}
+  - {code: '9', desc: Other government program, position: 9, questionnaire_value: '',
+    value: Other government program}
+  - {code: '10', desc: 'Single service plan (e.g. dental, vision, prescription)',
+    position: 10, questionnaire_value: '', value: 'Single service plan (e.g. dental,
+      vision, prescription)'}
+  - {code: '11', desc: No coverage, position: 11, questionnaire_value: '', value: No
+      coverage}
+  - {code: '13', desc: Don’t know, position: 13, questionnaire_value: '', value: Don’t
+      know}
+- code: GRDR030
+  values:
+  - {code: '0', desc: None, position: 1, questionnaire_value: '', value: None}
+  - {code: '1', desc: Daughter, position: 2, questionnaire_value: '', value: Daughter}
+  - {code: '2', desc: Granddaughter, position: 3, questionnaire_value: '', value: Granddaughter}
+  - {code: '3', desc: Granddaughter, position: 4, questionnaire_value: '', value: Grandson}
+  - {code: '4', desc: Half-brother, position: 5, questionnaire_value: '', value: Half-brother}
+  - {code: '5', desc: Half-sister, position: 6, questionnaire_value: '', value: Half-sister}
+  - {code: '6', desc: Maternal Aunt, position: 7, questionnaire_value: '', value: Maternal
+      Aunt}
+  - {code: '7', desc: Maternal Cousin, position: 8, questionnaire_value: '', value: Maternal
+      Cousin}
+  - {code: '8', desc: Maternal Grandfather, position: 9, questionnaire_value: '',
+    value: Maternal Grandfather}
+  - {code: '9', desc: Maternal Grandmother, position: 10, questionnaire_value: '',
+    value: Maternal Grandmother}
+  - {code: '10', desc: Maternal Grandmother, position: 11, questionnaire_value: '',
+    value: Maternal Uncle}
+  - {code: '11', desc: Maternal Uncle, position: 12, questionnaire_value: '', value: Brother}
+  - {code: '12', desc: Father, position: 13, questionnaire_value: '', value: Father}
+  - {code: '13', desc: Mother, position: 14, questionnaire_value: '', value: Mother}
+  - {code: '14', desc: Mother, position: 15, questionnaire_value: '', value: Sister}
+  - {code: '15', desc: Sister, position: 16, questionnaire_value: '', value: Nephew}
+  - {code: '16', desc: Nephew, position: 17, questionnaire_value: '', value: Niece}
+  - {code: '17', desc: Paternal Aunt, position: 18, questionnaire_value: '', value: Paternal
+      Aunt}
+  - {code: '18', desc: Paternal Aunt, position: 19, questionnaire_value: '', value: Paternal
+      Cousin}
+  - {code: '19', desc: Paternal Grandfather, position: 20, questionnaire_value: '',
+    value: Paternal Grandfather}
+  - {code: '20', desc: Paternal Grandmother, position: 21, questionnaire_value: '',
+    value: Paternal Grandmother}
+  - {code: '21', desc: Paternal Grandmother, position: 22, questionnaire_value: '',
+    value: Paternal Uncle}
+  - {code: '22', desc: Son, position: 23, questionnaire_value: '', value: Son}
+- code: GRDR033
+  values:
+  - {code: '-2', desc: 2 weeks late, position: 1, questionnaire_value: '', value: 2
+      weeks late}
+  - {code: '-1', desc: 1 week late, position: 2, questionnaire_value: '', value: 1
+      week late}
+  - {code: '0', desc: On time, position: 3, questionnaire_value: '', value: On time}
+  - {code: '1', desc: 1 week premature, position: 4, questionnaire_value: '', value: 1
+      week premature}
+  - {code: '2', desc: 2 weeks premature, position: 5, questionnaire_value: '', value: 2
+      weeks premature}
+  - {code: '3', desc: 3 weeks premature, position: 6, questionnaire_value: '', value: 3
+      weeks premature}
+  - {code: '4', desc: 4 weeks premature, position: 7, questionnaire_value: '', value: 4
+      weeks premature}
+  - {code: '5', desc: 5 weeks premature, position: 8, questionnaire_value: '', value: 5
+      weeks premature}
+  - {code: '6', desc: 6 weeks premature, position: 9, questionnaire_value: '', value: 6
+      weeks premature}
+  - {code: '7', desc: 7 weeks premature, position: 10, questionnaire_value: '', value: 7
+      weeks premature}
+  - {code: '8', desc: 8 weeks premature, position: 11, questionnaire_value: '', value: 8
+      weeks premature}
+  - {code: '9', desc: 9 weeks premature, position: 12, questionnaire_value: '', value: 9
+      weeks premature}
+  - {code: '10', desc: 10 weeks premature, position: 13, questionnaire_value: '',
+    value: 10 weeks premature}
+  - {code: '11', desc: 11 weeks premature, position: 14, questionnaire_value: '',
+    value: 11 weeks premature}
+  - {code: '12', desc: 12 weeks premature, position: 15, questionnaire_value: '',
+    value: 12 weeks premature}
+  - {code: '13', desc: 13 weeks premature, position: 16, questionnaire_value: '',
+    value: 13 weeks premature}
+  - {code: '14', desc: 14 weeks premature, position: 17, questionnaire_value: '',
+    value: 14 weeks premature}
+  - {code: '15', desc: 15 weeks premature, position: 18, questionnaire_value: '',
+    value: 15 weeks premature}
+  - {code: '16', desc: 16 weeks premature, position: 19, questionnaire_value: '',
+    value: 16 weeks premature}
+  - {code: '17', desc: 17 weeks premature, position: 20, questionnaire_value: '',
+    value: 17 weeks premature}
+  - {code: '18', desc: 18 weeks premature, position: 21, questionnaire_value: '',
+    value: 18 weeks premature}
+  - {code: '19', desc: 19 weeks premature, position: 22, questionnaire_value: '',
+    value: 19 weeks premature}
+  - {code: '20', desc: 20 weeks premature, position: 23, questionnaire_value: '',
+    value: 20 weeks premature}
+- code: GRDRCommunication
+  values:
+  - {code: '1', desc: Sign language, position: 1, questionnaire_value: '', value: Sign
+      language}
+  - {code: '2', desc: Spoken language, position: 2, questionnaire_value: '', value: Spoken
+      language}
+  - {code: '3', desc: Written language, position: 3, questionnaire_value: '', value: Written
+      language}
+- code: GRDRyesnoukrefused
+  values:
+  - {code: '1', desc: 'Yes', position: 1, questionnaire_value: '', value: 'Yes'}
+  - {code: '2', desc: 'No', position: 2, questionnaire_value: '', value: 'No'}
+  - {code: '3', desc: Refused, position: 3, questionnaire_value: '', value: Refused}
+  - {code: '4', desc: Don't know, position: 4, questionnaire_value: '', value: Don't
+      know}
+- code: GRDRfatiguedepression
+  values:
+  - {code: '1', desc: Never, position: 1, questionnaire_value: '', value: Never}
+  - {code: '2', desc: Rarely, position: 2, questionnaire_value: '', value: Rarely}
+  - {code: '3', desc: Sometimes, position: 3, questionnaire_value: '', value: Sometimes}
+  - {code: '4', desc: Often, position: 4, questionnaire_value: '', value: Often}
+  - {code: '5', desc: Always, position: 5, questionnaire_value: '', value: Always}
+- code: Country
+  values:
+  - {code: NZ, desc: New Zealand, position: 2, questionnaire_value: New Zealand, value: New
+      Zealand}
+  - {code: AU, desc: Australia, position: 1, questionnaire_value: Australia, value: Australia}
+- code: GRDRContactMethod
+  values:
+  - {code: '2', desc: Mail, position: 2, questionnaire_value: '', value: Mail}
+  - {code: '1', desc: Email, position: 1, questionnaire_value: '', value: Email}
+  - {code: '3', desc: Phone, position: 3, questionnaire_value: '', value: Phone}
+- code: GRDRrace
+  values:
+  - {code: '1', desc: American Indian or Alaska Native, position: 1, questionnaire_value: '',
+    value: American Indian or Alaska Native}
+  - {code: '2', desc: Asian, position: 2, questionnaire_value: '', value: Asian}
+  - {code: '3', desc: Asian Indian, position: 3, questionnaire_value: '', value: Asian
+      Indian}
+  - {code: '4', desc: Chinese, position: 4, questionnaire_value: '', value: Chinese}
+  - {code: '5', desc: Filipino, position: 5, questionnaire_value: '', value: Filipino}
+  - {code: '6', desc: Japanese, position: 6, questionnaire_value: '', value: Japanese}
+  - {code: '7', desc: Korea, position: 7, questionnaire_value: '', value: Korea}
+  - {code: '8', desc: Vietnamese, position: 8, questionnaire_value: '', value: Vietnamese}
+  - {code: '9', desc: Other Asian, position: 9, questionnaire_value: '', value: Other
+      Asian}
+  - {code: '10', desc: Black or African American, position: 10, questionnaire_value: '',
+    value: Black or African American}
+  - {code: '11', desc: Native Hawaiian or Other Pacific Islander, position: 11, questionnaire_value: '',
+    value: Native Hawaiian or Other Pacific Islander}
+  - {code: '12', desc: Native Hawaiian, position: 12, questionnaire_value: '', value: Native
+      Hawaiian}
+  - {code: '13', desc: Guamanian, position: 13, questionnaire_value: '', value: Guamanian}
+  - {code: '14', desc: Chamorro, position: 14, questionnaire_value: '', value: Chamorro}
+  - {code: '15', desc: ' Samoan', position: 15, questionnaire_value: '', value: ' Samoan'}
+  - {code: '16', desc: Other Pacific Islander, position: 16, questionnaire_value: '',
+    value: Other Pacific Islander}
+  - {code: '17', desc: White, position: 17, questionnaire_value: '', value: White}
+  - {code: '18', desc: Other/Unknown/Refuse to Answer, position: 18, questionnaire_value: '',
+    value: Other/Unknown/Refuse to Answer}
+- code: GRDR020
+  values:
+  - {code: '18', desc: Don’t Know, position: 18, questionnaire_value: '', value: Don’t
+      Know}
+  - {code: '12', desc: 9th Grade, position: 12, questionnaire_value: '', value: 9th
+      Grade}
+  - {code: '1', desc: No schooling, position: 1, questionnaire_value: '', value: No
+      schooling}
+  - {code: '2', desc: Preschool or nursery school, position: 2, questionnaire_value: '',
+    value: Preschool or nursery school}
+  - {code: '3', desc: Kindergarten, position: 3, questionnaire_value: '', value: Kindergarten}
+  - {code: '4', desc: 1st Grade, position: 4, questionnaire_value: '', value: 1st
+      Grade}
+  - {code: '5', desc: 2nd Grade, position: 5, questionnaire_value: '', value: 2nd
+      Grade}
+  - {code: '6', desc: 3rd Grade, position: 6, questionnaire_value: '', value: 3rd
+      Grade}
+  - {code: '7', desc: 4th Grade, position: 7, questionnaire_value: '', value: 4th
+      Grade}
+  - {code: '8', desc: 5th Grade, position: 8, questionnaire_value: '', value: 5th
+      Grade}
+  - {code: '9', desc: 6th Grade, position: 9, questionnaire_value: '', value: 6th
+      Grade}
+  - {code: '10', desc: 7th Grade, position: 10, questionnaire_value: '', value: 7th
+      Grade}
+  - {code: '11', desc: 8th Grade, position: 11, questionnaire_value: '', value: 8th
+      Grade}
+  - {code: '13', desc: 10th Grade, position: 13, questionnaire_value: '', value: 10th
+      Grade}
+  - {code: '14', desc: 11th Grade, position: 14, questionnaire_value: '', value: 11th
+      Grade}
+  - {code: '15', desc: 12th Grade, position: 15, questionnaire_value: '', value: 12th
+      Grade}
+  - {code: '16', desc: GED, position: 16, questionnaire_value: '', value: GED}
+  - {code: '17', desc: College, position: 17, questionnaire_value: '', value: College}
+- code: GRDR021
+  values:
+  - {code: '1', desc: Eighth grade or less, position: 1, questionnaire_value: '',
+    value: Eighth grade or less}
+  - {code: '2', desc: 'More than eighth grade, but did not graduate from high school',
+    position: 2, questionnaire_value: '', value: 'More than eighth grade, but did
+      not graduate from high school'}
+  - {code: '3', desc: 'Went to a business, trade, or vocational school instead of
+      high school', position: 3, questionnaire_value: '', value: 'Went to a business,
+      trade, or vocational school instead of high school'}
+  - {code: '4', desc: High school graduate, position: 4, questionnaire_value: '',
+    value: High school graduate}
+  - {code: '5', desc: Completed a GED, position: 5, questionnaire_value: '', value: Completed
+      a GED}
+  - {code: '6', desc: 'Went to a business, trade, or vocational school after high
+      school', position: 6, questionnaire_value: '', value: 'Went to a business, trade,
+      or vocational school after high school'}
+  - {code: '7', desc: 'Went to college, but did not graduate', position: 7, questionnaire_value: '',
+    value: 'Went to college, but did not graduate'}
+  - {code: '8', desc: Graduated from a college or university, position: 8, questionnaire_value: '',
+    value: Graduated from a college or university}
+  - {code: '9', desc: Professional training beyond a four-year college or university,
+    position: 9, questionnaire_value: '', value: Professional training beyond a four-year
+      college or university}
+  - {code: '10', desc: He/she never went to school, position: 10, questionnaire_value: '',
+    value: He/she never went to school}
+  - {code: '11', desc: 'He/she went to school, but respondent doesn’t know what level',
+    position: 11, questionnaire_value: '', value: 'He/she went to school, but respondent
+      doesn’t know what level'}
+  - {code: '12', desc: Respondent doesn’t know if he/she went to school, position: 12,
+    questionnaire_value: '', value: Respondent doesn’t know if he/she went to school}
+  - {code: '13', desc: Refused, position: 13, questionnaire_value: '', value: Refused}
+  - {code: '15', desc: Don’t know, position: 15, questionnaire_value: '', value: Don’t
+      know}
+- code: GRDR048
+  values:
+  - {code: '1', desc: Blood, position: 1, questionnaire_value: '', value: Blood}
+  - {code: '2', desc: Saliva/Cheek Swab, position: 2, questionnaire_value: '', value: Saliva/Cheek
+      Swab}
+  - {code: '3', desc: Urine, position: 3, questionnaire_value: '', value: Urine}
+  - {code: '4', desc: Other bodily fluid, position: 4, questionnaire_value: '', value: Other
+      bodily fluid}
+  - {code: '5', desc: Other bodily fluid, position: 5, questionnaire_value: '', value: Tissue}
+  - {code: '6', desc: N/A - No biospecimen donation, position: 6, questionnaire_value: '',
+    value: N/A - No biospecimen donation}
+- code: GRDR028
+  values:
+  - {code: '-2', desc: Prenatal, position: 1, questionnaire_value: '', value: Prenatal}
+  - {code: '-1', desc: At birth, position: 2, questionnaire_value: '', value: At birth}
+  - {code: '0', desc: Less than 1 year, position: 3, questionnaire_value: '', value: Less
+      than 1 year}
+  - {code: '1', desc: 89 age in years, position: 4, questionnaire_value: '', value: 89
+      age in years}
+  - {code: '90', desc: 90+ years, position: 5, questionnaire_value: '', value: 90+
+      years}
+  - {code: '-4', desc: Participant never experienced any symptoms, position: 6, questionnaire_value: '',
+    value: Participant never experienced any symptoms}
+  - {code: '-3', desc: Age of onset unknown, position: 7, questionnaire_value: '',
+    value: Age of onset unknown}
+- code: GRDR009
+  values:
+  - {code: '1', desc: Self, position: 1, questionnaire_value: '', value: Self}
+  - {code: '2', desc: 'Parent (biologic, adoptive, or step)', position: 2, questionnaire_value: '',
+    value: 'Parent (biologic, adoptive, or step)'}
+  - {code: '3', desc: Grandparent, position: 3, questionnaire_value: '', value: Grandparent}
+  - {code: '4', desc: Spouse, position: 4, questionnaire_value: '', value: Spouse}
+  - {code: '5', desc: Aunt/Uncle, position: 5, questionnaire_value: '', value: Aunt/Uncle}
+  - {code: '6', desc: Brother/Sister, position: 6, questionnaire_value: '', value: Brother/Sister}
+  - {code: '7', desc: Other relative, position: 7, questionnaire_value: '', value: Other
+      relative}
+  - {code: '8', desc: ' Legal guardian', position: 8, questionnaire_value: '', value: ' Legal
+      guardian'}
+  - {code: '9', desc: Foster parent, position: 9, questionnaire_value: '', value: Foster
+      parent}
+  - {code: '10', desc: Medical caregiver, position: 10, questionnaire_value: '', value: Medical
+      caregiver}
+  - {code: '11', desc: Other non-relative, position: 11, questionnaire_value: '',
+    value: Other non-relative}
+  - {code: '12', desc: ' Refused', position: 12, questionnaire_value: '', value: ' Refused'}
+  - {code: '13', desc: Don't know, position: 13, questionnaire_value: '', value: Don't
+      know}
+- code: State
+  values:
+  - {code: ACT, desc: Australian Capital Territory, position: null, questionnaire_value: null,
+    value: Australian Capital Territory}
+  - {code: WA, desc: Western Australia, position: null, questionnaire_value: null,
+    value: Western Australia}
+  - {code: QLD, desc: Queensland, position: null, questionnaire_value: null, value: Queensland}
+  - {code: VIC, desc: Victoria, position: null, questionnaire_value: null, value: Victoria}
+  - {code: SA, desc: South Australia, position: null, questionnaire_value: null, value: South
+      Australia}
+  - {code: TAS, desc: Tasmania, position: null, questionnaire_value: null, value: Tasmania}
+  - {code: NSW, desc: New South Wales, position: null, questionnaire_value: null,
+    value: New South Wales}
+  - {code: NT, desc: Northern Territory, position: null, questionnaire_value: null,
+    value: Northern Territory}
+- code: GRDR027
+  values:
+  - {code: '-2', desc: Prenatal, position: 1, questionnaire_value: '', value: Prenatal}
+  - {code: '-1', desc: At birth, position: 2, questionnaire_value: '', value: At birth}
+  - {code: '0', desc: Less than 1 year, position: 3, questionnaire_value: '', value: Less
+      than 1 year}
+  - {code: '1', desc: 89 age in years, position: 4, questionnaire_value: '', value: 89
+      age in years}
+  - {code: '90', desc: 90+ years, position: 5, questionnaire_value: '', value: 90+
+      years}
+  - {code: '-3', desc: Age of diagnosis unknown, position: 6, questionnaire_value: '',
+    value: Age of diagnosis unknown}
+- code: MeteorSexes
+  values:
+  - {code: '2', desc: Female, position: 2, questionnaire_value: Female, value: Female}
+  - {code: '1', desc: Male, position: 1, questionnaire_value: Male, value: Male}
+  - {code: '3', desc: Indeterminate, position: 3, questionnaire_value: Indeterminate,
+    value: Indeterminate}
+- code: GRDRYears
+  values:
+  - {code: '2', desc: '2', position: 3, questionnaire_value: '', value: '2'}
+  - {code: '3', desc: '3', position: 4, questionnaire_value: '', value: '3'}
+  - {code: '4', desc: '4', position: 5, questionnaire_value: '', value: '4'}
+  - {code: '5', desc: '5', position: 6, questionnaire_value: '', value: '5'}
+  - {code: '6', desc: '6', position: 7, questionnaire_value: '', value: '6'}
+  - {code: '7', desc: '7', position: 8, questionnaire_value: '', value: '7'}
+  - {code: '8', desc: '8', position: 9, questionnaire_value: '', value: '8'}
+  - {code: '9', desc: '9', position: 10, questionnaire_value: '', value: '9'}
+  - {code: '1', desc: '1', position: 2, questionnaire_value: '', value: '1'}
+  - {code: '0', desc: '0', position: 1, questionnaire_value: '', value: '0'}
+  - {code: '10', desc: '10', position: 11, questionnaire_value: '', value: '10'}
+  - {code: '11', desc: '11', position: 12, questionnaire_value: '', value: '11'}
+  - {code: '12', desc: '12', position: 13, questionnaire_value: '', value: '12'}
+  - {code: '13', desc: '13', position: 14, questionnaire_value: '', value: '13'}
+  - {code: '14', desc: '14', position: 15, questionnaire_value: '', value: '14'}
+  - {code: '15', desc: '15', position: 16, questionnaire_value: '', value: '15'}
+  - {code: '16', desc: '16', position: 17, questionnaire_value: '', value: '16'}
+  - {code: '17', desc: '17', position: 18, questionnaire_value: '', value: '17'}
+  - {code: '18', desc: '18', position: 19, questionnaire_value: '', value: '18'}
+  - {code: '19', desc: '19', position: 20, questionnaire_value: '', value: '19'}
+  - {code: '20', desc: '>20', position: 21, questionnaire_value: '', value: '>20'}
+- code: GRDR024
+  values:
+  - {code: '1', desc: Less than $10000 (USD), position: 1, questionnaire_value: '',
+    value: Less than $10000 (USD)}
+  - {code: '2', desc: $10000 - $14999, position: 2, questionnaire_value: '', value: $10000
+      - $14999}
+  - {code: '3', desc: $15000 - $19999, position: 3, questionnaire_value: '', value: $15000
+      - $19999}
+  - {code: '4', desc: ' $20000 - $24999', position: 4, questionnaire_value: '', value: ' $20000
+      - $24999'}
+  - {code: '5', desc: ' $25000 - $29999', position: 5, questionnaire_value: '', value: ' $25000
+      - $29999'}
+  - {code: '6', desc: $30000 - $34999, position: 6, questionnaire_value: '', value: $30000
+      - $34999}
+  - {code: '7', desc: $35000 - $39999, position: 7, questionnaire_value: '', value: $35000
+      - $39999}
+  - {code: '8', desc: $40000 - $44999, position: 8, questionnaire_value: '', value: $40000
+      - $44999}
+  - {code: '9', desc: $45000 - $49999, position: 9, questionnaire_value: '', value: $45000
+      - $49999}
+  - {code: '10', desc: ' $50000 - $54999', position: 10, questionnaire_value: '',
+    value: ' $50000 - $54999'}
+  - {code: '11', desc: $55000 - $59999, position: 11, questionnaire_value: '', value: $55000
+      - $59999}
+  - {code: '12', desc: ' $60000 - $74999', position: 12, questionnaire_value: '',
+    value: ' $60000 - $74999'}
+  - {code: '13', desc: ' $75000 - $84999', position: 13, questionnaire_value: '',
+    value: ' $75000 - $84999'}
+  - {code: '14', desc: ' $85000 - $99999', position: 14, questionnaire_value: '',
+    value: ' $85000 - $99999'}
+  - {code: '15', desc: ' $100000 - $149999', position: 15, questionnaire_value: '',
+    value: ' $100000 - $149999'}
+  - {code: '16', desc: $150000 - $199999, position: 16, questionnaire_value: '', value: $150000
+      - $199999}
+  - {code: '17', desc: $200000 - $249999, position: 17, questionnaire_value: '', value: $200000
+      - $249999}
+  - {code: '18', desc: $250000 and above, position: 18, questionnaire_value: '', value: $250000
+      and above}
+  - {code: '19', desc: Unknown, position: 19, questionnaire_value: '', value: Unknown}
+  - {code: '20', desc: Decline to provide, position: 20, questionnaire_value: '',
+    value: Decline to provide}
+reports: []
+splash_screen: "<h2> The GRDR® Registry Model Common Data Elements (CDEs) </h2>\r\n\
+  \r\n<b> The NIH/NCATS GRDR® Program Common Data Elements V2.1, obtained from https://ncats.nih.gov/grdr/cdes\
+  \ </b>"
+working_groups: [Western Australia]

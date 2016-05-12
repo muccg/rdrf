@@ -31,7 +31,12 @@
                     <tr>
                         <td>{{report.registry.name}}</td>
                         <td>{{report.title}}</td>
-                        <td><a href="{% url 'explorer_query_download' report.id %}" target="_blank"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+                        <td><a href="{% url 'explorer_query_download' report.id 'download' %}" target="_blank"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+			{% if  report.mongo_search_type != "M" %}
+                            <td><a href="{% url 'explorer_query_download' report.id 'view' %}" target="_blank"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+			{% else %}
+                            <td><span class="glyphicon glyphicon glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+			{% endif %}
                     </tr>
                 {% endfor %}
             </tbody>

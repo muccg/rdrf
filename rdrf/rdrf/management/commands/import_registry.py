@@ -34,5 +34,5 @@ class Command(BaseCommand):
             else:
                 raise NotImplemented("%s not supported yet" % import_format)
 
-            with transaction.commit_on_success():
+            with transaction.atomic():
                 importer.create_registry()

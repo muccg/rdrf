@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 
 import logging
 import re
+import functools
 
 logger = logging.getLogger("registry_log")
 
@@ -198,6 +199,11 @@ def cached(func):
     return wrapped
 
 
+@cached
+def get_cached_instance(klass, *args, **kwargs):
+    return klass.objects.get(*args, **kwargs)
+
+
 def is_multisection(code):
     try:
         from rdrf.models import Section
@@ -326,3 +332,57 @@ def get_error_messages(forms):
                         messages.append(display(form, field, error))
     results = map(strip_tags, messages)
     return results
+
+
+def timed(func):
+    from logging import getLogger
+    from datetime import datetime
+    logger = logging.getLogger("registry_log")
+    def wrapper(*args, **kwargs):
+        a = datetime.now()
+        result = func(*args, **kwargs)
+        b = datetime.now()
+        c = b - a
+        func_name = func.__name__
+        logger.debug("%s time = %s secs" % (func_name, c))
+        return result
+    return wrapper
+
+def get_cde_value(form_model, section_model, cde_model, patient_record):
+    # should refactor code everywhere to use this func 
+    if patient_record is None:
+        return None
+    for form_dict in patient_record["forms"]:
+        if form_dict["name"] == form_model.name:
+            for section_dict in form_dict["sections"]:
+                if section_dict["code"] == section_model.code:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == cde_model.code:
+                                return cde_dict["value"]
+                    else:
+                        values = []
+                        items = section_dict["cdes"]
+                        for item in items:
+                            for cde_dict in item:
+                                if cde_dict['code'] == cde_model.code:
+                                    values.append(cde_dict["value"])
+                        return values
+
+
+
+def report_function(func):
+    """
+    decorator to mark a function as available in the reporting interface
+    ( for safety and also to allow us later to discover these functions and
+      present in a menu )
+    """
+    func.report_function = True
+    return func
+
+
+
+
+    
+        
+        

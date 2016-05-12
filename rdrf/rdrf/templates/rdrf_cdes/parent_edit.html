@@ -22,7 +22,7 @@
                 });
             });
             
-            $.get("{% url 'clinician_lookup' %}", { 'registry_code': "{{registry_code}}" }, function(data) {
+            $.get("{% url 'v1:clinician_list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
@@ -35,9 +35,9 @@
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
             state_select.find('option').remove();
-            $.get( "{% url 'state_lookup' 999 %}".replace(999, obj.value), function( data ) {
+            $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
-                    $.each(JSON.parse(data), function(i, item) {
+                    $.each(data, function(i, item) {
                         state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
                     })
                 }
@@ -76,14 +76,14 @@
                         <input type="checkbox" name="self_patient_flag" id="self_patient_flag">
                     </div>
                 </div>
-    
-                <div class="form-group">
-                    <label for="clinitian" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
-                    <div class="col-md-6">
-                        <select class="form-control" id="id_clinician" name="clinician" required>
-                            <option value="-1">Choose your preferred Clinician</option>
-                        </select>
-                    </div>
+            </div>
+
+            <div class="form-group">
+                <label for="clinician" class="col-md-3 col-md-offset-1 control-label">Clinician</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="id_clinician" name="clinician" required>
+                        <option value="-1">Choose your preferred Clinician</option>
+                    </select>
                 </div>
             {% endif %}
         {% endif %}

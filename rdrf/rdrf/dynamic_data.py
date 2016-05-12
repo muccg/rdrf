@@ -196,6 +196,13 @@ class MultisectionGridFSFileHandler(object):
     # public
 
     def update_multisection_file_cdes(self):
+
+        if self.index_map is None:
+            # FH-28: Family Linkage ops cause the value of index or relative on a clinical form to be
+            # changed - this change saves dynamic data without initialising index_map which causes
+            # a runtime error, hence the bailout here
+            return
+
         logger.debug("****************** START UPDATE MULTISECTION FILE CDES ****************************")
         logger.debug("updating any gridfs files in multisection %s" % self.multisection_code)
 
@@ -222,7 +229,7 @@ class MultisectionGridFSFileHandler(object):
                     if is_uploaded_file(value):
                         uploaded_files_to_add_to_gridfs.append((item_index, key, value))
                     elif value is None:
-                        logger.debug("%s value is None - file unchanged")
+                        logger.debug("value is None - file unchanged")
                         unchanged_files.append((item_index, key))
                     elif value is False:
                         # indicates use wants to clear the file?
@@ -573,7 +580,6 @@ class DynamicDataWrapper(object):
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
         if nested_data is None:
-            logger.debug("loading dynamic data - nested data is None so returning None")
             return None
 
         if flattened:

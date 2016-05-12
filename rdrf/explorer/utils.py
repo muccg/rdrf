@@ -6,11 +6,14 @@ from pymongo.errors import ConnectionFailure
 
 from django.db import ProgrammingError
 from django.db import connection
+from collections import OrderedDict
 
 from models import Query
 
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
+from rdrf.utils import forms_and_sections_containing_cde, get_cached_instance
+from rdrf.utils import timed
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from models import Query
@@ -29,10 +32,14 @@ class DatabaseUtils(object):
     result = None
 
     def __init__(self, form_object=None, verify=False):
+        self.error_messages = []
+        self.warning_messages = []
+
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
             self.query = form_object['sql_query'].value()
             self.registry_id = self.form_object['registry'].value()
+            self.registry_model = Registry.objects.get(pk=self.registry_id)
             if not verify:
                 self.collection = self.form_object['collection'].value()
                 self.criteria = self._string_to_json(self.form_object['criteria'].value())
@@ -43,6 +50,7 @@ class DatabaseUtils(object):
             self.form_object = form_object
             self.query = form_object.sql_query
             self.registry_id = self.form_object.registry.id
+            self.registry_model = Registry.objects.get(pk=self.registry_id)
             if not verify:
                 self.collection = self.form_object.collection
                 self.criteria = self._string_to_json(self.form_object.criteria)
@@ -58,6 +66,7 @@ class DatabaseUtils(object):
         except ConnectionFailure as e:
             return False, e
 
+
     def run_sql(self):
         try:
             cursor = self.create_cursor()
@@ -67,22 +76,84 @@ class DatabaseUtils(object):
 
         return self
 
+    def validate_mixed_query(self):
+        # not really parsing - 
+        errors = []
+        if hasattr(self,"query") and self.query.mongo_search_type == "M":
+            import json
+            from rdrf.utils import evaluate_generalised_field_expression
+            try:
+                data = json.loads(self.query.sql_query)
+                static_sheets = data["static_sheets"]
+                for sheet in static_sheets:
+                    sheet_name = sheet["name"]
+                    columns = sheet["columns"]
+                    for column in columns:
+                        if not isinstance(column, basestring):
+                            errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
+                            
+            except ValueError, ve:
+                errors.append("JSON malformed: %s" % ve.message)
+            except KeyError, ke:
+                errors.append("key error: %s" % ke.message)
+
+            if len(errors) > 0:
+                self.result = {'error_msg': error.message}
+                return self
+            else:
+                # client assumed a dict made from cursor - not sure what to put here
+                self.result = {}
+                return self
+        else:
+            return self
+
+    @timed
     def dump_results_into_reportingdb(self, reporting_table_generator):
         logger.debug("*********** running query and dumping to temporary table *******")
         reporting_table_generator.drop_table()
         logger.debug("dropped temporary table")
-        self.cursor = self.create_cursor()
-        sql_metadata = self._get_sql_metadata(self.cursor)
-        logger.debug("sql metadata = %s" % sql_metadata)
-        mongo_metadata = self._get_mongo_metadata()
-        logger.debug("mongo metadata = %s" % mongo_metadata)
-        reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
-        reporting_table_generator.create_schema()
-        reporting_table_generator.run_explorer_query(self)
 
-    def generate_results(self, reverse_column_map):
+        try:
+            self.cursor = self.create_cursor()
+        except Exception, ex:
+            logger.error("Report Error: create cursor: %s" % ex)
+            raise
+
+        try:
+            sql_metadata = self._get_sql_metadata(self.cursor)
+        except Exception, ex:
+            logger.error("Report Error: getting sql metadata: %s" % ex)
+            raise
+
+        try:
+            mongo_metadata = self._get_mongo_metadata()
+        except Exception, ex:
+            logger.error("Report Error: getting mongo metadata: %s" % ex)
+            raise
+
+        try:
+            reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
+        except Exception, ex:
+            logger.error("Report Error: creating columns: %s" % ex)
+            raise
+
+        try:
+            reporting_table_generator.create_schema()
+        except Exception, ex:
+            logger.error("Report Error: creating schema: %s" % ex)
+            raise
+
+        try:
+            return reporting_table_generator.run_explorer_query(self)
+        except Exception, ex:
+            logger.error("Error running explorer query: %s" % ex)
+            raise
+
+    @timed
+    def generate_results(self, reverse_column_map, col_map, max_items):
         logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
+        self.col_map = col_map
         self.mongo_client = self._get_mongo_client()
         logger.debug("created mongo client")
         self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
@@ -97,15 +168,12 @@ class DatabaseUtils(object):
             logger.debug("CURRENT MONGO REPORT")
             # current data - no longitudinal snapshots
             for row in self.cursor:
-                logger.debug("sql row = %s" % str(row))
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    logger.debug("item %s = %s" % (i, item))
                     sql_column_name = self.reverse_map[i]
-                    logger.debug("sql_column_name = %s" % sql_column_name)
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     mongo_columns_dict["snapshot"] = False
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
@@ -113,48 +181,26 @@ class DatabaseUtils(object):
             # include longitudinal ( snapshot) data
             logger.debug("LONGITUDINAL MONGO REPORT")
             for row in self.cursor:
-                logger.debug("sql row = %s" % str(row))
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    logger.debug("item %s = %s" % (i, item))
                     sql_column_name = self.reverse_map[i]
-                    logger.debug("sql_column_name = %s" % sql_column_name)
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     mongo_columns_dict["snapshot"] = False
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
 
-                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection):
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection, max_items):
                     mongo_columns_dict["snapshot"] = True
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
-        logger.debug("combining results of mongo and sql")
-
-        logger.debug("sql_result_dict = %s" % str(sql_result_dict))
-        logger.debug("mongo result = %s" % str(mongo_result_dict))
-
         combined_dict = {}
         combined_dict.update(sql_result_dict)
         combined_dict.update(mongo_result_dict)
-
-        # potentially unwind all multisection cdes here ...
-        if False:
-            # TO DO!
-            # row contains multisection values for one or more fields
-            for unwound_dict in self._unwind(combined_dict):
-                yield unwound_dict
-        else:
-            # row contains no multisection cdes
-            yield combined_dict
-
-    def _unwind(self, combined_dict):
-        # vector product of multisection cdes
-        # to do
-        yield "todo"
+        yield combined_dict
 
     def _get_sql_type_info(self):
         #reporting=# select oid, typname,typcategory from pg_type;;
@@ -188,6 +234,7 @@ class DatabaseUtils(object):
             type_dict[oid] = type_name
         return type_dict
 
+    @timed
     def _get_sql_metadata(self, cursor):
         import sqlalchemy as alc
         # type_code is looked up in the oid map
@@ -210,109 +257,113 @@ class DatabaseUtils(object):
 
         return [get_info(item) for item in cursor.description]
 
+    @timed
     def create_cursor(self):
         logger.debug("creating cursor from sql query: %s" % self.query)
         cursor = connection.cursor()
         cursor.execute(self.query)
         return cursor
 
+    @timed
     def _get_mongo_metadata(self):
-        import json
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-        from rdrf.utils import forms_and_sections_containing_cde
+        #TODO not sure why this called multisection_column_map as it contains any selected mongo fields
+        data = {"multisection_column_map": OrderedDict()}
 
-        def short_column_name(form_model, section_model, cde_code):
-            return form_model.name[:5] + "_" + section_model.code + "_" + cde_model.code
+        if not self.projection:
+            return data
 
-        registry_model = Registry.objects.get(pk=self.registry_id)
-        data = {"multisection_column_map": {}}
+        logger.debug("number of projections = %s" % len(self.projection))
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
+            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=self.registry_model)
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
-            forms_sections = forms_and_sections_containing_cde(registry_model, cde_model)
-            if len(forms_sections) == 1:
-                using_form = forms_sections[0][0]
-                using_section = forms_sections[0][1]
-                if using_form.name == form_model.name and using_section.code == section_model.code:
-                    # we can safely just use the cde code as the column name
-                    data["multisection_column_map"][(form_model, section_model, cde_model)] = cde_model.code
-                else:
-                    # error?
-                    raise Exception("mongo projection cde not in registry")
-            else:
-                # another form or section on the same form is using this cde too
-                # use an abbreviation
-                data["multisection_column_map"][(form_model, section_model, cde_model)] = short_column_name(form_model,
-                                                                                               section_model,
-                                                                                               cde_model)
+            column_name = self._get_database_column_name(form_model, section_model, cde_model)
+            data["multisection_column_map"][(form_model, section_model, cde_model)] = column_name
         return data
 
+    def _get_database_column_name(self, form_model, section_model, cde_model):
+        return "column_%s_%s_%s" % (form_model.pk,
+                                    section_model.pk,
+                                    cde_model.pk)
+
     def _get_mongo_fields(self):
+        logger.debug("getting mongo fields from projection")
         for cde_dict in self.projection:
-            logger.debug("cde_dict = %s" % cde_dict)
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"])
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+            form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
+            section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
+            cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
 
             yield form_model, section_model, cde_model
 
-    def run_mongo_one_row(self, sql_column_data, mongo_collection):
-        logger.debug("getting mongo data for one patient")
+
+    def run_mongo_one_row(self, sql_column_data, mongo_collection, max_items):
         django_model = "Patient"
         django_id = sql_column_data["id"]  # convention?
-        logger.debug("django_id =%s" % django_id)
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
-        logger.debug("mongo_query = %s" % mongo_query)
-
         for mongo_document in mongo_collection.find(mongo_query):
-            result = {}
-            result["context_id"] = mongo_document.get("context_id", None)
-            result['timestamp'] = mongo_document.get("timestamp", None)
-            logger.debug("context_id = %s" % result["context_id"])
-            for form_model, section_model, cde_model in self.mongo_models:
-                column_name = self.reverse_map[(form_model, section_model, cde_model)]
-                column_value = self._get_cde_value(form_model,
-                                                         section_model,
-                                                         cde_model,
-                                                         mongo_document)
+            yield self._get_result_map(mongo_document, max_items=max_items)
 
-                result[column_name] = column_value
-                logger.debug("django id %s mongo column %s = %s" % (django_id, column_name, column_value))
-            yield result
+    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
+        result = {}
+        if is_snapshot:
+            # snapshots copy entire patient record into record field
+            record = mongo_document["record"]
+        else:
+            record = mongo_document
+        result["context_id"] = record.get("context_id", None)
 
-    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection):
+        # timestamp from top level in for current and snapshot
+        result['timestamp'] = mongo_document.get("timestamp", None)
+
+        for key, column_name in self.col_map.items():
+            if isinstance(key, tuple):
+                if len(key) == 4:
+                    # NB section index is 1 based in report
+                    form_model, section_model, cde_model, section_index = key
+                else:
+                    raise Exception("report key error: %s" % key)
+                    
+            else:
+                continue
+                
+            if section_model.allow_multiple:
+                values = self._get_cde_value(form_model,
+                                             section_model,
+                                             cde_model,
+
+                                             record)
+                
+                if len(values) > max_items:
+                    self.warning_messages.append("%s %s has more than %s items in the section" % (form_model.name,
+                                                                                                  section_model.display_name,
+                                                                                                  max_items))
+                    
+                try:
+                    result[column_name] = values[section_index - 1]
+                except IndexError:
+                    result[column_name] = None
+
+            else:
+                value = self._get_cde_value(form_model,
+                                             section_model,
+                                             cde_model,
+                                             record)
+                result[column_name] = value
+        return result
+
+        
+
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection, max_items):
         django_id = sql_column_data["id"]
-
         mongo_query = {"django_id": django_id,
                        "django_model": "Patient",
                        "record_type": "snapshot"}
 
-        logger.debug("mongo models = %s" % [f.name + "_" + s.code + "_" + c.code
-                                            for f, s, c in self.mongo_models])
-
         for snapshot_document in history_collection.find(mongo_query):
-            result = {}
-            result["timestamp"] = snapshot_document["timestamp"]
-            result["context_id"] = snapshot_document["record"].get("context_id", None)
-            for form_model, section_model, cde_model in self.mongo_models:
-                column_name = self.reverse_map[(form_model, section_model, cde_model)]
-                logger.debug("checking snapshot for %s" % column_name)
-                column_value = self._get_cde_value(form_model,
-                                                   section_model,
-                                                   cde_model,
-                                                   snapshot_document["record"])
-                result[column_name] = column_value
-
-                logger.debug("snapshot %s django id %s mongo column %s = %s" % (result['timestamp'],
-                                                                                django_id,
-                                                                                column_name,
-                                                                                column_value))
-
-            yield result
+            yield self._get_result_map(snapshot_document, is_snapshot=True, max_items=max_items)
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
@@ -326,12 +377,14 @@ class DatabaseUtils(object):
                                 for cde_dict in section_item:
                                     if cde_dict["code"] == cde_model.code:
                                         values.append(self._get_sensible_value_from_cde(cde_model, cde_dict["value"]))
+
                             return values
                         else:
                             logger.debug("section_dict = %s" % section_dict)
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_model.code:
-                                    return self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+                                    value = self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+                                    return value
 
         if section_model.allow_multiple:
             # no data filled in?
@@ -342,8 +395,13 @@ class DatabaseUtils(object):
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         if cde_model.datatype == "file":
             return "FILE"  # to do
+        elif cde_model.datatype == "calculated":
+            if stored_value == "NaN":
+                return ""
+            else:
+                return stored_value
         else:
-            return stored_value
+            return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
         client = self._get_mongo_client()
