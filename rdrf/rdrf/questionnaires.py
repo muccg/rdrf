@@ -2,6 +2,7 @@ from rdrf.models import RegistryForm, Section, CommonDataElement
 from rdrf.utils import de_camelcase
 from explorer.views import Humaniser
 from django.core.urlresolvers import reverse
+from collections import OrderedDict
 from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 from django.core.exceptions import ValidationError
 from registry.patients.models import Patient
@@ -540,6 +541,7 @@ class _ExistingDataWrapper(object):
                       "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
             logger.debug("existing data = %s" % answer)
             l.append(answer)
+
         return l
 
     def _get_patient_data_field_name(self, cde_code):
@@ -554,7 +556,7 @@ class _Question(object):
     Read only view of entered questionnaire data
     """
 
-    def __init__(self, registry_model, questionnaire, form_name, section_code, section_index, cde_code, value):
+    def __init__(self, registry_model, questionnaire, form_name, section_code, cde_code, value):
         self.registry_model = registry_model
         self.questionnaire = questionnaire
         self.humaniser = Humaniser(self.registry_model)
@@ -568,13 +570,12 @@ class _Question(object):
         self.section_model = Section.objects.get(code=section_code)
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
         self.section_code = section_code
-        self.index = section_index
         self.cde_code = cde_code
-        self.value = value  # raw value to be stored in Mongo
+        self.value = value  # raw value to be stored in Mongo ( or a list of values if from a multisection)
 
         # used on form:
         self.name = self._get_name()
-        self.answer = self._get_display_value(value)
+        self.answer = self._get_display_value(value)  # or list of answers if cde in multisection
         self.question_id = self._construct_id()
 
     def _construct_id(self):
@@ -582,12 +583,20 @@ class _Question(object):
                                    self.section_code,
                                    self.cde_code)
 
+    @property
+    def is_multi(self):
+        return self.section_model.allow_multiple
+
     def _get_name(self):
         # return a short name for the GUI
         return self.cde_model.name
 
     def _get_display_value(self, value):
-        return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
+        if not self.is_multi:
+            return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
+        else:
+            return  ",".join([ self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
+                     for single_value in value]) 
 
     @property
     def target(self):
@@ -673,7 +682,6 @@ class Questionnaire(object):
                                              self,
                                              form_dict["name"],
                                              section_dict["code"],
-                                             0,
                                              cde_dict["code"],
                                              display_value)
 
@@ -682,21 +690,35 @@ class Questionnaire(object):
                         questions.append(question)
 
                 else:
+                    # present cde in a multisection as a comma seperated list of values
+                    
+                    cde_map = OrderedDict()
+                    
                     for section_index, section_item in enumerate(section_dict["cdes"]):
                         for cde_dict in section_item:
+                            cde_code = cde_dict["code"]
                             logger.debug("section index %s cde code %s" %
                                          (section_index, cde_dict["code"]))
                             display_value = self._get_display_value(cde_dict["code"],
                                                                     cde_dict["value"])
-                            question = _Question(self.registry_model,
-                                                 self,
-                                                 form_dict["name"],
-                                                 section_dict["code"],
-                                                 section_index,
-                                                 cde_dict["code"],
-                                                 display_value)
-                            logger.debug("added multisection question OK")
-                            questions.append(question)
+
+                            if cde_code in cde_map:
+                                cde_map[cde_code].append(display_value)
+                            else:
+                                cde_map[cde_code] = [display_value]
+
+                    # now create questions for each cde in the multisection
+                    for cde_code in cde_map:
+                        question = _Question(self.registry_model,
+                                             self,
+                                             form_dict["name"],
+                                             section_dict["code"],
+                                             cde_dict["code"],
+                                             cde_map[cde_code])
+                        questions.append(question)
+                                
+                            
+                  
         return questions
 
     def existing_data(self, patient_model):
