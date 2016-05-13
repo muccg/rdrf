@@ -21,7 +21,7 @@ from models import CdePolicy
 from models import EmailNotification
 from models import EmailTemplate
 from models import EmailNotificationHistory
-from models import FileUplodItem
+from models import CDEFile
 
 import logging
 from django.http import HttpResponse
@@ -380,10 +380,10 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
     list_display = ("registry", "cde", "groups", "condition")
-    
+
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
-    
+
     groups.short_description = "Allowed Groups"
 
 class EmailNotificationAdmin(admin.ModelAdmin):
@@ -398,13 +398,13 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
     list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
-    
+
     def registry(self, obj):
         return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
-    
+
     def full_language(self, obj):
         return dict(settings.LANGUAGES)[obj.language]
-        
+
     full_language.short_description = "Language"
 
     def resend(self, obj):
@@ -471,9 +471,8 @@ if has_feature('adjudication'):
     admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
 
 
-class FileUplodItemAdmin(admin.ModelAdmin):
-    model = FileUplodItem
-    
-    list_display = ("description", "item")
+class CDEFileAdmin(admin.ModelAdmin):
+    model = CDEFile
+    list_display = ("form", "section", "cde", "item")
 
-admin.site.register(FileUplodItem, FileUplodItemAdmin)
+admin.site.register(CDEFile, CDEFileAdmin)
