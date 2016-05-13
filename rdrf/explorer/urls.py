@@ -8,7 +8,7 @@ urlpatterns = patterns(
     '',
     url(r'^query/(?P<query_id>\w+)/?$',
         QueryView.as_view(), name='explorer_query'),
-    url(r'^query/download/(?P<query_id>\w+)/?$',
+    url(r'^query/download/(?P<query_id>\w+)?/(?P<action>\w+)?/?$',
         DownloadQueryView.as_view(), name='explorer_query_download'),
     url(r'^query/delete/(?P<query_id>\w+)/?$',
         DeleteQueryView.as_view(), name='explorer_query_delete'),

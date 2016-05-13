@@ -113,7 +113,7 @@ class CalculatedFieldParser(object):
             injected_model = "patient"
             injected_model_id = self.injected_model_id
             api_url = reverse(
-                'v1:patient_detail',
+                'v1:patient-detail',
                 kwargs={
                     "registry_code": self.registry.code,
                     "pk": self.injected_model_id})
