@@ -63,12 +63,12 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
          if(action == "create") {
 	     $("#load_patient").hide();
 	     $("#patient-blurb").hide();
-	     saveButtonUsesAjax(false);
+	     //saveButtonUsesAjax(false);
      }
   else {
       $("#load_patient").show();
       $("#patient-blurb").show();
-       saveButtonUsesAjax(true);
+       //saveButtonUsesAjax(true);
   };});}
 
   QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
@@ -103,7 +103,6 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
   $(document).ready(function() {
 
       $.ajaxSetup({
-	  timeout: 30000, 
           beforeSend: function (xhr) {
               var csrfToken = '{{ csrf_token }}';
               xhr.setRequestHeader('X-CSRFToken', csrfToken);
@@ -160,13 +159,12 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
                       }
                       ;
                   });
-      });
+      })
   });
 </script>
 {% endblock %}
 
 {% block content %}
-    <form id="qrform">
   
     {% if request.user.is_authenticated %}
         {{ block.super }}
@@ -257,6 +255,5 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>
     {% endif %}
-</form>
 {% endblock%}
 
