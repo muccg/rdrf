@@ -12,6 +12,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
 
 logger = logging.getLogger(__name__)
 
@@ -951,7 +953,7 @@ class QuestionnaireResponse(models.Model):
         wrapper._set_client()
         return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
 
-        
+
 
 
 def appears_in(cde, registry, registry_form, section):
@@ -1839,14 +1841,33 @@ class MongoMigrationDummyModel(models.Model):
     version = models.CharField(max_length=80, choices=VERSIONS)
 
 
-# Experimental GridFS storage
-from django.db.models.signals import pre_delete
-from django.dispatch.dispatcher import receiver
+def file_upload_to(instance, filename):
+    return "/".join(filter(bool, [
+        instance.form.registry.code,
+        instance.section.code if instance.section else "_",
+        instance.cde.code if instance.cde else "",
+        filename]))
 
-class FileUplodItem(models.Model):
-    description = models.CharField(max_length=255)
-    item = models.FileField()
+class CDEFile(models.Model):
+    """
+    A file record which is referenced by id within the patient's
+    dynamic data dictionary.
 
-@receiver(pre_delete, sender=FileUplodItem)
+    The form and section fields are optional for files belonging to
+    registry-specific fields.
+
+    See filestorage.py for usage of this model.
+    """
+    registry = models.ForeignKey(Registry)
+    form = models.ForeignKey(RegistryForm, null=True, blank=True)
+    section = models.ForeignKey(Section, null=True, blank=True)
+    cde = models.ForeignKey(CommonDataElement)
+    item = models.FileField(upload_to=file_upload_to, max_length=300)
+    filename = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return self.item.name
+
+@receiver(pre_delete, sender=CDEFile)
 def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)

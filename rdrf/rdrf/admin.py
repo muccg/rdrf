@@ -21,7 +21,7 @@ from models import CdePolicy
 from models import EmailNotification
 from models import EmailTemplate
 from models import EmailNotificationHistory
-from models import FileUplodItem
+from models import CDEFile
 
 import logging
 from django.http import HttpResponse
@@ -477,9 +477,8 @@ if has_feature('adjudication'):
     admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
 
 
-class FileUplodItemAdmin(admin.ModelAdmin):
-    model = FileUplodItem
-    
-    list_display = ("description", "item")
+class CDEFileAdmin(admin.ModelAdmin):
+    model = CDEFile
+    list_display = ("form", "section", "cde", "item")
 
-admin.site.register(FileUplodItem, FileUplodItemAdmin)
+admin.site.register(CDEFile, CDEFileAdmin)
