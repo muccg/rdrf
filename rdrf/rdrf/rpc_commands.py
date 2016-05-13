@@ -190,12 +190,17 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
 
+    
+    user = request.user
     questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
 
-    data_to_update = [question for question in questionnaire.questions if question.id in questionnaire_checked_ids]
+    # security checks ?
+
+    data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
+    logger.debug("There are %s data points to update" % len(data_to_update))
     result = questionnaire.update_patient(patient_model, data_to_update)
 
     return result

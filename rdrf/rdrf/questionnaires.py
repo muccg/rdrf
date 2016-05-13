@@ -579,6 +579,16 @@ class _Question(object):
                                    self.section_code,
                                    self.cde_code)
 
+    @property
+    def field_expression(self):
+        if self.cde_code not in KEY_MAP:
+            # not a special field - a "normal" clinical field
+            return "%s/%s/%s" % (self.form_name,
+                                 self.section_code,
+                                 self.cde_code)
+        else:
+            return "TODO"
+
     def __str__(self):
         return "Q[%s] %s = %s" % (self.pos, self.name, self.answer)
 
@@ -745,13 +755,9 @@ class Questionnaire(object):
         # begin transaction ... etc
         multisection_questions = {}
         errors = []
-        
-        for question in selected_questions:
-           if not question.is_multi:
-               field_expression = question.field_expression
-               value = question.value
-               patient_model.set_field_expression(self.registry_model, field_expression, value)
-           else:
-               pass
+        # NB. here that the _original_ target form needs to be updated ( the source of the question )
+        # NOT the dynamically generated questionnaire form's version ...
+        updates = [(q.target.field_expression, q.value) for q in selected_questions]
+        patient_model.update_field_expressions(self.registry_model, updates) 
         return "OK"
                

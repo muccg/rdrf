@@ -1011,6 +1011,19 @@ class DynamicDataWrapper(object):
 
         return None
 
+
+    def update_dynamic_data(self, registry_model, mongo_record):
+        # replace entire mongo record with supplied one
+        # assumes structure correct ..
+        self._set_client()
+        collection = self._get_collection(registry_model.code, "cdes")
+        if "_id" in mongo_record:
+            mongo_id = mongo_record["_id"]
+            collection.update({'_id': mongo_id}, {"$set": mongo_record}, upsert=False)
+        else:
+            collection.insert(mongo_record)
+
+
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None):
         from rdrf.models import Registry

@@ -4,30 +4,6 @@
 {% block extrahead %}
 <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
 <script type="text/javascript">
-  function saveButtonUsesAjax(flag) {
-      if(flag) {
-	  $("#savebutton").unbind();
-	  $("#savebutton").click(function(event) {
-	      var loadedPatientId = getLoadedPatientId();
-	      if (loadedPatientId == null) {
-		  alert("Load a patient first!");
-		  return;
-	      }
-	      var checkedQuestionIds = getCheckedQuestionIds();
-	      alert("bound ok");
-              alert("sending data to update existing patient");
-	      sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds);
-	  });
-      }
-      else {
-	  // just use normal submit
-	  $("#savebutton").unbind();
-	  $("#savebutton").click(function () {
-              alert("submitting form to create a new patient");
-	      $("#contentform").submit();});
-      }
-	  
-  }
 
 function getLoadedPatientId() {
     return $("#patient_lookup").data;
@@ -139,14 +115,47 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
                                           "patient-data",
                                           "patient-table",
                                           "questionnaire-container",
-                                          "questionnaire-data");
+								     "questionnaire-data");
 
       gui.wireUp();
+
+      function getAction() {
+	  return $("#patient-info input[type='radio']:checked").val();
+      }
+
+      function getPatientId() {
+        return $("#patient_lookup").data("patient_id");
+      }
+
+      
+      
+      $("#savebutton").click(function (event) {
+	  var action = getAction();
+	  alert(action);
+	  if (action == "update"){
+	    event.preventDefault();
+	      var patientId = getPatientId();
+	      var selectedQuestionIds = getCheckedQuestionIds();
+	      var questionnaireId = {{qr_model.pk}};
+	      
+	      rpc.send("update_selected_cdes_from_questionnaire", [patientId, questionnaireId, selectedQuestionIds], function(response) {
+		  alert(response.status);
+	      });
+	      
+	    
+	  }
+	  else {
+	      // create new patient from questionnaire
+	      // need to submit
+	      alert(action);
+	  };
+      });
+      
 
 
       $("#load_patient_button").click(function () {
           var qrModelId = {{qr_model.pk}};
-          var lookedUpPatientId = $("#patient_lookup").data("patient_id");
+          var lookedUpPatientId = getPatientId();
 
           rpc.send("load_matched_patient_data", [lookedUpPatientId, qrModelId],
                   function (response) {

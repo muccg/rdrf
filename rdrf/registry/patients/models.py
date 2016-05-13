@@ -348,6 +348,77 @@ class Patient(models.Model):
             else:
                 return mongo_data[key]
 
+
+    def update_field_expressions(self, registry_model, field_expressions, context_model=None):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        from rdrf.form_progress import FormProgress
+        if registry_model.has_feature("contexts") and context_model is None:
+            raise Exception("No context model set")
+        elif not registry_model.has_feature("contexts") and context_model is not None:
+            raise Exception("context model should not be explicit for non-supporting registry")
+        elif not registry_model.has_feature("contexts") and context_model is None:
+            # the usual case
+            from rdrf.contexts_api import RDRFContextManager
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(self)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper._set_client()
+        parser = GeneralisedFieldExpressionParser(registry_model)
+        mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
+
+        logger.debug("updating field expressions ...")
+        errors = 0
+        succeeded = 0
+        total = 0
+
+        for field_expression, new_value in field_expressions:
+            logger.debug("errors = %s" % errors)
+            logger.debug("succeeded = %s" % succeeded)
+            logger.debug("total = %s" % total)
+
+
+            logger.debug("updating %s" % field_expression)
+
+            total += 1
+            try:
+                expression_object = parser.parse(field_expression)
+                logger.debug("parsed %s OK" % field_expression)
+            except Exception, ex:
+                errors += 1
+                logger.debug("couldn't parse field expression: %s" % field_expression)
+                continue
+
+
+            try:
+                logger.debug("attempting to update %s --> %s" % (field_expression, new_value))
+                self, mongo_data = expression_object.set_value(self, mongo_data, new_value, context_id=context_model.pk)
+                logger.debug("%s --> %s OK!" % (field_expression, new_value))
+                succeeded += 1
+            except NotImplementedError:
+                errors += 1
+                logger.debug("need to implement %s - skipping" %  field_expression)
+                continue
+
+            except Exception, ex:
+                logger.debug("Erroring setting value in mongo data: %s" % ex)
+            
+
+        logger.debug("errors = %s" % errors)
+        logger.debug("succeeded = %s" % succeeded)
+        logger.debug("total = %s" % total)
+
+        try:
+            logger.debug("****  mongo data = %s" % mongo_data)
+            wrapper.update_dynamic_data(registry_model, mongo_data)
+        except Exception, ex:
+            logger.error("Error update_dynamic_data: %s" % ex)
+        self.save()
+        
+
+            
+
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key

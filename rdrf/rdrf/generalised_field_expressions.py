@@ -30,6 +30,9 @@ class GeneralisedFieldExpression(object):
     def evaluate(self, patient_model, mongo_data):
         raise NotImplementedError("subclass responsibility!")
 
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+        raise NotImplementedError("subclass responsibility!")
+
 
 class BadColumnExpression(GeneralisedFieldExpression):
     # used when a column parse fails
@@ -50,6 +53,9 @@ class PatientFieldExpression(GeneralisedFieldExpression):
     def evaluate(self, patient_model, mongo_data):
         return getattr(patient_model, self.field)
 
+    def set_value(self, patient_model, mongo_data, new_value):
+        setattr(patient_model, self.field, new_value)
+
 
 class ConsentExpression(GeneralisedFieldExpression):
 
@@ -60,6 +66,9 @@ class ConsentExpression(GeneralisedFieldExpression):
 
     def evaluate(self, patient_model, mongo_data):
         return patient_model.get_consent(self.consent_question_model, self.field)
+
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+        raise NotImplementedError("to do")
 
 
 class ReportExpression(GeneralisedFieldExpression):
@@ -100,6 +109,126 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
 
     def evaluate(self, patient_model, mongo_record):
         return get_cde_value(self.form_model, self.section_model, self.cde_model, mongo_record)
+
+    def set_value(self, patient_model, mongo_record, new_value, **kwargs):
+        #"_id" : ObjectId("5732ae5c332cf40056cd0462"),
+        #"ClinicalData_timestamp" : ISODate("2016-05-11T12:00:59.472Z"),
+        #"django_id" : 1,
+        #"context_id" : 1,
+        #"django_model" : "Patient",
+        #"forms" : [
+        #		{
+        #		"sections" : [
+        #			{
+        #				"cdes" : [
+        #					{
+        #						"code" : "DM1EthnicOrigins",
+        #						"value" : "Australian"
+        #					}
+        #				],
+        #				"code" : "DM1EthnicOrigins",
+        #				"allow_multiple" : false
+        #			},
+        #
+        from datetime import datetime
+        from rdrf.contexts_api import RDRFContextManager
+        logger.debug("set_value of %s on patient %s" % (self.cde_model.code, patient_model))
+
+        context_id = kwargs.get("context_id", None)
+        if context_id is None:
+            context_manager = RDRFContextManager(self.registry_model)
+            default_context_model = context_manager.get_or_create_default_context(patient_model)
+            context_id = default_context_model.pk
+        logger.debug("context_id = %s" % context_id)
+
+        if not self.section_model.allow_multiple:
+            logger.debug("updating non-multisection cde")
+            if mongo_record is None:
+                logger.debug("mongo record is none - creating one")
+                # create a new blank record
+               
+
+                    
+                section_dict = {"cdes": [ {"code": new_value}], "allow_multiple": False}
+
+                form_timestamp_key = "%s_timestamp" % self.form_model.name
+                form_timestamp_value  = datetime.now()
+    
+                form_dict = {"name": self.form_model.name,
+                             form_timestamp_key: form_timestamp_value,
+                             "sections": [ section_dict]}
+                
+                mongo_record = {"forms": [form_dict],
+                                "django_id": self.pk,
+                                "django_model": "Patient",
+                                "context_id": context_id}
+                return patient_model, mongo_record
+            else:
+                logger.debug("mongo record not None")
+                form_exists = False
+                section_exists = False
+                cde_exists = False
+                forms = mongo_record["forms"]
+
+                if forms is None:
+                    logger.debug("XXXX")
+                
+                for form_dict in forms:
+                    if form_dict["name"] == self.form_model.name:
+                        form_exists = True
+                        logger.debug("found form %s" % self.form_model.name)
+                        sections = form_dict["sections"]
+                        if sections is None:
+                            logger.debug("sections is None??!")
+                            
+                        for section_dict in form_dict["sections"]:
+                            if section_dict["code"] == self.section_model.code:
+                                section_exists = True
+                                logger.debug("found section %s" % self.section_model.code)
+                                cdes = section_dict["cdes"]
+                                if cdes is None:
+                                    logger.debug("cdes is None???")
+                                for cde_dict in section_dict["cdes"]:
+                                    if cde_dict["code"] == self.cde_model.code:
+                                        cde_exists = True
+                                        logger.debug("found cde %s" % self.cde_model.code)
+                                        cde_dict["value"] = new_value
+                                        logger.debug("updated value successfully!!!")
+                                if not cde_exists:
+                                    cde_dict = {"code": self.cde_model.code,
+                                                "value": new_value}
+                                    section_dict["cdes"].append(cde_dict)
+                        if not section_exists:
+                            section_dict = {"code": self.section_model.code,
+                                            "allow_multiple": False,
+                                            "cdes": [{"code": self.cde_model.code,
+                                                      "value": new_value}]}
+                            form_dict["sections"].append(section_dict)
+                if not form_exists:
+                    form_timestamp_key = "%s_timestamp"
+                    form_timestamp_value = datetime.now()
+                    form_dict = {"name": self.form_model.name,
+                                 
+                                 "sections": [ {"code": self.section_model.code,
+                                                "allow_multiple": False,
+                                                "cdes": [{"code": self.cde_model.code,
+                                                          "value": new_value}]}],
+                                 form_timestamp_key: form_timestamp_value}
+                    mongo_record["forms"].append(form_dict)
+
+
+                return patient_model, mongo_record
+                                    
+                                
+                
+        else:
+            # todo
+            return patient_model, mongo_record
+        
+                    
+                
+                
+        
 
 
 class GeneralisedFieldExpressionParser(object):
