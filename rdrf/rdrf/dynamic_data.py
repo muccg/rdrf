@@ -1,13 +1,13 @@
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from rdrf.mongo_client import construct_mongo_client
-import gridfs
 import logging
 from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
-from rdrf.utils import is_file_cde, is_uploaded_file, is_gridfs_file_wrapper
+from rdrf.utils import is_file_cde, is_uploaded_file
 
 from django.conf import settings
 from datetime import datetime
 from rdrf.file_upload import FileUpload
+from .filestorage import FileStoreUtil
 from copy import deepcopy
 from operator import itemgetter
 
@@ -16,19 +16,12 @@ from operator import itemgetter
 logger = logging.getLogger("registry_log")
 
 
-class FileStore(object):
-
-    def __init__(self, mongo_db):
-        self.fs = gridfs.GridFS(mongo_db)
-
-
 class FormParsingError(Exception):
     pass
 
 
 class KeyValueMissing(Exception):
     pass
-
 
 class MultisectionGridFSFileHandler(object):
     def __init__(self,
@@ -68,27 +61,9 @@ class MultisectionGridFSFileHandler(object):
                                                                            self.multisection_code,
                                                                            item_index,
                                                                            key))
-        original_filename = file_object.name
 
-        gridfs_filename = self._get_multisection_gridfs_filename(self.registry_code,
-                                                                 self.form_model.name,
-                                                                 self.multisection_code,
-                                                                 str(item_index),
-                                                                 get_code(key),
-                                                                 original_filename)
-
-        try:
-            added_file_id = self.gridfs_filestore.put(file_object.read(), filename=gridfs_filename)
-        except Exception, ex:
-            logger.error("Error adding file %s to gridfs: %s" % (gridfs_filename, ex))
-            return None
-
-        gridfs_ref_dict = {"gridfs_file_id": added_file_id, "file_name": original_filename}
-
-        logger.debug("added file to gridfs: %s -> %s (id = %s) wrapper = %s" % (original_filename,
-                                                                                gridfs_filename,
-                                                                                added_file_id,
-                                                                                gridfs_ref_dict))
+        gridfs_ref_dict = FileStoreUtil.store_file_by_key(
+            self.registry_code, None, key, file_object)
 
         logger.debug("key %s will be updated with %s" % (key, gridfs_ref_dict))
 
@@ -100,7 +75,7 @@ class MultisectionGridFSFileHandler(object):
         logger.debug("updated section item ( index %s) = %s" % (item_index, section_item_to_update))
         logger.debug("item updated OK")
 
-        return added_file_id
+        return FileStoreUtil.get_id(gridfs_ref_dict)
 
     def _delete_file(self, item_index, key):
 
@@ -133,20 +108,13 @@ class MultisectionGridFSFileHandler(object):
                                             existing_gridfs_ref_dict = cde_dict["value"]
                                             logger.debug("existing cde value of this file cde = %s" %
                                                          existing_gridfs_ref_dict)
-                                            existing_gridfs_file_id = existing_gridfs_ref_dict["gridfs_file_id"]
-                                            logger.debug("existing gridfs file id = %s" % existing_gridfs_file_id)
-                                            try:
-                                                self.gridfs_filestore.delete(existing_gridfs_file_id)
-                                            except Exception, ex:
-                                                logger.error("Error deleting file id %s in gridfs: %s" % (existing_gridfs_file_id,
-                                                                                                          ex))
-                                                return None
-
-                                            deleted_file_id = existing_gridfs_file_id
-                                            logger.debug("deleted gridfs file OK")
+                                            deleted_file_id = self._delete_file_ref_dict(existing_gridfs_ref_dict)
                                             cde_dict["value"] = None
                                             logger.debug("updated the value to None")
         return deleted_file_id
+
+    def _delete_file_ref_dict(self, file_ref):
+        FileStoreUtil.delete_file_wrapper(self.gridfs_filestore, file_ref)
 
     def _get_original_file_cde_value(self, item_index, key):
         cde_code = get_code(key)
@@ -167,11 +135,7 @@ class MultisectionGridFSFileHandler(object):
         cde_code = get_code(key)
         section_dict = self.form_section_items[item_index]
         section_dict[key] = original_value
-        if is_gridfs_file_wrapper(original_value):
-            return original_value["gridfs_file_id"]
-
-    def _is_gridfs_file_wrapper(self, value):
-        return isinstance(value, dict) and "gridfs_file_id" in value
+        return FileStoreUtil.get_id(original_value)
 
     def _get_multisection_gridfs_filename(self,
                                           registry_code,
@@ -187,9 +151,9 @@ class MultisectionGridFSFileHandler(object):
         result_set = set([])
         for cde_dict_list in items:
             for cde_dict in cde_dict_list:
-                value = cde_dict["value"]
-                if is_gridfs_file_wrapper(value):
-                    result_set.add(value["gridfs_file_id"])
+                file_id = FileStoreUtil.get_id(cde_dict["value"])
+                if file_id is not None:
+                    result_set.add(file_id)
 
         return result_set
 
@@ -250,9 +214,9 @@ class MultisectionGridFSFileHandler(object):
         for (item_index, key) in unchanged_files:
             #todo ensure that unchanged gridfs files in a multisection are not clobbered
             original_value = self._get_original_file_cde_value(item_index, key)
-            original_gridfs_file_id = self._preserve_file(item_index, key, original_value)
-            if original_gridfs_file_id is not None:
-                self.unchanged_file_ids.add(original_gridfs_file_id)
+            original_file_id = self._preserve_file(item_index, key, original_value)
+            if original_file_id is not None:
+                self.unchanged_file_ids.add(original_file_id)
 
 
         logger.debug("****************** END UPDATE MULTISECTION FILE CDES ****************************")
@@ -511,7 +475,7 @@ class DynamicDataWrapper(object):
     def __init__(
             self,
             obj,
-            filestore_class=gridfs.GridFS,
+            filestore_class=None,
             rdrf_context_id=None):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False
@@ -520,7 +484,7 @@ class DynamicDataWrapper(object):
         self.django_model = obj.__class__
         # We inject these to allow unit testing
         self.client = None
-        self.file_store_class = filestore_class
+        self.filestore_class = filestore_class
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
         self.rdrf_context_id = rdrf_context_id
@@ -568,7 +532,13 @@ class DynamicDataWrapper(object):
         else:
             db = self.client["testing_" + registry]
 
-        return self.file_store_class(db, collection=registry + ".files")
+        if self.filestore_class is None:
+            import gridfs
+            cls = gridfs.GridFS
+        else:
+            cls = self.filestore_class
+
+        return cls(db, collection=registry + ".files")
 
     def has_data(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes")
@@ -743,67 +713,30 @@ class DynamicDataWrapper(object):
             return
 
         for key, value in data.items():
-            if isinstance(value, dict):
-                if "gridfs_file_id" in value:
-                    wrapper = FileUpload(registry, key, value)
-                    data[key] = wrapper
+            if FileStoreUtil.get_id(value) is not None:
+                wrapper = FileUpload(registry, key, value)
+                data[key] = wrapper
 
             elif isinstance(value, list):
                 # section data
                 for section_dict in value:
                     self._wrap_gridfs_files_from_mongo(registry, section_dict)
 
-    def _get_gridfs_filename(self, registry, data_record, cde_code, original_file_name):
-        return "%s****%s****%s****%s****%s" % (registry,
-                                               self.django_model,
-                                               self.django_id,
-                                               cde_code,
-                                               original_file_name)
-
-    def _store_file_in_gridfs(
+    def _store_file(
             self,
             registry,
             patient_record,
             cde_code,
             in_memory_file,
             dynamic_data):
-        logger.debug("storing file in gridfs")
-        logger.debug("dynamic data supplied = %s" % dynamic_data)
-        fs = self.get_filestore(registry)
-        original_file_name = in_memory_file.name
-        logger.debug("original filename = %s" % original_file_name)
-
-        file_name = self._get_gridfs_filename(
-            registry, patient_record, cde_code, original_file_name)
-
-        logger.debug("gridfs filename = %s" % file_name)
-        gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
-        logger.debug("gridfs_id = %s" % gridfs_id)
-        # _alter_ the dyamic data to store reference to gridfs + the original file name
-
-        grid_ref_dict = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
-
-        logger.debug("grid_ref_dict = %s" % grid_ref_dict)
-
-        dynamic_data[cde_code] = grid_ref_dict
-        logger.debug(
-            "UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
-            (cde_code,
-             original_file_name,
-             registry,
-             gridfs_id,
-             dynamic_data[cde_code]))
-        return gridfs_id
+        logger.debug("storing file for key %s" % cde_code)
+        dynamic_data[cde_code] = FileStoreUtil.store_file_by_key(
+            registry, patient_record, cde_code, in_memory_file)
 
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from models import Section
-        try:
-            Section.objects.get(code=code)
-            return True
-        except:
-            pass
-        return False
+        return Section.objects.filter(code=code).exists()
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
 
@@ -874,7 +807,7 @@ class DynamicDataWrapper(object):
                     if value is not None:
                         logger.debug("new value is not None: %s" % value)
                         logger.debug("storing file for cde %s value = %s" % (key, value))
-                        self._store_file_in_gridfs(
+                        self._store_file(
                             registry, existing_record, key, value, new_data)
                     else:
                         logger.debug("incoming value is None so no update")
@@ -882,36 +815,25 @@ class DynamicDataWrapper(object):
                     logger.debug("existing value is a file wrapper: %s" % file_wrapper)
                     if isinstance(file_wrapper, FileUpload):
                         gridfs_file_dict = file_wrapper.gridfs_dict
-                    elif isinstance(file_wrapper, dict):
-                        if "gridfs_file_id" in file_wrapper:
-                            gridfs_file_dict = file_wrapper
+                    elif FileStoreUtil.get_id(file_wrapper):
+                        gridfs_file_dict = file_wrapper
                     logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
 
                     if gridfs_file_dict is None:
                         if value is not None:
                             logger.debug("storing file with value %s in gridfs" % value)
-                            self._store_file_in_gridfs(
+                            self._store_file(
                                 registry, existing_record, key, value, new_data)
                     else:
-                        logger.debug("checking file id on existing gridfs dict")
-                        gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
-                        logger.debug("existing file id = %s" % gridfs_file_id)
                         if delete_existing:
                             logger.debug("delete_existing is True so trying to delete the file originally stored")
                             logger.debug(
                                 "updated value is not None so we delete existing upload and update:")
-                            if fs.exists(gridfs_file_id):
-                                fs.delete(gridfs_file_id)
-                                logger.debug("deleted existing file with id %s" %
-                                             gridfs_file_id)
-                            else:
-                                logger.debug(
-                                    "file id %s in existing_record didn't exist?" %
-                                    gridfs_file_id)
+                            FileStoreUtil.delete_file_wrapper(fs, file_wrapper)
                             if value is not None:
                                 logger.debug("updating %s -> %s" % (key, value))
                                 logger.debug("storing updated file data in gridfs")
-                                self._store_file_in_gridfs(
+                                self._store_file(
                                     registry, existing_record, key, value, new_data)
                         else:
                             # don't change anything on update ...
@@ -985,7 +907,7 @@ class DynamicDataWrapper(object):
             if value is not None:
                 logger.debug("new value is not None: %s" % value)
                 logger.debug("storing file for cde %s value = %s" % (key, value))
-                self._store_file_in_gridfs(
+                self._store_file(
                     registry, existing_record, key, value, new_data)
             else:
                 logger.debug("incoming value is None so no update")
@@ -993,36 +915,24 @@ class DynamicDataWrapper(object):
             logger.debug("existing value is a file wrapper: %s" % file_wrapper)
             if isinstance(file_wrapper, FileUpload):
                 gridfs_file_dict = file_wrapper.gridfs_dict
-            elif isinstance(file_wrapper, dict):
-                if "gridfs_file_id" in file_wrapper:
-                    gridfs_file_dict = file_wrapper
+            elif FileStoreUtil.get_id(file_wrapper) is not None:
+                gridfs_file_dict = file_wrapper
             logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
 
             if gridfs_file_dict is None:
                 if value is not None:
                     logger.debug("storing file with value %s in gridfs" % value)
-                    self._store_file_in_gridfs(
+                    self._store_file(
                         registry, existing_record, key, value, new_data)
             else:
                 logger.debug("checking file id on existing gridfs dict")
-                gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
-                logger.debug("existing file id = %s" % gridfs_file_id)
                 if delete_existing:
-                    logger.debug("delete_existing is True so trying to delete the file originally stored")
-                    logger.debug(
-                        "updated value is not None so we delete existing upload and update:")
-                    if fs.exists(gridfs_file_id):
-                        fs.delete(gridfs_file_id)
-                        logger.debug("deleted existing file with id %s" %
-                                     gridfs_file_id)
-                    else:
-                        logger.debug(
-                            "file id %s in existing_record didn't exist?" %
-                            gridfs_file_id)
+                    # fixme: fs not defined
+                    FileStoreUtil.delete_file_wrapper(fs, gridfs_file_dict)
                     if value is not None:
                         logger.debug("updating %s -> %s" % (key, value))
                         logger.debug("storing updated file data in gridfs")
-                        self._store_file_in_gridfs(
+                        self._store_file(
                             registry, existing_record, key, value, new_data)
                 else:
                     # don't change anything on update ...

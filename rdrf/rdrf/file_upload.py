@@ -1,4 +1,7 @@
 import logging
+from django.core.urlresolvers import reverse, NoReverseMatch
+from .models import CDEFile
+from .filestorage import FileStoreUtil
 
 logger = logging.getLogger("registry_log")
 
@@ -22,11 +25,17 @@ class FileUpload(object):
 
     @property
     def url(self):
-        from django.core.urlresolvers import reverse
-        return reverse(
-            "file_upload", args=[
-                self.registry.code, str(
-                    self.gridfs_dict['gridfs_file_id'])])
+        kwargs = {
+            "registry_code": self.registry.code,
+            "file_id": (self.gridfs_dict.get("django_file_id") or
+                        self.gridfs_dict.get("gridfs_file_id")),
+        }
+
+        try:
+            return reverse("file_upload", kwargs=kwargs)
+        except NoReverseMatch:
+            logger.info("Couldn't make URL for file record %s" % str(self.gridfs_dict))
+            return ""
 
     def __unicode__(self):
         """
@@ -56,14 +65,13 @@ def wrap_gridfs_data_for_form(registry, data):
     def check_for_gridfs_dict(data):
         for key, value in data.items():
             logger.debug("checking key %s for gridfs data value = %s" % (key, value))
-            if isinstance(value, dict):
-                if "gridfs_file_id" in value:
-                    logger.debug("found a gridfs dict - wrapping the value witha FileUpload object")
-                    wrapper = FileUpload(registry, key, value)
-                    logger.debug(
-                        "munging gridfs %s data dict (before): %s -> (after) %s" %
-                        (key, value, wrapper))
-                    data[key] = wrapper
+            if FileStoreUtil.get_id(value):
+                logger.debug("found a gridfs dict - wrapping the value witha FileUpload object")
+                wrapper = FileUpload(registry, key, value)
+                logger.debug(
+                    "munging gridfs %s data dict (before): %s -> (after) %s" %
+                    (key, value, wrapper))
+                data[key] = wrapper
 
     if data is None:
         logger.debug("supplied data is None - nothing to  do")

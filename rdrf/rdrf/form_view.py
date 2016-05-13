@@ -4,10 +4,10 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -19,6 +19,7 @@ from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from registration import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
+from .filestorage import FileStoreUtil
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
@@ -1257,17 +1258,17 @@ class QuestionnaireResponseView(FormView):
 class FileUploadView(View):
 
     @login_required_method
-    def get(self, request, registry_code, gridfs_file_id):
-        from bson.objectid import ObjectId
+    def get(self, request, registry_code, file_id):
         import gridfs
         client = construct_mongo_client()
         db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
-        obj_id = ObjectId(gridfs_file_id)
-        data = fs.get(obj_id)
-        filename = data.filename.split("****")[-1]
-        response = HttpResponse(data, content_type='application/octet-stream')
-        response['Content-disposition'] = "filename=%s" % filename
+        data, filename = FileStoreUtil.get_file(file_id, fs)
+        if data is not None:
+            response = FileResponse(data, content_type='application/octet-stream')
+            response['Content-disposition'] = "filename=%s" % filename
+        else:
+            response = HttpResponseNotFound()
         return response
 
 

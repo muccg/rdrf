@@ -247,13 +247,9 @@ def make_index_map(index_actions_list):
     return m
 
 
-def is_gridfs_file_wrapper(value):
-    return isinstance(value, dict) and "griffs_file_id" in value
-
-
 def create_permission(app_label, model, code_name, name):
     content_type = ContentType.objects.get(app_label=app_label, model=model)
-    
+
     try:
         with transaction.atomic():
             Permission.objects.create(codename=code_name, name=name, content_type=content_type)
@@ -347,7 +343,7 @@ def timed(func):
     return wrapper
 
 def get_cde_value(form_model, section_model, cde_model, patient_record):
-    # should refactor code everywhere to use this func 
+    # should refactor code everywhere to use this func
     if patient_record is None:
         return None
     for form_dict in patient_record["forms"]:
@@ -377,10 +373,3 @@ def report_function(func):
     """
     func.report_function = True
     return func
-
-
-
-
-    
-        
-        
