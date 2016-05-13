@@ -160,7 +160,6 @@ INSTALLED_APPS = [
     'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
-    'storages',
 ]
 
 
@@ -629,8 +628,3 @@ GRID_CONTEXT_LISTING = [
         "order": 8
     }
 ]
-
-DEFAULT_FILE_STORAGE = 'rdrf.storage.GridFSStorage'
-GRIDFS_HOST = MONGOSERVER
-GRIDFS_PORT = MONGOPORT
-GRIDFS_COLLECTION = "test_files"
