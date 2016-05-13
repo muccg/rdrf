@@ -154,7 +154,7 @@ urlpatterns = patterns('',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
                        url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
                            name='questionnaire_response'),
-                       url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',
+                       url(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
                            form_view.FileUploadView.as_view(), name='file_upload'),
                        (r'^admin/lookups/', include(ajax_select_urls)),
 

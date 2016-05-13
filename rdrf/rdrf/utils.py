@@ -249,10 +249,6 @@ def make_index_map(index_actions_list):
     return m
 
 
-def is_gridfs_file_wrapper(value):
-    return isinstance(value, dict) and "griffs_file_id" in value
-
-
 def create_permission(app_label, model, code_name, name):
     content_type = ContentType.objects.get(app_label=app_label, model=model)
 
