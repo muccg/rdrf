@@ -243,7 +243,7 @@ class LookupIndex(APIView):
             return Response([])
 
         query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                 Q(working_groups__in=working_groups)
+                 Q(working_groups__in=request.user.working_groups.all())
 
         def to_dict(patient):
             return {
