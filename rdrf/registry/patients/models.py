@@ -417,6 +417,28 @@ class Patient(models.Model):
         self.save()
         
 
+    def evaluate_field_expression(self, registry_model, field_expression, **kwargs):
+        if "value" in kwargs:
+            setting_value= True
+            value = kwargs["value"]
+        else:
+            setting_value = False
+
+        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        parser = GeneralisedFieldExpressionParser(registry_model)
+        
+        if not setting_value:
+            # ie retrieving a value
+            # or doing an action like clearing a multisection 
+            action = parser.parse(field_expression)
+            return action(self)
+        else:
+            setter = parser.parse(field_expression)
+            # operate on patient_model supplying value
+            setter.set_value(self, value)
+            
+            
+            
             
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
