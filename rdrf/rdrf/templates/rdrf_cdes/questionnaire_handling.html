@@ -2,6 +2,12 @@
 {% load static %}
 
 {% block extrahead %}
+<style>
+  td {
+  word-wrap:break-word;
+  word-break:break-word;
+}
+  </style>
 <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
 <script type="text/javascript">
 
@@ -31,6 +37,8 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
   this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
   this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
   }
+
+  var InfoSpan = _.template("<span class='label label-info'><%= text %></span><br>");
   
   QuestionnaireHandlerGui.prototype.wireUp = function () {
   var self = this;
@@ -56,12 +64,23 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
       _.each(data.questions, function (question) {
              self.addPatientCde(question);
     });
+    }
+
+  function createSpan(answer) {
+    return InfoSpan({text:answer});
   }
         
   QuestionnaireHandlerGui.prototype.addPatientCde = function (question) {
-    var rowHtml = this.cdeRowTemplate({name: question.name, value: question.answer});
       var cellId = "existing_" + question.pos.toString();
-      $("#"+cellId).text(question.answer);
+      if (!question.is_multi) {
+         $("#"+cellId).text(question.answer);
+      }
+      else {
+          var spans = _.map(question.answers, createSpan);
+          console.log(spans);
+          $("#"+cellId).empty();
+          $("#"+cellId).append(spans);
+      }
   }
 
   QuestionnaireHandlerGui.prototype.clearPatientData = function () {
@@ -227,9 +246,16 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
 			     {% for question in questionnaire.questions %}
 			         <tr>
 			           <td>{{question.name}}</td>
-			           <td><span id="existing_{{question.pos}}" class="label label-info">NO DATA</span></td>
-                                   {% if not question.is_multi %}
-                                       <td><span class="label label-success">{{question.answer}}</span></td>
+			           <td>
+				     {% if not question.is_multi %}
+				     <span id="existing_{{question.pos}}" class="label label-info">NO DATA</span></td>
+				   {% else %}
+				   <div id="existing_{{question.pos}}">
+				     <span class="label label-info">NO DATA</span></td>
+				   </div>
+				   {% endif %}
+				   {% if not question.is_multi %}
+                                   <td><span class="label label-success">{{question.answer}}</span></td>
 			           {% else %}
                                    <td>
 				     {% for item in question.items %}

@@ -453,7 +453,6 @@ class PatientCreator(object):
                 pk=int(consent_question_pk))
             patient_model.set_consent(consent_question_model, answer)
 
-
 class _ExistingDataWrapper(object):
     """
     return to qr view to show data already saved on a patient
@@ -529,14 +528,51 @@ class _ExistingDataWrapper(object):
             if field_name in KEY_MAP:
                 field_name = question.cde_model.name
 
-            answer = {"name": field_name,
-                      "pos": str(question.pos),
-                      "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
 
-            logger.debug("existing data = %s" % answer)
-            l.append(answer)
+            if not question.is_multi:
+                existing_answer = {"name": field_name,
+                          "pos": str(question.pos),
+                          "is_multi": False,
+                          "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
+            else:
+                existing_answer = {"name": field_name,
+                                   "pos" : str(question.pos),
+                                   "is_multi": True,
+                                   "answers": self._get_existing_multisection_data(question.field_expression,
+                                                                                   question.form_model,
+                                                                                   question.section_model)}
+                
+                                                                         
+
+            logger.debug("existing data = %s" % existing_answer)
+            l.append(existing_answer)
 
         return l
+
+    def _get_existing_multisection_data(self, field_expression, form_model, section_model):
+        items_retriever = self.gfe_parser.parse(field_expression)
+        display_items = []
+        raw_items = items_retriever(self.patient_model, self.patient_data)
+        
+        for item in raw_items:
+            display_fields = []
+            for cde_code in item:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                display_name = cde_model.name
+                raw_value = item[cde_code]
+                display_value = self.humaniser.display_value2(form_model,
+                                                              section_model,
+                                                              cde_model,
+                                                              raw_value)
+                display_field = "%s=%s" % (display_name, display_value)
+                display_fields.append(display_field)
+
+            item_field = ",".join(display_fields)
+            display_items.append(item_field)
+
+        # list of items displayed as key value pairs
+        return display_items
+        
 
     def _get_patient_data_field_name(self, cde_code):
         return cde_code
@@ -691,18 +727,22 @@ class _Multisection(object):
 
         original_form_name = t[0]
         original_section_code = t[1]
-        self.target_form_model = RegistryForm.objects.get(name=original_form_name,
+        self.form_model = RegistryForm.objects.get(name=original_form_name,
                                                        registry=self.registry_model)
-        self.target_section_model = Section.objects.get(
+        self.section_model = Section.objects.get(
             code=original_section_code)
-        original_display_name = "%s/%s" % (self.target_form_model.name,
-                                           self.target_section_model.display_name)
+        original_display_name = "%s/%s" % (self.form_model.name,
+                                           self.section_model.display_name)
 
-        multisection_replace_expression = "$op/%s/%s/replace" % (original_form_name,
-                                                                 original_section_code)
+        multisection_expression = "$ms/%s/%s/items" % (original_form_name,
+                                                  original_section_code)
         target = TargetCDE(original_display_name,
-                           multisection_replace_expression)
+                           multisection_expression)
         return target
+
+    @property
+    def field_expression(self):
+        return self.target.field_expression
 
     @property
     def name(self):
@@ -820,8 +860,8 @@ class Questionnaire(object):
                         logger.debug("value_map = %s" % value_map)
                         
                         multisection_item = _MultiSectionItem(self.registry_model,
-                                                              multisection.target_form_model,
-                                                              multisection.target_section_model,
+                                                              multisection.form_model,
+                                                              multisection.section_model,
                                                               value_map)
                         multisection.items.append(multisection_item)
 
@@ -849,29 +889,15 @@ class Questionnaire(object):
         patient_model.update_field_expressions(
             self.registry_model, non_multi_updates)
 
-        # now update the selected multisection _items_
-        # gather the selected items into the sections they comprise
-        items=[q for q in selected_questions if q.is_multi]
-        section_map=OrderedDict()
-        for item in items:
-            if item.key in section_map:
-                section_map[item.key].append(item)
-            else:
-                section_map[item.key]=[item]
+        multisection_questions = [q for q in selected_questions if q.is_multi]
+        for q in multisection_questions:
+            logger.debug("about to evaluate field expression %s" % q.field_expression)
+            
+            patient_model.evaluate_field_expression(self.registry_model,
+                                                    q.field_expression,
+                                                    value=q.value)
 
-        for key, items in section_map.items():
-            clear_expression="$op/%s/%s/clear" % (key[0],
-                                                   key[1])
-
-            patient_model.evaluate_field_expression(
-                self.registry_model, clear_expression)
-            #$op/ClinicalData/MultisectonCode/add"   with value map (cde cde -> value)
-            for item in items:
-                add_item_expression="$op/%s/%s/add" % (item.form_name,
-                                                        item.section_code)
-
-                patient_model.evaluate_field_expression(add_item_expression,
-                                                        value=item.value_map)
-
-
-        return "OK"
+        patient_model.save()
+        
+            
+        
