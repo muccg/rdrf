@@ -224,11 +224,19 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
 			       <th>Questionnaire Value</th>
 			       <th>Use</th>
                              </tr>
-			      {% for question in questionnaire.questions %}
-			     <tr>
-			       <td>{{question.name}}</td>
-			       <td><span id="existing_{{question.pos}}" class="label label-info">NO DATA</span></td>
-			       <td><span class="label label-success">{{question.answer}}</span></td>
+			     {% for question in questionnaire.questions %}
+			         <tr>
+			           <td>{{question.name}}</td>
+			           <td><span id="existing_{{question.pos}}" class="label label-info">NO DATA</span></td>
+                                   {% if not question.is_multi %}
+                                       <td><span class="label label-success">{{question.answer}}</span></td>
+			           {% else %}
+                                   <td>
+				     {% for item in question.items %}
+				     <span class="label label-success">{{item.answer}}</span>
+				     {% endfor %}
+                                   </td>
+			           {% endif %} 
 			       <td><input id="{{question.src_id}}" type="checkbox" checked="checked"/></td>
 			     </tr>
 			     {% endfor %}

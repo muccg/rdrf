@@ -23,11 +23,13 @@ class Func(object):
     def __init__(self, func_name):
         self.name = func_name
 
+
 class TargetCDE(object):
+
     def __init__(self, display_name, field_expression):
         self.display_name = display_name
         self.field_expression = field_expression
-        
+
 
 # Map special patient data section cdes to patient attributes
 KEY_MAP = {
@@ -66,12 +68,13 @@ class PatientCreatorState:
     FAILED_VALIDATION = "PATIENT NOT CREATED DUE TO VALIDATION ERRORS"
     FAILED = "PATIENT NOT CREATED"
 
- 
+
 class QuestionType:
-    CLINICAL = 1
-    DEMOGRAPHIC = 2
-    ADDRESS = 3
-    CONSENT = 4 
+    CLINICAL_SINGLE = 1
+    CLINICAL_MULTI = 2
+    DEMOGRAPHIC = 3
+    ADDRESS = 4
+    CONSENT = 5
 
 
 class QuestionnaireReverseMapper(object):
@@ -472,12 +475,14 @@ class _ExistingDataWrapper(object):
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
         if field_expression in KEY_MAP.keys():
             original_expression = field_expression
-            field_expression = KEY_MAP[field_expression][0] # the demographic field
+            field_expression = KEY_MAP[field_expression][
+                0]  # the demographic field
 
         retrieval_function = self.gfe_parser.parse(field_expression)
         try:
             value = retrieval_function(self.patient_model, self.patient_data)
-            value = self.humaniser.display_value2(form_model,section_model,cde_model, value)
+            value = self.humaniser.display_value2(
+                form_model, section_model, cde_model, value)
 
             if isinstance(value, datetime) or isinstance(value, date):
                 value = str(value)
@@ -502,7 +507,7 @@ class _ExistingDataWrapper(object):
         """
         l = []
         for question in self.questionnaire.questions:
-            
+
             if question.section_code == "PatientData":
                 field_name = self._get_patient_data_field_name(
                     question.cde_code)
@@ -524,12 +529,10 @@ class _ExistingDataWrapper(object):
             if field_name in KEY_MAP:
                 field_name = question.cde_model.name
 
-            
-
             answer = {"name": field_name,
-                      "pos" : str(question.pos),
+                      "pos": str(question.pos),
                       "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
-            
+
             logger.debug("existing data = %s" % answer)
             l.append(answer)
 
@@ -553,6 +556,7 @@ class _Question(object):
         self.humaniser = Humaniser(self.registry_model)
         self.form_name = form_name
         self.pos = 0
+        self.question_type = None
         try:
             self.form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                        name=form_name)
@@ -563,15 +567,17 @@ class _Question(object):
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
         self.section_code = section_code
         self.cde_code = cde_code
-        self.value = value  # raw value to be stored in Mongo ( or a list of values if from a multisection)
+        # raw value to be stored in Mongo ( or a list of values if from a
+        # multisection)
+        self.value = value
 
         self.target = self._get_target()
-        
 
         # used on form:
         self.name = self._get_name()
-        self.answer = self._get_display_value(value)  # or list of answers if cde in multisection
-        self.dest_id = "foo" 
+        # or list of answers if cde in multisection
+        self.answer = self._get_display_value(value)
+        self.dest_id = "foo"
         self.src_id = self._construct_id()
 
     def _construct_id(self):
@@ -609,8 +615,8 @@ class _Question(object):
         if not self.is_multi:
             return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
         else:
-            return  ",".join([ self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
-                     for single_value in value]) 
+            return ",".join([self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
+                     for single_value in value])
 
     def _get_target(self):
         """
@@ -637,19 +643,21 @@ class _Question(object):
         return TargetCDE(target_display_name, target_expression)
 
     def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
-        try: 
+        try:
             target_form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                      name=target_form_name)
         except RegistryForm.DoesNotExist:
             target_form_model = None
 
         try:
-            target_section_model = Section.objects.get(code=target_section_code)
+            target_section_model = Section.objects.get(
+                code=target_section_code)
         except Section.DoesNotExist:
             target_section_model = None
 
         try:
-            target_cde_model = CommonDataElement.objects.get(code=target_cde_code)
+            target_cde_model = CommonDataElement.objects.get(
+                code=target_cde_code)
         except CommonDataElement.DoesNotExist:
             target_cde_model = None
 
@@ -661,6 +669,78 @@ class _Question(object):
             return "%s/%s/%s" % (target_form_model.name,
                                  target_section_model.display_name,
                                  target_cde_model.name)
+
+
+class _Multisection(object):
+
+    def __init__(self, registry_model, questionnaire, form_name, section_code):
+        self.pos = None
+        self.registry_model = registry_model
+        self.humaniser = Humaniser(registry_model)
+        self.questionnaire = questionnaire
+        self.form_name = form_name
+        self.section_code = section_code
+        self.target = self._get_target()
+        self.src_id = "test"
+        self.is_multi = True
+        self.items = []
+
+    def _get_target(self):
+        t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
+            self.section_code)
+
+        original_form_name = t[0]
+        original_section_code = t[1]
+        self.target_form_model = RegistryForm.objects.get(name=original_form_name,
+                                                       registry=self.registry_model)
+        self.target_section_model = Section.objects.get(
+            code=original_section_code)
+        original_display_name = "%s/%s" % (self.target_form_model.name,
+                                           self.target_section_model.display_name)
+
+        multisection_replace_expression = "$op/%s/%s/replace" % (original_form_name,
+                                                                 original_section_code)
+        target = TargetCDE(original_display_name,
+                           multisection_replace_expression)
+        return target
+
+    @property
+    def name(self):
+        return self.target.display_name
+
+
+
+
+class _MultiSectionItem(object):
+
+    def __init__(self, registry_model, target_form_model, target_section_model, value_map):
+        self.registry_model = registry_model
+        self.form_model = target_form_model
+        self.section_model = target_section_model
+        self.humaniser = Humaniser(registry_model)
+        self.value_map = value_map
+
+    @property
+    def answer(self):
+        fields = []
+        for cde_code in self.value_map:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            display_name = cde_model.name
+            raw_value = self.value_map[cde_code]
+            display_value = self.humaniser.display_value2(self.form_model,
+                                                          self.section_model,
+                                                          cde_model,
+                                                          raw_value)
+
+            
+            fields.append("%s=%s" % (display_name, display_value))
+        
+        csv = ",".join(fields)
+        logger.debug("answer for multisection item: %s" % csv)
+        return csv
+            
+                                                          
+
 
 
 class Questionnaire(object):
@@ -678,14 +758,14 @@ class Questionnaire(object):
     """
 
     def __init__(self, registry_model, questionnaire_response_model):
-        self.registry_model = registry_model
-        self.questionnaire_response_model = questionnaire_response_model
-        self.data = self.questionnaire_response_model.data
+        self.registry_model=registry_model
+        self.questionnaire_response_model=questionnaire_response_model
+        self.data=self.questionnaire_response_model.data
 
-        self.questionnaire_reverse_mapper = QuestionnaireReverseMapper(self.registry_model,
+        self.questionnaire_reverse_mapper=QuestionnaireReverseMapper(self.registry_model,
                                                                        None,
                                                                        self.data)
-        #self.patient_creator = PatientCreator()
+        # self.patient_creator = PatientCreator()
 
     def _get_display_value(self, cde_code, value):
         return value
@@ -695,16 +775,20 @@ class Questionnaire(object):
 
     @property
     def questions(self):
-        l = []
-        n = 0
+        l=[]
+        n=0
 
         for form_dict in self.data["forms"]:
+            logger.debug("adding questions for %s" % form_dict["name"])
             for section_dict in form_dict["sections"]:
+                if section_dict["code"] == "PatientDataAddressSection":
+                    continue
                 if not section_dict["allow_multiple"]:
+                    logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
-                        display_value = self._get_display_value(cde_dict["code"],
+                        display_value=self._get_display_value(cde_dict["code"],
                                                                 cde_dict["value"])
-                        question = _Question(self.registry_model,
+                        question=_Question(self.registry_model,
                                              self,
                                              form_dict["name"],
                                              section_dict["code"],
@@ -712,36 +796,41 @@ class Questionnaire(object):
                                              display_value)
 
                         n += 1
-                        question.pos = n
+                        question.pos=n
                         l.append(question)
                         logger.debug("question %s added" % question)
 
                 else:
-                    cde_map = OrderedDict()
-                    for section_index, section_item in enumerate(section_dict["cdes"]):
-                        for cde_dict in section_item:
-                            cde_code = cde_dict["code"]
-                            display_value = self._get_display_value(cde_dict["code"],
-                                                                    cde_dict["value"])
+                    logger.debug(
+                        "adding multisection question for section %s" % section_dict["code"])
+                    # unit of selection is the entire section ..
+                    n += 1
+                    multisection= _Multisection(self.registry_model,
+                                                 self,
+                                                 form_dict["name"],
+                                                 section_dict["code"])
 
-                            if cde_code in cde_map:
-                                cde_map[cde_code].append(display_value)
-                            else:
-                                cde_map[cde_code] = [display_value]
+                    for item in section_dict["cdes"]:
+                        logger.debug("getting item %s" % item)
+                        value_map = OrderedDict()
+                        # each item is a list of cde dicts
+                        for cde_dict in item:
+                            value_map[cde_dict["code"]] = cde_dict["value"]
 
-                    # now create questions for each cde in the multisection
-                    for cde_code in cde_map:
-                        question = _Question(self.registry_model,
-                                             self,
-                                             form_dict["name"],
-                                             section_dict["code"],
-                                             cde_dict["code"],
-                                             cde_map[cde_code])
-                        n += 1
-                        question.pos  = n
-                        l.append(question)
-                        logger.debug("question %s added" % question)
-                  
+                        logger.debug("value_map = %s" % value_map)
+                        
+                        multisection_item = _MultiSectionItem(self.registry_model,
+                                                              multisection.target_form_model,
+                                                              multisection.target_section_model,
+                                                              value_map)
+                        multisection.items.append(multisection_item)
+
+                    multisection.pos=n
+                    l.append(multisection)
+                    logger.debug("multisection %s added" % multisection.name)
+
+
+
         logger.debug("questions total = %s" % len(l))
         return l
 
@@ -753,11 +842,36 @@ class Questionnaire(object):
 
     def update_patient(self, patient_model, selected_questions):
         # begin transaction ... etc
-        multisection_questions = {}
-        errors = []
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
-        updates = [(q.target.field_expression, q.value) for q in selected_questions]
-        patient_model.update_field_expressions(self.registry_model, updates) 
+        non_multi_updates=[(q.target.field_expression, q.value)
+                            for q in selected_questions if not q.is_multi]
+        patient_model.update_field_expressions(
+            self.registry_model, non_multi_updates)
+
+        # now update the selected multisection _items_
+        # gather the selected items into the sections they comprise
+        items=[q for q in selected_questions if q.is_multi]
+        section_map=OrderedDict()
+        for item in items:
+            if item.key in section_map:
+                section_map[item.key].append(item)
+            else:
+                section_map[item.key]=[item]
+
+        for key, items in section_map.items():
+            clear_expression="$op/%s/%s/clear" % (key[0],
+                                                   key[1])
+
+            patient_model.evaluate_field_expression(
+                self.registry_model, clear_expression)
+            #$op/ClinicalData/MultisectonCode/add"   with value map (cde cde -> value)
+            for item in items:
+                add_item_expression="$op/%s/%s/add" % (item.form_name,
+                                                        item.section_code)
+
+                patient_model.evaluate_field_expression(add_item_expression,
+                                                        value=item.value_map)
+
+
         return "OK"
-               
