@@ -535,12 +535,18 @@ class _ExistingDataWrapper(object):
                           "is_multi": False,
                           "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
             else:
-                existing_answer = {"name": field_name,
-                                   "pos" : str(question.pos),
-                                   "is_multi": True,
-                                   "answers": self._get_existing_multisection_data(question.field_expression,
+                if not question.is_address:
+                    existing_answer = {"name": field_name,
+                                       "pos" : str(question.pos),
+                                       "is_multi": True,
+                                       "answers": self._get_existing_multisection_data(question.field_expression,
                                                                                    question.form_model,
                                                                                    question.section_model)}
+                else:
+                    existing_answer = {"name": field_name,
+                                       "pos": str(question.pos),
+                                       "is_multi": True,
+                                       "answers": self._get_address_labels(question.field_expression)}
                 
                                                                          
 
@@ -548,6 +554,35 @@ class _ExistingDataWrapper(object):
             l.append(existing_answer)
 
         return l
+
+    def _get_address_labels(self, addresses_expression):
+        #patient = models.ForeignKey(Patient)
+        #address_type = models.ForeignKey(AddressType, default=1)
+        #address = models.TextField()
+        #suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+        #state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+        #postcode = models.CharField(max_length=50)
+        #country = models.CharField(max_length=100)
+
+        def address_label(address):
+            if address.address_type == 1:
+                atype = "HOME"
+            else:
+                atype = "POSTAL"
+            return "%s: %s %s %s %s %s" % (atype,
+                                           address.address,
+                                           address.suburb,
+                                           address.state,
+                                           address.postcode,
+                                           address.country)
+        
+
+        retriever = self.gfe_parser.parse(addresses_expression)
+        address_objects = retriever.evaluate(self.patient_model, self.patient_data)
+        return [ address_label(address) for address in address_objects]
+    
+        
+        
 
     def _get_existing_multisection_data(self, field_expression, form_model, section_model):
         items_retriever = self.gfe_parser.parse(field_expression)
@@ -611,6 +646,7 @@ class _Question(object):
 
         # used on form:
         self.name = self._get_name()
+        self.is_address = self.section_code == "PatientDataAddressSection"
         # or list of answers if cde in multisection
         self.answer = self._get_display_value(value)
         self.dest_id = "foo"
@@ -651,8 +687,11 @@ class _Question(object):
         if not self.is_multi:
             return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
         else:
-            return ",".join([self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
-                     for single_value in value])
+            if not self.is_address:
+                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
+                                 for single_value in value])
+            else:
+                return ",".join([x for x in value])
 
     def _get_target(self):
         """
@@ -719,6 +758,7 @@ class _Multisection(object):
 
     def __init__(self, registry_model, questionnaire, form_name, section_code):
         self.pos = None
+        self.is_address = section_code == "PatientDataAddressSection"
         self.registry_model = registry_model
         self.humaniser = Humaniser(registry_model)
         self.questionnaire = questionnaire
@@ -728,8 +768,13 @@ class _Multisection(object):
         self.src_id = "test"
         self.is_multi = True
         self.items = []
-
+        
     def _get_target(self):
+        if self.is_address:
+            self.form_model = None
+            self.section_model = None
+            return TargetCDE("Addresses", "Demographics/Addresses")
+        
         t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
             self.section_code)
 
@@ -776,12 +821,13 @@ class _Multisection(object):
 
 class _MultiSectionItem(object):
 
-    def __init__(self, registry_model, target_form_model, target_section_model, value_map):
+    def __init__(self, registry_model, target_form_model, target_section_model, value_map, is_address=False):
         self.registry_model = registry_model
         self.form_model = target_form_model
         self.section_model = target_section_model
         self.humaniser = Humaniser(registry_model)
         self.value_map = value_map
+        self.is_address = is_address
 
     @property
     def answer(self):
@@ -790,10 +836,13 @@ class _MultiSectionItem(object):
             cde_model = CommonDataElement.objects.get(code=cde_code)
             display_name = cde_model.name
             raw_value = self.value_map[cde_code]
-            display_value = self.humaniser.display_value2(self.form_model,
-                                                          self.section_model,
-                                                          cde_model,
-                                                          raw_value)
+            if not self.is_address:
+                display_value = self.humaniser.display_value2(self.form_model,
+                                                              self.section_model,
+                                                              cde_model,
+                                                              raw_value)
+            else:
+                display_value = cde_code
 
             
             fields.append("%s=%s" % (display_name, display_value))
@@ -840,9 +889,8 @@ class Questionnaire(object):
 
         for form_dict in self.data["forms"]:
             for section_dict in form_dict["sections"]:
-                if section_dict["code"] == "PatientDataAddressSection":
-                    continue
                 if not section_dict["allow_multiple"]:
+                    logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
                         question=_Question(self.registry_model,
                                              self,
@@ -857,13 +905,19 @@ class Questionnaire(object):
 
                 else:
                     # unit of selection is the entire section ..
+                    logger.debug("adding multisection %s" % section_dict["code"])
                     n += 1
                     multisection= _Multisection(self.registry_model,
-                                                 self,
-                                                 form_dict["name"],
-                                                 section_dict["code"])
+                                                self,
+                                                form_dict["name"],
+                                                section_dict["code"])
+
+                    
+
+                    logger.debug("created multisection object")
 
                     for item in section_dict["cdes"]:
+                        logger.debug("adding item %s" % item)
                         value_map = OrderedDict()
                         # each item is a list of cde dicts
                         for cde_dict in item:
@@ -872,7 +926,8 @@ class Questionnaire(object):
                         multisection_item = _MultiSectionItem(self.registry_model,
                                                               multisection.form_model,
                                                               multisection.section_model,
-                                                              value_map)
+                                                              value_map,
+                                                              multisection.is_address)
                         multisection.items.append(multisection_item)
 
                     multisection.pos=n
@@ -900,6 +955,8 @@ class Questionnaire(object):
 
         multisection_questions = [q for q in selected_questions if q.is_multi]
         for q in multisection_questions:
+            if q.is_address:
+                continue
             logger.debug("about to evaluate field expression %s" % q.field_expression)
             patient_model.evaluate_field_expression(self.registry_model,
                                                     q.field_expression,

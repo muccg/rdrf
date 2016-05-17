@@ -245,6 +245,59 @@ class AddressExpression(GeneralisedFieldExpression):
         return getattr(address_model, self.field.lower())
 
 
+class AddressesExpression(GeneralisedFieldExpression):
+    # Demographics/Addresses
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+
+    def evaluate(self, patient_model, mongo_data):
+        return [ address_object for address_object in PatientAddress.objects.filter(patient=patient_model)]
+
+    def set_value(self, patient_model, mongo_record, address_maps, **kwargs):
+        #  address = models.TextField()
+        #suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+        #state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+        #postcode = models.CharField(max_length=50)
+        #country = models.CharField(max_length=100)
+
+        #addresses = [OrderedDict([(u'State', u'AU-NSW'), (u'AddressType', u'AddressTypeHome'), (u'Address', u'11 Green Street'),
+        #(u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
+        #(u'Country', u'AU')]), OrderedDict([(u'State', u'AU-NSW'),
+        #(u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
+        
+        # delete existing addresses ...
+        from registry.patients.models import PatientAddress, AddressType
+        for patient_address in PatientAddress.objects.filter(patient=patient_model):
+            patient_address.delete()
+
+        for address_map in address_maps:
+            patient_address = PatientAddress(patient=patient_model)
+            address_type = address_map.get("AddressType", "AddressTypeHome")
+            if address_type == "AddressTypeHome":
+                # default
+                pass
+            else:
+                # postal
+                patient_address.address_type = AddressType.get(description="POSTAL")
+                
+            patient_address.address = address_map.get("Address", "")
+            patient_address.suburb = address_map.get("SuburbTown", "")
+            patient_address.postcode = address_map.get("postcode", "")
+            patient_address.state = address_map.get("State", "")
+            patient_address.country = address_map.get("Country", "")
+            patient_address.save()
+
+        return patient_model, mongo_data
+            
+            
+            
+        
+
+
+
+        
+
+
 class ClinicalFormExpression(GeneralisedFieldExpression):
 
     def __init__(self, registry_model, form_model, section_model, cde_model):
@@ -398,6 +451,8 @@ class GeneralisedFieldExpressionParser(object):
                 return self._parse_ms_expression(field_expression)
             elif field_expression.startswith("Demographics/Address/"):
                 return self._parse_address_expression(field_expression)
+            elif field_expression == "Demographics/Addresses":
+                return AddressesExpression(self.registry_model)
             elif "/" in field_expression:
                 return self._parse_clinical_form_expression(field_expression)
             elif field_expression in self.patient_fields:
@@ -411,6 +466,7 @@ class GeneralisedFieldExpressionParser(object):
 
     def _parse_patient_fields_expression(self, field_expression):
         return PatientFieldExpression(self.registry_model, field_expression)
+
 
     def _parse_ms_expression(self, field_expression):
         try:
