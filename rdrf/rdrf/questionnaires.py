@@ -807,9 +807,6 @@ class Questionnaire(object):
                                                                        self.data)
         # self.patient_creator = PatientCreator()
 
-    def _get_display_value(self, cde_code, value):
-        return value
-
     def _generated_secton_code(self, original_form_name, original_section_code):
         return self.registry_model._generated_section_questionnaire_code(form_name, section_code)
 
@@ -826,14 +823,12 @@ class Questionnaire(object):
                 if not section_dict["allow_multiple"]:
                     logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
-                        display_value=self._get_display_value(cde_dict["code"],
-                                                                cde_dict["value"])
                         question=_Question(self.registry_model,
                                              self,
                                              form_dict["name"],
                                              section_dict["code"],
                                              cde_dict["code"],
-                                             display_value)
+                                             cde_dict["value"])
 
                         n += 1
                         question.pos=n
