@@ -278,14 +278,16 @@ class AddressesExpression(GeneralisedFieldExpression):
                 pass
             else:
                 # postal
-                patient_address.address_type = AddressType.get(description="POSTAL")
-                
+                #patient_address.address_type = AddressType.get(description="POSTAL")
+                pass
+            
             patient_address.address = address_map.get("Address", "")
             patient_address.suburb = address_map.get("SuburbTown", "")
             patient_address.postcode = address_map.get("postcode", "")
             patient_address.state = address_map.get("State", "")
             patient_address.country = address_map.get("Country", "")
             patient_address.save()
+            logger.debug("saved new address ok")
 
         return patient_model, mongo_data
             
