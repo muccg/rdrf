@@ -424,22 +424,29 @@ class Patient(models.Model):
         else:
             setting_value = False
 
+        #TODO need to support contexts - supply in kwargs
+        context_model = self.default_context(registry_model)
+
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
         parser = GeneralisedFieldExpressionParser(registry_model)
+
+        wrapper  = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
         
         if not setting_value:
             # ie retrieving a value
             # or doing an action like clearing a multisection 
             action = parser.parse(field_expression)
-            return action(self)
+            return action(self, mongo_data)
         else:
             setter = parser.parse(field_expression)
             # operate on patient_model supplying value
-            setter.set_value(self, value)
+            # gfe's operate on either sql or mongo
+            patient_model, mongo_data = setter.set_value(self, mongo_data, value)
+            patient_model.save()
+            return wrapper.update_dynamic_data(registry_model, mongo_data)
             
-            
-            
-            
+           
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper

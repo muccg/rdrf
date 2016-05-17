@@ -92,15 +92,22 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
         return items
 
 
-    def set_value(self, patient_model, mongo_data, replacement_items):
+    def set_value(self, patient_model, mongo_data, replacement_items, **kwargs):
+        # mongo data must be _nested_ 
+        logger.debug("in set_value of MultiSectionItemsExpression")
+        logger.debug("replacement items = %s" % replacement_items)
+        logger.debug("mongo_data = %s" % mongo_data)
         items = []
         for cde_map in replacement_items:
             cde_dict_list = []
             for cde_code in cde_map:
-                cde_dict = {"code" : cde_map[cde_code],
-                            "value": cde_map["value"]}
+                cde_dict = {"code" : cde_code,
+                            "value": cde_map[cde_code]}
                 cde_dict_list.append(cde_dict)
             items.append(cde_dict_list)
+
+
+        logger.debug("reconstructed items expected by Mongo: %s" % items)
 
     
             
@@ -112,6 +119,7 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
             return patient_model, mongo_data
 
         else:
+            
             form_exists = False
             section_exists = False
             for form_dict in mongo_data["forms"]:
@@ -119,14 +127,16 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                     form_exists = True
                     for section_dict in form_dict["sections"]:
                         if section_dict["code"] == self.section_model.code:
+                            logger.debug("found section to update")
                             section_exists = True
                             section_dict["cdes"] = items
                             return patient_model, mongo_data
                     if not section_exists:
-                        section_dict = {"code": self.secion_model.code,
+                        section_dict = {"code": self.section_model.code,
                                         "allow_multiple": True,
                                         "cdes": items}
                         form_dict["sections"].append(section_dict)
+                        logger.debug("section didn't exist in patient record so created new one")
                         return patient_model, mongo_data
             if not form_exists:
                 form_dict = {"name": self.form_model.name,
@@ -135,6 +145,7 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                                             "cdes": items}]
                              }
                 mongo_data["forms"].append(form_dict)
+                logger.debug("form didnt exist so created new one")
                 return patient_model, mongo_data
             
                     

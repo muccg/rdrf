@@ -748,6 +748,21 @@ class _Multisection(object):
     def name(self):
         return self.target.display_name
 
+    @property
+    def value(self):
+        # Eg Multisection like this with two items:
+        #
+        # ITEM 1:
+        # DRUG_NAME Neurophen
+        # DRUG_DOSE 22
+        #
+        # ITEM 2:
+        # DRUG_NAME Aspirin
+        # DRUG_DOSE 10
+        # returns list of (ordered)maps as value
+        # [{"DRUG_NAME": "Neurophen", "DRUG_DOSE": 22}, ..]
+        
+        return [ item.value_map for item in self.items]
 
 
 
@@ -887,6 +902,8 @@ class Questionnaire(object):
         multisection_questions = [q for q in selected_questions if q.is_multi]
         for q in multisection_questions:
             logger.debug("about to evaluate field expression %s" % q.field_expression)
+            logger.debug("value to update = %s" % q.value)
+            
             
             patient_model.evaluate_field_expression(self.registry_model,
                                                     q.field_expression,
