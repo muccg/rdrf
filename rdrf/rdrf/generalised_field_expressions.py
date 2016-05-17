@@ -148,23 +148,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                 logger.debug("form didnt exist so created new one")
                 return patient_model, mongo_data
             
-                    
-
-            
-            
-            
-                    
-                            
-                    
-    
-                                    
-                                
-                        
-            
-        
-        
-
-
 
 class AddMultiSectionItemExpression(GeneralisedFieldExpression):
     # "$op/<FORMNAME>/<SECTIONCODE/add"
@@ -178,7 +161,7 @@ class AddMultiSectionItemExpression(GeneralisedFieldExpression):
         else:
             self.section_model = section_model
 
-    def set_value(self, patient_model, mongo_data, item_cde_map):
+    def set_value(self, patient_model, mongo_data, item_cde_map, **kwargs):
         # add new item which is a list of cde dicts
         item = []
         for cde_code in item_cde_map:
@@ -216,7 +199,7 @@ class PatientFieldExpression(GeneralisedFieldExpression):
     def evaluate(self, patient_model, mongo_data):
         return getattr(patient_model, self.field)
 
-    def set_value(self, patient_model, mongo_data, new_value):
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         setattr(patient_model, self.field, new_value)
 
 
