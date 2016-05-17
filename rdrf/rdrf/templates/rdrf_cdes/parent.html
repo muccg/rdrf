@@ -13,6 +13,12 @@
     
         $(document).ready(function(){
             $("#id_date_of_birth").datepicker({
+                beforeShow: function(input, inst) {
+                    $(document).off('focusin.bs.modal');
+                },
+                onClose:function(){
+                    $(document).on('focusin.bs.modal');
+                },
                 changeMonth: true,
                 changeYear: true,
                 dateFormat: 'yy-mm-dd',
