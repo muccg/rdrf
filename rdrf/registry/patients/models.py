@@ -378,8 +378,7 @@ class Patient(models.Model):
             logger.debug("succeeded = %s" % succeeded)
             logger.debug("total = %s" % total)
 
-
-            logger.debug("updating %s" % field_expression)
+            logger.debug("%%%%%%%% updating field %s" % field_expression)
 
             total += 1
             try:
@@ -402,7 +401,7 @@ class Patient(models.Model):
                 continue
 
             except Exception, ex:
-                logger.debug("Erroring setting value in mongo data: %s" % ex)
+                logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
             
 
         logger.debug("errors = %s" % errors)
