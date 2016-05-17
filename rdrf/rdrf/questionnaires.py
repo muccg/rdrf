@@ -663,6 +663,14 @@ class _Question(object):
 
         # the generated section code in a questionnaire encodes the original form name and
         # original section code ... ugh
+
+        if self.cde_code in KEY_MAP:
+            demographic_field = KEY_MAP[self.cde_code][0]
+            target_expression = demographic_field
+            target_display_name = demographic_field
+            return TargetCDE(target_display_name, target_expression)
+            
+        
         t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
             self.section_code)
 
@@ -831,12 +839,10 @@ class Questionnaire(object):
         n=0
 
         for form_dict in self.data["forms"]:
-            logger.debug("adding questions for %s" % form_dict["name"])
             for section_dict in form_dict["sections"]:
                 if section_dict["code"] == "PatientDataAddressSection":
                     continue
                 if not section_dict["allow_multiple"]:
-                    logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
                         question=_Question(self.registry_model,
                                              self,
@@ -848,11 +854,8 @@ class Questionnaire(object):
                         n += 1
                         question.pos=n
                         l.append(question)
-                        logger.debug("question %s added" % question)
 
                 else:
-                    logger.debug(
-                        "adding multisection question for section %s" % section_dict["code"])
                     # unit of selection is the entire section ..
                     n += 1
                     multisection= _Multisection(self.registry_model,
@@ -861,14 +864,11 @@ class Questionnaire(object):
                                                  section_dict["code"])
 
                     for item in section_dict["cdes"]:
-                        logger.debug("getting item %s" % item)
                         value_map = OrderedDict()
                         # each item is a list of cde dicts
                         for cde_dict in item:
                             value_map[cde_dict["code"]] = cde_dict["value"]
 
-                        logger.debug("value_map = %s" % value_map)
-                        
                         multisection_item = _MultiSectionItem(self.registry_model,
                                                               multisection.form_model,
                                                               multisection.section_model,
@@ -877,7 +877,6 @@ class Questionnaire(object):
 
                     multisection.pos=n
                     l.append(multisection)
-                    logger.debug("multisection %s added" % multisection.name)
 
 
 
@@ -902,9 +901,6 @@ class Questionnaire(object):
         multisection_questions = [q for q in selected_questions if q.is_multi]
         for q in multisection_questions:
             logger.debug("about to evaluate field expression %s" % q.field_expression)
-            logger.debug("value to update = %s" % q.value)
-            
-            
             patient_model.evaluate_field_expression(self.registry_model,
                                                     q.field_expression,
                                                     value=q.value)
