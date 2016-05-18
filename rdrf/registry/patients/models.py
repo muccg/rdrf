@@ -409,7 +409,6 @@ class Patient(models.Model):
         logger.debug("total = %s" % total)
 
         try:
-            logger.debug("****  mongo data = %s" % mongo_data)
             wrapper.update_dynamic_data(registry_model, mongo_data)
         except Exception, ex:
             logger.error("Error update_dynamic_data: %s" % ex)
@@ -431,6 +430,14 @@ class Patient(models.Model):
 
         wrapper  = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
         mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
+
+        if mongo_data is None:
+            # ensure we have sane data frame
+            mongo_data = {"django_id": self.pk,
+                          "django_model": "Patient",
+                          "context_id": context_model.pk,
+                          "forms": []}
+                          
         
         if not setting_value:
             # ie retrieving a value
