@@ -718,6 +718,7 @@ class _ConsentQuestion(object):
             self.answer = "Yes"
         else:
             self.answer = "No"
+        self.value = self.answer == "Yes"
 
         self.name = self.consent_question_model.question_label
         self.src_id = self.key
@@ -1098,12 +1099,21 @@ class Questionnaire(object):
         # begin transaction ... etc
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
+        logger.debug("starting updating patient %s (%s) from questionnaire data" % (patient_model, patient_model.pk))
+        
         non_multi_updates=[(q.target.field_expression, q.value)
                             for q in selected_questions if not q.is_multi]
+
+        logger.debug("applying %s non multi updates" % len(non_multi_updates))
+
         patient_model.update_field_expressions(
             self.registry_model, non_multi_updates)
 
+
+        logger.debug("applied all single updates OK")
+
         multisection_questions = [q for q in selected_questions if q.is_multi]
+        logger.debug("applying %s multisection updates" % len(multisection_questions))
         for q in multisection_questions:
             logger.debug("about to evaluate field expression %s" % q.field_expression)
             patient_model.evaluate_field_expression(self.registry_model,
@@ -1111,6 +1121,7 @@ class Questionnaire(object):
                                                     value=q.value)
 
         patient_model.save()
+        logger.debug("finished update OK")
         
             
         

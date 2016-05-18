@@ -201,7 +201,11 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
 
     data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
     logger.debug("There are %s data points to update" % len(data_to_update))
-    result = questionnaire.update_patient(patient_model, data_to_update)
+    try:
+        result = questionnaire.update_patient(patient_model, data_to_update)
+    except Exception, ex:
+        logger.error("Error updating patient from questionnaire questions: %s" % ex)
+        raise 
 
     return result
     
