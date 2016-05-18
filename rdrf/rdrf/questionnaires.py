@@ -653,7 +653,7 @@ class _ExistingDataWrapper(object):
 
 
 class _ConsentQuestion(object):
-        # Mongo record looks like:
+        # Mongo record looks like this on questionnaire:
         #                                                                        question
         #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
         #"custom_consent_data" : {
@@ -677,7 +677,23 @@ class _ConsentQuestion(object):
         self.raw_value = raw_value
         self.answer = None
         self.name = None
+        self.src_id = None
+        self.dest_id = None
+        
         self._parse()
+        self.target = self._get_target()
+
+    def _get_target(self):
+        class ConsentTarget:
+            def __init__(self):
+                self.field_expression = None
+
+        target = ConsentTarget()
+        #Consents/ConsentSectionCode/ConsentQuestionCode/field
+
+        target.field_expression = "Consents/%s/%s/answer" % (self.consent_section_model.code,
+                                                             self.consent_question_model.code)
+        return target
         
     def _parse(self):
         try:
@@ -704,6 +720,8 @@ class _ConsentQuestion(object):
             self.answer = "No"
 
         self.name = self.consent_question_model.question_label
+        self.src_id = self.key
+        
 
         self.valid = True
     

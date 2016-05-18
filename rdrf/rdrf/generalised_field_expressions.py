@@ -222,7 +222,28 @@ class ConsentExpression(GeneralisedFieldExpression):
         return patient_model.get_consent(self.consent_question_model, self.field)
 
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
-        raise NotImplementedError("to do")
+        # must be answer field , True False for new_value
+        # ignores applicability?!
+        logger.debug("** CONSENT EXPRESSION: setting new consent %s" % self.consent_question_model.question_label) 
+        if self.field != "answer":
+            raise NotImplementedError("only can update consent  answer")
+        
+        from registry.patients.models import ConsentValue
+        try:
+            consent_value_model = ConsentValue.objects.get(patient=patient_model,
+                                                           consent_question=self.consent_question_model)
+            consent_value_model.answer = new_value
+            consent_value_model.save()
+            logger.debug("updated answer to %s OK" % consent_value_model.answer)
+        except ConsentValue.DoesNotExist:
+            logger.debug("consent answer does not exist - creating")
+            consent_value_model = ConsentValue()
+            consent_value_model.patient = patient_model
+            consent_value_model.consent_question = self.consent_question_model
+            consent_value_model.answer = new_value
+            consent_value_model.save()
+            logger.debug("updated answer to %s OK" % consent_value_model.answer)
+        return patient_model, mongo_data
 
 
 class ReportExpression(GeneralisedFieldExpression):
