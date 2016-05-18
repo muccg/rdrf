@@ -188,12 +188,36 @@ class PatientFieldExpression(GeneralisedFieldExpression):
     def evaluate(self, patient_model, mongo_data):
         if self.field == "next_of_kin_relationship":
             return patient_model.next_of_kin_relationship.relationship
+        elif self.field == "working_groups":
+            return [ wg for wg in patient_model.working_groups.all()]
         
         return getattr(patient_model, self.field)
 
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         if self.field == "next_of_kin_relationship":
             self._set_next_of_kin_relationship(patient_model, new_value)
+        elif self.field == "working_groups":
+            logger.debug("field is working group")
+            from registry.groups.models import WorkingGroup
+            if isinstance(new_value, basestring):
+                logger.debug("updating working group to %s" % new_value)
+                try:
+                    working_group = WorkingGroup.objects.get(registry=self.registry_model,
+                                                             name=new_value)
+                    patient_model.working_groups = [working_group]
+                    patient_model.save()
+                except WorkingGroup.DoesNotExist:
+                    logger.error("Working group %s does not exist" % new_value)
+                    raise Exception("can't update working group on %s" % patient_model)
+            elif isinstance(new_value, WorkingGroup):
+                logger.debug("updating from an object")
+                patient_model.working_groups = [new_value]
+                patient_model.save()
+            else:
+                logger.error("can't update working group to %s" % new_value)
+                raise Exception("can't update working group on %s" % patient_model)
+            
+                    
         else:
             setattr(patient_model, self.field, new_value)
         return patient_model, mongo_data
@@ -450,7 +474,9 @@ class GeneralisedFieldExpressionParser(object):
         self.patient_fields = self._get_patient_fields()
 
     def _get_patient_fields(self):
-        return set([field.name for field in Patient._meta.fields])
+        s = set([field.name for field in Patient._meta.fields])
+        s.add("working_groups")
+        return s
 
     def parse(self, field_expression):
         try:

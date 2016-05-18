@@ -473,6 +473,7 @@ class _ExistingDataWrapper(object):
         self.name = "%s" % self.patient_model
 
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
+        logger.debug("getting existing data for %s" % field_expression)
         if field_expression in KEY_MAP.keys():
             original_expression = field_expression
             field_expression = KEY_MAP[field_expression][
@@ -481,6 +482,8 @@ class _ExistingDataWrapper(object):
         retrieval_function = self.gfe_parser.parse(field_expression)
         try:
             value = retrieval_function(self.patient_model, self.patient_data)
+            if field_expression == "working_groups":
+                return self._get_working_groups_display_value(value)
             value = self.humaniser.display_value2(
                 form_model, section_model, cde_model, value)
 
@@ -490,6 +493,9 @@ class _ExistingDataWrapper(object):
 
         except Exception, ex:
             return "Error[!%s]" % ex
+
+    def _get_working_groups_display_value(self, working_group_models):
+        return ",".join(sorted([wg.name for wg in working_group_models]))
 
     @property
     def link(self):
