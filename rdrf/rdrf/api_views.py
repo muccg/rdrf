@@ -119,7 +119,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 
 class ListCountries(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, format=None):
         countries = sorted(pycountry.countries, key=lambda c: c.name)
@@ -143,7 +143,7 @@ class ListCountries(APIView):
 
 
 class ListStates(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, country_code, format=None):
         try:
