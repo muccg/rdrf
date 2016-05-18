@@ -843,7 +843,10 @@ class _MultiSectionItem(object):
                                                               cde_model,
                                                               raw_value)
             else:
-                display_value = cde_code
+                if cde_code == "AddressType":
+                    display_value = raw_value.replace("AddressType", "")
+                else:
+                    display_value = raw_value
 
             
             fields.append("%s=%s" % (display_name, display_value))
