@@ -565,10 +565,11 @@ class _ExistingDataWrapper(object):
         #country = models.CharField(max_length=100)
 
         def address_label(address):
-            if address.address_type == 1:
-                atype = "HOME"
-            else:
-                atype = "POSTAL"
+            try:
+                atype = address.address_type.description
+            except Exception, ex:
+                atype = "%s" % ex
+                
             return "%s: %s %s %s %s %s" % (atype,
                                            address.address,
                                            address.suburb,
@@ -955,8 +956,6 @@ class Questionnaire(object):
 
         multisection_questions = [q for q in selected_questions if q.is_multi]
         for q in multisection_questions:
-            if q.is_address:
-                continue
             logger.debug("about to evaluate field expression %s" % q.field_expression)
             patient_model.evaluate_field_expression(self.registry_model,
                                                     q.field_expression,

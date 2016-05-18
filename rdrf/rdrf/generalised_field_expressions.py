@@ -186,6 +186,9 @@ class PatientFieldExpression(GeneralisedFieldExpression):
         self.field = field
 
     def evaluate(self, patient_model, mongo_data):
+        if self.field == "next_of_kin_relationship":
+            return patient_model.next_of_kin_relationship.relationship
+        
         return getattr(patient_model, self.field)
 
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
@@ -281,14 +284,8 @@ class AddressesExpression(GeneralisedFieldExpression):
             logger.debug("processing address map: %s" % address_map)
             patient_address = PatientAddress(patient=patient_model)
             address_type = address_map.get("AddressType", "AddressTypeHome")
-            if address_type == "AddressTypeHome":
-                # default
-                pass
-            else:
-                # postal
-                #patient_address.address_type = AddressType.get(description="POSTAL")
-                pass
-            
+            address_type_object = self._get_address_type(address_type)
+            patient_address.address_type = address_type_object
             patient_address.address = address_map.get("Address", "")
             patient_address.suburb = address_map.get("SuburbTown", "")
             patient_address.postcode = address_map.get("postcode", "")
@@ -297,15 +294,19 @@ class AddressesExpression(GeneralisedFieldExpression):
             patient_address.save()
             logger.debug("saved new address ok")
 
-        return patient_model, mongo_data
-            
-            
-            
-        
+        return patient_model, mongo_record
 
+    def _get_address_type(self, address_type):
+        if address_type.startswith("AddressType"):
+            address_type = address_type.replace("AddressType", "")
+        from registry.patients.models import AddressType
+        for x in AddressType.objects.all():
+            if address_type.lower() in x.description.lower():
+                return x
 
-
-        
+        types = [ a for a in AddressType.objects.all().order_by("description")]
+        if len(types) > 0:
+            return types[0]
 
 
 class ClinicalFormExpression(GeneralisedFieldExpression):
