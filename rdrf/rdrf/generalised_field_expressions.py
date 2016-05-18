@@ -189,8 +189,23 @@ class PatientFieldExpression(GeneralisedFieldExpression):
         return getattr(patient_model, self.field)
 
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
-        setattr(patient_model, self.field, new_value)
+        if self.field == "next_of_kin_relationship":
+            self._set_next_of_kin_relationship(patient_model, new_value)
+        else:
+            setattr(patient_model, self.field, new_value)
         return patient_model, mongo_data
+
+    def _set_next_of_kin_relationship(self, patient_model, new_value):
+        from registry.patients.models import NextOfKinRelationship
+        try:
+            nok_rel = NextOfKinRelationship.objects.get(relationship=new_value)
+        except NextOfKinRelationship.DoesNotExist:
+            nok_rel = NextOfKinRelationship()
+            nok_rel.relationship = new_value
+            nok_rel.save()
+        patient_model.next_of_kin_relationship = nok_rel
+        
+        
 
 
 class ConsentExpression(GeneralisedFieldExpression):
