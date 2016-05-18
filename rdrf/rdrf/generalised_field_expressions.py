@@ -94,9 +94,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
 
     def set_value(self, patient_model, mongo_data, replacement_items, **kwargs):
         # mongo data must be _nested_ 
-        logger.debug("in set_value of MultiSectionItemsExpression")
-        logger.debug("replacement items = %s" % replacement_items)
-        logger.debug("mongo_data = %s" % mongo_data)
         items = []
         for cde_map in replacement_items:
             cde_dict_list = []
@@ -106,11 +103,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                 cde_dict_list.append(cde_dict)
             items.append(cde_dict_list)
 
-
-        logger.debug("reconstructed items expected by Mongo: %s" % items)
-
-    
-            
         if mongo_data is None:
             mongo_data = {"forms": [ {"name": self.form_model.name,
                                       "sections": [ {"code": self.section_model.code,
@@ -127,7 +119,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                     form_exists = True
                     for section_dict in form_dict["sections"]:
                         if section_dict["code"] == self.section_model.code:
-                            logger.debug("found section to update")
                             section_exists = True
                             section_dict["cdes"] = items
                             return patient_model, mongo_data
@@ -136,7 +127,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                                         "allow_multiple": True,
                                         "cdes": items}
                         form_dict["sections"].append(section_dict)
-                        logger.debug("section didn't exist in patient record so created new one")
                         return patient_model, mongo_data
             if not form_exists:
                 form_dict = {"name": self.form_model.name,
@@ -145,7 +135,6 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                                             "cdes": items}]
                              }
                 mongo_data["forms"].append(form_dict)
-                logger.debug("form didnt exist so created new one")
                 return patient_model, mongo_data
             
 
@@ -267,10 +256,13 @@ class AddressesExpression(GeneralisedFieldExpression):
         
         # delete existing addresses ...
         from registry.patients.models import PatientAddress, AddressType
+        logger.debug("AddressesExpression - setting new addresses")
         for patient_address in PatientAddress.objects.filter(patient=patient_model):
+            logger.debug("deleting existing address")
             patient_address.delete()
 
         for address_map in address_maps:
+            logger.debug("processing address map: %s" % address_map)
             patient_address = PatientAddress(patient=patient_model)
             address_type = address_map.get("AddressType", "AddressTypeHome")
             if address_type == "AddressTypeHome":
@@ -333,25 +325,16 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
         #
         from datetime import datetime
         from rdrf.contexts_api import RDRFContextManager
-        logger.debug("set_value of %s on patient %s" %
-                     (self.cde_model.code, patient_model))
-
         context_id = kwargs.get("context_id", None)
         if context_id is None:
             context_manager = RDRFContextManager(self.registry_model)
             default_context_model = context_manager.get_or_create_default_context(
                 patient_model)
             context_id = default_context_model.pk
-        logger.debug("context_id = %s" % context_id)
 
         if not self.section_model.allow_multiple:
-            logger.debug("updating non-multisection cde")
             if mongo_record is None:
-                logger.debug("mongo record is none - creating one")
                 # create a new blank record
-
-
-
                 section_dict = {
                     "cdes": [{"code": new_value}], "allow_multiple": False}
 
@@ -368,39 +351,23 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                                 "context_id": context_id}
                 return patient_model, mongo_record
             else:
-                logger.debug("mongo record not None")
                 form_exists = False
                 section_exists = False
                 cde_exists = False
                 forms = mongo_record["forms"]
 
-                if forms is None:
-                    logger.debug("XXXX")
-
                 for form_dict in forms:
                     if form_dict["name"] == self.form_model.name:
                         form_exists = True
-                        logger.debug("found form %s" % self.form_model.name)
                         sections = form_dict["sections"]
-                        if sections is None:
-                            logger.debug("sections is None??!")
-
                         for section_dict in form_dict["sections"]:
                             if section_dict["code"] == self.section_model.code:
                                 section_exists = True
-                                logger.debug("found section %s" %
-                                             self.section_model.code)
                                 cdes = section_dict["cdes"]
-                                if cdes is None:
-                                    logger.debug("cdes is None???")
                                 for cde_dict in section_dict["cdes"]:
                                     if cde_dict["code"] == self.cde_model.code:
                                         cde_exists = True
-                                        logger.debug("found cde %s" %
-                                                     self.cde_model.code)
                                         cde_dict["value"] = new_value
-                                        logger.debug(
-                                            "updated value successfully!!!")
                                 if not cde_exists:
                                     cde_dict = {"code": self.cde_model.code,
                                                 "value": new_value}
