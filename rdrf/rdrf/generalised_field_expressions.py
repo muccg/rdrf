@@ -190,6 +190,7 @@ class PatientFieldExpression(GeneralisedFieldExpression):
 
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         setattr(patient_model, self.field, new_value)
+        return patient_model, mongo_data
 
 
 class ConsentExpression(GeneralisedFieldExpression):
@@ -336,7 +337,10 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
             if mongo_record is None:
                 # create a new blank record
                 section_dict = {
-                    "cdes": [{"code": new_value}], "allow_multiple": False}
+                    "code": self.section_model.code,
+                    "cdes": [{"code": self.cde_model.code,
+                              "value": new_value}],
+                    "allow_multiple": False}
 
                 form_timestamp_key = "%s_timestamp" % self.form_model.name
                 form_timestamp_value = datetime.now()
@@ -346,7 +350,7 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                              "sections": [section_dict]}
 
                 mongo_record = {"forms": [form_dict],
-                                "django_id": self.pk,
+                                "django_id": patient_model.pk,
                                 "django_model": "Patient",
                                 "context_id": context_id}
                 return patient_model, mongo_record
@@ -396,7 +400,8 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
 
 
         else:
-            # todo
+            # todo - NB multisection items are being replaced as a whole
+            # in the questionnaire
             return patient_model, mongo_record
 
 
