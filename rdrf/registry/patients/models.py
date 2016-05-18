@@ -383,10 +383,11 @@ class Patient(models.Model):
             total += 1
             try:
                 expression_object = parser.parse(field_expression)
-                logger.debug("parsed %s OK" % field_expression)
+                logger.debug("parsed %s OK: is a %s" % (field_expression,
+                                                        expression_object.__class__.__name__))
             except Exception, ex:
                 errors += 1
-                logger.debug("couldn't parse field expression: %s" % field_expression)
+                logger.debug("couldn't parse field expression: %s - skipping" % field_expression)
                 continue
 
 
@@ -401,6 +402,7 @@ class Patient(models.Model):
                 continue
 
             except Exception, ex:
+                errors += 1
                 logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
             
 
