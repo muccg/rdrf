@@ -17,6 +17,7 @@ import pycountry
 import logging
 logger = logging.getLogger("registry_log")
 
+CONSENTS_SECTION = "custom_consent_data"
 
 class Func(object):
 
@@ -506,6 +507,16 @@ class _ExistingDataWrapper(object):
         """
         l = []
         for question in self.questionnaire.questions:
+            logger.debug("getting existing data for question %s: %s" % (question.pos, question.name))
+
+            if isinstance(question, _ConsentQuestion):
+                existing_answer = {"name": question.name,
+                                   "pos": str(question.pos),
+                                   "is_multi": False,
+                                   "answer": self._get_consent_answer(question)
+                                   }
+                l.append(existing_answer)
+                continue
 
             if question.section_code == "PatientData":
                 field_name = self._get_patient_data_field_name(
@@ -554,6 +565,30 @@ class _ExistingDataWrapper(object):
             l.append(existing_answer)
 
         return l
+
+    def _get_consent_answer(self, consent_question):
+        #
+        # NB consent answer stored in mongo ..
+        #class ConsentValue(models.Model):
+        #patient = models.ForeignKey(Patient, related_name="consents")
+        #consent_question = models.ForeignKey(ConsentQuestion)
+        #answer = models.BooleanField(default=False)
+        #first_save = models.DateField(null=True, blank=True)
+        #last_update = models.DateField(null=True, blank=True)
+
+        from rdrf.models import ConsentQuestion
+        from registry.patients.models import ConsentValue
+        try:
+            consent_value_model = ConsentValue.objects.get(patient=self.patient_model,
+                                                           consent_question=consent_question.consent_question_model)
+            if consent_value_model.answer:
+                return "Yes"
+        except ConsentValue.DoesNotExist:
+            return "No"
+        
+
+        return "No"
+        
 
     def _get_address_labels(self, addresses_expression):
         #patient = models.ForeignKey(Patient)
@@ -616,6 +651,62 @@ class _ExistingDataWrapper(object):
     def _get_patient_address_field_name(self, cde_code):
         return cde_code
 
+
+class _ConsentQuestion(object):
+        # Mongo record looks like:
+        #                                                                        question
+        #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+        #"custom_consent_data" : {
+		#"customconsent_2_2_3" : "on",
+		#"customconsent_2_2_6" : "on",
+		#"customconsent_2_2_5" : "on",
+		#"customconsent_2_2_4" : "on",
+		#"customconsent_2_1_1" : "on",
+		#"customconsent_2_1_2" : "on"
+
+    
+    def __init__(self, registry_model, key, raw_value):
+        self.is_multi = False
+        self.is_address = False
+        self.valid = False
+        self.registry_model = registry_model
+        self.pos = 0
+        self.key = key
+        self.consent_section_model = None
+        self.consent_question_model = None
+        self.raw_value = raw_value
+        self.answer = None
+        self.name = None
+        self._parse()
+        
+    def _parse(self):
+        try:
+            _,registry_id, consent_section_pk, consent_question_pk = self.key.split("_")
+        except ValueError:
+            logger.error("invalid consent question key %s" % self.key)
+            return
+
+        from rdrf.models import ConsentSection, ConsentQuestion
+        try:
+            self.consent_section_model = ConsentSection.objects.get(pk=int(consent_section_pk))
+        except ConsentSection.DoesNotExist:
+            logger.error("Could not find consent section with pk %s" % consent_section_pk)
+            return
+        try:
+            self.consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
+        except ConsentQuestion.DoesNotExist:
+            logger.error("Could not find consent question with pk %s" % consent_question_pk)
+            return
+
+        if self.raw_value == "on":
+            self.answer = "Yes"
+        else:
+            self.answer = "No"
+
+        self.name = self.consent_question_model.question_label
+
+        self.valid = True
+    
 
 class _Question(object):
     """
@@ -891,6 +982,11 @@ class Questionnaire(object):
         l=[]
         n=0
 
+        for consent_question in self._get_consents():
+            consent_question.pos = n
+            l.append(consent_question)
+            n += 1
+
         for form_dict in self.data["forms"]:
             for section_dict in form_dict["sections"]:
                 if not section_dict["allow_multiple"]:
@@ -938,10 +1034,42 @@ class Questionnaire(object):
                     l.append(multisection)
 
 
+        
+
 
         logger.debug("questions total = %s" % len(l))
         return l
 
+    def _get_consents(self):
+        # Mongo record looks like in questionnaire - ( NB not in Patients ...):
+        # for patients , the consent data stored in django models
+        #                                                                        question
+        #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+        #"custom_consent_data" : {
+		#"customconsent_2_2_3" : "on",
+		#"customconsent_2_2_6" : "on",
+		#"customconsent_2_2_5" : "on",
+		#"customconsent_2_2_4" : "on",
+		#"customconsent_2_1_1" : "on",
+		#"customconsent_2_1_2" : "on"
+        consents = []
+        
+        if  CONSENTS_SECTION in self.data:
+            consent_block = self.data[CONSENTS_SECTION]
+            for key in consent_block:
+                _,x,y,z = key.split("_")
+                raw_value = consent_block[key]
+                logger.debug("consent key %s value %s" % (key, raw_value))
+                
+                consent_question  = _ConsentQuestion(self.registry_model,
+                                     key,
+                                     raw_value)
+
+                consents.append(consent_question)
+
+        return consents
+
+    
     def existing_data(self, patient_model):
         return _ExistingDataWrapper(self.registry_model,
                                     patient_model,
