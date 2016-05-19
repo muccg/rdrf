@@ -189,25 +189,65 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
     from registry.patients.models import Patient
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
-
-    
+    from django.db import transaction
     user = request.user
     questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
 
+    before_update = transaction.savepoint()
+    mongo_data_before_update = patient_model.get_dynamic_data(registry_model)
+
     # security checks ?
 
     data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
     logger.debug("There are %s data points to update" % len(data_to_update))
     try:
-        result = questionnaire.update_patient(patient_model, data_to_update)
+        errors = questionnaire.update_patient(patient_model, data_to_update)
     except Exception, ex:
         logger.error("Error updating patient from questionnaire questions: %s" % ex)
         raise 
 
-    return result
-    
+    if len(errors) == 0:
+        return {"status": "success", "message": "Patient updated successfully"}
+    else:
+        transaction.savepoint_rollback(before_update)
+        patient_model.update_dynamic_data(registry_model, mongo_data_before_update)
+        
+        return {"status": "fail", "message": ",".join(errors)}
 
+def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
+    logger.debug("****** running rpc create patient from questinnaire")
+    from rdrf.models import QuestionnaireResponse, Registry
+    from rdrf.questionnaires import PatientCreator, PatientCreatorState
+    from rdrf.dynamic_data import DynamicDataWrapper
+    qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    patient_creator = PatientCreator(qr.registry, request.user)
+    logger.debug("****** instantiated patient creator")
+    wrapper = DynamicDataWrapper(qr)
+    questionnaire_data = wrapper.load_dynamic_data(qr.registry.code, "cdes")
+    logger.debug("loaded questionnaire data: %s" % questionnaire_data)
+    patient_creator.create_patient(None, qr, questionnaire_data)
+    message = None
+    status = "fail"
     
+    if patient_creator.state == PatientCreatorState.CREATED_OK:
+        logger.debug("created OK!")
+        message = "Questionnaire approved - A patient record has now been created"
+        status = "success"
+    elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
+        logger.debug("failed validation")
+        message = "Patient failed to be created due to validation errors: %s" % patient_creator.error
+    elif patient_creator.state == PatientCreatorState.FAILED:
+        status = "fail"
+        logger.debug("failed")
+        error = patient_creator.error
+        logger.debug("reason: %s" % error)
+        message = "Patient failed to be created: %s" % error
+    else:
+        message = "Patient failed to be created"
+        logger.debug("failed reason unknown")
+
+
+    return {"status": status, "message": message}
