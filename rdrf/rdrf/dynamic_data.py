@@ -1194,7 +1194,6 @@ class DynamicDataWrapper(object):
 
     def iter_cdes(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        logger.debug("dynamic data = %s" % data)
         if "forms" in data:
             for form_dict in data["forms"]:
                 for section_dict in form_dict['sections']:
