@@ -19,6 +19,7 @@ logger = logging.getLogger("registry_log")
 
 CONSENTS_SECTION = "custom_consent_data"
 
+
 class Func(object):
 
     def __init__(self, func_name):
@@ -68,14 +69,6 @@ class PatientCreatorState:
     CREATED_OK = "PATIENT CREATED OK"
     FAILED_VALIDATION = "PATIENT NOT CREATED DUE TO VALIDATION ERRORS"
     FAILED = "PATIENT NOT CREATED"
-
-
-class QuestionType:
-    CLINICAL_SINGLE = 1
-    CLINICAL_MULTI = 2
-    DEMOGRAPHIC = 3
-    ADDRESS = 4
-    CONSENT = 5
 
 
 class QuestionnaireReverseMapper(object):
@@ -164,9 +157,12 @@ class QuestionnaireReverseMapper(object):
         address.country = self._get_country(getcde(address_map, "Country"))
         logger.debug("set country")
 
-        address.state = self._get_state(
-            getcde(address_map, "State"), address.country)
-        logger.debug("set state")
+        try:
+            address.state = self._get_state(
+                getcde(address_map, "State"), address.country)
+
+        except Exception, ex:
+            logger.error("Error setting state: %s" % ex)
 
         return address
 
@@ -297,6 +293,7 @@ class QuestionnaireReverseMapper(object):
                 if converter is None:
                     yield patient_attribute, self.questionnaire_data[k]
                 else:
+                    logger.debug("converter = %s" % converter)
                     yield patient_attribute, converter(self.questionnaire_data[k])
 
     def _get_patient_attribute_and_converter(self, cde_code):
@@ -320,10 +317,15 @@ class QuestionnaireReverseMapper(object):
 
         value = KEY_MAP[cde_code]
 
-        if isinstance(value, Func):
-            function_name = value.name
-            return eval(function_name)
+        if isinstance(value[1], Func):
+            function_name = value[1].name
+            if function_name == "get_working_group":
+                converter = get_working_group
+            elif function_name == "set_next_of_kin_relationship":
+                converter = set_next_of_kin_relationship
+            return value[0], converter
         else:
+            logger.debug("KEY_MAP[%s] value = %s" % (cde_code, value))
             return value
 
     def _get_demographic_data(self):
@@ -358,7 +360,6 @@ class PatientCreator(object):
         self.state = PatientCreatorState.READY
         self.error = None
 
-    @transaction.atomic
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
         before_creation = transaction.savepoint()
         patient = Patient()
@@ -372,6 +373,7 @@ class PatientCreator(object):
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
+            transaction.savepoint_rollback(before_creation)
             return
 
         try:
@@ -454,6 +456,7 @@ class PatientCreator(object):
                 pk=int(consent_question_pk))
             patient_model.set_consent(consent_question_model, answer)
 
+
 class _ExistingDataWrapper(object):
     """
     return to qr view to show data already saved on a patient
@@ -513,7 +516,8 @@ class _ExistingDataWrapper(object):
         """
         l = []
         for question in self.questionnaire.questions:
-            logger.debug("getting existing data for question %s: %s" % (question.pos, question.name))
+            logger.debug("getting existing data for question %s: %s" %
+                         (question.pos, question.name))
 
             if isinstance(question, _ConsentQuestion):
                 existing_answer = {"name": question.name,
@@ -545,27 +549,24 @@ class _ExistingDataWrapper(object):
             if field_name in KEY_MAP:
                 field_name = question.cde_model.name
 
-
             if not question.is_multi:
                 existing_answer = {"name": field_name,
-                          "pos": str(question.pos),
-                          "is_multi": False,
-                          "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
+                                   "pos": str(question.pos),
+                                   "is_multi": False,
+                                   "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
             else:
                 if not question.is_address:
                     existing_answer = {"name": field_name,
-                                       "pos" : str(question.pos),
+                                       "pos": str(question.pos),
                                        "is_multi": True,
                                        "answers": self._get_existing_multisection_data(question.field_expression,
-                                                                                   question.form_model,
-                                                                                   question.section_model)}
+                                                                                       question.form_model,
+                                                                                       question.section_model)}
                 else:
                     existing_answer = {"name": field_name,
                                        "pos": str(question.pos),
                                        "is_multi": True,
                                        "answers": self._get_address_labels(question.field_expression)}
-                
-                                                                         
 
             logger.debug("existing data = %s" % existing_answer)
             l.append(existing_answer)
@@ -575,7 +576,7 @@ class _ExistingDataWrapper(object):
     def _get_consent_answer(self, consent_question):
         #
         # NB consent answer stored in mongo ..
-        #class ConsentValue(models.Model):
+        # class ConsentValue(models.Model):
         #patient = models.ForeignKey(Patient, related_name="consents")
         #consent_question = models.ForeignKey(ConsentQuestion)
         #answer = models.BooleanField(default=False)
@@ -591,10 +592,8 @@ class _ExistingDataWrapper(object):
                 return "Yes"
         except ConsentValue.DoesNotExist:
             return "No"
-        
 
         return "No"
-        
 
     def _get_address_labels(self, addresses_expression):
         #patient = models.ForeignKey(Patient)
@@ -610,27 +609,24 @@ class _ExistingDataWrapper(object):
                 atype = address.address_type.description
             except Exception, ex:
                 atype = "%s" % ex
-                
+
             return "%s: %s %s %s %s %s" % (atype,
                                            address.address,
                                            address.suburb,
                                            address.state,
                                            address.postcode,
                                            address.country)
-        
 
         retriever = self.gfe_parser.parse(addresses_expression)
-        address_objects = retriever.evaluate(self.patient_model, self.patient_data)
-        return [ address_label(address) for address in address_objects]
-    
-        
-        
+        address_objects = retriever.evaluate(
+            self.patient_model, self.patient_data)
+        return [address_label(address) for address in address_objects]
 
     def _get_existing_multisection_data(self, field_expression, form_model, section_model):
         items_retriever = self.gfe_parser.parse(field_expression)
         display_items = []
         raw_items = items_retriever(self.patient_model, self.patient_data)
-        
+
         for item in raw_items:
             display_fields = []
             for cde_code in item:
@@ -649,7 +645,6 @@ class _ExistingDataWrapper(object):
 
         # list of items displayed as key value pairs
         return display_items
-        
 
     def _get_patient_data_field_name(self, cde_code):
         return cde_code
@@ -663,14 +658,13 @@ class _ConsentQuestion(object):
         #                                                                        question
         #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
         #"custom_consent_data" : {
-		#"customconsent_2_2_3" : "on",
-		#"customconsent_2_2_6" : "on",
-		#"customconsent_2_2_5" : "on",
-		#"customconsent_2_2_4" : "on",
-		#"customconsent_2_1_1" : "on",
-		#"customconsent_2_1_2" : "on"
+                #"customconsent_2_2_3" : "on",
+                #"customconsent_2_2_6" : "on",
+                #"customconsent_2_2_5" : "on",
+                #"customconsent_2_2_4" : "on",
+                #"customconsent_2_1_1" : "on",
+                #"customconsent_2_1_2" : "on"
 
-    
     def __init__(self, registry_model, key, raw_value):
         self.is_multi = False
         self.is_address = False
@@ -685,39 +679,45 @@ class _ConsentQuestion(object):
         self.name = None
         self.src_id = None
         self.dest_id = None
-        
+
         self._parse()
         self.target = self._get_target()
 
     def _get_target(self):
         class ConsentTarget:
+
             def __init__(self):
                 self.field_expression = None
 
         target = ConsentTarget()
-        #Consents/ConsentSectionCode/ConsentQuestionCode/field
+        # Consents/ConsentSectionCode/ConsentQuestionCode/field
 
         target.field_expression = "Consents/%s/%s/answer" % (self.consent_section_model.code,
                                                              self.consent_question_model.code)
         return target
-        
+
     def _parse(self):
         try:
-            _,registry_id, consent_section_pk, consent_question_pk = self.key.split("_")
+            _, registry_id, consent_section_pk, consent_question_pk = self.key.split(
+                "_")
         except ValueError:
             logger.error("invalid consent question key %s" % self.key)
             return
 
         from rdrf.models import ConsentSection, ConsentQuestion
         try:
-            self.consent_section_model = ConsentSection.objects.get(pk=int(consent_section_pk))
+            self.consent_section_model = ConsentSection.objects.get(
+                pk=int(consent_section_pk))
         except ConsentSection.DoesNotExist:
-            logger.error("Could not find consent section with pk %s" % consent_section_pk)
+            logger.error("Could not find consent section with pk %s" %
+                         consent_section_pk)
             return
         try:
-            self.consent_question_model = ConsentQuestion.objects.get(pk=int(consent_question_pk))
+            self.consent_question_model = ConsentQuestion.objects.get(
+                pk=int(consent_question_pk))
         except ConsentQuestion.DoesNotExist:
-            logger.error("Could not find consent question with pk %s" % consent_question_pk)
+            logger.error("Could not find consent question with pk %s" %
+                         consent_question_pk)
             return
 
         if self.raw_value == "on":
@@ -728,10 +728,9 @@ class _ConsentQuestion(object):
 
         self.name = self.consent_question_model.question_label
         self.src_id = self.key
-        
 
         self.valid = True
-    
+
 
 class _Question(object):
     """
@@ -825,8 +824,7 @@ class _Question(object):
             target_expression = demographic_field
             target_display_name = demographic_field
             return TargetCDE(target_display_name, target_expression)
-            
-        
+
         t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
             self.section_code)
 
@@ -845,7 +843,7 @@ class _Question(object):
     def _get_target_display_name(self, target_form_name, target_section_code, target_cde_code):
         try:
             target_form_model = RegistryForm.objects.get(registry=self.registry_model,
-                                                     name=target_form_name)
+                                                         name=target_form_name)
         except RegistryForm.DoesNotExist:
             target_form_model = None
 
@@ -885,27 +883,27 @@ class _Multisection(object):
         self.src_id = "test"
         self.is_multi = True
         self.items = []
-        
+
     def _get_target(self):
         if self.is_address:
             self.form_model = None
             self.section_model = None
             return TargetCDE("Addresses", "Demographics/Addresses")
-        
+
         t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
             self.section_code)
 
         original_form_name = t[0]
         original_section_code = t[1]
         self.form_model = RegistryForm.objects.get(name=original_form_name,
-                                                       registry=self.registry_model)
+                                                   registry=self.registry_model)
         self.section_model = Section.objects.get(
             code=original_section_code)
         original_display_name = "%s/%s" % (self.form_model.name,
                                            self.section_model.display_name)
 
         multisection_expression = "$ms/%s/%s/items" % (original_form_name,
-                                                  original_section_code)
+                                                       original_section_code)
         target = TargetCDE(original_display_name,
                            multisection_expression)
         return target
@@ -931,9 +929,8 @@ class _Multisection(object):
         # DRUG_DOSE 10
         # returns list of (ordered)maps as value
         # [{"DRUG_NAME": "Neurophen", "DRUG_DOSE": 22}, ..]
-        
-        return [ item.value_map for item in self.items]
 
+        return [item.value_map for item in self.items]
 
 
 class _MultiSectionItem(object):
@@ -964,15 +961,11 @@ class _MultiSectionItem(object):
                 else:
                     display_value = raw_value
 
-            
             fields.append("%s=%s" % (display_name, display_value))
-        
+
         csv = ",".join(fields)
         logger.debug("answer for multisection item: %s" % csv)
         return csv
-            
-                                                          
-
 
 
 class Questionnaire(object):
@@ -990,11 +983,11 @@ class Questionnaire(object):
     """
 
     def __init__(self, registry_model, questionnaire_response_model):
-        self.registry_model=registry_model
-        self.questionnaire_response_model=questionnaire_response_model
-        self.data=self.questionnaire_response_model.data
+        self.registry_model = registry_model
+        self.questionnaire_response_model = questionnaire_response_model
+        self.data = self.questionnaire_response_model.data
 
-        self.questionnaire_reverse_mapper=QuestionnaireReverseMapper(self.registry_model,
+        self.questionnaire_reverse_mapper = QuestionnaireReverseMapper(self.registry_model,
                                                                        None,
                                                                        self.data)
         # self.patient_creator = PatientCreator()
@@ -1004,8 +997,8 @@ class Questionnaire(object):
 
     @property
     def questions(self):
-        l=[]
-        n=0
+        l = []
+        n = 0
 
         for consent_question in self._get_consents():
             consent_question.pos = n
@@ -1017,7 +1010,7 @@ class Questionnaire(object):
                 if not section_dict["allow_multiple"]:
                     logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
-                        question=_Question(self.registry_model,
+                        question = _Question(self.registry_model,
                                              self,
                                              form_dict["name"],
                                              section_dict["code"],
@@ -1025,19 +1018,18 @@ class Questionnaire(object):
                                              cde_dict["value"])
 
                         n += 1
-                        question.pos=n
+                        question.pos = n
                         l.append(question)
 
                 else:
                     # unit of selection is the entire section ..
-                    logger.debug("adding multisection %s" % section_dict["code"])
+                    logger.debug("adding multisection %s" %
+                                 section_dict["code"])
                     n += 1
-                    multisection= _Multisection(self.registry_model,
-                                                self,
-                                                form_dict["name"],
-                                                section_dict["code"])
-
-                    
+                    multisection = _Multisection(self.registry_model,
+                                                 self,
+                                                 form_dict["name"],
+                                                 section_dict["code"])
 
                     logger.debug("created multisection object")
 
@@ -1055,12 +1047,8 @@ class Questionnaire(object):
                                                               multisection.is_address)
                         multisection.items.append(multisection_item)
 
-                    multisection.pos=n
+                    multisection.pos = n
                     l.append(multisection)
-
-
-        
-
 
         logger.debug("questions total = %s" % len(l))
         return l
@@ -1071,30 +1059,29 @@ class Questionnaire(object):
         #                                                                        question
         #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
         #"custom_consent_data" : {
-		#"customconsent_2_2_3" : "on",
-		#"customconsent_2_2_6" : "on",
-		#"customconsent_2_2_5" : "on",
-		#"customconsent_2_2_4" : "on",
-		#"customconsent_2_1_1" : "on",
-		#"customconsent_2_1_2" : "on"
+                #"customconsent_2_2_3" : "on",
+                #"customconsent_2_2_6" : "on",
+                #"customconsent_2_2_5" : "on",
+                #"customconsent_2_2_4" : "on",
+                #"customconsent_2_1_1" : "on",
+                #"customconsent_2_1_2" : "on"
         consents = []
-        
-        if  CONSENTS_SECTION in self.data:
+
+        if CONSENTS_SECTION in self.data:
             consent_block = self.data[CONSENTS_SECTION]
             for key in consent_block:
-                _,x,y,z = key.split("_")
+                _, x, y, z = key.split("_")
                 raw_value = consent_block[key]
                 logger.debug("consent key %s value %s" % (key, raw_value))
-                
-                consent_question  = _ConsentQuestion(self.registry_model,
-                                     key,
-                                     raw_value)
+
+                consent_question = _ConsentQuestion(self.registry_model,
+                                                    key,
+                                                    raw_value)
 
                 consents.append(consent_question)
 
         return consents
 
-    
     def existing_data(self, patient_model):
         return _ExistingDataWrapper(self.registry_model,
                                     patient_model,
@@ -1105,29 +1092,52 @@ class Questionnaire(object):
         # begin transaction ... etc
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
-        logger.debug("starting updating patient %s (%s) from questionnaire data" % (patient_model, patient_model.pk))
-        
-        non_multi_updates=[(q.target.field_expression, q.value)
-                            for q in selected_questions if not q.is_multi]
+        before_update = transaction.savepoint()
+        errors = []
 
-        logger.debug("applying %s non multi updates" % len(non_multi_updates))
+        logger.info("starting updating patient %s (%s) from questionnaire data" % (
+            patient_model, patient_model.pk))
 
-        patient_model.update_field_expressions(
+        non_multi_updates = [(q.target.field_expression, q.value)
+                             for q in selected_questions if not q.is_multi]
+
+        single_errors = patient_model.update_field_expressions(
             self.registry_model, non_multi_updates)
 
-
+        errors.extend(single_errors)
         logger.debug("applied all single updates OK")
 
         multisection_questions = [q for q in selected_questions if q.is_multi]
-        logger.debug("applying %s multisection updates" % len(multisection_questions))
-        for q in multisection_questions:
-            logger.debug("about to evaluate field expression %s" % q.field_expression)
-            patient_model.evaluate_field_expression(self.registry_model,
-                                                    q.field_expression,
-                                                    value=q.value)
+        logger.debug("applying %s multisection updates" %
+                     len(multisection_questions))
 
-        patient_model.save()
-        logger.debug("finished update OK")
-        
-            
-        
+        for q in multisection_questions:
+            logger.debug("about to evaluate field expression %s" %
+                         q.field_expression)
+            try:
+                patient_model.evaluate_field_expression(self.registry_model,
+                                                        q.field_expression,
+                                                        value=q.value)
+            except Exception, ex:
+                msg = "Error setting field expression %s: %s" % (
+                    q.field_expression, ex)
+                errors.append(msg)
+
+        try:
+            patient_model.save()
+        except Exception, ex:
+            msg = "Error saving patient for questionnaire update: %s" % ex
+            errors.append(msg)
+
+        num_errors = len(errors)
+
+        if num_errors == 0:
+            logger.info(
+                "Questionnaire update of Patient %s succeeded without error." % patient_model.pk)
+        else:
+            logger.info("Questionnaire update of Patient %s had %s errors: " % (
+                patient_model.pk, num_errors))
+            for msg in error_messages:
+                logger.error("Questionnaire update error: %s" % msg)
+
+        return errors
