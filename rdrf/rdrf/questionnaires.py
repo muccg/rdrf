@@ -1047,7 +1047,29 @@ class Questionnaire(object):
                     l.append(multisection)
 
         logger.debug("questions total = %s" % len(l))
+
+        l = self._correct_ordering(l)
         return l
+
+    def _correct_ordering(self, questions):
+        correct = ["Centre",
+                   "Family Name",	
+                   "Given Names",	
+                   "Date of Birth",
+                   "What is your sex?",
+                   "Home Phone",
+                   "Mobile Phone",	
+                   "Email",	
+                   "Parent/Guardian Family Name",	
+                   "Parent/Guardian Given Names",	
+                   "Parent/Guardian Relationship",
+                   "Parent/Guardian Email",
+                   "Parent/Guardian Address",	
+                   "Parent/Guardian Suburb"	
+                   "Parent/Guardian State"	
+                   "Parent/Guardian Country"]
+        
+        return questions
 
     def _get_consents(self):
         # Mongo record looks like in questionnaire - ( NB not in Patients ...):
