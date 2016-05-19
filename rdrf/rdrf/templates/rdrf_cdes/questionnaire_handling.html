@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block extrahead %}
-<style>
-  td {
-  word-wrap:break-word;
-  word-break:break-word;
-}
-  </style>
-<script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-<script type="text/javascript">
+    <style>
+    td {
+	word-wrap:break-word;
+	word-break:break-word;
+    }
+</style>
+    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <script type="text/javascript">
 
 function getLoadedPatientId() {
     return $("#patient_lookup").data;
@@ -23,184 +23,225 @@ function getCheckedQuestionIds() {
 
 function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
     console.log("sending checkedIds for loaded patient with id " + loadedPatientId);
-  }
-   
-  function QuestionnaireHandlerGui(rpc,
-  patientInfoPanelId,
-  patientInfoResultPanelId, patientDataPanelId, patientDataTableId,questionnaireContainerId,questionnaireDataPanelId) {
-  this.rpc = rpc;
-  this.patientInfoPanel = $("#" + patientInfoPanelId);
-  this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
-  this.patientDataPanel = $("#" + patientDataPanelId);
-  this.patientDataTable = $("#" + patientDataTableId);
-  this.questionnaieContainer = $("#" + questionnaireContainerId);
-  this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
-  this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
-  }
+}
 
-  var InfoSpan = _.template("<span class='label label-info'><%= text %></span><br>");
-  
-  QuestionnaireHandlerGui.prototype.wireUp = function () {
-  var self = this;
-  this.patientInfoPanel.delegate('input[type=radio]', 'click', function() {
-  var action = this.value;
-         if(action == "create") {
-	     $("#load_patient").hide();
-	     $("#patient-blurb").hide();
-	     //saveButtonUsesAjax(false);
-     }
-  else {
-      $("#load_patient").show();
-      $("#patient-blurb").show();
-       //saveButtonUsesAjax(true);
-  };});}
+function QuestionnaireHandlerGui(rpc,
+				 patientInfoPanelId,
+				 patientInfoResultPanelId, patientDataPanelId, patientDataTableId,questionnaireContainerId,questionnaireDataPanelId) {
+    this.rpc = rpc;
+    this.patientInfoPanel = $("#" + patientInfoPanelId);
+    this.patientInfoResultPanel = $("#" + patientInfoResultPanelId);
+    this.patientDataPanel = $("#" + patientDataPanelId);
+    this.patientDataTable = $("#" + patientDataTableId);
+    this.questionnaieContainer = $("#" + questionnaireContainerId);
+    this.questionnaireDataPanel = $("#" + questionnaireDataPanelId);
+    this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
+}
 
-  QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
-      var patientName = data.name;
-      var patientLink = $('<a>', { href: data.link, text: patientName});
-      var self = this;
-      this.patientInfoResultPanel.empty();
-      this.patientInfoResultPanel.append(patientLink);
-      _.each(data.questions, function (question) {
-             self.addPatientCde(question);
+var InfoSpan = _.template("<span class='label label-info'><%= text %></span><br>");
+
+QuestionnaireHandlerGui.prototype.wireUp = function () {
+    var self = this;
+    this.patientInfoPanel.delegate('input[type=radio]', 'click', function() {
+	var action = this.value;
+	if(action == "create") {
+	    $("#load_patient").hide();
+	    $("#updatebutton").hide();
+	    $("#createbutton").show();
+	    $("#patient-blurb").hide();
+	    $("#clear").hide();
+	}
+	else {
+	    $("#load_patient").show();
+	    $("#patient-blurb").show();
+	    $("#createbutton").hide();
+	    $("#updatebutton").show();
+	    $("#clear").show();
+	};});
+
+    $("input:radio:first").prop("checked", true).trigger("click");
+}
+
+QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
+    var patientName = data.name;
+    var patientLink = $('<a>', { href: data.link, text: patientName});
+    var self = this;
+    this.patientInfoResultPanel.empty();
+    this.patientInfoResultPanel.append(patientLink);
+    _.each(data.questions, function (question) {
+	self.addPatientCde(question);
     });
+}
+
+function createSpan(answer) {
+    return InfoSpan({text:answer});
+}
+
+QuestionnaireHandlerGui.prototype.addPatientCde = function (question) {
+    var cellId = "existing_" + question.pos.toString();
+    if (!question.is_multi) {
+	$("#"+cellId).text(question.answer);
+    }
+    else {
+	var spans = _.map(question.answers, createSpan);
+	console.log(spans);
+	$("#"+cellId).empty();
+	$("#"+cellId).append(spans);
+    }
+}
+
+QuestionnaireHandlerGui.prototype.clearPatientData = function () {
+    console.log("clearing table");
+}
+
+QuestionnaireHandlerGui.prototype.showPatientPanel = function () {
+    console.log("show panel");
+}
+
+QuestionnaireHandlerGui.prototype.showError = function (errorMessage) {
+    $("#messages").val(errorMessage);
+}
+
+$(document).ready(function() {
+
+    $("#messages-panel").hide();
+
+    $.ajaxSetup({
+	beforeSend: function (xhr) {
+	    var csrfToken = '{{ csrf_token }}';
+	    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+	}
+    });
+
+    var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+    
+
+
+    $("#patient_lookup").keyup(function () {
+	lookupPatient($(this), '{{patient_lookup_url}}');
+    });
+
+    function lookupPatient(element, source_url) {
+	element.autocomplete({
+	    source: source_url,
+	    minLength: 1,
+	    select: function (event, ui) {
+		$(element).data("patient_id", ui.item.pk);
+	    }
+	}).data("ui-autocomplete")._renderItem = function (ul, item) {
+	    item.pk = item.value;  // so we can load
+	    item.value = item.label;
+	    return $("<li>")
+		.append("<a>" + item.label + "</a>")
+		.appendTo(ul);
+	};
     }
 
-  function createSpan(answer) {
-    return InfoSpan({text:answer});
-  }
-        
-  QuestionnaireHandlerGui.prototype.addPatientCde = function (question) {
-      var cellId = "existing_" + question.pos.toString();
-      if (!question.is_multi) {
-         $("#"+cellId).text(question.answer);
-      }
-      else {
-          var spans = _.map(question.answers, createSpan);
-          console.log(spans);
-          $("#"+cellId).empty();
-          $("#"+cellId).append(spans);
-      }
-  }
+    var gui = new QuestionnaireHandlerGui(rpc,
+					  "patient-info",
+					  "patient-info-result",
+					  "patient-data",
+					  "patient-table",
+					  "questionnaire-container",
+					  "questionnaire-data");
 
-  QuestionnaireHandlerGui.prototype.clearPatientData = function () {
-      console.log("clearing table");
-  }
+    gui.wireUp();
 
-  QuestionnaireHandlerGui.prototype.showPatientPanel = function () {
-      console.log("show panel");
-  }
+    function getAction() {
+	return $("#patient-info input[type='radio']:checked").val();
+    }
 
-  QuestionnaireHandlerGui.prototype.showError = function (errorMessage) {
-  $("#messages").val(errorMessage);
-  }
-  
-  $(document).ready(function() {
+    function getPatientId() {
+	return $("#patient_lookup").data("patient_id");
+    }
 
-      $.ajaxSetup({
-          beforeSend: function (xhr) {
-              var csrfToken = '{{ csrf_token }}';
-              xhr.setRequestHeader('X-CSRFToken', csrfToken);
-          }
-      });
+    function displayMessage(succeeded, message) {
+	if (succeeded) {
+	    $("#patient-info").append("<div class='alert alert-alert alert-success'>" + message +"</div>");
+	}
+	else {
+	    $("#patient-info").append("<div class='alert alert-alert alert-danger'>" + message + "</div>");
+	}
 
-      var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-      
+	$(".alert").fadeOut(3000, function () {
+	    $(this).remove();
+	});
 
+    }
 
-      $("#patient_lookup").keyup(function () {
-          lookupPatient($(this), '{{patient_lookup_url}}');
-      });
-
-      function lookupPatient(element, source_url) {
-          element.autocomplete({
-              source: source_url,
-              minLength: 1,
-              select: function (event, ui) {
-                  $(element).data("patient_id", ui.item.pk);
-              }
-          }).data("ui-autocomplete")._renderItem = function (ul, item) {
-              item.pk = item.value;  // so we can load
-              item.value = item.label;
-              return $("<li>")
-                      .append("<a>" + item.label + "</a>")
-                      .appendTo(ul);
-          };
-      }
-
-      var gui = new QuestionnaireHandlerGui(rpc,
-                                          "patient-info",
-                                          "patient-info-result",
-                                          "patient-data",
-                                          "patient-table",
-                                          "questionnaire-container",
-								     "questionnaire-data");
-
-      gui.wireUp();
-
-      function getAction() {
-	  return $("#patient-info input[type='radio']:checked").val();
-      }
-
-      function getPatientId() {
-        return $("#patient_lookup").data("patient_id");
-      }
-
-      
-      
-      $("#savebutton").click(function (event) {
-	  var action = getAction();
-	  alert(action);
-	  if (action == "update"){
-	    event.preventDefault();
-	      var patientId = getPatientId();
-	      var selectedQuestionIds = getCheckedQuestionIds();
-	      var questionnaireId = {{qr_model.pk}};
-	      
-	      rpc.send("update_selected_cdes_from_questionnaire", [patientId, questionnaireId, selectedQuestionIds], function(response) {
-		  alert(response.status);
-	      });
-	      
-	    
-	  }
-	  else {
-	      // create new patient from questionnaire
-	      // need to submit
-	      alert(action);
-	  };
-      });
-      
+    $("#updatebutton").click(function (event) {
+	var action = getAction();
+	var patientId = getPatientId();
+	var selectedQuestionIds = getCheckedQuestionIds();
+	var questionnaireId = {{qr_model.pk}};
+	displayMessage(true, "Updating ...");
+	
+	rpc.send("update_selected_cdes_from_questionnaire", [patientId, questionnaireId, selectedQuestionIds], function(response) {
+	    if (response.status == "fail") {
+		displayMessage(false, "Update failed - error on server: " + response.error);
+	    } else {
+		var result = response.result;
+		if (result.status == "fail") {
+		    displayMessage(false, result.message);
+		}
+		else {
+		    displayMessage(true, "Patient updated from questionnaire successfully");
+		}
+		
+	    }
+	});
+	
+    });
 
 
-      $("#load_patient_button").click(function () {
-          var qrModelId = {{qr_model.pk}};
-          var lookedUpPatientId = getPatientId();
+    $("#createbutton").click(function () {
+	var questionnaireId = {{qr_model.pk}};
+	displayMessage(true, "Creating new patient from questionnaire data");
+	rpc.send("create_patient_from_questionnaire",[questionnaireId], function(response) {
+	    if (response.status == "fail") {
+		displayMessage(false, "Create failed - error on server:" + response.error);
+	    }
+	    else
+	    {
+		var result = response.result;
+		if (result.status == "fail") {
+		    displayMessage(false, "Patient not created: " + result.message);
+		}
+		else {
+		    displayMessage(true, "Created patient successfully from questionnaire");
+		}
+	    }
+	});
+    });
 
-          rpc.send("load_matched_patient_data", [lookedUpPatientId, qrModelId],
-                  function (response) {
-                      if (response.status == "success") {
-                          gui.clearPatientData();
-                          gui.loadPatientData(response.result);
-                      }
-                      else {
-                          gui.showError(result.errorMessage);
-                      }
-                      ;
-                  });
-      })
-  });
+    $("#load_patient_button").click(function () {
+	var qrModelId = {{qr_model.pk}};
+	var lookedUpPatientId = getPatientId();
+
+	rpc.send("load_matched_patient_data", [lookedUpPatientId, qrModelId],
+		 function (response) {
+		     if (response.status == "success") {
+			 gui.clearPatientData();
+			 gui.loadPatientData(response.result);
+		     }
+		     else {
+			 gui.showError(result.errorMessage);
+		     }
+		     ;
+		 });
+    })
+});
 </script>
 {% endblock %}
 
 {% block content %}
-  
     {% if request.user.is_authenticated %}
-        {{ block.super }}
-        <div class="row">
-        <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
-        </div>
-        </div>
+	{{ block.super }}
+	<div class="row">
+	<div class="col-md-12">
+	    <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
+	</div>
+	</div>
     <br>
         <div class="row">
             <div class="col-md-10">
@@ -219,6 +260,10 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
                     </div>
 
              </div>
+
+	     <div  id="messages-panel" class="panel panel-info">
+	       <div id="messages" class="panel-heading"></div>
+	     </div>
 
              <div id="patient-blurb" class="panel panel-default">
                <div class="panel-heading">Patient Info</div>
@@ -282,11 +327,14 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
 
 	      <div class="col-md-2">
               <div data-spy="affix" style="width: 150px;">
-                <button id="savebutton" type="submit" class="btn btn-success btn-block" value="Save">
-                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                <button id="createbutton" type="submit" class="btn btn-success btn-block" value="Save">
+                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Create
                 </button>
-                <a href="" class="btn btn-danger btn-block">
-                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                <button id="updatebutton"  class="btn btn-success btn-block" value="Update">
+                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Update
+                </button>
+                <a id="clear" href="" class="btn btn-danger btn-block">
+                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Clear
                 </a>
               </div>
               </div>
@@ -297,6 +345,6 @@ function sendCheckedQuestionIds(loadedPatientId, checkedQuestionIds) {
 
     {% else %}
         <div class="alert alert-info">Please log in to access the registry.</div>
-    {% endif %}
+	{% endif %}
 {% endblock%}
 
