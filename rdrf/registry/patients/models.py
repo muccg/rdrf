@@ -370,6 +370,7 @@ class Patient(models.Model):
 
         logger.debug("updating field expressions ...")
         errors = 0
+        error_messages = []
         succeeded = 0
         total = 0
 
@@ -388,6 +389,7 @@ class Patient(models.Model):
             except Exception, ex:
                 errors += 1
                 logger.debug("couldn't parse field expression: %s - skipping" % field_expression)
+                error_messages.append("Parse error: %s" % field_expression)
                 continue
 
 
@@ -399,11 +401,13 @@ class Patient(models.Model):
             except NotImplementedError:
                 errors += 1
                 logger.debug("need to implement %s - skipping" %  field_expression)
+                error_messages.append("Not Implemented: %s" % field_expression)
                 continue
 
             except Exception, ex:
                 errors += 1
                 logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
+                error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
             
 
         logger.debug("errors = %s" % errors)
@@ -414,8 +418,13 @@ class Patient(models.Model):
             wrapper.update_dynamic_data(registry_model, mongo_data)
         except Exception, ex:
             logger.error("Error update_dynamic_data: %s" % ex)
-        self.save()
-        
+            error_messages.append("Failed to update: %s" % ex)
+        try:
+            self.save()
+        except Exception,ex:
+            error_messages.append("Failed to save patient: %s" % ex)
+
+        return error_messages
 
     def evaluate_field_expression(self, registry_model, field_expression, **kwargs):
         if "value" in kwargs:
@@ -816,6 +825,26 @@ class Patient(models.Model):
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
             
         return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
+
+    def update_dynamic_data(self, registry_model, new_mongo_data, context_id=None):
+        """
+        Completely replace a patient's mongo record
+        Dangerous - assumes new_mongo_data is correct structure
+        Trying it to simulate rollback if questionnaire update fails
+        """
+        from rdrf.dynamic_data import DynamicDataWrapper
+        if context_id is None:
+            default_context = self.default_context(registry_model)
+            if default_context is not None:
+                context_id = default_context.pk
+            else:
+                raise Exception("need context id to get update dynamic data for patient %s" % self.pk)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
+        # NB warning this completely replaces the existing mongo record for the patient
+        # useful for "rolling back" 
+        wrapper.update_dynamic_data(self, registry_model, new_mongo_data)
+
 
 
 class ClinicianOther(models.Model):
