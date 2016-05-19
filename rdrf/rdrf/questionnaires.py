@@ -744,12 +744,8 @@ class _Question(object):
         self.form_name = form_name
         self.pos = 0
         self.question_type = None
-        try:
-            self.form_model = RegistryForm.objects.get(registry=self.registry_model,
+        self.form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                        name=form_name)
-        except RegistryForm.DoesNotExist:
-            raise Exception("xxx")
-
         self.section_model = Section.objects.get(code=section_code)
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
         self.section_code = section_code
@@ -822,7 +818,7 @@ class _Question(object):
         if self.cde_code in KEY_MAP:
             demographic_field = KEY_MAP[self.cde_code][0]
             target_expression = demographic_field
-            target_display_name = demographic_field
+            target_display_name = CommonDataElement.objects.get(code=self.cde_code).name
             return TargetCDE(target_display_name, target_expression)
 
         t = self.questionnaire.questionnaire_reverse_mapper.parse_generated_section_code(
