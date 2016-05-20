@@ -390,7 +390,7 @@ class PatientCreator(object):
             mapper.save_patient_fields()
         except Exception as ex:
             mylogger.error("Error saving patient fields: %s" % ex)
-            raise PatientCreatorPatientFieldsError("%s" % ex)
+            raise PatientCreatorError("%s" % ex)
 
         try:
             patient.full_clean()

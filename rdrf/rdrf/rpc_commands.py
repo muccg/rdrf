@@ -195,28 +195,29 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
-
-    before_update = transaction.savepoint()
     mongo_data_before_update = patient_model.get_dynamic_data(registry_model)
 
-    # security checks ?
+    should_revert = False
 
     data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
-    logger.debug("There are %s data points to update" % len(data_to_update))
     try:
-        errors = questionnaire.update_patient(patient_model, data_to_update)
+        with transaction.atomic():
+            errors = questionnaire.update_patient(patient_model, data_to_update)
+            if len(errors) > 0:
+                raise Exception("Errors occurred during update: %s" % ",".join(errors))
     except Exception, ex:
-        logger.error("Error updating patient from questionnaire questions: %s" % ex)
-        raise 
+        should_revert = True
+        logger.error("Update patient failed: rolled back: %s" % ex)
+        
 
-    if len(errors) == 0:
+    if not should_revert:
         questionnaire_response_model.processed = True
         questionnaire_response_model.patient_id = patient_model.pk
         questionnaire_response_model.save()
         
         return {"status": "success", "message": "Patient updated successfully"}
     else:
-        transaction.savepoint_rollback(before_update)
+        logger.info("Reverting to original mongo record for patient %s" % patient_id)
         patient_model.update_dynamic_data(registry_model, mongo_data_before_update)
         
         return {"status": "fail", "message": ",".join(errors)}
