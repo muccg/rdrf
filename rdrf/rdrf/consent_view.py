@@ -32,7 +32,7 @@ class ConsentList(View):
         context = {}
     
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        patients = Patient.objects.filter(rdrf_registry__code = registry_code)
+        patients = Patient.objects.filter(rdrf_registry__code = registry_code, active=True)
 
         patient_list = {}
         for patient in patients:
