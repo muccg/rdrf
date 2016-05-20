@@ -1,7 +1,18 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from registry.patients.models import Patient, Registry
+from registry.patients.models import Patient, Registry, Doctor
 from registry.groups.models import CustomUser, WorkingGroup
+
+
+class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
+    view_name = "doctor-detail"
+
+
+class DoctorSerializer(serializers.HyperlinkedModelSerializer):
+    url = DoctorHyperlinkId(read_only=True, source='*')
+    
+    class Meta:
+        model = Doctor
 
 
 # Needed so we can display the URL to the patient that also has the registry code in it
