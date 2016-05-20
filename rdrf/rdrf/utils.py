@@ -215,15 +215,13 @@ def is_multisection(code):
         return False
 
 
-def is_file_cde(code):
+def get_cde(code):
     from rdrf.models import CommonDataElement
-    try:
-        cde = CommonDataElement.objects.get(code=code)
-        if cde.datatype == 'file':
-            return True
-    except Exception:
-        pass
-    return False
+    return CommonDataElement.objects.filter(code=code).first()
+
+def is_file_cde(code):
+    cde = get_cde(code)
+    return cde and cde.datatype == 'file'
 
 
 def is_uploaded_file(value):
