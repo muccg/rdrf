@@ -6,6 +6,7 @@ from rdrf.custom_rest_router import DefaultRouterWithSimpleViews
 router = DefaultRouterWithSimpleViews()
 router.register(r'registries', api_views.RegistryList, base_name='registry')
 router.register(r'users', api_views.CustomUserViewSet)
+router.register(r'doctors', api_views.DoctorViewSet)
 router.register(r'workinggroups', api_views.WorkingGroupViewSet)
 router.register(r'countries', api_views.ListCountries, base_name='country')
 router.register(r'genes', api_views.LookupGenes, base_name='gene')
