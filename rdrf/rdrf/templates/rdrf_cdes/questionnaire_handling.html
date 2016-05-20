@@ -50,12 +50,15 @@ QuestionnaireHandlerGui.prototype.wireUp = function () {
 	    $("#createbutton").show();
 	    $("#patient-blurb").hide();
 	    $("#clear").hide();
+	    $(".usecolumn").hide();
+	 
 	}
 	else {
 	    $("#load_patient").show();
 	    $("#patient-blurb").show();
 	    $("#createbutton").hide();
 	    $("#updatebutton").show();
+	    $(".usecolumn").show();
 	    $("#clear").show();
 	};});
 
@@ -286,7 +289,8 @@ $(document).ready(function() {
                                <th>Data Element</th>
 			       <th>Existing Data</th>
 			       <th>Questionnaire Value</th>
-			       <th>Use</th>
+			       <th class="usecolumn">Use</th>
+    
                              </tr>
 			     {% for question in questionnaire.questions %}
 			         <tr>
@@ -308,7 +312,7 @@ $(document).ready(function() {
 				     {% endfor %}
                                    </td>
 			           {% endif %} 
-			       <td><input id="{{question.src_id}}" type="checkbox" checked="checked"/></td>
+			       <td class="usecolumn"><input id="{{question.src_id}}" type="checkbox" checked="checked"/></td>
 			     </tr>
 			     {% endfor %}
 
