@@ -232,12 +232,16 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     patient_creator = PatientCreator(qr.registry, request.user)
     wrapper = DynamicDataWrapper(qr)
     questionnaire_data = wrapper.load_dynamic_data(qr.registry.code, "cdes")
+    patient_id = None
+    patient_blurb = None
 
     try:
         with transaction.atomic():
-            patient_creator.create_patient(None, qr, questionnaire_data)
+            created_patient = patient_creator.create_patient(None, qr, questionnaire_data)
             status = "success"
             message = "Patient created successfully"
+            patient_blurb = "Patient %s created successfully" % created_patient
+            patient_id = created_patient.pk
 
     except PatientCreatorError, pce:
         message = "Error creating patient: %s.Patient not created" % pce
@@ -247,4 +251,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
         message = "Unhandled error during patient creation: %s. Patient not created" % ex
         status = "fail"
         
-    return {"status": status, "message": message}
+    return {"status": status,
+            "message": message,
+            "patient_id": patient_id,
+            "patient_blurb" : patient_blurb}

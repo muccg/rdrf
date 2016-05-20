@@ -80,6 +80,18 @@ function createSpan(answer) {
     return InfoSpan({text:answer});
 }
 
+function successMessage(msg) {
+    $("#success-message").text(msg);
+}
+
+function hideDatatable() {
+    $("#datatable").hide();
+    $("#createbutton").hide();
+    $("#clear").hide();
+    $("#updatebutton").hide();
+    $("#patient-info").hide();
+}
+
 QuestionnaireHandlerGui.prototype.addPatientCde = function (question) {
     var cellId = "existing_" + question.pos.toString();
     if (!question.is_multi) {
@@ -122,6 +134,7 @@ $(document).ready(function() {
 
     $("#patient_lookup").keyup(function () {
 	lookupPatient($(this), '{{patient_lookup_url}}');
+	$(".ui-helper-hidden-accessible").hide();
     });
 
     function lookupPatient(element, source_url) {
@@ -189,6 +202,8 @@ $(document).ready(function() {
 		}
 		else {
 		    displayMessage(true, "Patient updated from questionnaire successfully");
+		    hideDatatable();
+		    successMessage(result.patient_blurb);
 		}
 		
 	    }
@@ -211,7 +226,10 @@ $(document).ready(function() {
 		    displayMessage(false, "Patient not created: " + result.message);
 		}
 		else {
-		    displayMessage(true, "Created patient successfully from questionnaire");
+	            displayMessage(true, "Created patient successfully from questionnaire");
+	            hideDatatable();
+		    successMessage(result.patient_blurb);
+	            
 		}
 	    }
 	});
@@ -250,6 +268,8 @@ $(document).ready(function() {
         <div class="row">
             <div class="col-md-10">
 
+            <div id="success-message"></div>
+
              <div id="patient-info" class="panel panel-info">
                <div class="panel-heading">Existing Patient Lookup <i>Type name to find a patient to match with or leave blank to create a new patient from the questionnaire response</i></div>
                     <div class="panel-body">
@@ -280,7 +300,7 @@ $(document).ready(function() {
 
 
     
-	     <div class="row">
+	     <div id="datatable" class="row">
 		  <div class="col-md-12">
 		   <div id="questionnaire_data" class="panel panel-default">
                      <div class="panel panel-heading">Questionnaire Data</div>
