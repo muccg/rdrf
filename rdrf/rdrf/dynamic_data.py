@@ -3,6 +3,7 @@ from rdrf.mongo_client import construct_mongo_client
 import logging
 from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.utils import is_file_cde, is_uploaded_file
+from .models import Registry
 
 from django.conf import settings
 from datetime import datetime
@@ -67,6 +68,23 @@ def find_cdes(doc, form_name=None, section_code=None, cde_code=None,
                 yield cde
 
 section_allow_multiple = lambda s, i: bool(s.get("allow_multiple"))
+section_not_allow_multiple = lambda s, i: not s.get("allow_multiple")
+
+
+def get_mongo_value(registry_code, nested_data, delimited_key):
+    """
+    Grabs a CDE value out of the mongo document.
+      nested_data: mongo document dict
+      delimited_key: form_name____section_code____cde_code
+    """
+    registry_model = Registry.objects.get(code=registry_code)
+    form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
+
+    cdes = find_cdes(nested_data, form_model.name, section_model.code,
+                     cde_model.code, sectionp=section_not_allow_multiple)
+    for cde in cdes:
+        return cde["value"]
+    raise KeyValueMissing()
 
 
 def update_multisection_file_cdes(gridfs_filestore, registry_code, form_model,
@@ -752,19 +770,6 @@ class DynamicDataWrapper(object):
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
 
         fs = self.get_filestore(registry)
-
-        def get_mongo_value(registry_code, nested_data, delimited_key):
-            from rdrf.utils import models_from_mongo_key
-            from rdrf.models import Registry
-            registry_model = Registry.objects.get(code=registry_code)
-
-            form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
-
-            cdes = find_cdes(nested_data, form_model.name, section_model.code,
-                             cde_model.code, sectionp=lambda s, i: not s["allow_multiple"])
-            for cde in cdes:
-                return cde["value"]
-            raise KeyValueMissing()
 
         logger.debug("_update_files_in_gridfs: existing record = %s new_data = %s" % (existing_record, new_data))
 
