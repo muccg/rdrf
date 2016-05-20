@@ -240,6 +240,7 @@ $(document).ready(function() {
 {% block content %}
     {% if request.user.is_authenticated %}
 	{{ block.super }}
+        {% if not qr_model.processed %}
 	<div class="row">
 	<div class="col-md-12">
 	    <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
@@ -276,6 +277,8 @@ $(document).ready(function() {
                             </div>
 
 	       </div>
+
+
     
 	     <div class="row">
 		  <div class="col-md-12">
@@ -323,10 +326,7 @@ $(document).ready(function() {
                    </div><!-- panel -->
 		  </div><!-- col -->
 
-             </div>
-	     
-
-
+                </div>
 	    </div>  <!-- col10 -->
 
 	      <div class="col-md-2">
@@ -344,7 +344,9 @@ $(document).ready(function() {
               </div>
 	      
 	    </div>
-
+{% else %}
+<span class="alert alert-danger">Questionnaire already processed!</span>
+{% endif%} 
 
 
     {% else %}

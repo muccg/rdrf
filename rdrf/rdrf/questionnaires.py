@@ -435,7 +435,9 @@ class PatientCreator(object):
         # created
         transaction.savepoint_commit(before_creation)
 
-        questionnaire_response.delete()
+        questionnaire_response.patient_id = patient.pk
+        questionnaire_response_model.processed = True
+        questionnaire_response_model.save()
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)

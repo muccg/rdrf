@@ -210,6 +210,10 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
         raise 
 
     if len(errors) == 0:
+        questionnaire_response_model.processed = True
+        questionnaire_response_model.patient_id = patient_model.pk
+        questionnaire_response_model.save()
+        
         return {"status": "success", "message": "Patient updated successfully"}
     else:
         transaction.savepoint_rollback(before_update)
