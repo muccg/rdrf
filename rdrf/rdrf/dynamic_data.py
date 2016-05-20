@@ -807,6 +807,8 @@ class DynamicDataWrapper(object):
                         gridfs_file_dict = file_wrapper.gridfs_dict
                     elif filestorage.get_id(file_wrapper):
                         gridfs_file_dict = file_wrapper
+                    else:
+                        gridfs_file_dict = None
                     logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
 
                     if gridfs_file_dict is None:
