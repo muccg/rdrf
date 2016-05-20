@@ -81,6 +81,11 @@ class QuestionnaireReverseMapper(object):
         self.patient = patient
         self.registry = registry
         self.questionnaire_data = questionnaire_data
+        # questionnaire handling works only for registry which use default context
+        if self.patient is not None:
+            self.default_context_model = self.patient.default_context(self.registry)
+        else:
+            self.default_context_model = None # ???
 
     def save_patient_fields(self):
         working_groups = []
@@ -197,7 +202,8 @@ class QuestionnaireReverseMapper(object):
                          (country_code, cde_value))
 
     def save_dynamic_fields(self):
-        wrapper = DynamicDataWrapper(self.patient)
+        default_context_model = self.patient.default_context(self.registry)
+        wrapper = DynamicDataWrapper(self.patient, rdrf_context_id=default_context_model.pk)
         wrapper.current_form_model = None
         dynamic_data_dict = {}
         form_names = set([])
@@ -351,17 +357,30 @@ class QuestionnaireReverseMapper(object):
                     return form_model.name, section_model.code
         return None, None
 
+class PatientCreatorError(Exception):
+    pass
+
 
 class PatientCreator(object):
 
     def __init__(self, registry, user):
         self.registry = registry
         self.user = user
-        self.state = PatientCreatorState.READY
-        self.error = None
 
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
-        before_creation = transaction.savepoint()
+        log_prefix = "PatientCreator on QR %s" % questionnaire_response.pk
+
+        class MyLogger(object):
+            def __init__(self, logger, log_prefix):
+                self.logger = logger
+                self.log_prefix = log_prefix
+            def error(self, msg):
+                self.logger.error(self.log_prefix + ": " + msg)
+            def info(self, msg):
+                self.logger.info(self.log_prefix + ": " + msg)
+                
+        mylogger = MyLogger(logger, log_prefix)
+        
         patient = Patient()
         patient.consent = True
         mapper = QuestionnaireReverseMapper(
@@ -370,74 +389,55 @@ class PatientCreator(object):
         try:
             mapper.save_patient_fields()
         except Exception as ex:
-            logger.error("Error saving patient fields: %s" % ex)
-            self.error = ex
-            self.state = PatientCreatorState.FAILED
-            transaction.savepoint_rollback(before_creation)
-            return
+            mylogger.error("Error saving patient fields: %s" % ex)
+            raise PatientCreatorPatientFieldsError("%s" % ex)
 
         try:
             patient.full_clean()
-            logger.debug("patient creator patient fullclean")
             patient.save()
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
         except ValidationError as verr:
-            self.state = PatientCreatorState.FAILED_VALIDATION
-            logger.error("Could not save patient %s: %s" % (patient, verr))
-            self.error = verr
-            transaction.savepoint_rollback(before_creation)
-            return
-        except Exception as ex:
-            self.error = ex
-            self.state = PatientCreatorState.FAILED
-            transaction.savepoint_rollback(before_creation)
-            return
+            mylogger.error("Could not save patient %s: %s" % (patient, verr))
+            raise PatientCreatorError("Validation Error: %s" % verr)
 
-        # set custom consents here as these need access to the patients
-        # registr(y|ies)
+        except Exception as ex:
+            mylogger.error("Unhandled error: %s" % ex)
+            raise PatientCreatorError("Unhandled error: %s" % ex)
+
         try:
-            logger.debug("creating custom consents")
             custom_consent_data = questionnaire_data["custom_consent_data"]
-            logger.debug("custom_consent_data = %s" % custom_consent_data)
             self._create_custom_consents(patient, custom_consent_data)
         except Exception as ex:
-            self.error = ex
-            self.state = PatientCreatorState.FAILED
-            transaction.savepoint_rollback(before_creation)
-            return
-
-        logger.info("created patient %s" % patient.pk)
-        questionnaire_response.patient_id = patient.pk
-        questionnaire_response.processed = True
-        questionnaire_response.save()
+            mylogger.error("Error setting consents: %s" % ex)
+            raise PatientCreatorError("Error setting consents: %s" % ex)
 
         try:
             mapper.save_dynamic_fields()
         except Exception as ex:
-            self.state = PatientCreatorState.FAILED
             logger.error("Error saving dynamic data in mongo: %s" % ex)
             try:
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" %
                             (patient.pk, self.registry))
-                transaction.savepoint_rollback(before_creation)
-                return
-            except Exception as ex:
+                raise PatientCreatorError("Error saving dynamic fields: %s" % ex)
+            except Exception as ex2:
                 logger.error("could not remove dynamic data for patient %s: %s" %
-                             (patient.pk, ex))
-                transaction.savepoint_rollback(before_creation)
-                return
+                             (patient.pk, ex2))
+                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex,ex2))
+            
+        try:
+            questionnaire_response.patient_id = patient.pk
+            questionnaire_response.processed = True
+            questionnaire_response.save()
+        except Exception, ex:
+            logger.error("couldn't set qr to processed: %s" % ex)
+            raise PatientCreatorError("Error setting qr to processed: %s" % ex)
 
-        self.state = PatientCreatorState.CREATED_OK
-        # RDR-667 we don't need to preserve the approved QRs once patient
-        # created
-        transaction.savepoint_commit(before_creation)
-
-        questionnaire_response.patient_id = patient.pk
-        questionnaire_response_model.processed = True
-        questionnaire_response_model.save()
+        mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
+        return patient
+        
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)

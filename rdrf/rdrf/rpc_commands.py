@@ -222,36 +222,28 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
         return {"status": "fail", "message": ",".join(errors)}
 
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
-    logger.debug("****** running rpc create patient from questinnaire")
     from rdrf.models import QuestionnaireResponse, Registry
-    from rdrf.questionnaires import PatientCreator, PatientCreatorState
+    from rdrf.questionnaires import PatientCreator, PatientCreatorError
     from rdrf.dynamic_data import DynamicDataWrapper
+    from django.db import transaction
+    
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)
-    logger.debug("****** instantiated patient creator")
     wrapper = DynamicDataWrapper(qr)
     questionnaire_data = wrapper.load_dynamic_data(qr.registry.code, "cdes")
-    logger.debug("loaded questionnaire data: %s" % questionnaire_data)
-    patient_creator.create_patient(None, qr, questionnaire_data)
-    message = None
-    status = "fail"
-    
-    if patient_creator.state == PatientCreatorState.CREATED_OK:
-        logger.debug("created OK!")
-        message = "Questionnaire approved - A patient record has now been created"
-        status = "success"
-    elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
-        logger.debug("failed validation")
-        message = "Patient failed to be created due to validation errors: %s" % patient_creator.error
-    elif patient_creator.state == PatientCreatorState.FAILED:
+
+    try:
+        with transaction.atomic():
+            patient_creator.create_patient(None, qr, questionnaire_data)
+            status = "success"
+            message = "Patient created successfully"
+
+    except PatientCreatorError, pce:
+        message = "Error creating patient: %s.Patient not created" % pce
         status = "fail"
-        logger.debug("failed")
-        error = patient_creator.error
-        logger.debug("reason: %s" % error)
-        message = "Patient failed to be created: %s" % error
-    else:
-        message = "Patient failed to be created"
-        logger.debug("failed reason unknown")
 
-
+    except Exception, ex:
+        message = "Unhandled error during patient creation: %s. Patient not created" % ex
+        status = "fail"
+        
     return {"status": status, "message": message}
