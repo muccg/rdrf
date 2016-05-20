@@ -137,16 +137,6 @@ class MultisectionGridFSFileHandler(object):
         section_dict[key] = original_value
         return filestorage.get_id(original_value)
 
-    def _get_multisection_gridfs_filename(self,
-                                          registry_code,
-                                          form_name,
-                                          multisection_code,
-                                          section_index,
-                                          cde_code,
-                                          original_filename):
-
-        return "****".join([registry_code, form_name, multisection_code, section_index, cde_code, original_filename])
-
     def _get_gridfs_fileids(self, items):
         result_set = set([])
         for cde_dict_list in items:
