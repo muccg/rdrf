@@ -842,8 +842,23 @@ class Patient(models.Model):
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient
-        # useful for "rolling back" 
-        wrapper.update_dynamic_data(self, registry_model, new_mongo_data)
+        # useful for "rolling back" after questionnaire update failure
+        logger.info("Warning! : Updating existing dynamic data for %s(%s) in registry %s" % (self,
+                                                                                             self.pk,
+                                                                                             registry_model))
+        logger.info("New Mongo data record = %s" % new_mongo_data)
+        if new_mongo_data is not None:
+            wrapper.update_dynamic_data(registry_model, new_mongo_data)
+        else:
+            # this means we want to delete the existing incorrect questionnaire data
+            # and go back to before the update when the patient had no data in mongo
+            logger.info("New data is None so the existing record will be deleted")
+            logger.info("deleting record for patient %s registry %s context %s" % (self.pk,
+                                                                                   registry_model,
+                                                                                   context_id))
+            wrapper.delete_patient_record(registry_model, context_id)
+            
+
 
 
 
