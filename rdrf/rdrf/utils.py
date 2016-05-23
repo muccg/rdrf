@@ -224,6 +224,10 @@ def is_file_cde(code):
     cde = get_cde(code)
     return cde and cde.datatype == 'file'
 
+def is_multiple_file_cde(code):
+    cde = get_cde(code)
+    return cde and cde.datatype == 'file' and cde.allow_multiple
+
 
 def is_uploaded_file(value):
     from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
