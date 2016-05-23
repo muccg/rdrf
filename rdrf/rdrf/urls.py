@@ -9,7 +9,8 @@ import registry.urls as common_urls
 from rdrf import api_urls
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
-import rdrf.landing_view as landing_viewimport rdrf.import_registry_view as import_registry_view
+import rdrf.landing_view as landing_view
+import rdrf.import_registry_view as import_registry_view
 import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
@@ -18,6 +19,7 @@ import rdrf.consent_view as consent_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import FamilyLookup
+from rdrf.lookup_views import PatientLookup
 from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
