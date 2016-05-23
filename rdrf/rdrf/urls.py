@@ -9,8 +9,7 @@ import registry.urls as common_urls
 from rdrf import api_urls
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
-import rdrf.landing_view as landing_view
-import rdrf.import_registry_view as import_registry_view
+import rdrf.landing_view as landing_viewimport rdrf.import_registry_view as import_registry_view
 import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
@@ -148,7 +147,7 @@ urlpatterns = patterns('',
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
-                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireResponseView.as_view(),
+                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
                            name='questionnaire_response'),
                        url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',
                            form_view.FileUploadView.as_view(), name='file_upload'),
@@ -174,6 +173,7 @@ urlpatterns = patterns('',
 
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+                       url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
                            RDRFContextLookup.as_view(),

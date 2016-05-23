@@ -370,7 +370,6 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                         return values
 
 
-
 def report_function(func):
     """
     decorator to mark a function as available in the reporting interface
@@ -379,7 +378,6 @@ def report_function(func):
     """
     func.report_function = True
     return func
-
 
 def check_calculation(calculation):
     """

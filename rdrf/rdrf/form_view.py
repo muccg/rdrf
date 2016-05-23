@@ -17,7 +17,7 @@ from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from registration import PatientCreator, PatientCreatorState
+from questionnaires import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -1095,7 +1095,69 @@ class QuestionnaireView(FormView):
             registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
+class QuestionnaireHandlingView(View):
+    @method_decorator(login_required)
+    def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
+        context = {}
+        template_name = "rdrf_cdes/questionnaire_handling.html"
+        context["registry_model"] = Registry.objects.get(code=registry_code)
+        context["form_model"]  = context["registry_model"].questionnaire
+        context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
+
+        context["questionnaire"] = Questionnaire(context["registry_model"],
+                                                 context["qr_model"])
+        
+
+        context.update(csrf(request))
+        
+        return render_to_response(
+            template_name,
+            context,
+            context_instance=RequestContext(request))
+
+                           
+
+
+   
+    def post(self, request, registry_code, questionnaire_response_id):
+        registry_model = Registry.objects.get(code=registry_code)
+        existing_patient_id = request.POST.get("existing_patient_id", None)
+        qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        form_data = request.POST.get("form_data")
+        
+        if existing_patient_id is None:
+            self._create_patient(registry_model,
+                                 qr_model,
+                                 form_data)
+        else:
+           patient_model = Patient.objects.get(pk=existing_patient_id)
+           self._update_existing_patient(patient_model,
+                                         registry_model,
+                                         qr_model,
+                                         form_data)
+
+    def _create_patient(self, registry_model, qr_model, form_data):
+        pass
+
+    def _update_existing_patient(self,
+                                 patient_model,
+                                 registry_model,
+                                 qr_model,
+                                 form_data):
+        pass
+
+        
+    
+    
+        
+        
+
 class QuestionnaireResponseView(FormView):
+    """
+    DEAD!
+    """
 
     def __init__(self, *args, **kwargs):
         super(QuestionnaireResponseView, self).__init__(*args, **kwargs)
@@ -1104,14 +1166,20 @@ class QuestionnaireResponseView(FormView):
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
 
-    @login_required_method
+
+
+    @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(
             id=questionnaire_response_id,
             registry_code=registry_code,
             model_class=QuestionnaireResponse)
+
+        questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+        
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -1126,6 +1194,9 @@ class QuestionnaireResponseView(FormView):
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
         context["show_print_button"] = False
+        
+        context["questionnaire"] = Questionnaire(self.registry,
+                                                 questionnaire_response_model)
 
         return self._render_context(request, context)
 

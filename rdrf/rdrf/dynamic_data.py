@@ -1011,6 +1011,60 @@ class DynamicDataWrapper(object):
 
         return None
 
+
+    def update_dynamic_data(self, registry_model, mongo_record):
+        logger.info("About to update %s in %s with new mongo_record %s" % (self.obj,
+                                                                           registry_model,
+                                                                           mongo_record))
+        self._set_client()
+        # replace entire mongo record with supplied one
+        # assumes structure correct ..
+        collection = self._get_collection(registry_model.code, "cdes")
+        if "_id" in mongo_record:
+            mongo_id = mongo_record["_id"]
+            logger.info("updating monfgo record for object id %s" % mongo_id)
+            logger.info("record to update = %s" % mongo_record)
+            collection.update({'_id': mongo_id}, {"$set": mongo_record}, upsert=False)
+            logger.info("updated ok")
+        else:
+            logger.info("no object id in record will insert")
+            collection.insert(mongo_record)
+            logger.info("inserted ok")
+
+    def delete_patient_record(self, registry_model, context_id):
+        self._set_client()
+        self.rdrf_context_id = context_id
+        logger.info("delete_patient_record called: patient %s registry %s context %s" % (self.obj,
+                                                                registry_model,
+                                                                context_id))
+
+        # used _only_ when trying to emulate a roll-back to no data after an exception  in questionnaire handling
+        if self.obj.__class__.__name__ != 'Patient':
+            raise Exception("can't delete non-patient record")
+
+        patient_model = self.obj
+
+
+        collection = self._get_collection(registry_model.code, "cdes")
+        logger.debug("collection = %s" % collection)
+        
+        filter = {"django_id": self.obj.pk,
+                 "django_model": 'Patient',
+                 "context_id": context_id}
+
+        logger.info("Deleting patient record from mongo for rollback: %s" % filter)
+        try:
+            collection.remove(filter)
+            logger.info("deleted OK..")
+        except Exception, ex:
+            logger.error("Error deleting record: %s" % ex)
+            
+        
+        
+        
+        
+
+
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None):
         from rdrf.models import Registry
@@ -1182,7 +1236,6 @@ class DynamicDataWrapper(object):
 
     def iter_cdes(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        logger.debug("dynamic data = %s" % data)
         if "forms" in data:
             for form_dict in data["forms"]:
                 for section_dict in form_dict['sections']:

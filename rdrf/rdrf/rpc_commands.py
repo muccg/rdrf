@@ -153,3 +153,105 @@ def rpc_registry_supports_contexts(request, registry_code):
         return registry_model.has_feature("contexts")
     except Registry.DoesNotExist:
         return False
+
+
+# questionnaire handling
+
+
+def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
+    """
+    Try to return any existing data for a patient corresponding the filled in values
+    of a questionnaire filled out by on the questionnaire interface 
+    NB. The curator is responsible for matching an existing patient to the incoming
+    questionnaire data.
+    See RDR-1229 for a description of the use case.
+    
+    The existing data returned is the existing questionnaire values for this matched patient ( not the data
+    provided in the questionnaire response itself - which potentially may overwrite the matched data if
+    the curator indicates in the approval GUI.
+    """
+    from registry.patients.models import Patient
+    from rdrf.models import QuestionnaireResponse
+    from rdrf.questionnaires import Questionnaire
+
+    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    patient_model = Patient.objects.get(pk=patient_id)
+    registry_model = questionnaire_response_model.registry
+    questionnaire = Questionnaire(registry_model, questionnaire_response_model)
+    existing_data = questionnaire.existing_data(patient_model)
+
+    return { "link": existing_data.link,
+             "name": existing_data.name,
+             "questions": existing_data.questions}
+
+
+def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnaire_response_id, questionnaire_checked_ids):
+    from registry.patients.models import Patient
+    from rdrf.models import QuestionnaireResponse
+    from rdrf.questionnaires import Questionnaire
+    from django.db import transaction
+    user = request.user
+    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    patient_model = Patient.objects.get(pk=patient_id)
+    registry_model = questionnaire_response_model.registry
+    questionnaire = Questionnaire(registry_model, questionnaire_response_model)
+    mongo_data_before_update = patient_model.get_dynamic_data(registry_model)
+
+    should_revert = False
+
+    data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
+    try:
+        with transaction.atomic():
+            errors = questionnaire.update_patient(patient_model, data_to_update)
+            if len(errors) > 0:
+                raise Exception("Errors occurred during update: %s" % ",".join(errors))
+    except Exception, ex:
+        should_revert = True
+        logger.error("Update patient failed: rolled back: %s" % ex)
+        
+
+    if not should_revert:
+        questionnaire_response_model.processed = True
+        questionnaire_response_model.patient_id = patient_model.pk
+        questionnaire_response_model.save()
+        
+        return {"status": "success", "message": "Patient updated successfully"}
+    else:
+        logger.info("Reverting to original mongo record for patient %s" % patient_id)
+        patient_model.update_dynamic_data(registry_model, mongo_data_before_update)
+        
+        return {"status": "fail", "message": ",".join(errors)}
+
+def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
+    from rdrf.models import QuestionnaireResponse, Registry
+    from rdrf.questionnaires import PatientCreator, PatientCreatorError
+    from rdrf.dynamic_data import DynamicDataWrapper
+    from django.db import transaction
+    
+    qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    patient_creator = PatientCreator(qr.registry, request.user)
+    wrapper = DynamicDataWrapper(qr)
+    questionnaire_data = wrapper.load_dynamic_data(qr.registry.code, "cdes")
+    patient_id = None
+    patient_blurb = None
+
+    try:
+        with transaction.atomic():
+            created_patient = patient_creator.create_patient(None, qr, questionnaire_data)
+            status = "success"
+            message = "Patient created successfully"
+            patient_blurb = "Patient %s created successfully" % created_patient
+            patient_id = created_patient.pk
+
+    except PatientCreatorError, pce:
+        message = "Error creating patient: %s.Patient not created" % pce
+        status = "fail"
+
+    except Exception, ex:
+        message = "Unhandled error during patient creation: %s. Patient not created" % ex
+        status = "fail"
+        
+    return {"status": status,
+            "message": message,
+            "patient_id": patient_id,
+            "patient_blurb" : patient_blurb}

@@ -351,6 +351,123 @@ class Patient(models.Model):
             else:
                 return mongo_data[key]
 
+
+    def update_field_expressions(self, registry_model, field_expressions, context_model=None):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        from rdrf.form_progress import FormProgress
+        if registry_model.has_feature("contexts") and context_model is None:
+            raise Exception("No context model set")
+        elif not registry_model.has_feature("contexts") and context_model is not None:
+            raise Exception("context model should not be explicit for non-supporting registry")
+        elif not registry_model.has_feature("contexts") and context_model is None:
+            # the usual case
+            from rdrf.contexts_api import RDRFContextManager
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(self)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper._set_client()
+        parser = GeneralisedFieldExpressionParser(registry_model)
+        mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
+
+        logger.debug("updating field expressions ...")
+        errors = 0
+        error_messages = []
+        succeeded = 0
+        total = 0
+
+        for field_expression, new_value in field_expressions:
+            logger.debug("errors = %s" % errors)
+            logger.debug("succeeded = %s" % succeeded)
+            logger.debug("total = %s" % total)
+
+            logger.debug("%%%%%%%% updating field %s" % field_expression)
+
+            total += 1
+            try:
+                expression_object = parser.parse(field_expression)
+                logger.debug("parsed %s OK: is a %s" % (field_expression,
+                                                        expression_object.__class__.__name__))
+            except Exception, ex:
+                errors += 1
+                logger.debug("couldn't parse field expression: %s - skipping" % field_expression)
+                error_messages.append("Parse error: %s" % field_expression)
+                continue
+
+
+            try:
+                logger.debug("attempting to update %s --> %s" % (field_expression, new_value))
+                self, mongo_data = expression_object.set_value(self, mongo_data, new_value, context_id=context_model.pk)
+                logger.debug("%s --> %s OK!" % (field_expression, new_value))
+                succeeded += 1
+            except NotImplementedError:
+                errors += 1
+                logger.debug("need to implement %s - skipping" %  field_expression)
+                error_messages.append("Not Implemented: %s" % field_expression)
+                continue
+
+            except Exception, ex:
+                errors += 1
+                logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
+                error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
+            
+
+        logger.debug("errors = %s" % errors)
+        logger.debug("succeeded = %s" % succeeded)
+        logger.debug("total = %s" % total)
+
+        try:
+            wrapper.update_dynamic_data(registry_model, mongo_data)
+        except Exception, ex:
+            logger.error("Error update_dynamic_data: %s" % ex)
+            error_messages.append("Failed to update: %s" % ex)
+        try:
+            self.save()
+        except Exception,ex:
+            error_messages.append("Failed to save patient: %s" % ex)
+
+        return error_messages
+
+    def evaluate_field_expression(self, registry_model, field_expression, **kwargs):
+        if "value" in kwargs:
+            setting_value= True
+            value = kwargs["value"]
+        else:
+            setting_value = False
+
+        #TODO need to support contexts - supply in kwargs
+        context_model = self.default_context(registry_model)
+
+        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        parser = GeneralisedFieldExpressionParser(registry_model)
+
+        wrapper  = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
+
+        if mongo_data is None:
+            # ensure we have sane data frame
+            mongo_data = {"django_id": self.pk,
+                          "django_model": "Patient",
+                          "context_id": context_model.pk,
+                          "forms": []}
+                          
+        
+        if not setting_value:
+            # ie retrieving a value
+            # or doing an action like clearing a multisection 
+            action = parser.parse(field_expression)
+            return action(self, mongo_data)
+        else:
+            setter = parser.parse(field_expression)
+            # operate on patient_model supplying value
+            # gfe's operate on either sql or mongo
+            patient_model, mongo_data = setter.set_value(self, mongo_data, value)
+            patient_model.save()
+            return wrapper.update_dynamic_data(registry_model, mongo_data)
+            
+           
+
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
@@ -696,6 +813,56 @@ class Patient(models.Model):
                 return my_contexts[0]
 
         return None
+
+    
+    def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
+        from rdrf.dynamic_data import DynamicDataWrapper
+        logger.debug("in get_dynamic_data")
+        if context_id is None:
+            default_context = self.default_context(registry_model)
+            if default_context is not None:
+                context_id = default_context.pk
+            else:
+                raise Exception("need context id to get dynamic data for patient %s" % self.pk)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
+            
+        return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
+
+    def update_dynamic_data(self, registry_model, new_mongo_data, context_id=None):
+        """
+        Completely replace a patient's mongo record
+        Dangerous - assumes new_mongo_data is correct structure
+        Trying it to simulate rollback if questionnaire update fails
+        """
+        from rdrf.dynamic_data import DynamicDataWrapper
+        if context_id is None:
+            default_context = self.default_context(registry_model)
+            if default_context is not None:
+                context_id = default_context.pk
+            else:
+                raise Exception("need context id to get update dynamic data for patient %s" % self.pk)
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
+        # NB warning this completely replaces the existing mongo record for the patient
+        # useful for "rolling back" after questionnaire update failure
+        logger.info("Warning! : Updating existing dynamic data for %s(%s) in registry %s" % (self,
+                                                                                             self.pk,
+                                                                                             registry_model))
+        logger.info("New Mongo data record = %s" % new_mongo_data)
+        if new_mongo_data is not None:
+            wrapper.update_dynamic_data(registry_model, new_mongo_data)
+        else:
+            # this means we want to delete the existing incorrect questionnaire data
+            # and go back to before the update when the patient had no data in mongo
+            logger.info("New data is None so the existing record will be deleted")
+            logger.info("deleting record for patient %s registry %s context %s" % (self.pk,
+                                                                                   registry_model,
+                                                                                   context_id))
+            wrapper.delete_patient_record(registry_model, context_id)
+            
+
+
 
 
 class ClinicianOther(models.Model):

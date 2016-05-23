@@ -21,6 +21,36 @@ logger = logging.getLogger("registry_log")
 # TODO replace these views as well with Django REST framework views
 
 
+class PatientLookup(View):
+    @method_decorator(login_required)
+    def get(self, request, reg_code):
+        from rdrf.models import Registry
+        from registry.patients.models import Patient
+        from django.db.models import Q
+        
+        term = None
+        results = []
+
+        try:
+            registry_model = Registry.objects.get(code=reg_code)
+            if registry_model.has_feature("questionnaires"):
+                term = request.GET.get("term", "")
+                working_groups = [wg for wg in request.user.working_groups.all()]
+
+                query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                         Q(working_groups__in=working_groups)
+
+                for patient_model in Patient.objects.filter(query):
+                    if patient_model.active:
+                        name = "%s" % patient_model
+                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
+
+        except Registry.DoesNotExist:
+            results = []
+
+        return HttpResponse(json.dumps(results))
+
+
 class FamilyLookup(View):
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):

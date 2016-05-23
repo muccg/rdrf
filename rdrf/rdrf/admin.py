@@ -222,12 +222,14 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         user = request.user
+        query_set = QuestionnaireResponse.objects.filter(processed=False)
         if user.is_superuser:
-            return QuestionnaireResponse.objects.all()
+            return query_set
         else:
-            return QuestionnaireResponse.objects.filter(
+            return query_set.filter(
                 registry__in=[
-                    reg for reg in user.registry.all()])
+                    reg for reg in user.registry.all()],
+                )
 
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
