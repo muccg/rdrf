@@ -1,16 +1,16 @@
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from rdrf.mongo_client import construct_mongo_client
-import logging
-from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
-from rdrf.utils import is_file_cde, is_uploaded_file
-from .models import Registry
-
-from django.conf import settings
-from datetime import datetime
-from rdrf.file_upload import FileUpload
-from . import filestorage
 from copy import deepcopy
+from datetime import datetime
 from operator import itemgetter
+import logging
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
+
+from . import filestorage
+from .file_upload import FileUpload
+from .models import Registry
+from .mongo_client import construct_mongo_client
+from .utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
+from .utils import is_file_cde, is_uploaded_file
 
 logger = logging.getLogger(__name__)
 
@@ -1011,20 +1011,13 @@ class DynamicDataWrapper(object):
         except Exception, ex:
             logger.error("Error deleting record: %s" % ex)
 
-
-
-
-
-
-
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None):
-        from rdrf.models import Registry
         self._set_client()
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 
-        existing_record = self.load_dynamic_data(registry, collection_name, flattened=False)
+        record = self.load_dynamic_data(registry, collection_name, flattened=False)
 
         form_data["timestamp"] = datetime.now()
 
@@ -1032,50 +1025,31 @@ class DynamicDataWrapper(object):
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
             form_data[form_timestamp_key] = form_data["timestamp"]
 
-        if existing_record:
-            logger.debug("saving dynamic data - updating existing")
-            mongo_id = existing_record['_id']
-            self._update_files_in_gridfs(existing_record, registry, form_data, index_map)
-            logger.debug("after update: %s" % form_data)
-
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
-                                              self.current_form_model,
-                                              form_data,
-                                              existing_record=existing_record,
-                                              is_multisection=multisection,
-                                              parse_all_forms=parse_all_forms)
-
-            form_data_parser.set_django_instance(self.obj)
-
-            if self.current_form_model:
-                form_data_parser.form_name = self.current_form_model
-
-            nested_data = form_data_parser.nested_data
-            logger.debug("nested data = %s" % nested_data)
-
-            collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
-        else:
+        if not record:
+            logger.debug("saving dynamic data - new record")
             record = self._get_record_query()
             record["forms"] = []
-            self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
-                                              self.current_form_model,
-                                              form_data,
-                                              existing_record=record,
-                                              is_multisection=multisection,
-                                              parse_all_forms=parse_all_forms)
+        self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-            form_data_parser.set_django_instance(self.obj)
+        form_data_parser = FormDataParser(Registry.objects.get(code=registry),
+                                          self.current_form_model,
+                                          form_data,
+                                          existing_record=record,
+                                          is_multisection=multisection,
+                                          parse_all_forms=parse_all_forms)
 
-            if self.current_form_model:
-                form_data_parser.form_name = self.current_form_model
+        form_data_parser.set_django_instance(self.obj)
 
-            nested_data = form_data_parser.nested_data
+        if self.current_form_model:
+            form_data_parser.form_name = self.current_form_model
 
-            logger.debug("nested data to insert = %s" % nested_data)
+        nested_data = form_data_parser.nested_data
 
-            collection.insert(form_data_parser.nested_data)
+        if "_id" in record:
+            collection.update({'_id': record['_id']}, {"$set": nested_data})
+        else:
+            collection.insert(nested_data)
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:
