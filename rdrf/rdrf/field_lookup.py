@@ -440,9 +440,10 @@ class FieldFactory(object):
             return field(**options)
 
     def _create_file_field(self, options):
-        field = FileField(**options)
-        logger.debug("file field = %s" % field)
-        return field
+        if self.cde.allow_multiple:
+            return fields.MultipleFileField(**options)
+        else:
+            return FileField(**options)
 
 
 class ComplexFieldParseError(Exception):
