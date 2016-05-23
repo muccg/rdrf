@@ -1,16 +1,17 @@
 from copy import deepcopy
 import datetime
 from operator import itemgetter
+from itertools import izip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 
 from . import filestorage
-from .file_upload import FileUpload
+from .file_upload import FileUpload, wrap_gridfs_data_for_form
 from .models import Registry
 from .mongo_client import construct_mongo_client
 from .utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
-from .utils import is_file_cde, is_uploaded_file
+from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ def get_mongo_value(registry_code, nested_data, delimited_key):
                      cde_model.code, sectionp=section_not_allow_multiple)
     for cde in cdes:
         return cde["value"]
-    raise KeyValueMissing()
+    return None
 
 
 def update_multisection_file_cdes(gridfs_filestore, registry_code, form_model,
@@ -426,15 +427,17 @@ class FormDataParser(object):
         self.parsed_multisections[(the_form_model, the_section_model)] = items
 
     def _parse_value(self, value):
-        logger.debug("parsing form value: %s" % value)
         if isinstance(value, FileUpload):
             logger.debug("FileUpload wrapper - returning the gridfs dict!")
             return value.mongo_data
         elif isinstance(value, InMemoryUploadedFile):
             logger.debug("InMemoryUploadedFile returning None")
             return None
+        elif isinstance(value, list):
+            # list of files -- parse each one
+            return [self._parse_value(v) for v in value]
         else:
-            logger.debug("returning the bare value")
+            # return the bare value
             return value
 
     def _parse(self):
@@ -705,7 +708,7 @@ class DynamicDataWrapper(object):
             data[registry_model.code] = registry_data
 
         for registry_code in data:
-            self._wrap_gridfs_files_from_mongo(registry_model, data[registry_code])
+            wrap_gridfs_data_for_form(registry_model, data[registry_code])
         logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
@@ -730,138 +733,53 @@ class DynamicDataWrapper(object):
                 record.update(registry_data)
                 collection.insert(record)
 
-    def _wrap_gridfs_files_from_mongo(self, registry, data):
-        """
-        :param data: Dynamic data loaded from Mongo
-        :return: --  nothing Munges the passed in dictionary to display FileUpload wrappers
-        """
-
-        if data is None:
-            return
-        if isinstance(data, unicode):
-            return
-
-        if isinstance(data, list):
-            for thing in data:
-                self._wrap_gridfs_files_from_mongo(registry, thing)
-            return
-
-        for key, value in data.items():
-            if filestorage.get_id(value) is not None:
-                wrapper = FileUpload(registry, key, value)
-                data[key] = wrapper
-
-            elif isinstance(value, list):
-                # section data
-                for section_dict in value:
-                    self._wrap_gridfs_files_from_mongo(registry, section_dict)
-
-    def _store_file(
-            self,
-            registry,
-            patient_record,
-            cde_code,
-            in_memory_file,
-            dynamic_data):
-        logger.debug("storing file for key %s" % cde_code)
-        dynamic_data[cde_code] = filestorage.store_file_by_key(
-            registry, patient_record, cde_code, in_memory_file)
-
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from models import Section
         return Section.objects.filter(code=code).exists()
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
-
         fs = self.get_filestore(registry)
 
-        logger.debug("_update_files_in_gridfs: existing record = %s new_data = %s" % (existing_record, new_data))
+        def handle_file(key, value, current_value):
+            if value is False and current_value:
+                # Django uses a "clear" checkbox value of False to indicate file should be removed
+                # we need to delete the file but not here
+                logger.debug("User cleared %s - file will be deleted" % key)
+                to_delete = current_value
+                value = None
+            elif value is None:
+                # No file upload means keep the current value
+                logger.debug(
+                    "User did not change file %s - existing_record will not be updated" % key)
+                to_delete = None
+                value = current_value
+            elif isinstance(value, InMemoryUploadedFile):
+                # A file was uploaded.
+                # Store file and convert value into a file wrapper
+                to_delete = current_value
+                value = filestorage.store_file_by_key(registry, existing_record, key, value)
+
+            if to_delete:
+                filestorage.delete_file_wrapper(fs, to_delete)
+
+            return value
 
         for key, value in new_data.items():
-
-            if is_file_cde(get_code(key)):
-                logger.debug("updating file reference for cde %s" % key)
-                delete_existing = True
-                logger.debug("uploaded file value: %s" % value)
-
-                if value is False:
-                    logger.debug("User cleared %s - file will be deleted" % key)
-                    # Django uses a "clear" checkbox value of False to indicate file should be removed
-                    # we need to delete the file but not here
-                    continue
-
-                if value is None:
-                    logger.debug(
-                        "User did not change file %s - existing_record will not be updated" % key)
-                    logger.debug("existing_record = %s\nnew_data = %s" %
-                                 (existing_record, new_data))
-                    delete_existing = False
-
-                try:
-                    existing_value = get_mongo_value(registry, existing_record, key)
-                    in_mongo = True
-                except KeyValueMissing, err:
-                    in_mongo = False
-                    existing_value = None
-
-                if in_mongo:
-                    logger.debug("key %s in existing record - value is file wrapper" % key)
-                    file_wrapper = existing_value
-                    logger.debug("file_wrapper = %s" % file_wrapper)
+            cde_code = get_code(key)
+            if is_file_cde(cde_code):
+                existing_value = get_mongo_value(registry, existing_record, key)
+                if is_multiple_file_cde(cde_code):
+                    new_data[key] = [handle_file(key, val, existing) for
+                                     (val, existing) in
+                                     izip_longest(value, existing_value or [])]
+                    new_data[key] = filter(bool, new_data[key])
                 else:
-                    file_wrapper = None
-                    logger.debug("key %s is not in existing record - setting file_wrapper to None" % key)
-
-                if isinstance(file_wrapper, InMemoryUploadedFile):
-                    logger.debug("file_wrapper is an InMemoryUploadedFile -setting to None?")
-                    file_wrapper = None
-
-                logger.debug("File wrapper = %s" % file_wrapper)
-
-                if not file_wrapper:
-                    logger.debug("file_wrapper None so checking incoming value from form")
-                    if value is not None:
-                        logger.debug("new value is not None: %s" % value)
-                        logger.debug("storing file for cde %s value = %s" % (key, value))
-                        self._store_file(
-                            registry, existing_record, key, value, new_data)
-                    else:
-                        logger.debug("incoming value is None so no update")
-                else:
-                    logger.debug("existing value is a file wrapper: %s" % file_wrapper)
-                    if isinstance(file_wrapper, FileUpload):
-                        gridfs_file_dict = file_wrapper.gridfs_dict
-                    elif filestorage.get_id(file_wrapper):
-                        gridfs_file_dict = file_wrapper
-                    else:
-                        gridfs_file_dict = None
-                    logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
-
-                    if gridfs_file_dict is None:
-                        if value is not None:
-                            logger.debug("storing file with value %s in gridfs" % value)
-                            self._store_file(
-                                registry, existing_record, key, value, new_data)
-                    else:
-                        if delete_existing:
-                            logger.debug("delete_existing is True so trying to delete the file originally stored")
-                            logger.debug(
-                                "updated value is not None so we delete existing upload and update:")
-                            filestorage.delete_file_wrapper(fs, file_wrapper)
-                            if value is not None:
-                                logger.debug("updating %s -> %s" % (key, value))
-                                logger.debug("storing updated file data in gridfs")
-                                self._store_file(
-                                    registry, existing_record, key, value, new_data)
-                        else:
-                            # don't change anything on update ...
-                            logger.debug("delete_existing is False - just replacing the gridfs_file_dict")
-                            new_data[key] = gridfs_file_dict
-                            logger.debug("new_data[%s]  is now %s" % (key, gridfs_file_dict))
+                    new_data[key] = handle_file(key, value, existing_value)
 
             elif self._is_section_code(key):
-
+                # fixme: can't see how this code will get executed, because key
+                # is like "form_name____section_code____cde_code"
                 new_section_items = value
                 if self.current_form_model:
                     form_model = self.current_form_model
