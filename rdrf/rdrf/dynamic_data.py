@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime
+import datetime
 from operator import itemgetter
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -263,6 +263,18 @@ def update_multisection_file_cdes(gridfs_filestore, registry_code, form_model,
 
 
 class FormDataParser(object):
+    """
+    This class takes a bag of values with keys like:
+      form_name____section_code____cde_code
+    and converts them into a nested document suitable for storing in
+    the mongodb.
+
+    The nested document is accessed by the `nested_data` property.
+
+    I think this class should be converted into a single function
+    (with nested functions) because it's used like a function not like
+    an object.
+    """
     def __init__(self,
                  registry_model,
                  form_model,
@@ -287,7 +299,7 @@ class FormDataParser(object):
         self.parse_all_forms = parse_all_forms
 
     def update_timestamps(self, form_model):
-        t = datetime.now()
+        t = datetime.datetime.now()
         form_timestamp = form_model.name + "_timestamp"
         self.global_timestamp = t
         self.form_timestamps[form_timestamp] = t
@@ -633,7 +645,7 @@ class DynamicDataWrapper(object):
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
         def fmt(snapshot):
             return {
-                "timestamp": datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
+                "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
                 "value": self._find_cde_val(snapshot["record"], registry_code,
                                                      form_name, section_code,
                                                      cde_code),
@@ -941,7 +953,7 @@ class DynamicDataWrapper(object):
 
         record = self.load_dynamic_data(registry, collection_name, flattened=False)
 
-        form_data["timestamp"] = datetime.now()
+        form_data["timestamp"] = datetime.datetime.now()
 
         if self.current_form_model:
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
@@ -975,7 +987,7 @@ class DynamicDataWrapper(object):
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:
-            timestamp = str(datetime.now())
+            timestamp = str(datetime.datetime.now())
             patient_id = record['django_id']
             history = self._get_collection(registry_code, "history")
             snapshot = {"django_id": patient_id,
@@ -1013,9 +1025,6 @@ class DynamicDataWrapper(object):
         :param data: dictionary of CDE codes --> values
         :return:
         """
-        from datetime import date
-        from datetime import datetime
-
         if isinstance(data, unicode):
             return
 
@@ -1024,8 +1033,8 @@ class DynamicDataWrapper(object):
                 self._convert_date_to_datetime(x)
 
         for k, value in data.items():
-            if isinstance(value, date):
-                data[k] = datetime(value.year, value.month, value.day)
+            if isinstance(value, datetime.date):
+                data[k] = datetime.datetime(value.year, value.month, value.day)
             elif isinstance(value, list):
                 # recurse on multisection data
                 for e in value:
