@@ -281,15 +281,14 @@ class FormDataParser(object):
                  form_data,
                  existing_record=None,
                  is_multisection=False,
-                 parse_all_forms=False):
+                 parse_all_forms=False,
+                 django_instance=None):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
         self.parsed_multisections = {}
         self.global_timestamp = None
         self.form_timestamps = {}
-        self.django_id = None
-        self.django_model = None
         self.mongo_id = None
         self.existing_record = existing_record
         self.is_multisection = is_multisection
@@ -298,15 +297,18 @@ class FormDataParser(object):
         self.address_data = None
         self.parse_all_forms = parse_all_forms
 
+        if django_instance:
+            self.django_id = django_instance.pk
+            self.django_model = django_instance.__class__.__name__
+        else:
+            self.django_id = None
+            self.django_model = None
+
     def update_timestamps(self, form_model):
         t = datetime.datetime.now()
         form_timestamp = form_model.name + "_timestamp"
         self.global_timestamp = t
         self.form_timestamps[form_timestamp] = t
-
-    def set_django_instance(self, instance):
-        self.django_id = instance.pk
-        self.django_model = instance.__class__.__name__
 
     @property
     def nested_data(self):
@@ -966,19 +968,13 @@ class DynamicDataWrapper(object):
 
         self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-        form_data_parser = FormDataParser(Registry.objects.get(code=registry),
-                                          self.current_form_model,
-                                          form_data,
-                                          existing_record=record,
-                                          is_multisection=multisection,
-                                          parse_all_forms=parse_all_forms)
-
-        form_data_parser.set_django_instance(self.obj)
-
-        if self.current_form_model:
-            form_data_parser.form_name = self.current_form_model
-
-        nested_data = form_data_parser.nested_data
+        nested_data = FormDataParser(Registry.objects.get(code=registry),
+                                     self.current_form_model,
+                                     form_data,
+                                     existing_record=record,
+                                     is_multisection=multisection,
+                                     parse_all_forms=parse_all_forms,
+                                     django_instance=self.obj).nested_data
 
         if "_id" in record:
             collection.update({'_id': record['_id']}, {"$set": nested_data})
