@@ -1,6 +1,6 @@
 # Custom Fields
 from django.forms import CharField, ChoiceField, URLField
-
+from django.core.exceptions import ValidationError
 
 class DatatypeFieldAlphanumericxxsx(URLField):
     pass
@@ -20,3 +20,9 @@ class ChoiceFieldNoValidation(ChoiceField):
 
     def validate(self, value):
         pass
+
+class ChoiceFieldNonBlankValidation(ChoiceField):
+
+    def validate(self, value):
+        if not value:
+            raise ValidationError("A value must be selected")

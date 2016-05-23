@@ -353,14 +353,18 @@ class FieldFactory(object):
                             options["choices"] = options['choices'][1:]
 
                     if self.cde.code in [
-                            "State",
-                            "Country",
                             "CDEPatientNextOfKinState",
                             "CDEPatientNextOfKinCountry"]:
                         # These are dynamic now and alter their reange lists dynamically so have
                         # to switch off validation
                         from rdrf.fields import ChoiceFieldNoValidation
                         return ChoiceFieldNoValidation(**options)
+
+                    if self.cde.code in ['State', 'Country']:
+                        # because these are dynamic lookup fields the usual validation wasn't working
+                        from rdrf.fields import ChoiceFieldNonBlankValidation
+                        return ChoiceFieldNonBlankValidation(**options)
+                        
 
                     return django.forms.ChoiceField(**options)
         else:
