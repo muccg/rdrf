@@ -1171,7 +1171,7 @@ class Questionnaire(object):
         else:
             logger.info("Questionnaire update of Patient %s had %s errors: " % (
                 patient_model.pk, num_errors))
-            for msg in error_messages:
+            for msg in errors:
                 logger.error("Questionnaire update error: %s" % msg)
 
         return errors
