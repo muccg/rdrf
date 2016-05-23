@@ -687,6 +687,10 @@ class CommonDataElement(models.Model):
                                                               stored_value,
                                                               ex))
 
+        if stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN
+            return ":NaN"
+
         return stored_value
 
     def clean(self):

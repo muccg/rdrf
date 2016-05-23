@@ -85,3 +85,23 @@ form .aligned ul.errorlist {
   padding: 5px 10px;
   margin: 5px 0px;
 }
+
+/**************************************************************************
+ * Multifile CDEs                                                         */
+
+.multi-file-deleted, .multi-file-deleted:hover {
+  text-decoration: line-through;
+  color: #333;
+}
+
+.multi-file .btn-link.btn-danger {
+  color: #a94442;
+}
+
+.multi-file .checkbox {
+  padding-left: 31px;
+}
+
+.multi-file-widget .add-button {
+  margin-top: 5px;
+}
