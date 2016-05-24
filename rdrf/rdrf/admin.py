@@ -203,6 +203,10 @@ class RegistryAdmin(admin.ModelAdmin):
 
         return original_urls
 
+    def get_readonly_fields(self, request, obj=None):
+        "Registry code is readonly after creation"
+        return () if obj is None else ("code",)
+
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
@@ -220,12 +224,14 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         user = request.user
+        query_set = QuestionnaireResponse.objects.filter(processed=False)
         if user.is_superuser:
-            return QuestionnaireResponse.objects.all()
+            return query_set
         else:
-            return QuestionnaireResponse.objects.filter(
+            return query_set.filter(
                 registry__in=[
-                    reg for reg in user.registry.all()])
+                    reg for reg in user.registry.all()],
+                )
 
     process_link.allow_tags = True
     process_link.short_description = 'Process questionnaire'
@@ -381,10 +387,10 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
     list_display = ("registry", "cde", "groups", "condition")
-    
+
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
-    
+
     groups.short_description = "Allowed Groups"
 
 class EmailNotificationAdmin(admin.ModelAdmin):
@@ -399,13 +405,13 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
     list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
-    
+
     def registry(self, obj):
         return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
-    
+
     def full_language(self, obj):
         return dict(settings.LANGUAGES)[obj.language]
-        
+
     full_language.short_description = "Language"
 
     def resend(self, obj):

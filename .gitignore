@@ -2,7 +2,6 @@ syntax: glob
 
 *.pyc
 *.swp
-scripts
 data
 build
 dist

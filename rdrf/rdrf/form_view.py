@@ -17,7 +17,7 @@ from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from registration import PatientCreator, PatientCreatorState
+from questionnaires import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -59,16 +59,17 @@ from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 
 
+logger = logging.getLogger("registry_log")
+login_required_method = method_decorator(login_required)
+
 
 class RDRFContextSwitchError(Exception):
     pass
 
-logger = logging.getLogger("registry_log")
-
 
 class LoginRequiredMixin(object):
 
-    @method_decorator(login_required)
+    @login_required_method
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
@@ -164,22 +165,13 @@ class FormView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry %s does not exist" % registry_code)
 
-    def _get_dynamic_data(self, **kwargs):
-        if 'model_class' in kwargs:
-            model_class = kwargs['model_class']
-        else:
-            model_class = Patient
-
-        if 'rdrf_context_id' in kwargs:
-            rdrf_context_id = kwargs['rdrf_context_id']
-        else:
-            rdrf_context_id = None
-            
-        obj = model_class.objects.get(pk=kwargs['id'])
+    def _get_dynamic_data(self, registry_code=None, rdrf_context_id=None,
+                          model_class=Patient, id=None):
+        obj = model_class.objects.get(pk=id)
         dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
         if self.testing:
             dyn_obj.testing = True
-        dynamic_data = dyn_obj.load_dynamic_data(kwargs['registry_code'], "cdes")
+        dynamic_data = dyn_obj.load_dynamic_data(registry_code, "cdes")
         return dynamic_data
 
     def set_rdrf_context(self, patient_model, context_id):
@@ -209,7 +201,7 @@ class FormView(View):
 
             raise RDRFContextSwitchError
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
@@ -280,7 +272,7 @@ class FormView(View):
         ids = [field for field in dummy.fields.keys()]
         return ",".join(ids)
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_superuser:
             pass
@@ -333,6 +325,7 @@ class FormView(View):
                 injected_model="Patient",
                 injected_model_id=self.patient_id,
                 is_superuser=self.request.user.is_superuser,
+                user_groups=self.user.working_groups.all(),
                 patient_model=patient)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
@@ -693,17 +686,16 @@ class FormView(View):
         from utils import id_on_page
         for section in registry_form.get_sections():
             metadata = {}
-            section_model = Section.objects.get(code=section)
-            for cde_code in section_model.get_elements():
-                try:
-                    cde = CommonDataElement.objects.get(code=cde_code)
-                    cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                    if cde.datatype.lower() == "date":
-                        # date widgets are complex
-                        metadata[cde_code_on_page] = {}
-                        metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
-                except CommonDataElement.DoesNotExist:
-                    continue
+            section_model = Section.objects.filter(code=section).first()
+            if section_model:
+                for cde_code in section_model.get_elements():
+                    cde = CommonDataElement.objects.filter(code=cde_code).first()
+                    if cde:
+                        cde_code_on_page = id_on_page(registry_form, section_model, cde)
+                        if cde.datatype.lower() == "date":
+                            # date widgets are complex
+                            metadata[cde_code_on_page] = {}
+                            metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
 
             if metadata:
                 json_dict[section] = json.dumps(metadata)
@@ -718,7 +710,7 @@ class FormView(View):
 
 
 class FormPrintView(FormView):
-    
+
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
 
@@ -1124,7 +1116,69 @@ class QuestionnaireView(FormView):
             registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
+class QuestionnaireHandlingView(View):
+    @method_decorator(login_required)
+    def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
+        context = {}
+        template_name = "rdrf_cdes/questionnaire_handling.html"
+        context["registry_model"] = Registry.objects.get(code=registry_code)
+        context["form_model"]  = context["registry_model"].questionnaire
+        context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
+
+        context["questionnaire"] = Questionnaire(context["registry_model"],
+                                                 context["qr_model"])
+        
+
+        context.update(csrf(request))
+        
+        return render_to_response(
+            template_name,
+            context,
+            context_instance=RequestContext(request))
+
+                           
+
+
+   
+    def post(self, request, registry_code, questionnaire_response_id):
+        registry_model = Registry.objects.get(code=registry_code)
+        existing_patient_id = request.POST.get("existing_patient_id", None)
+        qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        form_data = request.POST.get("form_data")
+        
+        if existing_patient_id is None:
+            self._create_patient(registry_model,
+                                 qr_model,
+                                 form_data)
+        else:
+           patient_model = Patient.objects.get(pk=existing_patient_id)
+           self._update_existing_patient(patient_model,
+                                         registry_model,
+                                         qr_model,
+                                         form_data)
+
+    def _create_patient(self, registry_model, qr_model, form_data):
+        pass
+
+    def _update_existing_patient(self,
+                                 patient_model,
+                                 registry_model,
+                                 qr_model,
+                                 form_data):
+        pass
+
+        
+    
+    
+        
+        
+
 class QuestionnaireResponseView(FormView):
+    """
+    DEAD!
+    """
 
     def __init__(self, *args, **kwargs):
         super(QuestionnaireResponseView, self).__init__(*args, **kwargs)
@@ -1133,14 +1187,20 @@ class QuestionnaireResponseView(FormView):
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
 
+
+
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
+        from rdrf.questionnaires import Questionnaire
         self.patient_id = questionnaire_response_id
         self.registry = self._get_registry(registry_code)
         self.dynamic_data = self._get_dynamic_data(
             id=questionnaire_response_id,
             registry_code=registry_code,
             model_class=QuestionnaireResponse)
+
+        questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+        
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -1155,6 +1215,9 @@ class QuestionnaireResponseView(FormView):
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
         context["show_print_button"] = False
+        
+        context["questionnaire"] = Questionnaire(self.registry,
+                                                 questionnaire_response_model)
 
         return self._render_context(request, context)
 
@@ -1204,7 +1267,7 @@ class QuestionnaireResponseView(FormView):
 
         return [WorkingGroupOption(wg) for wg in user.working_groups.all()]
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, registry_code, questionnaire_response_id):
         self.registry = Registry.objects.get(code=registry_code)
         qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
@@ -1249,7 +1312,7 @@ class QuestionnaireResponseView(FormView):
 
 class FileUploadView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, registry_code, gridfs_file_id):
         from bson.objectid import ObjectId
         import gridfs
@@ -1293,7 +1356,7 @@ class QuestionnaireConfigurationView(View):
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, form_pk):
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
@@ -1447,7 +1510,7 @@ class RPCHandler(View):
 
 class AdjudicationInitiationView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, def_id, patient_id):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
@@ -1469,7 +1532,7 @@ class AdjudicationInitiationView(View):
             context,
             context_instance=RequestContext(request))
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, def_id, patient_id):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
@@ -1596,7 +1659,7 @@ class AdjudicationInitiationView(View):
 
 class AdjudicationRequestView(View):
 
-    @method_decorator(login_required)
+    @login_required_method
     def get(self, request, adjudication_request_id):
         user = request.user
         from rdrf.models import AdjudicationRequest, AdjudicationRequestState
@@ -1628,7 +1691,7 @@ class AdjudicationRequestView(View):
             context,
             context_instance=RequestContext(request))
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, adjudication_request_id):
         arid = request.POST["arid"]
         if arid != adjudication_request_id:
@@ -1861,7 +1924,7 @@ class AdjudicationResultsView(View):
                 responses.append(adj_resp)
         return stats, responses
 
-    @method_decorator(login_required)
+    @login_required_method
     def post(self, request, adjudication_definition_id, requesting_user_id, patient_id):
         from rdrf.models import AdjudicationDefinition, AdjudicationState, AdjudicationDecision
         try:
@@ -2837,7 +2900,7 @@ class CustomConsentFormView(View):
                             error_messages.append(error)
             else:
                 valid_forms.append(True)
-                
+
         try:
             parent = ParentGuardian.objects.get(user=request.user)
         except ParentGuardian.DoesNotExist:
@@ -2883,4 +2946,3 @@ class CustomConsentFormView(View):
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,
                                   context_instance=RequestContext(request))
-

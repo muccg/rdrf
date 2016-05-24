@@ -6,11 +6,11 @@ from django.shortcuts import render_to_response
 from django.views.generic.base import TemplateView
 
 import registry.urls as common_urls
+from rdrf import api_urls
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
 import rdrf.import_registry_view as import_registry_view
-import rdrf.rest_interface as rest_interface
 import rdrf.patient_view as patient_view
 import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
@@ -18,9 +18,9 @@ import rdrf.report_view as report_view
 import rdrf.consent_view as consent_view
 from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import GeneView, LaboratoryView, StateLookup, ClinitianLookup, IndexLookup, FamilyLookup
+from rdrf.lookup_views import FamilyLookup
+from rdrf.lookup_views import PatientLookup
 from rdrf.views import RegistryList
-from rdrf.api import PatientResource
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
@@ -30,7 +30,6 @@ from rdrf.lookup_views import RDRFContextLookup
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 
 from ajax_select import urls as ajax_select_urls
-from tastypie.api import Api
 
 
 # very important so that registry admins (genetic, patient, etc) are discovered.
@@ -50,15 +49,14 @@ def handlerApplicationError(request):
         "rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
 
 
-# TastyPie API
-v1_api = Api(api_name='v1')
-v1_api.register(PatientResource())
-
 urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
                        url(r'^iprestrict', include('iprestrict.urls')),
+
+                       (r'^api/v1/', include(api_urls, namespace='v1')),
+                       # (r'^api/v2/', include(api_urls, namespace='v2')), etc.
 
                        url(r'^constructors/(?P<form_name>\w+)/?$',
                            form_view.ConstructorFormView.as_view(), name="constructors"),
@@ -76,9 +74,6 @@ urlpatterns = patterns('',
                        url(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
                            name="report_datatable"),
                        url(r'^explorer/', include('explorer.urls')),
-                       url(r'^gene/?$', GeneView.as_view(), name='gene_source'),
-                       url(r'^laboratory/?$', LaboratoryView.as_view(),
-                           name='laboratory_source'),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
                        url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
                            name='patientsgridapi'),
@@ -154,25 +149,14 @@ urlpatterns = patterns('',
 
                        url(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
                            form_view.QuestionnaireView.as_view(), name='questionnaire'),
-                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireResponseView.as_view(),
+                       url(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
                            name='questionnaire_response'),
                        url(r'^(?P<registry_code>\w+)/uploads/(?P<gridfs_file_id>\w+)$',
                            form_view.FileUploadView.as_view(), name='file_upload'),
-                       url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/(?P<cde_code>.+?)/?$',
-                           rest_interface.RDRFEndpointView.as_view(), name='rest_cde_interface'),
-                       url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/(?P<section_code>.+?)/?$',
-                           rest_interface.RDRFEndpointView.as_view(), name='rest_section_interface'),
-                       url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/(?P<form_name>.+?)/?$',
-                           rest_interface.RDRFEndpointView.as_view(), name='rest_form_interface'),
-                       url(r'^(?P<registry_code>\w+)/patients/(?P<patient_id>\d+)?/?$',
-                           rest_interface.RDRFEndpointView.as_view(), name='rest_interface'),
                        (r'^admin/lookups/', include(ajax_select_urls)),
 
                        url(r'^admin/patients/updatesession/?$',
                            update_session, name='updatesession'),
-                       (r'^api/', include(v1_api.urls)),
-                       url(r'^state/(?P<country_code>\w+)/?$',
-                           StateLookup.as_view(), name='state_lookup'),
                        url(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
                            form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
                        url(r'^designer/(?P<reg_pk>\d+)$',
@@ -188,12 +172,10 @@ urlpatterns = patterns('',
                        url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
 
-                       url(r'^api/clinitian/',
-                           ClinitianLookup.as_view(), name="clinician_lookup"),
 
-                       url(r'api/indexlookup/(?P<reg_code>\w+)/?$', IndexLookup.as_view(), name="index_lookup"),
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+                       url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
                            RDRFContextLookup.as_view(),

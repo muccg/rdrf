@@ -5,9 +5,8 @@ from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
 import json
-from rdrf.utils import has_feature
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import get_full_link
+from rdrf.utils import has_feature, get_full_link, check_calculation
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -720,13 +719,21 @@ class CommonDataElement(models.Model):
         if " " in self.code:
             raise Exception("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
 
+        # check javascript calculation for naughty code
+        if self.calculation.strip():
+            err = check_calculation(self.calculation).strip()
+            if err:
+                raise ValidationError({
+                    "calculation": [ValidationError(e) for e in err.split("\n")]
+                })
+
 
 class CdePolicy(models.Model):
     registry = models.ForeignKey(Registry)
     cde = models.ForeignKey(CommonDataElement)
     groups_allowed = models.ManyToManyField(Group, blank=True)
     condition = models.TextField(blank=True)
-    
+
     def is_allowed(self, user_groups, patient_model=None):
         logger.debug("checking cde policy %s %s" % (self.registry, self.cde))
         for ug in user_groups:
@@ -867,7 +874,7 @@ class RegistryForm(models.Model):
 
         current_cdes = set(current_cdes)
         extra = completion_cdes - current_cdes
-        
+
         if len(extra) > 0:
             msg = ",".join(extra)
             raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
@@ -879,7 +886,7 @@ class RegistryForm(models.Model):
             raise ValidationError(msg)
         if self.pk:
             self._check_completion_cdes()
-        
+
 
 
 
@@ -930,7 +937,7 @@ class QuestionnaireResponse(models.Model):
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
         wrapper._set_client()
-        
+
         if not self.has_mongo_data:
             raise ObjectDoesNotExist
 
@@ -952,6 +959,16 @@ class QuestionnaireResponse(models.Model):
         wrapper = DynamicDataWrapper(self)
         wrapper._set_client()
         return wrapper.has_data(self.registry.code)
+
+    @property
+    def data(self):
+        # return the filled in questionnaire data
+        from rdrf.dynamic_data import DynamicDataWrapper
+        wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
+        return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
+
+        
 
 
 def appears_in(cde, registry, registry_form, section):
@@ -1714,7 +1731,7 @@ class ConsentQuestion(models.Model):
 
     def __unicode__(self):
         return "%s" % self.question_label
-    
+
 
 
 
@@ -1736,10 +1753,10 @@ class EmailTemplate(models.Model):
     description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()
-    
+
     def __unicode__(self):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
-    
+
 
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)

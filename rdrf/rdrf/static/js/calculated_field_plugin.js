@@ -8,9 +8,10 @@
             target: "value",
             observer: '',  // the cde code of the output e,g, CDE03
             // Stuff below added to allow calculations to retrieve remote model properties
+            // injected_model will always be Patient for now
             injected_model: "",  // e.g. Patient  ( model class name)
             injected_model_id: null,  // the id of the injected model instance to retrieve
-            tastypie_url: ""  //the url to request model data on eg /api/v1/patient/1
+            api_url: ""  //the url to request model data on eg /api/v1/patient/1
 
         }, options);
 
@@ -32,7 +33,7 @@
                  return;
             }
 
-            $.get(settings.tastypie_url)
+            $.get(settings.api_url)
                 .done(function(object) {
                     d.resolve(object);
                 })

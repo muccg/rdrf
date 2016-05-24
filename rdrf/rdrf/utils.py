@@ -10,6 +10,8 @@ from django.core.urlresolvers import reverse
 import logging
 import re
 import functools
+import os.path
+import subprocess
 
 logger = logging.getLogger("registry_log")
 
@@ -266,7 +268,7 @@ def is_gridfs_file_wrapper(value):
 
 def create_permission(app_label, model, code_name, name):
     content_type = ContentType.objects.get(app_label=app_label, model=model)
-    
+
     try:
         with transaction.atomic():
             Permission.objects.create(codename=code_name, name=name, content_type=content_type)
@@ -366,7 +368,7 @@ def timed(func):
     return wrapper
 
 def get_cde_value(form_model, section_model, cde_model, patient_record):
-    # should refactor code everywhere to use this func 
+    # should refactor code everywhere to use this func
     if patient_record is None:
         return None
     for form_dict in patient_record["forms"]:
@@ -387,7 +389,6 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                         return values
 
 
-
 def report_function(func):
     """
     decorator to mark a function as available in the reporting interface
@@ -397,9 +398,22 @@ def report_function(func):
     func.report_function = True
     return func
 
-
-
-
-    
-        
-        
+def check_calculation(calculation):
+    """
+    Run a calculation javascript fragment through ADsafe to see
+    whether it's suitable for running in users' browsers.
+    Returns the empty string on success, otherwise an error message.
+    """
+    script = os.path.join(os.path.dirname(__file__),
+                          "scripts", "check-calculation.js")
+    try:
+        p = subprocess.Popen([script], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+        output, _ = p.communicate(calculation)
+        if p.returncode != 0:
+            return output
+    except OSError as e:
+        logger.exception("Can't execute check-calculation.js")
+        return "Couldn't execute %s: %s" % (script, e)
+    return ""

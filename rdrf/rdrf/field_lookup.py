@@ -160,10 +160,7 @@ class FieldFactory(object):
         return False
 
     def _is_calculated_field(self):
-        if self.cde.calculation:
-            return True
-        else:
-            return False
+        return bool(self.cde.calculation)
 
     def _is_complex(self):
         return self.complex_field_factory._is_complex()
@@ -356,14 +353,18 @@ class FieldFactory(object):
                             options["choices"] = options['choices'][1:]
 
                     if self.cde.code in [
-                            "State",
-                            "Country",
                             "CDEPatientNextOfKinState",
                             "CDEPatientNextOfKinCountry"]:
                         # These are dynamic now and alter their reange lists dynamically so have
                         # to switch off validation
                         from rdrf.fields import ChoiceFieldNoValidation
                         return ChoiceFieldNoValidation(**options)
+
+                    if self.cde.code in ['State', 'Country']:
+                        # because these are dynamic lookup fields the usual validation wasn't working
+                        from rdrf.fields import ChoiceFieldNonBlankValidation
+                        return ChoiceFieldNonBlankValidation(**options)
+                        
 
                     return django.forms.ChoiceField(**options)
         else:

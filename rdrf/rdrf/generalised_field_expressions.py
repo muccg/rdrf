@@ -3,6 +3,8 @@ from registry.patients.models import Patient, PatientAddress
 from rdrf.models import ConsentSection, ConsentQuestion
 from rdrf.models import RegistryForm, Section, CommonDataElement
 from rdrf.utils import get_cde_value
+from collections import OrderedDict
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -30,6 +32,142 @@ class GeneralisedFieldExpression(object):
     def evaluate(self, patient_model, mongo_data):
         raise NotImplementedError("subclass responsibility!")
 
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+        raise NotImplementedError("subclass responsibility!")
+
+class ClearMultiSectionExpression(GeneralisedFieldExpression):
+    # "$op/<FORMNAME>/<SECTIONCODE>/clear"
+    
+
+    def __init__(self, registry_model, form_model, section_model):
+        self.registry_model = registry_model
+        self.form_model = form_model
+        if not section_model.allow_multiple:
+            raise Exception(
+                "Can't create a multisection expression from nonmultisection)")
+        self.section_model = section_model
+
+    def evaluate(self, patient_model, mongo_data):
+        for form_dict in mongo_data["forms"]:
+            if form_dict["name"] == self.form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == self.section_model.code and section_dict["allow_multiple"]:
+                        # cdes key holds _items_
+                        section_dict["cdes"] = []
+                    else:
+                        raise Exception(
+                            "Can't clear items of a non-multisection as there aren't any!")
+
+        return patient_model, mongo_data
+
+
+class MultiSectionItemsExpression(GeneralisedFieldExpression):
+    # "$op/<FORMNAME>/<SECTIONCODE/items"
+    def __init__(self, registry_model, form_model, section_model):
+        self.registry_model = registry_model
+        self.form_model = form_model
+        self.section_model = section_model
+        if not self.section_model.allow_multiple:
+            raise Exception("items not defined for non multisection %s" % self.section_model.code)
+
+    def evaluate(self, patient_model, mongo_data):
+        # return items ( dictionaries of cde code --> values ) for each added multisection item
+        if mongo_data is None:
+            return []
+        
+        items = []
+        
+        for form_dict in mongo_data["forms"]:
+            if form_dict["name"] == self.form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == self.section_model.code:
+                        if not section_dict["allow_multiple"]:
+                            raise Exception("section %s is not multiple in data" % section_dict["code"])
+                        else:
+                            for cde_dict_list in section_dict["cdes"]:
+                                cde_map = OrderedDict()
+                                for cde_dict in cde_dict_list:
+                                    cde_map[cde_dict["code"]] = cde_dict["value"]
+                                items.append(cde_map)
+        return items
+
+
+    def set_value(self, patient_model, mongo_data, replacement_items, **kwargs):
+        # mongo data must be _nested_ 
+        items = []
+        for cde_map in replacement_items:
+            cde_dict_list = []
+            for cde_code in cde_map:
+                cde_dict = {"code" : cde_code,
+                            "value": cde_map[cde_code]}
+                cde_dict_list.append(cde_dict)
+            items.append(cde_dict_list)
+
+        if mongo_data is None:
+            mongo_data = {"forms": [ {"name": self.form_model.name,
+                                      "sections": [ {"code": self.section_model.code,
+                                                     "allow_multiple": True,
+                                                     "cdes": items}]}]}
+            return patient_model, mongo_data
+
+        else:
+            
+            form_exists = False
+            section_exists = False
+            for form_dict in mongo_data["forms"]:
+                if form_dict["name"] == self.form_model.name:
+                    form_exists = True
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == self.section_model.code:
+                            section_exists = True
+                            section_dict["cdes"] = items
+                            return patient_model, mongo_data
+                    if not section_exists:
+                        section_dict = {"code": self.section_model.code,
+                                        "allow_multiple": True,
+                                        "cdes": items}
+                        form_dict["sections"].append(section_dict)
+                        return patient_model, mongo_data
+            if not form_exists:
+                form_dict = {"name": self.form_model.name,
+                             "sections": [ {"code": self.section_model.code,
+                                            "allow_multiple": True,
+                                            "cdes": items}]
+                             }
+                mongo_data["forms"].append(form_dict)
+                return patient_model, mongo_data
+            
+
+class AddMultiSectionItemExpression(GeneralisedFieldExpression):
+    # "$op/<FORMNAME>/<SECTIONCODE/add"
+
+    def __init__(self, registry_model, form_model, section_model):
+        self.registry_model = registry_model
+        self.form_model = form_model
+        if not section_model.allow_multiple:
+            raise Exception(
+                "Can't create a multisection expression from nonmultisection")
+        else:
+            self.section_model = section_model
+
+    def set_value(self, patient_model, mongo_data, item_cde_map, **kwargs):
+        # add new item which is a list of cde dicts
+        item = []
+        for cde_code in item_cde_map:
+            value = item_cde_map[cde_code]
+            cde_dict = {"code": cde_code,
+                        "value": value}
+            item.append(cde_dict)
+
+        for form_dict in mongo_data["forms"]:
+            if form_dict["name"] == self.form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == self.section_model.code:
+                        if section_dict["allow_multiple"]:
+                            section_dict["cdes"].append(item)
+                        else:
+                            raise Exception("cannot add an item to a non multisection!")
+        return patient_model, mongo_data
 
 class BadColumnExpression(GeneralisedFieldExpression):
     # used when a column parse fails
@@ -48,7 +186,53 @@ class PatientFieldExpression(GeneralisedFieldExpression):
         self.field = field
 
     def evaluate(self, patient_model, mongo_data):
+        if self.field == "next_of_kin_relationship":
+            return patient_model.next_of_kin_relationship.relationship
+        elif self.field == "working_groups":
+            return [ wg for wg in patient_model.working_groups.all()]
+        
         return getattr(patient_model, self.field)
+
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+        if self.field == "next_of_kin_relationship":
+            self._set_next_of_kin_relationship(patient_model, new_value)
+        elif self.field == "working_groups":
+            logger.debug("field is working group")
+            from registry.groups.models import WorkingGroup
+            if isinstance(new_value, basestring):
+                logger.debug("updating working group to %s" % new_value)
+                try:
+                    working_group = WorkingGroup.objects.get(registry=self.registry_model,
+                                                             name=new_value)
+                    patient_model.working_groups = [working_group]
+                    patient_model.save()
+                except WorkingGroup.DoesNotExist:
+                    logger.error("Working group %s does not exist" % new_value)
+                    raise Exception("can't update working group on %s" % patient_model)
+            elif isinstance(new_value, WorkingGroup):
+                logger.debug("updating from an object")
+                patient_model.working_groups = [new_value]
+                patient_model.save()
+            else:
+                logger.error("can't update working group to %s" % new_value)
+                raise Exception("can't update working group on %s" % patient_model)
+            
+                    
+        else:
+            setattr(patient_model, self.field, new_value)
+        return patient_model, mongo_data
+
+    def _set_next_of_kin_relationship(self, patient_model, new_value):
+        from registry.patients.models import NextOfKinRelationship
+        try:
+            nok_rel = NextOfKinRelationship.objects.get(relationship=new_value)
+        except NextOfKinRelationship.DoesNotExist:
+            nok_rel = NextOfKinRelationship()
+            nok_rel.relationship = new_value
+            nok_rel.save()
+        patient_model.next_of_kin_relationship = nok_rel
+        
+        
 
 
 class ConsentExpression(GeneralisedFieldExpression):
@@ -60,6 +244,30 @@ class ConsentExpression(GeneralisedFieldExpression):
 
     def evaluate(self, patient_model, mongo_data):
         return patient_model.get_consent(self.consent_question_model, self.field)
+
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+        # must be answer field , True False for new_value
+        # ignores applicability?!
+        logger.debug("** CONSENT EXPRESSION: setting new consent %s" % self.consent_question_model.question_label) 
+        if self.field != "answer":
+            raise NotImplementedError("only can update consent  answer")
+        
+        from registry.patients.models import ConsentValue
+        try:
+            consent_value_model = ConsentValue.objects.get(patient=patient_model,
+                                                           consent_question=self.consent_question_model)
+            consent_value_model.answer = new_value
+            consent_value_model.save()
+            logger.debug("updated answer to %s OK" % consent_value_model.answer)
+        except ConsentValue.DoesNotExist:
+            logger.debug("consent answer does not exist - creating")
+            consent_value_model = ConsentValue()
+            consent_value_model.patient = patient_model
+            consent_value_model.consent_question = self.consent_question_model
+            consent_value_model.answer = new_value
+            consent_value_model.save()
+            logger.debug("updated answer to %s OK" % consent_value_model.answer)
+        return patient_model, mongo_data
 
 
 class ReportExpression(GeneralisedFieldExpression):
@@ -90,6 +298,62 @@ class AddressExpression(GeneralisedFieldExpression):
         return getattr(address_model, self.field.lower())
 
 
+class AddressesExpression(GeneralisedFieldExpression):
+    # Demographics/Addresses
+    def __init__(self, registry_model):
+        self.registry_model = registry_model
+
+    def evaluate(self, patient_model, mongo_data):
+        return [ address_object for address_object in PatientAddress.objects.filter(patient=patient_model)]
+
+    def set_value(self, patient_model, mongo_record, address_maps, **kwargs):
+        #  address = models.TextField()
+        #suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+        #state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+        #postcode = models.CharField(max_length=50)
+        #country = models.CharField(max_length=100)
+
+        #addresses = [OrderedDict([(u'State', u'AU-NSW'), (u'AddressType', u'AddressTypeHome'), (u'Address', u'11 Green Street'),
+        #(u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
+        #(u'Country', u'AU')]), OrderedDict([(u'State', u'AU-NSW'),
+        #(u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
+        
+        # delete existing addresses ...
+        from registry.patients.models import PatientAddress, AddressType
+        logger.debug("AddressesExpression - setting new addresses")
+        for patient_address in PatientAddress.objects.filter(patient=patient_model):
+            logger.debug("deleting existing address")
+            patient_address.delete()
+
+        for address_map in address_maps:
+            logger.debug("processing address map: %s" % address_map)
+            patient_address = PatientAddress(patient=patient_model)
+            address_type = address_map.get("AddressType", "AddressTypeHome")
+            address_type_object = self._get_address_type(address_type)
+            patient_address.address_type = address_type_object
+            patient_address.address = address_map.get("Address", "")
+            patient_address.suburb = address_map.get("SuburbTown", "")
+            patient_address.postcode = address_map.get("postcode", "")
+            patient_address.state = address_map.get("State", "")
+            patient_address.country = address_map.get("Country", "")
+            patient_address.save()
+            logger.debug("saved new address ok")
+
+        return patient_model, mongo_record
+
+    def _get_address_type(self, address_type):
+        if address_type.startswith("AddressType"):
+            address_type = address_type.replace("AddressType", "")
+        from registry.patients.models import AddressType
+        for x in AddressType.objects.all():
+            if address_type.lower() in x.description.lower():
+                return x
+
+        types = [ a for a in AddressType.objects.all().order_by("description")]
+        if len(types) > 0:
+            return types[0]
+
+
 class ClinicalFormExpression(GeneralisedFieldExpression):
 
     def __init__(self, registry_model, form_model, section_model, cde_model):
@@ -101,6 +365,107 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
     def evaluate(self, patient_model, mongo_record):
         return get_cde_value(self.form_model, self.section_model, self.cde_model, mongo_record)
 
+    def set_value(self, patient_model, mongo_record, new_value, **kwargs):
+        #"_id" : ObjectId("5732ae5c332cf40056cd0462"),
+        #"ClinicalData_timestamp" : ISODate("2016-05-11T12:00:59.472Z"),
+        #"django_id" : 1,
+        #"context_id" : 1,
+        #"django_model" : "Patient",
+        #"forms" : [
+        #		{
+        #		"sections" : [
+        #			{
+        #				"cdes" : [
+        #					{
+        #						"code" : "DM1EthnicOrigins",
+        #						"value" : "Australian"
+        #					}
+        #				],
+        #				"code" : "DM1EthnicOrigins",
+        #				"allow_multiple" : false
+        #			},
+        #
+        from datetime import datetime
+        from rdrf.contexts_api import RDRFContextManager
+        context_id = kwargs.get("context_id", None)
+        if context_id is None:
+            context_manager = RDRFContextManager(self.registry_model)
+            default_context_model = context_manager.get_or_create_default_context(
+                patient_model)
+            context_id = default_context_model.pk
+
+        if not self.section_model.allow_multiple:
+            if mongo_record is None:
+                # create a new blank record
+                section_dict = {
+                    "code": self.section_model.code,
+                    "cdes": [{"code": self.cde_model.code,
+                              "value": new_value}],
+                    "allow_multiple": False}
+
+                form_timestamp_key = "%s_timestamp" % self.form_model.name
+                form_timestamp_value = datetime.now()
+
+                form_dict = {"name": self.form_model.name,
+                             form_timestamp_key: form_timestamp_value,
+                             "sections": [section_dict]}
+
+                mongo_record = {"forms": [form_dict],
+                                "django_id": patient_model.pk,
+                                "django_model": "Patient",
+                                "context_id": context_id}
+                return patient_model, mongo_record
+            else:
+                form_exists = False
+                section_exists = False
+                cde_exists = False
+                forms = mongo_record["forms"]
+
+                for form_dict in forms:
+                    if form_dict["name"] == self.form_model.name:
+                        form_exists = True
+                        sections = form_dict["sections"]
+                        for section_dict in form_dict["sections"]:
+                            if section_dict["code"] == self.section_model.code:
+                                section_exists = True
+                                cdes = section_dict["cdes"]
+                                for cde_dict in section_dict["cdes"]:
+                                    if cde_dict["code"] == self.cde_model.code:
+                                        cde_exists = True
+                                        cde_dict["value"] = new_value
+                                if not cde_exists:
+                                    cde_dict = {"code": self.cde_model.code,
+                                                "value": new_value}
+                                    section_dict["cdes"].append(cde_dict)
+                        if not section_exists:
+                            section_dict = {"code": self.section_model.code,
+                                            "allow_multiple": False,
+                                            "cdes": [{"code": self.cde_model.code,
+                                                      "value": new_value}]}
+                            form_dict["sections"].append(section_dict)
+                if not form_exists:
+                    form_timestamp_key = "%s_timestamp"
+                    form_timestamp_value = datetime.now()
+                    form_dict = {"name": self.form_model.name,
+
+                                 "sections": [{"code": self.section_model.code,
+                                                "allow_multiple": False,
+                                                "cdes": [{"code": self.cde_model.code,
+                                                          "value": new_value}]}],
+                                 form_timestamp_key: form_timestamp_value}
+                    mongo_record["forms"].append(form_dict)
+
+
+                return patient_model, mongo_record
+
+
+
+        else:
+            # todo - NB multisection items are being replaced as a whole
+            # in the questionnaire
+            return patient_model, mongo_record
+
+
 
 class GeneralisedFieldExpressionParser(object):
 
@@ -109,7 +474,9 @@ class GeneralisedFieldExpressionParser(object):
         self.patient_fields = self._get_patient_fields()
 
     def _get_patient_fields(self):
-        return set([field.name for field in Patient._meta.fields])
+        s = set([field.name for field in Patient._meta.fields])
+        s.add("working_groups")
+        return s
 
     def parse(self, field_expression):
         try:
@@ -117,8 +484,12 @@ class GeneralisedFieldExpressionParser(object):
                 return self._parse_consent_expression(field_expression)
             elif field_expression.startswith("@"):
                 return self._parse_report_function_expression(field_expression)
+            elif field_expression.startswith("$ms"):
+                return self._parse_ms_expression(field_expression)
             elif field_expression.startswith("Demographics/Address/"):
                 return self._parse_address_expression(field_expression)
+            elif field_expression == "Demographics/Addresses":
+                return AddressesExpression(self.registry_model)
             elif "/" in field_expression:
                 return self._parse_clinical_form_expression(field_expression)
             elif field_expression in self.patient_fields:
@@ -133,12 +504,46 @@ class GeneralisedFieldExpressionParser(object):
     def _parse_patient_fields_expression(self, field_expression):
         return PatientFieldExpression(self.registry_model, field_expression)
 
+
+    def _parse_ms_expression(self, field_expression):
+        try:
+            ms_designator, form_name, multisection_code, action_code = field_expression.split("/")
+        except ValueError:
+           raise FieldExpressionError("Cannot parse multisection expression")
+
+        try:
+            form_model = RegistryForm.objects.get(name=form_name,
+                                                  registry=self.registry_model)
+        except RegistryForm.DoesNotExist:
+            raise FieldExpressionError("Cannot find form %s" % form_name)
+
+        try:
+            section_model = Section.objects.get(code=multisection_code)
+        except Section.DoesNotExist:
+            raise FieldExpressionError("Cannot find section %s" % multisectioncode)
+
+        if action_code == "clear":
+             return ClearMultiSectionExpression(self.registry_model,
+                                                form_model,
+                                                section_model)
+        elif action_code == "add":
+            return AddMultiSectionItemExpression(self.registry_model,
+                                                 form_model,
+                                                 section_model)
+        elif action_code == "items":
+            return MultiSectionItemsExpression(self.registry_model,
+                                               form_model,
+                                               section_model)
+        else:
+            raise FieldExpressionError("ms expression not understood: %s" % field_expression)
+             
+
     def _parse_consent_expression(self, consent_expression):
         """
         Consents/ConsentSectionCode/ConsentQuestionCode/field
         """
         try:
-            _, consent_section_code, consent_code, consent_field = consent_expression.split(
+            _, consent_section_code, consent_code, consent_field=consent_expression.split(
                 "/")
         except ValueError, ex:
             raise FieldExpressionError(
@@ -193,7 +598,7 @@ class GeneralisedFieldExpressionParser(object):
         """
         from registry.patients.models import PatientAddress, AddressType
         try:
-            _, _, address_type, field = address_expression.split("/")
+            _, _, address_type, field=address_expression.split("/")
         except ValueError:
             raise FieldExpressionError(
                 "can't parse address expression: %s" % address_expression)
@@ -216,11 +621,11 @@ class GeneralisedFieldExpressionParser(object):
         """
         ClinicalFormName/SectionCode/CDECode
         """
-        form_name, section_code, cde_code = field_expression.split("/")
-        form_model = RegistryForm.objects.get(
+        form_name, section_code, cde_code=field_expression.split("/")
+        form_model=RegistryForm.objects.get(
             name=form_name, registry=self.registry_model)
-        section_model = Section.objects.get(code=section_code)
-        cde_model = CommonDataElement.objects.get(code=cde_code)
+        section_model=Section.objects.get(code=section_code)
+        cde_model=CommonDataElement.objects.get(code=cde_code)
 
         return ClinicalFormExpression(self.registry_model,
                                       form_model,

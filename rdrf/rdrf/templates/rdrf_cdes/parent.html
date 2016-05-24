@@ -15,7 +15,7 @@
                 "dateFormat": "yy-mm-dd"
             });
             
-            $.get("{% url 'clinician_lookup' %}", { 'registry_code': "{{registry_code}}" }, function(data) {
+            $.get("{% url 'v1:clinician-list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
                 $.each($.parseJSON(data), function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 

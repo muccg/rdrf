@@ -109,19 +109,19 @@ class CalculatedFieldParser(object):
 
         if "patient." in calculation_body:  # todo generalise exposed models
             function_parameter_list = "context, patient"
-            injected_model = self.injected_model
+            # injected_model = self.injected_model
+            injected_model = "patient"
             injected_model_id = self.injected_model_id
-            tastypie_url = reverse(
-                'api_dispatch_detail',
+            api_url = reverse(
+                'v1:patient-detail',
                 kwargs={
-                    'resource_name': self.injected_model.lower(),
-                    "api_name": "v1",
+                    "registry_code": self.registry.code,
                     "pk": self.injected_model_id})
         else:
             function_parameter_list = "context"
             injected_model = ""
             injected_model_id = -1
-            tastypie_url = ""
+            api_url = ""
 
         javascript = """
             <script>
@@ -129,14 +129,17 @@ class CalculatedFieldParser(object):
                  $("#id_%s%s").add_calculation({
                     subjects: "%s",
                     prefix: "%s",
-                    tastypie_url: "%s",
-                    calculation: function (%s) { %s },
+                    api_url: "%s",
+                    calculation: function (%s) {
+                      %s
+                      // */
+                    },
                     observer: "%s",
                     injected_model: "%s",
                     injected_model_id: %s
                     });
                 });
 
-            </script>""" % (prefix, observer_code, subject_codes_string, prefix, tastypie_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
+            </script>""" % (prefix, observer_code, subject_codes_string, prefix, api_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
 
         return javascript
