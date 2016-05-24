@@ -286,7 +286,6 @@ class FormView(View):
             return HttpResponseRedirect("/")
 
         dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
-        dyn_patient._set_client()
 
         if self.testing:
             dyn_patient.testing = True
@@ -1146,25 +1145,25 @@ class QuestionnaireHandlingView(View):
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
                                                  context["qr_model"])
-        
+
 
         context.update(csrf(request))
-        
+
         return render_to_response(
             template_name,
             context,
             context_instance=RequestContext(request))
 
-                           
 
 
-   
+
+
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
         existing_patient_id = request.POST.get("existing_patient_id", None)
         qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
         form_data = request.POST.get("form_data")
-        
+
         if existing_patient_id is None:
             self._create_patient(registry_model,
                                  qr_model,
@@ -1186,11 +1185,11 @@ class QuestionnaireHandlingView(View):
                                  form_data):
         pass
 
-        
-    
-    
-        
-        
+
+
+
+
+
 
 class QuestionnaireResponseView(FormView):
     """
@@ -1217,7 +1216,7 @@ class QuestionnaireResponseView(FormView):
             model_class=QuestionnaireResponse)
 
         questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
-        
+
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -1232,7 +1231,7 @@ class QuestionnaireResponseView(FormView):
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
         context["show_print_button"] = False
-        
+
         context["questionnaire"] = Questionnaire(self.registry,
                                                  questionnaire_response_model)
 
