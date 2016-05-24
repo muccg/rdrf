@@ -546,7 +546,7 @@ class DynamicDataWrapper(object):
         self._client = c
 
     def __unicode__(self):
-        return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
+        return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
     def _get_record_query(self, filter_by_context=True):
         django_model = self.obj.__class__.__name__
