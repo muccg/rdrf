@@ -876,21 +876,6 @@ class DynamicDataWrapper(object):
                                               new_section_items, existing_record,
                                               index_map)
 
-    def _get_form_model_from_section_data(self, registry_code, multisection_cde_dict):
-        delimited_keys = [ key for key in multisection_cde_dict.keys() if is_delimited_key(key)]
-        if len(delimited_keys) > 0:
-            delimited_key = delimited_keys[0]
-            form_name = delimited_key.split("____")[0]
-            try:
-                from rdrf.models import RegistryForm
-                form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
-                return form_model
-            except RegistryForm.DoesNotExist:
-                return None
-
-        return None
-
-
     def update_dynamic_data(self, registry_model, mongo_record):
         logger.info("About to update %s in %s with new mongo_record %s" % (self.obj,
                                                                            registry_model,
