@@ -1036,24 +1036,6 @@ class DynamicDataWrapper(object):
                 for e in value:
                     self._convert_date_to_datetime(e)
 
-    def _set_in_memory_uploaded_files_to_none(self, data):
-        logger.debug("setting uploaded files to None for data = %s" % data)
-        if not isinstance(data, dict):
-            # TODO find a better way! this test added to fix RDR-634
-            # The items in a multiple allowed select widget were being passed in here
-            # ( values in the list are not dicts so the recursive call failed below)
-            return
-        keys_to_change = []
-        for key, value in data.items():
-            if isinstance(value, InMemoryUploadedFile):
-                keys_to_change.append(key)
-                logger.debug("setting key %s InMemoryUploadedFile to None: " % key)
-            elif isinstance(value, list):
-                for item in value:
-                    self._set_in_memory_uploaded_files_to_none(item)
-        for key in keys_to_change:
-            data[key] = None
-
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
         cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
