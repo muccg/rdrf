@@ -337,7 +337,6 @@ class PatientAdmin(admin.ModelAdmin):
     def _save_registry_specific_data_in_mongo(self, patient):
         data = patient.mongo_patient_data
         mongo_wrapper = DynamicDataWrapper(patient)
-        mongo_wrapper._set_client()
         mongo_wrapper.save_registry_specific_data(data)
 
     def get_readonly_fields(self, request, obj=None):

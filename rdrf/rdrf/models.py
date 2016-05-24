@@ -921,7 +921,6 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
 
         if not self.has_mongo_data:
             raise ObjectDoesNotExist
@@ -942,7 +941,6 @@ class QuestionnaireResponse(models.Model):
     def has_mongo_data(self):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
         return wrapper.has_data(self.registry.code)
 
     @property
@@ -950,7 +948,6 @@ class QuestionnaireResponse(models.Model):
         # return the filled in questionnaire data
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
         return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
 
 
