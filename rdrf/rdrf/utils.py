@@ -20,8 +20,9 @@ class BadKeyError(Exception):
     pass
 
 
-def mongo_db_name(registry):
-    return settings.MONGO_DB_PREFIX + registry
+def mongo_db_name(registry, testing=False):
+    prefix = "testing_" if testing else settings.MONGO_DB_PREFIX
+    return prefix + registry
 
 
 def mongo_db_name_reg_id(registry_id):
