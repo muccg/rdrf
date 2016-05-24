@@ -559,24 +559,15 @@ class DynamicDataWrapper(object):
             return {"django_model": django_model,
                     "django_id": django_id}
 
-    def _get_collection(self, registry, collection_name, add_mongo_prefix=True):
-        if not self.testing:
-            if add_mongo_prefix:
-                db_name = mongo_db_name(registry)
-            else:
-                db_name = registry
-            db = self.client[db_name]
-        else:
-            db = self.client["testing_" + registry]
+    def get_db(self, registry_code):
+        db_name = mongo_db_name(registry_code, testing=self.testing)
+        return self.client[db_name]
 
-        collection = db[collection_name]
-        return collection
+    def _get_collection(self, registry, collection_name):
+        return self.get_db(registry)[collection_name]
 
     def get_filestore(self, registry):
-        if not self.testing:
-            db = self.client[mongo_db_name(registry)]
-        else:
-            db = self.client["testing_" + registry]
+        db = self.get_db(registry)
 
         if self.filestore_class is None:
             import gridfs
@@ -1038,17 +1029,10 @@ class DynamicDataWrapper(object):
         cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
 
     def get_cde(self, registry, section, cde_code):
-        if not self.testing:
-            db = self.client[mongo_db_name(registry)]
-        else:
-            db = self.client["testing_" + registry]
-
-        collection = db["cdes"]
+        collection = self._get_collection(registry, "cdes")
         cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
         cde_record = collection.find_one(self._get_record_query(), {cde_mongo_key: True})
-        cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
-
-        return cde_value
+        return cde_record.get(cde_mongo_key)
 
     def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
 
@@ -1073,19 +1057,6 @@ class DynamicDataWrapper(object):
                     for cde_dict in section_dict["cdes"]:
                         yield form_dict, section_dict, cde_dict
 
-    def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
-        try:
-            return cde_record[cde_mongo_key]
-        except KeyError:
-            return None
-
     def get_form_timestamp(self, registry_form):
-        if not self.testing:
-            db = self.client[mongo_db_name(registry_form.registry.code)]
-        else:
-            db = self.client["testing_" + registry_form.registry.code]
-
-        collection = db["cdes"]
-        form_timestamp = collection.find_one(self._get_record_query(), {"timestamp": True})
-
-        return form_timestamp
+        collection = self._get_collection(registry_form.registry.code, "cdes")
+        return collection.find_one(self._get_record_query(), {"timestamp": True})
