@@ -518,8 +518,7 @@ class _ExistingDataWrapper(object):
     @property
     def link(self):
         demographic_link = reverse("patient_edit", args=[self.registry_model.code,
-                                                         self.patient_model.pk,
-                                                         self.default_context_model.pk])
+                                                         self.patient_model.pk])
         return demographic_link
 
     @property
