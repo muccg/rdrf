@@ -81,6 +81,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "multiple_contexts": self._get_multiple_contexts(),
             "current_multiple_context": self._get_current_multiple_context(),
             "consents_link" : self._get_consents_link(),
+            "family_linkage_link" : self._get_family_linkage_link(),
             "consent_locked" : self.consent_locked,
             }
 
@@ -93,6 +94,19 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
     def _get_consents_link(self):
         return reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk])
+
+    def _get_family_linkage_link(self):
+        if self.registry_model.has_feature("family_linkage"):
+            registry_code = self.registry_model.code
+            if self.patient_model.is_index:
+                family_linkage_link = reverse('family_linkage', args=(registry_code,
+                                                                      self.patient_model.pk))
+            else:
+                family_linkage_link = reverse('family_linkage', args=(registry_code,
+                                                                      self.patient_model.my_index.pk))
+            return family_linkage_link
+        else:
+            return None
 
     def _get_existing_data_link(self):
         if self.registry_model.registry_type == RegistryType.NORMAL:

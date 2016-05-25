@@ -21,6 +21,14 @@
   </div>
 </div>
 
+{% if family_linkage_link %}
+<div width="100%" class="panel panel-default collapsible">
+  <div class="panel-body">
+    <a href="{{family_linkage_link}}">Family Linkage</a>
+  </div>
+</div>
+{% endif %}
+
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if multiple_contexts %}
