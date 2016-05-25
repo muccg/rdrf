@@ -119,6 +119,23 @@ class RDRFContextLookup(View):
         except Registry.DoesNotExist:
             return self.to_json([])
 
+class RDRFContextLookup(View):
+    @method_decorator(login_required)
+    def get(self, request, registry_code, patient_id):
+        current_rdrf_context_id = request.session.get("rdrf_context_id", None)
+        from rdrf.models import Registry
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
+            patient_type = ContentType.objects.get_for_model(Patient)
+            rdrf_contexts = RDRFContext.objects.filter(registry=registry_model,
+                                                       content_type=patient_type,
+                                                       object_id=patient_id)
+
+            return self.to_json(rdrf_contexts, current_rdrf_context_id)
+
+        except Registry.DoesNotExist:
+            return self.to_json([])
+
     def to_json(self, rdrf_contexts, current_rdrf_context_id):
         results = []
         for rdrf_context in rdrf_contexts:
@@ -184,20 +201,10 @@ class RDRFContextLookup(View):
         if rdrf_context_model.content_object is not patient_model:
             raise RDRFContextError("Selected RDRF Context does not belong to patient %s" % patient_model)
 
-        # all ok
+	# all ok
         request.session["rdrf_context_id"] = rdrf_context_model.pk
 
         return self._create_success_packet(rdrf_context_model.pk)
-
-    def _create_error_packet(self, context_exception):
-        error_packet = {"error": context_exception.message}
-        error_packet_json = json.dumps(error_packet)
-        return HttpResponse(error_packet_json, status=200, content_type="application/json")
-
-    def _create_success_packet(self, active_context_id):
-        success_packet = {"error": context_exception.message}
-        success_packet_json = json.dumps(success_packet)
-        return HttpResponse(success_packet_json, status=200, content_type="application/json")
 
 
 class RecaptchaValidator(View):
@@ -208,3 +215,8 @@ class RecaptchaValidator(View):
         payload = {"secret": secret_key, "response": response_value}
         r = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
         return HttpResponse(r)
+
+    def _create_success_packet(self, active_context_id):
+        success_packet = {"error": context_exception.message}
+        success_packet_json = json.dumps(success_packet)
+        return HttpResponse(success_packet_json, status=200, content_type="application/json")

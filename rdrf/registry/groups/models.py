@@ -223,8 +223,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if not self.has_feature("questionnaires"):
             links = links - QuickLinks.QUESTIONNAIRE_HANDLING
 
-        return links
+        if self.has_feature("family_linkage"):
+            links = links | QuickLinks.DOCTORS
 
+        return links
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
     from patient_registration.fkrp import FkrpRegistration

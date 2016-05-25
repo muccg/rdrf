@@ -243,6 +243,8 @@
                 });
             });
         });
+
+        setupRDRFContextSwitching();
         
         $('#main-form').data('serialize', $('#main-form').serialize());
         
@@ -257,8 +259,6 @@
         $("#main-form").submit(function() {
             $(window).unbind("beforeunload");
         });
-
-        setupRDRFContextSwitching();
         
         $('#main-form').data('serialize', $('#main-form').serialize());
         
@@ -325,8 +325,8 @@
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
         <span class="glyphicon glyphicon-list"></span> Modules<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'patient_edit' registry patient_id context_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
             <li><a href="{% url 'consent_form_view' registry patient_id context_id %}"><span class="glyphicon glyphicon-minus"></span>Consents</a></li>
+            <li><a href="{% url 'patient_edit' registry patient_id context_id %}"><span class="glyphicon glyphicon-minus"></span>Demographics</a></li>
             {% if my_contexts_url %}
                 <li><a href="{{my_contexts_url}}"><span class="glyphicon glyphicon-minus"></span>Other contexts for this patient</a></li>
             {% endif %}
@@ -424,7 +424,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            {{ element.help_text }}
+                                                            <i>{{ element.help_text }}</i>
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -457,7 +457,7 @@
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
                                                         <small class="text-muted">
-                                                            {{ element.help_text }}
+                                                            <i>{{ element.help_text }}</i>
                                                         </small>
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -473,13 +473,13 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group">
-                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
+                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
-                                    <div class="col-md-8">
+                                    <div class="col-sm-9">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="label label-danger">{{field.errors.as_text}}</span>
@@ -505,7 +505,7 @@
                 <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
                 </a>
-				{% endif %}
+                {% endif %}
 
                 <a class="btn btn-info btn-block" href="{{ next_form_link }}">
                     <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
@@ -514,6 +514,7 @@
                 <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
                     <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
                 </a>
+
             </div>
         </div>
 

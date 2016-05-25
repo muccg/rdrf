@@ -10,9 +10,9 @@ The Rare Disease Registry Framework (RDRF) is an open source tool for the creati
 Contact
 -------
 
-Hosted on Bitbucket:
+Hosted on GitHub:
  
-https://bitbucket.org/ccgmurdoch/rdrf/
+https://muccg.github.io/rdrf/
 
 Demo Site:
 
@@ -24,7 +24,7 @@ rdrf@ccg.murdoch.edu.au
 
 Documentation:
 
-http://rare-disease-registry-framework.readthedocs.org/en/latest/
+https://muccg.github.io/rdrf/docs/
 
 
 Publications

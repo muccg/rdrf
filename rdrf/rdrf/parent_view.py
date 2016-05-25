@@ -11,6 +11,8 @@ from django.contrib.auth import get_user_model
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType, ConsentValue
 from models import Registry, RegistryForm, ConsentSection, ConsentQuestion
 from registry.patients.admin_forms import ParentGuardianForm
+from utils import consent_status_for_patient
+
 
 from utils import consent_status_for_patient
 
@@ -65,23 +67,8 @@ class BaseParentView(LoginRequiredMixin, View):
             working_group, status = WorkingGroup.objects.get_or_create(
                 name=self._UNALLOCATED_GROUP, registry=registry)
 
-        return clinician, working_group
 
-    def _consent_status_for_patient(self, registry_code, patient):
-        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        answers = {}
-        valid = []
-        for consent_section in consent_sections:
-            if consent_section.applicable_to(patient):
-                questions = ConsentQuestion.objects.filter(section=consent_section)
-                for question in questions:
-                    try:
-                        cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                        answers[cv.consent_question.code] = cv.answer
-                    except ConsentValue.DoesNotExist:
-                        pass
-            valid.append(consent_section.is_valid(answers))
-        return all(valid)
+
 
 
     def set_rdrf_context(self, patient_model, context_id):
@@ -111,7 +98,6 @@ class BaseParentView(LoginRequiredMixin, View):
 
             raise RDRFContextSwitchError
 
-
 class ParentView(BaseParentView):
 
     def get(self, request, registry_code, context_id=None):
@@ -137,7 +123,7 @@ class ParentView(BaseParentView):
                 self.set_rdrf_context(patient, context_id)
                 patients.append({
                     "patient": patient,
-                    "consent": self._consent_status_for_patient(registry_code, patient),
+                    "consent": consent_status_for_patient(registry_code, patient)
                     "context_id": self.rdrf_context.pk
                 })
 

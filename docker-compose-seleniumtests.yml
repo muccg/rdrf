@@ -4,7 +4,7 @@ dataselenium:
     file: docker-compose-common.yml
     service: dataselenium
 
-# runs the selenium tests against the stack above
+# runs the selenium tests against docker-compose-teststack.yml
 seleniumtesthost:
   image: muccg/angelman-dev
   command: selenium

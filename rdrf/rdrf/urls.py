@@ -74,6 +74,8 @@ urlpatterns = patterns('',
                        url(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
                            name='import_registry'),
                        url(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
+                       url(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
+                           name="report_datatable"),
                        url(r'^explorer/', include('explorer.urls')),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
                        url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
@@ -139,6 +141,11 @@ urlpatterns = patterns('',
                            ResendEmail.as_view(), name="resend_email"),
 #-------------------------------------------
 
+#---- Email Notifications URLs -------------
+                       url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
+                           ResendEmail.as_view(), name="resend_email"),
+#-------------------------------------------
+
 #---- Parent URLs --------------------------
                        url(r"^(?P<registry_code>\w+)/parent/(?P<context_id>\d+)?$",
                            parent_view.ParentView.as_view(), name='parent_page'),
@@ -174,7 +181,6 @@ urlpatterns = patterns('',
                            form_view.AdjudicationRequestView.as_view(), name='adjudication_request'),
                        url(r'^adjudicationresult/(?P<adjudication_definition_id>\d+)/(?P<requesting_user_id>\d+)/(?P<patient_id>\d+)/?$',
                            form_view.AdjudicationResultsView.as_view(), name='adjudication_result'),
-
 
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),

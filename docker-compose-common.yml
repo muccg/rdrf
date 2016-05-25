@@ -11,7 +11,6 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
-
 dataselenium:
   image: muccg/debian8-base:latest
   volumes:
@@ -88,8 +87,6 @@ runserver:
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - WAIT_FOR_REPORTING=1
-    - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
-    - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}
     - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
     - DJANGO_MAILGUN_SERVER_NAME=${DJANGO_MAILGUN_SERVER_NAME}
   ports:
@@ -104,8 +101,6 @@ uwsgi:
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - WAIT_FOR_RUNSERVER=1
-    - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
-    - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}
     # note: important to wait for runserver in dev as both will attempt to syncdb etc
   ports:
     - "9000:9000"

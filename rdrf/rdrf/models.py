@@ -463,6 +463,21 @@ class Registry(models.Model):
 
     def clean(self):
         self._check_metadata()
+        self._check_dupes()
+
+
+    def _check_dupes(self):
+        dupes = [ r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk ]
+        names = " ".join([ "%s %s" % (r.code, r.name) for r in dupes])
+        if len(dupes) > 0:
+            raise ValidationError("Code %s already exists ( ignore case) in: %s" % (self.code, names))
+
+    @property
+    def context_name(self):
+        try:
+            return self.metadata['context_name']
+        except KeyError:
+            return "Context"
 
     @property
     def context_name(self):
@@ -929,6 +944,7 @@ class QuestionnaireResponse(models.Model):
     def has_mongo_data(self):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
         return wrapper.has_data(self.registry.code)
 
 

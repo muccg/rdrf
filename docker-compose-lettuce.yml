@@ -1,18 +1,15 @@
 #
 dataselenium:
   extends:
-    file: docker-compose-seleniumstack.yml
+    file: docker-compose-common.yml
     service: dataselenium
 
-# runs the lettuce tests against docker-compose-seleniumstack.yml
+# runs the lettuce tests against docker-compose-teststack.yml
 lettucehost:
   image: muccg/angelman-dev
   command: lettuce
   environment:
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
     - WAIT_FOR_WEB=1
-    - WAIT_FOR_MONGO=1
   volumes_from:
     - dataselenium      
   external_links:

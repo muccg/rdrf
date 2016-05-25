@@ -509,6 +509,8 @@ class Importer(object):
 
             f.registry = r
             f.sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+            if 'position' in frm_map:
+                f.position = frm_map['position']
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
@@ -657,6 +659,7 @@ class Importer(object):
                     information_text = section_dict["information_text"]
                 else:
                     information_text = ""
+
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry)
                 section_model.information_link = information_link

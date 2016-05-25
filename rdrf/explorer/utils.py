@@ -110,7 +110,12 @@ class DatabaseUtils(object):
     @timed
     def dump_results_into_reportingdb(self, reporting_table_generator):
         logger.debug("*********** running query and dumping to temporary table *******")
-        reporting_table_generator.drop_table()
+        try:
+            reporting_table_generator.drop_table()
+        except Exception, ex:
+            logger.error("Report Error: dropping table: %s" % ex)
+            raise
+
         logger.debug("dropped temporary table")
 
         try:
@@ -161,7 +166,11 @@ class DatabaseUtils(object):
         history_collection = self.database["history"]
 
         logger.debug("retrieving mongo models for projection once off")
-        self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        if self.projection:
+            self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        else:
+            self.mongo_models = []
+
         logger.debug("iterating through sql cursor ...")
 
         if self.mongo_search_type == "C":
@@ -380,7 +389,6 @@ class DatabaseUtils(object):
 
                             return values
                         else:
-                            logger.debug("section_dict = %s" % section_dict)
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_model.code:
                                     value = self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
@@ -415,13 +423,6 @@ class DatabaseUtils(object):
         criteria = self.criteria
         projection = self.projection
 
-        aggregation = []
-
-        pipline = self.aggregation.split("|")
-        for pipe in pipline:
-            for key, value in ast.literal_eval(pipe).iteritems():
-                aggregation.append({key: value})
-
         django_ids = []
         if self.result:
             for r in self.result:
@@ -432,6 +433,12 @@ class DatabaseUtils(object):
             criteria["django_id"] = {"$in": django_ids}
             results = collection.find(criteria, projection)
         elif mongo_search_type == 'A':
+            aggregation = []
+    
+            pipline = self.aggregation.split("|")
+            for pipe in pipline:
+                aggregation.append(ast.literal_eval(pipe))
+        
             if "$match" in aggregation:
                 aggregation["$match"].update({"django_id": {"$in": django_ids}})
             else:

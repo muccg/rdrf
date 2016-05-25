@@ -88,7 +88,7 @@ jslint)
 dev)
     start_dev
     ;;
-dev_rebuild)
+dev_build)
     create_base_image
     create_build_image
     create_dev_image
@@ -103,12 +103,11 @@ releasetarball)
 start_prod)
     start_prod
     ;;
-start_prod_rebuild)
+prod_build)
     create_base_image
     create_build_image
     create_release_tarball
     create_prod_image
-    start_prod
     ;;
 baseimage)
     create_base_image
@@ -153,6 +152,7 @@ ci_docker_staging)
     ci_docker_staging
     ;;
 docker_staging_lettuce)
+    docker_staging_lettuce
     docker_staging_lettuce
     ;;
 lettuce)

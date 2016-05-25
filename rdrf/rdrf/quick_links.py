@@ -29,6 +29,7 @@ class QuickLinks(object):
     # Genetic Staff
     Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
+
     WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", "Working Groups")
 
     # Admin only

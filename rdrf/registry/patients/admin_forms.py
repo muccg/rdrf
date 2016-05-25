@@ -27,6 +27,7 @@ from registry.groups.models import WorkingGroup
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
+        (None, "---------"),
         (1, "GP (Primary Care)"),
         (2, "Specialist (Lipid)"),
         (3, "Primary Care"),
@@ -208,9 +209,14 @@ class PatientForm(forms.ModelForm):
             user = self.user
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
-            self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                registry=self.registry_model, id__in=[
-                    wg.pk for wg in self.user.working_groups.all()])
+            if not user.is_superuser:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                    registry=self.registry_model, id__in=[
+                        wg.pk for wg in self.user.working_groups.all()])
+            else:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+
+            # field visibility restricted no non admins
             if not user.is_superuser:
                 if not self.registry_model:
                     registry = user.registry.all()[0]
@@ -244,6 +250,7 @@ class PatientForm(forms.ModelForm):
         if patient_model is None:
             return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
+        mongo_wrapper._set_client()
         return mongo_wrapper.load_registry_specific_data(self.registry_model)
 
     def _update_initial_consent_data(self, patient_model, initial_data):
@@ -267,10 +274,13 @@ class PatientForm(forms.ModelForm):
         logger.debug("user is %s" % user)
         logger.debug("form.registry_model = %s" % self.registry_model)
         from registry.groups.models import WorkingGroup
-        initial_working_groups = user.working_groups.filter(registry=self.registry_model)
-        self.fields['working_groups'].queryset = initial_working_groups
-        logger.debug("restricted working groups choices to %s" %
-                     [wg.pk for wg in initial_working_groups])
+        if not user.is_superuser:
+            initial_working_groups = user.working_groups.filter(registry=self.registry_model)
+            self.fields['working_groups'].queryset = initial_working_groups
+            logger.debug("restricted working groups choices to %s" %
+                        [wg.pk for wg in initial_working_groups])
+        else:
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
     date_of_birth = forms.DateField(
         widget=forms.DateInput(

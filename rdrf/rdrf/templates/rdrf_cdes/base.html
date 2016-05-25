@@ -4,9 +4,10 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
-
+{%  block htmltype %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+{%  endblock %}
   <head>
       <title>{% trans "Rare Disease Registry Framework" %}</title>
 
@@ -66,11 +67,6 @@
                         <span class="glyphicon glyphicon-tasks"></span> Menu<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        {% for quick_link in request.user.quick_links %}
-                            {% if not quick_link.admin_link %}
-                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {{quick_link.text}}</a></li>
-                            {% endif %}
-                        {% endfor %}
                         {% if request.user.is_curator or request.user.is_superuser %}
                             {% for reg in request.user.get_registries.all %}
                                 <li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>

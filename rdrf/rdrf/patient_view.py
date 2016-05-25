@@ -13,6 +13,7 @@ from rdrf.models import Registry
 from rdrf.models import CdePolicy
 from rdrf.utils import FormLink
 from rdrf.utils import get_form_links
+from rdrf.utils import consent_status_for_patient
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 
@@ -30,7 +31,6 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.utils import consent_status_for_patient
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
-
 
 import logging
 
@@ -202,6 +202,9 @@ class PatientFormMixin(PatientMixin):
         :param registry_model:
         :return: list of cde_model, field_object pairs
         """
+        if user.is_superuser:
+            return registry_model.patient_fields
+
         if registry_model not in user.registry.all():
             return []
         else:
@@ -305,7 +308,6 @@ class PatientFormMixin(PatientMixin):
                                                                        patient_address_form=patient_address_formset,
                                                                        patient_doctor_form=patient_doctor_formset,
                                                                        patient_relative_form=patient_relative_formset)
-
 
 
         #patient_consent_file_form=patient_consent_file_formset)
@@ -1124,6 +1126,8 @@ class PatientEditView(View):
         :param registry_model:
         :return: list of cde_model, field_object pairs
         """
+        if user.is_superuser:
+            return registry_model.patient_fields
         if registry_model not in user.registry.all():
             return []
         else:
@@ -1144,8 +1148,10 @@ class PatientEditView(View):
                 additional_fields[cde.code] = field_object
             else:
 
-                if cde_policy.is_allowed(user.groups.all(), patient):
-                    additional_fields[cde.code] = field_object
+                if user.is_superuser or cde_policy.is_allowed(user.groups.all(), patient):
+                    # this is bad - registry specific fields in demographics are a bad idea
+                    if patient.is_index:
+                        additional_fields[cde.code] = field_object
 
         if len(additional_fields.keys()) == 0:
             additional_fields["HIDDEN"] = True

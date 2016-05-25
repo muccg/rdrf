@@ -1,5 +1,6 @@
 {% load countries %}
 {% load static %}
+{% load i18n %}
 
 <html>
 
@@ -41,9 +42,12 @@
         $(document).ready(function() {
             //$("#id_password1").passStrengthify();
 
+            var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
+
             var _MS_PER_DAY = 1000 * 60 * 60 * 24 * 365;
             var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
 
+            $("#patient_form").show();
             $("#form-other-clinician").hide();
             $("#underage_msg").hide();
             
@@ -57,7 +61,7 @@
                 'minDate': '-100Y',
                 'maxDate': '0',
                 'yearRange': '-100:+0',
-                'defaultDate': '-18Y'
+                'defaultDate': '-30Y'
             }
             
             $("#id_date_of_birth").datepicker(dateOptions);
@@ -124,7 +128,7 @@
                     $("#form-other-clinician").hide("blind");
                 }
             });
-            
+
             $("#id_country").change(function() {
                 var states = $("#id_state");
                 states.empty();
@@ -135,7 +139,7 @@
                     });
                 });
             });
-            
+
             $("#id_parent_guardian_country").change(function() {
                 var states = $("#id_parent_guardian_state");
                 states.empty();
@@ -151,11 +155,9 @@
 </head>
 
 <body>
-    {{form.errors}}
-    <br>
     <div class="container">
         <br>
-        
+    
         {% if form.errors %}
         <div class="alert alert-danger">
             {% for field in form %}
@@ -166,10 +168,19 @@
         </div>
         {% endif %}
 
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {% for field in form %}
+                {% if field.errors %}
+                    <p><strong>{{field.label}}</strong> - {{ field.errors|striptags }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="alert alert-info">
             <strong>Angelman Registry - Parent Registration</strong>
         </div>
-
         <div id="underage_msg">
             <div class="alert alert-danger">
                 For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.

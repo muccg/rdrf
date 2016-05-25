@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
@@ -151,7 +152,10 @@ class QueryView(LoginRequiredMixin, View):
 
 class DownloadQueryView(LoginRequiredMixin, View):
 
-    def post(self, request, query_id):
+    def post(self, request, query_id, action):
+        if action not in ["download", "view"]:
+            raise Exception("bad action")
+
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
 
@@ -174,9 +178,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
             return self._spreadsheet(query_model) 
 
         database_utils = DatabaseUtils(query_model)
-        result = database_utils.run_full_query().result
-        mongo_keys = _get_non_multiple_mongo_keys(registry_model)
-        munged = _filler(result, mongo_keys)
         humaniser = Humaniser(registry_model)
         multisection_handler = MultisectionHandler({})
         rtg = ReportingTableGenerator(request.user,
@@ -217,14 +218,33 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         
 
-        if not munged:
-            messages.add_message(request, messages.WARNING, "No results")
-            return redirect(reverse("explorer_query_download", args=(query_id,)))
+    def _spreadsheet(self, query_model):
+        # longitudinal spreadsheet required by FKRP
+        from datetime import datetime
+        from django.core.servers.basehttp import FileWrapper
+        from rdrf.spreadsheet_report import SpreadSheetReport
+        humaniser = Humaniser(query_model.registry)
+        spreadsheet_report = SpreadSheetReport(query_model, humaniser)
+        start = datetime.now()
+        spreadsheet_report.run()
+        finish = datetime.now()
+        elapsed_time = finish - start
+        logger.debug("report took %s seconds" % elapsed_time)
+        output = open(spreadsheet_report.output_filename)
+        filename = "Longitudinal Report.xlsx"
+        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        return response
+    
 
-        return self._extract(registry_model, munged, query_model.title, query_id)
+        
 
-    def get(self, request, query_id):
+    def get(self, request, query_id, action):
+        if action not in ['download', 'view']:
+            raise Exception("bad action")
+
         user = request.user
+        logger.debug("user = %s" % user)
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -233,15 +253,21 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
         if query_params:
             params = _get_default_params(request, query_form)
+            params["action"] = action
             params['query_params'] = query_params
             if "registry" in query_params:
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
-                if user.is_curator:
+                if user.is_superuser:
+                    params["working_group"] = WorkingGroup.objects.filter(registry=registry_model)
+                elif user.is_curator:
                     params["working_group"] = WorkingGroup.objects.filter(
                         id__in=[wg.id for wg in user.get_working_groups()])
                 else:
-                    params["working_group"] = WorkingGroup.objects.all()
+                    # only curators and admin
+                    pass
+
+
             return render_to_response('explorer/query_download.html', params)
 
         if query_model.mongo_search_type == "M":
@@ -257,7 +283,12 @@ class DownloadQueryView(LoginRequiredMixin, View):
                                       max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-        return self._extract(query_model.title, rtg)
+        if action == 'view':
+            # allow user to view and manipulate
+            return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
+        else:
+            # download csv
+            return self._extract(query_model.title, rtg)
 
     def _extract(self, title, report_table_generator):
         response = HttpResponse(content_type='text/csv')
@@ -446,7 +477,6 @@ class MultisectionHandler(object):
         # (form_model, section_model, cde_model, section_index) -> column_name
         self.reverse_map = reverse_column_map
         self.row_count = 0
-
 
     def unroll_wide(self, row_dict):
         for key in row_dict:

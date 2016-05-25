@@ -64,12 +64,11 @@ class Doctor(models.Model):
 
     fax = models.CharField(max_length=30, blank=True, null=True)
 
-
     class Meta:
         ordering = ['family_name']
 
     def __unicode__(self):
-        return "%s %s" % (self.family_name.upper(), self.given_names)
+        return "%s %s (%s)" % (self.family_name.upper(), self.given_names, self.surgery_name)
 
 
 class NextOfKinRelationship(models.Model):
@@ -269,7 +268,6 @@ class Patient(models.Model):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
 
-
     def clinical_data_currency(self, days=365):
         """
         If some clinical form ( non genetic ) has been updated  in the window
@@ -335,6 +333,7 @@ class Patient(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
+        wrapper._set_client()
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -368,6 +367,7 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper._set_client()
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -422,6 +422,17 @@ class Patient(models.Model):
         logger.debug("%s not in FH - so my_index is None" % self)
         
         return None
+        
+    def get_contexts_url(self, registry_model):
+        from django.core.urlresolvers import reverse
+        if not registry_model.has_feature("contexts"):
+            return None
+        else:
+            base_url = reverse("contextslisting")
+            full_url = "%s?registry_code=%s&patient_id=%s" % (base_url,
+                                                              registry_model.code,
+                                                              self.pk)
+            return full_url
 
     def get_contexts_url(self, registry_model):
         from django.core.urlresolvers import reverse
@@ -643,6 +654,8 @@ class Patient(models.Model):
 
     def get_form_timestamp(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
+        dynamic_store._set_client()
+        
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
             if "timestamp" in timestamp:
@@ -780,26 +793,25 @@ def get_countries():
 
 class PatientRelative(models.Model):
 
-    RELATIVE_TYPES = (
-        ("Parent", "Parent"),
-        ("Sibling", "Sibling"),
-        ("Child", "Child"),
-        ("Identical Twin", "Identical Twin"),
-        ("Half Sibling", "Half Sibling"),
-        ("Niece/Nephew", "Niece/Nephew"),
-        ("1st Cousin", "1st Cousin"),
-        ("Grandchild", "Grandchild"),
-        ("Uncle/Aunty", "Uncle/Aunty"),
+    RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
+        ("Child (1st degree)",  "Child (1st degree)"),
+        ("Sibling (1st degree)", "Sibling (1st degree)"),
+        ("Identical Twin (0th degree)", "Identical Twin (0th degree)"),
+        ("Non-identical Twin (1st degree)", "Non-identical Twin (1st degree)"),
+        ("Half Sibling (1st degree)", "Half Sibling (1st degree)"),
+        ("Grandparent (2nd degree)", "Grandparent (2nd degree)"),
+        ("Grandchild (2nd degree)",  "Grandchild (2nd degree)"),
+        ("Uncle/Aunt (2nd degree)",  "Uncle/Aunt (2nd degree)"),
+        ("Niece/Nephew (2nd degree)", "Niece/Nephew (2nd degree)"),
+        ("1st Cousin (3rd degree)",  "1st Cousin (3rd degree)"),
+        ("Great Grandparent (3rd degree)", "Great Grandparent (3rd degree)"),
+        ("Great Grandchild (3rd degree)", "Great Grandchild (3rd degree)"),
+        ("Great Uncle/Aunt (3rd degree)", "Great Uncle/Aunt (3rd degree)"),
+        ("Grand Niece/Nephew (3rd degree)", "Grand Niece/Nephew (3rd degree)"),
+        ("1st Cousin once removed (4th degree)", "1st Cousin once removed (4th degree)"),
         ("Spouse", "Spouse"),
-        ("Non-identical twin", "Non-identical twin"),
-        ("Grandparent", "Grandparent"),
-        ("1st cousin once removed", "1st cousin once removed"),
-        ("Great Grandparent", "Great Grandparent"),
-        ("Great Grandchild", "Great Grandchild"),
-        ("Great Uncle/Aunt", "Great Uncle/Aunt"),
-        ("Great Niece/Nephew", "Great Niece/Nephew"),
         ("Unknown", "Unknown"),
-        ("Other", "Other")
+        ("Other", "Other"),
     )
 
     RELATIVE_LOCATIONS = [

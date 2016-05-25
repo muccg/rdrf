@@ -23,7 +23,11 @@ class RegistryView(View):
                 pass
         
         try:
-            registry = Registry.objects.get(code=registry_code)
+            if registry_code != "admin":
+                registry = Registry.objects.get(code=registry_code)
+            else:
+                return render_to_response(
+                    'rdrf_cdes/splash.html', {'body': ' '})
         except ObjectDoesNotExist:
             return render_to_response(
                 'rdrf_cdes/splash.html', {'body': 'Oops, wrong registry code...'})

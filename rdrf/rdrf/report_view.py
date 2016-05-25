@@ -2,8 +2,18 @@ from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.http import HttpResponseRedirect
+from django.http import Http404
+from django.http import HttpResponse
+from django.core.urlresolvers import reverse
 
 from explorer.models import Query
+
+from rdrf.reporting_table import ReportTable
+import json
+from datetime import datetime
+import logging
+logger = logging.getLogger("registry_log")
 
 
 class LoginRequiredMixin(object):

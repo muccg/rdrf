@@ -226,8 +226,8 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
 
         context = self._build_context(user=request.user, patient_model=patient_model)
-
-        context["location"] = location_name(self.registry_form)
+        context["location"] = location_name(self.registry_form, self.rdrf_context)
+        context["header"] = self.registry_form.header
         context["header"] = self.registry_form.header
         context["show_print_button"] = True
 
@@ -286,6 +286,7 @@ class FormView(View):
             return HttpResponseRedirect("/")
 
         dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        dyn_patient._set_client()
 
         if self.testing:
             dyn_patient.testing = True
@@ -683,9 +684,10 @@ class FormView(View):
 
         return json_dict
 
-    def _get_template(self, ):
-        if self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+    def _get_template(self):
+        if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
+
         return "rdrf_cdes/form.html"
 
 
@@ -759,6 +761,8 @@ class QuestionnaireView(FormView):
             context["registry"] = self.registry
             context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
+            context["show_print_button"] = False
+
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
             context = {
@@ -771,6 +775,9 @@ class QuestionnaireView(FormView):
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
         return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+
+    def _get_template(self):
+        return "rdrf_cdes/questionnaire.html"
 
     def _get_prelude(self, registry_code, questionnaire_context):
         if questionnaire_context is None:
@@ -1121,6 +1128,8 @@ class QuestionnaireResponseView(FormView):
         context["custom_consent_errors"] = {}
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
+        context["show_print_button"] = False
+
         return self._render_context(request, context)
 
     def _get_questionnaire_context(self):
@@ -2012,11 +2021,8 @@ class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
         return results_dict
 
     def post(self, request):
-        logger.info("****** received POST OK")
         results_dict = self._get_results(request)
-        logger.info("****  got data: %s" % results_dict)
         json_packet = self._json(results_dict)
-        logger.info("created json packet OK")
         return json_packet
 
     def _get_ordering(self, request):
@@ -2669,6 +2675,7 @@ class CustomConsentFormView(View):
             "previous_form_link": wizard.previous_link,
             "parent": parent,
             "consent": consent_status_for_patient(registry_code, patient_model)
+
         }
 
         logger.debug("context = %s" % context)
@@ -2813,7 +2820,7 @@ class CustomConsentFormView(View):
             parent = ParentGuardian.objects.get(user=request.user)
         except ParentGuardian.DoesNotExist:
             parent = None
-    
+
         context = {
             "location": "Consents",
             "patient": patient_model,

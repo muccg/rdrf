@@ -131,6 +131,7 @@ def rpc_get_patient_contexts(request, registry_code, patient_id):
 
     wrapper = DynamicDataWrapper(patient_model)
 
+
     def created_date(context_model):
         return context_model.created_at.strftime("%A, %d. %B %Y %I:%M%p")
 

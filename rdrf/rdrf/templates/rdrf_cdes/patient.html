@@ -69,13 +69,12 @@
             
             {% if consent %}
                 <ul class="list-group">
-<<<<<<< HEAD
                     <li class="list-group-item">
                         Consents <a target="_blank" href="{% url 'consent_form_view' registry_code patient_id %}" class="btn btn-info btn-xs pull-right" role="button">{% trans 'Access' %}</a>
                     </li>
+                    </li>
                 {% for form in forms %}
                     <li class="list-group-item">{{form.form.name}} {% if form.readonly %}<i><font style="color: red">Readonly</font></strong></i>{% endif %}<a target="_blank" href="{{ form.link }}" class="btn btn-info btn-xs pull-right" role="button">Access</a></li>
-=======
                     <a href="{% url 'consent_form_view' registry_code patient_id context_id %}"
                         data-toggle="popover"
                         data-content="<span style='color: green' class='glyphicon glyphicon-ok' aria-hidden='true'></span> Consents"
@@ -88,16 +87,11 @@
                         data-content="{{form.form.header|safe}}"
                         data-placement="bottom" class="list-group-item">{{form.form.name|de_camelcase}} {% if form.readonly %}<i><font style="color: red">Readonly</font></strong></i>{% endif %}
                     </a>
->>>>>>> 5caa94b... FKRP-279 Context regression: newly registered adult patient and existing adult patients can not log in, receives error
                 {% endfor %}
                 </ul>
             {% else %}
                 <div class="alert alert-danger">
-<<<<<<< HEAD
-                    Please sign the consent <a href="{% url 'patient_edit' registry_code patient_id %}">here</a> to see avilable forms
-=======
-                    Please sign the consent <a href="{% url 'consent_form_view' registry_code patient_id context_id %}">here</a> to see avilable forms
->>>>>>> 5caa94b... FKRP-279 Context regression: newly registered adult patient and existing adult patients can not log in, receives error
+                    Please sign the consent <a href="{% url 'consent_form_view' registry_code patient_id %}">here</a> to see avilable forms
                 </div>
             {% endif %}
         {% elif request.user.is_superuser %}

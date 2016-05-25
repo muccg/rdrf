@@ -201,6 +201,10 @@ class RegistryAdmin(admin.ModelAdmin):
 
         return original_urls
 
+    def get_readonly_fields(self, request, obj=None):
+        "Registry code is readonly after creation"
+        return () if obj is None else ("code",)
+
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
@@ -379,15 +383,15 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
     list_display = ("registry", "cde", "groups", "condition")
-    
+
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
-    
+
     groups.short_description = "Allowed Groups"
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "recipient", "group_recipient", "templates")
+    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
 
     def templates(self, obj):
         return "\n".join([et.description for et in obj.email_templates.all()])

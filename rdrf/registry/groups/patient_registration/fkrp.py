@@ -1,5 +1,6 @@
 from base import BaseRegistration
-from rdrf.email_notification import RdrfEmail
+from rdrf.email_notification import process_notification
+from registration.models import RegistrationProfile
 
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient, PatientAddress, AddressType, ParentGuardian, ClinicianOther
@@ -56,7 +57,11 @@ class FkrpRegistration(BaseRegistration, object):
                 clinician_hospital=self.request.POST.get("other_clinician_hospital"),
                 clinician_address=self.request.POST.get("other_clinician_address")
             )
-            RdrfEmail(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE).send()
+            template_data = {
+                "other_clinician": other_clinician,
+                "patient": patient
+            }
+            process_notification(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE, template_data)
             
         address = self._create_patient_address(patient, self.request)
         address.save()
@@ -94,11 +99,8 @@ class FkrpRegistration(BaseRegistration, object):
             parent_guardian.self_patient = parent_self_patient
             parent_guardian.save()
         
-        new_patient_email = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE)
-        new_patient_email.append("patient", patient)
-        new_patient_email.send()
-    
-    
-        email_note = RdrfEmail(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE)
-        email_note.append("patient", patient).append("clinician", clinician)
-        email_note.send()
+        template_data = {
+            "patient": patient,
+            "registration": RegistrationProfile.objects.get(user=user)
+        }
+        process_notification(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE, template_data)

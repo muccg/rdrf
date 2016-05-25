@@ -33,7 +33,13 @@
                     $("#" + PROJECTION_FIELD).val(response.result);
                 }
                 else {
-                    alert(response.error);
+					$("#js-errors").slideDown("slow", function() {
+						$(this).html(response.error);
+						setTimeout(function() {
+							$("#js-errors").slideUp("slow") },
+							2000
+						);
+					});
                 }
 
             })
@@ -153,9 +159,14 @@
                 if (response.status == 'success') {
                     setUpMongoFields(response.result);
                 }
-                else
-                    {
-                        alert(response.error);
+                else {
+					$("#js-errors").slideDown("slow", function() {
+						$(this).html(response.error);
+						setTimeout(function() {
+							$("#js-errors").slideUp("slow") },
+							2000
+						);
+					});
                 }
 
             });
