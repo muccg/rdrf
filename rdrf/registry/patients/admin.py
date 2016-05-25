@@ -20,7 +20,7 @@ import logging
 from rdrf.utils import has_feature
 from registry.patients.models import ConsentValue
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class DoctorAdmin(admin.ModelAdmin):

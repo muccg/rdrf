@@ -3,7 +3,7 @@ from registry.humangenome.exon import ExonVariation
 from registry.humangenome.protein import ProteinVariation
 from registry.humangenome.sequence import SequenceVariation
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class GeneticType:

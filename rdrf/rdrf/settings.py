@@ -357,7 +357,7 @@ LOGGING = {
             'level': 'CRITICAL',
             'propagate': True,
         },
-        'registry_log': {
+        'rdrf': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,

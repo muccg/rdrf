@@ -24,7 +24,7 @@ from utils import create_permission
 import yaml
 import json
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 # We want all YAML strings to be converted to unicode objects

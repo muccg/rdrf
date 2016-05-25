@@ -13,7 +13,7 @@ from rdrf.reporting_table import ReportTable
 import json
 from datetime import datetime
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class LoginRequiredMixin(object):
