@@ -2,7 +2,7 @@ from rdrf.hooking import hook
 
 from logging import getLogger
 
-logger = getLogger("registry_log")
+logger = getLogger(__name__)
 
 
 @hook("patient_created_from_relative")

@@ -25,7 +25,7 @@ from django.db.models.signals import m2m_changed, post_delete
 
 
 import logging
-logger = logging.getLogger('registry_log')
+logger = logging.getLogger(__name__)
 
 file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 

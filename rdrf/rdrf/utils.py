@@ -13,7 +13,7 @@ import functools
 import os.path
 import subprocess
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class BadKeyError(Exception):
@@ -337,7 +337,7 @@ def get_error_messages(forms):
 def timed(func):
     from logging import getLogger
     from datetime import datetime
-    logger = logging.getLogger("registry_log")
+    logger = logging.getLogger(__name__)
     def wrapper(*args, **kwargs):
         a = datetime.now()
         result = func(*args, **kwargs)

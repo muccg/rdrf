@@ -1,6 +1,6 @@
 from rdrf import rpc_commands
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class ActionExecutor(object):

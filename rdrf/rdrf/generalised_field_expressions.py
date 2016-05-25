@@ -5,7 +5,7 @@ from rdrf.models import RegistryForm, Section, CommonDataElement
 from rdrf.utils import get_cde_value
 import logging
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class FieldExpressionError(Exception):

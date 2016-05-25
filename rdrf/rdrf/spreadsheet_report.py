@@ -12,7 +12,7 @@ from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 class Cache(object):
     LIMIT_SNAPSHOT = 2000
