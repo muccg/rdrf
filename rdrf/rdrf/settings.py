@@ -73,7 +73,7 @@ DATABASES = {
     # }
 }
 
-# Reporing Database ( defaults to main db if not specified 
+# Reporing Database ( defaults to main db if not specified
 DATABASES["reporting"] = {}
 
 DATABASES["reporting"]['ENGINE']   = env.get_db_engine("reporting_dbtype", "pgsql")
@@ -188,7 +188,7 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # Django Notifications
-DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>") 
+DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>")
 # Mail Gun
 EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
 MAILGUN_ACCESS_KEY = env.get('DJANGO_MAILGUN_API_KEY', "")
@@ -286,95 +286,90 @@ else:
 # # LOGGING
 # #
 LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
-try:
-    if not os.path.exists(LOG_DIRECTORY):
-        os.mkdir(LOG_DIRECTORY)
-except:
-    pass
-os.path.exists(LOG_DIRECTORY), "No log directory, please create one: %s" % LOG_DIRECTORY
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': 'Registry [%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s:%(funcName)s] %(message)s'
+            'format': '[%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s:%(funcName)s] %(message)s'
         },
         'db': {
-            'format': 'Registry [%(duration)s:%(sql)s:%(params)s] %(message)s'
+            'format': '[%(duration)s:%(sql)s:%(params)s] %(message)s'
         },
         'simple': {
-            'format': 'Registry %(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s'
         },
     },
     'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
     },
     'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
-        },
         'console': {
             'level': 'DEBUG',
+            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'errorfile': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIRECTORY, 'error.log'),
-            'when': 'midnight',
-            'formatter': 'verbose'
+        'shell': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
         },
-        'registryfile': {
-            'class': 'logging.handlers.TimedRotatingFileHandler',
+        'file': {
+            'level': 'INFO',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
             'filename': os.path.join(LOG_DIRECTORY, 'registry.log'),
-            'when': 'midnight',
-            'formatter': 'verbose'
-        },
-        'db_logfile': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIRECTORY, 'registry_db.log'),
-            'when': 'midnight',
-            'formatter': 'db'
-        },
-         'access_logfile': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIRECTORY, 'access.log'),
             'when': 'midnight',
             'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
-            'filters': [],
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
-            'formatter': 'verbose',
             'include_html': True
-        }
-    },
-    'root': {
-        'handlers': ['console', 'errorfile', 'mail_admins'],
-        'level': 'ERROR',
+        },
+        'null': {
+            'class': 'django.utils.log.NullHandler',
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['null'],
-            'propagate': False,
-            'level': 'INFO',
+            'handlers': ['console', 'file'],
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['mail_admins'],
+            'level': 'CRITICAL',
+            'propagate': True,
         },
         'registry_log': {
-            'handlers': ['registryfile', 'console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        # The following logger used by django useraudit
-        'django.security': {
-            'handlers': ['access_logfile', 'console'],
+        'rdrf.rdrf.management.commands': {
+            'handlers': ['shell'],
             'level': 'DEBUG',
             'propagate': False,
-        }
+        },
+        'py.warnings': {
+            'handlers': ['console'],
+        },
     }
 }
 
