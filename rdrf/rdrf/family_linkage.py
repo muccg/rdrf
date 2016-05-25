@@ -178,14 +178,26 @@ class FamilyLinkageManager(object):
         self.mongo_undos.append(undo)
 
     def _set_as_relative(self, patient):
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative")
+        main_context_model = self._get_main_context(patient)
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative", main_context_model)
         fml_log("set patient %s to relative" % patient)
         self._add_undo(patient, "fh_is_relative")
 
     def _set_as_index_patient(self, patient):
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index")
+        main_context_model = self._get_main_context(patient)
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index", main_context_model)
         fml_log("set patient %s to index" % patient)
         self._add_undo(patient, "fh_is_index")
+
+    def _get_main_context(self, patient_model):
+        # return the correct context which contains the clinical form we need to update
+        main_context_group = self.registry_model.default_context_form_group
+        for context_model in patient_model.context_models:
+            if context_model.context_form_group and context_model.context_form_group.pk == main_context_group.pk:
+                return context_model
+
+        raise Exception("Can't get main context group")
+    
 
 
 class FamilyLinkageView(View):

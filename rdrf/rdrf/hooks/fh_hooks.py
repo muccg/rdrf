@@ -29,13 +29,25 @@ def get_default_context(fh_registry_model, patient_model):
     return default_context
 
 
+def get_main_context(fh_registry_model, patient_model):
+    """
+    Return the context where we need to stick the index/relative field value
+    I.e. the context which has that non-multiple (static) form group containing 
+    the main clinical form
+    """
+    for context_model in patient_model.context_models:
+        if context_model.context_form_group
+        and context_model.context_form-group.pk == fh_registry_model.default_context_form_group.pk:
+            return context_model
+
+
 @hook("patient_created_from_relative")
 def mark_as_relative_in_clinical_form(patient):
     # Ensure that a patient created from a relative is marked as a relative in the clinical form
     logger.debug("marking patient %s as relative .." % patient.pk)
     if patient.in_registry('fh'):
         fh = Registry.objects.get(code="fh")
-        default_context = get_default_context(fh, patient)
+        default_context = get_main_context(fh, patient)
         
         patient.set_form_value("fh",
                                "ClinicalData",
@@ -51,7 +63,7 @@ def mark_created_patient_as_index(patient, registry_ids):
 
     def has_no_mongo_data(patient, registry_model):
         logger.debug("checking mongo data")
-        context_model  = get_default_context(registry_model, patient)
+        context_model  = get_main_context(registry_model, patient)
         if context_model is None:
             logger.debug("context model is None")
             # true when a new patient
@@ -75,7 +87,7 @@ def mark_created_patient_as_index(patient, registry_ids):
         # get the current context form group
         try:
             logger.debug("fh registry added hook running setting to index")
-            default_context = get_default_context(fh, patient)
+            default_context = get_main_context(fh, patient)
             patient.set_form_value("fh",
                                    "ClinicalData",
                                    "fhDateSection",
