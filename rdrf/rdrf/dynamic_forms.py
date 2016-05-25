@@ -5,7 +5,7 @@ from django.conf import settings
 import logging
 from rdrf.models import CdePolicy
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 def create_form_class(owner_class_name):

@@ -4,7 +4,7 @@ import hashlib
 import random
 from django.core.urlresolvers import reverse
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class PatientRelativeLinkWidget(widgets.Widget):

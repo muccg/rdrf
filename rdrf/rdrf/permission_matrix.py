@@ -11,7 +11,7 @@ from rdrf.utils import get_form_links
 from django.utils.translation import ugettext_lazy as _
 import logging
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class MatrixRow(object):

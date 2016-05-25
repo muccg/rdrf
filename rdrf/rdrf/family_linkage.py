@@ -15,7 +15,7 @@ from django.contrib import messages
 
 import logging
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 def fml_log(msg):
     logger.info("***FAMILY LINKAGE: %s" % msg)
