@@ -71,7 +71,7 @@ class FamilyLookup(View):
         registry_model = Registry.objects.get(code=reg_code)
         default_context = patient.default_context(registry_model)
         assert default_context is not None
-        link = reverse("patient_edit", args=[reg_code, patient.pk, default_context.pk])
+        link = reverse("patient_edit", args=[reg_code, patient.pk])
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
                            "family_name": patient.family_name,
@@ -88,8 +88,7 @@ class FamilyLookup(View):
             if patient_created:
                 relatives_default_context = patient_created.default_context(registry_model)
                 relative_link = reverse("patient_edit", args=[reg_code,
-                                                              patient_created.pk,
-                                                              relatives_default_context.pk])
+                                                              patient_created.pk])
             else:
                 relative_link = None
 
