@@ -1,6 +1,0 @@
-<<<<<<< HEAD
-VERSION = "1.3.1.0"
-=======
-VERSION = "1.2.1"
->>>>>>> d1343a2... Merge branch 'next_release'
-__version__ = VERSION
