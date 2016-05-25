@@ -81,11 +81,23 @@ class QuestionnaireReverseMapper(object):
         self.patient = patient
         self.registry = registry
         self.questionnaire_data = questionnaire_data
+        self.default_context_model = None
         # questionnaire handling works only for registry which use default context
+
+    def set_context(self):
         if self.patient is not None:
-            self.default_context_model = self.patient.default_context(self.registry)
+            patient_contexts = self.patient.context_models
+            if len(patient_contexts) == 1:
+                self.default_context_model = patient_contexts[1]
+            elif len(patient_contexts) == 0:
+                from rdrf.contexts_api import RDRFContextManager
+                self.patient.save()
+                manager = RDRFContextManager(self.registry)
+                default_context = manager.get_or_create_default_context(self.patient)
+                self.default_context_model = default_context
         else:
             self.default_context_model = None # ???
+        
 
     def save_patient_fields(self):
         working_groups = []
@@ -398,6 +410,7 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
+            mapper.set_context() # ensure context setup properly before we save any data to Mongfo
         except ValidationError as verr:
             mylogger.error("Could not save patient %s: %s" % (patient, verr))
             raise PatientCreatorError("Validation Error: %s" % verr)
