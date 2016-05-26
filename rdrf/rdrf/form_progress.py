@@ -10,7 +10,7 @@ import math
 import logging
 import datetime
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class ProgressType(object):

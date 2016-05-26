@@ -15,7 +15,7 @@ from rdrf.models import RDRFContext, RDRFContextError
 import pycountry
 
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 # TODO replace these views as well with Django REST framework views

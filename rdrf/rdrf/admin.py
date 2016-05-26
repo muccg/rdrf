@@ -24,6 +24,7 @@ from models import EmailNotificationHistory
 from models import ContextFormGroup
 from models import ContextFormGroupItem
 
+import logging
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 import cStringIO as StringIO
@@ -38,8 +39,7 @@ from admin_forms import RegistryFormAdminForm
 from admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
-import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class SectionAdmin(admin.ModelAdmin):

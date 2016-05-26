@@ -15,7 +15,7 @@ from datetime import datetime, date, time
 import pycountry
 
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 CONSENTS_SECTION = "custom_consent_data"
 

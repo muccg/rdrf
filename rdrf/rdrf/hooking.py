@@ -6,7 +6,7 @@ import logging
 from rdrf.models import Registry
 
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 def hook(hook_name):

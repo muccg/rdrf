@@ -13,7 +13,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class InvalidStructureError(Exception):

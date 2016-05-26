@@ -7,7 +7,7 @@ import logging
 
 from models import Registry
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class RegistryView(View):

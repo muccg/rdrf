@@ -7,7 +7,7 @@ from rdrf.widgets import CountryWidget, StateWidget, DateWidget
 from rdrf.dynamic_data import DynamicDataWrapper
 import pycountry
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
 from django.forms.util import ErrorList, ErrorDict

@@ -2,7 +2,7 @@ import logging
 from rdrf.utils import get_user
 from django.conf import settings
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class NotificationError(Exception):

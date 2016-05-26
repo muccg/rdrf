@@ -59,7 +59,7 @@ from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)
 
 

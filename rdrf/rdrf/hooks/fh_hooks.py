@@ -5,7 +5,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.contenttypes.models import ContentType
 
 from logging import getLogger
-logger = getLogger("registry_log")
+logger = getLogger(__name__)
 
 
 def get_default_context(fh_registry_model, patient_model):
