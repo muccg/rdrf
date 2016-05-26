@@ -32,4 +32,4 @@ django_mailgun
 ccg-django-utils==0.4.2
 django-useraudit
 requests==2.9.1
-django-iprestrict
+django-iprestrict==0.4.1
