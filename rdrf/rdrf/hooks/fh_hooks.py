@@ -36,9 +36,11 @@ def get_main_context(fh_registry_model, patient_model):
     the main clinical form
     """
     for context_model in patient_model.context_models:
-        if context_model.context_form_group
-        and context_model.context_form-group.pk == fh_registry_model.default_context_form_group.pk:
+        if context_model.context_form_group \
+        and context_model.context_form_group.pk == fh_registry_model.default_context_form_group.pk:
             return context_model
+
+    logger.debug("no main context - ???? - returning None")
 
 
 @hook("patient_created_from_relative")
