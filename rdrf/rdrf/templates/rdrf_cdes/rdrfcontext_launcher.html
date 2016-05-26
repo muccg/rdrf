@@ -29,9 +29,9 @@
 </div>
 {% endif %}
 
+{% if multiple_contexts %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if multiple_contexts %}
       {% for multiple_context in multiple_contexts %}
         <p>
           <a href="{{multiple_context.url}}">{{multiple_context.text}}</a>
@@ -44,9 +44,9 @@
           </a>
         </p>
       {% endfor %}
-    {% endif %}
   </div>
 </div>
+{% endif %}
 
 {% if current_multiple_context %}
   <div class="panel panel-default collapsible">
