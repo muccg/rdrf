@@ -88,7 +88,7 @@ class QuestionnaireReverseMapper(object):
         if self.patient is not None:
             patient_contexts = self.patient.context_models
             if len(patient_contexts) == 1:
-                self.default_context_model = patient_contexts[1]
+                self.default_context_model = patient_contexts[0]
             elif len(patient_contexts) == 0:
                 from rdrf.contexts_api import RDRFContextManager
                 self.patient.save()
