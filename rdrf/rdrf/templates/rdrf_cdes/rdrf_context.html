@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-2-cols.html" %}
 {% load add_attr %}
 {% load static from staticfiles %}
 {% load get_patient %}
@@ -27,6 +27,26 @@
 {% block formlinks %}
 {% endblock %}
 
+{% block formbtns %}
+        <br>
+            <form class="form-horizontal" method="post" enctype="multipart/form-data">
+	<div class="btn-group" role="group" aria-label="...">
+	 <button type="submit" class="btn btn-success" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+	</div>
+	
+{% endblock %}	
+
+{% block sidebar %}
+	{{ context_launcher | safe }}
+{% endblock %}
+
+
+
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -46,7 +66,6 @@
                     </div>
                 {% endif %}
 
-            <form class="form-horizontal" method="post" enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -146,19 +165,6 @@
 
         </div>
 
-        <div class="col-md-2">
-            <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-		<p></p>
-		{{ context_launcher | safe }}
-
-
-            </div>
         </div>
         </form>
     </div>
