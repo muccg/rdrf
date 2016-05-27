@@ -67,9 +67,7 @@ class BaseParentView(LoginRequiredMixin, View):
             working_group, status = WorkingGroup.objects.get_or_create(
                 name=self._UNALLOCATED_GROUP, registry=registry)
 
-
-
-
+        return clinician, working_group
 
     def set_rdrf_context(self, patient_model, context_id):
         # Ensure we always have a context , otherwise bail
