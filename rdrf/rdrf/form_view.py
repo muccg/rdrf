@@ -56,7 +56,7 @@ from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
 from rdrf.form_progress import FormProgress
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)
 
 

@@ -37,7 +37,7 @@ from admin_forms import RegistryFormAdminForm
 from admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class SectionAdmin(admin.ModelAdmin):

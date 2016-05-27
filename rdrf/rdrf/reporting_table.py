@@ -6,7 +6,7 @@ from explorer.utils import DatabaseUtils
 from rdrf.utils import timed
 
 import logging
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 

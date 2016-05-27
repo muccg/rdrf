@@ -31,7 +31,7 @@ from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.utils import mongo_key_from_models
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 def encode_row(row):

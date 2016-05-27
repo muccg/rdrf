@@ -8,7 +8,7 @@ import datetime
 from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
 from explorer.models import Query
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class ExportException(Exception):

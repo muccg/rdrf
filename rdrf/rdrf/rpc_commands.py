@@ -1,5 +1,5 @@
 import logging
-logger = logging.getLogger('registry_log')
+logger = logging.getLogger(__name__)
 
 
 def rpc_visibility(request, element):

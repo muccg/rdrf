@@ -11,7 +11,7 @@ from models import EmailNotificationHistory
 
 from email_notification import RdrfEmail
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class ResendEmail(View):
