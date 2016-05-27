@@ -36,9 +36,10 @@ def get_main_context(fh_registry_model, patient_model):
     the main clinical form
     """
     for context_model in patient_model.context_models:
-        if context_model.context_form_group \
-        and context_model.context_form_group.pk == fh_registry_model.default_context_form_group.pk:
-            return context_model
+        if context_model.context_form_group:
+            if context_model.context_form_group.is_default:
+                return context_model
+            
 
     logger.debug("no main context - ???? - returning None")
 
@@ -90,6 +91,10 @@ def mark_created_patient_as_index(patient, registry_ids):
         try:
             logger.debug("fh registry added hook running setting to index")
             default_context = get_main_context(fh, patient)
+
+            if default_context is None:
+                pass
+            
             patient.set_form_value("fh",
                                    "ClinicalData",
                                    "fhDateSection",

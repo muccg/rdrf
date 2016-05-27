@@ -24,12 +24,16 @@ def create_rdrf_default_contexts(patient, registry_ids):
                                                              content_type=content_type,
                                                              object_id=patient.pk).count()
 
+        logger.debug("Existing contexts count = %s" % existing_contexts_count)
+
         if existing_contexts_count == 0:
-            logger.debug("creating default context for patient %s registry %s" % (patient, registry_model))
-            rdrf_context = RDRFContext(registry=registry_model, content_object=patient)
-            rdrf_context.display_name = "default"
-            rdrf_context.save()
-            logger.debug("context saved ok")
+            context_manager = RDRFContextManager(registry_model)
+            return context_manager.get_or_create_default_context(patient)
+        else:
+            logger.debug("not creating any default contexts")
+            for context_model in patient.context_models:
+                logger.debug("existing context model = %s" % context_model.display_name)
+                
 
 
 class RDRFContextManager(object):
@@ -38,33 +42,40 @@ class RDRFContextManager(object):
         self.registry_model = registry_model
         self.supports_contexts = self.registry_model.has_feature("contexts")
         if self.supports_contexts:
-            logger.debug("reg does not support contexts")
-        else:
             logger.debug("reg does support contexts")
+        else:
+            logger.debug("reg does not support contexts")
 
     def get_or_create_default_context(self, patient_model, new_patient=False):
+        logger.debug("RCM: get_or_create_default_context for %s ( new = %s)" % (patient_model,
+                                                                                new_patient))
         if not self.supports_contexts:
+            logger.debug("RCM: does not support contexts")
             content_type = ContentType.objects.get_for_model(patient_model)
             contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
                                                               content_type=content_type,
                                                               object_id=patient_model.pk)]
             if len(contexts) == 0:
                 # No default setup so create one
+                logger.debug("RCM: creating context named default")
                 return self.create_context(patient_model, "default")
             elif len(contexts) == 1:
+                logger.debug("There already is one context so returning it")
                 return contexts[0]
             else:
+                logger.debug("More than one context - huh?!")
                 raise RDRFContextError("Patient %s in %s has more than 1 context" % (patient_model, self.registry_model))
         else:
-            if new_patient:
-                default_fixed_context = self.create_fixed_contexts_for_patient(patient_model)
-                if default_fixed_context is not None:
-                    return default_fixed_context
-                
-                return self.create_initial_context_for_new_patient(patient_model)
+            logger.debug("RCM supports contexts - will create any fixed contexts")
+            logger.debug("RCM new patient - creating fixed contexts")
+            default_fixed_context = self.create_fixed_contexts_for_patient(patient_model)
+            logger.debug("RCM: default fixed context = %s" % default_fixed_context)
+            if default_fixed_context is not None:
+                logger.debug("RCM: is not None so returning")
+                return default_fixed_context
             else:
-                raise RDRFContextError("Registry %s supports contexts so there is no default context" % self.registry_model)
-
+                logger.debug("RCM: default fixed context is None .. creating context using create_initial_context...")
+                return self.create_initial_context_for_new_patient(patient_model)
 
     def create_fixed_contexts_for_patient(self, patient_model):
         from rdrf.models import ContextFormGroup
