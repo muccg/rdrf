@@ -37,11 +37,11 @@ admin.autodiscover()
 
 
 def handler404(request):
-    return render_to_response("error/404.html")
+    return render_to_response("404.html")
 
 
 def handler500(request):
-    return render_to_response("error/500.html")
+    return render_to_response("500.html")
 
 
 def handlerApplicationError(request):
