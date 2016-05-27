@@ -1099,12 +1099,11 @@ def save_patient_hooks(sender, instance, created, **kwargs):
 def registry_changed_on_patient(sender, **kwargs):
     logger.debug("registry changed on patient %s: kwargs = %s" % (kwargs['instance'], kwargs))
     if kwargs["action"] == "post_add":
-        logger.debug("XXXXXX  post add patient running")
+        from rdrf.contexts_api import create_rdrf_default_contexts
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
-        run_hooks('registry_added', instance, registry_ids)
-        from rdrf.contexts_api import create_rdrf_default_contexts
         create_rdrf_default_contexts(instance, registry_ids)
+        run_hooks('registry_added', instance, registry_ids)
 
 
 class ConsentValue(models.Model):
