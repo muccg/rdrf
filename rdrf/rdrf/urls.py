@@ -101,7 +101,10 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
                            form_view.FormPrintView.as_view(), name='registry_form_print'),
-                       
+
+                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)/(?P<cde_code>\w+)/history/?$",
+                           form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
+
                        url(r"^(?P<registry_code>\w+)/?$",
                            registry_view.RegistryView.as_view(), name='registry'),
 

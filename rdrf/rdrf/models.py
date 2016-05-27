@@ -669,7 +669,12 @@ class CommonDataElement(models.Model):
             return None
 
     def get_display_value(self, stored_value):
-        if self.pv_group:
+        if stored_value is None:
+            return ""
+        elif stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN
+            return ":NaN"
+        elif self.pv_group:
             # if a range, return the display value
             try:
                 values_dict = self.pv_group.as_dict()
@@ -682,9 +687,7 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
-        if stored_value == "NaN":
-            # the DataTable was not escaping this value and interpreting it as NaN 
-            return ":NaN"
+
         return stored_value
 
     def clean(self):

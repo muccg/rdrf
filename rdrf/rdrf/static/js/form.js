@@ -124,3 +124,121 @@ function do_remove(el, table_id, num_rows, total_forms_id, initial_forms_id) {
 
     renumber_section_table(table_id);
 }
+
+function rdrf_click_form_field_history(ev, a) {
+  var modal;
+  ev.preventDefault();
+  $.get($(a).attr("href")).then(function(doc) {
+    modal = $("<div></div>").html(doc).find(".modal")
+        .appendTo("body")
+        .modal()
+        .on("hidden.bs.modal", function(e) {
+          $(e.target).remove();
+        });
+    rdrf_form_field_history_init(modal, on_restore);
+  });
+
+  var on_restore = function(snapshot) {
+    // fixme: restoring a value will depend on the type of cde
+    $("#" + $(a).parent().attr("for"))
+      .val(snapshot.value)
+      .addClass("cde-value-updated")
+      .removeClass("cde-value-updated", 5000, "easeOutQuad");
+    modal.modal("hide");
+  };
+}
+
+function rdrf_form_field_history_init(modal, restoreCallback) {
+  var info = modal.find(".cde-history-data").remove();
+  var label = info.attr("data-label");
+  var datatype = info.attr("data-cde-datatype");
+  var data = $.parseJSON(info.text());
+  var chartCanvas = modal.find(".cde-history-chart");
+
+  var parseIsoDatetime = function(str) {
+    var m = moment(str, "YYYY-MM-DDTHH:mm:ssZ");
+    return m.isValid() ? m.toDate() : null;
+  };
+  var snapshotTimestamp = function(snapshot) {
+    return parseIsoDatetime(snapshot.timestamp);
+  };
+  var snapshotValue = function(datatype) {
+    if (datatype === "integer" || datatype === "float") {
+      return function(snapshot) {
+        return _.isNumber(snapshot.value) ? snapshot.value : null;
+      };
+    } else if (datatype === "boolean") {
+      return function(snapshot) {
+        return _.isNull(snapshot.value) || _.isUndefined(snapshot.value)
+          ? null : snapshot.value ? 1 : 0;
+      };
+    } else if (datatype === "date") {
+      return function(snapshot) {
+        return parseIsoDatetime(snapshot.value);
+      };
+    } else {
+      return function(snapshot) {
+        return snapshot.value;
+      };
+    }
+  };
+
+  var setupChart = function(ctx) {
+    var pairs = _.filter(_.zip(_.map(data, snapshotTimestamp),
+                               _.map(data, snapshotValue(datatype))),
+                         function(p) { return !_.isNull(p[1]); });
+    return new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: _.map(pairs, function(p) { return p[0]; }),
+        datasets: [{
+          label: label,
+          data: _.map(pairs, function(p) { return p[1]; }),
+          fill: false,
+          lineTension: 0
+        }]
+      },
+      options: {
+        legend: {
+          display: false
+        },
+        scales: {
+          xAxes: [{
+            type: "time",
+            position: "bottom",
+            time: {
+              tooltipFormat: "D-M-Y HH:mm"
+            }
+          }],
+          yAxes: false && datatype === "date" ? [{
+            // fixme: chart.js doesn't like time scale on y-axis
+            type: "time",
+            position: "left"
+          }] : undefined
+        },
+        maintainAspectRatio: false
+      }
+    });
+  };
+
+  var setupRestore = function() {
+    // run a callback when one of the restore buttons is clicked
+    modal.find("tbody").on("click", ".cde-history-restore", function(ev) {
+      ev.stopPropagation();
+      var id = $(this).attr("data-id");
+      var snapshot = _.find(data, function(s) { return s.id === id });
+      if (restoreCallback) {
+        restoreCallback(snapshot);
+      }
+    });
+  };
+
+  setupRestore();
+
+  if (_.contains(["integer", "float", "boolean", "date"], datatype)) {
+    setupChart(chartCanvas);
+  } else {
+    chartCanvas.replaceWith("<p>This type of data element can't be plotted.</p>");
+    modal.find("a[href='#cde-history-chart']").parent().addClass("disabled");
+  }
+}

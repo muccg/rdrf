@@ -1,6 +1,8 @@
 # Custom widgets / Complex controls required
 from django.forms import Textarea, Widget, MultiWidget
 from django.forms import widgets
+from django.forms.utils import flatatt
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
 
@@ -211,17 +213,16 @@ class DateWidget(widgets.TextInput):
 
 
 class CountryWidget(widgets.Select):
-
     def render(self, name, value, attrs):
-
-        countries = pycountry.countries
-
-        output = [
-            "<select class='form-control' onChange='select_country(this);' id='%s' name='%s'>" %
-            (name, name)]
+        final_attrs = self.build_attrs(attrs, **{
+            "name": name,
+            "class": "form-control",
+            "onchange": "select_country(this)",
+        })
+        output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---</option>"
         output.append(empty_option)
-        for country in countries:
+        for country in pycountry.countries:
             if value == country.alpha2:
                 output.append("<option value='%s' selected>%s</option>" %
                               (country.alpha2, country.name))
@@ -244,7 +245,11 @@ class StateWidget(widgets.Select):
         else:
             country_states = []
 
-        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        final_attrs = self.build_attrs(attrs, **{
+            "name": name,
+            "class": "form-control",
+        })
+        output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value='---'>---</option>"
         output.append(empty_option)
         for state in country_states:
@@ -277,7 +282,11 @@ class ParametrisedSelectWidget(widgets.Select):
         if not value:
             value = self.attrs.get('default', '')
 
-        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        final_attrs = self.build_attrs(attrs, **{
+            "name": name,
+            "class": "form-control",
+        })
+        output = [format_html("<select{}>", flatatt(final_attrs))]
         output.append("<option value='---'>---</option>")
         for code, display in self._get_items():
             if value == code:

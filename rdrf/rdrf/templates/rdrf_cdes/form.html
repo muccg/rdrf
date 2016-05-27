@@ -19,6 +19,8 @@
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/Chart.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
     
@@ -49,7 +51,10 @@
 
 
     <script>
-
+        // show bootstrap tooltips
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        });
 
         function activeContextBehaviour() {
                 $('#rdrf_context_table tr').on('click', function() {
@@ -458,8 +463,18 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group">
+                                <div class="form-group rdrf-cde-field invisibutton-container">
                                     <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                        {% if field.field.cde.code %}
+                                        <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
+                                           onclick="rdrf_click_form_field_history(event, this)"
+                                           class="btn btn-default btn-xs invisibutton pull-left"
+                                           data-toggle="tooltip" title="View previous values"
+                                           aria-label="Previous values">
+                                          <!-- fixme: need a time-series chart or clock icon -->
+                                          <i class="glyphicon glyphicon-stats" aria-hidden="true"></i>
+                                        </a>
+                                        {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
