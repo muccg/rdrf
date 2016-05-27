@@ -30,7 +30,7 @@
             
             $.get("{% url 'v1:clinician-list' registry_code %}", function(data) {
                 clinician_drop = $("#id_clinician");
-                $.each($.parseJSON(data), function(i, item){
+                $.each(data, function(i, item){
                     clinician_drop.append($('<option>', { value : item.id }).text(item.full_name)); 
                 });
                 clinician_drop.append($('<option>', { value : 'clinician-other' }).text('Other - not listed'));
