@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-2-cols.html" %}
 {% load static %}
 {% block extrastyle %}
         {{ block.super }}
@@ -331,6 +331,29 @@
     </script>
 {% endblock %}
 
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+<!-- Sidebar -->
+	{{ context_launcher | safe }}
+<!-- /#sidebar-wrapper -->
+{% endblock %}
+
+
+{% block formbtns %}
+        <br>
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="savebutton" type="submit" class="btn btn-success" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+	</div>
+{% endblock %}	
+
+
 {% block content %}
     {% if request.user.is_authenticated %}
         {{ block.super }}
@@ -405,14 +428,7 @@
              <div class="col-md-2">
 
             <div data-spy="affix" style="width: 150px;">
-                <button id="savebutton" type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-            </div>
-        </div>
+                      </div>
 
 
 

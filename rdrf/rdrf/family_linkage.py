@@ -212,11 +212,14 @@ class FamilyLinkageView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry does not exist")
 
-        context = {}
+        context = {} 
         context.update(csrf(request))
+
         context['registry_code'] = registry_code
         context['index_lookup_url'] = reverse("v1:index-list", args=(registry_code,))
         context["initial_index"] = initial_index
+        context["location"] = "Family Linkage"
+
 
         return render_to_response(
             'rdrf_cdes/family_linkage.html',
