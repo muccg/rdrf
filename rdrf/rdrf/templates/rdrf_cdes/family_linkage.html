@@ -272,10 +272,10 @@
                         data: {packet_json: JSON.stringify(data)},
                         success: function(data) {
                            if (data == "OK") {
-                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                                $(".container-fluid").eq(1).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
                            }
                            else {
-                                $(".container").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+                                $(".container-fluid").eq(1).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
 
 
                            }
@@ -357,12 +357,6 @@
 {% block content %}
     {% if request.user.is_authenticated %}
         {{ block.super }}
-        <div class="row">
-        <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Family Linkages</h3></p>
-        </div>
-        </div>
-    <br>
         <div class="row">
             <div class="col-md-10">
 
