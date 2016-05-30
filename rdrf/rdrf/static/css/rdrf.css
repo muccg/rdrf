@@ -72,3 +72,19 @@ body {
     padding: 10px 30px 0px 0px;
     font-size: 0.8em;
 }
+
+.invisibutton-container .invisibutton {
+  visibility: hidden;
+}
+
+.invisibutton-container:hover .invisibutton {
+  visibility: visible;
+}
+
+input.cde-value-updated {
+  background-color: #5bc0de;
+}
+
+.cde-history-chart {
+  min-height: 300px;
+}

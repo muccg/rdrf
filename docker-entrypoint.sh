@@ -103,6 +103,10 @@ function _django_dev_fixtures {
 
     echo "loading users fixture"
     django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
+
+    echo "loading permissive iprestrict rules fixture"
+    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=iprestrict_dev_rules.json
+    django-admin.py reloadrules
 }
 
 function _rdrf_import_grdr {
