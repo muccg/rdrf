@@ -44,6 +44,7 @@ class AngelmanRegistration(BaseRegistration, object):
         patient.working_groups.add(working_group.id)
         patient.clinician = clinician
         patient.home_phone = self.request.POST["phone_number"]
+        patient.email = user.username
         patient.user = None
     
         patient.save()
