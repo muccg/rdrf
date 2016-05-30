@@ -138,7 +138,7 @@ if [ "$1" = 'tarball' ]; then
     set +x
 
     # create release tarball
-    DEPS="/env /app/uwsgi /app/docker-entrypoint.sh /app/rdrf"
+    DEPS="/env /app/uwsgi /app/docker-entrypoint.sh /app/rdrf /app/scripts"
     cd /data
     exec tar -cpzf ${PROJECT_NAME}-${GIT_TAG}.tar.gz ${DEPS}
 fi
