@@ -49,21 +49,6 @@ class AngelmanRegistration(BaseRegistration, object):
     
         patient.save()
         
-        if "clinician-other" in self.request.POST['clinician']:
-            other_clinician = ClinicianOther.objects.create(
-                patient=patient,
-                clinician_name=self.request.POST.get("other_clinician_name"),
-                clinician_hospital=self.request.POST.get("other_clinician_hospital"),
-                clinician_address=self.request.POST.get("other_clinician_address"),
-                clinician_phone_number=self.request.POST.get("other_clinician_phone_number"),
-                clinician_email=self.request.POST.get("other_clinician_email")
-            )
-            template_data = {
-                "other_clinician": other_clinician,
-                "patient": patient
-            }
-            process_notification(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE, template_data)
-            
         address = self._create_patient_address(patient, self.request)
         address.save()
     
@@ -78,6 +63,22 @@ class AngelmanRegistration(BaseRegistration, object):
             "registration": RegistrationProfile.objects.get(user=user)
         }
         process_notification(registry_code, settings.EMAIL_NOTE_NEW_PATIENT, self.request.LANGUAGE_CODE, template_data)
+        
+        if "clinician-other" in self.request.POST['clinician']:
+            other_clinician = ClinicianOther.objects.create(
+                patient=patient,
+                clinician_name=self.request.POST.get("other_clinician_name"),
+                clinician_hospital=self.request.POST.get("other_clinician_hospital"),
+                clinician_address=self.request.POST.get("other_clinician_address"),
+                clinician_phone_number=self.request.POST.get("other_clinician_phone_number"),
+                clinician_email=self.request.POST.get("other_clinician_email")
+            )
+            template_data = {
+                "other_clinician": other_clinician,
+                "patient": patient,
+                "parent": parent_guardian
+            }
+            process_notification(registry_code, settings.EMAIL_NOTE_OTHER_CLINICIAN, self.request.LANGUAGE_CODE, template_data)
 
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(
