@@ -54,7 +54,9 @@ class AngelmanRegistration(BaseRegistration, object):
                 patient=patient,
                 clinician_name=self.request.POST.get("other_clinician_name"),
                 clinician_hospital=self.request.POST.get("other_clinician_hospital"),
-                clinician_address=self.request.POST.get("other_clinician_address")
+                clinician_address=self.request.POST.get("other_clinician_address"),
+                clinician_phone_number=self.request.POST.get("other_clinician_phone_number"),
+                clinician_email=self.request.POST.get("other_clinician_email")
             )
             template_data = {
                 "other_clinician": other_clinician,
