@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
-from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType, ConsentValue
+from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType, ConsentValue, ClinicianOther
 from models import Registry, RegistryForm, ConsentSection, ConsentQuestion
 from registry.patients.admin_forms import ParentGuardianForm
 from utils import consent_status_for_patient
@@ -151,9 +151,19 @@ class ParentView(BaseParentView):
         )
         patient.rdrf_registry.add(registry)
 
-        clinician, centre = self.get_clinician_centre(request, registry)
-        patient.clinician = clinician
-        patient.save()
+        if request.POST['clinician'] == "clinician-other":
+            ClinicianOther.objects.create(
+                patient=patient,
+                clinician_name=self.request.POST.get("other_clinician_name"),
+                clinician_hospital=self.request.POST.get("other_clinician_hospital"),
+                clinician_address=self.request.POST.get("other_clinician_address"),
+                clinician_phone_number=self.request.POST.get("other_clinician_phone_number"),
+                clinician_email=self.request.POST.get("other_clinician_email")
+            )
+        else:
+            clinician, centre = self.get_clinician_centre(request, registry)
+            patient.clinician = clinician
+            patient.save()
 
         use_parent_address = "use_parent_address" in request.POST
 

@@ -12,6 +12,8 @@
         }
     
         $(document).ready(function(){
+            $("#form-other-clinician").hide();
+            
             $("#id_date_of_birth").datepicker({
                 beforeShow: function(input, inst) {
                     $(document).off('focusin.bs.modal');
@@ -45,6 +47,14 @@
                     $("#new_patient_address").slideUp();
                 } else {
                     $("#new_patient_address").slideDown();
+                }
+            });
+            
+            $("#id_clinician").change(function(){
+                if($(this).val() === 'clinician-other') {
+                    $("#form-other-clinician").slideDown();
+                } else {
+                    $("#form-other-clinician").slideUp();
                 }
             });
         });
@@ -114,6 +124,27 @@
                                     <select class="form-control" id="id_clinician" name="clinician" required>
                                         <option value="-1">Choose your preferred Clinician</option>
                                     </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="form-other-clinician">
+                                <label for="clinician" class="col-sm-2 control-label">Other Clinician</label>
+                                <div class="col-sm-10">
+                                    <p>
+                                        <input class="form-control" placeholder="Clinician's Name" id="id_other_clinician_name" name="other_clinician_name" type="text" />
+                                    </p>
+                                    <p>
+                                        <input class="form-control" placeholder="Clinician's Hospital" id="id_other_clinician_hospital" name="other_clinician_hospital" type="text" />
+                                    </p>
+                                    <p>
+                                        <input class="form-control" placeholder="Clinician's or Hospital's Address" id="id_other_clinician_address" name="other_clinician_address" type="text" />
+                                    </p>
+                                    <p>
+                                        <input class="form-control" placeholder="Clinician's Phone Number" id="id_other_clinician_phone_number" name="other_clinician_phone_number" type="text" />
+                                    </p>
+                                    <p>
+                                        <input class="form-control" placeholder="Clinician's Email" id="id_other_clinician_email" name="other_clinician_email" type="text" />
+                                    </p>
                                 </div>
                             </div>
         
