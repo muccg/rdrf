@@ -2706,7 +2706,7 @@ class CustomConsentFormView(View):
 
         consent_sections = custom_consent_form.get_consent_sections()
 
-        patient_section_consent_file = ("Upload Consent File", None)
+        patient_section_consent_file = ("Upload Consent File (if requested)", None)
 
         # form_sections = [
         #     (
