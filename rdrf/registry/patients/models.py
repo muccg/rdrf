@@ -870,6 +870,8 @@ class ClinicianOther(models.Model):
     clinician_name = models.CharField(max_length=200, null=True)
     clinician_hospital = models.CharField(max_length=200, null=True)
     clinician_address = models.CharField(max_length=200, null=True)
+    clinician_email = models.EmailField(max_length=254, null=True, blank=True)
+    clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
 
 
 class ParentGuardian(models.Model):
