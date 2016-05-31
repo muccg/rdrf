@@ -62,6 +62,7 @@
                             settings.calculation.apply(null, [context].concat(injected_models));
                         }
                         catch (err) {
+                            console.error("CDE calculation error", err);
                             context.result = "ERROR";
                         }
                         $("#id_" + settings.prefix + settings.observer).val(context.result);
