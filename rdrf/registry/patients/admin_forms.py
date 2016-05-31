@@ -27,7 +27,7 @@ from registry.groups.models import WorkingGroup
 
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
-        (None, "---------"),
+        (None, "---"),
         (1, "GP (Primary Care)"),
         (2, "Specialist (Lipid)"),
         (3, "Primary Care"),
