@@ -75,6 +75,7 @@ class NewQueryView(LoginRequiredMixin, View):
             raise PermissionDenied()
 
         params = _get_default_params(request, QueryForm)
+        params["new_query"] = "true"
         return render_to_response('explorer/query.html', params)
 
     def post(self, request):
