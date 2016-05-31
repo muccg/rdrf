@@ -1,11 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-
-from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
-from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_bytes
 
 import logging
 import re
@@ -391,9 +391,9 @@ def check_calculation(calculation):
         p = subprocess.Popen([script], stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
-        output, _ = p.communicate(calculation)
+        output, _ = p.communicate(smart_bytes(calculation))
         if p.returncode != 0:
-            return output
+            return output.decode("utf-8", errors="replace")
     except OSError as e:
         logger.exception("Can't execute check-calculation.js")
         return "Couldn't execute %s: %s" % (script, e)
