@@ -630,10 +630,10 @@ class CommonDataElement(models.Model):
         default=False, help_text="If a range, indicate whether multiple selections allowed")
     max_length = models.IntegerField(
         blank=True, null=True, help_text="Length of field - only used for character fields")
-    max_value = models.IntegerField(
-        blank=True, null=True, help_text="Only used for numeric fields")
-    min_value = models.IntegerField(
-        blank=True, null=True, help_text="Only used for numeric fields")
+    max_value = models.DecimalField(
+        blank=True, null=True, max_digits=10, decimal_places=2, help_text="Only used for numeric fields")
+    min_value = models.DecimalField(
+        blank=True, null=True, max_digits=10, decimal_places=2, help_text="Only used for numeric fields")
     is_required = models.BooleanField(
         default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(
