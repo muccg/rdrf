@@ -1072,6 +1072,8 @@ class DynamicDataWrapper(object):
             collection.insert(form_data_parser.nested_data)
 
     def _save_longitudinal_snapshot(self, registry_code, record):
+        patient_id = None
+        timestamp = None
         try:
             from datetime import datetime
             timestamp = str(datetime.now())
@@ -1093,7 +1095,8 @@ class DynamicDataWrapper(object):
     def save_snapshot(self, registry_code, collection_name):
         try:
             record = self.load_dynamic_data(registry_code, collection_name, flattened=False)
-            self._save_longitudinal_snapshot(registry_code, record)
+            if record is not None:
+                self._save_longitudinal_snapshot(registry_code, record)
         except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
 
