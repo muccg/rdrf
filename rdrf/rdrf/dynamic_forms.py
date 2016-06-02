@@ -51,39 +51,32 @@ def create_form_class_for_section(
         is_superuser=None,
         user_groups=None,
         patient_model=None):
-    from models import CommonDataElement
-    form_class_name = "SectionForm"
     base_fields = OrderedDict()
+    for cde in section.cde_models:
+        cde_policy = get_cde_policy(registry, cde)
+        if cde_policy and user_groups:
+            if not cde_policy.is_allowed(user_groups.all(), patient_model):
+                continue
 
-    for s in section.elements.split(","):
-        try:
-            cde = CommonDataElement.objects.get(code=s.strip())
-            cde_policy = get_cde_policy(registry, cde)
-            if cde_policy and user_groups:
-                if not cde_policy.is_allowed(user_groups.all(), patient_model):
-                    continue
-
-            cde_field = FieldFactory(
-                registry,
-                registry_form,
-                section,
-                cde,
-                questionnaire_context,
-                injected_model=injected_model,
-                injected_model_id=injected_model_id,
-                is_superuser=is_superuser).create_field()
-            field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
-                                                 settings.FORM_SECTION_DELIMITER,
-                                                 section.code,
-                                                 settings.FORM_SECTION_DELIMITER,
-                                                 cde.code)
-            base_fields[field_code_on_form] = cde_field
-        except CommonDataElement.DoesNotExist:
-            continue
+        cde_field = FieldFactory(
+            registry,
+            registry_form,
+            section,
+            cde,
+            questionnaire_context,
+            injected_model=injected_model,
+            injected_model_id=injected_model_id,
+            is_superuser=is_superuser).create_field()
+        field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
+                                             settings.FORM_SECTION_DELIMITER,
+                                             section.code,
+                                             settings.FORM_SECTION_DELIMITER,
+                                             cde.code)
+        base_fields[field_code_on_form] = cde_field
 
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
-    return type(form_class_name, (BaseForm,), form_class_dict)
+    return type("SectionForm", (BaseForm,), form_class_dict)
 
 
 def create_form_class_for_consent_section(
