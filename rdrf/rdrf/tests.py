@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from django.test import TestCase, RequestFactory
 from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState
@@ -501,4 +502,8 @@ class JavascriptCheckTestCase(TestCase):
 
     def test_date(self):
         err = check_calculation("context.result = new Date();")
+        self.assertEqual(err, "")
+
+    def test_nonascii(self):
+        err = check_calculation(u"context.result = '💩';")
         self.assertEqual(err, "")
