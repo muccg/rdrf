@@ -994,20 +994,16 @@ class DynamicDataWrapper(object):
         :param data: dictionary of CDE codes --> values
         :return:
         """
-        if isinstance(data, unicode):
-            return
-
         if isinstance(data, list):
             for x in data:
                 self._convert_date_to_datetime(x)
-
-        for k, value in data.items():
-            if isinstance(value, datetime.date):
-                data[k] = datetime.datetime(value.year, value.month, value.day)
-            elif isinstance(value, list):
-                # recurse on multisection data
-                for e in value:
-                    self._convert_date_to_datetime(e)
+        elif hasattr(data, "items"):
+            for k, value in data.items():
+                if isinstance(value, datetime.date):
+                    data[k] = datetime.datetime(value.year, value.month, value.day)
+                else:
+                    # recurse on multisection data
+                    self._convert_date_to_datetime(value)
 
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
