@@ -9,7 +9,7 @@ from django.db import transaction
 from datetime import datetime
 import pycountry
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class PatientCreatorState:
