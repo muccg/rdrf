@@ -53,35 +53,32 @@ class Section(models.Model):
         return self.code
 
     def get_elements(self):
-        import string
-        return map(string.strip, self.elements.split(","))
+        return [code.strip() for code in self.elements.split(",")]
 
     @property
     def cde_models(self):
-        models = []
-
-        for cde_code in self.get_elements():
-            try:
-                cde_model = CommonDataElement.objects.get(code=cde_code)
-                models.append(cde_model)
-            except CommonDataElement.DoesNotExist:
-                pass
-
-        return models
+        codes = self.get_elements()
+        qs = CommonDataElement.objects.filter(code__in=codes)
+        cdes = dict((cde.code, cde) for cde in qs)
+        return [cdes[code] for code in codes]
 
     def clean(self):
-        for element in self.get_elements():
-            try:
-                CommonDataElement.objects.get(code=element)
-            except CommonDataElement.DoesNotExist:
-                raise ValidationError(
-                    "section %s refers to CDE with code %s which doesn't exist" %
-                    (self.display_name, element))
+        errors = {}
+        codes = set(self.get_elements())
+        qs = CommonDataElement.objects.filter(code__in=codes)
+        missing = sorted(codes - set(qs.values_list("code", flat=True)))
 
-        if self.code.count(" ") > 0:
-            raise ValidationError("Section %s code '%s' contains spaces" %
-                                  (self.display_name, self.code))
+        if missing:
+            errors["elements"] = [
+                ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, code))
+                for code in missing
+            ]
 
+        if " " in self.code:
+            errors["code"] = ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
+
+        if errors:
+            raise ValidationError(errors)
 
 class Registry(models.Model):
 
