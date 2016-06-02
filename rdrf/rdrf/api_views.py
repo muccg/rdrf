@@ -13,9 +13,9 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from registry.genetic.models import Gene, Laboratory
-from registry.patients.models import Patient, Registry, Doctor
+from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer
+from serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 
 
 import logging
@@ -45,6 +45,16 @@ class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
+
+
+class NextOfKinRelationshipDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = NextOfKinRelationship.objects.all()
+    serializer_class = NextOfKinRelationshipSerializer
+
+
+class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
+    queryset = NextOfKinRelationship.objects.all()
+    serializer_class = NextOfKinRelationshipSerializer
 
 
 class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
