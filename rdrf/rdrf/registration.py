@@ -29,6 +29,7 @@ class QuestionnaireReverseMapper(object):
         self.patient = patient
         self.registry = registry
         self.questionnaire_data = questionnaire_data
+        self.context_model = None
 
     def save_patient_fields(self):
         working_groups = []
@@ -137,7 +138,7 @@ class QuestionnaireReverseMapper(object):
             logger.error("could not find state code for for %s %s" % (country_code, cde_value))
 
     def save_dynamic_fields(self):
-        wrapper = DynamicDataWrapper(self.patient)
+        wrapper = DynamicDataWrapper(self.patient, rdrf_context_id=self.context_model.pk)
         wrapper.current_form_model = None
         dynamic_data_dict = {}
         form_names = set([])
@@ -319,6 +320,8 @@ class PatientCreator(object):
         before_creation = transaction.savepoint()
         patient = Patient()
         patient.consent = True
+        from rdrf.contexts_api import RDRFContextManager
+        cm = RDRFContextManager(self.registry)
         mapper = QuestionnaireReverseMapper(self.registry, patient, questionnaire_data)
 
         try:
@@ -335,6 +338,8 @@ class PatientCreator(object):
             patient.save()
             patient.rdrf_registry = [self.registry]
             patient.save()
+            context_model = cm.create_initial_context_for_new_patient(patient)
+            mapper.context_model = context_model
             mapper.save_address_data()
         except ValidationError as verr:
             self.state = PatientCreatorState.FAILED_VALIDATION
