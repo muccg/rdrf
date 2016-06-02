@@ -2,7 +2,7 @@ import re
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
@@ -369,7 +369,7 @@ class FieldFactory(object):
                         # because these are dynamic lookup fields the usual validation wasn't working
                         from rdrf.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
-                        
+
 
                     return django.forms.ChoiceField(**options)
         else:
@@ -536,11 +536,8 @@ class ComplexFieldFactory(object):
             :param data_list: values for each component from the corresponding widget
             :return: a sorted dictionary of cde code : value
             """
-            d = SortedDict()
-            for pair in zip(self.component_cdes, data_list):
-                d[pair[0].code] = pair[1]
-
-            return d
+            codes = [cde.code for cde in self.component_cdes]
+            return OrderedDict(zip(codes, data_list))
 
         class_dict["widget"] = self._create_multi_widget()
         class_dict['compress'] = compress_method

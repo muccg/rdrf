@@ -1,10 +1,10 @@
+from collections import OrderedDict
 from datetime import date
 
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
-from django.utils.datastructures import SortedDict
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
 
@@ -53,7 +53,7 @@ class PatientToParentView(View):
 
         patient = Patient.objects.get(id=patient_id)
         patient_address = PatientAddress.objects.get(patient=patient)
-        
+
         parent_group, created = Group.objects.get_or_create(name="Parents")
 
         patient.user.groups = [parent_group,]
@@ -69,14 +69,14 @@ class PatientToParentView(View):
             state = patient_address.state,
             postcode = patient_address.postcode,
             country = patient_address.country,
-        
+
             user = patient.user,
             self_patient = patient
         )
-        
+
         parent.patient.add(patient)
         parent.save()
-        
+
         logout(request)
         redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
         return redirect(redirect_url)
@@ -143,7 +143,7 @@ class PatientView(View):
             'rdrf_cdes/patient.html',
             context,
             context_instance=RequestContext(request))
-        
+
     def _consent_status(self, registry_code, patient):
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
         for consent_section in consent_sections:
@@ -239,7 +239,7 @@ class PatientFormMixin(PatientMixin):
 
     def _create_registry_specific_patient_form_class(self, user, form_class, registry_model):
         logger.debug("creating registry specific patient form ...")
-        additional_fields = SortedDict()
+        additional_fields = OrderedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
         if not field_pairs:
             logger.debug("no registry specific fields - returning original form class")
@@ -1120,7 +1120,7 @@ class PatientEditView(View):
             return registry_model.patient_fields
 
     def _create_registry_specific_patient_form_class(self, user, form_class, registry_model, patient=None):
-        additional_fields = SortedDict()
+        additional_fields = OrderedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
 
         for cde, field_object in field_pairs:
