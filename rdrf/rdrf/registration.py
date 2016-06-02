@@ -306,6 +306,10 @@ class QuestionnaireReverseMapper(object):
                     return form_model.name, section_model.code
         return None, None
 
+    
+class PatientCreatorError(Exception):
+    pass
+
 
 class PatientCreator(object):
 
@@ -317,7 +321,6 @@ class PatientCreator(object):
 
     @transaction.atomic
     def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
-        before_creation = transaction.savepoint()
         patient = Patient()
         patient.consent = True
         from rdrf.contexts_api import RDRFContextManager
@@ -330,7 +333,7 @@ class PatientCreator(object):
             logger.error("Error saving patient fields: %s" % ex)
             self.error = ex
             self.state = PatientCreatorState.FAILED
-            return
+            raise PatientCreatorError(ex.message)
 
         try:
             patient.full_clean()
@@ -345,13 +348,11 @@ class PatientCreator(object):
             self.state = PatientCreatorState.FAILED_VALIDATION
             logger.error("Could not save patient %s: %s" % (patient, verr))
             self.error = verr
-            transaction.savepoint_rollback(before_creation)
-            return
+            raise PatientCreatorError(verr.message)
         except Exception as ex:
             self.error = ex
             self.state = PatientCreatorState.FAILED
-            transaction.savepoint_rollback(before_creation)
-            return
+            raise PatientCreatorError("Unhandled error: %s" % ex)
 
         # set custom consents here as these need access to the patients registr(y|ies)
         try:
@@ -379,18 +380,14 @@ class PatientCreator(object):
                 self._remove_mongo_data(self.registry, patient)
                 logger.info("removed dynamic data for %s for registry %s" %
                             (patient.pk, self.registry))
-                transaction.savepoint_rollback(before_creation)
-                return
+
+                raise PatientCreatorError("Error saving dynamic data: %s" % ex)
             except Exception as ex:
                 logger.error("could not remove dynamic data for patient %s: %s" %
                              (patient.pk, ex))
-                transaction.savepoint_rollback(before_creation)
-                return
+                raise PatientCreatorError("Unhandled error: %s" % ex)
 
         self.state = PatientCreatorState.CREATED_OK
-        # RDR-667 we don't need to preserve the approved QRs once patient created
-        transaction.savepoint_commit(before_creation)
-
         questionnaire_response.delete()
 
     def _remove_mongo_data(self, registry, patient):

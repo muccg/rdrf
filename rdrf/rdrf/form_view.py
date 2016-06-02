@@ -17,7 +17,7 @@ from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from registration import PatientCreator, PatientCreatorState
+from registration import PatientCreator, PatientCreatorState, PatientCreatorError
 from file_upload import wrap_gridfs_data_for_form
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -1196,22 +1196,12 @@ class QuestionnaireResponseView(FormView):
                 model_class=QuestionnaireResponse)
             logger.debug("questionnaire data = %s" % questionnaire_data)
 
-            patient_creator.create_patient(request.POST, qr, questionnaire_data)
-
-            if patient_creator.state == PatientCreatorState.CREATED_OK:
-                messages.info(
-                    request, "Questionnaire approved - A patient record has now been created")
-            elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
-                error = patient_creator.error
-                messages.error(
-                    request,
-                    "Patient failed to be created due to validation errors: %s" %
-                    error)
-            elif patient_creator.state == PatientCreatorState.FAILED:
-                error = patient_creator.error
-                messages.error(request, "Patient failed to be created: %s" % error)
-            else:
-                messages.error(request, "Patient failed to be created")
+            try:
+                patient_creator.create_patient(request.POST, qr, questionnaire_data)
+                messages.info(request, "Patient Created OK")
+            except PatientCreatorError, perr:
+                error = perr.message
+                messages.error(request, "Patient Failed to be created: %s" % error)
 
         context = {}
         context.update(csrf(request))
