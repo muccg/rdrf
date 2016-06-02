@@ -41,6 +41,7 @@ from registry.patients.admin_forms import PatientConsentFileForm
 from operator import itemgetter
 import json
 import os
+from collections import OrderedDict
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
@@ -958,8 +959,7 @@ class QuestionnaireView(FormView):
                     data_map,
                     custom_consent_data,
                     consent_wrappers):
-                from django.utils.datastructures import SortedDict
-                section_map = SortedDict()
+                section_map = OrderedDict()
 
                 class SectionWrapper(object):
 

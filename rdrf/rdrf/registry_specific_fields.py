@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.utils.datastructures import MultiValueDictKeyError
 from rdrf.utils import is_uploaded_file
@@ -116,7 +117,7 @@ class RegistrySpecificFieldsHandler(object):
             return self.registry_model.patient_fields
 
     def create_registry_specific_patient_form_class(self, user, form_class):
-        additional_fields = SortedDict()
+        additional_fields = OrderedDict()
         field_pairs = self.get_registry_specific_fields(user)
         if not field_pairs:
             return form_class

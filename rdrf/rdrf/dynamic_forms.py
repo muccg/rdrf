@@ -1,5 +1,5 @@
 from django.forms import BaseForm
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from field_lookup import FieldFactory
 from django.conf import settings
 import logging
@@ -53,7 +53,7 @@ def create_form_class_for_section(
         patient_model=None):
     from models import CommonDataElement
     form_class_name = "SectionForm"
-    base_fields = SortedDict()
+    base_fields = OrderedDict()
 
     for s in section.elements.split(","):
         try:
@@ -96,7 +96,7 @@ def create_form_class_for_consent_section(
     # a ConsentSection model ( which is NOT CDE based )
     from django.forms import BooleanField
     form_class_name = "CustomConsentSectionForm"
-    base_fields = SortedDict()
+    base_fields = OrderedDict()
 
     def get_answer_dict_from_form_data(consent_section_model, form_cleaned_data):
         # This allows the custom validation rule to be applied
