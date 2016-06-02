@@ -425,6 +425,8 @@ class FormProgress(object):
     #########################################################################################
     ### save progress
     def save_progress(self, patient_model, dynamic_data, context_model=None):
+        if not dynamic_data:
+            return self.progress_data
         self._calculate(dynamic_data)
         query = self._get_query(patient_model, context_model)
         record = self.progress_collection.find_one(query)
