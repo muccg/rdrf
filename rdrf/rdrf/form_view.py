@@ -823,12 +823,10 @@ class QuestionnaireView(FormView):
         custom_consent_helper.get_custom_consent_keys_from_request(request)
         custom_consent_helper.create_custom_consent_wrappers()
         custom_consent_helper.check_for_errors()
-
         error_count += custom_consent_helper.error_count
 
-        logger.debug("Error count after checking custom consents = %s" % error_count)
-
         self.questionnaire_context = self._get_questionnaire_context(request)
+        logger.debug("questionnaire_context = %s" % self.questionnaire_context)
 
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
@@ -914,10 +912,12 @@ class QuestionnaireView(FormView):
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 if is_multisection(section):
                     questionnaire_response_wrapper.save_dynamic_data(
-                        registry_code, "cdes", data_map[section], multisection=True)
+                        registry_code, "cdes", data_map[section], multisection=True,
+                        additional_data={"questionnaire_context": self.questionnaire_context})
                 else:
                     questionnaire_response_wrapper.save_dynamic_data(
-                    registry_code, "cdes", data_map[section])
+                        registry_code, "cdes", data_map[section],
+                        additional_data={"questionnaire_context": self.questionnaire_context})
 
             def get_completed_questions(
                     questionnaire_form_model,
@@ -1116,7 +1116,9 @@ class QuestionnaireResponseView(FormView):
             registry_code=registry_code,
             model_class=QuestionnaireResponse)
         self.registry_form = self.registry.questionnaire
-        context = self._build_context(questionnaire_context=self._get_questionnaire_context())
+        questionnaire_context = self._get_questionnaire_context()
+        logger.debug("questionnaire context = %s" % questionnaire_context)
+        context = self._build_context(questionnaire_context=questionnaire_context)
         self._fix_centre_dropdown(context)
         self._fix_state_and_country_dropdowns(context)
 
