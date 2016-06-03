@@ -51,11 +51,9 @@ def wrap_gridfs_data_for_form(registry, data):
     wrappers which display a download link to the file
 
     """
-    logger.debug("in wrap_gridfs_data_for_form")
 
     def check_for_gridfs_dict(data):
         for key, value in data.items():
-            logger.debug("checking key %s for gridfs data value = %s" % (key, value))
             if isinstance(value, dict):
                 if "gridfs_file_id" in value:
                     logger.debug("found a gridfs dict - wrapping the value witha FileUpload object")
@@ -66,17 +64,14 @@ def wrap_gridfs_data_for_form(registry, data):
                     data[key] = wrapper
 
     if data is None:
-        logger.debug("supplied data is None - nothing to  do")
         return
 
     if isinstance(data, list):
-        logger.debug("supplied data is a list - iterating ..")
         for data_dict in data:
             check_for_gridfs_dict(data_dict)
         return data
 
     elif isinstance(data, dict):
-        logger.debug("supplied data is a dict - checking ...")
         check_for_gridfs_dict(data)
         return data
 
