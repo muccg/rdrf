@@ -1012,7 +1012,7 @@ class DynamicDataWrapper(object):
         return None
 
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
-                          index_map=None):
+                          index_map=None,additional_data=None):
         from rdrf.models import Registry
         self._set_client()
         self._convert_date_to_datetime(form_data)
@@ -1045,9 +1045,11 @@ class DynamicDataWrapper(object):
                 form_data_parser.form_name = self.current_form_model
 
             nested_data = form_data_parser.nested_data
-            logger.debug("nested data = %s" % nested_data)
 
-            collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
+            if additional_data is not None:
+                nested_data.update(additional_data)
+                
+            collection.update({'_id': mongo_id}, {"$set": nested_data}, upsert=False)
         else:
             record = self._get_record_query()
             record["forms"] = []
@@ -1067,7 +1069,8 @@ class DynamicDataWrapper(object):
 
             nested_data = form_data_parser.nested_data
 
-            logger.debug("nested data to insert = %s" % nested_data)
+            if additional_data is not None:
+                nested_data.update(additional_data)
 
             collection.insert(form_data_parser.nested_data)
 
