@@ -1,28 +1,20 @@
-from django import forms
-from registry.utils import get_static_url
-from django_countries import countries
-from models import *
-from models import PatientConsent, ParentGuardian
-from rdrf.widgets import CountryWidget, StateWidget, DateWidget
-from rdrf.dynamic_data import DynamicDataWrapper
-import pycountry
 import logging
-logger = logging.getLogger(__name__)
-from registry.patients.patient_widgets import PatientRelativeLinkWidget
-from django.core.exceptions import ValidationError
-from django.forms.utils import ErrorDict
-from django.forms.widgets import TextInput, DateInput
+import pycountry
+from django import forms
 from django.contrib.admin.widgets import AdminFileWidget
+from django.core.exceptions import ValidationError
+from django.forms.utils import ErrorList, ErrorDict
+
+from models import *
+from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.hooking import run_hooks
+from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
+from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect
+from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
-from django.forms.widgets import Select
-from django.db import transaction
-from registry.groups.models import CustomUser
-from rdrf.models import ConsentSection
-from rdrf.models import ConsentQuestion
-from rdrf.models import DemographicFields
-from rdrf.widgets import ReadOnlySelect
-from registry.groups.models import WorkingGroup
+from registry.patients.patient_widgets import PatientRelativeLinkWidget
+
+logger = logging.getLogger(__name__)
 
 
 class PatientDoctorForm(forms.ModelForm):
@@ -273,7 +265,6 @@ class PatientForm(forms.ModelForm):
             user = None
         logger.debug("user is %s" % user)
         logger.debug("form.registry_model = %s" % self.registry_model)
-        from registry.groups.models import WorkingGroup
         if not user.is_superuser:
             initial_working_groups = user.working_groups.filter(registry=self.registry_model)
             self.fields['working_groups'].queryset = initial_working_groups
