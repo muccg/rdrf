@@ -114,6 +114,8 @@ class FormProgress(object):
         return result
 
     def _get_values_from_multisection(self, form_model, section_model, cde_model, dynamic_data):
+        if dynamic_data is None:
+            return []
         for form_dict in dynamic_data["forms"]:
             if form_dict["name"] == form_model.name:
                 for section_dict in form_dict["sections"]:
@@ -132,6 +134,10 @@ class FormProgress(object):
             return 1
         else:
             n = 0
+            if dynamic_data is None:
+                return 0
+            if "forms" not in dynamic_data:
+                return 0
             for form_dict in dynamic_data["forms"]:
                 if form_dict["name"] == form_model.name:
                     for section_dict in form_dict["sections"]:
@@ -425,6 +431,8 @@ class FormProgress(object):
     #########################################################################################
     ### save progress
     def save_progress(self, patient_model, dynamic_data, context_model=None):
+        if not dynamic_data:
+            return self.progress_data
         self._calculate(dynamic_data)
         query = self._get_query(patient_model, context_model)
         record = self.progress_collection.find_one(query)
