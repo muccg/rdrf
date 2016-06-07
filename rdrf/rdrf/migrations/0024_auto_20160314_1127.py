@@ -46,7 +46,7 @@ def backward_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0022_contextformgroup_is_default'),
+        ('rdrf', '0023_contextformgroup_is_default'),
     ]
 
     operations = [
