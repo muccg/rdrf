@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0019_contextformgroup_contextformgroupitem'),
+        ('rdrf', '0020_contextformgroup_contextformgroupitem'),
     ]
 
     operations = [
