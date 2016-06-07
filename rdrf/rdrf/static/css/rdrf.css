@@ -73,6 +73,9 @@ body {
     font-size: 0.8em;
 }
 
+/**************************************************************************
+ * CSS button utils                                                       */
+
 .invisibutton-container .invisibutton {
   visibility: hidden;
 }
@@ -81,10 +84,36 @@ body {
   visibility: visible;
 }
 
+/**************************************************************************
+ * CDE history charts                                                     */
+
 input.cde-value-updated {
   background-color: #5bc0de;
 }
 
 .cde-history-chart {
   min-height: 300px;
+}
+
+/**************************************************************************
+ * Admin site validation                                                  */
+
+.errornote, .errorlist {
+  display: block;
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+ul.errorlist > li {
+  display: block;
+}
+
+form .aligned ul.errorlist {
+  padding: 5px 10px;
+  margin: 5px 0px;
 }

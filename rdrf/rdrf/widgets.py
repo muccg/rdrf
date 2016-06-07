@@ -220,7 +220,7 @@ class CountryWidget(widgets.Select):
             "onchange": "select_country(this)",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value=''>---</option>"
+        empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
         for country in pycountry.countries:
             if value == country.alpha2:
@@ -250,7 +250,7 @@ class StateWidget(widgets.Select):
             "class": "form-control",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value='---'>---</option>"
+        empty_option = "<option value='---'>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
@@ -287,7 +287,7 @@ class ParametrisedSelectWidget(widgets.Select):
             "class": "form-control",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        output.append("<option value='---'>---</option>")
+        output.append("<option value='---'>---------</option>")
         for code, display in self._get_items():
             if value == code:
                 output.append("<option value='%s' selected>%s</option>" % (code, display))
@@ -307,7 +307,7 @@ class StateListWidget(ParametrisedSelectWidget):
         country_states = pycountry.subdivisions.get(
             country_code=self._widget_context['questionnaire_context'].upper())
         output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
-        empty_option = "<option value='---'>---</option>"
+        empty_option = "<option value='---'>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:

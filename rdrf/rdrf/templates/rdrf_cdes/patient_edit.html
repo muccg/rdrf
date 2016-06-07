@@ -49,6 +49,7 @@
             state_select.find('option').remove();
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
+                    state_select.append("<option value='-1'>---------</option>");
                     $.each(data, function(i, item) {
                         state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
                     })
@@ -85,7 +86,7 @@
             total_forms.attr("value", total_forms_inc);
 
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-            new_form.appendTo(forms).show("fast");
+            new_form.prependTo(forms).slideDown("fast");
         }
     
         function delete_form(form_div, prefix) {
@@ -94,7 +95,9 @@
             var total_forms_dec = parseInt(total_forms.val()) - 1;
             total_forms.attr("value", total_forms_dec);
     
-            $(form_div).parent().parent().parent().remove();
+            $(form_div).parent().parent().parent().slideUp(function() {
+                $(form_div).parent().parent().parent().remove();
+            });
         }
 
         $(document).ready(function(){

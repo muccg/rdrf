@@ -131,8 +131,9 @@ class CalculatedFieldParser(object):
                     prefix: "%s",
                     api_url: "%s",
                     calculation: function (%s) {
+                      "use strict";
+                      var RDRF = ADSAFE;
                       %s
-                      // */
                     },
                     observer: "%s",
                     injected_model: "%s",
