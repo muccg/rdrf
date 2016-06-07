@@ -32,7 +32,10 @@ class ConsentList(View):
         context = {}
     
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        patients = Patient.objects.filter(rdrf_registry__code = registry_code, active=True)
+        if request.user.is_superuser:
+            patients = Patient.objects.filter(rdrf_registry__code = registry_code, active=True)
+        else:
+            patients = Patient.objects.filter(rdrf_registry__code = registry_code, working_groups__in=request.user.working_groups.all(), active=True)
 
         patient_list = {}
         for patient in patients:
