@@ -60,7 +60,7 @@
             state_id = obj.id.replace("Country", "State");
             if (state_id.match(/formset/)) {
                 // CDEs using this widget are named diferently in formsets
-                state_select = $('#id_' + state_id);
+                state_select = $('#' + state_id);
             }
             else {
                 state_select = $("#" + state_id);
