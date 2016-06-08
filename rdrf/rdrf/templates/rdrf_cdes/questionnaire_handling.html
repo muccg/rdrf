@@ -233,7 +233,8 @@ $(document).ready(function() {
 	            displayMessage(true, "Created patient successfully from questionnaire");
 	            hideDatatable();
 		    successMessage(result.patient_blurb);
-	            
+	            var patientLink = $('<a>', { href: result.patient_link, text: result.patient_name});
+	            $("#success-message").append(patientLink);
 		}
 	    }
 	});
