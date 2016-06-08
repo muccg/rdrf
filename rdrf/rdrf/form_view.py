@@ -364,33 +364,14 @@ class FormView(View):
                     logger.debug("multisection formset is valid")
                     logger.debug("cleaned dynamic_data = %s" % dynamic_data)
 
-                    index_actions = []  # 101010 means the second item was deleted, first wass kept as was third etc
-                    to_remove = []
+                    to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
+                    index_map = make_index_map(to_remove, len(dynamic_data))
 
-                    for item_index, dd in enumerate(dynamic_data):
-                        if 'DELETE' in dd and dd['DELETE']:
-                            logger.debug("removed DELETED section item: %s" % dd)
-                            #dynamic_data.remove(dd)
-                            to_remove.append(dd)
-                            index_actions.append(0)
-                        else:
-                            index_actions.append(1)
+                    gone = [dynamic_data[i] for i in to_remove]
+                    for i in reversed(to_remove):
+                        del dynamic_data[i]
 
-                    for dd in to_remove:
-                        dynamic_data.remove(dd)
-
-                    index_map = make_index_map(index_actions)
-
-                    logger.debug("dynamic data after deletions: %s" % dynamic_data)
-
-                    section_dict = {}
-
-                    # section_dict[s] = wrap_gridfs_data_for_form
-                    #     self.registry.code, dynamic_data)
-
-                    section_dict[s] = dynamic_data
-
-                    #logger.debug("** after wrapping mutlisection for gridfs = %s" % section_dict)
+                    section_dict = { s: dynamic_data }
 
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
                                                   index_map=index_map)
