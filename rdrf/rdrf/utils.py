@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
@@ -230,26 +231,19 @@ def is_multiple_file_cde(code):
 
 
 def is_uploaded_file(value):
-    from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-    return isinstance(value, InMemoryUploadedFile) or isinstance(value, TemporaryUploadedFile)
+    return isinstance(value, (InMemoryUploadedFile, TemporaryUploadedFile))
 
 
-def make_index_map(index_actions_list):
-    # index_actions_list looks like [1,0,1,0,1]
-    # 1 means that this item in the list was not deleted
-    # 0 means that item in the list was deleted
-    # we return a map mapping the positions of the 1s ( kept items)
-    # to original indices - this allows us to retriebve data from an item
-    # depsite re-ordering\
-    # index map in example is {0: 0, 1: 2, 2: 4}
-
-    m = {}
-    new_index = 0
-    for original_index, i in enumerate(index_actions_list):
-        if i == 1:
-            m[new_index] = original_index
-            new_index += 1
-    return m
+def make_index_map(to_remove, count):
+    """
+    Returns a mapping from new_index -> old_index when indices
+    `to_remove' are removed from a list of length `count'.
+    For example:
+      to_remove([1,3], 5) -> { 0:0, 1:2, 2:4 }
+    """
+    to_remove = set(to_remove)
+    cut = [i for i in range(count) if i not in to_remove]
+    return dict(zip(range(count), cut))
 
 
 def create_permission(app_label, model, code_name, name):
