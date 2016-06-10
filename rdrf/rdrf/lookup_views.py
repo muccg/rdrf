@@ -26,6 +26,7 @@ class PatientLookup(View):
     def get(self, request, reg_code):
         from rdrf.models import Registry
         from registry.patients.models import Patient
+        from registry.groups.models import WorkingGroup
         from django.db.models import Q
         
         term = None
@@ -35,7 +36,10 @@ class PatientLookup(View):
             registry_model = Registry.objects.get(code=reg_code)
             if registry_model.has_feature("questionnaires"):
                 term = request.GET.get("term", "")
-                working_groups = [wg for wg in request.user.working_groups.all()]
+                if not request.user.is_superuser:
+                    working_groups = [wg for wg in request.user.working_groups.all()]
+                else:
+                    working_groups = [wg for wg in WorkingGroup.objects.filter(registry=registry_model)]
 
                 query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
                          Q(working_groups__in=working_groups)

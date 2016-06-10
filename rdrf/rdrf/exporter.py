@@ -7,6 +7,7 @@ from rdrf import VERSION
 import datetime
 from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
 from explorer.models import Query
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,15 @@ logger = logging.getLogger(__name__)
 class ExportException(Exception):
     pass
 
+
+
+def convert_decimal_values(cde_dict):
+    for k in cde_dict:
+        value = cde_dict[k]
+        if isinstance(value, Decimal):
+            logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
+            cde_dict[k] = str(value)
+    return cde_dict
 
 class ExportFormat:
     JSON = "JSON"
@@ -159,7 +169,7 @@ class Exporter(object):
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
-        data["cdes"] = [model_to_dict(cde) for cde in self._get_cdes(export_type)]
+        data["cdes"] = [convert_decimal_values(model_to_dict(cde)) for cde in self._get_cdes(export_type)]
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
@@ -263,7 +273,8 @@ class Exporter(object):
 
             cde_map["allow_multiple"] = cde_model.allow_multiple
             cde_map["max_length"] = cde_model.max_length
-            cde_map["min_value"] = cde_model.min_value
+            cde_map["min_value"] = str(cde_model.min_value)
+            cde_map["max_value"] = str(cde_model.max_value)
             cde_map["is_required"] = cde_model.is_required
             cde_map["pattern"] = cde_model.pattern
             cde_map["widget_name"] = cde_model.widget_name
