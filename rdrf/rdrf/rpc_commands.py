@@ -172,6 +172,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.questionnaires import PatientCreator, PatientCreatorError
     from rdrf.dynamic_data import DynamicDataWrapper
     from django.db import transaction
+    from django.core.urlresolvers import reverse
     
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)
@@ -179,6 +180,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     questionnaire_data = wrapper.load_dynamic_data(qr.registry.code, "cdes")
     patient_id = None
     patient_blurb = None
+    patient_link = None
 
     try:
         with transaction.atomic():
@@ -187,6 +189,9 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             message = "Patient created successfully"
             patient_blurb = "Patient %s created successfully" % created_patient
             patient_id = created_patient.pk
+            default_context = created_patient.default_context(qr.registry)
+            patient_link = reverse('patient_edit', args=[qr.registry.code, patient_id, default_context.pk])
+
 
     except PatientCreatorError, pce:
         message = "Error creating patient: %s.Patient not created" % pce
@@ -199,4 +204,6 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     return {"status": status,
             "message": message,
             "patient_id": patient_id,
+            "patient_name": "%s" % created_patient,
+            "patient_link": patient_link,
             "patient_blurb" : patient_blurb}

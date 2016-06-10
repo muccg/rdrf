@@ -2,11 +2,23 @@
 {% load static %}
 
 {% block extrahead %}
-    <style>
+   <style>
     td {
 	word-wrap:break-word;
 	word-break:break-all;
     }
+
+    .label {
+       display:block;
+       float:left;.label
+       text-align: left;
+       width: 300px;
+       white-space: normal;
+     }
+
+    .panel {
+    overflow: auto;
+}
 </style>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript">
@@ -229,7 +241,8 @@ $(document).ready(function() {
 	            displayMessage(true, "Created patient successfully from questionnaire");
 	            hideDatatable();
 		    successMessage(result.patient_blurb);
-	            
+	            var patientLink = $('<a>', { href: result.patient_link, text: result.patient_name});
+	            $("#success-message").append(patientLink);
 		}
 	    }
 	});
