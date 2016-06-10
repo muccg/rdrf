@@ -189,8 +189,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             message = "Patient created successfully"
             patient_blurb = "Patient %s created successfully" % created_patient
             patient_id = created_patient.pk
-            default_context = created_patient.default_context(qr.registry)
-            patient_link = reverse('patient_edit', args=[qr.registry.code, patient_id, default_context.pk])
+            patient_link = reverse('patient_edit', args=[qr.registry.code, patient_id])
 
 
     except PatientCreatorError, pce:
