@@ -59,7 +59,7 @@ var fragmentHeader = [
   '<script>',
   'ADSAFE.go("TEST_", function (dom, lib) {',
   '  "use strict";',
-  '  var context = {}, patient = {}, Date = {};',
+  '  var context = {}, patient = {}, Date = {}, RDRF = {};',
   '  // begin input'
 ];
 
