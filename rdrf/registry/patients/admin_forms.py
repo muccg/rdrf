@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.core.exceptions import ValidationError
-from django.forms.util import ErrorList, ErrorDict
+from django.forms.utils import ErrorDict
 from django.forms.widgets import TextInput, DateInput
 from django.contrib.admin.widgets import AdminFileWidget
 from rdrf.hooking import run_hooks
