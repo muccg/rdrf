@@ -481,10 +481,6 @@ class ExonValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "validate_exon"
 
 
-class MultipleFileInput3(MultiWidget):
-    def __init__(self):
-        pass
-
 class MultipleFileInput(Widget):
     """
     This widget combines multiple file inputs.
