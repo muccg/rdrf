@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
@@ -20,8 +21,9 @@ class BadKeyError(Exception):
     pass
 
 
-def mongo_db_name(registry):
-    return settings.MONGO_DB_PREFIX + registry
+def mongo_db_name(registry, testing=False):
+    prefix = "testing_" if testing else settings.MONGO_DB_PREFIX
+    return prefix + registry
 
 
 def mongo_db_name_reg_id(registry_id):
@@ -228,42 +230,33 @@ def is_multisection(code):
         return False
 
 
-def is_file_cde(code):
+def get_cde(code):
     from rdrf.models import CommonDataElement
-    try:
-        cde = CommonDataElement.objects.get(code=code)
-        if cde.datatype == 'file':
-            return True
-    except Exception:
-        pass
-    return False
+    return CommonDataElement.objects.filter(code=code).first()
+
+def is_file_cde(code):
+    cde = get_cde(code)
+    return cde and cde.datatype == 'file'
+
+def is_multiple_file_cde(code):
+    cde = get_cde(code)
+    return cde and cde.datatype == 'file' and cde.allow_multiple
 
 
 def is_uploaded_file(value):
-    from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-    return isinstance(value, InMemoryUploadedFile) or isinstance(value, TemporaryUploadedFile)
+    return isinstance(value, (InMemoryUploadedFile, TemporaryUploadedFile))
 
 
-def make_index_map(index_actions_list):
-    # index_actions_list looks like [1,0,1,0,1]
-    # 1 means that this item in the list was not deleted
-    # 0 means that item in the list was deleted
-    # we return a map mapping the positions of the 1s ( kept items)
-    # to original indices - this allows us to retriebve data from an item
-    # depsite re-ordering\
-    # index map in example is {0: 0, 1: 2, 2: 4}
-
-    m = {}
-    new_index = 0
-    for original_index, i in enumerate(index_actions_list):
-        if i == 1:
-            m[new_index] = original_index
-            new_index += 1
-    return m
-
-
-def is_gridfs_file_wrapper(value):
-    return isinstance(value, dict) and "griffs_file_id" in value
+def make_index_map(to_remove, count):
+    """
+    Returns a mapping from new_index -> old_index when indices
+    `to_remove' are removed from a list of length `count'.
+    For example:
+      to_remove([1,3], 5) -> { 0:0, 1:2, 2:4 }
+    """
+    to_remove = set(to_remove)
+    cut = [i for i in range(count) if i not in to_remove]
+    return dict(zip(range(count), cut))
 
 
 def create_permission(app_label, model, code_name, name):

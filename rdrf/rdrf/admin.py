@@ -23,6 +23,8 @@ from models import EmailTemplate
 from models import EmailNotificationHistory
 from models import ContextFormGroup
 from models import ContextFormGroupItem
+from models import CDEFile
+from models import ContextFormGroupItem
 
 import logging
 from django.http import HttpResponse
@@ -494,3 +496,10 @@ if has_feature('adjudication'):
     admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
     admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
     admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
+
+
+class CDEFileAdmin(admin.ModelAdmin):
+    model = CDEFile
+    list_display = ("form", "section", "cde", "item")
+
+admin.site.register(CDEFile, CDEFileAdmin)

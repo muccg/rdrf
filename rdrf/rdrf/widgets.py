@@ -1,11 +1,13 @@
 # Custom widgets / Complex controls required
-from django.forms import Textarea, Widget, MultiWidget
+from django.forms import Textarea, Widget, MultiWidget, HiddenInput
 from django.forms import widgets
 from django.forms.utils import flatatt
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
+from django.forms.widgets import ClearableFileInput
 
+import re
 import logging
 from models import CommonDataElement
 import pycountry
@@ -477,3 +479,73 @@ class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
 
 class ExonValidator(GenericValidatorWithConstructorPopupWidget):
     RPC_COMMAND_NAME = "validate_exon"
+
+
+class MultipleFileInput(Widget):
+    """
+    This widget combines multiple file inputs.
+    The files are taken and returned as a list.
+
+    It relies on javascript in form.js, which uses styling from
+    rdrf.css.
+    """
+
+    @staticmethod
+    def input_name(base_name, i):
+        return "%s_%s" % (base_name, i)
+
+    number_pat = re.compile(r"_(\d+)$")
+
+    @classmethod
+    def input_index(cls, name, field_name, suffix=""):
+        "Cuts the index part out of an form input name"
+        if field_name.startswith(name) and field_name.endswith(suffix):
+            chop = -len(suffix) if suffix else None
+            m = cls.number_pat.match(field_name[len(name):chop])
+            if m:
+                return int(m.group(1))
+        return None
+
+    def render(self, name, value, attrs=None):
+        attrs = attrs or {}
+        items = self._render_each(name, value, attrs)
+
+        elements = ("<div class=\"col-xs-12 multi-file\">%s</div>" % item for item in items)
+        return """
+            <div class="row multi-file-widget" id="%s_id">
+              %s
+            </div>
+        """ % (name, "\n".join(elements))
+
+    class TemplateFile(object):
+        url = ""
+        def __unicode__(self):
+            return ""
+
+    def _render_base(self, name, value, attrs, index):
+        input_name = self.input_name(name, index)
+        base = ClearableFileInput().render(input_name, value, attrs)
+        hidden = HiddenInput().render(input_name + "-index", index, {})
+        return "%s\n%s" % (base, hidden)
+
+    def _render_each(self, name, value, attrs):
+        return [self._render_base(name, self.TemplateFile(), attrs, "???")] + [
+            self._render_base(name, val, attrs, i)
+            for (i, val) in enumerate(value or [])
+        ]
+
+
+    def value_from_datadict(self, data, files, name):
+        """
+        Gets file input value from each sub-fileinput.
+        """
+        base_widget = ClearableFileInput()
+
+        indices = (self.input_index(name, n, "-index") for n in data)
+        clears = (self.input_index(name, n, "-clear") for n in data)
+        uploads = (self.input_index(name, n) for n in files)
+
+        nums = sorted(set(indices).union(clears).union(uploads) - set([None]))
+
+        return [base_widget.value_from_datadict(data, files, self.input_name(name, i))
+                for i in nums]

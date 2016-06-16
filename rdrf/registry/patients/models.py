@@ -229,7 +229,7 @@ class Patient(models.Model):
         verbose_name_plural = "Patient List"
 
         permissions = settings.CUSTOM_PERMISSIONS["patients"]["patient"]
-    
+
     @property
     def display_name(self):
         if self.active:
@@ -334,7 +334,6 @@ class Patient(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -367,7 +366,6 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
-        wrapper._set_client()
         parser = GeneralisedFieldExpressionParser(registry_model)
         mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
@@ -411,7 +409,7 @@ class Patient(models.Model):
                 errors += 1
                 logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
                 error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
-            
+
 
         logger.debug("errors = %s" % errors)
         logger.debug("succeeded = %s" % succeeded)
@@ -451,11 +449,11 @@ class Patient(models.Model):
                           "django_model": "Patient",
                           "context_id": context_model.pk,
                           "forms": []}
-                          
-        
+
+
         if not setting_value:
             # ie retrieving a value
-            # or doing an action like clearing a multisection 
+            # or doing an action like clearing a multisection
             action = parser.parse(field_expression)
             return action(self, mongo_data)
         else:
@@ -465,8 +463,8 @@ class Patient(models.Model):
             patient_model, mongo_data = setter.set_value(self, mongo_data, value)
             patient_model.save()
             return wrapper.update_dynamic_data(registry_model, mongo_data)
-            
-           
+
+
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -485,7 +483,6 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
-        wrapper._set_client()
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -528,7 +525,7 @@ class Patient(models.Model):
                 patient_relative = PatientRelative.objects.get(relative_patient=self)
                 logger.debug("There is a PatientRelative I was created from: %s" % patient_relative)
                 if patient_relative.patient:
-                    logger.debug("This patient relative has a patient property: index = %s" % patient_relative.patient) 
+                    logger.debug("This patient relative has a patient property: index = %s" % patient_relative.patient)
                     return patient_relative.patient
                 else:
                     logger.debug("PatientRelative %s has no patient property (is null)" % patient_relative)
@@ -538,7 +535,7 @@ class Patient(models.Model):
                 return None
 
         logger.debug("%s not in FH - so my_index is None" % self)
-        
+
         return None
 
     def get_contexts_url(self, registry_model):
@@ -603,7 +600,7 @@ class Patient(models.Model):
                 return cv.last_update
             else:
                 raise ValueError("only consent_value answer, first_save, last_update fields allowed")
-                
+
         except ConsentValue.DoesNotExist:
             if field == "answer":
                 return False    # ?
@@ -761,8 +758,6 @@ class Patient(models.Model):
 
     def get_form_timestamp(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)
-        dynamic_store._set_client()
-        
         timestamp = dynamic_store.get_form_timestamp(registry_form)
         if timestamp:
             if "timestamp" in timestamp:
@@ -826,7 +821,7 @@ class Patient(models.Model):
             raise Exception("no default context") 
 
 
-    
+
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         logger.debug("in get_dynamic_data")
@@ -838,7 +833,7 @@ class Patient(models.Model):
                 raise Exception("need context id to get dynamic data for patient %s" % self.pk)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
-            
+
         return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
 
     def update_dynamic_data(self, registry_model, new_mongo_data, context_id=None):
@@ -872,7 +867,7 @@ class Patient(models.Model):
                                                                                    registry_model,
                                                                                    context_id))
             wrapper.delete_patient_record(registry_model, context_id)
-            
+
 
 
 

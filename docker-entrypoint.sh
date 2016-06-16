@@ -98,14 +98,8 @@ function _django_collectstatic {
 
 
 function _django_dev_fixtures {
-    echo "loading rdrf fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=rdrf.json
-
-    echo "loading users fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=users.json
-
-    echo "loading permissive iprestrict rules fixture"
-    django-admin.py load_fixture --settings=${DJANGO_SETTINGS_MODULE} --file=iprestrict_dev_rules.json
+    echo "loading DEV fixture"
+    django-admin.py init DEV
     django-admin.py reloadrules
 }
 

@@ -1,9 +1,9 @@
+from collections import OrderedDict
 from django import forms
 from rdrf.models import Registry
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from registry.patients.models import Patient
-from django.utils.datastructures import SortedDict
 
 import logging
 
@@ -172,7 +172,7 @@ class CustomConsentFormGenerator(object):
         return form_instance
 
     def _create_custom_consent_fields(self):
-        fields = SortedDict()
+        fields = OrderedDict()
         for consent_section_model in self.registry_model.consent_sections.all():
             logger.debug("consent section model = %s" % consent_section_model)
             if consent_section_model.applicable_to(self.patient_model):

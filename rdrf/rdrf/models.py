@@ -12,6 +12,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
 
 logger = logging.getLogger(__name__)
 
@@ -51,35 +53,32 @@ class Section(models.Model):
         return self.code
 
     def get_elements(self):
-        import string
-        return map(string.strip, self.elements.split(","))
+        return [code.strip() for code in self.elements.split(",")]
 
     @property
     def cde_models(self):
-        models = []
-
-        for cde_code in self.get_elements():
-            try:
-                cde_model = CommonDataElement.objects.get(code=cde_code)
-                models.append(cde_model)
-            except CommonDataElement.DoesNotExist:
-                pass
-
-        return models
+        codes = self.get_elements()
+        qs = CommonDataElement.objects.filter(code__in=codes)
+        cdes = dict((cde.code, cde) for cde in qs)
+        return [cdes[code] for code in codes]
 
     def clean(self):
-        for element in self.get_elements():
-            try:
-                CommonDataElement.objects.get(code=element)
-            except CommonDataElement.DoesNotExist:
-                raise ValidationError(
-                    "section %s refers to CDE with code %s which doesn't exist" %
-                    (self.display_name, element))
+        errors = {}
+        codes = set(self.get_elements())
+        qs = CommonDataElement.objects.filter(code__in=codes)
+        missing = sorted(codes - set(qs.values_list("code", flat=True)))
 
-        if self.code.count(" ") > 0:
-            raise ValidationError("Section %s code '%s' contains spaces" %
-                                  (self.display_name, self.code))
+        if missing:
+            errors["elements"] = [
+                ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, code))
+                for code in missing
+            ]
 
+        if " " in self.code:
+            errors["code"] = ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
+
+        if errors:
+            raise ValidationError(errors)
 
 class RegistryType:
     NORMAL = 1                 # no exposed contexts - all forms stored in a default context
@@ -708,6 +707,10 @@ class CommonDataElement(models.Model):
                                                               stored_value,
                                                               ex))
 
+        if stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN
+            return ":NaN"
+
         return stored_value
 
     def clean(self):
@@ -939,7 +942,6 @@ class QuestionnaireResponse(models.Model):
         from dynamic_data import DynamicDataWrapper
         from django.conf import settings
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
 
         if not self.has_mongo_data:
             raise ObjectDoesNotExist
@@ -960,7 +962,6 @@ class QuestionnaireResponse(models.Model):
     def has_mongo_data(self):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
         return wrapper.has_data(self.registry.code)
 
     @property
@@ -968,10 +969,9 @@ class QuestionnaireResponse(models.Model):
         # return the filled in questionnaire data
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
-        wrapper._set_client()
         return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
 
-        
+
 
 
 def appears_in(cde, registry, registry_form, section):
@@ -1768,6 +1768,7 @@ class EmailNotification(models.Model):
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     email_templates = models.ManyToManyField(EmailTemplate)
+    disabled = models.BooleanField(null=False, blank=False, default=False)
 
     def __unicode__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
@@ -1953,3 +1954,35 @@ class MongoMigrationDummyModel(models.Model):
                 ("testing", "testing"),
                 ("1.0.17", "populate context_id on all patient records"))
     version = models.CharField(max_length=80, choices=VERSIONS)
+
+
+def file_upload_to(instance, filename):
+    return "/".join(filter(bool, [
+        instance.form.registry.code,
+        instance.section.code if instance.section else "_",
+        instance.cde.code if instance.cde else "",
+        filename]))
+
+class CDEFile(models.Model):
+    """
+    A file record which is referenced by id within the patient's
+    dynamic data dictionary.
+
+    The form and section fields are optional for files belonging to
+    registry-specific fields.
+
+    See filestorage.py for usage of this model.
+    """
+    registry = models.ForeignKey(Registry)
+    form = models.ForeignKey(RegistryForm, null=True, blank=True)
+    section = models.ForeignKey(Section, null=True, blank=True)
+    cde = models.ForeignKey(CommonDataElement)
+    item = models.FileField(upload_to=file_upload_to, max_length=300)
+    filename = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return self.item.name
+
+@receiver(pre_delete, sender=CDEFile)
+def fileuploaditem_delete(sender, instance, **kwargs):
+    instance.item.delete(False)
