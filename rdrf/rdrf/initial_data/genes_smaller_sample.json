@@ -1,0 +1,1081 @@
+[
+    {
+        "pk": 16,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Entry Withdrawn",
+            "name": "entry withdrawn",
+            "symbol": "A12M1~withdrawn",
+            "hgnc_id": "HGNC:1",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 17,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Entry Withdrawn",
+            "name": "entry withdrawn",
+            "symbol": "A12M2~withdrawn",
+            "hgnc_id": "HGNC:2",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 18,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Entry Withdrawn",
+            "name": "entry withdrawn",
+            "symbol": "A12M3~withdrawn",
+            "hgnc_id": "HGNC:3",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 1,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "alpha-1-B glycoprotein",
+            "symbol": "A1BG",
+            "hgnc_id": "HGNC:5",
+            "refseq_id": "NM_130786",
+            "accession_numbers": "",
+            "chromosome": "19q"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "A1BG antisense RNA 1 (non-protein coding)",
+            "symbol": "A1BG-AS1",
+            "hgnc_id": "HGNC:37133",
+            "refseq_id": "NR_015380",
+            "accession_numbers": "BC040926",
+            "chromosome": "19q13.4"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "APOBEC1 complementation factor",
+            "symbol": "A1CF",
+            "hgnc_id": "HGNC:24086",
+            "refseq_id": "NM_014576",
+            "accession_numbers": "AF271790",
+            "chromosome": "10q21.1"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Symbol Withdrawn",
+            "name": "symbol withdrawn, see UBA1",
+            "symbol": "A1S9T~withdrawn",
+            "hgnc_id": "HGNC:6",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 5,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "AIG2-like domain 1",
+            "symbol": "A2LD1",
+            "hgnc_id": "HGNC:25100",
+            "refseq_id": "NM_033110",
+            "accession_numbers": "",
+            "chromosome": "13q32.3"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "alpha-2-macroglobulin",
+            "symbol": "A2M",
+            "hgnc_id": "HGNC:7",
+            "refseq_id": "NM_000014",
+            "accession_numbers": "BX647329, X68728, M11313",
+            "chromosome": "12p13.31"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "alpha-2-macroglobulin-like 1",
+            "symbol": "A2ML1",
+            "hgnc_id": "HGNC:23336",
+            "refseq_id": "NM_144670",
+            "accession_numbers": "AK057908",
+            "chromosome": "12p13"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "A2ML1 antisense RNA 1 (non-protein coding)",
+            "symbol": "A2ML1-AS1",
+            "hgnc_id": "HGNC:41022",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "12p13.31"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "A2ML1 antisense RNA 2 (non-protein coding)",
+            "symbol": "A2ML1-AS2",
+            "hgnc_id": "HGNC:41523",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "12p13.31"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "alpha-2-macroglobulin pseudogene 1",
+            "symbol": "A2MP1",
+            "hgnc_id": "HGNC:8",
+            "refseq_id": "NG_001067",
+            "accession_numbers": "M24415",
+            "chromosome": "12p13.3-p12.3"
+        }
+    },
+    {
+        "pk": 2241,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "B-cell linker",
+            "symbol": "BLNK",
+            "hgnc_id": "HGNC:14211",
+            "refseq_id": "NM_013314",
+            "accession_numbers": "AF068180",
+            "chromosome": "10q23.2-q23.33"
+        }
+    },
+    {
+        "pk": 2242,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "biogenesis of lysosomal organelles complex-1, subunit 1",
+            "symbol": "BLOC1S1",
+            "hgnc_id": "HGNC:4200",
+            "refseq_id": "NM_001487",
+            "accession_numbers": "S82447",
+            "chromosome": "12q13-q14"
+        }
+    },
+    {
+        "pk": 2243,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "biogenesis of lysosomal organelles complex-1, subunit 2",
+            "symbol": "BLOC1S2",
+            "hgnc_id": "HGNC:20984",
+            "refseq_id": "NM_173809",
+            "accession_numbers": "AK054697",
+            "chromosome": "10q24.31"
+        }
+    },
+    {
+        "pk": 2244,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "biogenesis of lysosomal organelles complex-1, subunit 3",
+            "symbol": "BLOC1S3",
+            "hgnc_id": "HGNC:20914",
+            "refseq_id": "NM_212550",
+            "accession_numbers": "AY531266",
+            "chromosome": "19q13.32"
+        }
+    },
+    {
+        "pk": 2245,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "biliverdin reductase A",
+            "symbol": "BLVRA",
+            "hgnc_id": "HGNC:1062",
+            "refseq_id": "NM_000712",
+            "accession_numbers": "BC008456",
+            "chromosome": "7p14-cen"
+        }
+    },
+    {
+        "pk": 3066,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Symbol Withdrawn",
+            "name": "symbol withdrawn, see FAM25HP",
+            "symbol": "C10orf43~withdrawn",
+            "hgnc_id": "HGNC:21291",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 3067,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 46",
+            "symbol": "C10orf46",
+            "hgnc_id": "HGNC:23727",
+            "refseq_id": "NM_153810",
+            "accession_numbers": "AK097728",
+            "chromosome": "10q26.13"
+        }
+    },
+    {
+        "pk": 3068,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 47",
+            "symbol": "C10orf47",
+            "hgnc_id": "HGNC:23728",
+            "refseq_id": "NM_153256",
+            "accession_numbers": "BC017269",
+            "chromosome": "10p14"
+        }
+    },
+    {
+        "pk": 3069,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 52",
+            "symbol": "C10orf52",
+            "hgnc_id": "HGNC:30165",
+            "refseq_id": "XM_928603",
+            "accession_numbers": "",
+            "chromosome": "10p12.1"
+        }
+    },
+    {
+        "pk": 3070,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 53",
+            "symbol": "C10orf53",
+            "hgnc_id": "HGNC:27421",
+            "refseq_id": "NM_182554",
+            "accession_numbers": "BC028127",
+            "chromosome": "10"
+        }
+    },
+    {
+        "pk": 3071,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 54",
+            "symbol": "C10orf54",
+            "hgnc_id": "HGNC:30085",
+            "refseq_id": "NM_022153",
+            "accession_numbers": "AF193048",
+            "chromosome": "10q22.1"
+        }
+    },
+    {
+        "pk": 3072,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 55",
+            "symbol": "C10orf55",
+            "hgnc_id": "HGNC:31008",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "10"
+        }
+    },
+    {
+        "pk": 3073,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 57",
+            "symbol": "C10orf57",
+            "hgnc_id": "HGNC:25804",
+            "refseq_id": "NM_025125",
+            "accession_numbers": "BC022252",
+            "chromosome": "10q23.1"
+        }
+    },
+    {
+        "pk": 3074,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 62",
+            "symbol": "C10orf62",
+            "hgnc_id": "HGNC:23294",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "10"
+        }
+    },
+    {
+        "pk": 3075,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Symbol Withdrawn",
+            "name": "symbol withdrawn, see WDFY4",
+            "symbol": "C10orf64~withdrawn",
+            "hgnc_id": "HGNC:27253",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 3076,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "chromosome 10 open reading frame 67",
+            "symbol": "C10orf67",
+            "hgnc_id": "HGNC:28716",
+            "refseq_id": "NM_153714",
+            "accession_numbers": "BC035732",
+            "chromosome": "10p12.31"
+        }
+    },
+    {
+        "pk": 5628,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "cytochrome c oxidase subunit VIa polypeptide 2",
+            "symbol": "COX6A2",
+            "hgnc_id": "HGNC:2279",
+            "refseq_id": "NM_005205",
+            "accession_numbers": "U66875, M83308",
+            "chromosome": "16p11.12"
+        }
+    },
+    {
+        "pk": 36705,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Symbol Withdrawn",
+            "name": "symbol withdrawn, see MAP3K12",
+            "symbol": "ZPK~withdrawn",
+            "hgnc_id": "HGNC:13191",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 36706,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zona pellucida-like domain containing 1",
+            "symbol": "ZPLD1",
+            "hgnc_id": "HGNC:27022",
+            "refseq_id": "NM_175056",
+            "accession_numbers": "AY090780",
+            "chromosome": "3q12.3"
+        }
+    },
+    {
+        "pk": 36707,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, RAN-binding domain containing 1",
+            "symbol": "ZRANB1",
+            "hgnc_id": "HGNC:18224",
+            "refseq_id": "NM_017580",
+            "accession_numbers": "AJ252060",
+            "chromosome": "10q26.12"
+        }
+    },
+    {
+        "pk": 36708,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, RAN-binding domain containing 2",
+            "symbol": "ZRANB2",
+            "hgnc_id": "HGNC:13058",
+            "refseq_id": "NM_203350",
+            "accession_numbers": "AF065391",
+            "chromosome": "1p31"
+        }
+    },
+    {
+        "pk": 36709,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "ZRANB2 antisense RNA 1 (non-protein coding)",
+            "symbol": "ZRANB2-AS1",
+            "hgnc_id": "HGNC:43594",
+            "refseq_id": "NR_038420",
+            "accession_numbers": "BC070115",
+            "chromosome": "1p31.1"
+        }
+    },
+    {
+        "pk": 36710,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "ZRANB2 antisense RNA 2 (non-protein coding)",
+            "symbol": "ZRANB2-AS2",
+            "hgnc_id": "HGNC:43595",
+            "refseq_id": "",
+            "accession_numbers": "BC054887",
+            "chromosome": "1p31.1"
+        }
+    },
+    {
+        "pk": 36711,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, RAN-binding domain containing 3",
+            "symbol": "ZRANB3",
+            "hgnc_id": "HGNC:25249",
+            "refseq_id": "NM_032143",
+            "accession_numbers": "AL136824",
+            "chromosome": "2q21.3"
+        }
+    },
+    {
+        "pk": 36712,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Entry Withdrawn",
+            "name": "entry withdrawn",
+            "symbol": "ZRK~withdrawn",
+            "hgnc_id": "HGNC:13193",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 36713,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger (CCCH type), RNA-binding motif and serine/arginine rich 1",
+            "symbol": "ZRSR1",
+            "hgnc_id": "HGNC:12456",
+            "refseq_id": "NM_005083",
+            "accession_numbers": "D49676",
+            "chromosome": "5q22.2"
+        }
+    },
+    {
+        "pk": 36714,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger (CCCH type), RNA-binding motif and serine/arginine rich 2",
+            "symbol": "ZRSR2",
+            "hgnc_id": "HGNC:23019",
+            "refseq_id": "NM_005089",
+            "accession_numbers": "BC050451",
+            "chromosome": "Xp22.1"
+        }
+    },
+    {
+        "pk": 36715,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 1",
+            "symbol": "ZSCAN1",
+            "hgnc_id": "HGNC:23712",
+            "refseq_id": "NM_182572",
+            "accession_numbers": "AK091098",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36722,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 10",
+            "symbol": "ZSCAN10",
+            "hgnc_id": "HGNC:12997",
+            "refseq_id": "NM_032805",
+            "accession_numbers": "AA206569",
+            "chromosome": "16p13.3"
+        }
+    },
+    {
+        "pk": 36723,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 12",
+            "symbol": "ZSCAN12",
+            "hgnc_id": "HGNC:13172",
+            "refseq_id": "NM_014724",
+            "accession_numbers": "AB007886",
+            "chromosome": "6p21"
+        }
+    },
+    {
+        "pk": 36724,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 12 pseudogene 1",
+            "symbol": "ZSCAN12P1",
+            "hgnc_id": "HGNC:13850",
+            "refseq_id": "NR_024063",
+            "accession_numbers": "BC040524",
+            "chromosome": "6p21.33"
+        }
+    },
+    {
+        "pk": 36725,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 16",
+            "symbol": "ZSCAN16",
+            "hgnc_id": "HGNC:20813",
+            "refseq_id": "NM_025231",
+            "accession_numbers": "AK025844",
+            "chromosome": "6p21.33"
+        }
+    },
+    {
+        "pk": 36726,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 18",
+            "symbol": "ZSCAN18",
+            "hgnc_id": "HGNC:21037",
+            "refseq_id": "NM_023926",
+            "accession_numbers": "AY280799, AY279352",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36716,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 2",
+            "symbol": "ZSCAN2",
+            "hgnc_id": "HGNC:20994",
+            "refseq_id": "NM_017894",
+            "accession_numbers": "BC041620",
+            "chromosome": "15q25.2"
+        }
+    },
+    {
+        "pk": 36727,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 20",
+            "symbol": "ZSCAN20",
+            "hgnc_id": "HGNC:13093",
+            "refseq_id": "NM_145238",
+            "accession_numbers": "X52360",
+            "chromosome": "1p34.3"
+        }
+    },
+    {
+        "pk": 36728,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 21",
+            "symbol": "ZSCAN21",
+            "hgnc_id": "HGNC:13104",
+            "refseq_id": "NM_145914",
+            "accession_numbers": "AL136865",
+            "chromosome": "7q11.1"
+        }
+    },
+    {
+        "pk": 36729,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 22",
+            "symbol": "ZSCAN22",
+            "hgnc_id": "HGNC:4929",
+            "refseq_id": "NM_181846",
+            "accession_numbers": "M20675",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36730,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 23",
+            "symbol": "ZSCAN23",
+            "hgnc_id": "HGNC:21193",
+            "refseq_id": "XM_167147",
+            "accession_numbers": "AK092117",
+            "chromosome": "6p21.33"
+        }
+    },
+    {
+        "pk": 36731,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 29",
+            "symbol": "ZSCAN29",
+            "hgnc_id": "HGNC:26673",
+            "refseq_id": "NM_152455",
+            "accession_numbers": "AF525399",
+            "chromosome": "15q15.3"
+        }
+    },
+    {
+        "pk": 36732,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 30",
+            "symbol": "ZSCAN30",
+            "hgnc_id": "HGNC:33517",
+            "refseq_id": "NM_001112734",
+            "accession_numbers": "AY234408",
+            "chromosome": "18q12.2"
+        }
+    },
+    {
+        "pk": 36717,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 4",
+            "symbol": "ZSCAN4",
+            "hgnc_id": "HGNC:23709",
+            "refseq_id": "NM_152677",
+            "accession_numbers": "AK092424",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36718,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 5A",
+            "symbol": "ZSCAN5A",
+            "hgnc_id": "HGNC:23710",
+            "refseq_id": "NM_024303",
+            "accession_numbers": "AK098700",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36719,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 5B",
+            "symbol": "ZSCAN5B",
+            "hgnc_id": "HGNC:34246",
+            "refseq_id": "NM_001080456",
+            "accession_numbers": "",
+            "chromosome": "19q13.42"
+        }
+    },
+    {
+        "pk": 36720,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 5C",
+            "symbol": "ZSCAN5C",
+            "hgnc_id": "HGNC:34294",
+            "refseq_id": "XM_001131980",
+            "accession_numbers": "",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36721,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger and SCAN domain containing 5D",
+            "symbol": "ZSCAN5D",
+            "hgnc_id": "HGNC:37706",
+            "refseq_id": "XM_001725568.1",
+            "accession_numbers": "",
+            "chromosome": "19q13.43"
+        }
+    },
+    {
+        "pk": 36733,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 1",
+            "symbol": "ZSWIM1",
+            "hgnc_id": "HGNC:16155",
+            "refseq_id": "NM_080603",
+            "accession_numbers": "AL008726",
+            "chromosome": "20"
+        }
+    },
+    {
+        "pk": 36734,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 2",
+            "symbol": "ZSWIM2",
+            "hgnc_id": "HGNC:30990",
+            "refseq_id": "NM_182521",
+            "accession_numbers": "AK128006",
+            "chromosome": "2q32.2"
+        }
+    },
+    {
+        "pk": 36735,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 3",
+            "symbol": "ZSWIM3",
+            "hgnc_id": "HGNC:16157",
+            "refseq_id": "NM_080752",
+            "accession_numbers": "AL008726",
+            "chromosome": "20"
+        }
+    },
+    {
+        "pk": 36736,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 4",
+            "symbol": "ZSWIM4",
+            "hgnc_id": "HGNC:25704",
+            "refseq_id": "XM_031342",
+            "accession_numbers": "AK022283",
+            "chromosome": "19p13.13"
+        }
+    },
+    {
+        "pk": 36737,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 5",
+            "symbol": "ZSWIM5",
+            "hgnc_id": "HGNC:29299",
+            "refseq_id": "XM_046581",
+            "accession_numbers": "AB040944",
+            "chromosome": "1p34.1"
+        }
+    },
+    {
+        "pk": 36738,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 5 pseudogene 1",
+            "symbol": "ZSWIM5P1",
+            "hgnc_id": "HGNC:43768",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "17p12"
+        }
+    },
+    {
+        "pk": 36739,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 5 pseudogene 2",
+            "symbol": "ZSWIM5P2",
+            "hgnc_id": "HGNC:43769",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "17p11.2"
+        }
+    },
+    {
+        "pk": 36740,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 5 pseudogene 3",
+            "symbol": "ZSWIM5P3",
+            "hgnc_id": "HGNC:43770",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "4q28.2"
+        }
+    },
+    {
+        "pk": 36741,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 6",
+            "symbol": "ZSWIM6",
+            "hgnc_id": "HGNC:29316",
+            "refseq_id": "NM_020928",
+            "accession_numbers": "BC039438",
+            "chromosome": "5q12.1"
+        }
+    },
+    {
+        "pk": 36742,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, SWIM-type containing 7",
+            "symbol": "ZSWIM7",
+            "hgnc_id": "HGNC:26993",
+            "refseq_id": "NM_001042697",
+            "accession_numbers": "AK093384",
+            "chromosome": "17p11.2"
+        }
+    },
+    {
+        "pk": 36743,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger with UFM1-specific peptidase domain",
+            "symbol": "ZUFSP",
+            "hgnc_id": "HGNC:21224",
+            "refseq_id": "NM_145062",
+            "accession_numbers": "AK054582",
+            "chromosome": "6q22.31"
+        }
+    },
+    {
+        "pk": 36744,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "ZW10, kinetochore associated, homolog (Drosophila)",
+            "symbol": "ZW10",
+            "hgnc_id": "HGNC:13194",
+            "refseq_id": "NM_004724",
+            "accession_numbers": "U54996",
+            "chromosome": "11q23"
+        }
+    },
+    {
+        "pk": 36745,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "Zwilch, kinetochore associated, homolog (Drosophila)",
+            "symbol": "ZWILCH",
+            "hgnc_id": "HGNC:25468",
+            "refseq_id": "NM_017975",
+            "accession_numbers": "AK023175",
+            "chromosome": "15q22.31"
+        }
+    },
+    {
+        "pk": 36746,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "ZW10 interactor",
+            "symbol": "ZWINT",
+            "hgnc_id": "HGNC:13195",
+            "refseq_id": "",
+            "accession_numbers": "AF067656",
+            "chromosome": "10q21-q22"
+        }
+    },
+    {
+        "pk": 36747,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Entry Withdrawn",
+            "name": "entry withdrawn",
+            "symbol": "ZWINTAS~withdrawn",
+            "hgnc_id": "HGNC:13196",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 36748,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Symbol Withdrawn",
+            "name": "symbol withdrawn, see PEX1",
+            "symbol": "ZWS1~withdrawn",
+            "hgnc_id": "HGNC:13197",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": ""
+        }
+    },
+    {
+        "pk": 36749,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, X-linked, duplicated A",
+            "symbol": "ZXDA",
+            "hgnc_id": "HGNC:13198",
+            "refseq_id": "NM_007156",
+            "accession_numbers": "L14787",
+            "chromosome": "Xp11.21"
+        }
+    },
+    {
+        "pk": 36750,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, X-linked, duplicated B",
+            "symbol": "ZXDB",
+            "hgnc_id": "HGNC:13199",
+            "refseq_id": "NM_007157",
+            "accession_numbers": "L14788",
+            "chromosome": "Xp11.1"
+        }
+    },
+    {
+        "pk": 36751,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "ZXD family zinc finger C",
+            "symbol": "ZXDC",
+            "hgnc_id": "HGNC:28160",
+            "refseq_id": "NM_025112",
+            "accession_numbers": "AK023923",
+            "chromosome": "3q21.3"
+        }
+    },
+    {
+        "pk": 36752,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zyg-11 homolog A (C. elegans)",
+            "symbol": "ZYG11A",
+            "hgnc_id": "HGNC:32058",
+            "refseq_id": "NM_001004339",
+            "accession_numbers": "",
+            "chromosome": "1p32.3"
+        }
+    },
+    {
+        "pk": 36753,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zyg-11 homolog A (C. elegans) pseudogene 1",
+            "symbol": "ZYG11AP1",
+            "hgnc_id": "HGNC:38032",
+            "refseq_id": "",
+            "accession_numbers": "",
+            "chromosome": "9q31.1"
+        }
+    },
+    {
+        "pk": 36754,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zyg-11 homolog B (C. elegans)",
+            "symbol": "ZYG11B",
+            "hgnc_id": "HGNC:25820",
+            "refseq_id": "NM_024646",
+            "accession_numbers": "AB051517",
+            "chromosome": "1p32.3"
+        }
+    },
+    {
+        "pk": 36755,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zyxin",
+            "symbol": "ZYX",
+            "hgnc_id": "HGNC:13200",
+            "refseq_id": "NM_003461",
+            "accession_numbers": "X95735",
+            "chromosome": "7q32"
+        }
+    },
+    {
+        "pk": 36756,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, ZZ-type with EF-hand domain 1",
+            "symbol": "ZZEF1",
+            "hgnc_id": "HGNC:29027",
+            "refseq_id": "NM_015113",
+            "accession_numbers": "BC035319",
+            "chromosome": "17p13.3"
+        }
+    },
+    {
+        "pk": 36757,
+        "model": "genetic.gene",
+        "fields": {
+            "status": "Approved",
+            "name": "zinc finger, ZZ-type containing 3",
+            "symbol": "ZZZ3",
+            "hgnc_id": "HGNC:24523",
+            "refseq_id": "NM_015534",
+            "accession_numbers": "AL080063",
+            "chromosome": "1p31.1"
+        }
+    }
+]

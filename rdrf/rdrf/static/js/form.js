@@ -242,3 +242,82 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
     modal.find("a[href='#cde-history-chart']").parent().addClass("disabled");
   }
 }
+
+function rdrfSetupFileUploads() {
+  $(".multi-file-widget").each(function() {
+    var widget = $(this);
+    var template = widget.children().first().remove();
+
+    function makeCopy(n) {
+      var copy = template.clone().children().each(function() {
+        var elem = $(this);
+        _.each(["name", "id", "for"], function(attr) {
+          var val = elem.attr(attr);
+          if (val) {
+            elem.attr(attr, val.replace("???", "" + n));
+          }
+          return elem;
+        });
+      }).end().attr("id", "copy_" + n);
+
+      var clear = copy.find("input[type='checkbox']");
+      var input = copy.find("input[type='file']");
+      var index = copy.find("input[type='hidden']").attr("value", n);
+      var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="glyphicon glyphicon-remove"></i> Remove</button>');
+
+      return copy.empty()
+        .append($('<div class="col-xs-9"></div>').append(input).append(index))
+        .append($('<div class="col-xs-3"></div>').append(remove).append(clear.hide()));
+    }
+
+    widget.children(".multi-file")
+      .each(function() {
+        var elem = $(this);
+        if (elem.find("a").attr("href")) {
+          var a = elem.find("a").addClass("col-xs-9");
+          var cb = elem.find("input[type='checkbox']")
+              .wrap('<div class="col-xs-3"><div class="checkbox"><label></label></div></div>')
+              .after("Clear").parent().parent().parent();
+          var index = elem.find("input[type='hidden']");
+          elem.empty().append(a).append(cb).append(index);
+        }
+      });
+
+    var nextIndex = function() {
+      var indices = widget.find("input[type='hidden']")
+          .map(function(i, elem) {
+            return parseInt($(elem).attr("value"), 10);
+          });
+      return indices.length ? _.max(indices) + 1 : 0;
+    };
+
+    var addOne = function() {
+      widget.children().last().before(makeCopy(nextIndex()));
+    };
+
+    $('<button class="btn btn-sm btn-default multi-file-add"><i class="glyphicon glyphicon-plus"></i> Add</button>')
+      .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
+      .attr("name", widget.attr("id").replace(/_id$/, "_add"))
+      .appendTo(widget)
+      .wrap('<div class="add-button col-xs-3 col-xs-offset-9"></div>');
+
+    if (widget.children().length === 0) {
+      addOne();
+    }
+
+    widget
+      .on("click", "button.multi-file-add", function(e) {
+        e.preventDefault();
+        addOne();
+      })
+      .on("click", "button.multi-file-remove", function(e) {
+        e.preventDefault();
+        $(this).parents(".multi-file").first().remove();
+      })
+      .on("change", "input[type='checkbox']", function(e) {
+        var checked = $(this).is(":checked");
+        $(this).parents(".multi-file").first().find("a")
+          .toggleClass("multi-file-deleted", checked);
+      });
+  });
+}

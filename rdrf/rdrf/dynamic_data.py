@@ -1,25 +1,19 @@
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-from rdrf.mongo_client import construct_mongo_client
-import gridfs
-import logging
-from rdrf.utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
-from rdrf.utils import is_file_cde, is_uploaded_file, is_gridfs_file_wrapper
-
-from django.conf import settings
-from datetime import datetime
-from rdrf.file_upload import FileUpload
 from copy import deepcopy
+import datetime
 from operator import itemgetter
+from itertools import izip_longest
+import logging
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
 
-
+from . import filestorage
+from .file_upload import FileUpload, wrap_gridfs_data_for_form
+from .models import Registry
+from .mongo_client import construct_mongo_client
+from .utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
+from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
 logger = logging.getLogger(__name__)
-
-
-class FileStore(object):
-
-    def __init__(self, mongo_db):
-        self.fs = gridfs.GridFS(mongo_db)
 
 
 class FormParsingError(Exception):
@@ -30,261 +24,135 @@ class KeyValueMissing(Exception):
     pass
 
 
-class MultisectionGridFSFileHandler(object):
-    def __init__(self,
-                 gridfs_filestore,
-                 registry_code,
-                 form_model,
-                 multisection_code,
-                 form_section_items,
-                 existing_nested_data,
-                 index_map):
+def find_sections(doc, form_name=None, section_code=None,
+                  formp=None, sectionp=None,
+                  multisection=False):
+    """
+    Iterates through form sections of a mongo doc.
+      form_name: Filter by form
+      section_code: Filter by code
+      formp: predicate function(form_dict, index)
+      sectionp: predicate function(section_dict, index | (index, index))
+      multisection: whether to find multisections or single sections
+    """
+    formp = formp or (lambda f, i: True)
+    sectionp = sectionp or (lambda s, i: True)
 
-        self.original_data = deepcopy(existing_nested_data)
-        self.gridfs_filestore = gridfs_filestore
-        self.registry_code = registry_code
-        self.form_model = form_model
-        self.multisection_code = multisection_code
-        self.form_section_items = form_section_items # list of section dicts in this multisection
-        self.existing_nested_data = existing_nested_data
-        self.index_map = index_map  # if sections have been deleted,
+    for f, form in enumerate(doc.get("forms") or []):
+        if (form_name is None or
+            (form.get("name") == form_name and formp(form, f))):
+            for s, section in enumerate(form.get("sections") or []):
+                if ((section_code is None or
+                     section.get("code") == section_code) and
+                    bool(multisection) == bool(section.get("allow_multiple"))):
+                    if multisection:
+                        for s2, section2 in enumerate(section.get("cdes") or []):
+                            product = dict(section)
+                            product["cdes"] = section2
+                            if sectionp(product, (s, s2)):
+                                yield product
+                    elif sectionp(section, s):
+                        yield section
 
-        # bookkeeping of gridfs file ids
-        self.existing_file_ids = set([])
+def find_cdes(doc, form_name=None, section_code=None, cde_code=None,
+              formp=None, sectionp=None, cdep=None,
+              multisection=False):
+    """
+    Iterates through CDEs stored in a mongo doc.
+    """
+    cdep = cdep or (lambda c, i: True)
 
-        self.added_file_ids = set([])
-        self.deleted_file_ids = set([])
-        self.unchanged_file_ids = set([])
+    sections = find_sections(doc, form_name, section_code, formp, sectionp,
+                             multisection=multisection)
+    for section in sections:
+        for c, cde in enumerate(section.get("cdes") or []):
+            if (cde_code is None or
+                (cde.get("code") == cde_code and cdep(cde, c))):
+                yield cde
 
+section_allow_multiple = lambda s, i: bool(s.get("allow_multiple"))
+section_not_allow_multiple = lambda s, i: not s.get("allow_multiple")
 
-    def _add_file(self, item_index, key, file_object):
-        # Put an uploaded file into gridfs and return a wrapper dictionary  which is stored against the key mongo
-        # After adding the file to gridfs , the original uploaded file object is replaced by a dictionary
-        # referencing the gridfs file ( a gridfs_ref_dict )
-        # the passed in new_section_items_from_form list is updated with this dictionary
-        # this will be stored in mongo
+def get_mongo_value(registry_code, nested_data, delimited_key,
+                    multisection_index=None):
+    """
+    Grabs a CDE value out of the mongo document.
+      nested_data: mongo document dict
+      delimited_key: form_name____section_code____cde_code
+    """
+    registry_model = Registry.objects.get(code=registry_code)
+    form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
 
-        logger.debug("adding a file to gridfs for %s %s item %s key %s" % (self.form_model.name,
-                                                                           self.multisection_code,
-                                                                           item_index,
-                                                                           key))
-        original_filename = file_object.name
+    if multisection_index is None:
+        sectionp = None
+    else:
+        sectionp = lambda s, (i, j): j == multisection_index
 
-        gridfs_filename = self._get_multisection_gridfs_filename(self.registry_code,
-                                                                 self.form_model.name,
-                                                                 self.multisection_code,
-                                                                 str(item_index),
-                                                                 get_code(key),
-                                                                 original_filename)
-
-        try:
-            added_file_id = self.gridfs_filestore.put(file_object.read(), filename=gridfs_filename)
-        except Exception, ex:
-            logger.error("Error adding file %s to gridfs: %s" % (gridfs_filename, ex))
-            return None
-
-        gridfs_ref_dict = {"gridfs_file_id": added_file_id, "file_name": original_filename}
-
-        logger.debug("added file to gridfs: %s -> %s (id = %s) wrapper = %s" % (original_filename,
-                                                                                gridfs_filename,
-                                                                                added_file_id,
-                                                                                gridfs_ref_dict))
-
-        logger.debug("key %s will be updated with %s" % (key, gridfs_ref_dict))
-
-        logger.debug("locating the section item to update with the gridfs_ref_dict")
-        section_item_to_update = self.form_section_items[item_index]
-        logger.debug("section item before update = %s" % section_item_to_update)
-        section_item_to_update[key] = gridfs_ref_dict
-        logger.debug("section item after replacing file object with gridfs_ref_dict:")
-        logger.debug("updated section item ( index %s) = %s" % (item_index, section_item_to_update))
-        logger.debug("item updated OK")
-
-        return added_file_id
-
-    def _delete_file(self, item_index, key):
-
-        # This function deletes a file in gridfs in response to the user checking the "Clear" checkbox in
-        # in the gui for a file cde.
-        # The section item  containing this file cde was not deleted _itself_ though.
-        # The mongo value for the file cde key needs to be set to None
-        # and the file that _was_ referred to, deleted from gridfs.
-        # We supply the existing nested data ( which is updated as a side effect
-        # so that we can retrieve the original gridfs file id
-        # and replace the old gridfs_ref_dict.
-
-        logger.debug("file cde %s %s %s %s was cleared - deleting existing gridfs file" % (self.form_model.name,
-                                                                                           self.multisection_code,
-                                                                                           item_index,
-                                                                                           key))
-        file_cde_code = get_code(key)
-
-        deleted_file_id = None
-
-        for form_dict in self.existing_nested_data["forms"]:
-            if form_dict["name"] == self.form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == self.multisection_code:
-                        if section_dict["allow_multiple"]:
-                            for index, item in enumerate(section_dict["cdes"]):
-                                if index == item_index:
-                                    for cde_dict in item:
-                                        if cde_dict['code'] == file_cde_code:
-                                            existing_gridfs_ref_dict = cde_dict["value"]
-                                            logger.debug("existing cde value of this file cde = %s" %
-                                                         existing_gridfs_ref_dict)
-                                            existing_gridfs_file_id = existing_gridfs_ref_dict["gridfs_file_id"]
-                                            logger.debug("existing gridfs file id = %s" % existing_gridfs_file_id)
-                                            try:
-                                                self.gridfs_filestore.delete(existing_gridfs_file_id)
-                                            except Exception, ex:
-                                                logger.error("Error deleting file id %s in gridfs: %s" % (existing_gridfs_file_id,
-                                                                                                          ex))
-                                                return None
-
-                                            deleted_file_id = existing_gridfs_file_id
-                                            logger.debug("deleted gridfs file OK")
-                                            cde_dict["value"] = None
-                                            logger.debug("updated the value to None")
-        return deleted_file_id
-
-    def _get_original_file_cde_value(self, item_index, key):
-        cde_code = get_code(key)
-        old_index = self.index_map[item_index]
-        for form_dict in self.original_data["forms"]:
-            if form_dict["name"] == self.form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == self.multisection_code:
-                        if section_dict["allow_multiple"]:
-                            items = section_dict["cdes"]
-                            old_cdes_list = items[old_index]
-                            for cde_dict in old_cdes_list:
-                                if cde_dict["code"] == cde_code:
-                                    original_value = cde_dict["value"]
-                                    return original_value
-
-    def _preserve_file(self, item_index, key, original_value):
-        cde_code = get_code(key)
-        section_dict = self.form_section_items[item_index]
-        section_dict[key] = original_value
-        if is_gridfs_file_wrapper(original_value):
-            return original_value["gridfs_file_id"]
-
-    def _is_gridfs_file_wrapper(self, value):
-        return isinstance(value, dict) and "gridfs_file_id" in value
-
-    def _get_multisection_gridfs_filename(self,
-                                          registry_code,
-                                          form_name,
-                                          multisection_code,
-                                          section_index,
-                                          cde_code,
-                                          original_filename):
-
-        return "****".join([registry_code, form_name, multisection_code, section_index, cde_code, original_filename])
-
-    def _get_gridfs_fileids(self, items):
-        result_set = set([])
-        for cde_dict_list in items:
-            for cde_dict in cde_dict_list:
-                value = cde_dict["value"]
-                if is_gridfs_file_wrapper(value):
-                    result_set.add(value["gridfs_file_id"])
-
-        return result_set
-
-    # public
-
-    def update_multisection_file_cdes(self):
-
-        if self.index_map is None:
-            # FH-28: Family Linkage ops cause the value of index or relative on a clinical form to be
-            # changed - this change saves dynamic data without initialising index_map which causes
-            # a runtime error, hence the bailout here
-            return
-
-        logger.debug("****************** START UPDATE MULTISECTION FILE CDES ****************************")
-        logger.debug("updating any gridfs files in multisection %s" % self.multisection_code)
-
-        try:
-            existing_sections = self._get_existing_multisection_items()
-        except KeyValueMissing:
-            existing_sections = []
-
-        existing_gridfs_ids_set = self._get_gridfs_fileids(existing_sections)  # gridfs fileids in existing multisection
-
-        unchanged_gridfs_file_ids = set([])
-
-        uploaded_files_to_add_to_gridfs = []
-        unchanged_files = []
-        files_to_delete = []
-
-        for item_index, section_item_dict in enumerate(self.form_section_items):
-            logger.debug("checking new saved section %s" % item_index)
-
-            for key, value in section_item_dict.items():
-                logger.debug("multisection %s item key = %s value = %s" % (item_index, key, value))
-                if is_file_cde(get_code(key)):
-                    logger.debug("%s is a file" % key)
-                    if is_uploaded_file(value):
-                        uploaded_files_to_add_to_gridfs.append((item_index, key, value))
-                    elif value is None:
-                        logger.debug("value is None - file unchanged")
-                        unchanged_files.append((item_index, key))
-                    elif value is False:
-                        # indicates use wants to clear the file?
-                        logger.debug("%s value is False - should delete this file")
-                        files_to_delete.append((item_index, key))
-
-        for item_index, key, file_object in uploaded_files_to_add_to_gridfs:
-            added_gridfs_file_id = self._add_file(item_index, key, file_object)
-
-            if not added_gridfs_file_id is None:
-                self.added_file_ids.add(added_gridfs_file_id)
-
-        for (item_index, key) in files_to_delete:
-            deleted_gridfs_file_id = self._delete_file(item_index, key)
-            if not deleted_gridfs_file_id is None:
-                self.deleted_file_ids.add(deleted_gridfs_file_id)
-
-        for (item_index, key) in unchanged_files:
-            #todo ensure that unchanged gridfs files in a multisection are not clobbered
-            original_value = self._get_original_file_cde_value(item_index, key)
-            original_gridfs_file_id = self._preserve_file(item_index, key, original_value)
-            if original_gridfs_file_id is not None:
-                self.unchanged_file_ids.add(original_gridfs_file_id)
+    cdes = find_cdes(nested_data, form_model.name, section_model.code,
+                     cde_model.code, sectionp=sectionp,
+                     multisection=multisection_index is not None)
+    for cde in cdes:
+        return cde["value"]
+    return None
 
 
-        logger.debug("****************** END UPDATE MULTISECTION FILE CDES ****************************")
+def update_multisection_file_cdes(gridfs_filestore, registry_code,
+                                  multisection_code, form_section_items,
+                                  form_model, existing_nested_data, index_map):
 
-    def _get_existing_multisection_items(self):
-        for form_dict in self.existing_nested_data["forms"]:
-            if form_dict["name"] == self.form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == self.multisection_code:
-                        if section_dict["allow_multiple"]:
-                            # a list of cde dict lists ( code value dicts)
-                            return section_dict['cdes']
+    logger.debug("****************** START UPDATE MULTISECTION FILE CDES ****************************")
+    logger.debug("updating any gridfs files in multisection %s" % multisection_code)
 
-        raise KeyValueMissing()
+    updates = []
+
+    for item_index, section_item_dict in enumerate(form_section_items):
+        logger.debug("checking new saved section %s" % item_index)
+
+        for key, value in section_item_dict.items():
+            cde_code = get_code(key)
+            if is_file_cde(cde_code):
+                existing_value = get_mongo_value(registry_code, existing_nested_data, key,
+                                                 multisection_index=item_index)
+                if is_multiple_file_cde(cde_code):
+                    new_val = DynamicDataWrapper.handle_file_uploads(gridfs_filestore, registry_code, key, value, existing_value)
+                else:
+                    new_val = DynamicDataWrapper.handle_file_upload(gridfs_filestore, registry_code, key, value, existing_value)
+                updates.append((item_index, key, new_val))
+
+    for index, key, value in updates:
+        form_section_items[index][key] = value
+
+    logger.debug("****************** END UPDATE MULTISECTION FILE CDES ****************************")
+    return form_section_items
 
 
 class FormDataParser(object):
+    """
+    This class takes a bag of values with keys like:
+      form_name____section_code____cde_code
+    and converts them into a nested document suitable for storing in
+    the mongodb.
+
+    The nested document is accessed by the `nested_data` property.
+
+    I think this class should be converted into a single function
+    (with nested functions) because it's used like a function not like
+    an object.
+    """
     def __init__(self,
                  registry_model,
                  form_model,
                  form_data,
                  existing_record=None,
                  is_multisection=False,
-                 parse_all_forms=False):
+                 parse_all_forms=False,
+                 django_instance=None):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
         self.parsed_multisections = {}
         self.global_timestamp = None
         self.form_timestamps = {}
-        self.django_id = None
-        self.django_model = None
         self.mongo_id = None
         self.existing_record = existing_record
         self.is_multisection = is_multisection
@@ -293,15 +161,18 @@ class FormDataParser(object):
         self.address_data = None
         self.parse_all_forms = parse_all_forms
 
+        if django_instance:
+            self.django_id = django_instance.pk
+            self.django_model = django_instance.__class__.__name__
+        else:
+            self.django_id = None
+            self.django_model = None
+
     def update_timestamps(self, form_model):
-        t = datetime.now()
+        t = datetime.datetime.now()
         form_timestamp = form_model.name + "_timestamp"
         self.global_timestamp = t
         self.form_timestamps[form_timestamp] = t
-
-    def set_django_instance(self, instance):
-        self.django_id = instance.pk
-        self.django_model = instance.__class__.__name__
 
     @property
     def nested_data(self):
@@ -419,15 +290,17 @@ class FormDataParser(object):
         self.parsed_multisections[(the_form_model, the_section_model)] = items
 
     def _parse_value(self, value):
-        logger.debug("parsing form value: %s" % value)
         if isinstance(value, FileUpload):
             logger.debug("FileUpload wrapper - returning the gridfs dict!")
             return value.mongo_data
         elif isinstance(value, InMemoryUploadedFile):
             logger.debug("InMemoryUploadedFile returning None")
             return None
+        elif isinstance(value, list):
+            # list of files -- parse each one
+            return [self._parse_value(v) for v in value]
         else:
-            logger.debug("returning the bare value")
+            # return the bare value
             return value
 
     def _parse(self):
@@ -511,7 +384,7 @@ class DynamicDataWrapper(object):
     def __init__(
             self,
             obj,
-            filestore_class=gridfs.GridFS,
+            filestore_class=None,
             rdrf_context_id=None):
         # When set to True by integration tests, uses testing mongo database
         self.testing = False
@@ -519,8 +392,8 @@ class DynamicDataWrapper(object):
         self.django_id = obj.pk
         self.django_model = obj.__class__
         # We inject these to allow unit testing
-        self.client = None
-        self.file_store_class = filestore_class
+        self._client = None
+        self.filestore_class = filestore_class
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
         self.rdrf_context_id = rdrf_context_id
@@ -528,14 +401,18 @@ class DynamicDataWrapper(object):
         # holds reference to the complete data record for this object
         self.patient_record = None
 
-    def _set_client(self):
-        if self.client is None:
-            self.client = construct_mongo_client()
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = construct_mongo_client()
+        return self._client
 
-
+    @client.setter
+    def client(self, c):
+        self._client = c
 
     def __unicode__(self):
-        return "Dynamic Data Wrapper for %s id=%s" % self.obj.__class__.__name__, self.obj.pk
+        return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
     def _get_record_query(self, filter_by_context=True):
         django_model = self.obj.__class__.__name__
@@ -548,27 +425,23 @@ class DynamicDataWrapper(object):
             return {"django_model": django_model,
                     "django_id": django_id}
 
-    def _get_collection(self, registry, collection_name, add_mongo_prefix=True):
-        if not self.testing:
-            if add_mongo_prefix:
-                db_name = mongo_db_name(registry)
-            else:
-                db_name = registry
-            db = self.client[db_name]
-        else:
-            db = self.client["testing_" + registry]
+    def get_db(self, registry_code):
+        db_name = mongo_db_name(registry_code, testing=self.testing)
+        return self.client[db_name]
 
-        collection = db[collection_name]
-        return collection
+    def _get_collection(self, registry, collection_name):
+        return self.get_db(registry)[collection_name]
 
     def get_filestore(self, registry):
-        self._set_client()
-        if not self.testing:
-            db = self.client[mongo_db_name(registry)]
-        else:
-            db = self.client["testing_" + registry]
+        db = self.get_db(registry)
 
-        return self.file_store_class(db, collection=registry + ".files")
+        if self.filestore_class is None:
+            import gridfs
+            cls = gridfs.GridFS
+        else:
+            cls = self.filestore_class
+
+        return cls(db, collection=registry + ".files")
 
     def has_data(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes")
@@ -581,7 +454,6 @@ class DynamicDataWrapper(object):
         :param flattened: use flattened to get data in a form suitable for the view
         :return: a dictionary of nested or flattened data for this instance
         """
-        self._set_client()
         record_query = self._get_record_query()
         collection = self._get_collection(registry, collection_name)
         nested_data = collection.find_one(record_query)
@@ -634,7 +506,7 @@ class DynamicDataWrapper(object):
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
         def fmt(snapshot):
             return {
-                "timestamp": datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
+                "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
                 "value": self._find_cde_val(snapshot["record"], registry_code,
                                                      form_name, section_code,
                                                      cde_code),
@@ -654,7 +526,6 @@ class DynamicDataWrapper(object):
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
-        self._set_client()
         logger.debug("registry model = %s" % registry_model)
         if not registry_model.has_feature("contexts"):
             raise Exception("Registry %s does not support use of contexts" % registry_model.code)
@@ -700,7 +571,7 @@ class DynamicDataWrapper(object):
             data[registry_model.code] = registry_data
 
         for registry_code in data:
-            self._wrap_gridfs_files_from_mongo(registry_model, data[registry_code])
+            wrap_gridfs_data_for_form(registry_model, data[registry_code])
         logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
@@ -709,7 +580,6 @@ class DynamicDataWrapper(object):
         return reg_codes
 
     def save_registry_specific_data(self, data):
-        self._set_client()
         logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
             registry_data = data[reg_code]
@@ -726,331 +596,64 @@ class DynamicDataWrapper(object):
                 record.update(registry_data)
                 collection.insert(record)
 
-    def _wrap_gridfs_files_from_mongo(self, registry, data):
-        """
-        :param data: Dynamic data loaded from Mongo
-        :return: --  nothing Munges the passed in dictionary to display FileUpload wrappers
-        """
-
-        if data is None:
-            return
-        if isinstance(data, unicode):
-            return
-
-        if isinstance(data, list):
-            for thing in data:
-                self._wrap_gridfs_files_from_mongo(registry, thing)
-            return
-
-        for key, value in data.items():
-            if isinstance(value, dict):
-                if "gridfs_file_id" in value:
-                    wrapper = FileUpload(registry, key, value)
-                    data[key] = wrapper
-
-            elif isinstance(value, list):
-                # section data
-                for section_dict in value:
-                    self._wrap_gridfs_files_from_mongo(registry, section_dict)
-
-    def _get_gridfs_filename(self, registry, data_record, cde_code, original_file_name):
-        return "%s****%s****%s****%s****%s" % (registry,
-                                               self.django_model,
-                                               self.django_id,
-                                               cde_code,
-                                               original_file_name)
-
-    def _store_file_in_gridfs(
-            self,
-            registry,
-            patient_record,
-            cde_code,
-            in_memory_file,
-            dynamic_data):
-        logger.debug("storing file in gridfs")
-        logger.debug("dynamic data supplied = %s" % dynamic_data)
-        fs = self.get_filestore(registry)
-        original_file_name = in_memory_file.name
-        logger.debug("original filename = %s" % original_file_name)
-
-        file_name = self._get_gridfs_filename(
-            registry, patient_record, cde_code, original_file_name)
-
-        logger.debug("gridfs filename = %s" % file_name)
-        gridfs_id = fs.put(in_memory_file.read(), filename=file_name)
-        logger.debug("gridfs_id = %s" % gridfs_id)
-        # _alter_ the dyamic data to store reference to gridfs + the original file name
-
-        grid_ref_dict = {"gridfs_file_id": gridfs_id, "file_name": in_memory_file.name}
-
-        logger.debug("grid_ref_dict = %s" % grid_ref_dict)
-
-        dynamic_data[cde_code] = grid_ref_dict
-        logger.debug(
-            "UPLOADED FILE %s = %s into registry %s as %s ( dict = %s )" %
-            (cde_code,
-             original_file_name,
-             registry,
-             gridfs_id,
-             dynamic_data[cde_code]))
-        return gridfs_id
-
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from models import Section
-        try:
-            Section.objects.get(code=code)
-            return True
-        except:
-            pass
-        return False
+        return Section.objects.filter(code=code).exists()
 
-    def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
-
-        fs = self.get_filestore(registry)
-
-        def get_mongo_value(registry_code, nested_data, delimited_key):
-            from rdrf.utils import models_from_mongo_key
-            from rdrf.models import Registry
-            registry_model = Registry.objects.get(code=registry_code)
-
-            form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
-
-            for form_dict in nested_data["forms"]:
-                if form_dict["name"] == form_model.name:
-                    for section_dict in form_dict["sections"]:
-                        if section_dict["code"] == section_model.code:
-                            if not section_dict["allow_multiple"]:
-                                for cde_dict in section_dict['cdes']:
-                                    if cde_dict["code"] == cde_model.code:
-                                        return cde_dict["value"]
-            raise KeyValueMissing()
-
-        logger.debug("_update_files_in_gridfs: existing record = %s new_data = %s" % (existing_record, new_data))
-
-        for key, value in new_data.items():
-
-            if is_file_cde(get_code(key)):
-                logger.debug("updating file reference for cde %s" % key)
-                delete_existing = True
-                logger.debug("uploaded file value: %s" % value)
-
-                if value is False:
-                    logger.debug("User cleared %s - file will be deleted" % key)
-                    # Django uses a "clear" checkbox value of False to indicate file should be removed
-                    # we need to delete the file but not here
-                    continue
-
-                if value is None:
-                    logger.debug(
-                        "User did not change file %s - existing_record will not be updated" % key)
-                    logger.debug("existing_record = %s\nnew_data = %s" %
-                                 (existing_record, new_data))
-                    delete_existing = False
-
-                try:
-                    existing_value = get_mongo_value(registry, existing_record, key)
-                    in_mongo = True
-                except KeyValueMissing, err:
-                    in_mongo = False
-                    existing_value = None
-
-                if in_mongo:
-                    logger.debug("key %s in existing record - value is file wrapper" % key)
-                    file_wrapper = existing_value
-                    logger.debug("file_wrapper = %s" % file_wrapper)
-                else:
-                    file_wrapper = None
-                    logger.debug("key %s is not in existing record - setting file_wrapper to None" % key)
-
-                if isinstance(file_wrapper, InMemoryUploadedFile):
-                    logger.debug("file_wrapper is an InMemoryUploadedFile -setting to None?")
-                    file_wrapper = None
-
-                logger.debug("File wrapper = %s" % file_wrapper)
-
-                if not file_wrapper:
-                    logger.debug("file_wrapper None so checking incoming value from form")
-                    if value is not None:
-                        logger.debug("new value is not None: %s" % value)
-                        logger.debug("storing file for cde %s value = %s" % (key, value))
-                        self._store_file_in_gridfs(
-                            registry, existing_record, key, value, new_data)
-                    else:
-                        logger.debug("incoming value is None so no update")
-                else:
-                    logger.debug("existing value is a file wrapper: %s" % file_wrapper)
-                    if isinstance(file_wrapper, FileUpload):
-                        gridfs_file_dict = file_wrapper.gridfs_dict
-                    elif isinstance(file_wrapper, dict):
-                        if "gridfs_file_id" in file_wrapper:
-                            gridfs_file_dict = file_wrapper
-                    logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
-
-                    if gridfs_file_dict is None:
-                        if value is not None:
-                            logger.debug("storing file with value %s in gridfs" % value)
-                            self._store_file_in_gridfs(
-                                registry, existing_record, key, value, new_data)
-                    else:
-                        logger.debug("checking file id on existing gridfs dict")
-                        gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
-                        logger.debug("existing file id = %s" % gridfs_file_id)
-                        if delete_existing:
-                            logger.debug("delete_existing is True so trying to delete the file originally stored")
-                            logger.debug(
-                                "updated value is not None so we delete existing upload and update:")
-                            if fs.exists(gridfs_file_id):
-                                fs.delete(gridfs_file_id)
-                                logger.debug("deleted existing file with id %s" %
-                                             gridfs_file_id)
-                            else:
-                                logger.debug(
-                                    "file id %s in existing_record didn't exist?" %
-                                    gridfs_file_id)
-                            if value is not None:
-                                logger.debug("updating %s -> %s" % (key, value))
-                                logger.debug("storing updated file data in gridfs")
-                                self._store_file_in_gridfs(
-                                    registry, existing_record, key, value, new_data)
-                        else:
-                            # don't change anything on update ...
-                            logger.debug("delete_existing is False - just replacing the gridfs_file_dict")
-                            new_data[key] = gridfs_file_dict
-                            logger.debug("new_data[%s]  is now %s" % (key, gridfs_file_dict))
-
-            elif self._is_section_code(key):
-
-                new_section_items = value
-                if self.current_form_model:
-                    form_model = self.current_form_model
-                else:
-                    #todo fix this
-                    form_model = None
-
-                if form_model is None:
-                    return
-
-                multisection_gridfs_handler = MultisectionGridFSFileHandler(fs,
-                                                                            registry,
-                                                                            form_model,
-                                                                            key,
-                                                                            new_section_items,
-                                                                            existing_record,
-                                                                            index_map)
-
-                multisection_gridfs_handler.update_multisection_file_cdes()
-
-    def _update_file_cde(self, section_index, key, value, existing_record):
-        logger.debug("updating file reference for cde %s" % key)
-        delete_existing = True
-        logger.debug("uploaded file value: %s" % value)
-
-        if value is False:
-            logger.debug("User cleared %s - file will be deleted" % key)
+    @staticmethod
+    def handle_file_upload(fs, registry_code, key, value, current_value):
+        if value is False and current_value:
             # Django uses a "clear" checkbox value of False to indicate file should be removed
             # we need to delete the file but not here
-            return
-
-        if value is None:
+            logger.debug("User cleared %s - file will be deleted" % key)
+            to_delete = current_value
+            value = None
+        elif value is None:
+            # No file upload means keep the current value
             logger.debug(
                 "User did not change file %s - existing_record will not be updated" % key)
-            logger.debug("existing_record = %s\nnew_data = %s" %
-                         (existing_record, new_data))
-            delete_existing = False
+            to_delete = None
+            value = current_value
+        elif is_uploaded_file(value):
+            # A file was uploaded.
+            # Store file and convert value into a file wrapper
+            to_delete = current_value
+            value = filestorage.store_file_by_key(registry_code, None, key, value)
 
-        try:
-            existing_value = get_mongo_value(registry, existing_record, key)
-            in_mongo = True
-        except KeyValueMissing, err:
-            in_mongo = False
-            existing_value = None
+        if to_delete:
+            filestorage.delete_file_wrapper(fs, to_delete)
 
-        if in_mongo:
-            logger.debug("key %s in existing record - value is file wrapper" % key)
-            file_wrapper = existing_value
-            logger.debug("file_wrapper = %s" % file_wrapper)
-        else:
-            file_wrapper = None
-            logger.debug("key %s is not in existing record - setting file_wrapper to None" % key)
+        return value
 
-        if isinstance(file_wrapper, InMemoryUploadedFile):
-            logger.debug("file_wrapper is an InMemoryUploadedFile -setting to None?")
-            file_wrapper = None
+    @classmethod
+    def handle_file_uploads(cls, fs, registry_code, key, value, current_value):
+        updated = [cls.handle_file_upload(fs, registry_code, key, val, cur) for
+                   val, cur in izip_longest(value, current_value or [])]
+        return filter(bool, updated)
 
-        logger.debug("File wrapper = %s" % file_wrapper)
+    def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
+        fs = self.get_filestore(registry)
 
-        if not file_wrapper:
-            logger.debug("file_wrapper None so checking incoming value from form")
-            if value is not None:
-                logger.debug("new value is not None: %s" % value)
-                logger.debug("storing file for cde %s value = %s" % (key, value))
-                self._store_file_in_gridfs(
-                    registry, existing_record, key, value, new_data)
-            else:
-                logger.debug("incoming value is None so no update")
-        else:
-            logger.debug("existing value is a file wrapper: %s" % file_wrapper)
-            if isinstance(file_wrapper, FileUpload):
-                gridfs_file_dict = file_wrapper.gridfs_dict
-            elif isinstance(file_wrapper, dict):
-                if "gridfs_file_id" in file_wrapper:
-                    gridfs_file_dict = file_wrapper
-            logger.debug("existing gridfs dict = %s" % gridfs_file_dict)
-
-            if gridfs_file_dict is None:
-                if value is not None:
-                    logger.debug("storing file with value %s in gridfs" % value)
-                    self._store_file_in_gridfs(
-                        registry, existing_record, key, value, new_data)
-            else:
-                logger.debug("checking file id on existing gridfs dict")
-                gridfs_file_id = gridfs_file_dict["gridfs_file_id"]
-                logger.debug("existing file id = %s" % gridfs_file_id)
-                if delete_existing:
-                    logger.debug("delete_existing is True so trying to delete the file originally stored")
-                    logger.debug(
-                        "updated value is not None so we delete existing upload and update:")
-                    if fs.exists(gridfs_file_id):
-                        fs.delete(gridfs_file_id)
-                        logger.debug("deleted existing file with id %s" %
-                                     gridfs_file_id)
-                    else:
-                        logger.debug(
-                            "file id %s in existing_record didn't exist?" %
-                            gridfs_file_id)
-                    if value is not None:
-                        logger.debug("updating %s -> %s" % (key, value))
-                        logger.debug("storing updated file data in gridfs")
-                        self._store_file_in_gridfs(
-                            registry, existing_record, key, value, new_data)
+        for key, value in new_data.items():
+            cde_code = get_code(key)
+            if is_file_cde(cde_code):
+                existing_value = get_mongo_value(registry, existing_record, key)
+                if is_multiple_file_cde(cde_code):
+                    new_data[key] = self.handle_file_uploads(fs, registry, key, value, existing_value)
                 else:
-                    # don't change anything on update ...
-                    logger.debug("delete_existing is False - just replacing the gridfs_file_dict")
-                    new_data[key] = gridfs_file_dict
-                    logger.debug("new_data[%s]  is now %s" % (key, gridfs_file_dict))
+                    new_data[key] = self.handle_file_upload(fs, registry, key, value, existing_value)
 
-
-    def _get_form_model_from_section_data(self, registry_code, multisection_cde_dict):
-        delimited_keys = [ key for key in multisection_cde_dict.keys() if is_delimited_key(key)]
-        if len(delimited_keys) > 0:
-            delimited_key = delimited_keys[0]
-            form_name = delimited_key.split("____")[0]
-            try:
-                from rdrf.models import RegistryForm
-                form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
-                return form_model
-            except RegistryForm.DoesNotExist:
-                return None
-
-        return None
-
+            elif (self._is_section_code(key) and self.current_form_model and
+                  index_map is not None):
+                new_data[key] = update_multisection_file_cdes(fs, registry, key, value,
+                                                              self.current_form_model,
+                                                              existing_record, index_map)
 
     def update_dynamic_data(self, registry_model, mongo_record):
         logger.info("About to update %s in %s with new mongo_record %s" % (self.obj,
                                                                            registry_model,
                                                                            mongo_record))
-        self._set_client()
         # replace entire mongo record with supplied one
         # assumes structure correct ..
         collection = self._get_collection(registry_model.code, "cdes")
@@ -1066,7 +669,6 @@ class DynamicDataWrapper(object):
             logger.info("inserted ok")
 
     def delete_patient_record(self, registry_model, context_id):
-        self._set_client()
         self.rdrf_context_id = context_id
         logger.info("delete_patient_record called: patient %s registry %s context %s" % (self.obj,
                                                                 registry_model,
@@ -1081,7 +683,7 @@ class DynamicDataWrapper(object):
 
         collection = self._get_collection(registry_model.code, "cdes")
         logger.debug("collection = %s" % collection)
-        
+
         filter = {"django_id": self.obj.pk,
                  "django_model": 'Patient',
                  "context_id": context_id}
@@ -1092,76 +694,43 @@ class DynamicDataWrapper(object):
             logger.info("deleted OK..")
         except Exception, ex:
             logger.error("Error deleting record: %s" % ex)
-            
-        
-        
-        
-        
-
 
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None):
-        from rdrf.models import Registry
-        self._set_client()
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 
-        existing_record = self.load_dynamic_data(registry, collection_name, flattened=False)
+        record = self.load_dynamic_data(registry, collection_name, flattened=False)
 
-        form_data["timestamp"] = datetime.now()
+        form_data["timestamp"] = datetime.datetime.now()
 
         if self.current_form_model:
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
             form_data[form_timestamp_key] = form_data["timestamp"]
 
-        if existing_record:
-            logger.debug("saving dynamic data - updating existing")
-            mongo_id = existing_record['_id']
-            self._update_files_in_gridfs(existing_record, registry, form_data, index_map)
-            logger.debug("after update: %s" % form_data)
-
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
-                                              self.current_form_model,
-                                              form_data,
-                                              existing_record=existing_record,
-                                              is_multisection=multisection,
-                                              parse_all_forms=parse_all_forms)
-
-            form_data_parser.set_django_instance(self.obj)
-
-            if self.current_form_model:
-                form_data_parser.form_name = self.current_form_model
-
-            nested_data = form_data_parser.nested_data
-            logger.debug("nested data = %s" % nested_data)
-
-            collection.update({'_id': mongo_id}, {"$set": form_data_parser.nested_data}, upsert=False)
-        else:
+        if not record:
+            logger.debug("saving dynamic data - new record")
             record = self._get_record_query()
             record["forms"] = []
-            self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-            form_data_parser = FormDataParser(Registry.objects.get(code=registry),
-                                              self.current_form_model,
-                                              form_data,
-                                              existing_record=record,
-                                              is_multisection=multisection,
-                                              parse_all_forms=parse_all_forms)
+        self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-            form_data_parser.set_django_instance(self.obj)
+        nested_data = FormDataParser(Registry.objects.get(code=registry),
+                                     self.current_form_model,
+                                     form_data,
+                                     existing_record=record,
+                                     is_multisection=multisection,
+                                     parse_all_forms=parse_all_forms,
+                                     django_instance=self.obj).nested_data
 
-            if self.current_form_model:
-                form_data_parser.form_name = self.current_form_model
-
-            nested_data = form_data_parser.nested_data
-
-            logger.debug("nested data to insert = %s" % nested_data)
-
-            collection.insert(form_data_parser.nested_data)
+        if "_id" in record:
+            collection.update({'_id': record['_id']}, {"$set": nested_data})
+        else:
+            collection.insert(nested_data)
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:
-            timestamp = str(datetime.now())
+            timestamp = str(datetime.datetime.now())
             patient_id = record['django_id']
             history = self._get_collection(registry_code, "history")
             snapshot = {"django_id": patient_id,
@@ -1199,58 +768,26 @@ class DynamicDataWrapper(object):
         :param data: dictionary of CDE codes --> values
         :return:
         """
-        from datetime import date
-        from datetime import datetime
-
-        if isinstance(data, unicode):
-            return
-
         if isinstance(data, list):
             for x in data:
                 self._convert_date_to_datetime(x)
-
-        for k, value in data.items():
-            if isinstance(value, date):
-                data[k] = datetime(value.year, value.month, value.day)
-            elif isinstance(value, list):
-                # recurse on multisection data
-                for e in value:
-                    self._convert_date_to_datetime(e)
-
-    def _set_in_memory_uploaded_files_to_none(self, data):
-        logger.debug("setting uploaded files to None for data = %s" % data)
-        if not isinstance(data, dict):
-            # TODO find a better way! this test added to fix RDR-634
-            # The items in a multiple allowed select widget were being passed in here
-            # ( values in the list are not dicts so the recursive call failed below)
-            return
-        keys_to_change = []
-        for key, value in data.items():
-            if isinstance(value, InMemoryUploadedFile):
-                keys_to_change.append(key)
-                logger.debug("setting key %s InMemoryUploadedFile to None: " % key)
-            elif isinstance(value, list):
-                for item in value:
-                    self._set_in_memory_uploaded_files_to_none(item)
-        for key in keys_to_change:
-            data[key] = None
+        elif hasattr(data, "items"):
+            for k, value in data.items():
+                if isinstance(value, datetime.date):
+                    data[k] = datetime.datetime(value.year, value.month, value.day)
+                else:
+                    # recurse on multisection data
+                    self._convert_date_to_datetime(value)
 
     def delete_patient_data(self, registry_model, patient_model):
         cdes = self._get_collection(registry_model, "cdes")
         cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
 
     def get_cde(self, registry, section, cde_code):
-        if not self.testing:
-            db = self.client[mongo_db_name(registry)]
-        else:
-            db = self.client["testing_" + registry]
-
-        collection = db["cdes"]
+        collection = self._get_collection(registry, "cdes")
         cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
         cde_record = collection.find_one(self._get_record_query(), {cde_mongo_key: True})
-        cde_value = self._get_value_from_cde_record(cde_mongo_key, cde_record)
-
-        return cde_value
+        return cde_record.get(cde_mongo_key)
 
     def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
 
@@ -1275,19 +812,6 @@ class DynamicDataWrapper(object):
                     for cde_dict in section_dict["cdes"]:
                         yield form_dict, section_dict, cde_dict
 
-    def _get_value_from_cde_record(self, cde_mongo_key, cde_record):
-        try:
-            return cde_record[cde_mongo_key]
-        except KeyError:
-            return None
-
     def get_form_timestamp(self, registry_form):
-        if not self.testing:
-            db = self.client[mongo_db_name(registry_form.registry.code)]
-        else:
-            db = self.client["testing_" + registry_form.registry.code]
-
-        collection = db["cdes"]
-        form_timestamp = collection.find_one(self._get_record_query(), {"timestamp": True})
-
-        return form_timestamp
+        collection = self._get_collection(registry_form.registry.code, "cdes")
+        return collection.find_one(self._get_record_query(), {"timestamp": True})

@@ -4,10 +4,10 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -19,6 +19,7 @@ from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from questionnaires import PatientCreator, PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
+from . import filestorage
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
@@ -40,6 +41,7 @@ from registry.patients.admin_forms import PatientConsentFileForm
 from operator import itemgetter
 import json
 import os
+from collections import OrderedDict
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
@@ -296,7 +298,6 @@ class FormView(View):
             return HttpResponseRedirect("/")
 
         dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
-        dyn_patient._set_client()
 
         if self.testing:
             dyn_patient.testing = True
@@ -374,33 +375,14 @@ class FormView(View):
                     logger.debug("multisection formset is valid")
                     logger.debug("cleaned dynamic_data = %s" % dynamic_data)
 
-                    index_actions = []  # 101010 means the second item was deleted, first wass kept as was third etc
-                    to_remove = []
+                    to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
+                    index_map = make_index_map(to_remove, len(dynamic_data))
 
-                    for item_index, dd in enumerate(dynamic_data):
-                        if 'DELETE' in dd and dd['DELETE']:
-                            logger.debug("removed DELETED section item: %s" % dd)
-                            #dynamic_data.remove(dd)
-                            to_remove.append(dd)
-                            index_actions.append(0)
-                        else:
-                            index_actions.append(1)
+                    gone = [dynamic_data[i] for i in to_remove]
+                    for i in reversed(to_remove):
+                        del dynamic_data[i]
 
-                    for dd in to_remove:
-                        dynamic_data.remove(dd)
-
-                    index_map = make_index_map(index_actions)
-
-                    logger.debug("dynamic data after deletions: %s" % dynamic_data)
-
-                    section_dict = {}
-
-                    # section_dict[s] = wrap_gridfs_data_for_form
-                    #     self.registry.code, dynamic_data)
-
-                    section_dict[s] = dynamic_data
-
-                    #logger.debug("** after wrapping mutlisection for gridfs = %s" % section_dict)
+                    section_dict = { s: dynamic_data }
 
                     dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
                                                   index_map=index_map)
@@ -979,8 +961,7 @@ class QuestionnaireView(FormView):
                     data_map,
                     custom_consent_data,
                     consent_wrappers):
-                from django.utils.datastructures import SortedDict
-                section_map = SortedDict()
+                section_map = OrderedDict()
 
                 class SectionWrapper(object):
 
@@ -1166,25 +1147,25 @@ class QuestionnaireHandlingView(View):
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
                                                  context["qr_model"])
-        
+
 
         context.update(csrf(request))
-        
+
         return render_to_response(
             template_name,
             context,
             context_instance=RequestContext(request))
 
-                           
 
 
-   
+
+
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
         existing_patient_id = request.POST.get("existing_patient_id", None)
         qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
         form_data = request.POST.get("form_data")
-        
+
         if existing_patient_id is None:
             self._create_patient(registry_model,
                                  qr_model,
@@ -1206,11 +1187,11 @@ class QuestionnaireHandlingView(View):
                                  form_data):
         pass
 
-        
-    
-    
-        
-        
+
+
+
+
+
 
 class QuestionnaireResponseView(FormView):
     """
@@ -1237,7 +1218,7 @@ class QuestionnaireResponseView(FormView):
             model_class=QuestionnaireResponse)
 
         questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
-        
+
         self.registry_form = self.registry.questionnaire
         context = self._build_context(questionnaire_context=self._get_questionnaire_context())
         self._fix_centre_dropdown(context)
@@ -1252,7 +1233,7 @@ class QuestionnaireResponseView(FormView):
         context['working_groups'] = self._get_working_groups(request.user)
         context["on_approval"] = 'yes'
         context["show_print_button"] = False
-        
+
         context["questionnaire"] = Questionnaire(self.registry,
                                                  questionnaire_response_model)
 
@@ -1350,17 +1331,17 @@ class QuestionnaireResponseView(FormView):
 class FileUploadView(View):
 
     @login_required_method
-    def get(self, request, registry_code, gridfs_file_id):
-        from bson.objectid import ObjectId
+    def get(self, request, registry_code, file_id):
         import gridfs
         client = construct_mongo_client()
         db = client[mongo_db_name(registry_code)]
         fs = gridfs.GridFS(db, collection=registry_code + ".files")
-        obj_id = ObjectId(gridfs_file_id)
-        data = fs.get(obj_id)
-        filename = data.filename.split("****")[-1]
-        response = HttpResponse(data, content_type='application/octet-stream')
-        response['Content-disposition'] = "filename=%s" % filename
+        data, filename = filestorage.get_file(file_id, fs)
+        if data is not None:
+            response = FileResponse(data, content_type='application/octet-stream')
+            response['Content-disposition'] = "filename=%s" % filename
+        else:
+            response = HttpResponseNotFound()
         return response
 
 
