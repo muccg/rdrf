@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0022_auto_20160223_1344'),
+        ('rdrf', '0022_merge'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contextformgroup',
-            name='is_default',
-            field=models.BooleanField(default=False),
+            model_name='rdrfcontext',
+            name='context_form_group',
+            field=models.ForeignKey(blank=True, to='rdrf.ContextFormGroup', null=True),
         ),
     ]
