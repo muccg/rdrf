@@ -7,8 +7,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0020_emailnotification_disabled'),
-        ('rdrf', '0020_cdefile'),
+        ('rdrf', '0027_cdefile'),
+        ('rdrf', '0021_contextformgroup_contextformgroupitem'),
     ]
 
     operations = [

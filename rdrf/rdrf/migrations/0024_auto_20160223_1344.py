@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0021_rdrfcontext_context_form_group'),
+        ('rdrf', '0023_rdrfcontext_context_form_group'),
     ]
 
     operations = [

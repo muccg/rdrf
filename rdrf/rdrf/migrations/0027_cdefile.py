@@ -8,7 +8,7 @@ import rdrf.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0019_auto_20160531_1516'),
+        ('rdrf', '0026_auto_20160314_1127'),
     ]
 
     operations = [
