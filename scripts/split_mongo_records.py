@@ -34,6 +34,8 @@ class ScriptError(Exception):
 
 class FHRecordSplitter(object):
     def __init__(self, registry_model, mongo_db_name):
+        self.backup_data = {}
+        
         self.logger = None
         self.mongo_db_name = mongo_db_name
         self.registry_model = registry_model
@@ -64,7 +66,7 @@ class FHRecordSplitter(object):
         self.mongo_db = self.mongo_client[self.mongo_db_name]
         self.cdes_collection = self.mongo_db["cdes"]
 
-    def _sanity_check_record(self, record):
+    def _sanity_check_main_record(self, record):
         if record:
             form_names = [form["name"] for form in record["forms"]]
             assert "FollowUp" not in form_names, "FollowUp form should not be in a main record"
@@ -81,7 +83,9 @@ class FHRecordSplitter(object):
             assert context_model.context_form_group.name == "Main"
             assert context_model.context_form_group.registry.code == self.registry_model.code, "Context Form Group should linked to FH"
             
-            
+    def rollback(self):
+        pass
+    
     def _sanity_check_followup_record(self, record):
         num_forms = len(record["forms"])
         assert len(num_forms) == 1, "There should be one FollowUp form in the record"
@@ -113,18 +117,26 @@ class FHRecordSplitter(object):
             records = [ data for data in self.cdes_collection.find({"django_model": "Patient",
                                                       "django_id": patient_model.pk})]
 
+            
+
             if len(records) != 1:
                 self.logger.info("There are %s mongo records - skipping!" % len(records))
                 continue
 
             dynamic_data = records[0]
+
+            self.backup_data[patient_model.pk] = dynamic_data
             
             followup_form = None
             index = None
 
             if dynamic_data is not None:
                 self.logger.info("There is a mongo record for this patient")
-                
+                # Ensure that the existing context model is linked to the correct "Main" ( default) context form group
+                context_id = dynamic_data["context_id"]
+                self._link_main_context_form_group(context_id)
+
+                # Locate the existing FollowUp form data and extract
                 for i, form_dict in enumerate(dynamic_data["forms"]):
                     if form_dict["name"] == "FollowUp":
                         self.logger.info("There is a FollowUp form for this patient")
@@ -149,7 +161,8 @@ class FHRecordSplitter(object):
                     self.logger.error("could not delete old FollowUp form timestamp: %s" % ex)
                     self.logger.info("skipping this record ...")
                     continue
-                            
+
+                
                 try:
                     followup_mongo_record = self._create_additional_mongo_record(patient_model, followup_form, form_timestamp)
                     self.logger.info("created new Checkup mongo record ok")
@@ -174,7 +187,7 @@ class FHRecordSplitter(object):
                     self.cdes_collection.update({'_id': mongo_id}, {"$set": dynamic_data}, upsert=False)
                     self.logger.info("update successful")
                 except Exception, ex:
-                    logger.error("error updating the existing mongo record: %s" % ex)
+                    self.logger.error("error updating the existing mongo record: %s" % ex)
                     error = True
             
 
@@ -216,16 +229,17 @@ class FHRecordSplitter(object):
 
         return new_mongo_record
 
-    def _link_main_context_form_group(self, logger, existing_context_id):
+    def _link_main_context_form_group(self, existing_context_id):
 
         try:
             context_model = RDRFContext.objects.get(pk=existing_context_id)
         except RDRFContext.DoesNotExist:
-            self.logger.error("context_id %s has no django model" % existing_context_id)
-            return
+            raise ScriptError("error getting context model for linking to Main context form group")
 
         context_model.context_form_group = self.main_cfg
         context_model.save()
+        self.logger.info("Linked context %s to %s" % (context_model,
+                                                      context_model.context_form_group))
         
 if __name__=='__main__':
     import sys
@@ -234,14 +248,17 @@ if __name__=='__main__':
     try:
         rs = FHRecordSplitter(fh, db_name)
     except ScriptError, serr:
-        print "Transform will not be run because: %s" % serr
+        print "Error : %s" % serr
         sys.exit(1)
 
     print "Starting run..."
-    rs.run()
-
-    rs.perform_checks()
-    
+    try:
+        with transaction.atomic():
+            rs.run()
+    except Exception, ex:
+        print "Error running transforms: %s" % ex
+        print "Rolling back mongo..."
+        rs.rollback()
     print "Finished run"
     
     
