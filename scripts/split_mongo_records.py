@@ -64,11 +64,41 @@ class FHRecordSplitter(object):
         self.mongo_db = self.mongo_client[self.mongo_db_name]
         self.cdes_collection = self.mongo_db["cdes"]
 
+    def _sanity_check_record(self, record):
+        if record:
+            form_names = [form["name"] for form in record["forms"]]
+            assert "FollowUp" not in form_names, "FollowUp form should not be in a main record"
+            assert "FollowUp_timestamp" not in record, "FollowU_timestamp should not be in a main record"
+            assert "context_id" in record, "Main record should have a context_id"
+            try:
+                context_model = RDRFContext.objects.get(id=record["context_id"])
+            except RDRFContext.DoesNotExist:
+                raise ScriptError("mentioned context does not exist in record %s" % record)
 
-    def perform_checks(self):
-        for record in self.cdes_collection.find({"django_model": "Patient"}):
+            assert context_model.object_id == record["django_id"], "Linked context not correct patient"
+
+            assert context_model.context_form_group is not None, "Main context should be linked to the Main Context form group"
+            assert context_model.context_form_group.name == "Main"
+            assert context_model.context_form_group.registry.code == self.registry_model.code, "Context Form Group should linked to FH"
             
-        
+            
+    def _sanity_check_followup_record(self, record):
+        num_forms = len(record["forms"])
+        assert len(num_forms) == 1, "There should be one FollowUp form in the record"
+        form = record["forms"][0]
+        assert form["name"] == "FollowUp", "The single form in a CheckUp context should be called FollowUp"
+        assert "FollowUp_timestamp" in record
+        assert "context_id" in record, "Record should have a context_id"
+        try:
+            context_model = RDRFContext.objects.get(id=record["context_id"])
+        except RDRFContext.DoesNotExist:
+            raise ScriptError("Linked context id does  not exist for record %s" % record)
+
+        assert context_model.object_id == record["django_id"], "Linked context not correct patient"
+        assert context_model.context_form_group is not None, "A CheckUp context must be linked to a context form group"
+        cfg = context_model.context_form_group
+        assert cfg.name == "CheckUp", "The linked context form group of a FollowUp form should be called CheckUp"
+
         
     def run(self):
         for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
@@ -140,6 +170,7 @@ class FHRecordSplitter(object):
                     
             
                 try:
+                    self._sanity_check_record(dynamic_data)
                     self.cdes_collection.update({'_id': mongo_id}, {"$set": dynamic_data}, upsert=False)
                     self.logger.info("update successful")
                 except Exception, ex:
@@ -149,6 +180,7 @@ class FHRecordSplitter(object):
 
                 #insert new record for the new context
                 try:
+                    self._sanity_check_followup_record(followup_mongo_record)
                     self.cdes_collection.insert(followup_mongo_record)
                     self.logger.info("new CheckUp context created OK")
                 except Exception, ex:
@@ -160,6 +192,10 @@ class FHRecordSplitter(object):
                     self.logger.info("finished - this patient had errors")
                 else:
                     self.logger.info("finished - successfully processed")
+
+            else:
+                self.logger.info("followUp form not found in mongo record")
+                
                     
 
                 
