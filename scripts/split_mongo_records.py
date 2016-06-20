@@ -193,9 +193,9 @@ class FHRecordSplitter(object):
                 self.logger.info("created new Checkup mongo record ok, inserting ...")
                 #insert new record for the new context
                 self._sanity_check_followup_record(followup_mongo_record)
-                result = self.cdes_collection.insert(followup_mongo_record)
-                self.logger.info("inserted new Checkup record with id %s OK" % result.inserted_id)
-                self.checkup_records.append(result.inserted_id)
+                inserted_id = self.cdes_collection.insert(followup_mongo_record)
+                self.logger.info("inserted new Checkup record with id %s OK" % inserted_id)
+                self.checkup_records.append(inserted_id)
 
                 self.logger.info("Mongo data updated successfully")
                     
