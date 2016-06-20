@@ -1,11 +1,13 @@
 import django
 django.setup()
 
-
 from rdrf.models import ContextFormGroup
 from rdrf.models import RDRFContext
 from rdrf.models import Registry
 from rdrf.mongo_client import construct_mongo_client
+
+from django.db import transaction
+
 
 
 
@@ -35,6 +37,8 @@ class ScriptError(Exception):
 class FHRecordSplitter(object):
     def __init__(self, registry_model, mongo_db_name):
         self.backup_data = {}
+        self.checkup_record_ids = []
+        
         
         self.logger = None
         self.mongo_db_name = mongo_db_name
@@ -84,11 +88,30 @@ class FHRecordSplitter(object):
             assert context_model.context_form_group.registry.code == self.registry_model.code, "Context Form Group should linked to FH"
             
     def rollback(self):
-        pass
+        """
+        We can't really rollback but we can revert back to the original mongo record and delete any FollowUp form contexts that were inserted
+
+        """
+        for patient_id, original_mongo_record in self.backup_data.items():
+            print "rolling back mongo data for patient id %s" % patient_id
+            mongo_id = mongo_record["_id"]
+            
+            try:
+                self.cdes_collection.update({'_id': mongo_id}, {"$set": original_mongo_record}, upsert=False)
+            except Exception, ex:
+                print "Error rolling back patient id %s: %s" % (patient_id, ex)
+
+        for mongo_id in self.checkup_records:
+            try:
+                self.cdes_collection.remove({"_id": mongo_id})
+                print "Removed checkup record with _id %s" % mongo_id
+            except Exception, ex:
+                print "could remove mongo record with _id %s" % mongo_id
+                
     
     def _sanity_check_followup_record(self, record):
         num_forms = len(record["forms"])
-        assert len(num_forms) == 1, "There should be one FollowUp form in the record"
+        assert num_forms == 1, "There should be one FollowUp form in the record"
         form = record["forms"][0]
         assert form["name"] == "FollowUp", "The single form in a CheckUp context should be called FollowUp"
         assert "FollowUp_timestamp" in record
@@ -183,7 +206,7 @@ class FHRecordSplitter(object):
                     
             
                 try:
-                    self._sanity_check_record(dynamic_data)
+                    self._sanity_check_main_record(dynamic_data)
                     self.cdes_collection.update({'_id': mongo_id}, {"$set": dynamic_data}, upsert=False)
                     self.logger.info("update successful")
                 except Exception, ex:
@@ -194,8 +217,10 @@ class FHRecordSplitter(object):
                 #insert new record for the new context
                 try:
                     self._sanity_check_followup_record(followup_mongo_record)
-                    self.cdes_collection.insert(followup_mongo_record)
+                    result = self.cdes_collection.insert(followup_mongo_record)
                     self.logger.info("new CheckUp context created OK")
+                    self.checkup_records.append(result.inserted_id)
+                    
                 except Exception, ex:
                     error = True
                     self.logger.error("failed to insert new followup form context: %s" % ex)
@@ -208,12 +233,6 @@ class FHRecordSplitter(object):
 
             else:
                 self.logger.info("followUp form not found in mongo record")
-                
-                    
-
-                
-                
-                
 
     def _create_additional_mongo_record(self, patient_model, followup_form, form_timestamp):
         content_type = ContentType.objects.get_for_model(patient_model)
@@ -240,6 +259,7 @@ class FHRecordSplitter(object):
         context_model.save()
         self.logger.info("Linked context %s to %s" % (context_model,
                                                       context_model.context_form_group))
+
         
 if __name__=='__main__':
     import sys
@@ -257,9 +277,16 @@ if __name__=='__main__':
             rs.run()
     except Exception, ex:
         print "Error running transforms: %s" % ex
-        print "Rolling back mongo..."
-        rs.rollback()
+        try:
+            rs.rollback()
+            sys.exit(1)
+            
+        except Exception, ex:
+            print "Oh shit could not rollback mongo: %s" % ex
+            sys.exit(1)
+            
     print "Finished run"
+    sys.exit(0)
     
     
         
