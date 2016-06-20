@@ -8,9 +8,6 @@ from rdrf.mongo_client import construct_mongo_client
 
 from django.db import transaction
 
-
-
-
 from registry.patients.models import Patient
 from django.contrib.contenttypes.models import ContentType 
 
@@ -92,6 +89,7 @@ class FHRecordSplitter(object):
         We can't really rollback but we can revert back to the original mongo record and delete any FollowUp form contexts that were inserted
 
         """
+        print "rolling back!"
         for patient_id, original_mongo_record in self.backup_data.items():
             print "rolling back mongo data for patient id %s" % patient_id
             mongo_id = mongo_record["_id"]
@@ -103,10 +101,12 @@ class FHRecordSplitter(object):
 
         for mongo_id in self.checkup_records:
             try:
-                self.cdes_collection.remove({"_id": mongo_id})
+                self.cdes_collection.delete_one({"_id": mongo_id})
                 print "Removed checkup record with _id %s" % mongo_id
             except Exception, ex:
                 print "could remove mongo record with _id %s" % mongo_id
+
+        print "rollback complete"
                 
     
     def _sanity_check_followup_record(self, record):
@@ -122,9 +122,9 @@ class FHRecordSplitter(object):
             raise ScriptError("Linked context id does  not exist for record %s" % record)
 
         assert context_model.object_id == record["django_id"], "Linked context not correct patient"
-        assert context_model.context_form_group is not None, "A CheckUp context must be linked to a context form group"
+        assert context_model.context_form_group is not None, "A Checkup context must be linked to a context form group"
         cfg = context_model.context_form_group
-        assert cfg.name == "CheckUp", "The linked context form group of a FollowUp form should be called CheckUp"
+        assert cfg.name == "Checkup", "The linked context form group of a FollowUp form should be called Checkup"
 
         
     def run(self):
@@ -157,7 +157,9 @@ class FHRecordSplitter(object):
                 self.logger.info("There is a mongo record for this patient")
                 # Ensure that the existing context model is linked to the correct "Main" ( default) context form group
                 context_id = dynamic_data["context_id"]
+                self.logger.info("About to link context to Main context form group")
                 self._link_main_context_form_group(context_id)
+                self.logger.info("Linked OK")
 
                 # Locate the existing FollowUp form data and extract
                 for i, form_dict in enumerate(dynamic_data["forms"]):
@@ -167,72 +169,38 @@ class FHRecordSplitter(object):
                         index = i
 
             if followup_form is not None:
+                self.logger.info("Updating the Main context record ...")
                 form_timestamp = dynamic_data.get("FollowUp_timestamp", None)
                 self.logger.info("FollowUp form timestamp = %s" % form_timestamp)
-                try:
-                    del dynamic_data["forms"][index]
-                except Exception, ex:
-                    self.logger.error("could not delete old FollowUp form from record: %s" % ex)
-                    self.logger.info("skipping this record ...")
-                    continue
-                
-                self.logger.info("deleted old FollowUp form data from original record")
-                try:
-                    del dynamic_data["FollowUp_timestamp"]
-                    self.logger.info("deleted old FollowUp timestamp")
-                except Exception, ex:
-                    self.logger.error("could not delete old FollowUp form timestamp: %s" % ex)
-                    self.logger.info("skipping this record ...")
-                    continue
 
-                
-                try:
-                    followup_mongo_record = self._create_additional_mongo_record(patient_model, followup_form, form_timestamp)
-                    self.logger.info("created new Checkup mongo record ok")
-                except Exception, ex:
-                    self.logger.error("could not create new Checkup mongo record: %s" % ex)
-                    self.logger.info("skipping this patient")
-                    continue
-                
+                del dynamic_data["forms"][index]
+                self.logger.info("deleted old FollowUp form data from original record")
+
+                del dynamic_data["FollowUp_timestamp"]
+                self.logger.info("deleted old FollowUp timestamp")
+
 
                 # update the existing record
-                try:
-                    mongo_id = dynamic_data["_id"]
-                    self.logger.info("existing mongo _id = %s" % mongo_id)
-                except Exception, ex:
-                    self.logger.error("could not find existing _id in record: %s" % ex)
-                    self.logger.info("skipping this patient")
-                    continue
-                    
-            
-                try:
-                    self._sanity_check_main_record(dynamic_data)
-                    self.cdes_collection.update({'_id': mongo_id}, {"$set": dynamic_data}, upsert=False)
-                    self.logger.info("update successful")
-                except Exception, ex:
-                    self.logger.error("error updating the existing mongo record: %s" % ex)
-                    error = True
-            
+                mongo_id = dynamic_data["_id"]
+                self.logger.info("existing mongo _id = %s" % mongo_id)
 
+                self._sanity_check_main_record(dynamic_data)
+                self.cdes_collection.update({'_id': mongo_id}, {"$set": dynamic_data}, upsert=False)
+                self.logger.info("update successful")
+
+                self.logger.info("Inserting Checkup record ...")
+                followup_mongo_record = self._create_additional_mongo_record(patient_model, followup_form, form_timestamp)
+                self.logger.info("created new Checkup mongo record ok, inserting ...")
                 #insert new record for the new context
-                try:
-                    self._sanity_check_followup_record(followup_mongo_record)
-                    result = self.cdes_collection.insert(followup_mongo_record)
-                    self.logger.info("new CheckUp context created OK")
-                    self.checkup_records.append(result.inserted_id)
-                    
-                except Exception, ex:
-                    error = True
-                    self.logger.error("failed to insert new followup form context: %s" % ex)
-                    
-                
-                if error:
-                    self.logger.info("finished - this patient had errors")
-                else:
-                    self.logger.info("finished - successfully processed")
+                self._sanity_check_followup_record(followup_mongo_record)
+                result = self.cdes_collection.insert(followup_mongo_record)
+                self.logger.info("inserted new Checkup record with id %s OK" % result.inserted_id)
+                self.checkup_records.append(result.inserted_id)
 
+                self.logger.info("Mongo data updated successfully")
+                    
             else:
-                self.logger.info("followUp form not found in mongo record")
+                self.logger.info("FollowUp form not found in mongo record - nothing to do")
 
     def _create_additional_mongo_record(self, patient_model, followup_form, form_timestamp):
         content_type = ContentType.objects.get_for_model(patient_model)
@@ -253,6 +221,7 @@ class FHRecordSplitter(object):
         try:
             context_model = RDRFContext.objects.get(pk=existing_context_id)
         except RDRFContext.DoesNotExist:
+            self.logger.error("can't find context model for context id %s" % existing_context_id)
             raise ScriptError("error getting context model for linking to Main context form group")
 
         context_model.context_form_group = self.main_cfg
