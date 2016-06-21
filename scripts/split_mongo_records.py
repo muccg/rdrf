@@ -12,6 +12,9 @@ from registry.patients.models import Patient
 from django.contrib.contenttypes.models import ContentType 
 
 
+from copy import deepcopy
+
+
 class Logger(object):
     def __init__(self, patient_model):
         self.patient_model = patient_model
@@ -154,7 +157,7 @@ class FHRecordSplitter(object):
 
             dynamic_data = records[0]
 
-            self.backup_data[patient_model.pk] = dynamic_data
+            self.backup_data[patient_model.pk] = deepcopy(dynamic_data)
             
             followup_form = None
             index = None
