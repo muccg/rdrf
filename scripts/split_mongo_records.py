@@ -90,6 +90,7 @@ class FHRecordSplitter(object):
 
         """
         print "rolling back!"
+        error = False
         for patient_id, original_mongo_record in self.backup_data.items():
             print "rolling back mongo data for patient id %s" % patient_id
             mongo_id = original_mongo_record["_id"]
@@ -98,15 +99,20 @@ class FHRecordSplitter(object):
                 self.cdes_collection.update({'_id': mongo_id}, {"$set": original_mongo_record}, upsert=False)
             except Exception, ex:
                 print "Error rolling back patient id %s: %s" % (patient_id, ex)
+                error = True
 
         for mongo_id in self.checkup_ids:
             try:
                 self.cdes_collection.delete_one({"_id": mongo_id})
                 print "Removed checkup record with _id %s" % mongo_id
             except Exception, ex:
-                print "could remove mongo record with _id %s" % mongo_id
+                print "could not remove mongo record with _id %s: %s" % (mongo_id, ex)
+                error = True
 
-        print "rollback complete"
+        if error:
+            print "rollback had error - failed"
+        else:
+            print "rollback completed successfully"
                 
     
     def _sanity_check_followup_record(self, record):
