@@ -207,6 +207,8 @@ class FHRecordSplitter(object):
                 self.checkup_ids.append(inserted_id)
 
                 self.logger.info("Mongo data updated successfully")
+                # simulate error
+                raise Exception("Boom!")
                     
             else:
                 self.logger.info("FollowUp form not found in mongo record - nothing to do")
