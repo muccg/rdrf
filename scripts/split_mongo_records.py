@@ -103,7 +103,7 @@ class FHRecordSplitter(object):
 
         for mongo_id in self.checkup_ids:
             try:
-                self.cdes_collection.delete_one({"_id": mongo_id})
+                self.cdes_collection.remove({"_id": mongo_id})
                 print "Removed checkup record with _id %s" % mongo_id
             except Exception, ex:
                 print "could not remove mongo record with _id %s: %s" % (mongo_id, ex)
