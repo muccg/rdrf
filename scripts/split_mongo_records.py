@@ -92,7 +92,7 @@ class FHRecordSplitter(object):
         print "rolling back!"
         for patient_id, original_mongo_record in self.backup_data.items():
             print "rolling back mongo data for patient id %s" % patient_id
-            mongo_id = mongo_record["_id"]
+            mongo_id = original_mongo_record["_id"]
             
             try:
                 self.cdes_collection.update({'_id': mongo_id}, {"$set": original_mongo_record}, upsert=False)
@@ -198,6 +198,8 @@ class FHRecordSplitter(object):
                 self.checkup_ids.append(inserted_id)
 
                 self.logger.info("Mongo data updated successfully")
+                # simulate error
+                raise Exception("something went wrong")
                     
             else:
                 self.logger.info("FollowUp form not found in mongo record - nothing to do")
