@@ -7,8 +7,12 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0021_contextformgroup_contextformgroupitem'),
+        ('rdrf', '0029_auto_20160604_2245'),
     ]
 
     operations = [
+        migrations.AlterUniqueTogether(
+            name='consentquestion',
+            unique_together=set([('section', 'code')]),
+        ),
     ]

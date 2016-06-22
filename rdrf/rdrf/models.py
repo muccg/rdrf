@@ -34,12 +34,18 @@ def new_style_questionnaire(registry):
     return False
 
 
+class SectionManager(models.Manager):
+    def get_by_natural_key(self, code):
+        return self.get(code=code)
+
+
 class Section(models.Model):
+    objects = SectionManager()
 
     """
     A group of fields that appear on a form as a unit
     """
-    code = models.CharField(max_length=100)
+    code = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=200)
     questionnaire_display_name = models.CharField(max_length=200, blank=True)
     elements = models.TextField()
@@ -48,6 +54,9 @@ class Section(models.Model):
     extra = models.IntegerField(
         blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
     questionnaire_help = models.TextField(blank=True)
+
+    def natural_key(self):
+        return (self.code, )
 
     def __unicode__(self):
         return self.code
@@ -80,18 +89,26 @@ class Section(models.Model):
         if errors:
             raise ValidationError(errors)
 
+
+class RegistryManager(models.Manager):
+    def get_by_natural_key(self, code):
+        return self.get(code=code)
+
+
 class RegistryType:
     NORMAL = 1                 # no exposed contexts - all forms stored in a default context
     HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
     HAS_CONTEXT_GROUPS = 3         #  registry has context form groups defined
         
+
 class Registry(models.Model):
+    objects = RegistryManager()
 
     class Meta:
         verbose_name_plural = "registries"
 
     name = models.CharField(max_length=80)
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=10, unique=True)
     desc = models.TextField()
     splash_screen = models.TextField()
     patient_splash_screen = models.TextField(blank=True, null=True)
@@ -103,6 +120,9 @@ class Registry(models.Model):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
     # a dictionary of configuration data -  GUI visibility
     metadata_json = models.TextField(blank=True)
+
+    def natural_key(self):
+        return (self.code, )
 
     @property
     def registry_type(self):
@@ -769,22 +789,24 @@ class CdePolicy(models.Model):
 
 
 class RegistryFormManager(models.Manager):
+    def get_by_natural_key(self, registry_code, name):
+        return self.get(registry__code=registry_code, name=name)
 
     def get_by_registry(self, registry):
         return self.model.objects.filter(registry__id__in=registry)
 
 
 class RegistryForm(models.Model):
-
     """
     A representation of a form ( a bunch of sections)
     """
+    objects = RegistryFormManager()
+
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
     header = models.TextField(blank=True)
     questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
-    objects = RegistryFormManager()
     is_questionnaire = models.BooleanField(
         default=False, help_text="Check if this form is questionnaire form for it's registry")
     is_questionnaire_login = models.BooleanField(
@@ -796,6 +818,20 @@ class RegistryForm(models.Model):
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
+
+    def natural_key(self):
+        return (self.registry.code, self.name)
+
+    def validate_unique(self, exclude=None):
+        models.Model.validate_unique(self, exclude)
+        if not ('registry__code' in exclude or 'name' in exclude):
+            if RegistryForm.objects.filter(registry__code=self.registry.code, name=self.name).exists():
+                raise ValidationError("RegistryForm with registry.code '%s' and name '%s' already exists"
+                        % (self.registry.code, self.name))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        models.Model.save(*args, **kwargs)
 
     @property
     def open(self):
@@ -1606,7 +1642,14 @@ class Notification(models.Model):
     seen = models.BooleanField(default=False)
 
 
+class ConsentSectionManager(models.Manager):
+    def get_by_natural_key(self, registry_code, code):
+        return self.get(registry__code=registry_code, code=code)
+
+
 class ConsentSection(models.Model):
+    objects = ConsentSectionManager()
+
     code = models.CharField(max_length=20)
     section_label = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, related_name="consent_sections")
@@ -1615,6 +1658,20 @@ class ConsentSection(models.Model):
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)
+
+    def natural_key(self):
+        return (self.registry.code, self.code)
+
+    def validate_unique(self, exclude=None):
+        models.Model.validate_unique(self, exclude)
+        if not ('registry__code' in exclude or 'code' in exclude):
+            if ConsentSection.objects.filter(registry__code=self.registry.code, code=self.code).exists():
+                raise ValidationError("ConsentSection with registry.code '%s' and code '%s' already exists"
+                        % (self.registry.code, self.code))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        models.Model.save(*args, **kwargs)
 
     def applicable_to(self, patient):
         if patient is None:
@@ -1705,13 +1762,26 @@ class ConsentSection(models.Model):
         return info
 
 
+class ConsentQuestionManager(models.Manager):
+    def get_by_natural_key(self, section_code, code):
+        return self.get(section__code=section_code, code=code)
+
+
 class ConsentQuestion(models.Model):
+    objects = ConsentQuestionManager()
+
     code = models.CharField(max_length=20)
     position = models.IntegerField(blank=True, null=True)
     section = models.ForeignKey(ConsentSection, related_name="questions")
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
     questionnaire_label = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('section', 'code')
+
+    def natural_key(self):
+        return (self.section.code, self.code)
 
     def create_field(self):
         from django.forms import BooleanField
