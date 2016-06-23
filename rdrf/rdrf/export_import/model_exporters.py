@@ -92,6 +92,9 @@ registry_catalogue.register(models.EmailNotification, ModelExporterFilteredByReg
 registry_catalogue.register(models.EmailNotificationHistory, EmailNotificationHistoryExporter)
 registry_catalogue.register(models.CdePolicy, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.Wizard, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.ContextFormGroup, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.ContextFormGroupItem, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(patientmodels.Patient, PatientExporter)
 registry_catalogue.register(patientmodels.ParentGuardian, ModelExporterFilteredByPatient)

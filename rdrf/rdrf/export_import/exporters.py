@@ -41,8 +41,6 @@ class DataGroupExporter(object, DelegateMixin):
         child_context = self.exporter_context.copy()
         child_context['workdir'] = self.workdir
 
-        # TODO there is some further abstraction in the similar looking 3
-        # parts below
         if len(self.datagroups) > 0:
             self.logger.debug("Exporting %d nested datagroups" % len(self.datagroups))
         for dg in self.datagroups:
@@ -74,7 +72,7 @@ class DataGroupExporter(object, DelegateMixin):
             models = self.collect_all_models(self)
             app_label = lambda m: m.split('.', 1)[0]
             apps = set(map(app_label, models))
-            app_versions = dict([(app, app_schema_version(app)) for app in apps])
+            app_versions = {app: app_schema_version(app) for app in apps}
 
         return OrderedDict(omit_empty((
             ('name', self.name),

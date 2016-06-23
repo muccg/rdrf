@@ -57,7 +57,7 @@ class ZipFileImporter(object):
 
     def extract_meta_info(self, meta_file):
         with open(meta_file) as f:
-            self.meta = json.loads(f.read())
+            self.meta = json.load(f)
 
     def create_importer(self, export_type, requested_import_type=None):
         self.file_export_type = definitions.EXPORT_TYPES.from_name(export_type)
@@ -197,6 +197,9 @@ class RegistryImporter(BaseImporter):
         #
         # with transaction.atomic():
         #    self.import_datagroups(self.registry_code, get_meta_value(self.meta, 'data_groups'))
+
+        # TODO implement fake transactions by keeping a record of mongo documents inserted
+        # and deleting them all on exception
         self.import_datagroups(get_meta_value(self.meta, 'data_groups'))
 
     def output_import_info(self):

@@ -8,6 +8,7 @@ from django.apps import apps
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.utils import mongo_db_name
 from .utils import file_checksum, maybe_indent
+from .exceptions import ImportError
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ def allow_if_forced(checkfn):
     def wrapper(self, *args, **kwargs):
         try:
             return checkfn(self, *args, **kwargs)
-        except Exception as exc:
+        except ImportError as exc:
             if self.force:
                 self.logger.warn('FORCED THROUGH, despite WARNING: %s', exc)
             else:
@@ -77,18 +78,18 @@ class ModelImporter(object):
     def check_checksum(self, file_name, expected_checksum):
         actual_checksum = file_checksum(file_name)
         if actual_checksum != expected_checksum:
-            raise Exception("Invalid checksum on file '%s'. Actual: '%s', expected: '%s'" % (file_name, actual_checksum, expected_checksum))
+            raise ImportError("Invalid checksum on file '%s'. Actual: '%s', expected: '%s'" % (file_name, actual_checksum, expected_checksum))
 
     @allow_if_forced
     def check_object_count(self, model_name, expected, actual):
         if actual != expected:
-            raise Exception("Invalid object_count for model '%s'. Actual: %d, expected: %d" % (model_name, actual, expected))
+            raise ImportError("Invalid object_count for model '%s'. Actual: %d, expected: %d" % (model_name, actual, expected))
 
     @allow_if_forced
     def check_no_data_in_table(self, model_name):
         model = apps.get_model(model_name)
         if model.objects.count() > 0:
-            raise Exception("Refusing to import over existing data for model '%s'." % model_name)
+            raise ImportError("Refusing to import over existing data for model '%s'." % model_name)
 
     def do_import(self, model_meta, workdir, logger=None, simulate=False, force=False, **kwargs):
         self.logger = logger
@@ -115,10 +116,10 @@ class ModelImporter(object):
                 self.child_logger.debug('Would import %d models', object_count)
                 return
 
-            i = -1
-            for i, model in enumerate(serializers.deserialize('json', f.read())):
+            actual_object_count = 0
+            for model in serializers.deserialize('json', f.read()):
                 model.save()
-            actual_object_count = i + 1
+                actual_object_count += 1
             self.check_object_count(model_name, object_count, actual_object_count)
             self.child_logger.debug('Imported %d models', actual_object_count)
 
@@ -127,7 +128,7 @@ class MongoCollectionImporter(object):
     @allow_if_forced
     def check_no_data_in_collection(self, collection):
         if collection.count() > 0:
-            raise Exception("Refusing to import over existing data for collection '%s'." % collection.name)
+            raise ImportError("Refusing to import over existing data for collection '%s'." % collection.name)
 
     def do_import(self, collection_meta, workdir, registry_code=None, logger=None, simulate=False, force=False, **kwargs):
         self.logger = logger
@@ -158,7 +159,7 @@ class MongoCollectionImporter(object):
 def get_meta_value(meta, key, path=None):
     if '.' not in key:
         if key not in meta:
-            raise Exception("Invalid META file. Required entry '%s' is missing."
+            raise ImportError("Invalid META file. Required entry '%s' is missing."
                     % (key if path is None else '.'.join((path, key))))
         return meta[key]
 
