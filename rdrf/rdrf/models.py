@@ -825,13 +825,15 @@ class RegistryForm(models.Model):
     def validate_unique(self, exclude=None):
         models.Model.validate_unique(self, exclude)
         if not ('registry__code' in exclude or 'name' in exclude):
-            if RegistryForm.objects.filter(registry__code=self.registry.code, name=self.name).exists():
+            if (RegistryForm.objects.filter(registry__code=self.registry.code, name=self.name)
+                                    .exclude(pk=self.pk)
+                                    .exists()):
                 raise ValidationError("RegistryForm with registry.code '%s' and name '%s' already exists"
                         % (self.registry.code, self.name))
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(*args, **kwargs)
+        models.Model.save(self, *args, **kwargs)
 
     @property
     def open(self):
@@ -1665,13 +1667,15 @@ class ConsentSection(models.Model):
     def validate_unique(self, exclude=None):
         models.Model.validate_unique(self, exclude)
         if not ('registry__code' in exclude or 'code' in exclude):
-            if ConsentSection.objects.filter(registry__code=self.registry.code, code=self.code).exists():
+            if (ConsentSection.objects.filter(registry__code=self.registry.code, code=self.code)
+                                      .exclude(pk=self.pk)
+                                      .exists()):
                 raise ValidationError("ConsentSection with registry.code '%s' and code '%s' already exists"
                         % (self.registry.code, self.code))
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(*args, **kwargs)
+        models.Model.save(self, *args, **kwargs)
 
     def applicable_to(self, patient):
         if patient is None:

@@ -1,0 +1,122 @@
+[
+  {
+    "pk": 1,
+    "model": "auth.group",
+    "fields": {
+      "name": "Working Group Curators",
+      "permissions": []
+    }
+  },
+  {
+    "pk": 2,
+    "model": "auth.group",
+    "fields": {
+      "name": "Genetic Staff",
+      "permissions": []
+    }
+  },
+  {
+    "pk": 3,
+    "model": "auth.group",
+    "fields": {
+      "name": "Clinical Staff",
+      "permissions": []
+    }
+  },
+  {
+    "pk": 1,
+    "model": "groups.customuser",
+    "fields": {
+      "username": "admin",
+      "first_name": "admin",
+      "last_name": "admin",
+      "title": "CHANGE ME",
+      "is_active": true,
+      "is_superuser": true,
+      "is_staff": true,
+      "registry": [],
+      "groups": [
+        [
+            "Working Group Curators"
+        ]
+      ],
+      "user_permissions": [],
+      "working_groups": [],
+      "password": "pbkdf2_sha256$12000$FwkyQKCbxdir$9fkUyyz++0EVwKaPI+1kA4SNbqws5F8dHm0wcUSJTsQ=",
+      "email": "admin@example.com",
+      "date_joined": "2010-08-18T16:28:19"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "groups.customuser",
+    "fields": {
+      "username": "curator",
+      "first_name": "curator",
+      "last_name": "curator",
+      "title": "CHANGE ME",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": true,
+      "registry": [],
+      "groups": [
+        [
+          "Working Group Curators"
+        ]
+      ],
+      "user_permissions": [],
+      "working_groups": [],
+      "password": "pbkdf2_sha256$12000$C6JMAG6tenCZ$qs7MG7j92MTFElesSFMK2DEihxaNk1K6bHwqyWYf0cs=",
+      "email": "curator@example.com",
+      "date_joined": "2010-08-18T16:32:32"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "groups.customuser",
+    "fields": {
+      "username": "genetic",
+      "first_name": "genetic",
+      "last_name": "genetic",
+      "title": "CHANGE ME",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": true,
+      "registry": [],
+      "groups": [
+        [
+            "Genetic Staff"
+        ]
+      ],
+      "user_permissions": [],
+      "working_groups": [],
+      "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e",
+      "email": "genetic@example.com",
+      "date_joined": "2010-08-18T16:33:13"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "groups.customuser",
+    "fields": {
+      "username": "clinical",
+      "first_name": "clinical",
+      "last_name": "clinical",
+      "title": "CHANGE ME",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": true,
+      "registry": [],
+      "groups": [
+        [
+            "Clinical Staff"
+        ]
+      ],
+      "user_permissions": [],
+      "working_groups": [],
+      "password": "sha1$fa8a1$e8c3db576ce04f995bcef694d0d6cc1db1d13305",
+      "email": "clinical@example.com",
+      "date_joined": "2010-08-18T16:33:38"
+    }
+  }
+]
