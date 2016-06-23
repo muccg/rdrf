@@ -40,12 +40,12 @@ def _registries_using_cde(cde_code):
             for section_code in form.get_sections():
                 try:
                     section = Section.objects.get(code=section_code)
+                    for cde_code_in_section in section.get_elements():
+                        if cde_code == cde_code_in_section:
+                            registries.add(r.code)
+
                 except Section.DoesNotExist:
                     pass
-
-                for cde_code_in_section in section.get_elements():
-                    if cde_code == cde_code_in_section:
-                        registries.add(r.code)
 
     return [code for code in registries]
 
@@ -490,8 +490,13 @@ class Importer(object):
 
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
-            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"])
-            
+
+            sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
+                    defaults={'sections': sections})
+            if not created:
+                f.sections = sections
+
             permission_code_name = "form_%s_is_readonly" % f.id
             permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
@@ -508,7 +513,6 @@ class Importer(object):
                 f.questionnaire_questions = frm_map["questionnaire_questions"]
 
             f.registry = r
-            f.sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
             if 'position' in frm_map:
                 f.position = frm_map['position']
             f.save()
@@ -711,9 +715,10 @@ class Importer(object):
                     information_text = ""
 
                 section_model, created = ConsentSection.objects.get_or_create(
-                    code=code, registry=registry)
+                    code=code, registry=registry, defaults={'section_label': section_label})
+                if not created:
+                    section_model.section_label = section_label
                 section_model.information_link = information_link
-                section_model.section_label = section_label
                 section_model.applicability_condition = section_dict["applicability_condition"]
                 if "validation_rule" in section_dict:
                     section_model.validation_rule = section_dict['validation_rule']

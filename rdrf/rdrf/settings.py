@@ -300,6 +300,9 @@ LOGGING = {
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
+        'simplest': {
+            'format': '%(message)s'
+        },
     },
     'filters': {
         'require_debug_false': {
@@ -310,16 +313,30 @@ LOGGING = {
         },
     },
     'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
         'console': {
             'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'console_simple': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simplest'
+        },
         'shell': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
+        },
+        'console_simple': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simplest'
         },
         'file': {
             'level': 'INFO',
@@ -365,6 +382,12 @@ LOGGING = {
         'rdrf.rdrf.management.commands': {
             'handlers': ['shell'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'rdrf.export_import': {
+            'handlers': ['console_simple'],
+            'formatter': 'simplest',
+            'level': 'INFO',
             'propagate': False,
         },
         'py.warnings': {
