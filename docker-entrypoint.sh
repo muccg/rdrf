@@ -115,9 +115,10 @@ env | grep -iv PASS | sort
 wait_for_services
 
 # prepare a tarball of build
-if [ "$1" = 'tarball' ]; then
-    echo "[Run] Preparing a tarball of build"
+if [ "$1" = 'releasetarball' ]; then
+    echo "[Run] Preparing a release tarball"
 
+    set -e
     cd /app
     rm -rf /app/*
     echo $GIT_TAG
@@ -126,8 +127,8 @@ if [ "$1" = 'tarball' ]; then
     git ls-remote ${PROJECT_SOURCE} ${GIT_TAG} > .version
 
     # install python deps
-    # Note: Environment vars are used to control the bahviour of pip (use local devpi for instance)
-    pip install ${PIP_OPTS} --upgrade -r rdrf/runtime-requirements.txt
+    # Note: Environment vars are used to control the behaviour of pip (use local devpi for instance)
+    pip install --upgrade -r rdrf/runtime-requirements.txt
     pip install -e rdrf
     set +x
 

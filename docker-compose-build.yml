@@ -1,0 +1,49 @@
+version: '2'
+services:
+
+  base:
+    build:
+      context: ./
+      dockerfile: Dockerfile-base
+    image: muccg/rdrf-base
+
+  build:
+    build:
+      context: ./
+      dockerfile: Dockerfile-build
+      args:
+        ARG_GIT_TAG: ${GIT_TAG}
+        http_proxy:
+    image: muccg/rdrf-build
+    command: releasetarball
+    network_mode: host
+    environment:
+        GIT_TAG:
+        PIP_INDEX_URL:
+        PIP_TRUSTED_HOST:
+        NO_PROXY:
+    volumes:
+      - ./build:/data
+
+  dev:
+    build:
+      context: ./
+      dockerfile: Dockerfile-dev
+      args:
+        ARG_PIP_INDEX_URL: ${PIP_INDEX_URL}
+        ARG_PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST}
+    image: muccg/rdrf-dev
+
+  prod:
+    build:
+      context: ./
+      dockerfile: Dockerfile-prod
+      args:
+        ARG_GIT_TAG: ${GIT_TAG}
+    image: muccg/rdrf:${GIT_TAG}
+
+  lint:
+    image: muccg/linter
+    working_dir: /data
+    volumes:
+        - ./:/data
