@@ -10,7 +10,7 @@ from . import model_exporters, datagroup_exporters, mongo_collection_exporters
 
 
 class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagroups', 'models', 'collections'])):
-    def __new__(cls, name, dirname, datagroups=tuple(), models=tuple(), collections=tuple()):
+    def __new__(cls, name, dirname, datagroups=(), models=(), collections=()):
         return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models, collections)
 
     @property
@@ -76,12 +76,14 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
         'rdrf.EmailTemplate',
         'rdrf.Wizard',
         'explorer.Query',
+        'rdrf.ContextFormGroup',
+        'rdrf.ContextFormGroupItem',
     ))
 
 
 class EXPORT_TYPES(object):
-    CDES = ExportType('cdes', 'Common Data Elements', tuple())
-    REFDATA = ExportType('refdata', 'Reference Data', tuple())
+    CDES = ExportType('cdes', 'Common Data Elements', ())
+    REFDATA = ExportType('refdata', 'Reference Data', ())
     REGISTRY_DEF = ExportType('registry_def', 'Registry Definition', (CDES, REFDATA))
     REGISTRY_WITH_DATA = ExportType('registry', 'Registry Definition and Data', ( CDES, REFDATA, REGISTRY_DEF))
 
@@ -96,14 +98,14 @@ class EXPORT_TYPES(object):
         for t in cls.all_types:
             if t.code == code:
                 return t
-        raise Exception("Invalid export type code '%s'" % code)
+        raise ValueError("Invalid export type code '%s'" % code)
 
     @classmethod
     def from_name(cls, name):
         for t in cls.all_types:
             if t.name == name:
                 return t
-        raise Exception("Invalid export type name '%s'" % name)
+        raise ValueError("Invalid export type name '%s'" % name)
 
 
 # TODO this is far from ideal and quite a bit naive
@@ -187,6 +189,7 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'rdrf.Notification',
                         'rdrf.EmailNotification',
                         'rdrf.EmailNotificationHistory',
+                        'rdrf.CDEFile',
                 )),
                 GroupDefinition(
                     name='MongoDB Data',
