@@ -53,8 +53,7 @@ docker_staging_lettuce() {
 # lint using flake8
 python_lint() {
     info "python lint"
-    pip install 'flake8>=2.0,<2.1'
-    flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
+    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count 
     success "python lint"
 }
 
@@ -62,12 +61,11 @@ python_lint() {
 # lint js, assumes closure compiler
 js_lint() {
     info "js lint"
-    pip install 'closure-linter==2.3.13'
     JSFILES=`ls rdrf/rdrf/static/js/*.js | grep -v "\.min\."`
     EXCLUDES='-x rdrf/rdrf/static/js/gallery.js,rdrf/rdrf/static/js/ie_select.js,rdrf/rdrf/static/js/jquery.bootgrid.js,rdrf/rdrf/static/js/nv.d3.js'
     for JS in $JSFILES
     do
-        gjslint ${EXCLUDES} --disable 0131 --max_line_length 100 --nojsdoc $JS
+        docker-compose -f docker-compose-build.yml run lint gjslint ${EXCLUDES} --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
     success "js lint"
 }
@@ -75,8 +73,8 @@ js_lint() {
 
 echo ''
 info "$0 $@"
-make_virtualenv
 docker_options
+git_tag
 
 case $ACTION in
 pythonlint)
