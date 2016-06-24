@@ -908,9 +908,19 @@ class ParentGuardian(models.Model):
         on_delete=models.SET_NULL)
 
 
+class AddressTypeManager(models.Manager):
+    def get_by_natural_key(self, type):
+        return self.get(type=type)
+
+
 class AddressType(models.Model):
-    type = models.CharField(max_length=100)
+    objects = AddressTypeManager()
+
+    type = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
+
+    def natural_key(self):
+        return (self.type,)
 
     def __unicode__(self):
         return "%s" % (self.type)
