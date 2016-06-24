@@ -189,27 +189,11 @@ class ExporterTestCase(RDRFTestCase):
         return values
 
 
-class ImporterTestCase(RDRFTestCase):
-
+class ImporterTestCase(TestCase):
     def _get_yaml_file(self):
         return os.path.join(os.path.dirname(__file__), 'fixtures', 'exported_fh_registry.yaml')
 
     def test_importer(self):
-        # first delete the FH registry
-        fh_reg = Registry.objects.get(code='fh')
-        fh_reg.delete()
-
-        # delete cdes
-        for cde in CommonDataElement.objects.all():
-            cde.delete()
-        # delete permissible value groups
-        for pvg in CDEPermittedValueGroup.objects.all():
-            pvg.delete()
-
-        # delete permissible values
-        for value in CDEPermittedValue.objects.all():
-            value.delete()
-
         importer = Importer()
         yaml_file = self._get_yaml_file()
 
@@ -284,10 +268,13 @@ class FormTestCase(RDRFTestCase):
         return section
 
     def create_form(self, name, sections, is_questionnnaire=False):
-        form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry)
+        sections = ",".join([section.code for section in sections])
+        form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
+                defaults={'sections': sections})
+        if not created:
+            form.sections = sections
         form.name = name
         form.registry = self.registry
-        form.sections = ",".join([section.code for section in sections])
         form.is_questionnaire = is_questionnnaire
         form.save()
         #self.working_group
