@@ -101,6 +101,7 @@ _http_proxy() {
 
     if [ ${SET_HTTP_PROXY} = "1" ]; then
         http_proxy="http://${DOCKER_ROUTE}:3128"
+        HTTP_PROXY="http://${DOCKER_ROUTE}:3128"
         NO_PROXY=${DOCKER_ROUTE}
         no_proxy=${DOCKER_ROUTE}
         success "Proxy $http_proxy"
@@ -108,7 +109,7 @@ _http_proxy() {
         info 'Not setting http_proxy'
     fi
 
-    export http_proxy NO_PROXY no_proxy
+    export HTTP_PROXY http_proxy NO_PROXY no_proxy
 
     success "HTTP proxy ${HTTP_PROXY}"
 }
