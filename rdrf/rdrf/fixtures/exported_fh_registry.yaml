@@ -330,7 +330,7 @@ forms:
     elements: [!!python/unicode 'CDE00024']
     extra: null
 - is_questionnaire: false
-  name: !!python/unicode 'Cascade Screening Form'
+  name: !!python/unicode 'CascadeScreeningForm'
   sections:
   - allow_multiple: false
     code: !!python/unicode 'SEC0009'
@@ -339,7 +339,7 @@ forms:
       !!python/unicode 'CDE00029', !!python/unicode 'CDE00030']
     extra: null
 - is_questionnaire: false
-  name: !!python/unicode 'Genetic Typing Form'
+  name: !!python/unicode 'GeneticTypingForm'
   sections:
   - allow_multiple: false
     code: !!python/unicode 'FHMutationOverview'
