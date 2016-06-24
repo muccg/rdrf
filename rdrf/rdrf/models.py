@@ -68,7 +68,7 @@ class Section(models.Model):
     def cde_models(self):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
-        cdes = dict((cde.code, cde) for cde in qs)
+        cdes = {cde.code: cde for cde in qs}
         return [cdes[code] for code in codes]
 
     def clean(self):
@@ -927,12 +927,10 @@ class RegistryForm(models.Model):
         if " " in self.name:
             msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
                     "Camel Case, instead."
-            raise ValidationError(msg)
+            raise ValidationError({'name': msg})
+
         if self.pk:
             self._check_completion_cdes()
-
-
-
 
 
 class Wizard(models.Model):
