@@ -42,10 +42,8 @@ Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, 
 For developers
 --------------
 
-We do our development using Docker_ containers.
-You will have to set up Docker on your development machine.
-
-Other development dependencies are Python 2 and virtualenv_.
+We do our Python 2 development using Docker_ containers and docker-compose_.
+You will have to set up Docker and docker-compose on your development machine.
 
 All the development tasks can be done by using the ``develop.sh`` shell script in this directory.
 Please run it without any arguments for help on its usage.
@@ -60,12 +58,8 @@ You can access the RDRF application on http://localhost:8000
 (replace localhost with ``$ boot2docker ip`` if using boot2docker) after this.
 You can login with one of the default users *admin/admin*.
 
-Note: Our docker containers are coordinated using docker-compose_ which will be installed into a virtualenv environment automatically by the ``./develop.sh`` script for you.
-
 .. _Docker: https://www.docker.com/
 .. _docker-compose: https://docs.docker.com/compose/
-.. _virtualenv: https://virtualenv.pypa.io/en/latest/
-.. _devdocs: https://rare-disease-registry-framework.readthedocs.io/en/latest/development.html
 
 Contributing
 ------------
