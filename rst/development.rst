@@ -16,9 +16,9 @@ After downloading the source and decompressing:
 
 1. cd in to the source directory
 2. issue the command: ./develop.sh dev_build
-2. issue the command: ./develop.sh dev
-3. open a web browser at localhost:8000 and login with the (dev only!) admin account (password admin)
-4. look at :ref:`How to create a registry <howtocreatearegistry>`
+3. issue the command: ./develop.sh dev
+4. open a web browser at localhost:8000 and login with the (dev only!) admin account (password admin)
+5. look at :ref:`How to create a registry <howtocreatearegistry>`
 
 Commands - Using develop.sh
 ===========================
