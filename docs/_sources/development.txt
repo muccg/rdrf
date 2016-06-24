@@ -5,25 +5,41 @@ Development Environment
 
 Setting up your development environment
 ---------------------------------------
+
+Prerequisites:
+
+1. Docker ( https://www.docker.com/ )
+2. docker-compose ( https://docs.docker.com/compose/ )
+3. Python 2.7
+
 After downloading the source and decompressing:
 
-1. first install docker ( https://www.docker.com/ ) and python tools pip and virtualenv.
-2. cd in to the source directory
-3. issue the command: ./develop.sh start  ( this will install a tool which creates the application containers and wires them up.)
-4. open a web browser at localhost:8000 and login with the (dev only!) admin account (password admin)
-5. look at :ref:`How to create a registry <howtocreatearegistry>`
+1. cd in to the source directory
+2. issue the command: ./develop.sh dev_build
+2. issue the command: ./develop.sh dev
+3. open a web browser at localhost:8000 and login with the (dev only!) admin account (password admin)
+4. look at :ref:`How to create a registry <howtocreatearegistry>`
 
 Commands - Using develop.sh
 ===========================
 
+develop.sh is primarily a thin wrapper calling docker-compose. By all means use docker-compose directly if that is your preference.
+
 usage
 ------------------
-Usage ./develop.sh (pythonlint|jslint|start|rpmbuild|rpm_publish|unit_tests|selenium|lettuce|ci_staging)
-
+Usage:
+./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)
+./develop.sh (dev|dev_build)
+./develop.sh (start_prod|prod_build)
+./develop.sh (runtests|lettuce|selenium)
+./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)
+./develop.sh (pythonlint|jslint)
+./develop.sh (ci_dockerbuild)
+./develop.sh (ci_docker_staging|docker_staging_lettuce)
 
 start
 -----
-./develop.sh start
+./develop.sh dev
 
 This brings up the dev container - login at localhost:8000
 
@@ -32,28 +48,8 @@ Data and logs in ./data/dev
 
 unit tests
 ----------
-./develop.sh unit_tests
+./develop.sh runtests
 
 selenium tests
 --------------
 ./develop.sh selenium
-
-
-Commands - Using fig
-====================
-
-RDRF can also be run via fig on the command line inside the source directory ( NB fig (http://www.fig.sh/) should be installed)
-
-NB. cd into source folder first for these commands
-
-Starting the development container
-----------------------------------
-fig up
-
-Running unit tests
-------------------
-fig -f fig-test.yml up
-
-Running selenium tests
-----------------------
-fig -f fig-selenium.yml up
