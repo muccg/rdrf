@@ -275,7 +275,10 @@ class Registry(models.Model):
 
         generated_questionnaire_form_name = self.generated_questionnaire_name
         generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
-            registry=self, name=generated_questionnaire_form_name)
+            registry=self,
+            name=generated_questionnaire_form_name,
+            defaults={"sections": "dummy"}  # Had to add this in the fix RDR-1347
+            )
 
         # get rid of any existing generated sections
         for section in Section.objects.all():
