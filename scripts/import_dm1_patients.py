@@ -7,6 +7,11 @@ from django.db import transaction
 from rdrf.models import Registry
 
 
+class Columns:
+    FIRST_NAME = 2
+    FAMILY_NAME = 3
+
+
 class Dm1Importer(object):
     COLS = {
         # from spreadsheet sample
@@ -45,21 +50,43 @@ class Dm1Importer(object):
         self.excel_filename = excel_filename
         self.registry_model = registry_model
         self.errors = []
+        self.num_patients_created = 0
+        self.current_row = 2
+        self.current_patient = None
 
     def run(self):
-        current_row = 2
-        while current_row is not None:
+        while self.current_row is not None:
             row = {}
             for column_index in range(1, 24):
                 field_name = self.COLS[column_index]
                 row[column_index] = self._get_cell(current_row, column_index)
 
-            if self._blank_row(row):
+            if self._is_blank_row(row):
                 self._display_summary()
-                current_row = None
+                self.current_row = None
             else:
                 self._process_row(row)
-                current_row += 1
+                self.current_row += 1
+
+    def _is_blank_row(self, row_dict):
+        return all([row_dict[Columns.FIRST_NAME] == "",
+                    row_dict[Columns.FAMILY_NAME] == ""])
+
+    def _display_summary(self):
+        print "%s patients imported" % self.num_patients_created
+        print "Number of errors: %s" % len(self.errors)
+        for error_dict in self.errors:
+            self._print_error(error_dict)
+
+    def _print_error(error_dict):
+        print "Error importing row %s: %s" % (error_dict["row_num"], error_dict["error_message"])
+
+    def _process_row(self, row_dict):
+        self.current_patient = self._create_minimal_patient(row_dict)
+        self._update_consents(row_dict)
+        self._update_demographics(row_dict)
+        self._create_address(row_dict)
+        self._update_clinical_data(row_dict)
 
 
 if __name__ == '__main__':
