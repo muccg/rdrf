@@ -1,0 +1,86 @@
+import django
+django.setup()
+
+import sys
+import os
+from django.db import transaction
+from rdrf.models import Registry
+
+
+class Dm1Importer(object):
+    COLS = {
+        # from spreadsheet sample
+        # NHI	First Name	Family Name	DOB	Date of consent	Genetic Test recd.	Diagnosis	Sex	Ethnicity	Postal address 1
+        # Address 2	Address 3	Address 4	Pcode	Email	Home Ph	Mobile	Participants representative
+        # Relationship to participant	Address	Email	Ph	<no value> Key
+
+        1: "NHI",
+        2: "First Name",
+        3: "Family Name",
+        4: "DOB",
+        5: "Date of consent",
+        6: "Genetic Test recd.",
+        7: "Diagnosis",
+        8: "Sex",
+        9: "Ethnicity",
+        10: "Postal Address 1",
+        11: "Address 2",
+        12: "Address 3",
+        13: "Address 4",
+        14: "Pcode",
+        15: "Email",
+        16: "Home Ph",
+        17: "Mobile",
+        18: "Participants Representative",
+        19: "Relationship to Participant",
+        20: "Address",
+        21: ("Email", "repemail"),
+        22: ("Ph", "repphone"),
+        23: (None, None),
+        24: ("Key", "repkey")
+
+    }
+
+    def __init__(self, registry_model, excel_filename):
+        self.excel_filename = excel_filename
+        self.registry_model = registry_model
+        self.errors = []
+
+    def run(self):
+        current_row = 2
+        while current_row is not None:
+            row = {}
+            for column_index in range(1, 24):
+                field_name = self.COLS[column_index]
+                row[column_index] = self._get_cell(current_row, column_index)
+
+            if self._blank_row(row):
+                self._display_summary()
+                current_row = None
+            else:
+                self._process_row(row)
+                current_row += 1
+
+
+if __name__ == '__main__':
+    excel_filename = sys.argv[1]
+    if not os.path.exists(excel_filename):
+        print "Excel file does not exist"
+        sys.exit(1)
+
+    registry_code = "DM1"
+    try:
+        registry_model = Registry.objects.get(code=registry_code)
+    except Registry.DoesNotExist:
+        print "DM1 has not been imported"
+        sys.exit(1)
+
+    try:
+        with transaction.atomic():
+            dm1_importer = Dm1Importer(registry_model, excel_filename)
+            dm1_importer.run()
+            sys.exit(0)
+
+    except Exception, ex:
+        print "Error running import (will rollback): %s" % ex
+        sys.exit(1)
