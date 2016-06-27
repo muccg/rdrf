@@ -26,30 +26,38 @@ Commands - Using develop.sh
 develop.sh is primarily a thin wrapper calling docker-compose. By all means use docker-compose directly if that is your preference.
 
 usage
-------------------
-Usage:
-./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)
-./develop.sh (dev|dev_build)
-./develop.sh (start_prod|prod_build)
-./develop.sh (runtests|lettuce|selenium)
-./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)
-./develop.sh (pythonlint|jslint)
-./develop.sh (ci_dockerbuild)
-./develop.sh (ci_docker_staging|docker_staging_lettuce)
-
-start
 -----
-./develop.sh dev
+Usage::
 
-This brings up the dev container - login at localhost:8000
+# ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)
+# ./develop.sh (dev|dev_build)
+# ./develop.sh (start_prod|prod_build)
+# ./develop.sh (runtests|lettuce|selenium)
+# ./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)
+# ./develop.sh (pythonlint|jslint)
+# ./develop.sh (ci_dockerbuild)
+# ./develop.sh (ci_docker_staging|docker_staging_lettuce)
+
+dev stack
+---------
+To start up the dev stack::
+
+# ./develop.sh dev
+
+Login at localhost:8000
+
 
 Changes to the code are automatically picked up.
 Data and logs in ./data/dev
 
 unit tests
 ----------
-./develop.sh runtests
+To run unit tests::
+
+# ./develop.sh runtests
 
 selenium tests
 --------------
-./develop.sh selenium
+To run selenium tests::
+
+# ./develop.sh selenium

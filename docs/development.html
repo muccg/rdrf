@@ -98,7 +98,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#commands-using-develop-sh">Commands - Using develop.sh</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#usage">usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#start">start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dev-stack">dev stack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#unit-tests">unit tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#selenium-tests">selenium tests</a></li>
 </ul>
@@ -173,30 +173,41 @@
 <p>develop.sh is primarily a thin wrapper calling docker-compose. By all means use docker-compose directly if that is your preference.</p>
 <div class="section" id="usage">
 <h2>usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p>Usage:
-./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)
-./develop.sh (dev|dev_build)
-./develop.sh (start_prod|prod_build)
-./develop.sh (runtests|lettuce|selenium)
-./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)
-./develop.sh (pythonlint|jslint)
-./develop.sh (ci_dockerbuild)
-./develop.sh (ci_docker_staging|docker_staging_lettuce)</p>
+<p>Usage:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)</span>
+<span class="c1"># ./develop.sh (dev|dev_build)</span>
+<span class="c1"># ./develop.sh (start_prod|prod_build)</span>
+<span class="c1"># ./develop.sh (runtests|lettuce|selenium)</span>
+<span class="c1"># ./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)</span>
+<span class="c1"># ./develop.sh (pythonlint|jslint)</span>
+<span class="c1"># ./develop.sh (ci_dockerbuild)</span>
+<span class="c1"># ./develop.sh (ci_docker_staging|docker_staging_lettuce)</span>
+</pre></div>
 </div>
-<div class="section" id="start">
-<h2>start<a class="headerlink" href="#start" title="Permalink to this headline">¶</a></h2>
-<p>./develop.sh dev</p>
-<p>This brings up the dev container - login at localhost:8000</p>
+</div>
+<div class="section" id="dev-stack">
+<h2>dev stack<a class="headerlink" href="#dev-stack" title="Permalink to this headline">¶</a></h2>
+<p>To start up the dev stack:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># ./develop.sh dev</span>
+</pre></div>
+</div>
+<p>Login at localhost:8000</p>
 <p>Changes to the code are automatically picked up.
 Data and logs in ./data/dev</p>
 </div>
 <div class="section" id="unit-tests">
 <h2>unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this headline">¶</a></h2>
-<p>./develop.sh runtests</p>
+<p>To run unit tests:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># ./develop.sh runtests</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="selenium-tests">
 <h2>selenium tests<a class="headerlink" href="#selenium-tests" title="Permalink to this headline">¶</a></h2>
-<p>./develop.sh selenium</p>
+<p>To run selenium tests:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># ./develop.sh selenium</span>
+</pre></div>
+</div>
 </div>
 </div>
 
