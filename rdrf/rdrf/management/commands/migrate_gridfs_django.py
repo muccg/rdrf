@@ -10,7 +10,7 @@ from ...models import Registry, RegistryForm, Section, CommonDataElement, CDEFil
 from ...mongo_client import construct_mongo_client
 from ...utils import mongo_db_name
 
-logger = logging.getLogger("registry_log")
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -70,9 +70,12 @@ DocUpdate = namedtuple("DocUpdate", ["collection", "path", "gridfs_file_id", "fi
 def get_gridfs_file_id(cde):
     val = cde.get("value")
     if isinstance(val, dict):
-        id = val.get("gridfs_file_id")
-        if id:
-            return (id, val.get("file_name"))
+        gridfs_id = val.get("gridfs_file_id")
+        django_id = val.get("django_file_id")
+        if gridfs_id:
+            return (gridfs_id, val.get("file_name"))
+        elif django_id:
+            logger.debug("File %s is already a Django file with id %s" % (val.get("file_name"), django_id))
     return (None, None)
 
 
@@ -84,36 +87,46 @@ def find_file_refs(registry, db):
         doc = history.get("record") or {}
         yield (doc, list(collect_patient_updates("history", doc, prefix="record.")))
 
-    # fixme: not quite sure how this collection is structured
     rspd = "registry_specific_patient_data"
     for doc in db[rspd].find({}):
         yield (doc, list(collect_registry_updates(doc)))
 
 def collect_registry_updates(doc):
-    for cde_index, cde in enumerate(section.get("cdes") or []):
-        gridfs_file_id, filename = get_gridfs_file_id(cde)
-        if gridfs_file_id:
-            path = "cdes.%d.value" % cde_idx
-            context = { "cde_code": cde.get("code") }
-            yield DocUpdate(rspd, path, gridfs_file_id, filename, context)
+    for cde_index, cde in enumerate(doc.get("cdes") or []):
+        if isinstance(cde, dict):
+            gridfs_file_id, filename = get_gridfs_file_id(cde)
+            if gridfs_file_id:
+                path = "cdes.%d.value" % cde_idx
+                context = { "cde_code": cde.get("code") }
+                yield DocUpdate(rspd, path, gridfs_file_id, filename, context)
 
 def collect_patient_updates(collection, doc, prefix=""):
-    # logger.debug("doc = %s" % doc)
-    # logger.debug("forms = %s" % str(doc.get("forms")))
+    def update_cde(cde, path, base_context):
+        if isinstance(cde, dict):
+            context = {"cde_code": cde.get("code")}
+            context.update(base_context)
+            gridfs_file_id, filename = get_gridfs_file_id(cde)
+            if gridfs_file_id:
+                return DocUpdate(collection, path, gridfs_file_id, filename, context)
+        return None
 
     for form_index, form in enumerate(doc.get("forms") or []):
         for sec_index, section in enumerate(form.get("sections") or []):
             for cde_index, cde in enumerate(section.get("cdes") or []):
-                gridfs_file_id, filename = get_gridfs_file_id(cde)
-                if gridfs_file_id:
-                    idx = (prefix, form_index, sec_index, cde_index)
-                    path = "%sforms.%d.sections.%d.cdes.%d.value" % idx
-                    context = {
-                        "form_name": form.get("name"),
-                        "section_code": section.get("code"),
-                        "cde_code": cde.get("code"),
-                    }
-                    yield DocUpdate(collection, path, gridfs_file_id, filename, context)
+                idx = (prefix, form_index, sec_index, cde_index)
+                path = "%sforms.%d.sections.%d.cdes.%d" % idx
+                context = {
+                    "form_name": form.get("name"),
+                    "section_code": section.get("code"),
+                }
+
+                if isinstance(cde, list):
+                    for mcde_index, mcde in enumerate(cde):
+                        u = update_cde(mcde, "%s.%d.value" % (path, mcde_index), context)
+                        if u: yield u
+                else:
+                    u = update_cde(cde, "%s.value" % path, context)
+                    if u: yield u
 
 def convert_file(fs, registry, context, gridfs_file_id, filename, dry_run=False):
     try:
