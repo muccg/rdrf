@@ -11,6 +11,7 @@ def set_browser():
         desired_capabilities=desired_capabilities,
         command_executor="http://hub:4444/wd/hub"
     )
+    world.browser.implicitly_wait(5)
 
 
 @before.all
