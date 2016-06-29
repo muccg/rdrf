@@ -318,7 +318,7 @@ run_unit_tests() {
     _start_test_stack --force-recreate -d
 
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml up --force-recreate
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost
     rval=$?
     set -e
 

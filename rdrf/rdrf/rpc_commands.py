@@ -181,6 +181,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     patient_id = None
     patient_blurb = None
     patient_link = None
+    created_patient = "Not Created!"
 
     try:
         with transaction.atomic():
