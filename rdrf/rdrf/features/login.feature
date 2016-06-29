@@ -1,12 +1,21 @@
-Feature: Login
+Feature: Login support
+  As a RDRF registry owner
+  I want to allow different users to log in
+  In order to control access to the registry data
 
-    Scenario: Login successful as admin
-        Given I go to "/admin"
-        Then I log in as "admin" with "admin" password
-        Then I should see "Welcome, admin"
-        Then I should see "Log out"
-        And I click "Log out"
+  Background:
+    Given a user named "admin"
+    And a registry named "Sample Registry"
+    When I go to the registry "Sample Registry"
 
-    Scenario: Login failed as random user
-        Given I go to "/admin"
-        Then I log in as "RaNdOmUsEr" with "1234567890" password expects "Please enter the correct username and password for a staff account."
+  Scenario: Login successful
+    When I log in as "admin" with "admin" password
+    Then I should be logged in
+
+  Scenario: Login failed as admin with incorrect password
+    When I log in as "admin" with "INCORRECT" password
+    Then I should be on the login page
+
+  Scenario: Login failed with random user
+    When I log in as "randomUser" with "randomPassword" password
+    Then I should be on the login page
