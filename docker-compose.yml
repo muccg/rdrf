@@ -18,6 +18,8 @@ reporting:
   extends:
     file: docker-compose-common.yml
     service: reporting
+  ports:
+    - "15633:5432"
 
 cache:
   extends:
@@ -49,6 +51,8 @@ runserver:
     - cache
     - mongo
     - smtp
+  ports:
+    - "8000:8000"
 
 uwsgi:
   extends:

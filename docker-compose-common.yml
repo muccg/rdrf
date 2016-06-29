@@ -56,8 +56,6 @@ reporting:
   environment:
     - POSTGRES_USER=rdrfapp
     - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "15633:5432"
 
 cache:
   image: memcached:1.4
@@ -92,8 +90,6 @@ runserver:
     - REPORTINGDBNAME=reporting
     - REPORTINGDBUSER=reporting
     - REPORTINGDBPASSWORD=reporting
-  ports:
-    - "8000:8000"
 
 uwsgi:
   image: muccg/rdrf-dev

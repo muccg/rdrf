@@ -10,11 +10,10 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list[
         1:] + (
         make_option(
-            '-v',
-            '--verbosity',
+            '--lettuce-verbosity',
             action='store',
-            dest='verbosity',
-            default='4',
+            dest='lettuce_verbosity',
+            default=4,
             type='choice',
             choices=map(
                 str,
@@ -38,7 +37,8 @@ class Command(BaseCommand):
         app_name = 'rdrf'
         module = __import__(app_name)
         path = '%s/features/' % (os.path.dirname(module.__file__))
-        runner = Runner(path, verbosity=options.get('verbosity'),
+        int_or_None = lambda x: None if x is None else int(x)
+        runner = Runner(path, verbosity=int_or_None(options.get('lettuce_verbosity')),
                         enable_xunit=options.get('enable_xunit'),
                         xunit_filename=options.get('xunit_file'),)
         runner.run()
