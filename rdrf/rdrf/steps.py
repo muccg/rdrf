@@ -94,14 +94,4 @@ def find_field_no_value_by_name(field):
 
 
 def get_site_url(app_name, default_url):
-    """
-    :return: http://example.com:8081
-    """
-    site_url_file = "/tmp/%s_site_url" % app_name
-    if not os.path.exists(site_url_file):
-        return default_url
-    else:
-        with open(site_url_file) as f:
-            site_url = f.read()
-        # os.unlink(site_url_file)
-        return site_url.strip()
+    return os.environ.get('RDRF_URL', default_url).rstrip('/')

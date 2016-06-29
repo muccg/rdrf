@@ -206,6 +206,7 @@ fi
 # lettuce entrypoint
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
+    selenium_defaults
     exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 

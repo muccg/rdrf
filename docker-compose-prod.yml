@@ -18,6 +18,8 @@ reportingprod:
   extends:
     file: docker-compose-common.yml
     service: reporting
+  ports:
+    - "15633:5432"
 
 cacheprod:
   extends:
