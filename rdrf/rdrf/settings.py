@@ -210,8 +210,8 @@ MANAGERS = ADMINS
 STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
 STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
-MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'static', 'media'))
-MEDIA_URL = '{0}/static/media/'.format(SCRIPT_NAME)
+MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
+MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
 
 # TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For
