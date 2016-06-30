@@ -48,7 +48,7 @@ class Dm1Importer(object):
         3: ("Family Name", "family_name"),
         4: ("DOB", "date_of_birth"),
         5: ("Date of consent", "set_consent"),
-        6: ("Genetic Test recd.", None),
+        6: ("Genetic Test recd.", "ClinicalData/DM1GeneticTestDetails/GeneticTestResultsAvailable", "convert_genetic_test_received"),
         7: ("Diagnosis", "ClinicalData/DM1Status/DM1Condition", "convert_dm1condition"),
         8: ("Sex", "sex"),
         9: ("Ethnicity", "set_ethnic_origin"),
@@ -284,6 +284,20 @@ class Dm1Importer(object):
         }
 
         return mapping.get(raw_sex, None)
+
+    def convert_genetic_test_received(self, raw_value):
+        mapping = {
+            "yes": "YesNoUnknownYes",
+            "no":  "YesNoUnknownNo",
+            "pending": "YesNoUnknownUnknown", # !! - this was requested in RDR-1333 ...
+            "family member +ve test": "YesNoUnknownUnknown" # ditto
+
+        }
+
+        if not raw_value:
+            return None
+        
+        return mapping.get(raw_value.lower().strip(), None)
 
 
 if __name__ == '__main__':
