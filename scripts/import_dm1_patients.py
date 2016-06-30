@@ -154,7 +154,16 @@ class Dm1Importer(object):
         self.log("address fields - to do")
 
     def set_ethnic_origin(self, raw_value):
+        mapping = {"nz european": "new zealand european",
+                   "nz european/maori": "nz european / maori"}
+        
         v = raw_value.lower().strip()
+        if not v:
+            self.current_patient.ethnic_origin = None
+            self.current_patient.save()
+        
+        v = mapping.get(v, v)
+        
         other = "Other Ethnicity"
         x = other
         for eo, _ in Patient.ETHNIC_ORIGIN:
@@ -269,7 +278,12 @@ class Dm1Importer(object):
         return dob
 
     def _convert_sex(self, raw_sex):
-        return raw_sex
+        mapping = {
+            "M" : 1,
+            "F" : 2
+        }
+
+        return mapping.get(raw_sex, None)
 
 
 if __name__ == '__main__':
