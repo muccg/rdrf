@@ -293,7 +293,6 @@ if __name__ == '__main__':
                 raise Exception("processing errors occurred")
 
             print "run successful - NO ROLLBACK!"
-            sys.exit(0)
 
     except Exception, ex:
         print "Error running import (will rollback): %s" % ex
