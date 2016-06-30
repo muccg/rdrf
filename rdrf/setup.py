@@ -10,8 +10,6 @@ def add_file_for_package(package, subdir, f):
     # print "%s: %s" % (package, full_path)
     return full_path
 
-package_scripts = ["rdrf-manage.py"]
-
 packages = ['rdrf',
             'registry',
             'registry.common',
@@ -55,5 +53,4 @@ setup(name='django-rdrf',
       author_email='rdrf@ccg.murdoch.edu.au',
       package_data=package_data,
       zip_safe=False,
-      scripts=package_scripts,
       )
