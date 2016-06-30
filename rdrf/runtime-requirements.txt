@@ -1,5 +1,5 @@
 Django==1.8.12
-pymongo==2.8.1
+pymongo==2.9.3
 pyyaml
 django-extensions>=0.7.1
 django-templatetag-sugar==1.0
