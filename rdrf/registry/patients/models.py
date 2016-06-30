@@ -1,33 +1,30 @@
-from django.core import serializers
 import copy
 import json
 import datetime
+import os.path
 
-from django.db import models
+from django.conf import settings
+from django.core import serializers
 from django.core.files.storage import FileSystemStorage
-from django.db.models.signals import post_save
+from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
 import pycountry
-import registry.groups.models
-from registry.utils import get_working_groups, get_registries
-from rdrf.models import Registry
-from registry.utils import stripspaces
-from django.conf import settings
-from rdrf.utils import mongo_db_name
+
 from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.models import Section
-from rdrf.models import ConsentQuestion
-from registry.groups.models import CustomUser
+from rdrf.models import Registry, Section, ConsentQuestion
 from rdrf.hooking import run_hooks
+from rdrf.utils import mongo_db_name
 from rdrf.mongo_client import construct_mongo_client
-from django.db.models.signals import m2m_changed, post_delete
+import registry.groups.models
+from registry.utils import get_working_groups, get_registries, stripspaces
+from registry.groups.models import CustomUser
 
 
 
 import logging
 logger = logging.getLogger(__name__)
-
-file_system = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
 _6MONTHS_IN_DAYS = 183
 
@@ -539,7 +536,6 @@ class Patient(models.Model):
         return None
 
     def get_contexts_url(self, registry_model):
-        from django.core.urlresolvers import reverse
         if not registry_model.has_feature("contexts"):
             return None
         else:
@@ -818,9 +814,7 @@ class Patient(models.Model):
                 if context_model.context_form_group:
                     if context_model.context_form_group.is_default:
                         return context_model
-            raise Exception("no default context") 
-
-
+            raise Exception("no default context")
 
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -942,15 +936,33 @@ class PatientAddress(models.Model):
         return ""
 
 
+class PatientConsentStorage(FileSystemStorage):
+    """
+    This is a normal default file storage, except the URL points to
+    authenticated file download view.
+    """
+    def url(self, name):
+        consent = PatientConsent.objects.filter(form=name).first()
+        if consent is not None:
+            rev = dict(consent_id=consent.id, filename=consent.filename)
+            return reverse("registry:consent-form-download", kwargs=rev)
+        return None
+
+
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(
         upload_to='consents',
-        storage=file_system,
+        storage=PatientConsentStorage(),
         verbose_name="Consent form",
         blank=True,
         null=True)
 
+    # fixme: add filename as a field, using the filename which was
+    # given at time of upload.
+    @property
+    def filename(self):
+        return os.path.basename(self.form.name)
 
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient)

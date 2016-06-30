@@ -1,9 +1,11 @@
 from django.conf.urls import *
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.contrib import admin
 
+from .views import ConsentFileView
 
-urlpatterns = patterns('',
-                       #(r'^admin/', include(admin.site.urls), {}),
-
-                       )
+urlpatterns = [
+    url("^download/(?P<consent_id>\d+)/(?P<filename>.*)$",
+        ConsentFileView.as_view(),
+        name="consent-form-download"),
+]
