@@ -168,6 +168,7 @@ if [ "$1" = 'uwsgi_fixtures' ]; then
     _django_collectstatic
     _django_migrate
     _django_dev_fixtures
+    _django_check_deploy
 
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
