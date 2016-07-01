@@ -27,6 +27,7 @@ SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
 SECURE_HSTS_SECONDS = env.get("secure_hsts_seconds", 10)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.get("secure_hsts_include_subdomains", PRODUCTION)
 SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
+X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
