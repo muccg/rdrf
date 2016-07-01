@@ -3,6 +3,9 @@ django.setup()
 
 import sys
 import os
+import re
+from datetime import datetime
+
 from django.db import transaction
 from rdrf.models import Registry
 from registry.groups.models import WorkingGroup
@@ -125,9 +128,9 @@ class Dm1Importer(object):
         for error_dict in self.errors:
             self._print_error(error_dict)
 
-    def _print_error(error_dict):
-        self.log("Error importing row %s: %s" %
-                 (error_dict["row_num"], error_dict["error_message"]))
+    def _print_error(self, error):
+        self.log("ERROR: %s" % error)
+        
 
     def _process_row(self, row_dict):
         self.log_prefix = "Row %s" % self.current_row
@@ -224,7 +227,36 @@ class Dm1Importer(object):
                                                        value=value)
 
     def set_consent(self, consent_date_string):
-        pass
+        # D/M/YYYY
+        consent_date_string = consent_date_string.strip()
+        if not consent_date_string:
+            return
+        pattern = re.compile(r"^(\d\d?)\/(\d\d?)\/(\d\d\d\d)$")
+
+        m = pattern.match(consent_date_string)
+        if not m:
+            return
+
+        try:
+            day, month, year  = map(int,m.groups())
+            consent_date = datetime.date(year, month, day)
+        except:
+            return
+
+        #check consents: dm1consentsec01 (c2) and dm1consentsec02 (c1 and c2)
+        self.execute_field_expression("Consents/dm1consentsec01/c2/answer", True)
+        self.execute_field_expression("Consents/dm1consentsec01/c2/first_save", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec01/c2/last-update", consent_date)
+
+        self.execute_field_expression("Consents/dm1consentsec02/c1/answer", True)
+        self.execute_field_expression("Consents/dm1consentsec02/c1/first_save", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec02/c1/last-update", consent_date)
+
+        self.execute_field_expression("Consents/dm1consentsec02/c2/answer", True)
+        self.execute_field_expression("Consents/dm1consentsec02/c2/first_save", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec02/c2/last-update", consent_date)
+
+        
 
     def _get_field_value(self, our_field_name, row_dict):
         value = None
