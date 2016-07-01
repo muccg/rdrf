@@ -237,6 +237,7 @@ CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
+CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])
