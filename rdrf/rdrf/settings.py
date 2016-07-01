@@ -127,7 +127,6 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -135,6 +134,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
 
 
