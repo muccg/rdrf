@@ -250,7 +250,7 @@ class ConsentExpression(GeneralisedFieldExpression):
         # ignores applicability?!
         logger.debug("** CONSENT EXPRESSION: setting new consent %s field %s new_value %s" % (self.consent_question_model.question_label,
                                                                                               self.field,
-                                                                                              new_value) 
+                                                                                              new_value)) 
         if self.field not in ["answer", "last_update", "first_save"]:
             raise ValueError("Unknown consent field: %s" % self.field)
         
