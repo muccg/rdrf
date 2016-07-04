@@ -218,43 +218,30 @@ class Dm1Importer(object):
             if converter is not None:
                 value = converter(value)
 
-            self._execute_field_expression(field_expression, value)
+            self.execute_field_expression(field_expression, value)
 
-    def _execute_field_expression(self, field_expression, value):
+    def execute_field_expression(self, field_expression, value):
         print "setting %s --> %s" % (field_expression, value)
         self.current_patient.evaluate_field_expression(self.registry_model,
                                                        field_expression,
                                                        value=value)
 
-    def set_consent(self, consent_date_string):
-        # D/M/YYYY
-        consent_date_string = consent_date_string.strip()
-        if not consent_date_string:
-            return
-        pattern = re.compile(r"^(\d\d?)\/(\d\d?)\/(\d\d\d\d)$")
-
-        m = pattern.match(consent_date_string)
-        if not m:
-            return
-
-        try:
-            day, month, year  = map(int,m.groups())
-            consent_date = datetime.date(year, month, day)
-        except:
+    def set_consent(self, consent_date):
+        if not consent_date:
             return
 
         #check consents: dm1consentsec01 (c2) and dm1consentsec02 (c1 and c2)
         self.execute_field_expression("Consents/dm1consentsec01/c2/answer", True)
         self.execute_field_expression("Consents/dm1consentsec01/c2/first_save", consent_date)
-        self.execute_field_expression("Consents/dm1consentsec01/c2/last-update", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec01/c2/last_update", consent_date)
 
         self.execute_field_expression("Consents/dm1consentsec02/c1/answer", True)
         self.execute_field_expression("Consents/dm1consentsec02/c1/first_save", consent_date)
-        self.execute_field_expression("Consents/dm1consentsec02/c1/last-update", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec02/c1/last_update", consent_date)
 
         self.execute_field_expression("Consents/dm1consentsec02/c2/answer", True)
         self.execute_field_expression("Consents/dm1consentsec02/c2/first_save", consent_date)
-        self.execute_field_expression("Consents/dm1consentsec02/c2/last-update", consent_date)
+        self.execute_field_expression("Consents/dm1consentsec02/c2/last_update", consent_date)
 
         
 
