@@ -160,11 +160,19 @@ class Dm1Importer(object):
     def set_ethnic_origin(self, raw_value):
         mapping = {"nz european": "new zealand european",
                    "nz european/maori": "nz european / maori"}
+
+        cde_values = ["New Zealand European", "Australian", "Other Caucasian/European",
+                      "Aboriginal","Person from the Torres Strait","Maori",
+                      "NZ European / Maori","Samoan","Cook Islands Maori","Tongan",
+                      "Niuean","Tokelauan","Fijian","Other Pacific Peoples","Southeast Asian",
+                      "Chinese","Indian","Other Asian","Middle Eastern","Latin American",
+                      "Black African/African American","Other Ethnicity","Decline to Answer"]
         
         v = raw_value.lower().strip()
         if not v:
             self.current_patient.ethnic_origin = None
             self.current_patient.save()
+            return
         
         v = mapping.get(v, v)
         
@@ -176,6 +184,16 @@ class Dm1Importer(object):
                 break
         self.current_patient.ethnic_origin = x
         self.current_patient.save()
+
+        # mirror in cde DM1EthnicOrigins
+        pvg_value = "Other Ethnicity"
+        if v not in [cde.lower() for cde in cde_values]:
+            self.log("DM1EthnicOrigin supplied value %s will be mapped to Other Ethnicity" % raw_value)
+        for value in cde_values:
+            if v == value.lower():
+                pvg_value = value
+                
+        self.execute_field_expression("ClinicalData/DM1EthnicOrigins/DM1EthnicOrigins", pvg_value)
 
     def _set_parent_guardian_fields(self, row_dict):
         print "set parent guardian fields - to do"
