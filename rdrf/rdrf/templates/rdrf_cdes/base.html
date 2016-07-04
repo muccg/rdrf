@@ -11,18 +11,18 @@
   <head>
       <title>{% trans "Rare Disease Registry Framework" %}</title>
 
-      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
 
-      <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-      <script type="text/javascript" src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-      <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+      <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+      <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
 
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-      <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+      <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
       <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
       {% block extrastyle %}

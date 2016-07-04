@@ -1,9 +1,9 @@
 <html ng-app='RDRFDesignerApp'>
 <head>
 <title>RDRF Designer</title>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap-theme.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}" />
     <style>
         #sidebar {
                 position: absolute;
@@ -23,9 +23,9 @@
        }
     </style>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
+<script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/angular-1.2.23.min.js' %}"></script>
 
 </head>
 <body ng-controller='RDRFDesignerController'>

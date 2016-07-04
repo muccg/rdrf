@@ -7,20 +7,20 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.js"></script>
-        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/codemirror-3.21.0.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bootstrap-3.1.1/js/bootstrap.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
         
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+        <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap-theme.min.css' %}">
 
         <link rel="stylesheet" href="{% static 'css/explorer.css' %}">
-        <script src="{% static 'js/rpc_module.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
         
-        <script src="{% static 'js/jquery.cookies.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.cookies.js' %}"></script>
 
         <script>
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
