@@ -25,9 +25,12 @@ class LoginRequiredMixin(object):
 
 
 class BaseParentView(LoginRequiredMixin, View):
+    def __init__(self):
+        self.registry = None
+        self.rdrf_context = None
+        self.rdrf_context_manager = None
 
     _OTHER_CLINICIAN = "clinician-other"
-    _UNALLOCATED_GROUP = "Unallocated"
 
     _ADDRESS_TYPE = "Postal"
     _GENDER_CODE = {
@@ -36,20 +39,26 @@ class BaseParentView(LoginRequiredMixin, View):
     }
 
     def get_clinician_centre(self, request, registry):
-
+        clinician = None
         working_group = None
 
-        try:
-            clinician_id, working_group_id = request.POST['clinician'].split("_")
-            clinician = get_user_model().objects.get(id=clinician_id)
-            working_group = WorkingGroup.objects.get(id=working_group_id)
-        except ValueError:
-            clinician = None
+        if "clinician" in request.POST and "_" in request.POST["clinician"]:
+            clinician_id, working_group_id = request.POST['clinician'].split("_", 1)
+            clinician = get_user_model().objects.filter(id=clinician_id).first()
+            working_group = WorkingGroup.objects.filter(id=working_group_id).first()
+
+        if not working_group:
             working_group, status = WorkingGroup.objects.get_or_create(
-                name=self._UNALLOCATED_GROUP, registry=registry)
+                name=self._unallocated_group_name(registry),
+                registry=registry)
 
         return clinician, working_group
 
+    def _unallocated_group_name(self, registry):
+        if registry.code == "mtm":
+            return _("MTM Group")
+        else:
+            return _("Unallocated")
 
 class ParentView(BaseParentView):
 
@@ -58,7 +67,7 @@ class ParentView(BaseParentView):
         if request.user.is_authenticated():
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
-            
+
             forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
             forms = []
             for form in forms_objects:
@@ -79,6 +88,9 @@ class ParentView(BaseParentView):
             context['patients'] = patients
             context['registry_code'] = registry_code
             context['registry_forms'] = forms
+
+            self.set_rdrf_context(parent, context_id)
+            context['context_id'] = self.rdrf_context.pk
 
         return render_to_response(
             'rdrf_cdes/parent.html',
