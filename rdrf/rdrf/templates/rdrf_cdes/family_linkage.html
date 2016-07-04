@@ -2,7 +2,7 @@
 {% load static %}
 {% block extrastyle %}
         {{ block.super }}
-        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
     <style>
 
             .selectable .ui-selecting { border-width: 5px }
