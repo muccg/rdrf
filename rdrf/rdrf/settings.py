@@ -416,36 +416,6 @@ INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
 INSTALL_NAME = env.get("install_name", 'rdrf')
 
-# Django Suit Config
-SUIT_CONFIG = {
-    'ADMIN_NAME': 'Rare Disease Registry Frameworks',
-    'MENU_OPEN_FIRST_CHILD': False,
-    'MENU_EXCLUDE': ('sites', 'rdrf.questionnaireresponse'),
-
-    'MENU': (
-        'auth',
-        'genetic',
-        'groups',
-        'iprestrict',
-        'patients',
-        'registration',
-        {'app': 'rdrf', 'label': 'Registry'},
-        {'app': 'rdrf', 'label': 'Questionnaires', 'models': [
-                {'label': 'Responses', 'url': 'admin:rdrf_questionnaireresponse_changelist'}
-        ]},
-        'explorer'
-    )
-}
-
-'''
-One can add custom menu items to the left hand manu in Django Suit
-'''
-CUSTOM_MENU_ITEMS = [
-    {'name': 'Import Registry Definition',
-        'url': '{0}/import'.format(SCRIPT_NAME), 'superuser': True},
-    {'name': 'Reports', 'url': '{0}/reports'.format(SCRIPT_NAME), 'superuser': True},
-]
-
 AJAX_LOOKUP_CHANNELS = {
     'gene': {'model': 'genetic.Gene', 'search_field': 'symbol'},
 }
