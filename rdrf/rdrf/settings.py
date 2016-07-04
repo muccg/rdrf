@@ -182,7 +182,7 @@ INSTALLED_APPS = [
 AUTHENTICATION_BACKENDS = [
     'useraudit.password_expiry.AccountExpiryBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'useraudit.backend.AuthFailedLoggerBackend'
+    'rdrf.backends.AuthFailedLoggerNotificationBackend'
 ]
 
 # email
