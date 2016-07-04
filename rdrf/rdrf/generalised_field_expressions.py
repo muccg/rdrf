@@ -595,7 +595,6 @@ class GeneralisedFieldExpressionParser(object):
         Demographics/Address/Postal/Address
         Demographics/Address/Postal/Suburb
         Demographics/Address/Postal/State
-        Demographics/Address/Postal/State
         Demographics/Address/Postal/Country
         """
         from registry.patients.models import PatientAddress, AddressType
