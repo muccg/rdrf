@@ -158,20 +158,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'django_extensions',
-    'messages_ui',
-    'rdrf',
-    'registry.groups',
-    'registry.patients',
-    'registry.common',
-    'registry.genetic',
     'django.contrib.admin',
+    'messages_ui',
     'ajax_select',
-    'registration',
     'explorer',
     'useraudit',
     'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
+
+    'rdrf',
+    'registry.groups',
+    'registry.patients',
+    'registry.common',
+    'registry.genetic',
+    'registration',
 ]
 
 
