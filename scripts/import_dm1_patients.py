@@ -28,7 +28,7 @@ class ProcessingError(Exception):
         self.column_label = column_label
         self.patient_model = patient_model
 
-    def __unicode__(self):
+    def __str__(self):
         return "Error row %s column %s patient %s: %s" % (self.row_number,
                                                           self.column_label,
                                                           self.patient_model,
@@ -144,10 +144,11 @@ class Dm1Importer(object):
                 try:
                     self._update_field(i, row_dict)
                 except Exception, ex:
+                    message = "%s" % ex
                     self.errors.append(ProcessingError(self.current_row,
                                                        column_name,
                                                        self.current_patient,
-                                                       ex.message))
+                                                       message))
 
         self._set_address_fields()
         self._set_parent_guardian_fields(row_dict)
@@ -337,6 +338,8 @@ if __name__ == '__main__':
             dm1_importer = Dm1Importer(registry_model, excel_filename)
             dm1_importer.run()
             if len(dm1_importer.errors) > 0:
+                for error in dm1_importer.errors:\
+                    print error
                 raise Exception("processing errors occurred")
 
             print "run successful - NO ROLLBACK!"
