@@ -248,15 +248,17 @@ class ConsentExpression(GeneralisedFieldExpression):
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         # must be answer field , True False for new_value
         # ignores applicability?!
-        logger.debug("** CONSENT EXPRESSION: setting new consent %s" % self.consent_question_model.question_label) 
-        if self.field != "answer":
-            raise NotImplementedError("only can update consent  answer")
+        logger.debug("** CONSENT EXPRESSION: setting new consent %s field %s new_value %s" % (self.consent_question_model.question_label,
+                                                                                              self.field,
+                                                                                              new_value) 
+        if self.field not in ["answer", "last_update", "first_save"]:
+            raise ValueError("Unknown consent field: %s" % self.field)
         
         from registry.patients.models import ConsentValue
         try:
             consent_value_model = ConsentValue.objects.get(patient=patient_model,
                                                            consent_question=self.consent_question_model)
-            consent_value_model.answer = new_value
+            setattr(consent_value_model, self.field, new_value) # allow answer, first_save, last_update now
             consent_value_model.save()
             logger.debug("updated answer to %s OK" % consent_value_model.answer)
         except ConsentValue.DoesNotExist:
