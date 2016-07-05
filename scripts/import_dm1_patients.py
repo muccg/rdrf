@@ -12,6 +12,7 @@ from rdrf.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
+from registry.patients.models import NextOfKinRelationship
 from openpyxl import load_workbook
 
 RD_PATTERN = re.compile(r'^RD\s*\d+$')
@@ -98,6 +99,11 @@ def get_region(place):
     
         
 
+def maybe_set(thing, field, value):
+    if value:
+        setattr(thing, field, value)
+        thing.save()
+        
 class Columns:
     GIVEN_NAMES = 2
     FAMILY_NAME = 3
@@ -110,6 +116,13 @@ class Columns:
     SUBURB = 12
     TOWN = 13 # actually it's complicated - some state info mixed in
     POSTCODE = 14
+    PR_NAME = 18  # both first name and last name
+    PR_REL = 19
+    PR_ADDRESS = 20
+    PR_EMAIL = 21
+    PR_PHONE = 22
+    PR_KEY = 24
+    
 
 
 class ProcessingError(Exception):
@@ -259,7 +272,7 @@ class Dm1Importer(object):
                                                        message))
 
         self._set_address_fields(row_dict)
-        self._set_parent_guardian_fields(row_dict)
+        self._set_patient_representative_fields(row_dict)
 
     def _set_address_fields(self, row_dict):
         address1 = row_dict[Columns.ADDRESS1]
@@ -372,8 +385,36 @@ class Dm1Importer(object):
         self.execute_field_expression(
             "ClinicalData/DM1EthnicOrigins/DM1EthnicOrigins", pvg_value)
 
-    def _set_parent_guardian_fields(self, row_dict):
-        self.log("set parent guardian fields - to do")
+    def _set_patient_representative_fields(self, row_dict):
+        name = row_dict[Columns.PR_NAME]
+        if not name:
+            return
+        if " " in name:
+            parts = name.split(" ")
+            family_name = parts[-1]
+            given_names = " ".join(parts[:-1])
+            email = row_dict[Columns.PR_EMAIL]
+            relationship = row_dict[Columns.PR_REL]
+            phone = row_dict[Columns.PR_PHONE]
+
+            maybe_set(self.current_patient, "next_of_kin_family_name", family_name)
+            maybe_set(self.current_patient, "next_of_kin_given_names", given_names)
+            maybe_set(self.current_patient, "next_of_kin_email", email)
+            maybe_set(self.current_patient, "next_of_kin_home_phone", phone)
+            if relationship:
+                try:
+                    nok_rel, created = NextOfKinRelationship.objects.get_or_create(relationship=relationship)
+                except:
+                    nok_rel = None
+            
+                if created:
+                    nok_rel.save()
+                maybe_set(self.current_patient, "next_of_kin_relationship", nok_rel)
+            
+
+            
+            
+            
 
     def _update_field(self, column_index, row_dict):
         column_info = self.COLS[column_index]
