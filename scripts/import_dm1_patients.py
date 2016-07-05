@@ -20,26 +20,26 @@ RD_PATTERN = re.compile(r'^RD\s*\d+$')
 
 
 # All addresses must have a state / region in rdrf
-nz_regions = {1:'otago',
-              2:'taranaki',
-              3:'auckland',
-              4:'southland',
-              5:'nelson city',
-              6:'bay of plenty',
-              7:'south island',
-              8:'chatham islands territory',
-              9:'waikato',
-              10:'gisborne district',
-              11:'northland',
-              12:'north island',
-              13:'canterbury',
-              14:'manawatu-wanganui',
+nz_regions = {1: 'otago',
+              2: 'taranaki',
+              3: 'auckland',
+              4: 'southland',
+              5: 'nelson city',
+              6: 'bay of plenty',
+              7: 'south island',
+              8: 'chatham islands territory',
+              9: 'waikato',
+              10: 'gisborne district',
+              11: 'northland',
+              12: 'north island',
+              13: 'canterbury',
+              14: 'manawatu-wanganui',
               15: 'tasman district',
               16: 'marlborough district',
               17: 'wellington',
               18: 'west coast',
               19: "hawke's bay"
-}
+              }
 
 # We have cities/towns but not regions in the import...
 nz_city_map = {
@@ -50,7 +50,7 @@ nz_city_map = {
     "Dannevirke": 14,
     "Fielding": 14,
     "Foxton": 14,
-    "Gisborne": 10 ,
+    "Gisborne": 10,
     "Gisbourne": 10,
     "Greytown": 12,
     "Hamilton": 9,
@@ -59,13 +59,13 @@ nz_city_map = {
     "Kaiapoi": 13,
     "Lyttleton": 13,
     "Mangakino": 9,
-    "Masterton" : 17,
-    "Matamata" : 9,
+    "Masterton": 17,
+    "Matamata": 9,
     "Mosgiel": 1,
-    "Motueka":15,
-    "Nelson" : 15,
+    "Motueka": 15,
+    "Nelson": 15,
     "New Plymouth": 2,
-    "Otaki" : 12,
+    "Otaki": 12,
     "Palmerston North": 14,
     "Papakura": 3,
     "Parakai": 3,
@@ -88,6 +88,7 @@ nz_city_map = {
     "Whangarei": 11,
 }
 
+
 def get_region(place):
     x = place.strip().lower()
     for city in nz_city_map:
@@ -97,14 +98,12 @@ def get_region(place):
             return region
 
 
-    
-        
-
 def maybe_set(thing, field, value):
     if value:
         setattr(thing, field, value)
         thing.save()
-        
+
+
 class Columns:
     GIVEN_NAMES = 2
     FAMILY_NAME = 3
@@ -112,10 +111,10 @@ class Columns:
     SEX = 8
     ADDRESS1 = 10
     ADDRESS2 = 11  # rural address type or house name??
-    ADDRESS3 = 12 # suburb
-    ADDRESS4 = 13 # town
+    ADDRESS3 = 12  # suburb
+    ADDRESS4 = 13  # town
     SUBURB = 12
-    TOWN = 13 # actually it's complicated - some state info mixed in
+    TOWN = 13  # actually it's complicated - some state info mixed in
     POSTCODE = 14
     PR_NAME = 18  # both first name and last name
     PR_REL = 19
@@ -123,7 +122,6 @@ class Columns:
     PR_EMAIL = 21
     PR_PHONE = 22
     PR_KEY = 24
-    
 
 
 class ProcessingError(Exception):
@@ -204,13 +202,12 @@ class Dm1Importer(object):
         self.STATE_MAP = self._build_state_map()
         self.STATE_NAMES = self.STATE_MAP.keys()
         self.address_errors = 0
-        self.patient_ids =  set([]) # used to "rollback" mongo if needed
+        self.patient_ids = set([])  # used to "rollback" mongo if needed
         self.name_map = {}
         self.mongo_db_name = mongo_db_name
         self.mongo_client = construct_mongo_client()
         self.mongo_db = self.mongo_client[self.mongo_db_name]
         self.cdes_collection = self.mongo_db["cdes"]
-        
 
     def sep(self):
         self.log("***************************************************")
@@ -268,7 +265,7 @@ class Dm1Importer(object):
         self.current_patient = self._create_minimal_patient(row_dict)
         self.patient_ids.add(self.current_patient.pk)
         self.name_map[self.current_patient.pk] = "%s" % self.current_patient
-        
+
         self.log("created minimal patient %s" % self.current_patient)
         for i in self.COLS:
             if i not in self.MINIMAL_FIELDS and self.COLS[i][1] is not None:
@@ -315,7 +312,7 @@ class Dm1Importer(object):
         elif town and suburb:
             if RD_PATTERN.match(suburb.strip()):
                 # they sometimes use RD types as suburb
-                address = address + ", " + suburb # this is how to use RD apparently
+                address = address + ", " + suburb  # this is how to use RD apparently
                 suburb = town
             else:
                 self.log("town and suburb provided - using both with a ,")
@@ -323,8 +320,6 @@ class Dm1Importer(object):
 
         else:
             self.log("no suburb / town info provided")
-            
-
 
         self._create_address(address, suburb, state_code, postcode)
 
@@ -408,19 +403,23 @@ class Dm1Importer(object):
             relationship = row_dict[Columns.PR_REL]
             phone = row_dict[Columns.PR_PHONE]
 
-            maybe_set(self.current_patient, "next_of_kin_family_name", family_name)
-            maybe_set(self.current_patient, "next_of_kin_given_names", given_names)
+            maybe_set(self.current_patient,
+                      "next_of_kin_family_name", family_name)
+            maybe_set(self.current_patient,
+                      "next_of_kin_given_names", given_names)
             maybe_set(self.current_patient, "next_of_kin_email", email)
             maybe_set(self.current_patient, "next_of_kin_home_phone", phone)
             if relationship:
                 try:
-                    nok_rel, created = NextOfKinRelationship.objects.get_or_create(relationship=relationship)
+                    nok_rel, created = NextOfKinRelationship.objects.get_or_create(
+                        relationship=relationship)
                 except:
                     nok_rel = None
-            
+
                 if created:
                     nok_rel.save()
-                maybe_set(self.current_patient, "next_of_kin_relationship", nok_rel)
+                maybe_set(self.current_patient,
+                          "next_of_kin_relationship", nok_rel)
 
     def _update_field(self, column_index, row_dict):
         column_info = self.COLS[column_index]
@@ -567,14 +566,13 @@ class Dm1Importer(object):
         self.log_prefix = "MONGO ROLLBACK"
         for patient_id in self.patient_ids:
             name = self.name_map.get(patient_id)
-            
+
             query = {"django_id": patient_id,
                      "django_model": "Patient"}
             self.cdes_collection.remove(query)
             self.log("Removed mongo data for %s" % name)
 
         self.log("all rolled back")
-            
 
 
 if __name__ == '__main__':
@@ -583,7 +581,7 @@ if __name__ == '__main__':
     if not "DM1" in mongo_db_name:
         print "mongo db name doesn't contain DM1!"
         sys.exit(1)
-        
+
     if not os.path.exists(excel_filename):
         print "Excel file does not exist"
         sys.exit(1)
@@ -597,13 +595,13 @@ if __name__ == '__main__':
 
     try:
         with transaction.atomic():
-            dm1_importer = Dm1Importer(registry_model, excel_filename, mongo_db_name)
+            dm1_importer = Dm1Importer(
+                registry_model, excel_filename, mongo_db_name)
             dm1_importer.run()
             if len(dm1_importer.errors) > 0:
                 for error in dm1_importer.errors:
                     print error
                 raise Exception("processing errors occurred")
-
 
             if dm1_importer.num_patients_created > 0:
                 print "%s (%s percent) addresses couldn't be created" % (dm1_importer.address_errors,
