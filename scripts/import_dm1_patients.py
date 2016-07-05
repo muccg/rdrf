@@ -14,9 +14,10 @@ from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
 from openpyxl import load_workbook
 
-import random
-# All addresses must have a state / region in rdrf
+RD_PATTERN = re.compile(r'^RD\s*\d+$')
 
+
+# All addresses must have a state / region in rdrf
 nz_regions = {1:'otago',
               2:'taranaki',
               3:'auckland',
@@ -85,11 +86,6 @@ nz_city_map = {
     "Whangarei": 11,
 }
 
-def is_rd(s):
-    pattern = re.compile(r"^RD\s*\d+$")
-    return pattern.match(s)
-
-    
 def get_region(place):
     x = place.strip().lower()
     for city in nz_city_map:
@@ -97,6 +93,9 @@ def get_region(place):
             region_num = nz_city_map[city]
             region = nz_regions[region_num]
             return region
+
+
+    
         
 
 class Columns:
@@ -280,23 +279,28 @@ class Dm1Importer(object):
         if state_code is None:
             self.log("State %s is not one of: %s" % (s,
                                                      self.STATE_NAMES))
+        if address2:
+            address = address1 + ", " + address2
+        else:
+            address = address1
 
         if town and not suburb:
             suburb = town
         elif suburb and not town:
             pass
         elif town and suburb:
-            self.log("town and suburb provided - using both with a ,")
-            suburb = suburb + ", " + town
+            if RD_PATTERN.match(suburb.strip()):
+                # they sometimes use RD types as suburb
+                address = address + ", " + suburb # this is how to use RD apparently
+                suburb = town
+            else:
+                self.log("town and suburb provided - using both with a ,")
+                suburb = suburb + ", " + town
 
         else:
             self.log("no suburb / town info provided")
             
 
-        if address2:
-            address = address1 + ", " + address2
-        else:
-            address = address1
 
         self._create_address(address, suburb, state_code, postcode)
 
