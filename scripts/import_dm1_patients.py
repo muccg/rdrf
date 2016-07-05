@@ -9,6 +9,7 @@ from datetime import datetime
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from rdrf.models import Registry
+from rdrf.mongo_client import construct_mongo_client
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
@@ -180,7 +181,7 @@ class Dm1Importer(object):
 
     }
 
-    def __init__(self, registry_model, excel_filename):
+    def __init__(self, registry_model, excel_filename, mongo_db_name="prod_DM1"):
         self.excel_filename = excel_filename
         self.workbook = load_workbook(self.excel_filename)
         self.sheet = self.workbook.worksheets[0]
@@ -203,6 +204,13 @@ class Dm1Importer(object):
         self.STATE_MAP = self._build_state_map()
         self.STATE_NAMES = self.STATE_MAP.keys()
         self.address_errors = 0
+        self.patient_ids =  set([]) # used to "rollback" mongo if needed
+        self.name_map = {}
+        self.mongo_db_name = mongo_db_name
+        self.mongo_client = construct_mongo_client()
+        self.mongo_db = self.mongo_client[self.mongo_db_name]
+        self.cdes_collection = self.mongo_db["cdes"]
+        
 
     def sep(self):
         self.log("***************************************************")
@@ -258,6 +266,9 @@ class Dm1Importer(object):
         self.log_prefix = "Row %s" % self.current_row
         self.log("starting to process")
         self.current_patient = self._create_minimal_patient(row_dict)
+        self.patient_ids.add(self.current_patient.pk)
+        self.name_map[self.current_patient.pk] = "%s" % self.current_patient
+        
         self.log("created minimal patient %s" % self.current_patient)
         for i in self.COLS:
             if i not in self.MINIMAL_FIELDS and self.COLS[i][1] is not None:
@@ -410,11 +421,6 @@ class Dm1Importer(object):
                 if created:
                     nok_rel.save()
                 maybe_set(self.current_patient, "next_of_kin_relationship", nok_rel)
-            
-
-            
-            
-            
 
     def _update_field(self, column_index, row_dict):
         column_info = self.COLS[column_index]
@@ -557,9 +563,27 @@ class Dm1Importer(object):
 
         return mapping.get(raw_value.lower().strip(), None)
 
+    def rollback_mongo(self):
+        self.log_prefix = "MONGO ROLLBACK"
+        for patient_id in self.patient_ids:
+            name = self.name_map.get(patient_id)
+            
+            query = {"django_id": patient_id,
+                     "django_model": "Patient"}
+            self.cdes_collection.remove(query)
+            self.log("Removed mongo data for %s" % name)
+
+        self.log("all rolled back")
+            
+
 
 if __name__ == '__main__':
     excel_filename = sys.argv[1]
+    mongo_db_name = sys.argv[2]
+    if not "DM1" in mongo_db_name:
+        print "mongo db name doesn't contain DM1!"
+        sys.exit(1)
+        
     if not os.path.exists(excel_filename):
         print "Excel file does not exist"
         sys.exit(1)
@@ -573,18 +597,21 @@ if __name__ == '__main__':
 
     try:
         with transaction.atomic():
-            dm1_importer = Dm1Importer(registry_model, excel_filename)
+            dm1_importer = Dm1Importer(registry_model, excel_filename, mongo_db_name)
             dm1_importer.run()
             if len(dm1_importer.errors) > 0:
                 for error in dm1_importer.errors:
                     print error
                 raise Exception("processing errors occurred")
 
-            print "%s (%s percent) addresses couldn't be created" % (dm1_importer.address_errors,
-                                                                     100.0 * (float(dm1_importer.address_errors) / float(dm1_importer.num_patients_created)))
+
+            if dm1_importer.num_patients_created > 0:
+                print "%s (%s percent) addresses couldn't be created" % (dm1_importer.address_errors,
+                                                                         100.0 * (float(dm1_importer.address_errors) / float(dm1_importer.num_patients_created)))
 
             print "run successful - NO ROLLBACK!"
 
     except Exception, ex:
         print "Error running import (will rollback): %s" % ex
+        dm1_importer.rollback_mongo()
         sys.exit(1)
