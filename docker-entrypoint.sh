@@ -85,7 +85,7 @@ function selenium_defaults {
 
 
 function _django_check_deploy {
-    echo "running migrate"
+    echo "running check --deploy"
     django-admin.py check --deploy --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-check.log
 }
 
