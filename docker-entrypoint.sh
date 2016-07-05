@@ -60,6 +60,7 @@ function defaults {
 
     : ${RUNSERVER:="web"}
     : ${RUNSERVERPORT:="8000"}
+    : ${SELENIUMRUNSERVERPORT:="18000"}
     : ${CACHESERVER:="cache"}
     : ${CACHEPORT:="11211"}
     : ${MEMCACHE:="${CACHESERVER}:${CACHEPORT}"}
@@ -72,7 +73,7 @@ function defaults {
 
 
 function selenium_defaults {
-    : ${RDRF_URL:="http://$DOCKER_ROUTE:$RUNSERVERPORT/"}
+    : ${RDRF_URL:="http://$DOCKER_ROUTE:$SELENIUMRUNSERVERPORT/"}
     #: ${RDRF_BROWSER:="*googlechrome"}
     : ${RDRF_BROWSER:="*firefox"}
 
