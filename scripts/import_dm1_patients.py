@@ -575,12 +575,19 @@ class Dm1Importer(object):
         self.log("all rolled back")
 
 
+def usage():
+    print "Usage: python import_dm1_patients.py <excelfilename> <mongo_database_name_for_DM1>"
+    sys.exit(1)
+
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        usage()
+
     excel_filename = sys.argv[1]
     mongo_db_name = sys.argv[2]
     if not "DM1" in mongo_db_name:
         print "mongo db name doesn't contain DM1!"
-        sys.exit(1)
+        usage()
 
     if not os.path.exists(excel_filename):
         print "Excel file does not exist"
