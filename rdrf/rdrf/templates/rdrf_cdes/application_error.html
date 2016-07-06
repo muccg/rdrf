@@ -2,9 +2,9 @@
 {% load static %}
 {% load i18n admin_static %}
 {% block extrastyle %}
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+    <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
@@ -19,8 +19,8 @@
 		});
 	</script>
     <![endif]-->
-    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bootstrap-3.1.1/js/bootstrap.min.js' %}"></script>
     <script>
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
