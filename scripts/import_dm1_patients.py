@@ -9,6 +9,8 @@ from datetime import datetime
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from rdrf.models import Registry
+from rdrf.models import ConsentSection, ConsentQuestion
+from registry.patients.models import ConsentValue
 from rdrf.mongo_client import construct_mongo_client
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
@@ -463,6 +465,26 @@ class Dm1Importer(object):
                                                        value=value)
         self.log("%s --> %s" % (field_expression, value))
 
+    def _update_consent_date(self, consent_section_code, question_code, field, date_value):
+        if field not in ["last_update", "first_save"]:
+            raise Exception("consent answer must be saved first - this method used only for last_update and first_save")
+        
+        consent_section_model = ConsentSection.objects.get(registry=self.registry_model,
+                                                           code=consent_section_code)
+        
+        consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
+                                                             code=question_code)
+
+        # assume exists after creation for answer field
+        consent_value_model = ConsentValue.objects.get(patient=self.current_patient,
+                                                       consent_question=consent_question_model)
+        
+        setattr(consent_value_model, field, date_value) #first_save, last_update now
+
+        consent_value_model.save()
+        
+
+
     def set_consent(self, consent_date):
         if not consent_date:
             return
@@ -470,24 +492,31 @@ class Dm1Importer(object):
         # check consents: dm1consentsec01 (c2) and dm1consentsec02 (c1 and c2)
         self.execute_field_expression(
             "Consents/dm1consentsec01/c2/answer", True)
-        self.execute_field_expression(
-            "Consents/dm1consentsec01/c2/first_save", consent_date)
-        self.execute_field_expression(
-            "Consents/dm1consentsec01/c2/last_update", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec01/c2/first_save", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec01/c2/last_update", consent_date)
+
+        self._update_consent_date("dm1consentsec01","c2", "first_save", consent_date)
+        self._update_consent_date("dm1consentsec01","c2", "last_update", consent_date)
 
         self.execute_field_expression(
             "Consents/dm1consentsec02/c1/answer", True)
-        self.execute_field_expression(
-            "Consents/dm1consentsec02/c1/first_save", consent_date)
-        self.execute_field_expression(
-            "Consents/dm1consentsec02/c1/last_update", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec02/c1/first_save", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec02/c1/last_update", consent_date)
+        self._update_consent_date("dm1consentsec02","c1", "first_save", consent_date)
+        self._update_consent_date("dm1consentsec02","c1", "last_update", consent_date)
 
         self.execute_field_expression(
             "Consents/dm1consentsec02/c2/answer", True)
-        self.execute_field_expression(
-            "Consents/dm1consentsec02/c2/first_save", consent_date)
-        self.execute_field_expression(
-            "Consents/dm1consentsec02/c2/last_update", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec02/c2/first_save", consent_date)
+        #self.execute_field_expression(
+        #    "Consents/dm1consentsec02/c2/last_update", consent_date)
+        self._update_consent_date("dm1consentsec02","c2", "first_save", consent_date)
+        self._update_consent_date("dm1consentsec02","c2", "last_update", consent_date)
 
     def _get_field_value(self, our_field_name, row_dict):
         value = None
