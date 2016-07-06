@@ -19,13 +19,13 @@ WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # General site config
 PRODUCTION = env.get("production", False)
 
-# django-secure
+# https://docs.djangoproject.com/en/1.8/ref/middleware/#django.middleware.security.SecurityMiddleware
 SECURE_SSL_REDIRECT = env.get("secure_ssl_redirect", PRODUCTION)
-SECURE_FRAME_DENY = env.get("secure_frame_deny", PRODUCTION)
+SECURE_SSL_HOST = env.get("secure_ssl_host", False)
 SECURE_CONTENT_TYPE_NOSNIFF = env.get("secure_content_type_nosniff", PRODUCTION)
 SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
-SECURE_HSTS_SECONDS = env.get("secure_hsts_seconds", 10)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = env.get("secure_hsts_include_subdomains", PRODUCTION)
+SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
+X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
@@ -126,7 +126,6 @@ MESSAGE_TAGS = {
 
 MIDDLEWARE_CLASSES = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
-    'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -134,6 +133,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
 
 
@@ -155,7 +156,6 @@ INSTALLED_APPS = [
     'ajax_select',
     'registration',
     'explorer',
-    'djangosecure',
     'useraudit',
     'templatetag_handlebars',
     'iprestrict',
@@ -235,6 +235,7 @@ CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
+CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 
 # Testing settings
 INSTALLED_APPS.extend(['django_nose'])

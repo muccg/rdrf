@@ -85,6 +85,12 @@ function selenium_defaults {
 }
 
 
+function _django_check_deploy {
+    echo "running check --deploy"
+    django-admin.py check --deploy --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-check.log
+}
+
+
 function _django_migrate {
     echo "running migrate"
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
@@ -148,6 +154,7 @@ if [ "$1" = 'uwsgi' ]; then
 
     _django_collectstatic
     _django_migrate
+    _django_check_deploy
 
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
@@ -162,6 +169,7 @@ if [ "$1" = 'uwsgi_fixtures' ]; then
     _django_collectstatic
     _django_migrate
     _django_dev_fixtures
+    _django_check_deploy
 
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
