@@ -357,8 +357,10 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {
+        '': {
             'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True
         },
         'django.request': {
             'handlers': ['mail_admins'],
@@ -375,24 +377,16 @@ LOGGING = {
             'level': 'CRITICAL',
             'propagate': True,
         },
-        'rdrf': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
         'rdrf.rdrf.management.commands': {
             'handlers': ['shell'],
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'rdrf.export_import': {
             'handlers': ['console_simple'],
             'formatter': 'simplest',
-            'level': 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
-        },
-        'py.warnings': {
-            'handlers': ['console'],
         },
     }
 }
