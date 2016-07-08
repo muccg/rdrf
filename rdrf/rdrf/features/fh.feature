@@ -3,6 +3,6 @@ Feature: FH Family Linkage Page
   I want to be able to view the families of patients
   In order to do cascade screening.
 
-   Background:
-     Given a registry named "FH"
-     Given user curator is a member of FH
+  Background:
+    Given a registry named "FH"
+    Given user curator is a member of FH
