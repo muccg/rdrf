@@ -29,7 +29,7 @@ X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 # iprestrict config https://github.com/muccg/django-iprestrict
 IPRESRICT_TRUSTED_PROXIES = env.getlist("iprestrict_trusted_proxies", [])
-IPRESTRICT_RELOAD_RULES = env.get("iprestrict_dont_reload_rules", True)
+IPRESTRICT_RELOAD_RULES = env.get("iprestrict_reload_rules", True)
 IPRESTRICT_IGNORE_PROXY_HEADER = env.get("iprestrict_ignore_proxy_header", False)
 
 DEBUG = env.get("debug", not PRODUCTION)
