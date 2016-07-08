@@ -38,8 +38,8 @@ class FHRecordSplitter(object):
     def __init__(self, registry_model, mongo_db_name):
         self.backup_data = {}
         self.checkup_ids = []
-        
-        
+        self.bad_contexts = []
+        self.contexts_to_process = []
         self.logger = None
         self.mongo_db_name = mongo_db_name
         self.registry_model = registry_model
@@ -135,8 +135,36 @@ class FHRecordSplitter(object):
         cfg = context_model.context_form_group
         assert cfg.name == "Checkup", "The linked context form group of a FollowUp form should be called Checkup"
 
+
+    def _link_main_context_form_groups(self):
+        for context_model in RDRFContext.objects.filter(registry=self.registry_model):
+            if not context_model.context_form_group:
+                context_model.context_form_group = self.main_cfg
+                try:
+                    context_model.save()
+                    self.logger("FH Context model %s had no context form group set - set to Main" % context_model.pk)
+                    self.contexts_to_process.append(context_model.pk)
+                    
+                except Exception, ex:
+                    self.logger("Error setting main cfg on context %s: %s" % (context_model.pk,
+                                                                              ex))
+                    self.bad_contexts.append(context_model.pk)
+
+
+    def _needs_splitting(self, dynamic_data):
+        context_id = dynamic_data["context_id"]
+        django_model = dynamic_data["django_model"]
+        if django_model != "Patient":
+            return False
+
+        # this record was linked to a context without a form group
+        if context_id in self.contexts_to_process:
+            return True
+
         
     def run(self):
+        self._link_main_context_form_groups()
+        
         for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
             error = False
             self.logger = Logger(patient_model)
@@ -164,11 +192,6 @@ class FHRecordSplitter(object):
 
             if dynamic_data is not None:
                 self.logger.info("There is a mongo record for this patient")
-                # Ensure that the existing context model is linked to the correct "Main" ( default) context form group
-                context_id = dynamic_data["context_id"]
-                self.logger.info("About to link context to Main context form group")
-                self._link_main_context_form_group(context_id)
-                self.logger.info("Linked OK")
 
                 # Locate the existing FollowUp form data and extract
                 for i, form_dict in enumerate(dynamic_data["forms"]):
@@ -177,7 +200,7 @@ class FHRecordSplitter(object):
                         followup_form = form_dict
                         index = i
 
-            if followup_form is not None:
+            if followup_form is not None and self._needs_splitting(dynamic_data):
                 self.logger.info("Updating the Main context record ...")
                 form_timestamp = dynamic_data.get("FollowUp_timestamp", None)
                 self.logger.info("FollowUp form timestamp = %s" % form_timestamp)
@@ -224,19 +247,6 @@ class FHRecordSplitter(object):
                             "context_id": rdrf_context.pk}
 
         return new_mongo_record
-
-    def _link_main_context_form_group(self, existing_context_id):
-
-        try:
-            context_model = RDRFContext.objects.get(pk=existing_context_id)
-        except RDRFContext.DoesNotExist:
-            self.logger.error("can't find context model for context id %s" % existing_context_id)
-            raise ScriptError("error getting context model for linking to Main context form group")
-
-        context_model.context_form_group = self.main_cfg
-        context_model.save()
-        self.logger.info("Linked context %s to %s" % (context_model,
-                                                      context_model.context_form_group))
 
         
 if __name__=='__main__':
