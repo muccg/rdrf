@@ -142,12 +142,12 @@ class FHRecordSplitter(object):
                 context_model.context_form_group = self.main_cfg
                 try:
                     context_model.save()
-                    self.logger("FH Context model %s had no context form group set - set to Main" % context_model.pk)
+                    print "FH Context model %s had no context form group set - set to Main" % context_model.pk
                     self.contexts_to_process.append(context_model.pk)
                     
                 except Exception, ex:
-                    self.logger("Error setting main cfg on context %s: %s" % (context_model.pk,
-                                                                              ex))
+                    print "Error setting main cfg on context %s: %s" % (context_model.pk,
+                                                                              ex)
                     self.bad_contexts.append(context_model.pk)
 
 
@@ -163,14 +163,13 @@ class FHRecordSplitter(object):
 
         
     def run(self):
+
         self._link_main_context_form_groups()
         
         for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
             error = False
             self.logger = Logger(patient_model)
-            self.logger.info("processing ...")
-
-
+            self.logger.info("Processing ...")
             # We can't use the normal "Dynamic Data Wrapper" in RDRF because this tries to retrieve by context id
             # is the registry changes from not using form groups to using form groups as here, the loadi
 
