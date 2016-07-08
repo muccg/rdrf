@@ -27,3 +27,8 @@ tests*.xml
 *#
 *~
 flycheck_*
+*.xls
+*.xlsx
+*.doc
+*.docx
+*.csv
