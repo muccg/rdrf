@@ -5,7 +5,6 @@ import ssl
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 
@@ -110,17 +109,26 @@ MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
 MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
 MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 
-
-# Django Core stuff
-TEMPLATE_LOADERS = [
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    'django.template.loaders.eggs.Loader',
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.request",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages"
+            ],
+            "debug": DEBUG,
+        },
+    },
 ]
-
-TEMPLATE_DIRS = (
-    os.path.join(WEBAPP_ROOT, 'rdrf', 'templates'),
-)
 
 MESSAGE_TAGS = {
     message_constants.ERROR: 'alert alert-danger',
@@ -166,11 +174,6 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
-
-TEMPLATE_CONTEXT_PROCESSORS = TCP + (
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.request',
-)
 
 # these determine which authentication method to use
 # apps use modelbackend by default, but can be overridden here
@@ -224,7 +227,6 @@ STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
-TEMPLATE_DEBUG = DEBUG
 
 # session and cookies
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
