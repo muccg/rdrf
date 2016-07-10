@@ -613,3 +613,6 @@ GRID_CONTEXT_LISTING = [
         "order": 9
     }
 ]
+
+RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
+RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")

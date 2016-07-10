@@ -1,10 +1,12 @@
 from django.http import HttpResponse
 from django.views.generic import View
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
 import json
+import requests
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -211,3 +213,13 @@ class RDRFContextLookup(View):
         success_packet = {"error": context_exception.message}
         success_packet_json = json.dumps(success_packet)
         return HttpResponse(success_packet_json, status=200, content_type="application/json")
+
+
+class RecaptchaValidator(View):
+
+    def post(self, request):
+        response_value = request.POST['response_value']
+        secret_key = getattr(settings, "RECAPTCHA_SECRET_KEY", None)
+        payload = {"secret": secret_key, "response": response_value}
+        r = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
+        return HttpResponse(r)
