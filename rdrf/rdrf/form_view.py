@@ -1310,22 +1310,12 @@ class QuestionnaireResponseView(FormView):
                 model_class=QuestionnaireResponse)
             logger.debug("questionnaire data = %s" % questionnaire_data)
 
-            patient_creator.create_patient(request.POST, qr, questionnaire_data)
-
-            if patient_creator.state == PatientCreatorState.CREATED_OK:
-                messages.info(
-                    request, _("Questionnaire approved - A patient record has now been created"))
-            elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
-                error = patient_creator.error
-                messages.error(
-                    request,
-                    "Patient failed to be created due to validation errors: %s" %
-                    error)
-            elif patient_creator.state == PatientCreatorState.FAILED:
-                error = patient_creator.error
-                messages.error(request, _("Patient failed to be created: %s" % error))
-            else:
-                messages.error(request, _("Patient failed to be created"))
+            try:
+                patient_creator.create_patient(request.POST, qr, questionnaire_data)
+                messages.info(request, "Patient Created OK")
+            except PatientCreatorError, perr:
+                error = perr.message
+                messages.error(request, "Patient Failed to be created: %s" % error)
 
         context = {}
         context.update(csrf(request))
@@ -2788,8 +2778,8 @@ class CustomConsentFormView(View):
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
-            "consent": consent_status_for_patient(registry_code, patient_model)
-
+            "consent": consent_status_for_patient(registry_code, patient_model),
+            "show_print_button": True,
         }
 
         logger.debug("context = %s" % context)
