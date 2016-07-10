@@ -99,7 +99,7 @@ class RegistryType:
     NORMAL = 1                 # no exposed contexts - all forms stored in a default context
     HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
     HAS_CONTEXT_GROUPS = 3         #  registry has context form groups defined
-        
+
 
 class Registry(models.Model):
     objects = RegistryManager()
@@ -1689,7 +1689,15 @@ class ConsentSection(models.Model):
             if not self.applicability_condition:
                 return True
 
-            function_context = {"patient": patient}
+            from registry.patients.models import ParentGuardian
+            self_patient = False
+            try:
+                ParentGuardian.objects.get(self_patient=patient)
+                self_patient = True
+            except ParentGuardian.DoesNotExist:
+                pass
+
+            function_context = { "patient": patient, "self_patient": self_patient }
 
             is_applicable = eval(
                 self.applicability_condition, {"__builtins__": None}, function_context)
@@ -1886,13 +1894,13 @@ class RDRFContext(models.Model):
                 return self.registry.metadata["context_name"]
             except KeyError:
                 return "Context"
-        
+
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
     NAMING_SCHEMES = [("D", "Automatic - Date"),
                       ("N", "Automatic - Number"),
                       ("M", "Manual - Free Text")]
-    
+
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
@@ -1912,8 +1920,8 @@ class ContextFormGroup(models.Model):
         elif self.naming_scheme == "D":
             from datetime import datetime
             d = datetime.now()
-            s = d.strftime("%d-%b-%Y") 
-            return "%s/%s" % (self.name, s) 
+            s = d.strftime("%d-%b-%Y")
+            return "%s/%s" % (self.name, s)
         elif self.naming_scheme == "N":
             registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
@@ -1961,7 +1969,7 @@ class ContextFormGroup(models.Model):
                                               object_id=patient_model.id,
                                               context_form_group=self).count() == 0
 
-        
+
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
             action_title = "Add %s" % self.name
@@ -1975,9 +1983,9 @@ class ContextFormGroup(models.Model):
 
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
-    registry_form = models.ForeignKey(RegistryForm)       
+    registry_form = models.ForeignKey(RegistryForm)
 
-    
+
 class MongoMigrationDummyModel(models.Model):
     """
     This model should never be instantiated.
