@@ -26,17 +26,17 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
-        
+
         self.email_notification = email_notification
 
     def send(self):
         try:
             self._get_email_notification()
             email_subject, email_body = self._get_email_template()
-            
-            send_mail(email_subject, email_body, self.email_from, self.recipient)
+
+            send_mail(email_subject, email_body, self.email_from, self.recipient, html_message=email_body)
             logger.info("Sent email %s" % self.description)
-            
+
             self._save_notification_record()
             logger.info("Email %s saved in history table" % self.description)
         except RdrfEmailException:
@@ -56,47 +56,47 @@ class RdrfEmail(object):
                 self.email_templates = email_note.email_templates.get(language=self.language)
             except EmailTemplate.DoesNotExist:
                 self.email_templates = email_note.email_templates.get(language=self._DEFAULT_LANGUAGE)
-            
+
             if email_note.recipient:
                 recipient = self._get_recipient_template(email_note.recipient)
                 self.recipient.append(recipient)
             if email_note.group_recipient:
                 self.recipient = self.recipient + self._get_group_emails(email_note.group_recipient)
-            
+
         except EmailNotification.DoesNotExist:
             raise RdrfEmailException()
 
     def _get_group_emails(self, group):
         user_emails = []
         users = CustomUser.objects.filter(groups__in=[group])
-        
+
         for user in users:
            user_emails.append(user.email)
-        
+
         return user_emails
 
     def _get_recipient_template(self, recipient):
         context = Context(self.template_data)
         recipient_template = Template(recipient)
-        
+
         return recipient_template.render(context)
-    
+
     def _get_email_template(self):
         email_template = self.email_templates
         context = Context(self.template_data)
-        
+
         template_subject = Template(email_template.subject)
         template_body = Template(email_template.body)
-        
+
         template_subject = template_subject.render(context)
         template_body = template_body.render(context)
-        
+
         return template_subject, template_body
 
 
     def _save_notification_record(self):
         _template_data = {}
-        
+
         for key, value in self.template_data.iteritems():
             if value:
                 _template_data[key] = {
@@ -104,7 +104,7 @@ class RdrfEmail(object):
                     "model": value.__class__.__name__,
                     "id": value.id
                 }
-    
+
         enh = EmailNotificationHistory(
             language=self.language,
             email_notification=self.email_notification,
@@ -129,5 +129,15 @@ def process_notification(reg_code=None, description=None, language="en", templat
         email = RdrfEmail(language=language, email_notification=note)
         email.template_data = template_data
         email.send()
-            
-        
+
+
+def process_notification(reg_code=None, description=None, language="en", template_data = {}):
+    notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
+    for note in notes:
+        if note.disabled:
+            logger.warning("Email %s disabled" % note)
+
+        logger.info("Sending email %s" % note)
+        email = RdrfEmail(language=language, email_notification=note)
+        email.template_data = template_data
+        email.send()
