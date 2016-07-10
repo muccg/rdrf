@@ -1592,9 +1592,8 @@ class AdjudicationInitiationView(View):
             if errors:
                 return StandardView.render_error(
                     request,
-                    _("Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s") %
-                    (sent_ok,
-                     errors))
+                    _("Adjudication Requests created OK for users: %(sent_ok)s.<p>But the following errors occurred: %(errors)s") %
+                    { "sent_ok": sent_ok, "errors": errors })
             else:
                 return StandardView.render_information(
                     request,
@@ -1653,8 +1652,8 @@ class AdjudicationInitiationView(View):
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append(
-                        _("Could not create adjudication request object for %s: %s") %
-                        (target_user, ex))
+                        _("Could not create adjudication request object for %(target_user)s: %(ex)s") %
+                        { "target_user": target_user, "ex": ex})
 
         for target_working_group_name in target_working_group_names:
             try:
@@ -1670,8 +1669,8 @@ class AdjudicationInitiationView(View):
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append(
-                        _("could not create adjudication request for %s in group %s:%s") %
-                        (target_user, target_working_group, ex))
+                        _("could not create adjudication request for %(target_user)s in group %(target_working_group)s:%(ex)s") %
+                        {"target_user": target_user, "target_working_group": target_working_group, "ex": ex })
                     continue
 
         return request_created_ok, errors
@@ -1777,8 +1776,7 @@ class AdjudicationResultsView(View):
                 patient_id=patient_id,
                 requesting_username=requesting_user.username)
         except Adjudication.DoesNotExist:
-            msg = _("Could not find adjudication for definition %s patient %s requested by %s") % (
-                adj_def, patient_id, requesting_user)
+            msg = _("Could not find adjudication for definition %(adj_def)s patient %(patient_id)s requested by %(requesting_user)s") % {"adj_def": adj_def, "patient_id": patient_id, "requesting_user": requesting_user}
 
             return StandardView.render_error(request, msg)
 
