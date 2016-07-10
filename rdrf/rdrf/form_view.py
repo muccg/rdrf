@@ -953,10 +953,12 @@ class QuestionnaireView(FormView):
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 if is_multisection(section):
                     questionnaire_response_wrapper.save_dynamic_data(
-                        registry_code, "cdes", data_map[section], multisection=True)
+                        registry_code, "cdes", data_map[section], multisection=True,
+                        additional_data={"questionnaire_context": self.questionnaire_context})
                 else:
                     questionnaire_response_wrapper.save_dynamic_data(
-                    registry_code, "cdes", data_map[section])
+                        registry_code, "cdes", data_map[section],
+                        additional_data={"questionnaire_context": self.questionnaire_context})
 
             def get_completed_questions(
                     questionnaire_form_model,

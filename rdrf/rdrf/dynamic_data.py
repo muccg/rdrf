@@ -696,7 +696,7 @@ class DynamicDataWrapper(object):
             logger.error("Error deleting record: %s" % ex)
 
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
-                          index_map=None):
+                          index_map=None,additional_data=None):
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 
@@ -722,6 +722,9 @@ class DynamicDataWrapper(object):
                                      is_multisection=multisection,
                                      parse_all_forms=parse_all_forms,
                                      django_instance=self.obj).nested_data
+
+        if additional_data is not None:
+            nested_data.update(additional_data)
 
         if "_id" in record:
             collection.update({'_id': record['_id']}, {"$set": nested_data})
@@ -749,7 +752,8 @@ class DynamicDataWrapper(object):
     def save_snapshot(self, registry_code, collection_name):
         try:
             record = self.load_dynamic_data(registry_code, collection_name, flattened=False)
-            self._save_longitudinal_snapshot(registry_code, record)
+            if record is not None:
+                self._save_longitudinal_snapshot(registry_code, record)
         except Exception as ex:
             logger.error("Error saving longitudinal snapshot: %s" % ex)
 

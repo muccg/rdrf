@@ -335,7 +335,8 @@ class FieldFactory(object):
                 return fields.CharField(
                     max_length=80,
                     help_text=self.cde.instructions,
-                    widget=widget)
+                    widget=widget,
+                    label=self.cde.name)
             else:
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde.widget_name)
