@@ -184,21 +184,26 @@ def location_name(registry_form, current_rdrf_context_model=None):
                 else:
                     context_type_name = ""
 
+                #if context_type_name:
+                #    context_link_text = context_type_name
+                #else:
+                #    context_link_text = current_rdrf_context_model.display_name
+                #    
+                #edit_link = reverse("context_edit", args=(registry_model.code,
+                #                                          patient_model.pk,
+                #                                          current_rdrf_context_model.pk))
+                #context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
+                
                 if context_type_name:
-                    context_link_text = context_type_name
+                    s = "%s/%s" % (context_type_name, form_display_name)
                 else:
-                    context_link_text = current_rdrf_context_model.display_name
+                    s = form_display_name
                     
-                edit_link = reverse("context_edit", args=(registry_model.code,
-                                                          patient_model.pk,
-                                                          current_rdrf_context_model.pk))
-                context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
-                s = "%s/%s" % (context_link, form_display_name)
+                #s = "%s/%s" % (context_link, form_display_name)
             else:
                 s = form_display_name
     else:
         s = form_display_name
-    logger.debug("location_name = %s" % s)
     return s
 
 
