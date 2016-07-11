@@ -137,6 +137,10 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
                            form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
+
+                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
+                           consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
+
 #-------------------------------------------
 
 #---- Email Notifications URLs -------------

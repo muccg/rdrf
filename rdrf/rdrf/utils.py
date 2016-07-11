@@ -188,18 +188,24 @@ def location_name(registry_form, current_rdrf_context_model=None):
                 #    context_link_text = context_type_name
                 #else:
                 #    context_link_text = current_rdrf_context_model.display_name
-                #    
+                #
                 #edit_link = reverse("context_edit", args=(registry_model.code,
                 #                                          patient_model.pk,
                 #                                          current_rdrf_context_model.pk))
                 #context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
-                
+
                 if context_type_name:
                     s = "%s/%s" % (context_type_name, form_display_name)
+                    context_link_text = context_type_name
                 else:
                     s = form_display_name
-                    
-                #s = "%s/%s" % (context_link, form_display_name)
+                    context_link_text = current_rdrf_context_model.display_name
+
+                edit_link = reverse("context_edit", args=(registry_model.code,
+                                                          patient_model.pk,
+                                                          current_rdrf_context_model.pk))
+                context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
+                s = "%s/%s" % (context_link, form_display_name)
             else:
                 s = form_display_name
     else:
@@ -281,7 +287,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
             container_model = context_model.context_form_group
         else:
             container_model = registry_model
-            
+
         return [
             FormLink(
                 patient_id,
@@ -310,17 +316,19 @@ def consent_status_for_patient(registry_code, patient):
     from models import ConsentSection, ConsentQuestion
 
     consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-    answers = []
+    answers = {}
+    valid = []
     for consent_section in consent_sections:
         if consent_section.applicable_to(patient):
             questions = ConsentQuestion.objects.filter(section=consent_section)
             for question in questions:
                 try:
                     cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                    answers.append(cv.answer)
+                    answers[cv.consent_question.code] = cv.answer
                 except ConsentValue.DoesNotExist:
-                    answers.append(False)
-    return all(answers)
+                    pass
+            valid.append(consent_section.is_valid(answers))
+    return all(valid)
 
 
 def get_error_messages(forms):
