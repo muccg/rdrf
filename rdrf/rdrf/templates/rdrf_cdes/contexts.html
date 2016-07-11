@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base-1-col.html" %}
+{% extends "rdrf_cdes/base_contexts.html" %}
 {% load static from staticfiles %}
 {% load has_feature %}
 
@@ -145,8 +145,6 @@
     </script>
 {% endblock %}
 
-{% block location %}Patient List{% endblock %}
-
 {% block formbtns %}
 	<br>
 	<div class="btn-group" role="group" aria-label="...">
@@ -157,35 +155,27 @@
 {% endblock %}
 
 {% block content %}
+  <p>
+      <select id="registry_options">
+          {% for reg in registries %}
+              <option id="{{ reg.code }}">{{ reg.name }}</option>
+          {% endfor %}
+      </select>
+      <span id="loading_text"><i>Loading...</i></span>
+  </p>
 
-    {% if not registries %}
-        <div class="alert alert-danger">
-            You don't have access to any Registries.
-        </div>
-    {% else %}
-        <p>
-            <select id="registry_options">
-                {% for reg in registries %}
-                    <option id="{{ reg.code }}">{{ reg.name }}</option>
-                {% endfor %}
-            </select>
-            <span id="loading_text"><i>Loading...</i></span>
-        </p>
-
-        <table id="context_list_table" class="table table-striped table-hover">
-            {% if columns %}
-            <thead>
-                <tr>
-                    {% for column in columns %}
-                        <th>{{ column.label|safe }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            {% else %}
-                <caption class="alert alert-danger">You don't have permissions to view patient data</caption>
-            {% endif %}
-        </table>
-
-    {% endif %}
+  <table id="context_list_table" class="table table-striped table-hover">
+      {% if columns %}
+      <thead>
+          <tr>
+              {% for column in columns %}
+                  <th>{{ column.label|safe }}</th>
+              {% endfor %}
+          </tr>
+      </thead>
+      {% else %}
+          <caption class="alert alert-danger">You don't have permissions to view patient data</caption>
+      {% endif %}
+  </table>
 
 {% endblock %}
