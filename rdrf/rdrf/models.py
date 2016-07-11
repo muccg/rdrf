@@ -2033,7 +2033,7 @@ class MongoMigrationDummyModel(models.Model):
 
 def file_upload_to(instance, filename):
     return "/".join(filter(bool, [
-        instance.form.registry.code,
+        instance.registry.code,
         instance.section.code if instance.section else "_",
         instance.cde.code if instance.cde else "",
         filename]))
