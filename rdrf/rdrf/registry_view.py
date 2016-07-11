@@ -6,6 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 import logging
 
 from django.utils.translation import ugettext as _
+
+from registry.patients.models import ParentGuardian
 from models import Registry
 
 logger = logging.getLogger(__name__)
@@ -14,6 +16,13 @@ logger = logging.getLogger(__name__)
 class RegistryView(View):
 
     def get(self, request, registry_code):
+        parent = None
+        if request.user.is_authenticated():
+            try:
+                parent = ParentGuardian.objects.get(user=request.user)
+            except ParentGuardian.DoesNotExist:
+                pass
+
         try:
             if registry_code != "admin":
                 registry = Registry.objects.get(code=registry_code)
