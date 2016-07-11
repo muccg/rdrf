@@ -16,11 +16,12 @@ from copy import deepcopy
 
 
 class Logger(object):
-    def __init__(self, patient_model):
+    def __init__(self, patient_model=None):
         self.patient_model = patient_model
-        self.prefix = "Patient %s (id=%s)" % (self.patient_model, self.patient_model.pk)
-
-            
+        if self.patient_model is not None:
+            self.prefix = "SPLITTER Patient %s (id=%s): " % (self.patient_model, self.patient_model.pk)
+        else:
+            self.prefix = "SPLITTER: "
         
     def info(self, msg):
         print "%s: %s" % (self.prefix, msg)
@@ -40,7 +41,7 @@ class FHRecordSplitter(object):
         self.checkup_ids = []
         self.bad_contexts = []
         self.contexts_to_process = []
-        self.logger = None
+        self.logger = Logger()
         self.mongo_db_name = mongo_db_name
         self.registry_model = registry_model
         if self.registry_model.code != 'fh':
@@ -74,7 +75,7 @@ class FHRecordSplitter(object):
         if record:
             form_names = [form["name"] for form in record["forms"]]
             assert "FollowUp" not in form_names, "FollowUp form should not be in a main record"
-            assert "FollowUp_timestamp" not in record, "FollowU_timestamp should not be in a main record"
+            assert "FollowUp_timestamp" not in record, "FollowUp_timestamp should not be in a main record"
             assert "context_id" in record, "Main record should have a context_id"
             try:
                 context_model = RDRFContext.objects.get(id=record["context_id"])
@@ -142,12 +143,12 @@ class FHRecordSplitter(object):
                 context_model.context_form_group = self.main_cfg
                 try:
                     context_model.save()
-                    print "FH Context model %s had no context form group set - set to Main" % context_model.pk
+                    self.logger.info("FH Context model %s had no context form group set - set to Main" % context_model.pk)
                     self.contexts_to_process.append(context_model.pk)
                     
                 except Exception, ex:
-                    print "Error setting main cfg on context %s: %s" % (context_model.pk,
-                                                                              ex)
+                    self.logger.error("Error setting main cfg on context %s: %s" % (context_model.pk,
+                                                                              ex))
                     self.bad_contexts.append(context_model.pk)
 
 
@@ -163,13 +164,13 @@ class FHRecordSplitter(object):
 
         
     def run(self):
-
         self._link_main_context_form_groups()
+        
         
         for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
             error = False
             self.logger = Logger(patient_model)
-            self.logger.info("Processing ...")
+            self.logger.info("processing ...")
             # We can't use the normal "Dynamic Data Wrapper" in RDRF because this tries to retrieve by context id
             # is the registry changes from not using form groups to using form groups as here, the loadi
 
