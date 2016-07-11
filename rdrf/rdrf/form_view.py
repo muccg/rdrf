@@ -2695,8 +2695,10 @@ class ContextsListingView(LoginRequiredMixin, View):
 
         context["columns"] = columns
 
+        template = 'rdrf_cdes/contexts_no_registries.html' if len(registries) == 0 else 'rdrf_cdes/contexts.html'
+
         return render_to_response(
-            'rdrf_cdes/contexts.html',
+            template,
             context,
             context_instance=RequestContext(request))
 
