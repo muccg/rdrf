@@ -61,6 +61,7 @@ class QuickLinks(object):
 
     LoginLog = QuickLink("admin:useraudit_loginlog_changelist", _("User Login Log"), True)
     FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)
+    LoginAttempts = QuickLink("admin:useraudit_loginattempt_changelist", _("User Login Attempts Log"), True)
 
     IPRestrictGroup = QuickLink("admin:iprestrict_ipgroup_changelist", _("IP Restrict Groups"), True)
     IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
@@ -75,7 +76,7 @@ class QuickLinks(object):
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
-    AUDITING = oset([LoginLog, FailedLoginLog])
+    AUDITING = oset([LoginLog, FailedLoginLog, LoginAttempts])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries,
