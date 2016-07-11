@@ -318,7 +318,7 @@ class PatientFormMixin(PatientMixin):
         kwargs["registry_code"] = self.registry_model.code
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
-        kwargs["location"] = "Demographics"
+        kwargs["location"] = _("Demographics")
         if self.request.user.is_parent:
             kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
         return kwargs
@@ -379,7 +379,11 @@ class PatientFormMixin(PatientMixin):
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
-        personal_details_fields = ('Patients Personal Details', [
+        personal_header = _('Patients Personal Details')
+        if registry_code == "fkrp":
+            personal_header += "<br><br><i>" + _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
+
+        personal_details_fields = (personal_header, [
             "family_name",
             "given_names",
             "maiden_name",
