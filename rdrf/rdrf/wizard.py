@@ -62,9 +62,9 @@ class NavigationWizard(object):
     def _get_current_index(self):
         if self.form_type == NavigationFormType.DEMOGRAPHICS:
             # Demographics
-            return 0  # demographics always first item
+            return 1  # demographics always first item
         elif self.form_type == NavigationFormType.CONSENTS:
-            return 1
+            return 0
         else:
             index = 0
             for form_type, id, link in self.links:
@@ -75,19 +75,19 @@ class NavigationWizard(object):
             raise NavigationError("Form %s not in list" % self.current_form_model)
 
     def _construct_links(self):
-        
+
         if self.context_form_group:
             container_model = self.context_form_group
         else:
             container_model = self.registry_model
-                
+
         def form_link(form_model):
             link = reverse('registry_form', args=(self.registry_model.code,
                                                   form_model.id, self.patient_model.pk, self.context_id))
             return "clinical", form_model.pk, link
 
         patient_page_link = ("patient_page", None, reverse("patient_page", args=[self.registry_model.code]))
-            
+
         demographic_link = ("demographic", None, reverse("patient_edit",
                                                          args=[self.registry_model.code, self.patient_model.pk]))
 
@@ -96,12 +96,12 @@ class NavigationWizard(object):
 
         if self.context_model is None:
             return [demographic_link] + [consents_link]
-        
-        
+
+
         clinical_form_links = [form_link(form) for form in container_model.forms
                                if self.user.can_view(form) and not form.is_questionnaire]
 
-        form_links = [demographic_link] + [consents_link] + clinical_form_links
+        form_links = [consents_link] + [demographic_link] + clinical_form_links
         return form_links
 
     def current_link(self, index):
