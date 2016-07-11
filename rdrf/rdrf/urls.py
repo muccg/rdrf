@@ -56,6 +56,7 @@ urlpatterns = patterns('',
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
                        url(r'^iprestrict', include('iprestrict.urls')),
+                       url(r'^useraudit', include('useraudit.urls')),
 
                        (r'^api/v1/', include(api_urls, namespace='v1')),
                        # (r'^api/v2/', include(api_urls, namespace='v2')), etc.
