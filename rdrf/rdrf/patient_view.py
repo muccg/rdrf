@@ -16,6 +16,7 @@ from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
+from form_progress import FormProgress
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -118,6 +119,7 @@ class PatientView(View):
 
             try:
                 forms = registry.forms
+                form_progress = FormProgress(registry)
 
                 class FormLink(object):
 
@@ -126,6 +128,7 @@ class PatientView(View):
                         self.readonly = request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
                         patient = Patient.objects.get(user=request.user)
                         self.link = form.link(patient)
+                        self.progress = form_progress.get_form_progress(form, patient)
 
                 context['forms'] = [FormLink(form) for form in forms]
             except RegistryForm.DoesNotExist:
