@@ -53,7 +53,7 @@ class PatientToParentView(View):
         2: "F"
     }
 
-    def get(self, request, registry_code, patient_id):
+    def get(self, request, registry_code, patient_id, context_id=None):
 
         patient = Patient.objects.get(id=patient_id)
         patient_address = PatientAddress.objects.get(patient=patient)
@@ -138,29 +138,32 @@ class PatientView(View):
                     context['patient_form'] = PatientForm(
                         instance=patient, user=request.user, registry_model=registry)
                     context['patient_id'] = patient.id
+                    context['patient'] = patient
                     context['age'] = calculate_age(patient.date_of_birth)
-                    context['consent'] = self._consent_status(registry_code, patient)
+                    context['consent'] = consent_status_for_patient(registry_code, patient)
+                    try:
+                        context['clinician_selection'] = "%s_%s" % \
+                            (reverse('v1:customuser-detail', args=[patient.clinician.id,]), \
+                             reverse('v1:workinggroup-detail', args=[patient.working_groups.all()[0].id,]))
+                    except AttributeError:
+                        context['clinician_selection'] = "-1"
+
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
+
+                rdrf_context_manager = RDRFContextManager(registry)
+
+                try:
+                    context_model = rdrf_context_manager.get_context(context_id, patient)
+                    context['context_id'] = context_model.pk
+                except RDRFContextError, ex:
+                    logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+                    return HttpResponseRedirect("/")
 
         return render_to_response(
             'rdrf_cdes/patient.html',
             context,
             context_instance=RequestContext(request))
-
-    def _consent_status(self, registry_code, patient):
-        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        for consent_section in consent_sections:
-            if consent_section.applicable_to(patient):
-                answers = []
-                questions = ConsentQuestion.objects.filter(section=consent_section)
-                for question in questions:
-                    try:
-                        cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                        answers.append(cv.answer)
-                    except ConsentValue.DoesNotExist:
-                        answers.append(False)
-        return all(answers)
 
 
 class PatientMixin(object):

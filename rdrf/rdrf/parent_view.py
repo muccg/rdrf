@@ -103,6 +103,9 @@ class ParentView(BaseParentView):
             parent = ParentGuardian.objects.get(user=request.user)
             registry = Registry.objects.get(code=registry_code)
 
+            self.registry = registry
+            self.rdrf_context_manager = RDRFContextManager(self.registry)
+
             forms_objects = RegistryForm.objects.filter(registry=registry).order_by('position')
             forms = []
             for form in forms_objects:
@@ -114,9 +117,11 @@ class ParentView(BaseParentView):
             patients_objects = parent.patient.all()
             patients = []
             for patient in patients_objects:
+                self.set_rdrf_context(patient, context_id)
                 patients.append({
                     "patient": patient,
-                    "consent": consent_status_for_patient(registry_code, patient)
+                    "consent": consent_status_for_patient(registry_code, patient),
+                    "context_id": self.rdrf_context.pk
                 })
 
             context['parent'] = parent
@@ -132,7 +137,7 @@ class ParentView(BaseParentView):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code):
+    def post(self, request, registry_code, context_id=None):
         parent = ParentGuardian.objects.get(user=request.user)
         registry = Registry.objects.get(code=registry_code)
 
@@ -169,7 +174,7 @@ class ParentView(BaseParentView):
 
 class ParentEditView(BaseParentView):
 
-    def get(self, request, registry_code, parent_id):
+    def get(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(user=request.user)
 
@@ -182,7 +187,7 @@ class ParentEditView(BaseParentView):
             context,
             context_instance=RequestContext(request))
 
-    def post(self, request, registry_code, parent_id):
+    def post(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
 
