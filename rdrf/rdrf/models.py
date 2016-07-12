@@ -521,6 +521,16 @@ class Registry(models.Model):
             if cfg.is_default:
                 return cfg
 
+    @property
+    def fixed_context_form_groups(self):
+        return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
+                                                                context_type="F").order_by("is_default").order_by("name")]
+
+    @property
+    def multiple_context_form_groups(self):
+        return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
+                                                                context_type="M").order_by("name")]
+
     def _check_metadata(self):
         if self.metadata_json == "":
             return True

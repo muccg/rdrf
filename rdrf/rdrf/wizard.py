@@ -12,6 +12,72 @@ class NavigationFormType:
     CLINICAL = 3
 
 
+class NavigationWizard2(object):
+    def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
+        self.user = user
+        self.registry_model = registry_model
+        self.patient_model = patient_model
+        self.form_type = form_type
+        self.context_id = context_id
+        self.current_form_model = current_form_model
+        self.links = []
+        self.current_index = None # set by method below
+
+        self._construct_links()
+
+
+    def _construct_links(self):
+        demographics_link = self._construct_demographics_link()
+        self.links.append(demographics_link)
+        consents_link = self._construct_consents_link()
+        self.links.append(consents_link)
+
+        for fixed_form_group in self._fixed_form_groups():
+            for form_model in fixed_form_group.form_models:
+                if self.user.can_view(form_model):
+                    self.links.append(self._construct_fixed_form_link(form_model))
+
+        for multiple_form_group in self._multiple_form_groups():
+            for form_model in multiple_form_group.form_models:
+                if self.user.can_view(form_model):
+                    for context_model in self._get_multiple_contexts(form_model):
+                        self.links.append(self._construct_multple_form_link(form_model, context_model))
+
+        # if form models have not been partitioned into form groups, they are "free"
+        # most registries just have free forms
+        for form_model in self._free_forms():
+            if self.user.can_view(form_model):
+                self.links.append(self._construct_free_form_link(form_model))
+
+        self.current_index = self._determine_current_index()
+
+
+    def _fixed_form_groups(self):
+
+            
+
+    def _construct_demographics_link(self):
+        return ("demographic", None, reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk]))
+
+    def _construct_consents_link(self):
+         return ("consents", None, reverse("consent_form_view",
+                                                   args=[self.registry_model.code, self.patient_model.pk]))
+
+    @property
+    def previous_link(self):
+        num_links = len(self.links)
+        next_index = (self.current_index + 1) % num_links
+        return self.links[next_index]
+
+    @property
+    def next_link(self):
+        num_links = len(self.links)
+        next_index = (self.current_index - 1) % num_links
+        return self.links[next_index]
+    
+        
+    
+
 class NavigationWizard(object):
     """
     Allow user to navigate forward and back through demographics and clinical forms
