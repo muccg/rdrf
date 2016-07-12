@@ -76,7 +76,7 @@
         var load_contexts_list;
         var context_list;
         {% if columns %}
-            contexts_list = $("#context_list_table").DataTable({
+            context_list = $("#context_list_table").DataTable({
                 "processing": true,
                 "serverSide": true,
                 //"sAjaxDataProp" : "data",
@@ -96,7 +96,7 @@
                     'container': 'body'
                 });
             });
-            load_contexts_list = function() {
+            load_contexts_list = function(apiUrl) {
               if (context_list) {
                   context_list.ajax.url(apiUrl).load();
               }
@@ -109,7 +109,7 @@
             $("#loading_text").show();
             var registryCode= $("#registry_options > option:selected").attr("id");
             var apiUrl = getApiUrl(registryCode, getDrawLength());
-            load_contexts_list();
+            load_contexts_list(apiUrl);
         });
 
 
