@@ -1920,7 +1920,10 @@ class ContextFormGroup(models.Model):
 
     @property
     def forms(self):
-        return [ item.registry_form for item in self.items.all()]
+        sort_func = lambda form : form.position
+        
+        return sorted([ item.registry_form for item in self.items.all()],
+                      key=sort_func)
 
     def __unicode__(self):
         return self.name

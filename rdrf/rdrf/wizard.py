@@ -63,6 +63,12 @@ class NavigationWizard(object):
 
         self.current_index = self._determine_current_index()
 
+
+    def _construct_free_form_link(self, form_model):
+        # get default context model from patient
+        context_model = self.patient_model.default_context(self.registry_model)
+        return self._form_link(form_model, context_model)
+
         
     def _form_link(self, form_model, context_model):
         link = reverse('registry_form', args=(self.registry_model.code,
@@ -102,7 +108,7 @@ class NavigationWizard(object):
 
     def _free_forms(self):
         if self.registry_model.is_normal:
-            return self.registry_model.form_models
+            return [ f for f in self.registry_model.forms if not f.is_questionnaire]
         else:
             return []
 
