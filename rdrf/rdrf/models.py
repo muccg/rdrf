@@ -134,6 +134,15 @@ class Registry(models.Model):
             return RegistryType.HAS_CONTEXT_GROUPS
 
     @property
+    def has_groups(self):
+        return self.registry_type == RegistryType.HAS_CONTEXT_GROUPS
+
+    @property
+    def is_normal(self):
+        return self.registry_type == RegistryType.NORMAL
+
+
+    @property
     def metadata(self):
         if self.metadata_json:
             try:
@@ -522,12 +531,12 @@ class Registry(models.Model):
                 return cfg
 
     @property
-    def fixed_context_form_groups(self):
+    def fixed_form_groups(self):
         return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
                                                                 context_type="F").order_by("is_default").order_by("name")]
 
     @property
-    def multiple_context_form_groups(self):
+    def multiple_form_groups(self):
         return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
                                                                 context_type="M").order_by("name")]
 
@@ -1981,6 +1990,11 @@ class ContextFormGroup(models.Model):
             return action_link, action_title
         else:
             return None
+
+    @property
+    def form_models(self):
+        return sorted([item.registry_form for item in self.items.all()], key=lambda f : f.position)
+        
 
 
 class ContextFormGroupItem(models.Model):
