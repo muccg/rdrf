@@ -14,10 +14,25 @@
   */
   </script>
 
+<div width="100%" class="panel panel-default collapsible">
+  <div class="panel-body">
+    {% if current_form_name == "Demographics" %}
+     <i>Demographics</i>
+  {% else %}
+     <a href="{{demographics_link}}">Demographics</a>
+  {% endif %}
+  </div>
+</div>
+
+
 {% if not consent_locked %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    <a href="{{consents_link}}">Consents</a>
+    {% if current_form_name == "Consents" %}
+     <i>Consents</i>
+  {% else %}
+     <a href="{{consents_link}}">Consents</a>
+  {% endif %}
   </div>
 </div>
 
@@ -29,7 +44,29 @@
 </div>
 {% endif %}
 
-{% if multiple_contexts %}
+
+
+{% for fixed_context in fixed_contexts %}
+  <div class="panel panel-default collapsible">
+    <div class="panel-heading">
+      {{fixed_context.name}}
+    </div>
+    <div class="panel-body">
+      {% for form in fixed_context.forms %}
+        <p>
+          {% if form.current %}
+              <i>{{form.text}}</i>
+          {% else %}
+            <a href="{{form.url}}">{{form.text}}</a>
+        {% endif %}
+        </p>
+      {% endfor %}
+    </div>
+  </div>
+{% endfor %}
+
+
+ {% if multiple_contexts %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
       {% for multiple_context in multiple_contexts %}
@@ -47,6 +84,7 @@
   </div>
 </div>
 {% endif %}
+
 
 {% if current_multiple_context %}
   <div class="panel panel-default collapsible">
@@ -68,24 +106,6 @@
   </div>
 {% endif %}
 
-{% for fixed_context in fixed_contexts %}
-  <div class="panel panel-default collapsible">
-    <div class="panel-heading">
-      {{fixed_context.name}}
-    </div>
-    <div class="panel-body">
-      {% for form in fixed_context.forms %}
-        <p>
-          {% if form.current %}
-              <i>{{form.text}}</i>
-          {% else %}
-            <a href="{{form.url}}">{{form.text}}</a>
-        {% endif %}
-        </p>
-      {% endfor %}
-    </div>
-  </div>
-{% endfor %}
 
 {% else %}
   <div class="panel panel-default collapsible">
