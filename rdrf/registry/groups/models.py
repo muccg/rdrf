@@ -235,10 +235,10 @@ def user_registered_callback(sender, user, request, **kwargs):
 
     patient_reg = None
     if reg_code == "fkrp":
-        from patient_registration.fkrp import FkrpRegistration
+        from fkrp.patient_registration import FkrpRegistration
         patient_reg = FkrpRegistration(user, request)
     elif reg_code == "ang":
-        from patient_registration.ang import AngelmanRegistration
+        from angelman.patient_registration import AngelmanRegistration
         patient_reg = AngelmanRegistration(user, request)
     elif reg_code == "mtm":
         from mtm.patient_registration import MtmRegistration
