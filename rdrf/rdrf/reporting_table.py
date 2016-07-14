@@ -73,8 +73,12 @@ class ReportingTableGenerator(object):
                 # numbers
                 "calculated": alc.String,
                 "integer": alc.Integer,
+                "Integer": alc.Integer,
                 "int": alc.Integer,
                 "string": alc.String,
+                "date": alc.Date,
+                "range": alc.String,
+                "file": alc.String,
                 }
 
     def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}, max_items=3):

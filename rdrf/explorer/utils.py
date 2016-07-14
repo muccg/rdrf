@@ -401,15 +401,13 @@ class DatabaseUtils(object):
             return None
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
-        if cde_model.datatype == "file":
-            return "FILE"  # to do
-        elif cde_model.datatype == "calculated":
-            if stored_value == "NaN":
-                return ""
-            else:
-                return stored_value
-        else:
-            return cde_model.get_display_value(stored_value)
+        datatype = cde_model.datatype.strip().lower()
+        if datatype != 'string' and stored_value in  ['', 'NaN',' ', None]:
+            # ensure we don't pass empty string back for float fields etc.
+            return None
+        if datatype == "file":
+            return "FILE" 
+        return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
         client = self._get_mongo_client()
