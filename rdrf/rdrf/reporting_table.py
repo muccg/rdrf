@@ -635,20 +635,20 @@ class ReportTable(object):
             rows.append(result_dict)
         return rows
 
+    
     def _format(self, column, data):
-        logger.debug("column %s = %s" % (column, data))
-        if isinstance(data, datetime):
-            iso = data.isoformat()
-            return iso
         if data is None:
             return ""
 
-        if data ==  "{}":
-            # not sure how these are produced yet?
+        if data == "{}":
+            # these are artifacts of the multichoice fields
             return ""
-            
-        converter = self._converters.get(column, None)
-        if converter is None:
+
+        if isinstance(data, basestring):
             return data
-        else:
-            return converter(data)
+
+        if isinstance(data, datetime):
+            iso = data.isoformat()
+            return iso
+        
+        return str(data)
