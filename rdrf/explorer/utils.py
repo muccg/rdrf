@@ -213,6 +213,7 @@ class DatabaseUtils(object):
 
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     if mongo_columns_dict is None:
+                        sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
                     else:
                         mongo_columns_dict["snapshot"] = False
