@@ -177,15 +177,31 @@ class DatabaseUtils(object):
             logger.debug("CURRENT MONGO REPORT")
             # current data - no longitudinal snapshots
             for row in self.cursor:
+                logger.debug("processing sql row ..")
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
+                logger.debug("created sql dict")
+
+                # A mongo record may not exist ( represented as None )
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
-                    mongo_columns_dict["snapshot"] = False
-                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                        yield combined_dict
+                    if mongo_columns_dict is None:
+                        logger.debug("no mongo data - yield sql only")
+                        sql_columns_dict["snapshot"] = False
+                        yield sql_columns_dict
+                    else:
+                        logger.debug("mongo data exists")
+                        mongo_columns_dict["snapshot"] = False
+                        logger.debug("marked row as not a snapshot")
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            logger.debug("yielding combined dict")
+                            if combined_dict is None:
+                                logger.debug("combined dict is None ???")
+
+                            logger.debug("combined_dict = %s" % combined_dict)
+                            yield combined_dict
         else:
             # include longitudinal ( snapshot) data
             logger.debug("LONGITUDINAL MONGO REPORT")
@@ -196,11 +212,17 @@ class DatabaseUtils(object):
                     sql_columns_dict[sql_column_name] = item
 
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
-                    mongo_columns_dict["snapshot"] = False
-                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                        yield combined_dict
+                    if mongo_columns_dict is None:
+                        yield sql_columns_dict
+                    else:
+                        mongo_columns_dict["snapshot"] = False
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            yield combined_dict
 
                 for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection, max_items):
+                    if mongo_columns_dict is None:
+                        yield None
+                        
                     mongo_columns_dict["snapshot"] = True
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
@@ -312,8 +334,13 @@ class DatabaseUtils(object):
         mongo_query = {"django_model": django_model,
                        "django_id": django_id}
 
-        for mongo_document in mongo_collection.find(mongo_query):
-            yield self._get_result_map(mongo_document, max_items=max_items)
+        records = mongo_collection.find(mongo_query)
+        num_records = records.count()
+        if num_records == 0:
+            yield None
+        else:
+            for mongo_document in records:
+                yield self._get_result_map(mongo_document, max_items=max_items)
 
     def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
@@ -402,8 +429,11 @@ class DatabaseUtils(object):
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
-        if datatype != 'string' and stored_value in  ['', 'NaN',' ', None]:
-            # ensure we don't pass empty string back for float fields etc.
+        if datatype == "calculated" and stored_value == "NaN":
+            return None
+        if datatype != 'string' and stored_value in  ['', ' ', None]:
+            # ensure we don't pass empty string back for numeric fields.
+            # range fields will always be non-blank, non-whitespace
             return None
         if datatype == "file":
             return "FILE" 

@@ -120,6 +120,9 @@ class ReportingTableGenerator(object):
         self.table.create()
         logger.debug("created table based on schema")
 
+    def _get_blank_row(self):
+        return { col.name : None for col in self.columns }
+
     @timed
     def drop_table(self):
         drop_table_sql = "DROP TABLE %s" % self.table_name
@@ -364,15 +367,19 @@ class ReportingTableGenerator(object):
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            try:
-                self.insert_row(row)
-                row_num += 1
-            except Exception, ex:
-                errors += 1
-                src = "query"
-                logger.error("report error: query %s row after %s error: %s" % (src,
-                                                                                row_num,
-                                                                                ex))
+            #try:
+                
+            blank_row = self._get_blank_row()
+            
+            self.insert_row(blank_row.update(row))
+            row_num += 1
+            logger.debug("inserted row OK. row_num = %s" % row_num)
+            #except Exception, ex:
+            #    errors += 1
+            #    src = "query"
+            #    logger.error("report error: query %s row after %s error: %s" % (src,
+            #                                                                    row_num,
+            #                                                                    ex))
         if errors > 0:
             logger.info("query errors: %s" % errors)
             self.error_messages.append(
