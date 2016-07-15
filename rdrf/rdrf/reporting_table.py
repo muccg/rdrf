@@ -4,6 +4,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 import explorer
 from explorer.utils import DatabaseUtils
 from rdrf.utils import timed
+from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -88,6 +89,7 @@ class ReportingTableGenerator(object):
         self.type_overrides = type_overrides
         self.engine = self._create_engine()
         self.columns = set([])
+        self.column_names = []
         self.table_name = ""
         self.table = None
         self.reverse_map = {}
@@ -121,7 +123,7 @@ class ReportingTableGenerator(object):
         logger.debug("created table based on schema")
 
     def _get_blank_row(self):
-        return { col.name : None for col in self.columns }
+        return { column_name : None for column_name in self.column_names }
 
     @timed
     def drop_table(self):
@@ -369,9 +371,9 @@ class ReportingTableGenerator(object):
                                                    max_items=self.max_items):
             #try:
                 
-            blank_row = self._get_blank_row()
-            
-            self.insert_row(blank_row.update(row))
+            new_row = self._get_blank_row()
+            new_row.update(row)
+            self.insert_row(new_row)
             row_num += 1
             logger.debug("inserted row OK. row_num = %s" % row_num)
             #except Exception, ex:
@@ -396,6 +398,7 @@ class ReportingTableGenerator(object):
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
+        self.column_names.append(name)
         column = alc.Column(name, datatype, nullable=True)
         self.columns.append(column)
         return column
@@ -628,11 +631,22 @@ class ReportTable(object):
         for row in self.engine.execute(query):
             result_dict = {}
             for i, col in enumerate(columns):
-                result_dict[col.name] = self._format(col.name, row[i])
+                result_dict[col.name] = str(self._format(col.name, row[i]))
             rows.append(result_dict)
         return rows
 
     def _format(self, column, data):
+        logger.debug("column %s = %s" % (column, data))
+        if isinstance(data, datetime):
+            iso = data.isoformat()
+            return iso
+        if data is None:
+            return ""
+
+        if data ==  "{}":
+            # not sure how these are produced yet?
+            return ""
+            
         converter = self._converters.get(column, None)
         if converter is None:
             return data
