@@ -2763,13 +2763,11 @@ class CustomConsentFormView(View):
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
 
-
-
-
         context = {
             "location": "Consents",
             "forms": form_sections,
             "context_id": context_id,
+            "form_name": "fixme",  # required for form_print link
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
