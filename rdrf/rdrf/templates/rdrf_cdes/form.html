@@ -240,7 +240,7 @@
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
@@ -394,7 +394,7 @@
                                 <div class="form-group rdrf-cde-field invisibutton-container">
                                     <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
                                         {% if field.field.cde.code %}
-                                        <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
+                                        <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"
                                            class="btn btn-default btn-xs invisibutton pull-left"
                                            data-toggle="tooltip" title="View previous values"

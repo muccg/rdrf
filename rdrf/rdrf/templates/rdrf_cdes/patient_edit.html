@@ -173,7 +173,7 @@
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
