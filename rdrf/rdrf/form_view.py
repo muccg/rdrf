@@ -2420,7 +2420,7 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
 
         if ordering == "patient_link":
             def get_name(context_model):
-                return context_model.content_object.family_name
+                return context_model.content_object.display_name
 
             key_func = get_name
             logger.debug("key_func is by patient_link")
@@ -2761,7 +2761,10 @@ class CustomConsentFormView(View):
         except ParentGuardian.DoesNotExist:
             parent = None
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        registry_model,
+                                                        patient_model,
+                                                        current_form_name="Consents")
 
         context = {
             "location": "Consents",
@@ -2863,7 +2866,10 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient_model)
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        registry_model,
+                                                        patient_model,
+                                                        current_form_name="Consents")
 
         wizard = NavigationWizard(request.user,
                                   registry_model,

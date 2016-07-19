@@ -1,17 +1,17 @@
 {% extends "rdrf_cdes/base.html" %}
-{% load static from staticfiles %}
+{% load static  %}
 {%  block htmltype %}
     <!doctype html>
     <html lang="en">
 {%  endblock %}
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/jquery.dataTables-custom.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/datatables.min.css' %}"/>
 
 {% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/jquery.dataTables-custom.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/datatables.min.js' %}"></script>
 
 
 

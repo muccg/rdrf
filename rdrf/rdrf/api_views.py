@@ -236,7 +236,7 @@ class LookupLaboratories(APIView):
 
         def to_dict(lab):
             return {
-                'value': lab.id,
+                'value': lab.pk,
                 'label': lab.name,
             }
 
