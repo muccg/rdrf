@@ -112,7 +112,7 @@ MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(WEBAPP_ROOT, 'rdrf', 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
