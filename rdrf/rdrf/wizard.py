@@ -83,7 +83,7 @@ class NavigationWizard(object):
 
     def _get_multiple_contexts(self, multiple_form_group):
         contexts = [c for c in self.patient_model.context_models
-                      if c.context_form_group.pk == multiple_form_group.pk]
+                      if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
         
         return sorted(contexts, key=lambda c : c.created_at)
             
