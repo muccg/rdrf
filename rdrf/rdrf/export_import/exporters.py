@@ -50,13 +50,13 @@ class DataGroupExporter(object, DelegateMixin):
 
         if len(self.models) > 0:
             self.logger.debug("Exporting %d models" % len(self.models))
-        for model in self.models:
-            exporter = self.model_exporters.get(model)(model, child_logger)
+        for model_name in self.models:
+            exporter = self.model_exporters.get(apps.get_model(model_name))(model_name, child_logger)
             if exporter.export(**child_context):
                 self.meta['models'].append(exporter.get_meta_info())
 
         if len(self.collections) > 0:
-            self.logger.debug("Exporting %d models" % len(self.collections))
+            self.logger.debug("Exporting %d collections" % len(self.collections))
         for collection in self.collections:
             exporter = self.mongo_collection_exporters.get(collection)(collection, child_logger)
             if exporter.export(**child_context):
@@ -132,6 +132,7 @@ class ModelExporter(object):
         if not self.export_finished:
             raise ValueError('Invalid state: Model %s needs to be exported first' % self.full_modelname)
         return self.meta_collector.collect()
+
 
 class MongoCollectionExporter(object):
     def __init__(self, collection_name, logger):
