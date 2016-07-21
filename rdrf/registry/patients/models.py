@@ -794,6 +794,31 @@ class Patient(models.Model):
             contexts.append(context_model)
         return contexts
 
+    def get_forms_by_group(self, context_form_group):
+        """
+        Return links (pair of url and text)
+        to existing forms "of type" (ie being in a context with a link to)  context_form_group
+        
+        """
+        if  not context_form_group.supports_direct_linking:
+            return []
+
+        links = []
+        
+        form_model = context_form_group.form_models[0]
+
+        for context_model in sorted(self.context_models, key=lambda c: c.created_at):
+            if context_model.context_form_group and context_model.context_form_group.pk == context_form_group.pk:
+                link_text = form_model.nice_name + " " + str(context_model.pk)
+                link_url = reverse('registry_form', args=(context_model.registry.code,
+                                                          form_model.id,
+                                                          self.pk,
+                                                          context_model.id))
+                links.append((link_url, link_text))
+
+        return links
+        
+
     def default_context(self, registry_model):
         # return None if doesn't make sense
         from rdrf.models import RegistryType

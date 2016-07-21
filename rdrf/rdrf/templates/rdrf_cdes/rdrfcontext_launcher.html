@@ -67,18 +67,24 @@
 {% endfor %}
 
 
-  {% if multiple_contexts %}
 
   {% for multiple_context in multiple_contexts %}
 <div width="100%" class="panel panel-default collapsible">
-    <div class="panel-heading">
+    <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
       {{multiple_context.heading}}
       <a class="btn btn-info btn-xs pull-right"
          onclick="location.href='{{multiple_context.add_link_url}}';">
          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</a>
     </div>
-    <div class="panel-body">
-      <a href="{{multiple_context.url}}">{% trans "Existing" %}</a><br>
+    <div id="existing_{{multiple_context.id}}" class="panel-body">
+      {% for link in multiple_context.existing_links %}
+          {% if not link.current %}
+             <a href="{{link.url}}">{% trans link.text %}</a><br>
+	  {% else %}
+	     <i>{{link.text}}</i><br>
+	  {% endif %}
+      
+      {% endfor %}
 
     </div>
  </div>
@@ -86,36 +92,19 @@
   {% endfor %}
   
 
-  
-{% endif %}
-
-{% if current_multiple_context %}
-  <div class="panel panel-default collapsible">
-    <div class="panel-heading">
-      {{current_multiple_context.name}}
-    </div>
-  
-    <div class="panel-body">
-      {% for form in current_multiple_context.forms %}
-        <p>
-         {% if form.current %}
-            <i>{{form.text}}</i>
-         {% else %}
-            <a href="{{form.url}}">{{form.text}}</a><br>
-         {% endif %}
-        </p>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-
 {% else %}
-  <div class="panel panel-default collapsible">
-    <div class="panel-body">
-      <a href="{{consents_link}}">Consents</a><br>
-    </div>
+<!-- consent locked -->
+<div width="100%" class="panel panel-default collapsible">
+  <div class="panel-body">
+    {% if current_form_name == "Consents" %}
+     <i>Consents</i>
+  {% else %}
+     <a href="{{consents_link}}">{% trans 'Consents' %}</a>
+  {% endif %}
   </div>
+</div>
+  
 {% endif %}
+
 <!-- end demographics form launcher -->
 

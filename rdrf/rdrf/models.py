@@ -1946,6 +1946,10 @@ class ContextFormGroup(models.Model):
 
         return self.form_models[0].nice_name
 
+    @property
+    def supports_direct_linking(self):
+        return len(self.form_models) == 1
+
 
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":

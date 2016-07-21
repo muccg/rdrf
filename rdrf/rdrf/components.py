@@ -9,17 +9,27 @@ import logging
 
 logger = logging.getLogger("registry_log")
 
+class Link(object):
+    def __init__(self, url, text, current):
+        self.url = url
+        self.text = text
+        self.current = current
+        
+
+        
 class LauncherError(Exception):
     pass
 
 class _Form(object):
     def __init__(self, url, text, current=False, add_link_url=None, add_link_text=None):
+        self.id = None
         self.url = url
         self.text = text
         self.current = current
         self.add_link_url = add_link_url
         self.add_link_text = add_link_text
         self.heading = ""
+        self.existing_links = [] # for multiple contexts
         
 
     def __unicode__(self):
@@ -155,11 +165,28 @@ class RDRFContextLauncherComponent(RDRFComponent):
                                    add_link_text=add_link_text)
                 
                 form.heading = _(context_form_group.direct_name + "s")
+                form.id = context_form_group.pk
+                form.existing_links = self._get_existing_links(context_form_group)
                 links.append(form)
                 
                           
         return links
 
+    def _get_existing_links(self, context_form_group):
+        links = []
+        def is_current(url):
+            parts = url.split("/")
+            context_id = int(parts[-1])
+            if self.current_rdrf_context_model:
+                return context_id == self.current_rdrf_context_model.pk
+            else:
+                return False
+        
+        for url, text in self.patient_model.get_forms_by_group(context_form_group):
+            link_obj = Link(url, text, is_current(url))
+            links.append(link_obj)
+        return links
+    
 
     def _get_current_multiple_context(self):
         #def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
