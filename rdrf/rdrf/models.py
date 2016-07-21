@@ -1936,6 +1936,16 @@ class ContextFormGroup(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def direct_name(self):
+        """
+        If there is only one form in the group , show _its_ name
+        """
+        if len(self.form_models) != 1:
+            return self.name
+
+        return self.form_models[0].nice_name
+
 
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":

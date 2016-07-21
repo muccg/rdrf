@@ -19,6 +19,7 @@ class _Form(object):
         self.current = current
         self.add_link_url = add_link_url
         self.add_link_text = add_link_text
+        self.heading = ""
         
 
     def __unicode__(self):
@@ -137,21 +138,28 @@ class RDRFContextLauncherComponent(RDRFComponent):
         links = []
         for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
                                                                   context_type="M").order_by("name"):
-            name = _("All " + context_form_group.name + "s") 
+            name = _("All " + context_form_group.direct_name + "s") 
             filter_url = contexts_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
                                                                                                               self.patient_model.pk,
                                                                                                               context_form_group.pk)
 
+
+             
+            
             link_pair  = context_form_group.get_add_action(self.patient_model)
             if link_pair:
                 add_link_url, add_link_text = link_pair
-                links.append(_Form(filter_url,
+                form = _Form(filter_url,
                                    name,
                                    add_link_url=add_link_url,
-                                   add_link_text=add_link_text))
+                                   add_link_text=add_link_text)
+                
+                form.heading = _(context_form_group.direct_name + "s")
+                links.append(form)
                 
                           
         return links
+
 
     def _get_current_multiple_context(self):
         #def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
