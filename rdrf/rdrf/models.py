@@ -1899,24 +1899,32 @@ class RDRFContext(models.Model):
     @property
     def context_name(self):
         if self.context_form_group:
-            return self.context_form_group.name # E.G. Assessment or Visit - used for display
+            if self.context_form_group.naming_scheme == "C":
+                logger.debug("getting name from cde")
+                return self.get_name_from_cde()
+            else:
+                return self.context_form_group.name # E.G. Assessment or Visit - used for display
         else:
             try:
                 return self.registry.metadata["context_name"]
             except KeyError:
                 return "Context"
+
         
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
     NAMING_SCHEMES = [("D", "Automatic - Date"),
                       ("N", "Automatic - Number"),
-                      ("M", "Manual - Free Text")]
+                      ("M", "Manual - Free Text"),
+                      ("C", "CDE - Nominate CDE to use")]
+    
     
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
     is_default = models.BooleanField(default=False)
+    naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)
 
     @property
     def forms(self):
@@ -1927,6 +1935,7 @@ class ContextFormGroup(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":
@@ -1945,8 +1954,24 @@ class ContextFormGroup(models.Model):
                                                                         context_form_group=self)]
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
+        elif self.naming_scheme == "C":
+            return self.get_name_from_cde(patient_model)
         else:
             return "Modules"
+
+    def get_name_from_cde(self, patient_model):
+        form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
+        try:
+            cde_value = patient_model.get_form_value(self.registry.code,
+                                                     form_name,
+                                                     section_code,
+                                                     cde_code)
+
+            return "%s %s" % (self.name, cde_value)
+        except KeyError:
+            # value not filled out yet
+            return "%s - PENDING" % self.name
+        
 
     @property
     def naming_info(self):
@@ -1986,6 +2011,10 @@ class ContextFormGroup(models.Model):
         
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
+
+            if len(self.form_models) == 1:
+                return self._get_direct_add_link_for_single_form(patient_model)
+            
             action_title = "Add %s" % self.name
             action_link = reverse("context_add", args=(self.registry.code,
                                                        str(patient_model.pk),
@@ -1993,6 +2022,17 @@ class ContextFormGroup(models.Model):
             return action_link, action_title
         else:
             return None
+
+    def _get_direct_add_link_for_single_form(self, patient_model):
+        assert len(self.form_models) == 1, "Number of forms in group must be one"
+        form_model = self.form_models[0]
+        
+        link_title = "Add %s" % form_model.name
+        action_link = reverse("context_add", args=(self.registry.code,
+                                                       str(patient_model.pk),
+                                                       str(self.pk),
+                                                       True))
+        
 
     @property
     def form_models(self):
