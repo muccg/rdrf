@@ -2011,28 +2011,15 @@ class ContextFormGroup(models.Model):
         
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
-
-            if len(self.form_models) == 1:
-                return self._get_direct_add_link_for_single_form(patient_model)
-            
-            action_title = "Add %s" % self.name
+            num_forms = len(self.form_models)
+            # Direct link to form if num forms is 1 ( handler redirects transparently)
+            action_title = "Add %s" % self.form_models[0].name if num_forms == 1 else "Add %s" % self.name
             action_link = reverse("context_add", args=(self.registry.code,
                                                        str(patient_model.pk),
                                                        str(self.pk)))
             return action_link, action_title
         else:
             return None
-
-    def _get_direct_add_link_for_single_form(self, patient_model):
-        assert len(self.form_models) == 1, "Number of forms in group must be one"
-        form_model = self.form_models[0]
-        
-        link_title = "Add %s" % form_model.name
-        action_link = reverse("context_add", args=(self.registry.code,
-                                                       str(patient_model.pk),
-                                                       str(self.pk),
-                                                       True))
-        
 
     @property
     def form_models(self):

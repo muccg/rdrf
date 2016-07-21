@@ -129,6 +129,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         return patient_context_menu.actions
 
+
     def _get_multiple_contexts(self):
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
@@ -140,6 +141,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             filter_url = contexts_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
                                                                                                               self.patient_model.pk,
                                                                                                               context_form_group.pk)
+
             link_pair  = context_form_group.get_add_action(self.patient_model)
             if link_pair:
                 add_link_url, add_link_text = link_pair
