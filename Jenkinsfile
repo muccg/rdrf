@@ -4,7 +4,7 @@ node {
     stage 'Checkout'
         checkout scm
         sh "git checkout -f ${env.BRANCH_NAME}"
-        sh "git pull -f --unshallow"
+        sh "git pull -f"
 
     stage 'Docker dev build'
         echo "Branch is: ${env.BRANCH_NAME}"
