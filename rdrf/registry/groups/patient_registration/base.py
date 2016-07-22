@@ -50,9 +50,10 @@ class BaseRegistration(object):
     
     
     def _create_patient_address(self, patient, request, address_type="POST"):
+        address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
         address = PatientAddress.objects.create(
             patient=patient,
-            address_type=AddressType.objects.get(description__icontains=address_type),
+            address_type=address_type_obj,
             address=request.POST["address"],
             suburb=request.POST["suburb"],
             state=request.POST["state"],
