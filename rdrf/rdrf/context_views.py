@@ -142,7 +142,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
         default_display_name = self.get_default_name(patient_model, context_form_group)
         default_values = {"display_name": default_display_name}
 
-        if context_form_group and len(context_form_group.form_models) == 1:
+        if context_form_group and context_form_group.supports_direct_linking:
             return self.create_context_and_goto_form(registry_model,
                                              patient_model,
                                              context_form_group)

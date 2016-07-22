@@ -327,10 +327,11 @@ class Patient(models.Model):
             form_name,
             section_code,
             data_element_code,
-            multisection=False):
+            multisection=False,
+            context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
-        wrapper = DynamicDataWrapper(self)
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -800,16 +801,15 @@ class Patient(models.Model):
         to existing forms "of type" (ie being in a context with a link to)  context_form_group
         
         """
-        if  not context_form_group.supports_direct_linking:
-            return []
-
-        links = []
+        assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
         
         form_model = context_form_group.form_models[0]
 
-        for context_model in sorted(self.context_models, key=lambda c: c.created_at):
+        links = []
+
+        for context_model in sorted(self.context_models, key=lambda c: c.created_at, reverse=True):
             if context_model.context_form_group and context_model.context_form_group.pk == context_form_group.pk:
-                link_text = form_model.nice_name + " " + str(context_model.pk)
+                link_text = context_model.context_form_group.get_name_from_cde(self, context_model)
                 link_url = reverse('registry_form', args=(context_model.registry.code,
                                                           form_model.id,
                                                           self.pk,

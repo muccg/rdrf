@@ -4,9 +4,11 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
+from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import has_feature, get_full_link, check_calculation
+from rdrf.utils import format_date
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -1900,8 +1902,7 @@ class RDRFContext(models.Model):
     def context_name(self):
         if self.context_form_group:
             if self.context_form_group.naming_scheme == "C":
-                logger.debug("getting name from cde")
-                return self.get_name_from_cde()
+                return self._get_name_from_cde()
             else:
                 return self.context_form_group.name # E.G. Assessment or Visit - used for display
         else:
@@ -1909,6 +1910,18 @@ class RDRFContext(models.Model):
                 return self.registry.metadata["context_name"]
             except KeyError:
                 return "Context"
+
+    def _get_name_from_cde(self):
+        cde_path = self.context_form_group.naming_cde_to_use
+        form_name, section_code, cde_code = cde_path.split("/")
+        cde_value = self.content_object.get_form_value(self.registry.code,
+                                           form_name,
+                                           section_code,
+                                           context_id=self.pk)
+        return cde_value
+        
+        
+        
 
         
 class ContextFormGroup(models.Model):
@@ -1941,7 +1954,7 @@ class ContextFormGroup(models.Model):
         """
         If there is only one form in the group , show _its_ name
         """
-        if len(self.form_models) != 1:
+        if not self.supports_direct_linking:
             return self.name
 
         return self.form_models[0].nice_name
@@ -1969,22 +1982,31 @@ class ContextFormGroup(models.Model):
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
-            return self.get_name_from_cde(patient_model)
+            return "Unused" # user will see value from cde when context is created
         else:
             return "Modules"
 
-    def get_name_from_cde(self, patient_model):
+    def get_name_from_cde(self, patient_model, context_model):
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
             cde_value = patient_model.get_form_value(self.registry.code,
                                                      form_name,
                                                      section_code,
-                                                     cde_code)
+                                                     cde_code,
+                                                     context_id=context_model.pk)
 
-            return "%s %s" % (self.name, cde_value)
+
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            # This does not actually do type conversion for dates -
+            # it just looks up range display codes. 
+            display_value = cde_model.get_display_value(cde_value)
+            if isinstance(display_value, datetime):
+                display_value = format_date(display_value)
+            return display_value
         except KeyError:
             # value not filled out yet
-            return "%s - PENDING" % self.name
+            return "NOT SET"
         
 
     @property
@@ -1995,6 +2017,8 @@ class ContextFormGroup(models.Model):
             return "Display name will default to <Context Type Name>/<Sequence Number>"
         elif self.naming_scheme == "D":
             return "Display name will default to <Context Type Name>/<created_at date>"
+        elif self.naming_scheme == "C":
+            return "Display name will be equal to the value of a nominated CDE"
         else:
             return "Display name will default to 'Modules' if left blank"
 
