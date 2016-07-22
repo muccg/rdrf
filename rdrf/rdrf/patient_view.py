@@ -154,6 +154,15 @@ class PatientView(View):
                 except Patient.DoesNotExist:
                     logger.error("Paient record not found for user %s" % request.user.username)
 
+                rdrf_context_manager = RDRFContextManager(registry)
+
+                try:
+                    context_model = rdrf_context_manager.get_context(None, patient)
+                    context['context_id'] = context_model.pk
+                except RDRFContextError, ex:
+                    logger.error("patient edit view context error patient %s: %s" % (patient, ex))
+                    return HttpResponseRedirect("/")
+
         return render_to_response(
             'rdrf_cdes/patient.html',
             context,
