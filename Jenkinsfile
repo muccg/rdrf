@@ -4,7 +4,7 @@ node {
     stage 'Checkout'
         checkout scm
 
-        # 'fix' detached HEAD.
+        // 'fix' detached HEAD.
         sh "git checkout -f ${env.BRANCH_NAME}"
         sh "git pull -f"
 
