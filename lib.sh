@@ -192,11 +192,17 @@ git_tag() {
     set +e
     GIT_TAG=`git describe --abbrev=0 --tags 2> /dev/null`
     set -e
-    GIT_BRANCH=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
 
-    # fail error for an error condition we see on bamboo occasionaly
+    # jenksins sets BRANCH_NAME, so we use that
+    # otherwise ask git
+    GIT_BRANCH=${BRANCH_NAME}
+    if [ -z ${GIT_BRANCH+x} ]; then
+        GIT_BRANCH=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
+    fi
+
+    # fail when we don't know branch
     if [ $GIT_BRANCH = "HEAD" ]; then
-        fail 'git clone is in detached HEAD state'
+        fail 'git clone is in detached HEAD state and BRANCH_NAME not set'
     fi
 
     # only use tags when on master (prod) branch

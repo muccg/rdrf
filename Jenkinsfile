@@ -1,12 +1,11 @@
 #!groovy
 
 node {
+    stage 'Debug'
+        sh 'env'
+
     stage 'Checkout'
         checkout scm
-
-        // 'fix' detached HEAD.
-        sh "git checkout -f ${env.BRANCH_NAME}"
-        sh "git pull -f"
 
     stage 'Docker dev build'
         echo "Branch is: ${env.BRANCH_NAME}"
