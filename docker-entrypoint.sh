@@ -103,6 +103,16 @@ function _django_collectstatic {
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
 }
 
+function _django_iprestrict_permissive_fixtures {
+    echo "loading iprestrict permissive fixture"
+    django-admin.py init iprestrict_permissive
+    django-admin.py reloadrules
+}
+
+function _import_dd_registry {
+    echo "importing DD registry with sample data"
+    django-admin.py import /app/rdrf/rdrf/features/exported_data/dd_with_data.zip --force
+}
 
 function _django_dev_fixtures {
     echo "loading DEV fixture"
@@ -205,6 +215,23 @@ if [ "$1" = 'grdr' ]; then
     exec django-admin.py ${RUNSERVER_OPTS}
 fi
 
+# runserver lettuce entrypoint
+if [ "$1" = 'runserverlettuce' ]; then
+    echo "[Run] Starting runserver"
+
+    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
+    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
+
+    _django_collectstatic
+    _django_migrate
+    _django_iprestrict_permissive_fixtures
+    _import_dd_registry
+
+    echo "running runserver ..."
+    exec django-admin.py ${RUNSERVER_OPTS}
+fi
+
+
 
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
@@ -216,6 +243,7 @@ fi
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
     selenium_defaults
+    rm -f /data/*.png
     exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 

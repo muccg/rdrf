@@ -1,6 +1,12 @@
+import logging
+import subprocess
+from django import db
 from lettuce import before, after, world
 from selenium import webdriver
 from rdrf import steps
+
+
+logger = logging.getLogger(__name__)
 
 
 @before.all
@@ -18,6 +24,13 @@ def set_browser():
 def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
 
+@before.all
+def snapshot_db():
+    # Remove snapshot if exists, but just continue if it doesn't
+    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
+    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
+    subprocess.check_call(["mongodump", "--host", "mongo"])
+
 
 @before.each_scenario
 def delete_cookies(scenario):
@@ -25,7 +38,26 @@ def delete_cookies(scenario):
     world.browser.delete_all_cookies()
 
 
+# Should be @before.each_scenario, but that's slower so let's see how this works out
+@before.each_feature
+def restore_db(scenario):
+    subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
+    subprocess.check_call(["mongorestore", "--host", "mongo"])
+    # DB reconnect
+    db.connection.close()
+
+
 @after.each_scenario
 def screenshot(scenario):
     world.browser.get_screenshot_as_file(
         "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+
+
+#@before.each_step
+def log(step):
+    logger.info('Before Step %s', step)
+
+
+#@after.each_step
+def log(step):
+    logger.info('After Step %s', step)

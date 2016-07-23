@@ -37,6 +37,7 @@ class Command(BaseCommand):
         app_name = 'rdrf'
         module = __import__(app_name)
         path = '%s/features/' % (os.path.dirname(module.__file__))
+        # path = '%s/features/edit_diagnosis.feature' % (os.path.dirname(module.__file__))
         int_or_None = lambda x: None if x is None else int(x)
         runner = Runner(path, verbosity=int_or_None(options.get('lettuce_verbosity')),
                         enable_xunit=options.get('enable_xunit'),
