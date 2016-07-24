@@ -59,6 +59,7 @@ from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.form_progress import FormProgress
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
+from . import context_definitions as definitions
 
 
 logger = logging.getLogger(__name__)
@@ -2042,7 +2043,7 @@ class GridColumnsViewer(object):
         return columns
 
     def get_grid_definitions(self):
-        return settings.GRID_PATIENT_LISTING
+        return definitions.GRID_PATIENT_LISTING
 
 
 def dump(request):
@@ -2495,7 +2496,7 @@ class ContextDataTableServerSideApi(DataTableServerSideApi):
         return sorted(rows, key=key_func, reverse=d)
 
     def get_grid_definitions(self):
-        return settings.GRID_CONTEXT_LISTING
+        return definitions.GRID_CONTEXT_LISTING
 
     def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
 
@@ -2681,7 +2682,7 @@ class ContextsListingView(LoginRequiredMixin, View):
 
         columns = []
 
-        sorted_by_order = sorted(settings.GRID_CONTEXT_LISTING, key=itemgetter('order'), reverse=False)
+        sorted_by_order = sorted(definitions.GRID_CONTEXT_LISTING, key=itemgetter('order'), reverse=False)
 
         for definition in sorted_by_order:
             if request.user.is_superuser or definition["access"]["default"] or \

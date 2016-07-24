@@ -225,7 +225,15 @@ class Patient(models.Model):
         ordering = ["family_name", "given_names", "date_of_birth"]
         verbose_name_plural = "Patient List"
 
-        permissions = settings.CUSTOM_PERMISSIONS["patients"]["patient"]
+        permissions = (
+            ("can_see_full_name", "Can see Full Name column"),
+            ("can_see_dob", "Can see Date of Birth column"),
+            ("can_see_working_groups", "Can see Working Groups column"),
+            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
+            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
+            ("can_see_genetic_data_map", "Can see Genetic Module column"),
+            ("can_see_data_modules", "Can see Data Modules column"),
+        )
 
     @property
     def display_name(self):
