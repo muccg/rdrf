@@ -1,9 +1,6 @@
 #!groovy
 
 node {
-    stage 'Debug'
-        sh 'env'
-
     stage 'Checkout'
         checkout scm
 
