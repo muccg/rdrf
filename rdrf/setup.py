@@ -37,6 +37,8 @@ requirements=["ccg-django-utils==0.4.2",
               "uwsgi==2.0.13.1",
               "uwsgitop",
               "wsgiref==0.1.2",
+              "django-storages==1.4.1",
+              "pyodbc==3.0.7",
              ]
 
 
