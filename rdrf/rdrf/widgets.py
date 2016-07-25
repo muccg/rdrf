@@ -2,7 +2,7 @@
 from django.forms import Textarea, Widget, MultiWidget, HiddenInput
 from django.forms import widgets
 from django.forms.utils import flatatt
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
 from django.forms.widgets import ClearableFileInput
@@ -10,6 +10,7 @@ from django.forms.widgets import ClearableFileInput
 import re
 import logging
 from models import CommonDataElement
+from registry.patients.models import PatientConsent
 import pycountry
 
 logger = logging.getLogger(__name__)
@@ -549,3 +550,12 @@ class MultipleFileInput(Widget):
 
         return [base_widget.value_from_datadict(data, files, self.input_name(name, i))
                 for i in nums]
+
+
+class ConsentFileInput(ClearableFileInput):
+    def get_template_substitution_values(self, value):
+        patient_consent = PatientConsent.objects.get(form=value.name)
+        return {
+            'initial': conditional_escape(patient_consent.filename),
+            'initial_url': conditional_escape(value.url),
+        }
