@@ -19,7 +19,7 @@
         var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
 
 
-        var api_url = "{% url 'contextsgridapi'  %}";
+        var api_url = "{% url 'patientslisting'  %}";
         var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
         $("contextmenu").popover({html: true});

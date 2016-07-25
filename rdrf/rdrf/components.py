@@ -142,6 +142,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
 
     def _get_multiple_contexts(self):
+        return []
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
         contexts_listing_url = reverse("contextslisting")

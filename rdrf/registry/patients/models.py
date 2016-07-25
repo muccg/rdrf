@@ -537,6 +537,8 @@ class Patient(models.Model):
         return None
 
     def get_contexts_url(self, registry_model):
+        # TODO - change so we don't need this
+        return None
         if not registry_model.has_feature("contexts"):
             return None
         else:

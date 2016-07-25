@@ -28,6 +28,7 @@ from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import RDRFContextLookup
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
+from rdrf import patients_listing
 
 from ajax_select import urls as ajax_select_urls
 
@@ -78,12 +79,8 @@ urlpatterns = patterns('',
                        url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
                            name='patientsgridapi'),
                        #---- Context related URLs -----------------
-                       url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
-                           name="contextslisting"),
-
-                       url(r'^contextsgridapi/?$', form_view.ContextDataTableServerSideApi.as_view(),
-                           name='contextsgridapi'),
-
+                       url(r'^patientslisting/?', patients_listing.PatientsListingView.as_view(),
+                           name="patientslisting"),
                        url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
                            RDRFContextCreateView.as_view(),
                            name="context_add"),
