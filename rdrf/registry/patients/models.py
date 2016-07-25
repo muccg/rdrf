@@ -977,12 +977,7 @@ class PatientConsent(models.Model):
         verbose_name="Consent form",
         blank=True,
         null=True)
-
-    # fixme: add filename as a field, using the filename which was
-    # given at time of upload.
-    @property
-    def filename(self):
-        return os.path.basename(self.form.name)
+    filename = models.CharField(max_length=255)
 
 
 class PatientDoctor(models.Model):
