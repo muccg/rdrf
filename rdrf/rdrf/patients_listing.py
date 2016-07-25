@@ -139,6 +139,7 @@ class PatientsListingView(View):
         self.set_parameters(request)
         self.set_csrf(request)
         results = self.get_results(request)
+        logger.debug("results for json = %s" % results)
         json_packet = self.json(results)
         return json_packet
 
@@ -190,9 +191,8 @@ class PatientsListingView(View):
             return []
 
         patients = self.run_query()
-        rows = self.get_data(patients)
         logger.debug("got column data for each row in page OK")
-        return rows
+        return patients
 
     def check_security(self):
         self.do_security_checks()
@@ -235,12 +235,6 @@ class PatientsListingView(View):
         logger.debug("got rows in page OK")
         return rows
 
-
-    def get_data(self, patients_in_page):
-        return []
-    
-    
-        
 
     def _get_main_or_default_context(self, patient_model):
         # for registries which do not have multiple contexts this will be the single context model
@@ -427,6 +421,68 @@ class PatientsListingView(View):
                 func_map[field] = k("UNKNOWN COLUMN!")
 
         return func_map
+
+
+    def _get_grid_field_diagnosis_progress(self, patient_model):
+        if not self.supports_contexts:
+            progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
+            template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
+                       " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
+                       "<span class='progress-label'>%s%%</span></div></div>"
+            return template % (progress_number, progress_number,progress_number)
+        else:
+            # if registry supports contexts, should use the context browser
+            return "N/A"
+
+    def _get_grid_field_data_modules(self, patient_model):
+        if not self.supports_contexts:
+            default_context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            return self.form_progress.get_data_modules(self.user, patient_model, default_context_model)
+        else:
+            return "N/A"
+
+    def _get_grid_field_genetic_data_map(self, patient_model):
+        if not self.supports_contexts:
+            has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
+            icon = "ok" if has_genetic_data else "remove"
+            color = "green" if has_genetic_data else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
+
+    def _get_grid_field_diagnosis_currency(self, patient_model):
+        if not self.supports_contexts:
+            diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+            icon = "ok" if diagnosis_currency else "remove"
+            color = "green" if diagnosis_currency else "red"
+            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        else:
+            return "N/A"
+
+    def _get_grid_field_full_name(self, patient_model):
+        if not self.supports_contexts:
+            context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+        else:
+            # get first ?
+            patient_content_type = ContentType.objects.get(model='patient')
+            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                              content_type=patient_content_type,
+                                                              object_id=patient_model.pk).order_by("id")]
+
+            if len(contexts) > 0:
+                context_model = contexts[0]
+            else:
+                return "NO CONTEXT"
+
+        return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
+                                                                        "patient_id": patient_model.id,
+                                                                        "context_id": context_model.pk}),
+                                        patient_model.display_name)
+
+    def _get_grid_field_working_groups_display(self, patient_model):
+        return patient_model.working_groups_display
+
+
 
 
     def get_initial_queryset(self):

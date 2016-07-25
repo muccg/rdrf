@@ -31,8 +31,8 @@
 
         function getDrawLength() {
             try {
-                var length = $("#context_list_table_length").val();
-                if (length == undefined) {
+                var length = $("#patients_table_length").val();
+                if (length == undefined || length == "") {
                     return 10;
                 }
                 return length;
@@ -76,7 +76,7 @@
         var load_contexts_list;
         var context_list;
         {% if columns %}
-            context_list = $("#context_list_table").DataTable({
+            context_list = $("#patients_table").DataTable({
                 "processing": true,
                 "serverSide": true,
                 //"sAjaxDataProp" : "data",
@@ -164,7 +164,7 @@
       <span id="loading_text"><i>Loading...</i></span>
   </p>
 
-  <table id="context_list_table" class="table table-striped table-hover">
+  <table id="patients_table" class="table table-striped table-hover">
       {% if columns %}
       <thead>
           <tr>
