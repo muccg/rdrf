@@ -2179,3 +2179,13 @@ class CDEFile(models.Model):
 @receiver(pre_delete, sender=CDEFile)
 def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)
+
+
+class FileStorage(models.Model):
+    """
+    This model is used only when the database file storage backend is
+    enabled. These exact columns are required by the backend code.
+    """
+    name = models.CharField(primary_key=True, max_length=255)
+    data = models.BinaryField()
+    size = models.IntegerField(default=0)
