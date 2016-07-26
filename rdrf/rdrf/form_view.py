@@ -2025,48 +2025,6 @@ class AdjudicationResultsView(View):
         return actions
 
 
-def dump(request):
-    for k in sorted(request.GET):
-        logger.debug("GET %s = %s" % (k, request.GET[k]))
-
-    for k in sorted(request.POST):
-        logger.debug("POST %s = %s" % (k, request.POST[k]))
-
-
-class BootGridApi(View):
-
-    def post(self, request):
-        # jquery b
-        import json
-        post_data = request.POST
-        # request data  = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'],
-        # u'searchPhrase': [u'']}>
-
-        logger.debug("post data = %s" % post_data)
-        search_command = self._get_search_command(post_data)
-        command_result = self._run_search_command(search_command)
-        rows = [{"id": p.id,
-                 "name": p.given_names,
-                 "working_groups": "to do",
-                 "date_of_birth": p.date_of_birth,
-                 "registry": "to do"} for p in Patient.objects.all()]
-
-        command_result = {"current": 1,
-                          "rowCount": len(rows),
-                          "rows": rows}
-
-        logger.debug("api request data  = %s" % post_data)
-        command_result_json = json.dumps(command_result)
-
-        return HttpResponse(command_result_json, content_type="application/json")
-
-    def _get_search_command(self, post_data):
-        return None
-
-    def _run_search_command(self, command):
-        return {}
-
-
 class ConstructorFormView(View):
 
     def get(self, request, form_name):

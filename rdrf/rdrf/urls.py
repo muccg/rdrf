@@ -84,8 +84,6 @@ urlpatterns = patterns('',
                        url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)/edit/?$',
                            RDRFContextEditView.as_view(),
                            name="context_edit"),
-                       url(r'^bootgridapi', form_view.BootGridApi.as_view()),
-
                        url(r'^login/?$', 'django.contrib.auth.views.login',
                            {'template_name': 'admin/login.html'}, name='login'),
                        url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
