@@ -12,7 +12,6 @@ import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
 import rdrf.import_registry_view as import_registry_view
 import rdrf.patient_view as patient_view
-import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
 import rdrf.report_view as report_view
 import rdrf.consent_view as consent_view
@@ -147,14 +146,6 @@ urlpatterns = patterns('',
 #---- Email Notifications URLs -------------
                        url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
                            ResendEmail.as_view(), name="resend_email"),
-#-------------------------------------------
-
-#---- Parent URLs --------------------------
-                       url(r"^(?P<registry_code>\w+)/parent/(?P<context_id>\d+)?$",
-                           parent_view.ParentView.as_view(), name='parent_page'),
-
-                       url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/(?P<context_id>\d+)?$",
-                           parent_view.ParentEditView.as_view(), name='parent_edit'),
 #-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
