@@ -5,6 +5,9 @@ from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.contenttypes.models import ContentType
+
+PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
 
 import logging
 
@@ -280,7 +283,31 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         
 class FormsButton(RDRFComponent):
+    """
+    A button/popover which pressed shows links to forms in a registry or a form group
+    """
     TEMPLATE = "rdrf_cdes/forms_button.html"
+
+    class FormWrapper(object):
+        def __init__(self, registry_model, patient_model, form_model, context_form_group, context_model=None):
+            self.registry_model = registry_model
+            self.context_form_group = context_form_group
+            self.patient_model = patient_model
+            self.form_model = form_model
+            self.context_model = context_model
+        
+        
+        @property
+        def link(self):
+            return reverse('registry_form', args=(self.registry_model.code,
+                                              self.form_model.id,
+                                              self.patient_model.pk,
+                                              self.context_model.id))
+
+        @property
+        def title(self):
+            if not self.context_form_group or self.context_form_group.context_type == "F":
+                return self.form_model.nice_name
 
     def __init__(self,
                  registry_model,
@@ -292,13 +319,65 @@ class FormsButton(RDRFComponent):
         self.context_form_group = context_form_group
         self.forms = form_models
 
-
     def _get_template_data(self):
         # subclass should build dictionary for template
         if self.context_form_group:
             heading = self.context_form_group.name
         else:
             heading = "Modules"
+
+        return {
+            "heading" : heading,
+            "forms": self._get_form_link_wrappers(),
+        }
+
+
+    def _get_form_link_wrappers(self):
+        if self.context_form_group is None:
+            default_context = self.patient_model.default_context(self.registry_model)
+            return [ self.FormWrapper(self.registry_model,
+                                      self.patient_model,
+                                      form_model,
+                                      self.context_form_group,
+                                      default_context) for form_model in self.forms ]
+        elif self.context_form_group.context_type == "F":
+            # there should only be one context
+            contexts = [ cm for cm in RDRFContext.objects.filter(registry=self.registry_model,
+                                                                 context_form_group=self.context_form_group,
+                                                                 object_id=self.patient_model.pk,
+                                                                 content_type=PATIENT_CONTENT_TYPE)]
+
+            assert len(contexts) == 1, "There should only be one context in %s" % self.context_form_group
+            
+            context_model = contexts[0]
+            return [ self.FormWrapper(self.registry_model,
+                                      self.patient_model,
+                                      form_model,
+                                      self.context_form_group,
+                                      context_model) for form_model in self.forms]
+        else:
+            # multiple group
+            # we may have more than one assessment etc
+            
+            context_models = sorted([ cm for cm in RDRFContext.objects.filter(registry=self.registry_model,
+                                                                              context_form_group=self.context_form_group,
+                                                                              object_id=self.patient_model.pk,
+                                                                              content_type=PATIENT_CONTENT_TYPE)],
+                                    key=lambda cm: cm.pk,
+                                    reverse=True)
+
+            return [
+                self.FormWrapper(self.registry_model,
+                                 self.patient_model,
+                                 form_model,
+                                 self.context_form_group,
+                                 context_model) for form_model in self.forms
+                for context_model in context_models]
+            
+            
+            
+                 
+    
 
 
     @property
@@ -313,7 +392,11 @@ class FormsButton(RDRFComponent):
         if self.context_form_group is None:
             return "Modules"
         else:
-            return self.context_form_group.name
+            if self.context_form_group.supports_direct_linking:
+                # we know there is one form
+                return self.context_form_group.forms[0].nice_name + "s"
+            else:
+                return self.context_form_group.name
             
 
         
