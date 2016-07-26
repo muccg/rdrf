@@ -17,6 +17,7 @@ from rdrf.models import Registry
 from rdrf.models import RDRFContext
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
+from rdrf.context_menu import PatientContextMenu
 
 from registry.patients.models import Patient
 
@@ -479,8 +480,14 @@ class PatientsListingView(View):
     def _get_grid_field_working_groups_display(self, patient_model):
         return patient_model.working_groups_display
 
-
-
+    def _get_grid_field_context_menu(self, patient_model):
+        default_context_model = patient_model.default_context(self.registry_model)
+        context_menu = PatientContextMenu(self.user,
+                                          self.registry_model,
+                                          self.form_progress,
+                                          patient_model,
+                                          default_context_model)
+        return context_menu.menu_html
 
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
