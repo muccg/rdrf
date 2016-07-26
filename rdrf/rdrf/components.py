@@ -274,3 +274,22 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return rdrf_context
         except RDRFContext.DoesNotExist:
             return None
+
+
+
+        
+class FormsButton(RDRFComponent):
+    TEMPLATE = "rdrf_cdes/forms_button.html"
+
+    def __init__(self,
+                 registry_model,
+                 patient_model,
+                 context_form_group,
+                 form_models):
+        self.registry_model = registry_model
+        self.patient_model = patient_model
+        self.context_form_group = context_form_group
+        self.forms = forms
+        
+                 
+    

@@ -19,6 +19,9 @@ from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.context_menu import PatientContextMenu
 
+from rdrf.components import FormsButton
+
+
 from registry.patients.models import Patient
 
 import logging
@@ -481,18 +484,59 @@ class PatientsListingView(View):
         return patient_model.working_groups_display
 
     def _get_grid_field_context_menu(self, patient_model):
-        default_context_model = patient_model.default_context(self.registry_model)
-        context_menu = PatientContextMenu(self.user,
-                                          self.registry_model,
-                                          self.form_progress,
-                                          patient_model,
-                                          default_context_model)
-        return context_menu.menu_html
+        #default_context_model = patient_model.default_context(self.registry_model)
+        #context_menu = PatientContextMenu(self.user,
+        #                                  self.registry_model,
+        #                                  self.form_progress,
+        #                                  patient_model,
+        #                                  default_context_model)
+
+
+        buttons = [ forms_button.html for forms_button in self._get_forms_buttons(patient_model)]
+        return "".join(buttons)
+
+    def _get_forms_buttons(self, patient_model):
+        buttons = []
+        free_forms = self.registry_model.free_forms
+        free_forms_button = self._get_forms_button(patient_model, None, free_forms)
+        buttons.append(free_forms_button)
+
+        # fixed context groups
+
+        for fixed_context_group in self.registry_model.fixed_form_groups:
+            fixed_form_group_button = self._get_forms_button(patient_model,
+                                                             fixed_form_group,
+                                                             fixed_form_group.forms)
+            buttons.append(fixed_form_group_button)
+
+        for multiple_context_group in self.registry_model.multiple_form_groups:
+            multiple_form_group_button = self._get_form_button(patient_model,
+                                                               multiple_form_group,
+                                                               multiple_form_group.forms)
+
+            buttons.append(multiple_form_group_button)
+
+        return buttons
+
+    
+   def _get_forms_button(self, patient_model, context_form_group, forms):
+       form_button_component  = FormsButton(self.registry_model,
+                                            patient_model,
+                                            context_form_group,
+                                            forms)
+
+       return form_button_component.html
+   
+       
+       
+        
 
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all()
+
+
 
     def apply_search_filter(self):
         if self.search_term:
