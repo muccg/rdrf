@@ -2025,26 +2025,6 @@ class AdjudicationResultsView(View):
         return actions
 
 
-class GridColumnsViewer(object):
-    def get_columns(self, user):
-        columns = []
-        sorted_by_order = sorted(self.get_grid_definitions(), key=itemgetter('order'), reverse=False)
-
-        for definition in sorted_by_order:
-            if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
-                columns.append(
-                    {
-                        "data": definition["data"],
-                        "label": definition["label"]
-                    }
-                )
-
-        return columns
-
-    def get_grid_definitions(self):
-        return settings.GRID_PATIENT_LISTING
-
-
 def dump(request):
     for k in sorted(request.GET):
         logger.debug("GET %s = %s" % (k, request.GET[k]))
