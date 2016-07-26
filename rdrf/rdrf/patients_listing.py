@@ -13,25 +13,18 @@ from django.conf import settings
 from django.shortcuts import render_to_response, RequestContext, get_object_or_404
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
-
 from rdrf.models import Registry
 from rdrf.models import RDRFContext
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.context_menu import PatientContextMenu
-
 from rdrf.components import FormsButton
-
-
 from registry.patients.models import Patient
-
 
 import logging
 logger = logging.getLogger(__name__)
 
 PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
-
-# new improved patient listing - incomplete and not hooked up yet
 
 
 class PatientsListingView(View):
@@ -149,10 +142,10 @@ class PatientsListingView(View):
         self.set_csrf(request)
         rows = self.get_results(request)
         results_dict = self.get_results_dict(self.draw,
-                                              self.page_number,
-                                              self.record_total,
-                                              self.filtered_total,
-                                              rows)
+                                             self.page_number,
+                                             self.record_total,
+                                             self.filtered_total,
+                                             rows)
         json_packet = self.json(results_dict)
         return json_packet
 
@@ -189,7 +182,6 @@ class PatientsListingView(View):
 
             self.columns = self.get_columns()
             self.func_map = self.get_func_map()
-            
 
         except Registry.DoesNotExist:
             logger.debug("selected registry does not exist")
@@ -246,25 +238,26 @@ class PatientsListingView(View):
         self.record_total = self.patients.count()
         self.apply_search_filter()
         self.filtered_total = self.patients.count()
-        
+
         logger.debug("filtered by search term OK")
-        rows =  self.get_rows_in_page()
+        rows = self.get_rows_in_page()
         logger.debug("got rows in page OK")
         return rows
-
 
     def _get_main_or_default_context(self, patient_model):
         # for registries which do not have multiple contexts this will be the single context model
         # assigned to the patient
-        # for registries which allow multiple form groups, it will be the (only) context with cfg marked as default
+        # for registries which allow multiple form groups, it will be the
+        # (only) context with cfg marked as default
         context_model = patient_model.default_context(self.registry_model)
         assert context_model is not None, "Expected context model to exist always"
         if context_model.context_form_group:
             assert context_model.context_form_group.is_default, "Expected to always get a context of the default form group"
-        
-        logger.debug("retrieved the default context for %s: it is %s" % (patient_model, context_model))
+
+        logger.debug("retrieved the default context for %s: it is %s" %
+                     (patient_model, context_model))
         return context_model
-    
+
     def apply_custom_ordering(self, rows):
         key_func = None
         if self.custom_ordering.startswith("-"):
@@ -291,7 +284,7 @@ class PatientsListingView(View):
                 try:
                     wg = patient_model.working_groups.get()
                     return wg.name
-                except Exception,ex:
+                except Exception, ex:
                     logger.debug("error wg %s" % ex)
                     return ""
             key_func = get_wg
@@ -302,7 +295,8 @@ class PatientsListingView(View):
 
             def get_dp(patient_model):
                 try:
-                    context_model = self._get_main_or_default_context(patient_model)
+                    context_model = self._get_main_or_default_context(
+                        patient_model)
                     return self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
                 except:
                     return 0
@@ -315,7 +309,8 @@ class PatientsListingView(View):
 
             def get_dc(patient_model):
                 try:
-                    context_model = self._get_main_or_default_context(patient_model)
+                    context_model = self._get_main_or_default_context(
+                        patient_model)
                     return self.form_progress.get_group_currency("diagnosis", patient_model, context_model)
                 except:
                     return False
@@ -327,13 +322,13 @@ class PatientsListingView(View):
 
             def get_gendatamap(patient_model):
                 try:
-                    context_model = self._get_main_or_default_context(patient_model)
+                    context_model = self._get_main_or_default_context(
+                        patient_model)
                     return self.form_progress.get_group_has_data("genetic", patient_model, context_model)
                 except:
                     return False
 
             key_func = get_gendatamap
-
 
         if key_func is None:
             logger.debug("key_func is none - not sorting")
@@ -343,10 +338,9 @@ class PatientsListingView(View):
 
         return sorted(rows, key=key_func, reverse=d)
 
-
     def get_rows_in_page(self):
         query_set = self.patients
-        
+
         if self.custom_ordering:
             # we have to retrieve all rows - otehrwise , queryset has already been
             # ordered on base model
@@ -370,7 +364,8 @@ class PatientsListingView(View):
             row_list_to_update.append(self._get_row_dict(obj))
 
     def _get_row_dict(self, instance):
-        # we need to do this so that the progress data for this instance loaded!
+        # we need to do this so that the progress data for this instance
+        # loaded!
         self.form_progress.reset()
         row_dict = {}
         for field in self.func_map:
@@ -383,12 +378,11 @@ class PatientsListingView(View):
         logger.debug("got row_dict for %s = %s" % (instance, row_dict))
         return row_dict
 
-
-
     def get_func_map(self):
         logger.debug("generating func map")
         func_map = {}
-        patient_field_names = [field_object.name for field_object in Patient._meta.fields]
+        patient_field_names = [
+            field_object.name for field_object in Patient._meta.fields]
         logger.debug("patient fields = %s" % patient_field_names)
 
         def patient_func(field):
@@ -396,7 +390,8 @@ class PatientsListingView(View):
                 try:
                     return str(getattr(patient, field))
                 except Exception, ex:
-                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (
+                        field, patient, ex)
                     logger.error(msg)
                     return "GRID ERROR: %s" % msg
 
@@ -409,7 +404,8 @@ class PatientsListingView(View):
                 try:
                     return method(patient)
                 except Exception, ex:
-                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
+                    msg = "Error retrieving grid field %s for patient %s: %s" % (
+                        field, patient, ex)
                     logger.error(msg)
                     return "GRID ERROR: %s" % msg
 
@@ -427,8 +423,8 @@ class PatientsListingView(View):
             func_name = "_get_grid_field_%s" % field
             logger.debug("checking %s" % func_name)
             if hasattr(self, func_name):
-                    func_map[field] = grid_func(self, func_name)
-                    logger.debug("field %s is a serverside api func" % field)
+                func_map[field] = grid_func(self, func_name)
+                logger.debug("field %s is a serverside api func" % field)
             elif field in patient_field_names:
                 logger.debug("field is a patient field")
                 func_map[field] = patient_func(field)
@@ -439,28 +435,30 @@ class PatientsListingView(View):
 
         return func_map
 
-
     def _get_grid_field_diagnosis_progress(self, patient_model):
         if not self.supports_contexts:
-            progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
+            progress_number = self.form_progress.get_group_progress(
+                "diagnosis", patient_model)
             template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
                        " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
                        "<span class='progress-label'>%s%%</span></div></div>"
-            return template % (progress_number, progress_number,progress_number)
+            return template % (progress_number, progress_number, progress_number)
         else:
             # if registry supports contexts, should use the context browser
             return "N/A"
 
     def _get_grid_field_data_modules(self, patient_model):
         if not self.supports_contexts:
-            default_context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+            default_context_model = self.rdrf_context_manager.get_or_create_default_context(
+                patient_model)
             return self.form_progress.get_data_modules(self.user, patient_model, default_context_model)
         else:
             return "N/A"
 
     def _get_grid_field_genetic_data_map(self, patient_model):
         if not self.supports_contexts:
-            has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
+            has_genetic_data = self.form_progress.get_group_has_data(
+                "genetic", patient_model)
             icon = "ok" if has_genetic_data else "remove"
             color = "green" if has_genetic_data else "red"
             return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
@@ -469,7 +467,8 @@ class PatientsListingView(View):
 
     def _get_grid_field_diagnosis_currency(self, patient_model):
         if not self.supports_contexts:
-            diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
+            diagnosis_currency = self.form_progress.get_group_currency(
+                "diagnosis", patient_model)
             icon = "ok" if diagnosis_currency else "remove"
             color = "green" if diagnosis_currency else "red"
             return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
@@ -486,7 +485,8 @@ class PatientsListingView(View):
         return patient_model.working_groups_display
 
     def _get_grid_field_context_menu(self, patient_model):
-        buttons = [ forms_button for forms_button in self._get_forms_buttons(patient_model)]
+        buttons = [
+            forms_button for forms_button in self._get_forms_buttons(patient_model)]
         return "".join(buttons)
 
     def _get_forms_buttons(self, patient_model):
@@ -494,10 +494,10 @@ class PatientsListingView(View):
         free_forms = self.registry_model.free_forms
         if free_forms:
             # if there are no context groups -normal registry
-            free_forms_button = self._get_forms_button(patient_model, None, free_forms)
+            free_forms_button = self._get_forms_button(
+                patient_model, None, free_forms)
             buttons.append(free_forms_button)
             return buttons
-
 
         logger.debug("no free forms ...")
 
@@ -511,53 +511,40 @@ class PatientsListingView(View):
 
         for multiple_form_group in self.registry_model.multiple_form_groups:
             multiple_form_group_button = self._get_forms_button(patient_model,
-                                                               multiple_form_group,
-                                                               multiple_form_group.forms)
+                                                                multiple_form_group,
+                                                                multiple_form_group.forms)
 
             buttons.append(multiple_form_group_button)
 
         return buttons
 
-    
     def _get_forms_button(self, patient_model, context_form_group, forms):
-        forms_button_component  = FormsButton(self.registry_model,
-                                            patient_model,
-                                            context_form_group,
-                                            forms)
-
+        forms_button_component = FormsButton(self.registry_model,
+                                             patient_model,
+                                             context_form_group,
+                                             forms)
 
         button_html = """<button type="button" class="contextmenu btn btn-primary btn-xs" data-toggle="popover" data-html="true" data-content="%s"
                       id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
                                                                                              forms_button_component.id,
                                                                                              forms_button_component.button_caption)
         return button_html
-                                                                            
-
-
-
 
         return forms_button_component
-   
-       
-       
-        
 
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all()
 
-
-
     def apply_search_filter(self):
         if self.search_term:
             self.patients = self.patients.filter(Q(given_names__icontains=self.search_term) |
-                                     Q(family_name__icontains=self.search_term))
+                                                 Q(family_name__icontains=self.search_term))
 
             count_after_search = self.patients.count()
-            logger.debug("search term provided - count after search = %s" % count_after_search)
-        
-        
+            logger.debug(
+                "search term provided - count after search = %s" % count_after_search)
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -606,17 +593,16 @@ class PatientsListingView(View):
             self.patients = self.patients.filter(
                 rdrf_registry__in=self.registry_queryset)
 
-
     def apply_ordering(self):
         if all([self.sort_field, self.sort_direction]):
-            logger.debug("*** ordering %s %s" % (self.sort_field, self.sort_direction))
+            logger.debug("*** ordering %s %s" %
+                         (self.sort_field, self.sort_direction))
 
             if self.sort_direction == "desc":
                 self.sort_field = "-" + self.sort_field
 
             self.patients = self.patients.order_by(self.sort_field)
             logger.debug("sort field = %s" % self.sort_field)
-
 
     def no_results(self, draw):
         return {
@@ -650,7 +636,3 @@ class PatientsListingView(View):
         }
 
         return results
-
-
-        
-
