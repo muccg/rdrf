@@ -532,6 +532,18 @@ class Registry(models.Model):
             if cfg.is_default:
                 return cfg
 
+
+    @property
+    def free_forms(self):
+        # return form models which do not below to any form group
+        cfgs = ContextFormGroup.objects.filter(registry=self)
+        owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms ]
+                           
+        return sorted([ form_model for form_model in RegistryForm.objects.filter(registry=self) if
+                        not form_model.pk in owned_form_ids and
+                        not form_model.is_questionnaire],
+                      lambda form : form.position)
+                           
     @property
     def fixed_form_groups(self):
         return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,

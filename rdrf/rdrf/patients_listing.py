@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.utils.html import escape
 from django.conf import settings
 from django.shortcuts import render_to_response, RequestContext, get_object_or_404
 from django.db.models import Q
@@ -23,6 +24,7 @@ from rdrf.components import FormsButton
 
 
 from registry.patients.models import Patient
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -484,33 +486,31 @@ class PatientsListingView(View):
         return patient_model.working_groups_display
 
     def _get_grid_field_context_menu(self, patient_model):
-        #default_context_model = patient_model.default_context(self.registry_model)
-        #context_menu = PatientContextMenu(self.user,
-        #                                  self.registry_model,
-        #                                  self.form_progress,
-        #                                  patient_model,
-        #                                  default_context_model)
-
-
-        buttons = [ forms_button.html for forms_button in self._get_forms_buttons(patient_model)]
+        buttons = [ forms_button for forms_button in self._get_forms_buttons(patient_model)]
         return "".join(buttons)
 
     def _get_forms_buttons(self, patient_model):
         buttons = []
         free_forms = self.registry_model.free_forms
-        free_forms_button = self._get_forms_button(patient_model, None, free_forms)
-        buttons.append(free_forms_button)
+        if free_forms:
+            # if there are no context groups -normal registry
+            free_forms_button = self._get_forms_button(patient_model, None, free_forms)
+            buttons.append(free_forms_button)
+            return buttons
+
+
+        logger.debug("no free forms ...")
 
         # fixed context groups
 
-        for fixed_context_group in self.registry_model.fixed_form_groups:
+        for fixed_form_group in self.registry_model.fixed_form_groups:
             fixed_form_group_button = self._get_forms_button(patient_model,
                                                              fixed_form_group,
                                                              fixed_form_group.forms)
             buttons.append(fixed_form_group_button)
 
-        for multiple_context_group in self.registry_model.multiple_form_groups:
-            multiple_form_group_button = self._get_form_button(patient_model,
+        for multiple_form_group in self.registry_model.multiple_form_groups:
+            multiple_form_group_button = self._get_forms_button(patient_model,
                                                                multiple_form_group,
                                                                multiple_form_group.forms)
 
@@ -519,13 +519,24 @@ class PatientsListingView(View):
         return buttons
 
     
-   def _get_forms_button(self, patient_model, context_form_group, forms):
-       form_button_component  = FormsButton(self.registry_model,
+    def _get_forms_button(self, patient_model, context_form_group, forms):
+        forms_button_component  = FormsButton(self.registry_model,
                                             patient_model,
                                             context_form_group,
                                             forms)
 
-       return form_button_component.html
+
+        button_html = """<button type="button" class="contextmenu btn btn-primary btn-xs" data-toggle="popover" data-html="true" data-content="%s"
+                      id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
+                                                                                             forms_button_component.id,
+                                                                                             forms_button_component.button_caption)
+        return button_html
+                                                                            
+
+
+
+
+        return forms_button_component
    
        
        
