@@ -5,6 +5,7 @@ from django.template.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.conf import settings
@@ -13,6 +14,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
 
 from rdrf.models import Registry
+from rdrf.models import RDRFContext
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 
@@ -45,6 +47,7 @@ class PatientsListingView(View):
         self.columns = None
         self.queryset = None
         self.records_total = None
+        self.filtered_total = None
         self.context = {}
 
     def get(self, request):
@@ -138,9 +141,13 @@ class PatientsListingView(View):
         logger.debug("********* RECEIVED POST *********")
         self.set_parameters(request)
         self.set_csrf(request)
-        results = self.get_results(request)
-        logger.debug("results for json = %s" % results)
-        json_packet = self.json(results)
+        rows = self.get_results(request)
+        results_dict = self.get_results_dict(self.draw,
+                                              self.page_number,
+                                              self.record_total,
+                                              self.filtered_total,
+                                              rows)
+        json_packet = self.json(results_dict)
         return json_packet
 
     def set_parameters(self, request):
@@ -229,7 +236,11 @@ class PatientsListingView(View):
         logger.debug("created initial queryset OK")
         self.filter_by_user_group()
         logger.debug("filtered by user group OK")
+        self.apply_ordering()
+        self.record_total = self.patients.count()
         self.apply_search_filter()
+        self.filtered_total = self.patients.count()
+        
         logger.debug("filtered by search term OK")
         rows =  self.get_rows_in_page()
         logger.debug("got rows in page OK")
@@ -381,7 +392,7 @@ class PatientsListingView(View):
                 except Exception, ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
                     logger.error(msg)
-                    return "GRID ERROR"
+                    return "GRID ERROR: %s" % msg
 
             return f
 
@@ -394,7 +405,7 @@ class PatientsListingView(View):
                 except Exception, ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
                     logger.error(msg)
-                    return "GRID ERROR"
+                    return "GRID ERROR: %s" % msg
 
             return f
 
@@ -460,23 +471,9 @@ class PatientsListingView(View):
             return "N/A"
 
     def _get_grid_field_full_name(self, patient_model):
-        if not self.supports_contexts:
-            context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
-        else:
-            # get first ?
-            patient_content_type = ContentType.objects.get(model='patient')
-            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
-                                                              content_type=patient_content_type,
-                                                              object_id=patient_model.pk).order_by("id")]
-
-            if len(contexts) > 0:
-                context_model = contexts[0]
-            else:
-                return "NO CONTEXT"
 
         return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
-                                                                        "patient_id": patient_model.id,
-                                                                        "context_id": context_model.pk}),
+                                                                        "patient_id": patient_model.id}),
                                         patient_model.display_name)
 
     def _get_grid_field_working_groups_display(self, patient_model):
@@ -547,6 +544,8 @@ class PatientsListingView(View):
             self.patients = self.patients.filter(
                 rdrf_registry__in=self.registry_queryset)
 
+
+    def apply_ordering(self):
         if all([self.sort_field, self.sort_direction]):
             logger.debug("*** ordering %s %s" % (self.sort_field, self.sort_direction))
 
@@ -556,5 +555,40 @@ class PatientsListingView(View):
             self.patients = self.patients.order_by(self.sort_field)
             logger.debug("sort field = %s" % self.sort_field)
 
-        logger.debug("found %s patients for initial query" % self.patients.count())
+
+    def no_results(self, draw):
+        return {
+            "draw": draw,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "rows": []
+        }
+
+    def get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
+
+        #       {
+        # "draw": 2,  <-- must be returned , is a counter used by DataTable
+        # "recordsTotal": 57,
+        # "recordsFiltered": 57,
+        # "rows": [
+        #   {
+        #     "first_name": "Charde",
+        #     "last_name": "Marshall",
+        #     "position": "Regional Director",
+        #     "office": "San Francisco",
+        #     "start_date": "16th Oct 08",
+        #     "salary": "$470,600"
+        #   },..]
+
+        results = {
+            "draw": draw,
+            "recordsTotal": total_records,
+            "recordsFiltered": total_filtered_records,
+            "rows": [row for row in rows]
+        }
+
+        return results
+
+
+        
 
