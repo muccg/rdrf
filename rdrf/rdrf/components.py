@@ -5,6 +5,7 @@ from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -289,7 +290,36 @@ class FormsButton(RDRFComponent):
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.context_form_group = context_form_group
-        self.forms = forms
+        self.forms = form_models
+
+
+    def _get_template_data(self):
+        # subclass should build dictionary for template
+        if self.context_form_group:
+            heading = self.context_form_group.name
+        else:
+            heading = "Modules"
+
+
+    @property
+    def id(self):
+        if self.context_form_group is None:
+            return 0
+        else:
+            return self.context_form_group.pk
+
+    @property
+    def button_caption(self):
+        if self.context_form_group is None:
+            return "Modules"
+        else:
+            return self.context_form_group.name
+            
+
+        
+
+
+    
         
                  
     
