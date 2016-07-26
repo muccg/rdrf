@@ -89,7 +89,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
 
-        return {
+        data =  {
             "current_form_name" : self.current_form_name,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
@@ -101,6 +101,9 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "family_linkage_link" : self._get_family_linkage_link(),
             "consent_locked" : self.consent_locked,
             }
+
+        logger.debug("Launcher data = %s" % data)
+        return data
 
     def _is_consent_locked(self):
         if self.registry_model.has_feature("consent_lock"):
@@ -146,28 +149,25 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
 
     def _get_multiple_contexts(self):
-        return []
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
-        contexts_listing_url = reverse("contextslisting")
+        patients_listing_url = reverse("patientslisting")
         links = []
         for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
                                                                   context_type="M").order_by("name"):
             name = _("All " + context_form_group.direct_name + "s") 
-            filter_url = contexts_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
+            filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
                                                                                                               self.patient_model.pk,
                                                                                                               context_form_group.pk)
 
 
-             
-            
             link_pair  = context_form_group.get_add_action(self.patient_model)
             if link_pair:
                 add_link_url, add_link_text = link_pair
                 form = _Form(filter_url,
-                                   name,
-                                   add_link_url=add_link_url,
-                                   add_link_text=add_link_text)
+                             name,
+                             add_link_url=add_link_url,
+                             add_link_text=add_link_text)
                 
                 form.heading = _(context_form_group.direct_name + "s")
                 form.id = context_form_group.pk
@@ -308,6 +308,14 @@ class FormsButton(RDRFComponent):
         def title(self):
             if not self.context_form_group or self.context_form_group.context_type == "F":
                 return self.form_model.nice_name
+            else:
+                # multiple group
+                if self.context_form_group.supports_direct_linking:
+                    return self.context_form_group.get_name_from_cde(self.patient_model,
+                                                                     self.context_model)
+                else:
+                    return self.context_form_group.name + " " + self.form_model.nice_name
+                
 
     def __init__(self,
                  registry_model,

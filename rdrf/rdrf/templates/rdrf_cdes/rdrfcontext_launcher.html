@@ -68,7 +68,8 @@
 
 
 
-  {% for multiple_context in multiple_contexts %}
+{% for multiple_context in multiple_contexts %}
+<!-- START MMMMMM -->
 <div width="100%" class="panel panel-default collapsible">
     <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
       {{multiple_context.heading}}
@@ -89,7 +90,8 @@
     </div>
  </div>
 
-  {% endfor %}
+<!-- END MMMMMM -->
+{% endfor %}
   
 
 {% else %}

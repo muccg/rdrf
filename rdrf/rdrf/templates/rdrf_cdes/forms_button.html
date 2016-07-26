@@ -12,5 +12,10 @@
                     <img src="{% static 'images/cross.png' %}">
                 {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
     {% endfor %}
+		    
+
+		    {% if not forms %}
+		    No data yet
+		    {% endif %}
   </div>
 </div>
