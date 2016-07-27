@@ -2064,9 +2064,26 @@ class ContextFormGroup(models.Model):
             num_forms = len(self.form_models)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
             action_title = "Add %s" % self.form_models[0].name if num_forms == 1 else "Add %s" % self.name
-            action_link = reverse("context_add", args=(self.registry.code,
+
+            if not self.supports_direct_linking:
+                # We can't go directly to the form - so we first land on the add context view, which on save
+                # creates the context with links to the forms provided in that context after save
+                action_link = reverse("context_add", args=(self.registry.code,
                                                        str(patient_model.pk),
                                                        str(self.pk)))
+
+            else:
+                form_model = self.form_models[0]
+                # provide a link to the create view for a clinical form
+                # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
+
+                action_link = reverse("form_add", args=(self.registry.code,
+                                                       form_model.pk,
+                                                       patient_model.pk,
+                                                       'add'))
+                
+                                                       
+                                                       
             return action_link, action_title
         else:
             return None

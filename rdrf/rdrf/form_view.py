@@ -203,8 +203,56 @@ class FormView(View):
 
             raise RDRFContextSwitchError
 
+
+    def _enable_context_creation_after_save(self,
+                                            request,
+                                            registry_code,
+                                            form_id,
+                                            patient_id):
+        # Enable only if:
+        #   the form is the only member of a context form group marked as multiple
+        user = request.user
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm.objects.get(id=form_id)
+        patient_model = Patient.objects.get(id=patient_id)
+
+        if not registry_model.has_feature("contexts"):
+            raise Http404
+        
+        if not patient_model.in_registry(registry_model.code):
+            raise Http404
+
+        if not user.can_view(form_model):
+            raise Http404
+
+        # is this form the only member of a multiple form group?
+        form_group = None
+        for cfg in registry_model.multiple_form_groups:
+            form_models = cfg.form_models
+            if len(form_models) == 1 and form_models[0].pk == form_model.pk:
+                form_group = cfg
+                break
+
+        if form_group is None:
+            raise Http404
+
+        self.create_mode_config = {
+            "form_group" : form_group,
+        }
+
+        self.CREATE_MODE = True
+
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
+        # RDR-1398 enable a Create View which context_id of 'add' is provided
+        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+        if context_id == 'add':
+            self._enable_context_creation_after_save(request,
+                                                     registry_code,
+                                                     form_id,
+                                                     patient_id)
+                                                     
         if request.user.is_working_group_staff:
             raise PermissionDenied()
         self.user = request.user
@@ -216,31 +264,41 @@ class FormView(View):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
-            self.set_rdrf_context(patient_model, context_id)
+            if not self.CREATE_MODE:
+                self.set_rdrf_context(patient_model, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        # context is not None here - always
-        rdrf_context_id = self.rdrf_context.pk
-        logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
+        if not self.CREATE_MODE:
+            rdrf_context_id = self.rdrf_context.pk
+            logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
 
-        self.dynamic_data = self._get_dynamic_data(id=patient_id,
-                                                   registry_code=registry_code,
-                                                   rdrf_context_id=rdrf_context_id)
+            self.dynamic_data = self._get_dynamic_data(id=patient_id,
+                                                       registry_code=registry_code,
+                                                       rdrf_context_id=rdrf_context_id)
+        else:
+            rdrf_context_id = "add"
+            self.dynamic_data = None
+            
 
         self.registry_form = self.get_registry_form(form_id)
 
         context_launcher = RDRFContextLauncherComponent(request.user,
-                                                        self.registry,
-                                                        patient_model,
-                                                        self.registry_form.name,
-                                                        self.rdrf_context)
-
+                                                            self.registry,
+                                                            patient_model,
+                                                            self.registry_form.name,
+                                                            self.rdrf_context)
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         context["header"] = self.registry_form.header
-        context["show_print_button"] = True
+        if not self.CREATE_MODE:
+            context["CREATE_MODE"] = False
+            context["show_print_button"] = True
+        else:
+            context["CREATE_MODE"] = True
+            context["show_print_button"] = False
+            
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -277,6 +335,13 @@ class FormView(View):
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+        if context_id == 'add':
+            # The following switches on CREATE_MODE if conditions satisfied
+            self._enable_context_creation_after_save(request,
+                                                     registry_code,
+                                                     form_id,
+                                                     patient_id)
         if request.user.is_superuser:
             pass
         elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
@@ -293,11 +358,16 @@ class FormView(View):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
-            self.set_rdrf_context(patient, context_id)
+            if not self.CREATE_MODE:
+                self.set_rdrf_context(patient, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        if not self.CREATE_MODE:
+            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        else:
+            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
+
 
         if self.testing:
             dyn_patient.testing = True
@@ -402,7 +472,15 @@ class FormView(View):
 
         # Save one snapshot after all sections have being persisted
         dyn_patient.save_snapshot(registry_code, "cdes")
-
+        
+        if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
+            # we've created the context on the fly so no redirect to the edit view on the new context
+            newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
+            dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
+            return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
+                                                                       form_id,
+                                                                       patient.pk,
+                                                                       newly_created_context.pk)))
         # progress saved to progress collection in mongo
         # the data is returned also
         progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
@@ -427,6 +505,7 @@ class FormView(View):
                                                         self.rdrf_context)
 
         context = {
+            'CREATE_MODE': self.CREATE_MODE,
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
             'registry': registry_code,
@@ -452,7 +531,7 @@ class FormView(View):
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
-            "show_print_button": True,
+            "show_print_button": True if not self.CREATE_MODE else False,
             "context_launcher" : context_launcher.html,
         }
 
@@ -600,6 +679,7 @@ class FormView(View):
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
+            'CREATE_MODE': self.CREATE_MODE,
             'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
