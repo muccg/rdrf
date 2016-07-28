@@ -136,7 +136,7 @@
         $("#show-cdes-btn").click(function() {
             $("#form-progress-cdes").toggle("fast");
         });
-        
+
         $(document).find( ".datepicker" ).each(function() {
             $(this).on("mouseover", function() {
                 $(this).datepicker({
@@ -434,7 +434,7 @@
         $("textarea").addClass("form-control");
         $("select").addClass("form-control");
         $("label[for*='-clear']").removeClass();
-    })
+    });
 </script>
 
 {% if form.errors %}

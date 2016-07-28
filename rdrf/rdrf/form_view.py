@@ -122,26 +122,7 @@ class CustomConsentHelper(object):
         self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
 
 
-def log_context(when, context):
-    logger.debug("dumping page context: %s" % when)
-    logger.debug("context = %s" % context)
-    for section in context["forms"]:
-        logger.debug("section %s" % section)
-        form = context["forms"][section]
-        for attr in form.__dict__:
-            value = getattr(form, attr)
-            if not callable(value):
-                if hasattr(value, "url"):
-                    logger.debug("file upload url = %s" % value.url)
-                    logger.debug("text value = %s" % value.__unicode__())
-
-                logger.debug("%s form %s = %s" % (section, attr, value))
-
-        for field_name, field_object in form.fields.items():
-            field_object = form.fields[field_name]
-            for attr in field_object.__dict__:
-                logger.debug("field %s.%s = %s" %
-                             (field_name, attr, getattr(field_object, attr)))
+DELAYED_SAVE = True
 
 class SectionInfo(object):
     """
@@ -357,6 +338,8 @@ class FormView(View):
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        all_errors = []
+        
         self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
         all_sections_valid = True
@@ -433,9 +416,11 @@ class FormView(View):
                 if form.is_valid():
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
-                    #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
                     # save all sections ONLY is all valid!
-                    sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
+                    if DELAYED_SAVE:
+                        sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
+                    else:
+                        dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
 
                     from copy import deepcopy
                     form2 = form_class(
@@ -445,11 +430,11 @@ class FormView(View):
                             deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
+                    logger.debug("form is invalid")
                     all_sections_valid = False
                     for e in form.errors:
-                        logger.debug("error validating form: %s" % e)
                         error_count += 1
-                        logger.debug("Validation error on form: %s" % e)
+                        all_errors.append(e)
                     form_section[s] = form_class(request.POST, request.FILES)
 
             else:
@@ -470,8 +455,6 @@ class FormView(View):
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
                     logger.debug("multisection formset is valid")
-                    logger.debug("cleaned dynamic_data = %s" % dynamic_data)
-
                     to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
                     index_map = make_index_map(to_remove, len(dynamic_data))
 
@@ -481,9 +464,11 @@ class FormView(View):
 
                     section_dict = { s: dynamic_data }
 
-                    #dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
-                    #                              index_map=index_map)
-                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
+                    if not DELAYED_SAVE:
+                        dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                                                      index_map=index_map)
+                    else:
+                        sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
 
                     #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
@@ -492,26 +477,38 @@ class FormView(View):
 
                 else:
                     all_sections_valid = False
-                    logger.debug("formset for multisection is invalid!")
+                    logger.debug("multisection formset is invalid")
                     for e in formset.errors:
                         error_count += 1
-                        logger.debug("Validation error on form: %s" % e)
+                        all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
         # Save one snapshot after all sections have being persisted
         if all_sections_valid:
-            for section_info in sections_to_save:
-                section_info.save_to_mongo()
+            logger.debug("All sections valid so saving to mongo ..")
+            if DELAYED_SAVE:
+                for section_info in sections_to_save:
+                    logger.debug("saving section %s" % section_info)
+                    section_info.save_to_mongo()
+            logger.debug("saving snapshot ..")
             dyn_patient.save_snapshot(registry_code, "cdes")
         
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
+                logger.debug("saving form progress for add form")
                 dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
                 return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
                                                                            form_id,
                                                                            patient.pk,
                                                                            newly_created_context.pk)))
+
+            if dyn_patient.rdrf_context_id == "add":
+                raise Exception("Content not created")
+        else:
+            logger.debug("validation errors occurred - no data saved to Mongo")
+            for e in all_errors:
+                logger.debug("validation Error: %s" % e)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
