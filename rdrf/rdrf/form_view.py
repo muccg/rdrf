@@ -59,6 +59,7 @@ from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.form_progress import FormProgress
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
+from . import context_definitions as definitions
 
 
 logger = logging.getLogger(__name__)

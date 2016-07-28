@@ -426,20 +426,6 @@ LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
 
 
-CUSTOM_PERMISSIONS = {
-    "patients": { # App Name
-        "patient": ( # Model Name
-            ("can_see_full_name", "Can see Full Name column"),
-            ("can_see_dob", "Can see Date of Birth column"),
-            ("can_see_working_groups", "Can see Working Groups column"),
-            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
-            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
-            ("can_see_genetic_data_map", "Can see Genetic Module column"),
-            ("can_see_data_modules", "Can see Data Modules column"),
-        )
-    }
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
@@ -460,74 +446,12 @@ EMAIL_NOTIFICATIONS = (
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )
 
-
 GRID_PATIENT_LISTING = [
-     {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_full_name"
-        },
-        "data": "full_name",
-        "label": "Patient",
-        "model": "Patient",
-        "order": 0
-    },
-    {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_dob",
-        },
-        "data": "date_of_birth",
-        "label": "Date of Birth",
-        "model": "Patient",
-        "order": 1
-    },
-
-    {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_working_groups"
-        },
-        "data": "working_groups_display",
-        "label": "Working Groups",
         "model": "Patient",
         "order": 2
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_progress"
-        },
-        "data": "diagnosis_progress",
-        "label": "Diagnosis Entry Progress",
-        "model": "Patient",
         "order": 3
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_currency"
-        },
-        "data": "diagnosis_currency",
-        "label": "Updated < 365 days",
-        "model": "Patient",
         "order": 4
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_genetic_data_map"
-        },
-        "data": "genetic_data_map",
-        "label": "Genetic Data",
-        "model": "Patient",
         "order": 5
-    },
-     {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_data_modules",
-        },
-        "data": "context_menu",
-        "label": "Modules",
-        "model": "func",
         "order": 6
     }
 ]

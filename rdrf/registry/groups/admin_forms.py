@@ -5,26 +5,26 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from models import WorkingGroup
 from rdrf.models import Registry
 from django.core.exceptions import ValidationError
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserValidationMixin(object):
 
     def clean(self):
-        # Need to prevent adding a user who:
+        # When the registry and/or working groups are selected, validate the selection is consistent.
+        # We will prevent having a user who:
         # a) has been assigned a registry but not assigned to a working group of that registry
-        # b) has been assigned to a working group but not assigned to the owning registry of that
+        # b) has been assigned to a working group but not assigned to the owning registry
         #    of that working group.
-        if "registry" in self.cleaned_data:
-            registry_models = [
-                registry_model for registry_model in self.cleaned_data["registry"].all()]
-        else:
-            registry_models = []
+        registry_models = self.cleaned_data.get("registry", [])
+        working_group_models = self.cleaned_data.get("working_groups", [])
 
-        if "working_groups" in self.cleaned_data:
-            working_group_models = [working_group_model for working_group_model
-                                    in self.cleaned_data["working_groups"].all()]
-        else:
-            working_group_models = []
+        if len(registry_models) == 0 and len(working_group_models) == 0:
+            # Registries and working groups not selected. Don't check for consistency.
+            return self.cleaned_data
 
         for working_group_model in working_group_models:
             if working_group_model.registry not in registry_models:
