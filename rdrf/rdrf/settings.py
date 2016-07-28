@@ -445,13 +445,3 @@ EMAIL_NOTIFICATIONS = (
     (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )
-
-GRID_PATIENT_LISTING = [
-        "model": "Patient",
-        "order": 2
-        "order": 3
-        "order": 4
-        "order": 5
-        "order": 6
-    }
-]

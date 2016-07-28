@@ -102,7 +102,8 @@ class PatientsListingView(View):
         return columns
 
     def get_grid_definitions(self):
-        return settings.GRID_PATIENT_LISTING
+        from rdrf import context_definitions
+        return context_definitions.GRID_PATIENT_LISTING
 
     def do_security_checks(self):
         if self.user.is_patient:
