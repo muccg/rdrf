@@ -122,7 +122,6 @@ class CustomConsentHelper(object):
         self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
 
 
-DELAYED_SAVE = True
 
 class SectionInfo(object):
     """
@@ -417,10 +416,8 @@ class FormView(View):
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
                     # save all sections ONLY is all valid!
-                    if DELAYED_SAVE:
-                        sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
-                    else:
-                        dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+                    sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
+                    #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
 
                     from copy import deepcopy
                     form2 = form_class(
@@ -464,11 +461,9 @@ class FormView(View):
 
                     section_dict = { s: dynamic_data }
 
-                    if not DELAYED_SAVE:
-                        dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
-                                                      index_map=index_map)
-                    else:
-                        sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
+                    #dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                    #                                 index_map=index_map)
+                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
 
                     #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
@@ -486,10 +481,9 @@ class FormView(View):
         # Save one snapshot after all sections have being persisted
         if all_sections_valid:
             logger.debug("All sections valid so saving to mongo ..")
-            if DELAYED_SAVE:
-                for section_info in sections_to_save:
-                    logger.debug("saving section %s" % section_info)
-                    section_info.save_to_mongo()
+            for section_info in sections_to_save:
+                logger.debug("saving section %s" % section_info)
+                section_info.save_to_mongo()
             logger.debug("saving snapshot ..")
             dyn_patient.save_snapshot(registry_code, "cdes")
         
