@@ -330,7 +330,7 @@ class FormsButton(RDRFComponent):
     def _get_template_data(self):
         # subclass should build dictionary for template
         if self.context_form_group:
-            heading = self.context_form_group.name
+            heading = self.context_form_group.direct_name
         else:
             heading = "Modules"
 
