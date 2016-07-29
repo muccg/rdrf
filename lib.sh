@@ -195,26 +195,26 @@ git_tag() {
 
     # jenksins sets BRANCH_NAME, so we use that
     # otherwise ask git
-    GIT_BRANCH=${BRANCH_NAME}
-    if [ -z ${GIT_BRANCH+x} ]; then
+    GIT_BRANCH="${BRANCH_NAME}"
+    if [ -z ${GIT_BRANCH} ]; then
         GIT_BRANCH=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
     fi
 
     # fail when we don't know branch
-    if [ $GIT_BRANCH = "HEAD" ]; then
+    if [ "${GIT_BRANCH}" = "HEAD" ]; then
         fail 'git clone is in detached HEAD state and BRANCH_NAME not set'
     fi
 
     # only use tags when on master (prod) branch
-    if [ $GIT_BRANCH != "master" ]; then
+    if [ "${GIT_BRANCH}" != "master" ]; then
         info 'Ignoring tags, not on master branch'
-        GIT_TAG=$GIT_BRANCH
+        GIT_TAG=${GIT_BRANCH}
     fi
 
     # if no git tag, then use branch name
     if [ -z ${GIT_TAG+x} ]; then
         info 'No git tag set, using branch name'
-        GIT_TAG=$GIT_BRANCH
+        GIT_TAG=${GIT_BRANCH}
     fi
 
     export GIT_TAG
