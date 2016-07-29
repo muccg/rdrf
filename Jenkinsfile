@@ -1,6 +1,8 @@
 #!groovy
 
 node {
+    env.DOCKER_USE_HUB = 1
+
     stage 'Checkout'
         checkout scm
 
