@@ -17,7 +17,7 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
         }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/unittests.xml'])
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
 
     stage 'Selenium tests'
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
