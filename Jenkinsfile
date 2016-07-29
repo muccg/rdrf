@@ -30,5 +30,5 @@ node {
             sh './develop.sh lettuce'
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium.*.png'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
 }
