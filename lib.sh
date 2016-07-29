@@ -140,6 +140,15 @@ _pip_proxy() {
 }
 
 
+docker_warm_cache() {
+    # attempt to warm up docker cache by pulling next_release tag
+    if [ ${DOCKER_USE_HUB} = "1" ]; then
+        info 'warming docker cache'
+        docker pull ${DOCKER_IMAGE}:next_release || true
+    fi
+}
+
+
 # ssh setup for ci
 _ci_ssh_agent() {
     info 'ci ssh config'
@@ -278,11 +287,6 @@ start_dev() {
 
 create_prod_image() {
     info 'create prod image'
-
-    # attempt to warm up docker cache
-    if [ ${DOCKER_USE_HUB} = "1" ]; then
-        docker pull ${DOCKER_IMAGE}:${GIT_TAG} || true
-    fi
 
     info "Building ${PROJECT_NAME} ${tag}"
     docker-compose -f docker-compose-build.yml build prod

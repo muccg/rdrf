@@ -75,6 +75,7 @@ echo ''
 info "$0 $@"
 docker_options
 git_tag
+docker_warm_cache
 
 case $ACTION in
 pythonlint)
@@ -119,7 +120,6 @@ devimage)
     create_dev_image
     ;;
 ci_dockerbuild)
-    _ci_ssh_agent
     _ci_docker_login
     create_base_image
     create_build_image
