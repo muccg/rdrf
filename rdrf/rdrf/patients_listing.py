@@ -525,10 +525,24 @@ class PatientsListingView(View):
                                              context_form_group,
                                              forms)
 
-        button_html = """<button type="button" class="contextmenu btn btn-primary btn-xs" data-toggle="popover" data-html="true" data-content="%s"
-                      id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
-                                                                                             forms_button_component.id,
-                                                                                             forms_button_component.button_caption)
+#        button_html = """<button type="button" class="contextmenu btn btn-primary btn-xs" data-toggle="popover" data-html="true" data-content="%s"
+#                      id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
+#                                                                                             forms_button_component.id,
+#                                                                                             forms_button_component.button_caption)
+
+
+        button_html = """
+            <div class="dropdown">
+                <button class="btn btn-primary btn-sm btn-block dropdown-toggle" type="button" id="forms_button_%s" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    %s <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="forms_button_%s">%s</ul>
+            </div>
+        """ % (forms_button_component.id,
+               forms_button_component.button_caption,
+               forms_button_component.id,
+               forms_button_component.html)
+
         return button_html
 
         return forms_button_component
