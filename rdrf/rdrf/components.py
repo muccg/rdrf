@@ -6,6 +6,7 @@ from rdrf.utils import consent_status_for_patient
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+from rdrf.form_progress import FormProgress
 
 PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
 
@@ -295,6 +296,7 @@ class FormsButton(RDRFComponent):
             self.patient_model = patient_model
             self.form_model = form_model
             self.context_model = context_model
+            self.progress = FormProgress(self.registry_model)
         
         
         @property
@@ -315,6 +317,15 @@ class FormsButton(RDRFComponent):
                                                                      self.context_model)
                 else:
                     return self.context_form_group.name + " " + self.form_model.nice_name
+        
+        @property
+        def progress_percentage(self):
+            return self.progress.get_form_progress(self.form_model, self.patient_model)
+
+        @property
+        def is_current(self):
+            return self.progress.get_form_currency(self.form_model, self.patient_model)
+        
                 
 
     def __init__(self,

@@ -1,21 +1,13 @@
 {% load static %}
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <b>{{ heading }}</b>
-  </div>
-  <div class="panel-body">
-    
-    {% for form in forms %}
-                {% if form.current %}
-                    <img src="{% static 'images/tick.png' %}">
-                {% else %}
-                    <img src="{% static 'images/cross.png' %}">
-                {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
-    {% endfor %}
-		    
 
-		    {% if not forms %}
-		    No data yet
-		    {% endif %}
-  </div>
-</div>
+{% for form in forms %}
+	<li>
+	  <a href="{{form.link}}">
+		{% if form.is_current %}
+		  <img src="{% static 'images/tick.png' %}">
+		{% else %}
+		  <img src="{% static 'images/cross.png' %}">
+		{% endif %}
+	  <b>{{form.progress_percentage}}%</b> {{form.title}}</a>
+	</li>
+{% endfor %}
