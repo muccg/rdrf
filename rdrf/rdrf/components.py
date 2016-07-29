@@ -331,6 +331,8 @@ class FormsButton(RDRFComponent):
         # subclass should build dictionary for template
         if self.context_form_group:
             heading = self.context_form_group.direct_name
+            if self.context_form_group.context_type == "M":
+                heading = heading + "s"
         else:
             heading = "Modules"
 
