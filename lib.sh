@@ -40,8 +40,8 @@ usage() {
     echo " ./develop.sh (runtests|lettuce|selenium)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)"
     echo " ./develop.sh (pythonlint|jslint)"
-    echo " ./develop.sh (ci_dockerbuild)"
     echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
+    echo " ./develop.sh (ci_docker_login)"
     echo ""
     echo "Example, start dev with no proxy and rebuild everything:"
     echo "SET_PIP_PROXY=0 SET_HTTP_PROXY=0 ./develop.sh dev_rebuild"
@@ -176,20 +176,21 @@ _ci_ssh_agent() {
 }
 
 
-_ci_docker_login() {
+ci_docker_login() {
     info 'Docker login'
 
-    if [ -z ${bamboo_DOCKER_EMAIL+x} ]; then
-        fail 'bamboo_DOCKER_EMAIL not set'
+    if [ -z ${DOCKER_USERNAME+x} ]; then
+        DOCKER_USERNAME=${bamboo_DOCKER_USERNAME}
     fi
-    if [ -z ${bamboo_DOCKER_USERNAME+x} ]; then
-        fail 'bamboo_DOCKER_USERNAME not set'
-    fi
-    if [ -z ${bamboo_DOCKER_PASSWORD+x} ]; then
-        fail 'bamboo_DOCKER_PASSWORD not set'
+    if [ -z ${DOCKER_PASSWORD+x} ]; then
+        DOCKER_PASSWORD=${bamboo_DOCKER_PASSWORD}
     fi
 
-    docker login  -e "${bamboo_DOCKER_EMAIL}" -u ${bamboo_DOCKER_USERNAME} --password="${bamboo_DOCKER_PASSWORD}"
+    if [ -z ${DOCKER_USERNAME} ] || [ -z ${DOCKER_PASSWORD} ]; then
+        fail "Docker credentials not available"
+    fi
+
+    docker login -u ${DOCKER_USERNAME} --password="${DOCKER_PASSWORD}"
     success "Docker login"
 }
 
@@ -287,19 +288,30 @@ start_dev() {
 
 create_prod_image() {
     info 'create prod image'
-
-    info "Building ${PROJECT_NAME} ${tag}"
+    info "Building ${PROJECT_NAME} ${GIT_TAG}"
     docker-compose -f docker-compose-build.yml build prod
     success "$(docker images | grep ${DOCKER_IMAGE} | grep ${GIT_TAG} | sed 's/  */ /g')"
+    docker tag ${DOCKER_IMAGE}:${GIT_TAG} ${DOCKER_IMAGE}:${GIT_TAG}-${DATE}
+    success 'create prod image'
+}
 
-    docker tag ${DOCKER_IMAGE}:${GIT_TAG} ${DOCKER_IMAGE}:${GIT_TAG}-${DATE} 
+
+publish_docker_image() {
+    # check we are on master or next_release
+    if [ "${GIT_BRANCH}" = "master" ] || [ "${GIT_BRANCH}" = "next_release" ]; then
+        info "publishing docker image for ${GIT_BRANCH} branch, version ${GIT_TAG}"
+    else
+        info "skipping publishing docker image for ${GIT_BRANCH} branch"
+        return
+    fi
+
     if [ ${DOCKER_USE_HUB} = "1" ]; then
         docker push ${DOCKER_IMAGE}:${GIT_TAG}
         docker push ${DOCKER_IMAGE}:${GIT_TAG}-${DATE}
         success "pushed ${tag}"
+    else
+        info "docker push of ${GIT_TAG} disabled by config"
     fi
-
-    success 'create prod image'
 }
 
 
