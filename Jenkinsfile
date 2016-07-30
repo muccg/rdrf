@@ -42,10 +42,8 @@ node {
                           usernameVariable: 'DOCKER_USERNAME',
                           passwordVariable: 'DOCKER_PASSWORD']]) {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-                sh '''
-                    ./develop.sh ci_docker_login'
-                    ./develop.sh publish_docker_image'
-                '''
+                sh './develop.sh ci_docker_login'
+                sh './develop.sh publish_docker_image'
             }
         }
 
