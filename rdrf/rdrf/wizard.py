@@ -25,6 +25,7 @@ class NavigationWizard(object):
         self.patient_model = patient_model
         self.form_type = form_type
         self.context_id = context_id
+        self.on_create_form_view = context_id == 'add'
         self.current_form_model = current_form_model
         self.links = []
         self.current_index = None # set by method below
@@ -61,7 +62,8 @@ class NavigationWizard(object):
             if self.user.can_view(form_model):
                 self.links.append(self._construct_free_form_link(form_model))
 
-        self.current_index = self._determine_current_index()
+        if not self.on_create_form_view:
+            self.current_index = self._determine_current_index()
 
 
     def _construct_free_form_link(self, form_model):
@@ -83,7 +85,7 @@ class NavigationWizard(object):
 
     def _get_multiple_contexts(self, multiple_form_group):
         contexts = [c for c in self.patient_model.context_models
-                      if c.context_form_group.pk == multiple_form_group.pk]
+                      if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
         
         return sorted(contexts, key=lambda c : c.created_at)
             
@@ -137,12 +139,19 @@ class NavigationWizard(object):
 
     @property
     def previous_link(self):
+        if self.on_create_form_view:
+            # unsure what to do here
+            return self.links[0]
+        
         num_links = len(self.links)
         next_index = (self.current_index - 1) % num_links
         return self.links[next_index][-1]
 
     @property
     def next_link(self):
+        if self.on_create_form_view:
+            # unsure what to do here
+            return self.links[0]
         num_links = len(self.links)
         next_index = (self.current_index + 1) % num_links
         return self.links[next_index][-1]

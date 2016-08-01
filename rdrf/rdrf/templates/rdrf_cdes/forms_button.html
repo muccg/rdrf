@@ -1,0 +1,13 @@
+{% load static %}
+
+{% for form in forms %}
+	<li>
+	  <a href="{{form.link}}">
+		{% if form.is_current %}
+		  <img src="{% static 'images/tick.png' %}">
+		{% else %}
+		  <img src="{% static 'images/cross.png' %}">
+		{% endif %}
+	  <b>{{form.progress_percentage}}%</b> {{form.title}}</a>
+	</li>
+{% endfor %}

@@ -1,6 +1,8 @@
 #!groovy
 
 node {
+    env.DOCKER_USE_HUB = 1
+
     stage 'Checkout'
         checkout scm
 
@@ -15,14 +17,34 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
         }
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
 
     stage 'Selenium tests'
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh selenium'
         }
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
 
     stage 'Lettuce tests'
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh lettuce'
         }
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
+
+    stage 'Docker prod build'
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+            sh './develop.sh prod_build'
+        }
+
+    stage 'Publish docker image'
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerbot',
+                          usernameVariable: 'DOCKER_USERNAME',
+                          passwordVariable: 'DOCKER_PASSWORD']]) {
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                sh './develop.sh ci_docker_login'
+                sh './develop.sh publish_docker_image'
+            }
+        }
+
 }

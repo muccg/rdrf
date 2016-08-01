@@ -30,6 +30,7 @@ from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RDRFContextLookup
 from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
+from rdrf import patients_listing
 
 from ajax_select import urls as ajax_select_urls
 
@@ -78,26 +79,20 @@ urlpatterns = patterns('',
                            name="report_datatable"),
                        url(r'^explorer/', include('explorer.urls')),
                        url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
-                       url(r'^patientsgridapi/?$', form_view.DataTableServerSideApi.as_view(),
-                           name='patientsgridapi'),
-                       #---- Context related URLs -----------------
-                       url(r'^contextslisting/?', form_view.ContextsListingView.as_view(),
-                           name="contextslisting"),
-
-                       url(r'^contextsgridapi/?$', form_view.ContextDataTableServerSideApi.as_view(),
-                           name='contextsgridapi'),
-
+                       url(r'^patientslisting/?', patients_listing.PatientsListingView.as_view(),
+                           name="patientslisting"),
                        url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
                            RDRFContextCreateView.as_view(),
                            name="context_add"),
                        url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)/edit/?$',
                            RDRFContextEditView.as_view(),
                            name="context_edit"),
-                       url(r'^bootgridapi', form_view.BootGridApi.as_view()),
-
                        url(r'^login/?$', 'django.contrib.auth.views.login',
                            {'template_name': 'admin/login.html'}, name='login'),
                        url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
+
+                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
+                           form_view.FormView.as_view(), name='form_add'),
 
                        url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
                            form_view.FormView.as_view(), name='registry_form'),

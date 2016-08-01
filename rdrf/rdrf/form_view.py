@@ -125,27 +125,29 @@ class CustomConsentHelper(object):
         self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
 
 
-def log_context(when, context):
-    logger.debug("dumping page context: %s" % when)
-    logger.debug("context = %s" % context)
-    for section in context["forms"]:
-        logger.debug("section %s" % section)
-        form = context["forms"][section]
-        for attr in form.__dict__:
-            value = getattr(form, attr)
-            if not callable(value):
-                if hasattr(value, "url"):
-                    logger.debug("file upload url = %s" % value.url)
-                    logger.debug("text value = %s" % value.__unicode__())
 
-                logger.debug("%s form %s = %s" % (section, attr, value))
+class SectionInfo(object):
+    """
+    Info to store a section.
+    Used so we save everything after all sections have validated.
+    """
+    def __init__(self, patient_wrapper, is_multiple, registry_code, collection_name, data, index_map=None):
+        self.patient_wrapper = patient_wrapper
+        self.is_multiple = is_multiple
+        self.registry_code = registry_code
+        self.collection_name = collection_name
+        self.data = data
+        self.index_map = index_map
 
-        for field_name, field_object in form.fields.items():
-            field_object = form.fields[field_name]
-            for attr in field_object.__dict__:
-                logger.debug("field %s.%s = %s" %
-                             (field_name, attr, getattr(field_object, attr)))
-
+    def save_to_mongo(self):
+        if not self.is_multiple:
+            self.patient_wrapper.save_dynamic_data(self.registry_code, self.collection_name, self.data)
+        else:
+            self.patient_wrapper.save_dynamic_data(self.registry_code,
+                                                   self.collection_name,
+                                                   self.data,
+                                                   multisection=True,
+                                                   index_map=self.index_map)
 
 class FormView(View):
 
@@ -206,8 +208,56 @@ class FormView(View):
 
             raise RDRFContextSwitchError
 
+
+    def _enable_context_creation_after_save(self,
+                                            request,
+                                            registry_code,
+                                            form_id,
+                                            patient_id):
+        # Enable only if:
+        #   the form is the only member of a context form group marked as multiple
+        user = request.user
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm.objects.get(id=form_id)
+        patient_model = Patient.objects.get(id=patient_id)
+
+        if not registry_model.has_feature("contexts"):
+            raise Http404
+        
+        if not patient_model.in_registry(registry_model.code):
+            raise Http404
+
+        if not user.can_view(form_model):
+            raise Http404
+
+        # is this form the only member of a multiple form group?
+        form_group = None
+        for cfg in registry_model.multiple_form_groups:
+            form_models = cfg.form_models
+            if len(form_models) == 1 and form_models[0].pk == form_model.pk:
+                form_group = cfg
+                break
+
+        if form_group is None:
+            raise Http404
+
+        self.create_mode_config = {
+            "form_group" : form_group,
+        }
+
+        self.CREATE_MODE = True
+
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
+        # RDR-1398 enable a Create View which context_id of 'add' is provided
+        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+        if context_id == 'add':
+            self._enable_context_creation_after_save(request,
+                                                     registry_code,
+                                                     form_id,
+                                                     patient_id)
+                                                     
         if request.user.is_working_group_staff:
             raise PermissionDenied()
         self.user = request.user
@@ -219,31 +269,41 @@ class FormView(View):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
-            self.set_rdrf_context(patient_model, context_id)
+            if not self.CREATE_MODE:
+                self.set_rdrf_context(patient_model, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        # context is not None here - always
-        rdrf_context_id = self.rdrf_context.pk
-        logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
+        if not self.CREATE_MODE:
+            rdrf_context_id = self.rdrf_context.pk
+            logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
 
-        self.dynamic_data = self._get_dynamic_data(id=patient_id,
-                                                   registry_code=registry_code,
-                                                   rdrf_context_id=rdrf_context_id)
+            self.dynamic_data = self._get_dynamic_data(id=patient_id,
+                                                       registry_code=registry_code,
+                                                       rdrf_context_id=rdrf_context_id)
+        else:
+            rdrf_context_id = "add"
+            self.dynamic_data = None
+            
 
         self.registry_form = self.get_registry_form(form_id)
 
         context_launcher = RDRFContextLauncherComponent(request.user,
-                                                        self.registry,
-                                                        patient_model,
-                                                        self.registry_form.name,
-                                                        self.rdrf_context)
-
+                                                            self.registry,
+                                                            patient_model,
+                                                            self.registry_form.name,
+                                                            self.rdrf_context)
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         context["header"] = self.registry_form.header
-        context["show_print_button"] = True
+        if not self.CREATE_MODE:
+            context["CREATE_MODE"] = False
+            context["show_print_button"] = True
+        else:
+            context["CREATE_MODE"] = True
+            context["show_print_button"] = False
+            
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -280,6 +340,17 @@ class FormView(View):
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        all_errors = []
+        
+        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+        sections_to_save = []  # when a section is validated it is added to this list
+        all_sections_valid = True
+        if context_id == 'add':
+            # The following switches on CREATE_MODE if conditions satisfied
+            self._enable_context_creation_after_save(request,
+                                                     registry_code,
+                                                     form_id,
+                                                     patient_id)
         if request.user.is_superuser:
             pass
         elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
@@ -296,11 +367,16 @@ class FormView(View):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
-            self.set_rdrf_context(patient, context_id)
+            if not self.CREATE_MODE:
+                self.set_rdrf_context(patient, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        if not self.CREATE_MODE:
+            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
+        else:
+            dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
+
 
         if self.testing:
             dyn_patient.testing = True
@@ -342,7 +418,9 @@ class FormView(View):
                 if form.is_valid():
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
-                    dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
+                    # save all sections ONLY is all valid!
+                    sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
+                    #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
 
                     from copy import deepcopy
                     form2 = form_class(
@@ -352,10 +430,11 @@ class FormView(View):
                             deepcopy(dynamic_data)))
                     form_section[s] = form2
                 else:
+                    logger.debug("form is invalid")
+                    all_sections_valid = False
                     for e in form.errors:
-                        logger.debug("error validating form: %s" % e)
                         error_count += 1
-                        logger.debug("Validation error on form: %s" % e)
+                        all_errors.append(e)
                     form_section[s] = form_class(request.POST, request.FILES)
 
             else:
@@ -376,8 +455,6 @@ class FormView(View):
                 if formset.is_valid():
                     dynamic_data = formset.cleaned_data  # a list of values
                     logger.debug("multisection formset is valid")
-                    logger.debug("cleaned dynamic_data = %s" % dynamic_data)
-
                     to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
                     index_map = make_index_map(to_remove, len(dynamic_data))
 
@@ -387,9 +464,9 @@ class FormView(View):
 
                     section_dict = { s: dynamic_data }
 
-                    dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
-                                                  index_map=index_map)
-                    logger.debug("saved dynamic data to mongo OK")
+                    #dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                    #                                 index_map=index_map)
+                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
 
                     #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
@@ -397,22 +474,43 @@ class FormView(View):
                     form_section[s] = form_set_class(initial=wrapped_data_for_form, prefix=prefix)
 
                 else:
-                    logger.debug("formset for multisection is invalid!")
+                    all_sections_valid = False
+                    logger.debug("multisection formset is invalid")
                     for e in formset.errors:
                         error_count += 1
-                        logger.debug("Validation error on form: %s" % e)
+                        all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
         # Save one snapshot after all sections have being persisted
-        dyn_patient.save_snapshot(registry_code, "cdes")
+        if all_sections_valid:
+            logger.debug("All sections valid so saving to mongo ..")
+            for section_info in sections_to_save:
+                logger.debug("saving section %s" % section_info)
+                section_info.save_to_mongo()
+            logger.debug("saving snapshot ..")
+            dyn_patient.save_snapshot(registry_code, "cdes")
+        
+            if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
+                # we've created the context on the fly so no redirect to the edit view on the new context
+                newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
+                logger.debug("saving form progress for add form")
+                dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
+                return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
+                                                                           form_id,
+                                                                           patient.pk,
+                                                                           newly_created_context.pk)))
 
+            if dyn_patient.rdrf_context_id == "add":
+                raise Exception("Content not created")
+        else:
+            logger.debug("validation errors occurred - no data saved to Mongo")
+            for e in all_errors:
+                logger.debug("validation Error: %s" % e)
+
+        patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
         progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
-
-        logger.debug("progress dict = %s" % progress_dict)
-
-        patient_name = '%s %s' % (patient.given_names, patient.family_name)
 
         logger.debug("rdrf context = %s" % self.rdrf_context)
 
@@ -430,6 +528,7 @@ class FormView(View):
                                                         self.rdrf_context)
 
         context = {
+            'CREATE_MODE': self.CREATE_MODE,
             'current_registry_name': registry.name,
             'current_form_name': de_camelcase(form_obj.name),
             'registry': registry_code,
@@ -455,7 +554,7 @@ class FormView(View):
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
-            "show_print_button": True,
+            "show_print_button": True if not self.CREATE_MODE else False,
             "context_launcher" : context_launcher.html,
         }
 
@@ -603,6 +702,7 @@ class FormView(View):
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
         context = {
+            'CREATE_MODE': self.CREATE_MODE,
             'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
             'current_form_name': de_camelcase(self.registry_form.name),
@@ -2017,720 +2117,6 @@ class AdjudicationResultsView(View):
                     actions.append((adjudication_cde_model.code, value))
         return actions
 
-
-class GridColumnsViewer(object):
-    def get_columns(self, user):
-        columns = []
-        sorted_by_order = sorted(self.get_grid_definitions(), key=itemgetter('order'), reverse=False)
-
-        for definition in sorted_by_order:
-            if user.is_superuser or definition["access"]["default"] or user.has_perm(definition["access"]["permission"]):
-                columns.append(
-                    {
-                        "data": definition["data"],
-                        "label": definition["label"]
-                    }
-                )
-
-        return columns
-
-    def get_grid_definitions(self):
-        return definitions.GRID_PATIENT_LISTING
-
-
-def dump(request):
-    for k in sorted(request.GET):
-        logger.debug("GET %s = %s" % (k, request.GET[k]))
-
-    for k in sorted(request.POST):
-        logger.debug("POST %s = %s" % (k, request.POST[k]))
-
-
-
-
-class DataTableServerSideApi(LoginRequiredMixin, View, GridColumnsViewer):
-    MODEL = Patient
-
-    def _get_results(self, request):
-        self.custom_ordering = None
-        self.user = request.user
-        # see http://datatables.net/manual/server-side
-        try:
-            self.registry_code = request.GET.get("registry_code", None)
-            logger.info("got registry code OK = %s" % self.registry_code)
-        except Exception, ex:
-            logger.error("could not get registry_code from request GET: %s" % ex)
-
-        # can restrict on a particular patient for contexts - NOT usually set
-        self.patient_id = request.GET.get("patient_id", None)
-        self.context_form_group_id = request.GET.get("context_form_group_id", None)
-        if self.context_form_group_id:
-            self.context_form_group_model = ContextFormGroup.objects.get(pk=int(self.context_form_group_id))
-        else:
-            self.context_form_group_model = None
-
-        if self.registry_code is None:
-            return []
-        try:
-            self.registry_model = Registry.objects.get(code=self.registry_code)
-            self.supports_contexts = self.registry_model.has_feature("contexts")
-            self.rdrf_context_manager = RDRFContextManager(self.registry_model)
-        except Registry.DoesNotExist:
-            logger.error("patients listing api registry code %s does not exist" % self.registry_code)
-            return []
-
-        if not self.user.is_superuser:
-            if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
-                logger.debug("user isn't in registry!")
-                return []
-
-        self.form_progress = FormProgress(self.registry_model)
-
-        search_term = request.POST.get("search[value]", "")
-        logger.debug("search term = %s" % search_term)
-
-        draw = int(request.POST.get("draw", None))
-        logger.debug("draw = %s" % draw)
-
-        start = int(request.POST.get("start", None))
-        logger.debug("start = %s" % start)
-
-        length = int(request.POST.get("length", None))
-        logger.debug("length = %s" % length)
-
-        page_number = (start / length) + 1
-        logger.debug("page = %s" % page_number)
-
-        sort_field, sort_direction = self._get_ordering(request)
-
-        context = {}
-        context.update(csrf(request))
-        columns = self.get_columns(self.user)
-
-        queryset = self._get_initial_queryset(self.user, self.registry_code, sort_field, sort_direction)
-        record_total = queryset.count()
-        logger.debug("record_total = %s" % record_total)
-
-        if search_term:
-            filtered_queryset = self._apply_filter(queryset, search_term)
-        else:
-            filtered_queryset = queryset
-
-        filtered_total = filtered_queryset.count()
-        logger.debug("filtered_total = %s" % filtered_total)
-
-        rows = self._run_query(filtered_queryset, length, page_number, columns)
-
-        results_dict = self._get_results_dict(draw, page_number, record_total, filtered_total, rows)
-        return results_dict
-
-    def post(self, request):
-        results_dict = self._get_results(request)
-        json_packet = self._json(results_dict)
-        return json_packet
-
-    def _get_ordering(self, request):
-        #columns[0][data]:full_name
-        #...
-        #order[0][column]:1
-        #order[0][dir]:asc
-        sort_column_index = None
-        sort_direction = None
-        for key in request.POST:
-            if key.startswith("order"):
-                if "[column]" in key:
-                    sort_column_index = request.POST[key]
-                elif "[dir]" in key:
-                    sort_direction = request.POST[key]
-
-        column_name = "columns[%s][data]" % sort_column_index
-        sort_field = request.POST.get(column_name, None)
-        if sort_field == "full_name":
-            sort_field = "family_name"
-
-        return sort_field, sort_direction
-
-    def apply_custom_ordering(self, rows):
-        return rows
-
-    def _apply_filter(self, queryset, search_phrase):
-        queryset = queryset.filter(Q(given_names__icontains=search_phrase) |
-                                     Q(family_name__icontains=search_phrase))
-        return queryset
-
-    def _run_query(self, query_set, records_per_page, page_number, columns):
-        # return objects in requested page
-        if self.custom_ordering:
-            # we have to retrieve all rows - otehrwise , queryset has already been
-            # ordered on base model
-            query_set = [r for r in query_set]
-            query_set = self.apply_custom_ordering(query_set)
-
-        rows = []
-        paginator = Paginator(query_set, records_per_page)
-        try:
-            page = paginator.page(page_number)
-        except InvalidPage:
-            logger.error("invalid page number: %s" % page_number)
-            return []
-
-        func_map = self._get_func_map(columns)
-        self.append_rows(page, rows, func_map)
-
-        return rows
-
-    def append_rows(self, page_object, row_list_to_update, func_map):
-        for obj in page_object.object_list:
-            row_list_to_update.append(self._get_row_dict(obj, func_map))
-
-    def _get_row_dict(self, instance, func_map):
-        # we need to do this so that the progress data for this instance loaded!
-        self.form_progress.reset()
-        row_dict = {}
-        for field in func_map:
-            try:
-                value = func_map[field](instance)
-            except KeyError:
-                value = "UNKNOWN COLUMN"
-            row_dict[field] = value
-
-        return row_dict
-
-    def _get_func_map(self, columns):
-        # we do this once
-        from registry.patients.models import Patient
-        patient_field_names = [field_object.name for field_object in Patient._meta.fields]
-        logger.debug("patient fields = %s" % patient_field_names)
-
-        def patient_func(field):
-            def f(patient):
-                try:
-                    return str(getattr(patient, field))
-                except Exception, ex:
-                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
-                    logger.error(msg)
-                    return "GRID ERROR"
-
-            return f
-
-        def grid_func(obj, field):
-            method = getattr(obj, field)
-
-            def f(patient):
-                try:
-                    return method(patient)
-                except Exception, ex:
-                    msg = "Error retrieving grid field %s for patient %s: %s" % (field, patient, ex)
-                    logger.error(msg)
-                    return "GRID ERROR"
-
-            return f
-
-        def k(msg):
-            # constant combinator
-            def f(patient):
-                return msg
-            return f
-
-        func_map = {}
-        for column in columns:
-            field = column["data"]
-            logger.debug("checking field %s" % field)
-            func_name = "_get_grid_field_%s" % field
-            logger.debug("checking %s" % func_name)
-            if hasattr(self, func_name):
-                    func_map[field] = grid_func(self, func_name)
-                    logger.debug("field %s is a serverside api func" % field)
-            elif field in patient_field_names:
-                logger.debug("field is a patient field")
-                func_map[field] = patient_func(field)
-                logger.debug("field %s is a patient function" % field)
-            else:
-                logger.debug("field %s is unknown" % field)
-                func_map[field] = k("UNKNOWN COLUMN!")
-
-        return func_map
-
-    def _get_grid_field_diagnosis_progress(self, patient_model):
-        if not self.supports_contexts:
-            progress_number = self.form_progress.get_group_progress("diagnosis", patient_model)
-            template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
-                       " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
-                       "<span class='progress-label'>%s%%</span></div></div>"
-            return template % (progress_number, progress_number,progress_number)
-        else:
-            # if registry supports contexts, should use the context browser
-            return "N/A"
-
-    def _get_grid_field_data_modules(self, patient_model):
-        if not self.supports_contexts:
-            default_context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
-            return self.form_progress.get_data_modules(self.user, patient_model, default_context_model)
-        else:
-            return "N/A"
-
-    def _get_grid_field_genetic_data_map(self, patient_model):
-        if not self.supports_contexts:
-            has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model)
-            icon = "ok" if has_genetic_data else "remove"
-            color = "green" if has_genetic_data else "red"
-            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-        else:
-            return "N/A"
-
-    def _get_grid_field_diagnosis_currency(self, patient_model):
-        if not self.supports_contexts:
-            diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
-            icon = "ok" if diagnosis_currency else "remove"
-            color = "green" if diagnosis_currency else "red"
-            return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-        else:
-            return "N/A"
-
-    def _get_grid_field_full_name(self, patient_model):
-        if not self.supports_contexts:
-            context_model = self.rdrf_context_manager.get_or_create_default_context(patient_model)
-        else:
-            # get first ?
-            patient_content_type = ContentType.objects.get(model='patient')
-            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
-                                                              content_type=patient_content_type,
-                                                              object_id=patient_model.pk).order_by("id")]
-
-            if len(contexts) > 0:
-                context_model = contexts[0]
-            else:
-                return "NO CONTEXT"
-
-        return "<a href='%s'>%s</a>" % (reverse("patient_edit", kwargs={"registry_code": self.registry_code,
-                                                                        "patient_id": patient_model.id,
-                                                                        "context_id": context_model.pk}),
-                                        patient_model.display_name)
-
-    def _get_grid_field_working_groups_display(self, patient_model):
-        return patient_model.working_groups_display
-
-    def _json(self, data):
-        json_data = json.dumps(data)
-        return HttpResponse(json_data, content_type="application/json")
-
-
-    def _no_results(self, draw):
-        return {
-            "draw": draw,
-            "recordsTotal": 0,
-            "recordsFiltered": 0,
-            "rows": []
-        }
-
-    def _get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
-
-        #       {
-        # "draw": 2,  <-- must be returned , is a counter used by DataTable
-        # "recordsTotal": 57,
-        # "recordsFiltered": 57,
-        # "rows": [
-        #   {
-        #     "first_name": "Charde",
-        #     "last_name": "Marshall",
-        #     "position": "Regional Director",
-        #     "office": "San Francisco",
-        #     "start_date": "16th Oct 08",
-        #     "salary": "$470,600"
-        #   },..]
-
-        results = {
-            "draw": draw,
-            "recordsTotal": total_records,
-            "recordsFiltered": total_filtered_records,
-            "rows": [row for row in rows]
-        }
-
-        return results
-
-    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
-        registry_queryset = Registry.objects.filter(code=registry_code)
-        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
-
-        if self.patient_id is None:
-            # Usual case
-            models = self.MODEL.objects.all()
-        else:
-            models = self.get_restricted_queryset(self.patient_id)
-
-        if not user.is_superuser:
-            if user.is_curator:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
-                    working_groups__in=user.working_groups.all())
-                models = models.filter(query_patients)
-            elif user.is_genetic_staff:
-                models = models.filter(working_groups__in=user.working_groups.all())
-            elif user.is_genetic_curator:
-                models = models.filter(working_groups__in=user.working_groups.all())
-            elif user.is_working_group_staff:
-                models = models.filter(working_groups__in=user.working_groups.all())
-            elif user.is_clinician and clinicians_have_patients:
-                models = models.filter(clinician=user)
-            elif user.is_clinician and not clinicians_have_patients:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
-                    working_groups__in=user.working_groups.all())
-                models = models.filter(query_patients)
-            elif user.is_patient:
-                models = models.filter(user=user)
-            else:
-                models = models.none()
-        else:
-            models = models.filter(rdrf_registry__in=registry_queryset)
-
-        if all([sort_field, sort_direction]):
-            logger.debug("*** ordering %s %s" % (sort_field, sort_direction))
-
-            if sort_direction == "desc":
-                sort_field = "-" + sort_field
-
-            models = models.order_by(sort_field)
-            logger.debug("sort field = %s" % sort_field)
-
-        logger.debug("found %s patients for initial query" % models.count())
-        return models
-
-    def _get_grid_data(self, columns):
-
-        return []
-
-    def get_restricted_queryset(self, patient_id):
-        return self.MODEL.objects.filter(pk=patient_id)
-
-
-class ContextDataTableServerSideApi(DataTableServerSideApi):
-    MODEL = RDRFContext
-
-    def apply_custom_ordering(self, rows):
-        # we sometimes have to do none Django ( db level ) ordering
-        # on fields which are on the related (generic relation) patient model or not stored in django at all
-        # keys ['diagnosis_progress', 'display_name', 'context_menu', 'created_at', 'genetic_data_map',
-        # 'working_groups_display', 'diagnosis_currency', 'patient_link', 'date_of_birth']
-
-        key_func = None
-        if self.custom_ordering.startswith("-"):
-            ordering = self.custom_ordering[1:]
-            direction = "desc"
-        else:
-            ordering = self.custom_ordering
-            direction = "asc"
-
-        if ordering == "patient_link":
-            def get_name(context_model):
-                return context_model.content_object.display_name
-
-            key_func = get_name
-            logger.debug("key_func is by patient_link")
-
-        elif ordering == "date_of_birth":
-            def get_dob(context_model):
-                return context_model.content_object.date_of_birth
-            key_func = get_dob
-
-        elif ordering == "working_groups_display":
-            def get_wg(context_model):
-                try:
-                    wg = context_model.content_object.working_groups.get()
-                    return wg.name
-                except Exception,ex:
-                    logger.debug("error wg %s" % ex)
-                    return ""
-            key_func = get_wg
-
-        elif ordering == "diagnosis_progress":
-            #get_group_progress(self, group_name, patient_model, context_model=None):
-            self.form_progress.reset()
-
-            def get_dp(context_model):
-                patient_model = context_model.content_object
-                try:
-                    return self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
-                except:
-                    return 0
-
-            key_func = get_dp
-
-        elif ordering == "diagnosis_currency":
-            self.form_progress.reset()
-
-            def get_dc(context_model):
-                patient_model = context_model.content_object
-                try:
-                    return self.form_progress.get_group_currency("diagnosis", patient_model, context_model)
-                except:
-                    return False
-
-            key_func = get_dc
-
-        elif ordering == "genetic_data_map":
-            self.form_progress.reset()
-
-            def get_gendatamap(context_model):
-                patient_model = context_model.content_object
-                try:
-                    return self.form_progress.get_group_has_data("genetic", patient_model, context_model)
-                except:
-                    return False
-
-            key_func = get_gendatamap
-
-
-        if key_func is None:
-            logger.debug("key_func is none - not sorting")
-            return rows
-
-        d = direction == "desc"
-
-        return sorted(rows, key=key_func, reverse=d)
-
-    def get_grid_definitions(self):
-        return definitions.GRID_CONTEXT_LISTING
-
-    def _get_initial_queryset(self, user, registry_code, sort_field, sort_direction):
-
-        content_type = ContentType.objects.get(model='patient')
-
-        if self.patient_id is None:
-            contexts = RDRFContext.objects.filter(registry=self.registry_model, content_type=content_type)
-        else:
-            contexts = RDRFContext.objects.filter(registry=self.registry_model,
-                                                 content_type=content_type,
-                                                 object_id=self.patient_id)
-
-        if self.context_form_group_model is not None:
-            contexts = contexts.filter(context_form_group=self.context_form_group_model)
-
-        registry_queryset = Registry.objects.filter(code=registry_code)
-
-        clinicians_have_patients = Registry.objects.get(code=registry_code).has_feature("clinicians_have_patients")
-
-        if not user.is_superuser:
-            if user.is_curator:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(working_groups__in=user.working_groups.all())
-            elif user.is_genetic_staff:
-                query_patients = Q(working_groups__in=user.working_groups.all())
-            elif user.is_genetic_curator:
-                query_patients = Q(working_groups__in=user.working_groups.all())
-            elif user.is_working_group_staff:
-                query_patients = Q(working_groups__in=user.working_groups.all())
-            elif user.is_clinician and clinicians_have_patients:
-                query_patients = Q(clinician=user)
-            elif user.is_clinician and not clinicians_have_patients:
-                query_patients = Q(rdrf_registry__in=registry_queryset) & Q(
-                    working_groups__in=user.working_groups.all())
-            elif user.is_patient:
-                query_patients = Q(user=user)
-            else:
-                query_patients = Patient.objects.none()
-        else:
-            query_patients = Q(rdrf_registry__in=registry_queryset)
-
-        patients = Patient.objects.filter(query_patients)
-        contexts = contexts.filter(object_id__in=[p.pk for p in patients])
-
-        if all([sort_field, sort_direction]):
-
-            # context model fields
-            #content_object, content_type, content_type_id, created_at, display_name, id,
-            # last_updated, object_id, registry, registry_id
-
-            if sort_field in ['display_name', 'created_at', 'last_updated']:
-                use_context_model = True
-            else:
-                use_context_model = False
-
-            if sort_direction == "desc":
-                sort_field = "-" + sort_field
-
-            logger.debug("***  sorting %s" % sort_field)
-
-            if use_context_model:
-                contexts = contexts.order_by(sort_field)
-            else:
-                # we can't do ordering directly on context model
-
-                self.custom_ordering = sort_field
-
-        logger.debug("found %s contexts for initial query" % contexts.count())
-        return contexts
-
-    def _get_grid_field_display_name(self, context_model):
-        registry_code = context_model.registry.code
-        patient_id = context_model.content_object.pk
-
-        return "<a href='%s'>%s</a>" % (reverse("context_edit", kwargs={"registry_code": registry_code,
-                                                                        "patient_id": patient_id,
-                                                                        "context_id": context_model.pk,
-                                                                        }),
-                                        context_model.display_name)
-
-    def _get_grid_field_working_groups_display(self, context_model):
-        patient_model = context_model.content_object
-        return patient_model.working_groups_display
-
-
-    def _get_grid_field_context_menu(self, context_model):
-        patient_model = context_model.content_object
-        context_menu = PatientContextMenu(self.user,
-                                          self.registry_model,
-                                          self.form_progress,
-                                          patient_model,
-                                          context_model)
-        return context_menu.menu_html
-
-    def _get_grid_field_created_at(self, context_model):
-        return str(context_model.created_at)
-
-    def _get_grid_field_date_of_birth(self, context_model):
-        patient_model = context_model.content_object
-        return str(patient_model.date_of_birth)
-
-    def _get_grid_field_patient_link(self, context_model):
-        patient_model = context_model.content_object
-        registry_code = self.registry_model.code
-        return "<a href='%s'>%s</a>" % \
-               (reverse("patient_edit",
-                        kwargs={"registry_code": registry_code,
-                                "patient_id": patient_model.id}),
-                patient_model.display_name)
-
-    def _get_grid_field_diagnosis_progress(self, context_model):
-        patient_model = context_model.content_object
-        progress_number = self.form_progress.get_group_progress("diagnosis", patient_model, context_model)
-        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" + \
-                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" + \
-                   "<span class='progress-label'>%s%%</span></div></div>"
-
-        return template % (progress_number, progress_number, progress_number)
-
-    def _get_grid_field_diagnosis_currency(self, context_model):
-        patient_model = context_model.content_object
-        diagnosis_currency = self.form_progress.get_group_currency("diagnosis", patient_model)
-        icon = "ok" if diagnosis_currency else "remove"
-        color = "green" if diagnosis_currency else "red"
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-
-
-    def _get_grid_field_genetic_data_map(self, context_model):
-        patient_model = context_model.content_object
-        has_genetic_data = self.form_progress.get_group_has_data("genetic", patient_model, context_model)
-        icon = "ok" if has_genetic_data else "remove"
-        color = "green" if has_genetic_data else "red"
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
-
-    def _apply_filter(self, queryset, search_phrase):
-        context_filter = Q(display_name__icontains=search_phrase)
-        patient_filter = Q(given_names__icontains=search_phrase) | \
-                         Q(family_name__icontains=search_phrase)
-
-        matching_patients = Patient.objects.filter(rdrf_registry__in=[self.registry_model]).filter(patient_filter)
-
-        return queryset.filter(context_filter | Q(object_id__in=[p.pk for p in matching_patients]))
-
-
-class ContextsListingView(LoginRequiredMixin, View):
-
-    def get(self, request):
-        if request.user.is_patient:
-            raise PermissionDenied()
-
-        context = {}
-        context.update(csrf(request))
-        registry_model = None
-
-        registry_code = request.GET.get("registry_code", None)
-        if registry_code is not None:
-            try:
-                registry_model = Registry.objects.get(code=registry_code)
-            except Registry.DoesNotExist:
-                return HttpResponseRedirect("/")
-
-        if registry_model is None:
-            if request.user.is_superuser:
-                registries = [registry_model for registry_model in Registry.objects.all()]
-            else:
-                registries = [registry_model for registry_model in request.user.registry.all()]
-        else:
-            registries = [registry_model]
-
-        patient_id = request.GET.get("patient_id", None)
-
-        if patient_id is not None:
-            if not self._allowed(request.user, registry_model, patient_id):
-                return HttpResponseRedirect("/")
-
-        context_form_group_id = request.GET.get("context_form_group_id", None)
-
-
-        context["registries"] = registries
-        context["location"] = "Context List"
-        context["patient_id"] = patient_id
-        context["context_form_group_id"] = context_form_group_id
-        context["registry_code"] = registry_code
-
-        columns = []
-
-        sorted_by_order = sorted(definitions.GRID_CONTEXT_LISTING, key=itemgetter('order'), reverse=False)
-
-        for definition in sorted_by_order:
-            if request.user.is_superuser or definition["access"]["default"] or \
-                    request.user.has_perm(definition["access"]["permission"]):
-                columns.append(
-                    {
-                        "data" : definition["data"],
-                        "label" : definition["label"]
-                    }
-                )
-
-        context["columns"] = columns
-
-        template = 'rdrf_cdes/contexts_no_registries.html' if len(registries) == 0 else 'rdrf_cdes/contexts.html'
-
-        return render_to_response(
-            template,
-            context,
-            context_instance=RequestContext(request))
-
-    def _allowed(self, user, registry_model, patient_id):
-        return True  #todo restrict
-
-
-class BootGridApi(View):
-
-    def post(self, request):
-        # jquery b
-        import json
-        post_data = request.POST
-        # request data  = <QueryDict: {u'current': [u'1'], u'rowCount': [u'10'],
-        # u'searchPhrase': [u'']}>
-
-        logger.debug("post data = %s" % post_data)
-        search_command = self._get_search_command(post_data)
-        command_result = self._run_search_command(search_command)
-        rows = [{"id": p.id,
-                 "name": p.given_names,
-                 "working_groups": "to do",
-                 "date_of_birth": p.date_of_birth,
-                 "registry": "to do"} for p in Patient.objects.all()]
-
-        command_result = {"current": 1,
-                          "rowCount": len(rows),
-                          "rows": rows}
-
-        logger.debug("api request data  = %s" % post_data)
-        command_result_json = json.dumps(command_result)
-
-        return HttpResponse(command_result_json, content_type="application/json")
-
-    def _get_search_command(self, post_data):
-        return None
-
-    def _run_search_command(self, command):
-        return {}
 
 
 class ConstructorFormView(View):

@@ -53,7 +53,7 @@ docker_staging_lettuce() {
 # lint using flake8
 python_lint() {
     info "python lint"
-    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count 
+    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
     success "python lint"
 }
 
@@ -75,6 +75,7 @@ echo ''
 info "$0 $@"
 docker_options
 git_tag
+docker_warm_cache
 
 case $ACTION in
 pythonlint)
@@ -90,9 +91,6 @@ dev_build)
     create_base_image
     create_build_image
     create_dev_image
-    ;;
-dev_full)
-    start_dev_full
     ;;
 releasetarball)
     create_release_tarball
@@ -118,13 +116,8 @@ prodimage)
 devimage)
     create_dev_image
     ;;
-ci_dockerbuild)
-    _ci_ssh_agent
-    _ci_docker_login
-    create_base_image
-    create_build_image
-    create_release_tarball
-    create_prod_image
+publish_docker_image)
+    publish_docker_image
     ;;
 runtests)
     create_base_image
@@ -143,6 +136,9 @@ start_seleniumtests)
     ;;
 start_prodseleniumtests)
     start_prodseleniumtests
+    ;;
+ci_docker_login)
+    ci_docker_login
     ;;
 ci_docker_staging)
     _ci_ssh_agent

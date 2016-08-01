@@ -387,6 +387,11 @@ class DynamicDataWrapper(object):
             filestore_class=None,
             rdrf_context_id=None):
         # When set to True by integration tests, uses testing mongo database
+        if rdrf_context_id == "add":
+            # Create context model just before saving to mongo
+            self.CREATE_MODE = True
+        else:
+            self.CREATE_MODE = False 
         self.testing = False
         self.obj = obj
         self.django_id = obj.pk
@@ -695,12 +700,44 @@ class DynamicDataWrapper(object):
         except Exception, ex:
             logger.error("Error deleting record: %s" % ex)
 
+    def _create_context_model_on_fly(self):
+        assert self.CREATE_MODE, "Must be in CREATE MODE"
+        assert self.rdrf_context_id == "add", "Must be adding"
+        assert self.current_form_model is not None, "Must be on a form"
+        registry_model = self.current_form_model.registry
+        # locate the multiple form group this form (must) be in
+        form_group = None
+        for cfg in registry_model.multiple_form_groups:
+            form_models = cfg.form_models
+            if len(form_models) == 1:
+                if form_models[0].pk == self.current_form_model.pk:
+                    form_group = cfg
+                    break
+
+        if form_group is None:
+            raise Exception("Cannot add this form!")
+
+
+        from django.contrib.contenttypes.models import ContentType
+        from rdrf.models import RDRFContext
+        PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
+        context_model = RDRFContext(registry=registry_model,
+                                    object_id=self.obj.pk,
+                                    content_type=PATIENT_CONTENT_TYPE)
+        context_model.context_form_group = form_group
+        context_model.save()
+        return context_model.pk
+        
+
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None,additional_data=None):
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 
-        record = self.load_dynamic_data(registry, collection_name, flattened=False)
+        if self.CREATE_MODE:
+            record = None
+        else:
+            record = self.load_dynamic_data(registry, collection_name, flattened=False)
 
         form_data["timestamp"] = datetime.datetime.now()
 
@@ -729,7 +766,17 @@ class DynamicDataWrapper(object):
         if "_id" in record:
             collection.update({'_id': record['_id']}, {"$set": nested_data})
         else:
-            collection.insert(nested_data)
+            if self.CREATE_MODE:
+                # create context_model NOW  to get context_id
+                # CREATE MODE is used ONLY by multiple context form groups to enable cancellation in GUI
+                context_id = self._create_context_model_on_fly()
+                nested_data["context_id"] = context_id
+                collection.insert(nested_data)
+                # not any subsequent calls won't try to create new context models
+                self.CREATE_MODE = False
+                self.rdrf_context_id = context_id
+            else:
+                collection.insert(nested_data)
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:

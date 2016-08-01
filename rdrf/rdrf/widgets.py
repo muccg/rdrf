@@ -201,10 +201,10 @@ class DateWidget(widgets.TextInput):
 
     def render(self, name, value, attrs):
         def just_date(value):
+            import datetime
             if value:
-                if hasattr(value, 'date'):
-                    d = value.date()
-                    return "%s-%s-%s" % (d.day, d.month, d.year)
+                if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
+                    return "%s-%s-%s" % (value.day, value.month, value.year)
                 else:
                     return value
             else:

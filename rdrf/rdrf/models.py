@@ -4,9 +4,11 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
 import string
+from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import has_feature, get_full_link, check_calculation
+from rdrf.utils import format_date
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -530,6 +532,20 @@ class Registry(models.Model):
             if cfg.is_default:
                 return cfg
 
+
+    @property
+    def free_forms(self):
+        # return form models which do not below to any form group
+        cfgs = ContextFormGroup.objects.filter(registry=self)
+        owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms ]
+                           
+        forms =  sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
+                         not form_model.pk in owned_form_ids and
+                         not form_model.is_questionnaire],
+                         key=lambda form : form.position)
+
+        return forms
+                           
     @property
     def fixed_form_groups(self):
         return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
@@ -1907,24 +1923,43 @@ class RDRFContext(models.Model):
     @property
     def context_name(self):
         if self.context_form_group:
-            return self.context_form_group.name # E.G. Assessment or Visit - used for display
+            if self.context_form_group.naming_scheme == "C":
+                return self._get_name_from_cde()
+            else:
+                return self.context_form_group.name # E.G. Assessment or Visit - used for display
         else:
             try:
                 return self.registry.metadata["context_name"]
             except KeyError:
                 return "Context"
 
+    def _get_name_from_cde(self):
+        cde_path = self.context_form_group.naming_cde_to_use
+        form_name, section_code, cde_code = cde_path.split("/")
+        cde_value = self.content_object.get_form_value(self.registry.code,
+                                           form_name,
+                                           section_code,
+                                           context_id=self.pk)
+        return cde_value
+        
+        
+        
+
+        
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
     NAMING_SCHEMES = [("D", "Automatic - Date"),
                       ("N", "Automatic - Number"),
-                      ("M", "Manual - Free Text")]
-
+                      ("M", "Manual - Free Text"),
+                      ("C", "CDE - Nominate CDE to use")]
+    
+    
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
     is_default = models.BooleanField(default=False)
+    naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)
 
     @property
     def forms(self):
@@ -1935,6 +1970,21 @@ class ContextFormGroup(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @property
+    def direct_name(self):
+        """
+        If there is only one form in the group , show _its_ name
+        """
+        if not self.supports_direct_linking:
+            return self.name
+
+        return self.form_models[0].nice_name
+
+    @property
+    def supports_direct_linking(self):
+        return len(self.form_models) == 1
+
 
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":
@@ -1953,8 +2003,33 @@ class ContextFormGroup(models.Model):
                                                                         context_form_group=self)]
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
+        elif self.naming_scheme == "C":
+            return "Unused" # user will see value from cde when context is created
         else:
             return "Modules"
+
+    def get_name_from_cde(self, patient_model, context_model):
+        form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
+        try:
+            cde_value = patient_model.get_form_value(self.registry.code,
+                                                     form_name,
+                                                     section_code,
+                                                     cde_code,
+                                                     context_id=context_model.pk)
+
+
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            # This does not actually do type conversion for dates -
+            # it just looks up range display codes. 
+            display_value = cde_model.get_display_value(cde_value)
+            if isinstance(display_value, datetime):
+                display_value = format_date(display_value)
+            return display_value
+        except KeyError:
+            # value not filled out yet
+            return "NOT SET"
+        
 
     @property
     def naming_info(self):
@@ -1964,6 +2039,8 @@ class ContextFormGroup(models.Model):
             return "Display name will default to <Context Type Name>/<Sequence Number>"
         elif self.naming_scheme == "D":
             return "Display name will default to <Context Type Name>/<created_at date>"
+        elif self.naming_scheme == "C":
+            return "Display name will be equal to the value of a nominated CDE"
         else:
             return "Display name will default to 'Modules' if left blank"
 
@@ -1994,10 +2071,29 @@ class ContextFormGroup(models.Model):
 
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
-            action_title = "Add %s" % self.name
-            action_link = reverse("context_add", args=(self.registry.code,
+            num_forms = len(self.form_models)
+            # Direct link to form if num forms is 1 ( handler redirects transparently)
+            action_title = "Add %s" % self.form_models[0].name if num_forms == 1 else "Add %s" % self.name
+
+            if not self.supports_direct_linking:
+                # We can't go directly to the form - so we first land on the add context view, which on save
+                # creates the context with links to the forms provided in that context after save
+                action_link = reverse("context_add", args=(self.registry.code,
                                                        str(patient_model.pk),
                                                        str(self.pk)))
+
+            else:
+                form_model = self.form_models[0]
+                # provide a link to the create view for a clinical form
+                # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
+
+                action_link = reverse("form_add", args=(self.registry.code,
+                                                       form_model.pk,
+                                                       patient_model.pk,
+                                                       'add'))
+                
+                                                       
+                                                       
             return action_link, action_title
         else:
             return None

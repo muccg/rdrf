@@ -335,10 +335,11 @@ class Patient(models.Model):
             form_name,
             section_code,
             data_element_code,
-            multisection=False):
+            multisection=False,
+            context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
-        wrapper = DynamicDataWrapper(self)
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
         key = mongo_key(form_name, section_code, data_element_code)
         if mongo_data is None:
@@ -544,6 +545,8 @@ class Patient(models.Model):
         return None
 
     def get_contexts_url(self, registry_model):
+        # TODO - change so we don't need this
+        return None
         if not registry_model.has_feature("contexts"):
             return None
         else:
@@ -801,6 +804,30 @@ class Patient(models.Model):
                                                         object_id=self.pk).order_by("created_at"):
             contexts.append(context_model)
         return contexts
+
+    def get_forms_by_group(self, context_form_group):
+        """
+        Return links (pair of url and text)
+        to existing forms "of type" (ie being in a context with a link to)  context_form_group
+        
+        """
+        assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
+        
+        form_model = context_form_group.form_models[0]
+
+        links = []
+
+        for context_model in sorted(self.context_models, key=lambda c: c.created_at, reverse=True):
+            if context_model.context_form_group and context_model.context_form_group.pk == context_form_group.pk:
+                link_text = context_model.context_form_group.get_name_from_cde(self, context_model)
+                link_url = reverse('registry_form', args=(context_model.registry.code,
+                                                          form_model.id,
+                                                          self.pk,
+                                                          context_model.id))
+                links.append((link_url, link_text))
+
+        return links
+        
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
