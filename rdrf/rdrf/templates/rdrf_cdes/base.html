@@ -153,7 +153,7 @@
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{% trans message %}</div>
+                <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{message}}</div>
             {% endfor %}
         {% endif %}    
 
