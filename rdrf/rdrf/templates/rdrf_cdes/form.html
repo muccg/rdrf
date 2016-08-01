@@ -91,7 +91,7 @@
     
     <script>
         function goBack() {
-            var warning = confirm({% trans "Are you sure?\nAll entered or amended data will be lost!" %});
+            var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
             if (warning == true) {
                 window.location.replace('{% url 'admin:patients_patient_changelist' %}');
             }
