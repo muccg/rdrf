@@ -144,7 +144,9 @@ docker_warm_cache() {
     # attempt to warm up docker cache by pulling next_release tag
     if [ ${DOCKER_USE_HUB} = "1" ]; then
         info 'warming docker cache'
+        set -x
         docker pull ${DOCKER_IMAGE}:next_release || true
+        set +x
     fi
 }
 
@@ -235,22 +237,40 @@ git_tag() {
 
 create_dev_image() {
     info 'create dev image'
+    set -x
     docker-compose -f docker-compose-build.yml build ${DOCKER_COMPOSE_BUILD_NOCACHE} dev
+    set +x
     success "$(docker images | grep muccg/${PROJECT_NAME}-dev | sed 's/  */ /g')"
 }
 
 
 create_build_image() {
     info 'create build image'
+    set -x
     docker-compose -f docker-compose-build.yml build ${DOCKER_COMPOSE_BUILD_NOCACHE} build
+    set +x
     success "$(docker images | grep muccg/${PROJECT_NAME}-build | sed 's/  */ /g')"
 }
 
 
 create_base_image() {
     info 'create base image'
-    docker-compose -f docker-compose-build.yml build ${DOCKER_COMPOSE_BUILD_NOCACHE} base
+    set -x
+    docker-compose -f docker-compose-build.yml build ${DOCKER_COMPOSE_BUILD_OPTS} base
+    set +x
     success "$(docker images | grep muccg/${PROJECT_NAME}-base | sed 's/  */ /g')"
+}
+
+
+create_prod_image() {
+    info 'create prod image'
+    info "Building ${PROJECT_NAME} ${GIT_TAG}"
+    set -x
+    docker-compose -f docker-compose-build.yml build prod
+    set +x
+    success "$(docker images | grep ${DOCKER_IMAGE} | grep ${GIT_TAG} | sed 's/  */ /g')"
+    docker tag ${DOCKER_IMAGE}:${GIT_TAG} ${DOCKER_IMAGE}:${GIT_TAG}-${DATE}
+    success 'create prod image'
 }
 
 
@@ -258,7 +278,9 @@ create_release_tarball() {
     info 'create release tarball'
     mkdir -p build
     chmod o+rwx build
+    set -x
     docker-compose -f docker-compose-build.yml run build
+    set +x
     success "$(ls -lh build/* | grep ${GIT_TAG})"
 }
 
@@ -283,16 +305,6 @@ start_dev() {
     set -x
     docker-compose --project-name ${PROJECT_NAME} up
     set +x
-}
-
-
-create_prod_image() {
-    info 'create prod image'
-    info "Building ${PROJECT_NAME} ${GIT_TAG}"
-    docker-compose -f docker-compose-build.yml build prod
-    success "$(docker images | grep ${DOCKER_IMAGE} | grep ${GIT_TAG} | sed 's/  */ /g')"
-    docker tag ${DOCKER_IMAGE}:${GIT_TAG} ${DOCKER_IMAGE}:${GIT_TAG}-${DATE}
-    success 'create prod image'
 }
 
 
