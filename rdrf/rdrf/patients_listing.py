@@ -492,15 +492,13 @@ class PatientsListingView(View):
 
     def _get_forms_buttons(self, patient_model):
         buttons = []
-        free_forms = self.registry_model.free_forms
+        free_forms = [ form for form in self.registry_model.free_forms if self.user.can_view(form)]
         if free_forms:
             # if there are no context groups -normal registry
             free_forms_button = self._get_forms_button(
                 patient_model, None, free_forms)
             buttons.append(free_forms_button)
             return buttons
-
-        logger.debug("no free forms ...")
 
         # fixed context groups
 
@@ -521,6 +519,7 @@ class PatientsListingView(View):
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
         forms_button_component = FormsButton(self.registry_model,
+                                             self.user,
                                              patient_model,
                                              context_form_group,
                                              forms)
@@ -533,7 +532,7 @@ class PatientsListingView(View):
 
         button_html = """
             <div class="dropdown">
-                <button class="btn btn-primary btn-sm btn-block dropdown-toggle" type="button" id="forms_button_%s" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="forms_button_%s" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     %s <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="forms_button_%s">%s</ul>

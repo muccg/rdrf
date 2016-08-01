@@ -330,13 +330,15 @@ class FormsButton(RDRFComponent):
 
     def __init__(self,
                  registry_model,
+                 user,
                  patient_model,
                  context_form_group,
                  form_models):
         self.registry_model = registry_model
+        self.user = user
         self.patient_model = patient_model
         self.context_form_group = context_form_group
-        self.forms = form_models
+        self.forms = [f for f in form_models if self.user.can_view(f) ]
 
     def _get_template_data(self):
         # subclass should build dictionary for template
