@@ -4,6 +4,7 @@ from rdrf.dynamic_data import DynamicDataWrapper
 import explorer
 from explorer.utils import DatabaseUtils
 from rdrf.utils import timed
+from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -73,8 +74,12 @@ class ReportingTableGenerator(object):
                 # numbers
                 "calculated": alc.String,
                 "integer": alc.Integer,
+                "Integer": alc.Integer,
                 "int": alc.Integer,
                 "string": alc.String,
+                "date": alc.Date,
+                "range": alc.String,
+                "file": alc.String,
                 }
 
     def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}, max_items=3):
@@ -84,6 +89,7 @@ class ReportingTableGenerator(object):
         self.type_overrides = type_overrides
         self.engine = self._create_engine()
         self.columns = set([])
+        self.column_names = []
         self.table_name = ""
         self.table = None
         self.reverse_map = {}
@@ -115,6 +121,9 @@ class ReportingTableGenerator(object):
     def create_table(self):
         self.table.create()
         logger.debug("created table based on schema")
+
+    def _get_blank_row(self):
+        return { column_name : None for column_name in self.column_names }
 
     @timed
     def drop_table(self):
@@ -360,15 +369,19 @@ class ReportingTableGenerator(object):
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            try:
-                self.insert_row(row)
-                row_num += 1
-            except Exception, ex:
-                errors += 1
-                src = "query"
-                logger.error("report error: query %s row after %s error: %s" % (src,
-                                                                                row_num,
-                                                                                ex))
+            #try:
+                
+            new_row = self._get_blank_row()
+            new_row.update(row)
+            self.insert_row(new_row)
+            row_num += 1
+            logger.debug("inserted row OK. row_num = %s" % row_num)
+            #except Exception, ex:
+            #    errors += 1
+            #    src = "query"
+            #    logger.error("report error: query %s row after %s error: %s" % (src,
+            #                                                                    row_num,
+            #                                                                    ex))
         if errors > 0:
             logger.info("query errors: %s" % errors)
             self.error_messages.append(
@@ -385,6 +398,7 @@ class ReportingTableGenerator(object):
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
+        self.column_names.append(name)
         column = alc.Column(name, datatype, nullable=True)
         self.columns.append(column)
         return column
@@ -617,13 +631,24 @@ class ReportTable(object):
         for row in self.engine.execute(query):
             result_dict = {}
             for i, col in enumerate(columns):
-                result_dict[col.name] = self._format(col.name, row[i])
+                result_dict[col.name] = str(self._format(col.name, row[i]))
             rows.append(result_dict)
         return rows
 
+    
     def _format(self, column, data):
-        converter = self._converters.get(column, None)
-        if converter is None:
+        if data is None:
+            return ""
+
+        if data == "{}":
+            # these are artifacts of the multichoice fields
+            return ""
+
+        if isinstance(data, basestring):
             return data
-        else:
-            return converter(data)
+
+        if isinstance(data, datetime):
+            iso = data.isoformat()
+            return iso
+        
+        return str(data)

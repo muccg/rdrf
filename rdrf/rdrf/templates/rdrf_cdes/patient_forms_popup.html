@@ -1,0 +1,16 @@
+{% load static %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <b>{{ heading }}</b>
+  </div>
+  <div class="panel-body">
+    
+    {% for form in forms %}
+                {% if form.current %}
+                    <img src="{% static 'images/tick.png' %}">
+                {% else %}
+                    <img src="{% static 'images/cross.png' %}">
+                {% endif %}<b>{{form.progress_percentage}}%</b> <a href="{{form.link}}">{{form.title}}</a> <br>
+    {% endfor %}
+  </div>
+</div>

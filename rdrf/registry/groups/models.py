@@ -59,9 +59,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         help_text=_('Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     
-    working_groups = models.ManyToManyField(WorkingGroup, related_name='working_groups')
-    title = models.CharField(max_length=50, null=True, verbose_name="position")
-    registry = models.ManyToManyField(Registry, null=False, blank=False, related_name='registry')
+    working_groups = models.ManyToManyField(WorkingGroup, blank=True, related_name='working_groups')
+    title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
+    registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
     
     USERNAME_FIELD = "username"

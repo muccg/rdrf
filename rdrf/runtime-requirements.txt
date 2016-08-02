@@ -27,8 +27,8 @@ psycopg2==2.6.1
 djangorestframework==3.3.3
 openpyxl
 SQLAlchemy
-django_mailgun
+django-anymail==0.4.2
 ccg-django-utils==0.4.2
 django-useraudit==1.2.0
-django-iprestrict==0.4.2
+django-iprestrict==0.4.3
 python-dateutil==2.5.3

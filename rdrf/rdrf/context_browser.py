@@ -6,6 +6,7 @@ from operator import itemgetter
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from rdrf.context_menu import PatientContextMenu
+from . import context_defnitions as definitions
 
 
 class ContextBrowserError(Exception):
@@ -36,8 +37,7 @@ class ContextBrowser(object):
         return results
 
     def _get_grid_config(self):
-        from django.conf import settings
-        return settings.GRID_CONTEXT_LISTING
+        return definitions.GRID_CONTEXT_LISTING
 
     def _get_columns(self):
         columns = []

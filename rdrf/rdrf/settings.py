@@ -28,9 +28,9 @@ SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 # iprestrict config https://github.com/muccg/django-iprestrict
-TRUSTED_PROXIES = env.getlist("trusted_proxies", [])
-DONT_RELOAD_RULES = env.get("dont_reload_rules", False)
-IGNORE_PROXY_HEADER = env.get("ignore_proxy_header", False)
+IPRESRICT_TRUSTED_PROXIES = env.getlist("iprestrict_trusted_proxies", [])
+IPRESTRICT_RELOAD_RULES = env.get("iprestrict_reload_rules", True)
+IPRESTRICT_IGNORE_PROXY_HEADER = env.get("iprestrict_ignore_proxy_header", False)
 
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
+    'anymail',
 ]
 
 
@@ -192,13 +193,13 @@ EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
-# Django Notifications
-DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>")
-# Mail Gun
-EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-MAILGUN_ACCESS_KEY = env.get('DJANGO_MAILGUN_API_KEY', "")
-MAILGUN_SERVER_NAME = env.get('DJANGO_MAILGUN_SERVER_NAME', "")
+# Email Notifications
+DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
 SERVER_EMAIL = env.get('DJANGO_SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+ANYMAIL = {
+    'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
+}
 
 # list of features  '*' means all , '' means none and ['x','y'] means site
 # supports features x and y
@@ -426,20 +427,6 @@ LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
 
 
-CUSTOM_PERMISSIONS = {
-    "patients": { # App Name
-        "patient": ( # Model Name
-            ("can_see_full_name", "Can see Full Name column"),
-            ("can_see_dob", "Can see Date of Birth column"),
-            ("can_see_working_groups", "Can see Working Groups column"),
-            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
-            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
-            ("can_see_genetic_data_map", "Can see Genetic Module column"),
-            ("can_see_data_modules", "Can see Data Modules column"),
-        )
-    }
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
@@ -459,155 +446,3 @@ EMAIL_NOTIFICATIONS = (
     (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )
-
-GRID_PATIENT_LISTING = [
-    {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "full_name",
-        "label": "Patient",
-        "order": 1
-    }, {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "date_of_birth",
-        "label": "Date of Birth",
-        "order": 2
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_working_groups"
-        },
-        "data": "working_groups_display",
-        "label": "Working Groups",
-        "order": 3
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_progress"
-        },
-        "data": "diagnosis_progress",
-        "label": "Diagnosis Entry Progress",
-        "order": 4
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_currency"
-        },
-        "data": "diagnosis_currency",
-        "label": "Updated < 365 days",
-        "order": 5
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_genetic_data_map"
-        },
-        "data": "genetic_data_map",
-        "label": "Genetic Data",
-        "order": 6
-    }, {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "data_modules",
-        "label": "Modules",
-        "order": 7
-    },
-    {
-        "access": {
-            "default": True,
-            "permission": ""
-        },
-        "data": "diagnosis_progress",
-        "label": "Data Entry Progress",
-        "order": 8
-    }
-]
-
-
-GRID_CONTEXT_LISTING = [
-     {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_full_name"
-        },
-        "data": "patient_link",
-        "label": "Patient",
-        "model": "func",
-        "order": 0
-    },
-    {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_dob",
-        },
-        "data": "date_of_birth",
-        "label": "Date of Birth",
-        "model": "Patient",
-        "order": 1
-    },
-
-    {
-        "access": {
-            "default": False,
-            "permission": ""
-        },
-        "data": "created_at",
-        "label": "Created",
-        "model": "RDRFContext",
-        "order": 2
-    },
-
-    {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_working_groups"
-        },
-        "data": "working_groups_display",
-        "label": "Working Groups",
-        "model": "Patient",
-        "order": 3
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_progress"
-        },
-        "data": "diagnosis_progress",
-        "label": "Diagnosis Entry Progress",
-        "model": "Patient",
-        "order": 4
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_diagnosis_currency"
-        },
-        "data": "diagnosis_currency",
-        "label": "Updated < 365 days",
-        "model": "Patient",
-        "order": 5
-    }, {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_genetic_data_map"
-        },
-        "data": "genetic_data_map",
-        "label": "Genetic Data",
-        "model": "Patient",
-        "order": 6
-    },
-     {
-        "access": {
-            "default": False,
-            "permission": "patients.can_see_data_modules",
-        },
-        "data": "context_menu",
-        "label": "Modules",
-        "model": "func",
-        "order": 9
-    }
-]
