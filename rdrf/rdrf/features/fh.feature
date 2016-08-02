@@ -4,5 +4,9 @@ Feature: FH Family Linkage Page
   In order to do cascade screening.
 
   Background:
-    Given a registry named "FH"
-    Given user curator is a member of FH
+    Given site has loaded export XYZ
+    
+  Scenario: User can visit Family Linkage Page
+    Given user logged in as curator
+    Given user 
+    
