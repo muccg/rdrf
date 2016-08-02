@@ -19,12 +19,6 @@ node {
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
 
-    stage 'Selenium tests'
-        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh './develop.sh selenium'
-        }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
-
     stage 'Lettuce tests'
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh lettuce'
