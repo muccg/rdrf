@@ -297,6 +297,8 @@ class FormsButton(RDRFComponent):
             self.form_model = form_model
             self.context_model = context_model
             self.progress = FormProgress(self.registry_model)
+            # if no progress cdes defined on form, don't show any percentage
+            self.has_progress = form_model.has_progress_indicator
         
         
         @property
@@ -320,11 +322,11 @@ class FormsButton(RDRFComponent):
         
         @property
         def progress_percentage(self):
-            return self.progress.get_form_progress(self.form_model, self.patient_model)
+            return self.progress.get_form_progress(self.form_model, self.patient_model, self.context_model)
 
         @property
         def is_current(self):
-            return self.progress.get_form_currency(self.form_model, self.patient_model)
+            return self.progress.get_form_currency(self.form_model, self.patient_model, self.context_model)
         
                 
 

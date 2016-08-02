@@ -226,7 +226,7 @@ class PatientsListingView(View):
         column_name = "columns[%s][data]" % sort_column_index
         sort_field = request.POST.get(column_name, None)
         if sort_field == "full_name":
-            sort_field = "family_name"
+            sort_field = "family_name/given_names"
 
         return sort_field, sort_direction
 
@@ -609,14 +609,20 @@ class PatientsListingView(View):
 
     def apply_ordering(self):
         if all([self.sort_field, self.sort_direction]):
-            logger.debug("*** ordering %s %s" %
-                         (self.sort_field, self.sort_direction))
-
             if self.sort_direction == "desc":
                 self.sort_field = "-" + self.sort_field
 
-            self.patients = self.patients.order_by(self.sort_field)
-            logger.debug("sort field = %s" % self.sort_field)
+            if "/" in self.sort_field:
+                # only used by patient name which allows subordering
+                sort_fields = self.sort_field.split("/")
+                if self.sort_direction == "desc":
+                    def add_minus(field):
+                        return "-" + field if not field.startswith("-") else field
+                    
+                    sort_fields = map(add_minus, sort_fields)
+                    self.patients = self.patients.order_by(*sort_fields)
+            else:
+                self.patients = self.patients.order_by(self.sort_field)
 
     def no_results(self, draw):
         return {

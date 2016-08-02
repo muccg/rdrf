@@ -7,7 +7,10 @@
 		  <img src="{% static 'images/tick.png' %}">
 		{% else %}
 		  <img src="{% static 'images/cross.png' %}">
-		{% endif %}
-	  <b>{{form.progress_percentage}}%</b> {{form.title}}</a>
+		  {% endif %}
+          {% if form.has_progress %}
+		  <b>{{form.progress_percentage}}%</b>
+          {% endif %}
+		  {{form.title}}</a>
 	</li>
 {% endfor %}
