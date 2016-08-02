@@ -50,10 +50,9 @@ class BaseRegistration(object):
     
     
     def _create_patient_address(self, patient, request, address_type="POST"):
-        address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
         address = PatientAddress.objects.create(
             patient=patient,
-            address_type=address_type_obj,
+            address_type=self.get_address_type(address_type),
             address=request.POST["address"],
             suburb=request.POST["suburb"],
             state=request.POST["state"],
@@ -93,3 +92,7 @@ class BaseRegistration(object):
             return group
         except Group.DoesNotExist:
             return None
+
+    def get_address_type(self, address_type):
+        address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
+        return address_type_obj
