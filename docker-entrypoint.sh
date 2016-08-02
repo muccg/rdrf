@@ -109,11 +109,6 @@ function _django_iprestrict_permissive_fixtures {
     django-admin.py reloadrules
 }
 
-function _import_dd_registry {
-    echo "importing DD registry with sample data"
-    django-admin.py import /app/rdrf/rdrf/features/exported_data/dd_with_data.zip --force
-}
-
 function _django_dev_fixtures {
     echo "loading DEV fixture"
     django-admin.py init DEV
@@ -225,7 +220,6 @@ if [ "$1" = 'runserverlettuce' ]; then
     _django_collectstatic
     _django_migrate
     _django_iprestrict_permissive_fixtures
-    _import_dd_registry
 
     echo "running runserver ..."
     exec django-admin.py ${RUNSERVER_OPTS}

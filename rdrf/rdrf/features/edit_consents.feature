@@ -19,7 +19,7 @@ Feature: Edit consents for a patient
     And I check "Consent provided by Parent/Guardian for the duration of the registry"
     And I press the "Save" button
 
-    When I refresh the current page
+    When I navigate away then back
 
     Then the "Consent given to store data only while individual is living" checkbox should be checked
     And the "Consent given to store data for the duration of the registry" checkbox should be checked

@@ -22,11 +22,7 @@ Feature: Edit consents for a patient
 
     Then I should see "Patient Abigail ABBOT saved successfully"
 
-    When I refresh the current page
-    # TODO For some reason the confirmation dialog about unsaved changes
-    # appears after save, although it isn't visible on the screenshots.
-    # Accepting the dialog for now to get around it
-    And I accept the alert dialog
+    When I navigate away then back
 
     Then the progress indicator should be "12%"
     Then option "PP (Primary progressive)" from "Condition" should be selected

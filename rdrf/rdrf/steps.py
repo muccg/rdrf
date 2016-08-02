@@ -9,6 +9,7 @@ from lettuce_webdriver.webdriver import contains_content, goto
 from lettuce_webdriver.util import assert_true, assert_false
 
 from selenium.webdriver.common.alert import Alert
+from selenium.common.exceptions import NoAlertPresentException
 
 from rdrf.models import Registry
 from registry.groups.models import CustomUser
@@ -210,13 +211,22 @@ def go_to_registry(step, name):
     world.browser.find_element_by_partial_link_text(name).click()
 
 
-@step(u'refresh the current page')
-def press_button(step):
-    world.browser.refresh()
+@step('navigate away then back')
+def refresh_page(step):
+    current_url = world.browser.current_url
+    world.browser.get(world.site_url)
+    # TODO For some reason the confirmation dialog about unsaved changes
+    # appears after save, although it isn't visible on the screenshots.
+    # Accepting the dialog for now to get around it
+    try:
+        Alert(world.browser).accept()
+    except NoAlertPresentException:
+        pass
+    world.browser.get(current_url)
 
 
 @step(u'accept the alert')
-def press_button(step):
+def accept_alert(step):
     Alert(world.browser).accept()
 
 

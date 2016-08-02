@@ -8,6 +8,14 @@ from rdrf import steps
 
 logger = logging.getLogger(__name__)
 
+@before.all
+def import_registry_and_snapshot_db():
+    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/dd_with_data.zip"])
+    # Remove snapshot if exists, but just continue if it doesn't
+    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
+    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
+    subprocess.check_call(["mongodump", "--host", "mongo"])
+
 
 @before.all
 def set_browser():
@@ -24,12 +32,6 @@ def set_browser():
 def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
 
-@before.all
-def snapshot_db():
-    # Remove snapshot if exists, but just continue if it doesn't
-    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
-    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
-    subprocess.check_call(["mongodump", "--host", "mongo"])
 
 
 @before.each_scenario
