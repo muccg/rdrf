@@ -35,51 +35,9 @@ from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.context_menu import PatientContextMenu
 from rdrf.components import RDRFContextLauncherComponent
 
-
-
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class PatientToParentView(View):
-
-    _GENDER_CODE = {
-        1: "M",
-        2: "F"
-    }
-
-    def get(self, request, registry_code, patient_id, context_id=None):
-
-        patient = Patient.objects.get(id=patient_id)
-        patient_address = PatientAddress.objects.get(patient=patient)
-
-        parent_group, created = Group.objects.get_or_create(name="Parents")
-
-        patient.user.groups = [parent_group,]
-        patient.save()
-
-        parent = ParentGuardian.objects.create(
-            first_name = patient.given_names,
-            last_name = patient.family_name,
-            date_of_birth = patient.date_of_birth,
-            gender = patient.sex,
-            address = patient_address.address,
-            suburb = patient_address.suburb,
-            state = patient_address.state,
-            postcode = patient_address.postcode,
-            country = patient_address.country,
-
-            user = patient.user,
-            self_patient = patient
-        )
-
-        parent.patient.add(patient)
-        parent.save()
-
-        logout(request)
-        redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
-        return redirect(redirect_url)
 
 
 class PatientMixin(object):

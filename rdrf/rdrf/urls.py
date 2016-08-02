@@ -112,9 +112,6 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
                            patient_view.PatientEditView.as_view(), name='patient_edit'),
 
-                       url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
-                           patient_view.PatientToParentView.as_view(), name='patient_to_parent'),
-
                        url(r"^(?P<registry_code>\w+)/permissions/?$",
                            PermissionMatrixView.as_view(), name='permission_matrix'),
 
