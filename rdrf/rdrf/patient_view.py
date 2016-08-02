@@ -42,11 +42,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def calculate_age(born):
-    today = date.today()
-    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-
-
 class PatientToParentView(View):
 
     _GENDER_CODE = {
@@ -85,88 +80,6 @@ class PatientToParentView(View):
         logout(request)
         redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
         return redirect(redirect_url)
-
-
-class PatientView(View):
-
-    def get(self, request, registry_code):
-        context = {
-            'registry_code': registry_code,
-            'access': False,
-            'registry': registry_code
-        }
-
-        try:
-            registry = Registry.objects.get(code=registry_code)
-            context['splash_screen'] = registry.patient_splash_screen
-        except Registry.DoesNotExist:
-            context['error_msg'] = _("Registry does not exist")
-            logger.error("Registry %s does not exist" % registry_code)
-            return render_to_response(
-                'rdrf_cdes/patient.html',
-                context,
-                context_instance=RequestContext(request))
-
-        if request.user.is_authenticated():
-            try:
-                registry = Registry.objects.get(code=registry_code)
-                if registry in request.user.registry.all():
-                    context['access'] = True
-                    context['splash_screen'] = registry.patient_splash_screen
-            except Registry.DoesNotExist:
-                context['error_msg'] = _("Registry does not exist")
-                logger.error("Registry %s does not exist" % registry_code)
-
-            try:
-                forms = registry.forms
-                form_progress = FormProgress(registry)
-
-                class FormLink(object):
-
-                    def __init__(self, form):
-                        self.form = form
-                        self.readonly = request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
-                        patient = Patient.objects.get(user=request.user)
-                        self.link = form.link(patient)
-                        self.progress = form_progress.get_form_progress(form, patient)
-
-                context['forms'] = [FormLink(form) for form in forms]
-            except RegistryForm.DoesNotExist:
-                logger.error("No questionnaire for %s registry" % registry_code)
-
-            if request.user.is_patient:
-                try:
-                    patient = Patient.objects.get(user__id=request.user.id)
-                    context['patient_record'] = patient
-                    context['patient_form'] = PatientForm(
-                        instance=patient, user=request.user, registry_model=registry)
-                    context['patient_id'] = patient.id
-                    context['patient'] = patient
-                    context['age'] = calculate_age(patient.date_of_birth)
-                    context['consent'] = consent_status_for_patient(registry_code, patient)
-                    try:
-                        context['clinician_selection'] = "%s_%s" % \
-                            (reverse('v1:customuser-detail', args=[patient.clinician.id,]), \
-                             reverse('v1:workinggroup-detail', args=[patient.working_groups.all()[0].id,]))
-                    except AttributeError:
-                        context['clinician_selection'] = "-1"
-
-                except Patient.DoesNotExist:
-                    logger.error("Paient record not found for user %s" % request.user.username)
-
-                rdrf_context_manager = RDRFContextManager(registry)
-
-                try:
-                    context_model = rdrf_context_manager.get_context(None, patient)
-                    context['context_id'] = context_model.pk
-                except RDRFContextError, ex:
-                    logger.error("patient edit view context error patient %s: %s" % (patient, ex))
-                    return HttpResponseRedirect("/")
-
-        return render_to_response(
-            'rdrf_cdes/patient.html',
-            context,
-            context_instance=RequestContext(request))
 
 
 class PatientMixin(object):
