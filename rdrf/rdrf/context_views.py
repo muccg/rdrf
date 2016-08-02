@@ -41,6 +41,7 @@ class ContextFormGroupHelperMixin(object):
         else:
             return ContextFormGroup.objects.get(pk=form_group_id)
 
+
     def get_context_name(self, registry_model, context_form_group):
         if not registry_model.has_feature("contexts"):
             raise Exception("Registry does not support contexts")
@@ -103,6 +104,25 @@ class ContextFormGroupHelperMixin(object):
         if not registry_model.has_feature("contexts"):
             return HttpResponseRedirect("/")
 
+    def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):
+        assert len(context_form_group.form_models) == 1, "Direct link only possible if num forms in form group is 1"
+        patient_content_type = ContentType.objects.get_for_model(patient_model)
+        form_model = context_form_group.form_models[0]
+        context_model = RDRFContext()
+        context_model.registry = registry_model
+        context_model.name = "change me"
+        context_model.content_object = patient_model
+        context_model.content_type = patient_content_type 
+        context_model.context_form_group = context_form_group
+
+        context_model.save()
+        form_link = reverse('registry_form', args=(registry_model.code,
+                                              form_model.id,
+                                              patient_model.pk,
+                                              context_model.id))
+
+        return HttpResponseRedirect(form_link)
+
 
 class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     model = RDRFContext
@@ -121,6 +141,11 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
         context_name = self.get_context_name(registry_model, context_form_group)
         default_display_name = self.get_default_name(patient_model, context_form_group)
         default_values = {"display_name": default_display_name}
+
+        if context_form_group and context_form_group.supports_direct_linking:
+            return self.create_context_and_goto_form(registry_model,
+                                             patient_model,
+                                             context_form_group)
 
         context = {"location": "Add %s" % context_name,
                    "registry": registry_model.code,

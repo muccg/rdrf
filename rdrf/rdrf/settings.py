@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
+    'anymail',
 ]
 
 
@@ -192,13 +193,13 @@ EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
 SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
-# Django Notifications
-DEFAULT_FROM_EMAIL = env.get("default_from_email", "No Reply <no-reply@mg.ccgapps.com.au>")
-# Mail Gun
-EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-MAILGUN_ACCESS_KEY = env.get('DJANGO_MAILGUN_API_KEY', "")
-MAILGUN_SERVER_NAME = env.get('DJANGO_MAILGUN_SERVER_NAME', "")
+# Email Notifications
+DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
 SERVER_EMAIL = env.get('DJANGO_SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+ANYMAIL = {
+    'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
+}
 
 # list of features  '*' means all , '' means none and ['x','y'] means site
 # supports features x and y

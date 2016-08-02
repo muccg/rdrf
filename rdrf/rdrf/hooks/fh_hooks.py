@@ -91,6 +91,7 @@ def mark_created_patient_as_index(patient, registry_ids):
         try:
             logger.debug("fh registry added hook running setting to index")
             default_context = get_main_context(fh, patient)
+            logger.debug("main context for patient %s is %s" % (patient, default_context.pk))
 
             if default_context is None:
                 pass
@@ -101,6 +102,12 @@ def mark_created_patient_as_index(patient, registry_ids):
                                    "CDEIndexOrRelative",
                                    "fh_is_index",
                                    context_model=default_context)
+
+            # form progress/currency wasn't being updated correctly
+            # The following line mimics what happens on a normal form save 
+            patient_wrapper = DynamicDataWrapper(patient, rdrf_context_id=default_context.pk)
+            patient_wrapper.save_form_progress(fh.code, default_context)
+
             logger.debug("marked patient as index ok")
 
         except Exception, ex:

@@ -622,6 +622,9 @@ class Importer(object):
             cfg.name = cfg_dict["name"]
             cfg.naming_scheme = cfg_dict["naming_scheme"]
             cfg.is_default = cfg_dict["is_default"]
+            if "naming_cde_to_use" in cfg_dict:
+                cfg.naming_cde_to_use = cfg_dict["naming_cde_to_use"]
+                
             cfg.save()
 
             # remove existing context form group items
