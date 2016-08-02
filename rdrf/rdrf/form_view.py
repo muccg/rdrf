@@ -875,6 +875,7 @@ class QuestionnaireView(FormView):
         super(QuestionnaireView, self).__init__(*args, **kwargs)
         self.questionnaire_context = None
         self.template = 'rdrf_cdes/questionnaire.html'
+        self.CREATE_MODE = False
 
     from patient_decorators import patient_has_access
 

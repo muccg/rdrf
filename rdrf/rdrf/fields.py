@@ -2,6 +2,7 @@
 from itertools import izip_longest
 from django.forms import CharField, ChoiceField, URLField, FileField, Field
 from .widgets import MultipleFileInput
+from django.core.exceptions import ValidationError
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
