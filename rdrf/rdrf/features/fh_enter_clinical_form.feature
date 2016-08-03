@@ -2,7 +2,7 @@ Feature: Enter clinical form.
   Enter some data on clinical form
   
   Background:
-    Given site has loaded export xyz
+    Given site has loaded export "fh_with_data.zip"
     
   Scenario: Navigate to clinical form from modules drop down
     Given I login as curator
