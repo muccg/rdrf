@@ -7,3 +7,4 @@ pyvirtualdisplay
 selenium
 unittest-xml-reporting
 requests
+stellar

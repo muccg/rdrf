@@ -51,11 +51,10 @@ _REFDATA_GROUP = GroupDefinition(
         'patients.AddressType',
     ))
 
-_USERS_AND_USERGROUPS_GROUP = GroupDefinition(
-    name='Users and Groups',
-    dirname='users_and_groups',
+_USERS_GROUP = GroupDefinition(
+    name='Users',
+    dirname='users',
     models=(
-        'auth.Group',
         'groups.CustomUser',
     ))
 
@@ -65,6 +64,7 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
     models = (
         'rdrf.Registry',
         'groups.WorkingGroup',
+        'auth.Group',
         'rdrf.RegistryForm',
         # Lee says adjudication code is dead so not including AdjudicationDefinitions
         # 'rdrf.AdjudicationDefinition',
@@ -144,7 +144,6 @@ REGISTRY_DEF_EXPORT_DEFINITION = ExportDefinition(
         mongo_collection_exporters.catalogue),
     datagroups=(
         _REFDATA_GROUP,
-        _USERS_AND_USERGROUPS_GROUP,
         _CDE_GROUP,
         _REGISTRY_DEF_GROUP,
     ),
@@ -158,13 +157,13 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
         mongo_collection_exporters.catalogue),
     datagroups=(
         _REFDATA_GROUP,
-        _USERS_AND_USERGROUPS_GROUP,
         _CDE_GROUP,
         _REGISTRY_DEF_GROUP,
         GroupDefinition(
             name='Registry Data',
             dirname='registry_data',
             datagroups=(
+                _USERS_GROUP,
                 GroupDefinition(
                     name='Demographic Data',
                     dirname='demographic_data',

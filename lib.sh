@@ -332,7 +332,9 @@ _start_test_stack() {
     mkdir -p data/tests
     chmod o+rwx data/tests
 
+
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -f dbtest mongotest
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'

@@ -31,6 +31,7 @@ runservertest:
     service: runserver
   volumes_from:
     - datatest
+  command: runserverlettuce
   links:
     - dbtest:db
     - reportingtest:reporting

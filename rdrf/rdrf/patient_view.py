@@ -223,7 +223,7 @@ class PatientFormMixin(PatientMixin):
         registry_code = self.registry_model.code
         patient_id = self.object.pk
         patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
-        return patient_edit_url
+        return '%s?just_created=True' % patient_edit_url
 
     def _get_initial_context(self, registry_code, patient_model):
         from rdrf.contexts_api import RDRFContextManager, RDRFContextError
@@ -711,6 +711,8 @@ class PatientEditView(View):
             "form_links": [],
             "consent": consent_status_for_patient(registry_code, patient)
         }
+        if request.GET.get('just_created', False):
+            context["message"] = "Patient added successfully"
 
         wizard = NavigationWizard(request.user,
                                   registry_model,

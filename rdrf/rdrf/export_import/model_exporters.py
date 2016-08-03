@@ -73,6 +73,33 @@ class EmailNotificationHistoryExporter(ModelExporter):
         return self.model.objects.filter(email_notification__registry__code=self.exporter_context['registry_code'])
 
 
+class WizardExporter(ModelExporter):
+    @property
+    def queryset(self):
+        return self.model.objects.filter(registry=self.exporter_context['registry_code'])
+
+
+class ContextFormGroupItemExporter(ModelExporter):
+    @property
+    def queryset(self):
+        return self.model.objects.filter(context_form_group__registry__code=self.exporter_context['registry_code'])
+
+
+class CustomUserExporter(ModelExporter):
+    @property
+    def queryset(self):
+        # Return only users that are associated with the registry we're exporting
+        # In addition the users registries and working groups are filtered to include only the
+        # registry we export and working groups in the registry we export
+        # Otherwise when importing the users they will fail if the other registries/working groups
+        # the user refers to don't exist
+        registry_code = self.exporter_context['registry_code']
+        for user in self.model.objects.filter(registry__code=registry_code):
+            user.registry = models.Registry.objects.filter(code=registry_code)
+            user.working_groups = groupmodels.WorkingGroup.objects.filter(registry__code=registry_code)
+            yield user
+
+
 class PatientExporter(ModelExporter):
     @property
     def queryset(self):
@@ -91,11 +118,12 @@ registry_catalogue.register(models.DemographicFields, ModelExporterFilteredByReg
 registry_catalogue.register(models.EmailNotification, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.EmailNotificationHistory, EmailNotificationHistoryExporter)
 registry_catalogue.register(models.CdePolicy, ModelExporterFilteredByRegistry)
-registry_catalogue.register(models.Wizard, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.Wizard, WizardExporter)
 registry_catalogue.register(models.ContextFormGroup, ModelExporterFilteredByRegistry)
-registry_catalogue.register(models.ContextFormGroupItem, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.ContextFormGroupItem, ContextFormGroupItemExporter)
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistry)
 
+registry_catalogue.register(groupmodels.CustomUser, CustomUserExporter)
 registry_catalogue.register(patientmodels.Patient, PatientExporter)
 registry_catalogue.register(patientmodels.ParentGuardian, ModelExporterFilteredByPatient)
 registry_catalogue.register(patientmodels.PatientDoctor, ModelExporterFilteredByPatient)

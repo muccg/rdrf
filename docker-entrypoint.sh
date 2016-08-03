@@ -81,6 +81,11 @@ function selenium_defaults {
         RDRF_URL="https://$DOCKER_ROUTE:8443/app/"
     fi
 
+    # stellar config needs to be in PWD at runtime for lettuce tests
+    if [ ! -f ${PWD}/stellar.yaml ]; then
+        cp /app/stellar.yaml ${PWD}/stellar.yaml
+    fi
+
     export RDRF_URL RDRF_BROWSER
 }
 
@@ -103,6 +108,11 @@ function _django_collectstatic {
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
 }
 
+function _django_iprestrict_permissive_fixtures {
+    echo "loading iprestrict permissive fixture"
+    django-admin.py init iprestrict_permissive
+    django-admin.py reloadrules
+}
 
 function _django_dev_fixtures {
     echo "loading DEV fixture"
@@ -205,6 +215,22 @@ if [ "$1" = 'grdr' ]; then
     exec django-admin.py ${RUNSERVER_OPTS}
 fi
 
+# runserver lettuce entrypoint
+if [ "$1" = 'runserverlettuce' ]; then
+    echo "[Run] Starting runserver"
+
+    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
+    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
+
+    _django_collectstatic
+    _django_migrate
+    _django_iprestrict_permissive_fixtures
+
+    echo "running runserver ..."
+    exec django-admin.py ${RUNSERVER_OPTS}
+fi
+
+
 
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
@@ -216,6 +242,7 @@ fi
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
     selenium_defaults
+    rm -f /data/*.png
     exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 
