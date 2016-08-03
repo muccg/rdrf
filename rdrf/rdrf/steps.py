@@ -14,6 +14,7 @@ from selenium.common.exceptions import NoAlertPresentException
 from rdrf.models import Registry
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
+import subprocess
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,17 @@ logger = logging.getLogger(__name__)
 # their step definitons and sometimes they are picked up instead of ours.
 # Clearing all the lettuce_webdriver step definitions before we register our own.
 STEP_REGISTRY.clear()
+
+@step('site has loaded export "(.*)"$')
+def load_export(step, export_name):
+    logger.info("Loading export %s ..." % export_name)
+    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+    # Remove snapshot if exists, but just continue if it doesn't
+    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
+    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
+    subprocess.check_call(["mongodump", "--host", "mongo"])
+    logger.info("All done loading export %s" % export_name)
+
 
 
 @step('should see "([^"]+)"$')
