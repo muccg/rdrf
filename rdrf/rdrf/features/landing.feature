@@ -2,6 +2,10 @@ Feature: Landing Page
   As the owner of RDRF
   I want the landing page to have general information about RDRF
   In order to let the world know about RDRF
+  
+  Background:
+    Given site has loaded export "dd_with_data.zip"
+
 
   Scenario: Landing main page
     When I go to "/"

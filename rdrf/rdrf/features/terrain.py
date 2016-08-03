@@ -8,14 +8,21 @@ from rdrf import steps
 
 logger = logging.getLogger(__name__)
 
+#@before.all
+#def import_registry_and_snapshot_db():
+#    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/dd_with_data.zip"])
+#    # Remove snapshot if exists, but just continue if it doesn't
+#    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
+#    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
+#    subprocess.check_call(["mongodump", "--host", "mongo"])
+
 @before.all
-def import_registry_and_snapshot_db():
-    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/dd_with_data.zip"])
-    # Remove snapshot if exists, but just continue if it doesn't
+def do_snapshot():
+    logger.info("running do_snapshot")
     subprocess.call(["stellar", "remove", "lettuce_snapshot"])
     subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
     subprocess.check_call(["mongodump", "--host", "mongo"])
-
+    
 
 @before.all
 def set_browser():
@@ -33,21 +40,38 @@ def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
 
 
+@before.all
+def clear_export_name():
+    logger.info("clearing export name")
+    world.export_name = None
 
 @before.each_scenario
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
 
-
-# Should be @before.each_scenario, but that's slower so let's see how this works out
-@before.each_feature
-def restore_db(scenario):
+@before.each_scenario
+def load_export_from_world(scenario):
+    logger.info("loading export from world if it exists - pre scenario %s" % scenario)
+    logger.info("first restoring the empty snapshot")
     subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
     subprocess.check_call(["mongorestore", "--host", "mongo"])
     # DB reconnect
     db.connection.close()
+    if world.export_name:
+        logger.info("world has export_name: %s" % world.export_name)
+        subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % world.export_name])
+        logger.info("imported %s OK!" % world.export_name)
+    else:
+        logger.info("world.export_name is None???? - can't import zip file")
 
+#@before.each_scenario
+def restore_db(scenario):
+    logger.info("running restore_db pre scenario %s" % scenario)
+    subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
+    subprocess.check_call(["mongorestore", "--host", "mongo"])
+    # DB reconnect
+    db.connection.close()
 
 @after.each_scenario
 def screenshot(scenario):
@@ -72,5 +96,13 @@ def accept_alerts(step):
         Alert(world.browser).accept()
     except:
         pass
+
+
+@after.each_feature
+def clear_export_name(feature):
+    logger.info("clearing export name after feature %s" % feature)
+    logger.info("before clear export name = %s" % world.export_name)
+    world.export_name = None
+    logger.info("after clear export name = %s" % world.export_name)
 
     

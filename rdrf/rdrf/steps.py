@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import string
+from django import db
 
 from lettuce.core import STEP_REGISTRY
 from lettuce import step, world
@@ -27,17 +28,10 @@ logger = logging.getLogger(__name__)
 # Clearing all the lettuce_webdriver step definitions before we register our own.
 STEP_REGISTRY.clear()
 
-@step('site has loaded export "(.*)"$')
+@step('site has loaded export "(.*)"')
 def load_export(step, export_name):
-    logger.info("Loading export %s ..." % export_name)
-    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-    # Remove snapshot if exists, but just continue if it doesn't
-    subprocess.call(["stellar", "remove", "lettuce_snapshot"])
-    subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
-    subprocess.check_call(["mongodump", "--host", "mongo"])
-    logger.info("All done loading export %s" % export_name)
-
-
+    logger.info("background step: setting export name on world to %s" % export_name)
+    world.export_name = export_name
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):

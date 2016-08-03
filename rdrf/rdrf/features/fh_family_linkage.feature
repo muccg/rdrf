@@ -7,7 +7,7 @@ Feature: FH Family Linkage Page
     Given site has loaded export "fh_with_data.zip"
     
   Scenario: User can visit Family Linkage Page
-    Given I login as curator
+    When I am logged in as curator
     When I click "SMITH, John" on patientlisting
     When I click "Family Linkage" in sidebar
     Then location is "Family Linkage"

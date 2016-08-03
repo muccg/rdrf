@@ -4,6 +4,7 @@ Feature: Add a patient
   In order to register patients in the registry
 
   Background:
+    Given site has loaded export "dd_with_data.zip"
     Given a registry named "Demyelinating Diseases Registry"
 
   Scenario: Curator user adds a new patient
