@@ -81,6 +81,11 @@ function selenium_defaults {
         RDRF_URL="https://$DOCKER_ROUTE:8443/app/"
     fi
 
+    # stellar config needs to be in PWD at runtime for lettuce tests
+    if [ ! -f ${PWD}/stellar.yaml ]; then
+        cp /app/stellar.yaml ${PWD}/stellar.yaml
+    fi
+
     export RDRF_URL RDRF_BROWSER
 }
 
