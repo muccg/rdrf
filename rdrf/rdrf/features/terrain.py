@@ -63,3 +63,14 @@ def log(step):
 #@after.each_step
 def log(step):
     logger.info('After Step %s', step)
+
+
+@after.each_step
+def accept_alerts(step):
+    from selenium.webdriver.common.alert import Alert
+    try:
+        Alert(world.browser).accept()
+    except:
+        pass
+
+    
