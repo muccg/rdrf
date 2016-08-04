@@ -4,6 +4,7 @@ Feature: Edit consents for a patient
   In order to have a record of what each patient consented to
 
   Background:
+    Given export "dd_with_data.zip"
     Given a registry named "Demyelinating Diseases Registry"
     And a patient named "ABBOT, Abigail"
     # And patient "ABBOT, Abigail" having no consents given

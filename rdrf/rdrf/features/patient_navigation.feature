@@ -4,6 +4,7 @@ Feature: Navigate through forms for a patient
   In order to view patient data
 
   Background:
+    Given export "dd_with_data.zip"
     Given a registry named "Demyelinating Diseases Registry"
     # And registry "Demyelinating Diseases Registry" has "Diagnosis" module
     And a patient named "ABBOT, Abigail"

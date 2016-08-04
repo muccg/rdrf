@@ -1,9 +1,10 @@
-Feature: Edit consents for a patient
+Feature: Edit diagnosis for a patient
   As a RDRF registry owner
   I want curators to edit consents for patients
   In order to have a record of what each patient consented to
 
   Background:
+    Given export "dd_with_data.zip"
     Given a registry named "Demyelinating Diseases Registry"
     And a patient named "ABBOT, Abigail"
     # And patient "ABBOT, Abigail" having birthday on "31-01-1990"

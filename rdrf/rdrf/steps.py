@@ -20,7 +20,7 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
-
+    
 # We started from the step definitions from lettuce_webdriver, but 
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
@@ -28,10 +28,11 @@ logger = logging.getLogger(__name__)
 # Clearing all the lettuce_webdriver step definitions before we register our own.
 STEP_REGISTRY.clear()
 
-@step('site has loaded export "(.*)"')
+@step('export "(.*)"')
 def load_export(step, export_name):
-    logger.info("background step: setting export name on world to %s" % export_name)
-    world.export_name = export_name
+    logger.info("executing load of export for step %s" % step)
+    logger.info("loading export %s" % export_name)
+    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):
@@ -125,24 +126,25 @@ def checkbox_should_be_checked(step, checkbox_label):
 
 @step('a registry named "(.*)"')
 def create_registry(step, name):
-    world.registry = Registry.objects.get(name=name)
+    #
+    #world.registry = Registry.objects.get(name=name)
+    world.registry = name
 
 
 @step('a user named "(.*)"')
 def create_user(step, username):
-    world.user = CustomUser.objects.get(username=username)
-
+    #world.user = CustomUser.objects.get(username=username)
+    world.user = username
 
 @step('a patient named "(.*)"')
-def create_patient(step, name):
-    family_name, given_names = [x.strip() for x in name.split(', ', 1)]
-    world.patient = Patient.objects.get(family_name=family_name, given_names=given_names)
+def set_patient(step, name):
+    world.patient = name
 
 
 @step("navigate to the patient's page")
-def create_patient(step):
-    select_from_list(step, world.registry.name, "#registry_options")
-    click_link(step, world.patient.display_name)
+def goto_patient(step):
+    select_from_list(step, world.registry, "#registry_options")
+    click_link(step, world.patient)
 
 
 @step('I am on the "(.*)"')
@@ -160,9 +162,9 @@ def the_page_header_should_be(step, header):
 @step('I am logged in as (.*)')
 def login_as_role(step, role):
     # Could map from role to user later if required
-    go_to_registry(step, world.registry.name)
+    go_to_registry(step, world.registry)
     login_as_user(step, role, role)
-    world.user = CustomUser.objects.get(username=role)
+    world.user = role #?
 
 
 @step('log in as "(.*)" with "(.*)" password')
@@ -177,7 +179,7 @@ def login_as_user(step, username, password):
 
 @step(u'should be logged in')
 def should_be_logged_in(step):
-    user_link = world.browser.find_element_by_partial_link_text(world.user.get_full_name())
+    user_link = world.browser.find_element_by_partial_link_text(world.user)
     user_link.click()
     world.browser.find_element_by_link_text('Logout')
 
@@ -191,7 +193,7 @@ def should_be_on_the_login_page(step):
 
 @step('click the User Dropdown Menu')
 def click_user_menu(step):
-    click_link(step, world.user.get_full_name())
+    click_link(step, world.user)
 
 
 @step('the progress indicator should be "(.*)"')

@@ -4,6 +4,7 @@ Feature: Login support
   In order to control access to the registry data
 
   Background:
+    Given export "dd_with_data.zip"
     Given a user named "admin"
     And a registry named "Demyelinating Diseases Registry"
     When I go to the registry "Demyelinating Diseases Registry"
