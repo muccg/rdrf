@@ -7,9 +7,13 @@ from rdrf import steps
 
 logger = logging.getLogger(__name__)
 
+
+
 @before.all
 def create_minimal_snapshot():
     logger.info("creating minimal snapshot")
+    # some data is in the cdes collection already ?? - following line removes everything!
+    subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
     subprocess.call(["stellar", "remove", "lettuce_snapshot"])
     subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
     subprocess.check_call(["mongodump", "--host", "mongo"])

@@ -32,6 +32,8 @@ STEP_REGISTRY.clear()
 def load_export(step, export_name):
     logger.info("executing load of export for step %s" % step)
     logger.info("loading export %s" % export_name)
+    logger.info("first deleting all mongo dbs!")
+    subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
     subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
 
 @step('should see "([^"]+)"$')
