@@ -20,6 +20,12 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+def do_restore():
+    logger.info("restoring minimal snapshot ...")
+    subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
+    subprocess.check_call(["mongorestore", "--host", "mongo"])
+    # DB reconnect
+    db.connection.close()
 
 def check_import():
     logger.info("Checking import:")
@@ -41,6 +47,7 @@ def load_export(step, export_name):
     logger.info("executing load of export for step %s" % step)
     logger.info("loading export %s" % export_name)
     logger.info("first deleting all mongo dbs!")
+    do_restore()
     subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
     check_import()
