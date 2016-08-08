@@ -20,6 +20,14 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+
+def check_import():
+    logger.info("Checking import:")
+    from rdrf.models import Registry
+    for r in Registry.objects.all():
+        logger.info("\tregistry = %s" % r)
+        
+
     
 # We started from the step definitions from lettuce_webdriver, but 
 # transitioned to our own (for example looking up form controls by label, not id)
@@ -34,7 +42,8 @@ def load_export(step, export_name):
     logger.info("loading export %s" % export_name)
     logger.info("first deleting all mongo dbs!")
     subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
-    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+    subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+    check_import()
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):
@@ -164,9 +173,13 @@ def the_page_header_should_be(step, header):
 @step('I am logged in as (.*)')
 def login_as_role(step, role):
     # Could map from role to user later if required
-    go_to_registry(step, world.registry)
-    login_as_user(step, role, role)
+    
     world.user = role #?
+    logger.debug("about to login as %s registry %s" % (world.user, world.registry))
+    go_to_registry(step, world.registry)
+    logger.debug("selected registry %s OK" % world.registry)
+    login_as_user(step, role, role)
+    logger.debug("login_as_user %s OK" % role)
 
 
 @step('log in as "(.*)" with "(.*)" password')
@@ -211,14 +224,18 @@ def our_goto(step, relative_url):
     We delegate to the library supplied version of the step with the same pattern after fixing the path
     """
     absolute_url = world.site_url + relative_url
-    world.browser.get(world.site_url)
+    world.browser.get(absolute_url)
 
 
 @step('go to the registry "(.*)"')
 def go_to_registry(step, name):
+    logger.info("**********  in go_to_registry *******")
     world.browser.get(world.site_url)
+    logger.info("navigated to %s" % world.site_url)
     world.browser.find_element_by_link_text('Registries on this site').click()
+    logger.info("clicked dropdown for registry")
     world.browser.find_element_by_partial_link_text(name).click()
+    logger.info("found link text to click")
 
 
 @step('navigate away then back')
