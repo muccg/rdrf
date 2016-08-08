@@ -3,7 +3,7 @@ Feature: Follow Up forms.
   multiple follow up forms.
   
   Background:
-    Given site has loaded export "fh_with_data.zip"
+    Given site has loaded export "fh.zip"
     
   Scenario: Navigate to Follow Up Form
     Given I login as curator

@@ -4,7 +4,7 @@ Feature: Landing Page
   In order to let the world know about RDRF
   
   Background:
-    Given export "dd_with_data.zip"
+    Given export "dd.zip"
 
 
   Scenario: Landing main page

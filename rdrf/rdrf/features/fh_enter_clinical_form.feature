@@ -2,7 +2,7 @@ Feature: Enter clinical form.
   Enter some data on clinical form
   
   Background:
-    Given export "fh_with_data.zip"
+    Given export "fh.zip"
   
   Scenario: Navigate to clinical form from modules drop down
     When I am logged in as curator

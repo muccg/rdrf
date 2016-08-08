@@ -3,7 +3,7 @@ Feature: FH Family Linkage Page
   I want to be able to view the families of patients
   In order to do cascade screening.
   Background:
-    Given export "fh_with_data.zip"
+    Given export "fh.zip"
 
   Scenario: User can visit Family Linkage Page
     When I am logged in as curator

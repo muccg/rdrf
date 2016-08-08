@@ -4,7 +4,7 @@ Feature: Admin Page and Settings
   In order to do administrative tasks using the Web UI
 
   Background:
-    Given export "dd_with_data.zip"
+    Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
 
   Scenario: Admin user drop-down has Admin Page item
