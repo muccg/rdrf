@@ -24,6 +24,8 @@ def do_restore():
     logger.info("restoring minimal snapshot ...")
     subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
     subprocess.check_call(["mongorestore", "--host", "mongo"])
+    for r in Registry.objects.all():
+        r.delete() # argh
     # DB reconnect
     db.connection.close()
 
