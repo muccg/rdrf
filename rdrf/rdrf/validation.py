@@ -2,6 +2,7 @@ import logging
 import re
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +19,16 @@ def make_validation_func(val_type, cde):
         def vf(value):
             if value < cde.min_value:
                 raise ValidationError(
-                    "Value of %s for %s is less than minimum value %s" %
-                    (value, cde.name, cde.min_value))
+                    _("Value of %(value)s for %(cdename)s is less than minimum value %(cdemin_value)s") %
+                    {"value": value, "cdename": cde.name, "cdemin_value": cde.min_value })
+
         return vf
     elif val_type == ValidationType.MAX:
         def vf(value):
             if value > cde.max_value:
                 raise ValidationError(
-                    "Value of %s for %s is more than maximum value %s" %
-                    (value, cde.name, cde.max_value))
+                    _("Value of %(value)s for %(cdename)s is more than maximum value %(cdemax_value)s") %
+                    {"value": value, "cdename": cde.name, "cdemax_value": cde.max_value })
         return vf
     elif val_type == ValidationType.PATTERN:
         try:
@@ -37,18 +39,16 @@ def make_validation_func(val_type, cde):
 
         def vf(value):
             if not re_pattern.match(value):
-                raise ValidationError(
-                    "Value of %s for %s does not match pattern '%s'" %
-                    (value, cde.name, cde.pattern))
+                raise ValidationError(_("Value of %(value)s for %(cdename)s does not match pattern '%(cdepattern)s'") % { "value": value, "cdename": cde.name, "cdepattern": cde.pattern})
         return vf
     elif val_type == ValidationType.LENGTH:
         def vf(value):
             if len(value) > cde.max_length:
-                raise ValidationError("Value of '%s' for %s is longer than max length of %s" %
-                                      (value, cde.name, cde.max_length))
+                raise ValidationError(_("Value of '%(value)s' for %(name)s is longer than max length of %(max)s") %
+                                      {"value": value, "name": cde.name, "max": cde.max_length})
         return vf
     else:
-        raise Exception("Unknown ValidationType %s" % val_type)
+        raise Exception(_("Unknown ValidationType %s") % val_type)
 
 
 class ValidatorFactory(object):

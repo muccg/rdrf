@@ -91,7 +91,7 @@
     
     <script>
         function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+            var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
             if (warning == true) {
                 window.location.replace('{% url 'admin:patients_patient_changelist' %}');
             }
@@ -232,16 +232,16 @@
 	<br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 	</div>
@@ -264,7 +264,7 @@
         <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
-                    <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>
+                    <p class="text-muted"><i><strong>{% trans "Required CDEs for progress indicator" %}</strong></i></p>
                     <div id="form-progress">
                         <ul class="list-group">
                             <li class="list-group-item">
@@ -322,7 +322,7 @@
                                     <div class="form-group">
                                         <div class="col-sm-9 col-sm-offset-3">
                                             <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
                                         </div>
                                     </div>

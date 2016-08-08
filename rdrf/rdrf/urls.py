@@ -12,7 +12,6 @@ import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
 import rdrf.import_registry_view as import_registry_view
 import rdrf.patient_view as patient_view
-import rdrf.parent_view as parent_view
 import rdrf.login_router as login_router
 import rdrf.report_view as report_view
 import rdrf.consent_view as consent_view
@@ -24,9 +23,12 @@ from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
+from rdrf.trans_view import TranslationView, TranslationViewReload
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
+from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RDRFContextLookup
+from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf import patients_listing
 
@@ -55,6 +57,7 @@ urlpatterns = patterns('',
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
                        url(r'^iprestrict', include('iprestrict.urls')),
+                       url(r'^useraudit', include('useraudit.urls')),
 
                        (r'^api/v1/', include(api_urls, namespace='v1')),
                        # (r'^api/v2/', include(api_urls, namespace='v2')), etc.
@@ -94,25 +97,20 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
                            form_view.FormView.as_view(), name='registry_form'),
 
-                       url(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+                       url(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/?$",
                            form_view.FormPrintView.as_view(), name='registry_form_print'),
 
-                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)/(?P<cde_code>\w+)/history/?$",
+                       url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/history/?$",
                            form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
 
                        url(r"^(?P<registry_code>\w+)/?$",
                            registry_view.RegistryView.as_view(), name='registry'),
 
-                       url(r"^(?P<registry_code>\w+)/patient/(?P<context_id>\d+)?$",
-                           patient_view.PatientView.as_view(), name='patient_page'),
                        url(r"^(?P<registry_code>\w+)/patient/add/?$",
                            patient_view.AddPatientView.as_view(), name='patient_add'),
 
                        url(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
                            patient_view.PatientEditView.as_view(), name='patient_edit'),
-
-                       url(r"^(?P<registry_code>\w+)/patient/to-parent/(?P<patient_id>\d+)/?$",
-                           patient_view.PatientToParentView.as_view(), name='patient_to_parent'),
 
                        url(r"^(?P<registry_code>\w+)/permissions/?$",
                            PermissionMatrixView.as_view(), name='permission_matrix'),
@@ -129,18 +127,16 @@ urlpatterns = patterns('',
 
                        url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
                            form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
+
+                       url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
+                           consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
+
 #-------------------------------------------
 
 #---- Email Notifications URLs -------------
                        url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
                            ResendEmail.as_view(), name="resend_email"),
 #-------------------------------------------
-
-                       url(r"^(?P<registry_code>\w+)/parent/?$",
-                           parent_view.ParentView.as_view(), name='parent_page'),
-
-                       url(r"^(?P<registry_code>\w+)/parent/(?P<parent_id>\d+)/?$",
-                           parent_view.ParentEditView.as_view(), name='parent_edit'),
 
                        url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
                            FamilyLinkageView.as_view(), name='family_linkage'),
@@ -174,6 +170,14 @@ urlpatterns = patterns('',
 
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
                        url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
+
+#---- Look-ups URLs -----------------------
+                       url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
+                           UsernameLookup.as_view(), name="lookup_username"),
+
+                       url(r"^lookup/recaptcha/?$",
+                           RecaptchaValidator.as_view(), name="recaptcha_validator"),
+#-------------------------------------------
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
                            RDRFContextLookup.as_view(),

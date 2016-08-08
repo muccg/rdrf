@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from models import Registry
@@ -165,14 +166,14 @@ def design_registry_action(modeladmin, request, registry_models_selected):
         registry = [r for r in registry_models_selected][0]
         return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
 
-design_registry_action.short_description = "Design"
+design_registry_action.short_description = _("Design")
 
 
 def generate_questionnaire_action(modeladmin, request, registry_models_selected):
     for registry in registry_models_selected:
         registry.generate_questionnaire()
 
-generate_questionnaire_action.short_description = "Generate Questionnaire"
+generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
 
 class RegistryAdmin(admin.ModelAdmin):
@@ -236,7 +237,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
                 )
 
     process_link.allow_tags = True
-    process_link.short_description = 'Process questionnaire'
+    process_link.short_description = _('Process questionnaire')
 
 
 def create_restricted_model_admin_class(
@@ -310,7 +311,7 @@ class AdjudicationRequestAdmin(admin.ModelAdmin):
                 return "Unknown State:%s" % obj.state
 
     adjudicate_link.allow_tags = True
-    adjudicate_link.short_description = 'Adjudication State'
+    adjudicate_link.short_description = _('Adjudication State')
 
     def queryset(self, request):
         user = request.user
@@ -339,7 +340,7 @@ class AdjudicationAdmin(admin.ModelAdmin):
             return "-"
 
     adjudicate_link.allow_tags = True
-    adjudicate_link.short_description = 'Adjudication'
+    adjudicate_link.short_description = _('Adjudication')
 
     def queryset(self, request):
         user = request.user
@@ -393,7 +394,7 @@ class CdePolicyAdmin(admin.ModelAdmin):
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
 
-    groups.short_description = "Allowed Groups"
+    groups.short_description = _("Allowed Groups")
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification

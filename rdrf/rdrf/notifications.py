@@ -1,4 +1,7 @@
 import logging
+
+from django.utils.translation import ugettext as _
+
 from rdrf.utils import get_user
 from django.conf import settings
 
@@ -22,13 +25,15 @@ class Notifier(object):
             notification.save()
         except Exception as ex:
             logger.error(
-                "Could not create notification for %s to %s with message %s and link '%s': %s" %
-                from_user_name,
-                to_username,
-                message,
-                link,
-                ex)
-            raise NotificationError("could not create notification")
+                _("Could not create notification for %(from_username)s to %(to_username)s with message %(message)s and link '%(link)s': %(ex)s") %
+                {
+                "from_username": from_user_name,
+                "to_username": to_username,
+                "message": message,
+                "link": link,
+                "ex": ex
+                })
+            raise NotificationError(_("could not create notification"))
 
     def send_email(
             self,

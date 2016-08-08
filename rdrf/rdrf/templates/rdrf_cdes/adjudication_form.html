@@ -79,14 +79,14 @@
 {% endblock %}
 
 {% block content %}
-<h1>Adjudication Request from {{ req.requesting_username }}</h1>
+<h1>{% trans "Adjudication Request from" %} {{ req.requesting_username }}</h1>
 
-<h2>Patient Data:</h2>
+<h2>{% trans "Patient Data" %}:</h2>
 
 <table class="table table-striped table-bordered table-hover table-condensed">
     <thead>
     <tr>
-        <th>Data Point</th><th>Current Value</th>
+        <th>{% trans "Data Point" %}</th><th>{% trans "Current Value" %}</th>
     </tr>
     </thead>
      <tbody>
@@ -101,6 +101,6 @@
     {{ adjudication_form }}
      <input type="hidden" name="arid" value="{{req.pk}}"/>
      <input type="hidden" name="username" value="{{req.username}}"/>
-     <input type="submit" class="btn btn-info" value="Submit Adjudication"/>
+     <input type="submit" class="btn btn-info" value="{% trans 'Submit Adjudication' %}"/>
 </form>
 {% endblock %}
