@@ -20,6 +20,35 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+def clean_models():
+    from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
+    from rdrf.models import ContextFormGroup, ContextFormGroupItem
+    from registry.groups.models import WorkingGroup
+    from registry.genetic.models import Gene, Laboratory
+    from django.contrib.auth.models import Group
+
+    def clean(klass, is_Patient=False):
+        logger.info("cleaning models in %s" % klass)
+        if not is_Patient:
+            for obj in klass.objects.all():
+                logger.info("deleting %s" % obj)
+                try:
+                    obj.delete()
+                except:
+                    logger.info("Could not delete %s" % obj)
+        else:
+            for obj in klass.objects.all():
+                logger.info("deleting %s" % obj)
+                try:
+                    obj.delete()
+                    obj.delete()
+                except:
+                    logger.info("could not delete patient %s" % obj)
+
+    for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
+                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group]:
+        clean(klass)
+
 def do_restore():
     logger.info("restoring minimal snapshot ...")
     subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
@@ -48,23 +77,29 @@ def load_export(step, export_name):
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
     """
+    # assume export name like <registry_code>.zip for now
     snapshot_name = "snapshot_%s" % export_name
+    registry_code = export_name.split(".")[0]
+    mongo_db_name = "prod_%s" % registry_code
     # create snapshot based on minimal snapshot + import file first time and reload after that
     if not export_name in world.snapshot_dict:
         logger.info("no snapshot exists for %s - creating ..." % export_name)
         logger.info("snapshot name = %s" % snapshot_name)
         logger.info("clearing data before import ..")
+        clean_models()
         subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
         subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
         subprocess.call(["stellar", "remove", snapshot_name])
         subprocess.check_call(["stellar", "snapshot", snapshot_name])
-        subprocess.check_call(["mongodump", "--host", "mongo"])
+        subprocess.check_call(["mongodump", "--host", "mongo","--db", mongo_db_name])
         world.snapshot_dict[export_name] = snapshot_name
     else:
         subprocess.check_call(["stellar", "restore", snapshot_name])
-        subprocess.check_call(["mongorestore", "--host", "mongo"])
-        # DB reconnect
-        db.connection.close()
+        subprocess.check_call(["mongorestore", "--host", "mongo", "--db",mongo_db_name])
+
+    # DB reconnect
+    #db.connection.close()
+    check_import()
         
 
 @step('should see "([^"]+)"$')

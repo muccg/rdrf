@@ -15,34 +15,6 @@ def do_restore():
     db.connection.close()
 
 
-def clean_models():
-    from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
-    from rdrf.models import ContextFormGroup, ContextFormGroupItem
-    from registry.groups.models import WorkingGroup
-    from registry.genetic.models import Gene, Laboratory
-    from django.contrib.auth.models import Group
-
-    def clean(klass, is_Patient=False):
-        logger.info("cleaning models in %s" % klass)
-        if not is_Patient:
-            for obj in klass.objects.all():
-                logger.info("deleting %s" % obj)
-                try:
-                    obj.delete()
-                except:
-                    logger.info("Could not delete %s" % obj)
-        else:
-            for obj in klass.objects.all():
-                logger.info("deleting %s" % obj)
-                try:
-                    obj.delete()
-                    obj.delete()
-                except:
-                    logger.info("could not delete patient %s" % obj)
-
-    for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
-                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group]:
-        clean(klass)
 
                     
     
