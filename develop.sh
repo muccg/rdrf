@@ -50,6 +50,14 @@ docker_staging_lettuce() {
 }
 
 
+# propspector
+prospector() {
+    info "prospector"
+    docker-compose -f docker-compose-build.yml run lint prospector --max-line-length 120 --output-format xunit > prospector.xml
+    success "prospector"
+}
+
+
 # lint using flake8
 python_lint() {
     info "python lint"
@@ -78,6 +86,9 @@ git_tag
 docker_warm_cache
 
 case $ACTION in
+prospector)
+    prospector
+    ;;
 pythonlint)
     python_lint
     ;;
