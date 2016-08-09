@@ -101,7 +101,7 @@ def load_export(step, export_name):
         subprocess.check_call(["mongorestore", "--host", "mongo", "--db",mongo_db_name])
 
     # DB reconnect
-    #db.connection.close()
+    db.connection.close()
     show_stats(export_name)
         
 
