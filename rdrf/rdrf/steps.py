@@ -49,21 +49,19 @@ def clean_models():
                   ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group]:
         clean(klass)
 
-def do_restore():
-    logger.info("restoring minimal snapshot ...")
-    subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
-    subprocess.check_call(["mongorestore", "--host", "mongo"])
-    # DB reconnect
-    db.connection.close()
-
-def check_import():
-    logger.info("Checking import:")
+def show_stats(export_name):
+    """
+    show some stats after import
+    """
     from rdrf.models import Registry
+    from registry.patients.models import Patient
+    logger.info("After import of export file %s" % export_name)
     for r in Registry.objects.all():
         logger.info("\tregistry = %s" % r)
-        
 
-    
+    for p in Patient.objects.all():
+        logger.info("\t\tPatient %s" % p)
+        
 # We started from the step definitions from lettuce_webdriver, but 
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
@@ -99,7 +97,7 @@ def load_export(step, export_name):
 
     # DB reconnect
     #db.connection.close()
-    check_import()
+    show_stats(export_name)
         
 
 @step('should see "([^"]+)"$')
