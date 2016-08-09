@@ -55,7 +55,7 @@ class ColumnLabeller(object):
 
             return s
 
-        except Exception, ex:
+        except Exception as ex:
             return column_name
 
     def _get_sql_field_label(self, field_name):
@@ -568,7 +568,7 @@ class ReportTable(object):
     Used by report datatable view
     """
 
-    def __init__(self,  user, query_model):
+    def __init__(self, user, query_model):
         self.query_model = query_model
         self.user = user
         self.engine = self._create_engine()

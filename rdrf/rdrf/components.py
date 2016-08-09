@@ -158,9 +158,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
         for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
                                                                   context_type="M").order_by("name"):
             name = _("All " + context_form_group.direct_name + "s")
-            filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (self.registry_model.code,
-                                                                                                              self.patient_model.pk,
-                                                                                                              context_form_group.pk)
+            filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (
+                self.registry_model.code, self.patient_model.pk, context_form_group.pk)
 
             link_pair = context_form_group.get_add_action(self.patient_model)
             if link_pair:

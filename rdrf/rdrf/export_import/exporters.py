@@ -9,6 +9,7 @@ from django.apps import apps
 from rdrf.utils import mongo_db_name
 from rdrf.mongo_client import construct_mongo_client
 from .utils import DelegateMixin, IndentedLogger, maybe_indent, file_checksum, app_schema_version
+from functools import reduce
 
 
 class DataGroupExporter(object, DelegateMixin):

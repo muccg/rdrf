@@ -10,11 +10,5 @@ class Migration(migrations.Migration):
         ('rdrf', '0012_registryform_header'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='emailtemplate',
-            name='language',
-            field=models.CharField(max_length=2, choices=[(b'ar', b'Arabic'),
-                                                          (b'de', b'German'), (b'en', b'English'), (b'no', b'Norwegian')]),
-        ),
-    ]
+    operations = [migrations.AlterField(model_name='emailtemplate', name='language', field=models.CharField(
+        max_length=2, choices=[(b'ar', b'Arabic'), (b'de', b'German'), (b'en', b'English'), (b'no', b'Norwegian')]), ), ]

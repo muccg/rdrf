@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def encode_row(row):
-    return [s.encode('utf8') if type(s) is unicode else s for s in row]
+    return [s.encode('utf8') if isinstance(s, unicode) else s for s in row]
 
 
 class LoginRequiredMixin(object):
@@ -137,7 +137,7 @@ class QueryView(LoginRequiredMixin, View):
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
                 return HttpResponse("")
-            except Exception, ex:
+            except Exception as ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
             # user clicked Save
@@ -487,8 +487,8 @@ class MultisectionHandler(object):
             Lists _should_ be same length EXCEPT in case
             where a cde has been added to the registry definition AFTER data has been saved to mongo:
             in this case the return values list for that CDE will be empty ( see FH-15 )
-            In order to avoid index errors , in this case the list is padded with Nones up to the 
-            size of the list 
+            In order to avoid index errors , in this case the list is padded with Nones up to the
+            size of the list
             padded with None if not
             """
             l = []

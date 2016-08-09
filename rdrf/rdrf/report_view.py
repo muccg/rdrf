@@ -107,7 +107,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
             d = datetime.now()
             logger.info("time to jsonify = %s" % (d - c))
             return j
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Could not jsonify results: %s" % ex)
             return self._json({})
 

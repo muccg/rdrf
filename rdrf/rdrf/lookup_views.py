@@ -131,7 +131,7 @@ class FamilyLookup(View):
             relative_dict = {"pk": relative.pk,
                              "given_names": relative.given_names,
                              "family_name": relative.family_name,
-                             "relationship":  relative.relationship,
+                             "relationship": relative.relationship,
                              "class": "PatientRelative",
                              "link": relative_link}
 
@@ -213,7 +213,7 @@ class RDRFContextLookup(View):
         try:
             self._set_active_context(user, registry_model, patient_model, desired_active_context_id)
 
-        except RDRFContextError, ex:
+        except RDRFContextError as ex:
             # return error packet
             return self._create_error_packet(ex)
 

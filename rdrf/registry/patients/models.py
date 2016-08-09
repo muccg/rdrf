@@ -389,7 +389,7 @@ class Patient(models.Model):
                 expression_object = parser.parse(field_expression)
                 logger.debug("parsed %s OK: is a %s" % (field_expression,
                                                         expression_object.__class__.__name__))
-            except Exception, ex:
+            except Exception as ex:
                 errors += 1
                 logger.debug("couldn't parse field expression: %s - skipping" % field_expression)
                 error_messages.append("Parse error: %s" % field_expression)
@@ -406,7 +406,7 @@ class Patient(models.Model):
                 error_messages.append("Not Implemented: %s" % field_expression)
                 continue
 
-            except Exception, ex:
+            except Exception as ex:
                 errors += 1
                 logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
                 error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
@@ -417,12 +417,12 @@ class Patient(models.Model):
 
         try:
             wrapper.update_dynamic_data(registry_model, mongo_data)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error update_dynamic_data: %s" % ex)
             error_messages.append("Failed to update: %s" % ex)
         try:
             self.save()
-        except Exception, ex:
+        except Exception as ex:
             error_messages.append("Failed to save patient: %s" % ex)
 
         return error_messages
@@ -1007,16 +1007,16 @@ def get_countries():
 class PatientRelative(models.Model):
 
     RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
-                      ("Child (1st degree)",  "Child (1st degree)"),
+                      ("Child (1st degree)", "Child (1st degree)"),
                       ("Sibling (1st degree)", "Sibling (1st degree)"),
                       ("Identical Twin (0th degree)", "Identical Twin (0th degree)"),
                       ("Non-identical Twin (1st degree)", "Non-identical Twin (1st degree)"),
                       ("Half Sibling (1st degree)", "Half Sibling (1st degree)"),
                       ("Grandparent (2nd degree)", "Grandparent (2nd degree)"),
-                      ("Grandchild (2nd degree)",  "Grandchild (2nd degree)"),
-                      ("Uncle/Aunt (2nd degree)",  "Uncle/Aunt (2nd degree)"),
+                      ("Grandchild (2nd degree)", "Grandchild (2nd degree)"),
+                      ("Uncle/Aunt (2nd degree)", "Uncle/Aunt (2nd degree)"),
                       ("Niece/Nephew (2nd degree)", "Niece/Nephew (2nd degree)"),
-                      ("1st Cousin (3rd degree)",  "1st Cousin (3rd degree)"),
+                      ("1st Cousin (3rd degree)", "1st Cousin (3rd degree)"),
                       ("Great Grandparent (3rd degree)", "Great Grandparent (3rd degree)"),
                       ("Great Grandchild (3rd degree)", "Great Grandchild (3rd degree)"),
                       ("Great Uncle/Aunt (3rd degree)", "Great Uncle/Aunt (3rd degree)"),

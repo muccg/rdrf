@@ -32,7 +32,7 @@ def get_default_context(fh_registry_model, patient_model):
 def get_main_context(fh_registry_model, patient_model):
     """
     Return the context where we need to stick the index/relative field value
-    I.e. the context which has that non-multiple (static) form group containing 
+    I.e. the context which has that non-multiple (static) form group containing
     the main clinical form
     """
     for context_model in patient_model.context_models:
@@ -109,5 +109,5 @@ def mark_created_patient_as_index(patient, registry_ids):
 
             logger.debug("marked patient as index ok")
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("error running hook: %s" % ex)

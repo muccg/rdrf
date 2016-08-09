@@ -91,7 +91,8 @@ class PatientsListingView(View):
         ), key=itemgetter('order'), reverse=False)
 
         for definition in sorted_by_order:
-            if self.user.is_superuser or definition["access"]["default"] or self.user.has_perm(definition["access"]["permission"]):
+            if self.user.is_superuser or definition["access"][
+                    "default"] or self.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
                         "data": definition["data"],
@@ -204,8 +205,9 @@ class PatientsListingView(View):
         self.do_security_checks()
         if not self.user.is_superuser:
             if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
-                logger.info("User %s tried to browse patients in registry %s of which they are not a member" % (self.user,
-                                                                                                                self.registry_model.code))
+                logger.info(
+                    "User %s tried to browse patients in registry %s of which they are not a member" %
+                    (self.user, self.registry_model.code))
                 return False
         return True
 
@@ -285,7 +287,7 @@ class PatientsListingView(View):
                 try:
                     wg = patient_model.working_groups.get()
                     return wg.name
-                except Exception, ex:
+                except Exception as ex:
                     logger.debug("error wg %s" % ex)
                     return ""
             key_func = get_wg
@@ -390,7 +392,7 @@ class PatientsListingView(View):
             def f(patient):
                 try:
                     return str(getattr(patient, field))
-                except Exception, ex:
+                except Exception as ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (
                         field, patient, ex)
                     logger.error(msg)
@@ -404,7 +406,7 @@ class PatientsListingView(View):
             def f(patient):
                 try:
                     return method(patient)
-                except Exception, ex:
+                except Exception as ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (
                         field, patient, ex)
                     logger.error(msg)

@@ -112,7 +112,7 @@ class FormProgress(object):
                     filled_in_values = [value for value in values if test_value(value)]
                     result["filled"] += len(filled_in_values)
 
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("Error getting value for %s %s: %s" % (section_model.code, cde_model.code, ex))
                 pass
 
@@ -214,7 +214,7 @@ class FormProgress(object):
                     else:
                         groups_dict["diagnosis"].append(form_model.name)
                 return groups_dict
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error getting progress metadata for registry %s: %s" % (self.registry_model.code,
                                                                                   ex))
             return {}

@@ -547,8 +547,8 @@ class Registry(models.Model):
 
     @property
     def fixed_form_groups(self):
-        return [cfg for cfg in ContextFormGroup.objects.filter(registry=self,
-                                                               context_type="F").order_by("is_default").order_by("name")]
+        return [cfg for cfg in ContextFormGroup.objects.filter(
+            registry=self, context_type="F").order_by("is_default").order_by("name")]
 
     @property
     def multiple_form_groups(self):
@@ -759,7 +759,7 @@ class CommonDataElement(models.Model):
                         display_value = value_dict["value"]
                         return display_value
 
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))

@@ -91,9 +91,9 @@ class DatabaseUtils(object):
                         if not isinstance(column, basestring):
                             errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
 
-            except ValueError, ve:
+            except ValueError as ve:
                 errors.append("JSON malformed: %s" % ve.message)
-            except KeyError, ke:
+            except KeyError as ke:
                 errors.append("key error: %s" % ke.message)
 
             if len(errors) > 0:
@@ -111,7 +111,7 @@ class DatabaseUtils(object):
         logger.debug("*********** running query and dumping to temporary table *******")
         try:
             reporting_table_generator.drop_table()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: dropping table: %s" % ex)
             raise
 
@@ -119,37 +119,37 @@ class DatabaseUtils(object):
 
         try:
             self.cursor = self.create_cursor()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: create cursor: %s" % ex)
             raise
 
         try:
             sql_metadata = self._get_sql_metadata(self.cursor)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: getting sql metadata: %s" % ex)
             raise
 
         try:
             mongo_metadata = self._get_mongo_metadata()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: getting mongo metadata: %s" % ex)
             raise
 
         try:
             reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: creating columns: %s" % ex)
             raise
 
         try:
             reporting_table_generator.create_schema()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: creating schema: %s" % ex)
             raise
 
         try:
             return reporting_table_generator.run_explorer_query(self)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error running explorer query: %s" % ex)
             raise
 
@@ -219,7 +219,8 @@ class DatabaseUtils(object):
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
-                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
+                        sql_columns_dict, history_collection, max_items):
                     if mongo_columns_dict is None:
                         yield None
 
@@ -377,9 +378,9 @@ class DatabaseUtils(object):
                                              record)
 
                 if len(values) > max_items:
-                    self.warning_messages.append("%s %s has more than %s items in the section" % (form_model.name,
-                                                                                                  section_model.display_name,
-                                                                                                  max_items))
+                    self.warning_messages.append(
+                        "%s %s has more than %s items in the section" %
+                        (form_model.name, section_model.display_name, max_items))
 
                 try:
                     result[column_name] = values[section_index - 1]

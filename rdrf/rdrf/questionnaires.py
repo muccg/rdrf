@@ -177,7 +177,7 @@ class QuestionnaireReverseMapper(object):
             address.state = self._get_state(
                 getcde(address_map, "State"), address.country)
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error setting state: %s" % ex)
 
         return address
@@ -447,7 +447,7 @@ class PatientCreator(object):
             questionnaire_response.patient_id = patient.pk
             questionnaire_response.processed = True
             questionnaire_response.save()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("couldn't set qr to processed: %s" % ex)
             raise PatientCreatorError("Error setting qr to processed: %s" % ex)
 
@@ -511,7 +511,7 @@ class _ExistingDataWrapper(object):
                 value = str(value)
             return value
 
-        except Exception, ex:
+        except Exception as ex:
             return "Error[!%s]" % ex
 
     def _get_working_groups_display_value(self, working_group_models):
@@ -556,7 +556,7 @@ class _ExistingDataWrapper(object):
                 try:
                     field_name = question.target.display_name
                     field_expression = question.target.field_expression
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("could not get target for %s %s: %s" % (question.section_code,
                                                                          question.cde_code,
                                                                          ex))
@@ -566,10 +566,16 @@ class _ExistingDataWrapper(object):
                 field_name = question.cde_model.name
 
             if not question.is_multi:
-                existing_answer = {"name": field_name,
-                                   "pos": str(question.pos),
-                                   "is_multi": False,
-                                   "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
+                existing_answer = {
+                    "name": field_name,
+                    "pos": str(
+                        question.pos),
+                    "is_multi": False,
+                    "answer": self._get_field_data(
+                        field_expression,
+                        question.form_model,
+                        question.section_model,
+                        question.cde_model)}
             else:
                 if not question.is_address:
                     existing_answer = {"name": field_name,
@@ -623,7 +629,7 @@ class _ExistingDataWrapper(object):
         def address_label(address):
             try:
                 atype = address.address_type.description
-            except Exception, ex:
+            except Exception as ex:
                 atype = "%s" % ex
 
             return "%s: %s %s %s %s %s" % (atype,
@@ -807,7 +813,7 @@ class _Question(object):
         # questionnaire name
         try:
             return self.target.display_name
-        except Exception, ex:
+        except Exception as ex:
             logger.error("error getting target: %s" % ex)
             return "%s/%s/%s" % (self.form_name, self.section_model.display_name, self.cde_model.name)
 
@@ -816,8 +822,8 @@ class _Question(object):
             return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
         else:
             if not self.is_address:
-                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
-                                 for single_value in value])
+                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model,
+                                                               self.cde_model, single_value) for single_value in value])
             else:
                 return ",".join([x for x in value])
 
@@ -1165,14 +1171,14 @@ class Questionnaire(object):
                 patient_model.evaluate_field_expression(self.registry_model,
                                                         q.field_expression,
                                                         value=q.value)
-            except Exception, ex:
+            except Exception as ex:
                 msg = "Error setting field expression %s: %s" % (
                     q.field_expression, ex)
                 errors.append(msg)
 
         try:
             patient_model.save()
-        except Exception, ex:
+        except Exception as ex:
             msg = "Error saving patient for questionnaire update: %s" % ex
             errors.append(msg)
 

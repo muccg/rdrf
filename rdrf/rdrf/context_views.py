@@ -95,7 +95,7 @@ class ContextFormGroupHelperMixin(object):
             if not (patient_working_groups <= user_working_groups):
                 return False
             return True
-        except Exception, ex:
+        except Exception as ex:
             logger.error("error in context allowed check: %s" % ex)
             return False
 

@@ -22,7 +22,7 @@ def forward_func(apps, schema_editor):
                     context_model.save()
                     print "Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
                                                                                  default_context_form_group.id)
-                except Exception, ex:
+                except Exception as ex:
                     print "Error updating RDRFContext %s: %s" % (context_model.id, ex)
 
 
@@ -38,7 +38,7 @@ def backward_func(apps, schema_editor):
                 try:
                     context_model.save()
                     print "RDRFContext %s context_form_group set to null"
-                except Exception, ex:
+                except Exception as ex:
                     print "Error rolling back change to RDRFContext %s: %s" % (context_model.id,
                                                                                ex)
 

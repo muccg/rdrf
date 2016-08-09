@@ -23,7 +23,7 @@ class GeneralisedFieldExpression(object):
     def __call__(self, patient_model, mongo_data):
         try:
             return self.evaluate(patient_model, mongo_data)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error evaluating %s for %s: %s" % (self.__class__.__name__,
                                                              patient_model.pk,
                                                              ex))
@@ -246,9 +246,8 @@ class ConsentExpression(GeneralisedFieldExpression):
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         # must be answer field , True False for new_value
         # ignores applicability?!
-        logger.debug("** CONSENT EXPRESSION: setting new consent %s field %s new_value %s" % (self.consent_question_model.question_label,
-                                                                                              self.field,
-                                                                                              new_value))
+        logger.debug("** CONSENT EXPRESSION: setting new consent %s field %s new_value %s" %
+                     (self.consent_question_model.question_label, self.field, new_value))
         if self.field not in ["answer", "last_update", "first_save"]:
             raise ValueError("Unknown consent field: %s" % self.field)
 
@@ -494,7 +493,7 @@ class GeneralisedFieldExpressionParser(object):
             else:
                 return BadColumnExpression()
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error parsing %s: %s" % (field_expression, ex))
             return BadColumnExpression()
 
@@ -540,7 +539,7 @@ class GeneralisedFieldExpressionParser(object):
         try:
             _, consent_section_code, consent_code, consent_field = consent_expression.split(
                 "/")
-        except ValueError, ex:
+        except ValueError as ex:
             raise FieldExpressionError(
                 "couldn't split consent %s %s" % (consent_expression, ex))
 
@@ -574,7 +573,7 @@ class GeneralisedFieldExpressionParser(object):
             else:
                 raise FieldExpressionError(
                     "Unknown field expression: %s" % field_expression)
-        except Exception, ex:
+        except Exception as ex:
             raise FieldExpressionError(
                 "report field expression error: %s" % ex)
 

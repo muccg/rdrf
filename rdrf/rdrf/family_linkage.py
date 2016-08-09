@@ -46,7 +46,7 @@ class MongoUndo(object):
 
 class FamilyLinkageManager(object):
 
-    def __init__(self,  registry_model, packet):
+    def __init__(self, registry_model, packet):
         self.registry_model = registry_model
         self.packet = packet
         if not registry_model.has_feature("family_linkage"):
@@ -241,22 +241,22 @@ class FamilyLinkageView(View):
             #messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
             return HttpResponse("OK")
 
-        except Exception, err:
+        except Exception as err:
             #messages.add_message(request, messages.ERROR, "Linkage update failed: %s" % err)
             return HttpResponse("FAIL: %s" % err)
 
-    def _process_packet(self, registry_model,  packet):
+    def _process_packet(self, registry_model, packet):
         fml_log("packet = %s" % packet)
         flm = FamilyLinkageManager(registry_model, packet)
         try:
             with transaction.atomic():
                 flm.run()
 
-        except Exception, ex:
+        except Exception as ex:
             for undo in flm.mongo_undos:
                 try:
                     undo()
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("could not undo %s" % undo)
 
             raise ex

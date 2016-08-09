@@ -105,7 +105,7 @@ def rpc_reporting_command(request, queryId, registry_id, command, arg):
 def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
     """
     Try to return any existing data for a patient corresponding the filled in values
-    of a questionnaire filled out by on the questionnaire interface 
+    of a questionnaire filled out by on the questionnaire interface
     NB. The curator is responsible for matching an existing patient to the incoming
     questionnaire data.
     See RDR-1229 for a description of the use case.
@@ -129,7 +129,11 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
             "questions": existing_data.questions}
 
 
-def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnaire_response_id, questionnaire_checked_ids):
+def rpc_update_selected_cdes_from_questionnaire(
+        request,
+        patient_id,
+        questionnaire_response_id,
+        questionnaire_checked_ids):
     from registry.patients.models import Patient
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
@@ -149,7 +153,7 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
             errors = questionnaire.update_patient(patient_model, data_to_update)
             if len(errors) > 0:
                 raise Exception("Errors occurred during update: %s" % ",".join(errors))
-    except Exception, ex:
+    except Exception as ex:
         should_revert = True
         logger.error("Update patient failed: rolled back: %s" % ex)
 
@@ -191,11 +195,11 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             patient_id = created_patient.pk
             patient_link = reverse('patient_edit', args=[qr.registry.code, patient_id])
 
-    except PatientCreatorError, pce:
+    except PatientCreatorError as pce:
         message = "Error creating patient: %s.Patient not created" % pce
         status = "fail"
 
-    except Exception, ex:
+    except Exception as ex:
         message = "Unhandled error during patient creation: %s. Patient not created" % ex
         status = "fail"
 

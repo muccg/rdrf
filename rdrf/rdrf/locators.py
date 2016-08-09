@@ -19,8 +19,8 @@ class Locator(object):
         descriptor = self.get_description()
         link = self.get_link()
         location_link = "<a href='%s'>%s</a>" % (link, descriptor)
-        return """<i class="text-muted"><span class="glyphicon {0}" aria-hidden="true"></span> {1}</i>""".format(self.GLYPHICON,
-                                                                                                                 location_link)
+        return """<i class="text-muted"><span class="glyphicon {0}" aria-hidden="true"></span> {1}</i>""".format(
+            self.GLYPHICON, location_link)
 
     def get_description(self):
         raise NotImplementedError("subclass responsiblity")

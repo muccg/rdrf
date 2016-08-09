@@ -191,8 +191,19 @@ class ListClinicians(APIView):
 
         def to_dict(c, wg):
             return {
-                'id': "%s_%s" % (reverse('v1:customuser-detail', args=[c.id, ]), reverse('v1:workinggroup-detail', args=[wg.id, ])),
-                'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
+                'id': "%s_%s" % (reverse(
+                    'v1:customuser-detail',
+                    args=[
+                        c.id,
+                    ]),
+                    reverse(
+                    'v1:workinggroup-detail',
+                    args=[
+                        wg.id,
+                    ])),
+                'full_name': "%s %s (%s)" % (c.first_name,
+                                             c.last_name,
+                                             wg.name),
             }
 
         return Response([to_dict(c, wg) for c in clinicians for wg in c.working_groups.all()])

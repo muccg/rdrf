@@ -10,7 +10,7 @@ def add_permissions_to_group(group, role):
     for permission_code in PERMISSIONS_BY_ROLES[role]:
         try:
             permissions.append(Permission.objects.get(codename=permission_code))
-        except Permission.DoesNotExist, e:
+        except Permission.DoesNotExist as e:
             logger.warning('Permission "%s" required by role "%s" does NOT exits',
                            permission_code, role)
     group.permissions.add(*permissions)

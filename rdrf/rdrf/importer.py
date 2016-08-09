@@ -298,7 +298,7 @@ class Importer(object):
                         logger.info("value does not exist?")
                         pass
 
-                    except Exception, ex:
+                    except Exception as ex:
                         logger.error("err: %s" % ex)
                         raise
 

@@ -97,7 +97,7 @@ class DataLoader(object):
                     return value
         raise DataLoadException("Unknown column: %s" % col_name)
 
-    def convert_state(self,  short_name):
+    def convert_state(self, short_name):
         try:
             state_model = State.objects.get(short_name=short_name.upper())
             return state_model
@@ -136,5 +136,5 @@ class Command(BaseCommand):
         data_loader = DataLoader(doctors_spreadsheet)
         try:
             data_loader.load()
-        except Exception, ex:
+        except Exception as ex:
             print "Error importing doctors ( transaction will be rolled back): %s" % ex

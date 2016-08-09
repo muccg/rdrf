@@ -135,7 +135,15 @@ class MongoCollectionImporter(object):
         if collection.count() > 0:
             raise ImportError("Refusing to import over existing data for collection '%s'." % collection.name)
 
-    def do_import(self, collection_meta, workdir, registry_code=None, logger=None, simulate=False, force=False, **kwargs):
+    def do_import(
+            self,
+            collection_meta,
+            workdir,
+            registry_code=None,
+            logger=None,
+            simulate=False,
+            force=False,
+            **kwargs):
         self.logger = logger
         self.child_logger = maybe_indent(self.logger)
         self.force = force

@@ -201,7 +201,7 @@ class FormView(View):
                 logger.debug("switched context for patient %s to context %s" % (patient_model,
                                                                                 self.rdrf_context.id))
 
-        except RDRFContextError, ex:
+        except RDRFContextError as ex:
             logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
                                                                                         patient_model,
                                                                                         self.registry,
@@ -1398,7 +1398,7 @@ class QuestionnaireResponseView(FormView):
             try:
                 patient_creator.create_patient(request.POST, qr, questionnaire_data)
                 messages.info(request, "Patient Created OK")
-            except PatientCreatorError, perr:
+            except PatientCreatorError as perr:
                 error = perr.message
                 messages.error(request, "Patient Failed to be created: %s" % error)
 
@@ -1772,8 +1772,7 @@ class AdjudicationRequestView(View):
             # The adjudicator has already acted on the information from other requests
             # for this patient
             return StandardView.render_information(
-                request,
-                _("An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on"))
+                request, _("An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on"))
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 

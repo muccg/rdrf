@@ -65,8 +65,8 @@ class Query(models.Model):
                     if not isinstance(column, basestring):
                         errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
 
-        except ValueError, ve:
+        except ValueError as ve:
             errors.append("JSON malformed: %s" % ve.message)
-        except KeyError, ke:
+        except KeyError as ke:
             errors.append("key error: %s" % ke.message)
         return errors

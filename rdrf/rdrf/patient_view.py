@@ -430,8 +430,8 @@ class PatientFormMixin(PatientMixin):
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
                 patient_relative_model.sync_relative_patient()
-                logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
-                                                                                            patient_relative_model.patient))
+                logger.debug("saved patient relative model %s OK - owning patient is %s" %
+                             (patient_relative_model, patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"

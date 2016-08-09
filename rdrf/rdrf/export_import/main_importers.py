@@ -13,6 +13,7 @@ from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, Mongo
 from .importers import get_meta_value, allow_if_forced
 import definitions
 from .utils import DelegateMixin, IndentedLogger, app_schema_version
+from functools import reduce
 
 
 logger = logging.getLogger(__name__)

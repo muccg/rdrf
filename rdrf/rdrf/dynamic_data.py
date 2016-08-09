@@ -703,7 +703,7 @@ class DynamicDataWrapper(object):
         try:
             collection.remove(filter)
             logger.info("deleted OK..")
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error deleting record: %s" % ex)
 
     def _create_context_model_on_fly(self):

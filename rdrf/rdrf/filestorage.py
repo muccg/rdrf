@@ -27,7 +27,7 @@ def delete_file_wrapper(fs, file_ref):
 
         try:
             fs.delete(gridfs_file_id)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error deleting file id %s in gridfs: %s" % (gridfs_file_id,
                                                                       ex))
             return None

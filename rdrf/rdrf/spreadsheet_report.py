@@ -47,7 +47,7 @@ def attempt(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("report error with %s: %s" % (func.__name__, ex))
     return wrapper
 
@@ -146,7 +146,7 @@ class SpreadSheetReport(object):
             row=self.current_row, column=self.current_col)
         try:
             cell.value = value
-        except Exception, ex:
+        except Exception as ex:
             logger.error("error writing value %s to cell: %s" % (value, ex))
             cell.value = "?ERROR?"
         self._next_cell()
@@ -198,8 +198,16 @@ class SpreadSheetReport(object):
         if patient_record is None:
             return ""
         try:
-            return self._human(form_model, section_model, cde_model, get_cde_value(form_model, section_model, cde_model, patient_record))
-        except Exception, ex:
+            return self._human(
+                form_model,
+                section_model,
+                cde_model,
+                get_cde_value(
+                    form_model,
+                    section_model,
+                    cde_model,
+                    patient_record))
+        except Exception as ex:
             patient_id = patient_record["django_id"]
             logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" % (form_model.name,
                                                                                      section_model.code,
@@ -211,10 +219,11 @@ class SpreadSheetReport(object):
 
     @cached
     def _human(self, form_model, section_model, cde_model, raw_cde_value):
-        if type(raw_cde_value) is not type([]):
+        if not isinstance(raw_cde_value, type([])):
             return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value)
         else:
-            return ",".join([str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
+            return ",".join([str(self.humaniser.display_value2(form_model, section_model, cde_model, x))
+                             for x in raw_cde_value])
 
     def _get_value_retriever(self, column):
         if column in self.gfe_func_map:
@@ -357,7 +366,7 @@ class SpreadSheetReport(object):
             return None
         try:
             return get_cde_value(form_model, section_model, cde_model, patient_record)
-        except Exception, ex:
+        except Exception as ex:
             cde = "%s/%s/%s" % (form_model.name,
                                 section_model.code, cde_model.code)
             logger.error("Error getting current cde %s for %s: %s" % (cde,
