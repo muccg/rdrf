@@ -8,7 +8,9 @@ node {
         checkout scm
 
     stage 'Lint'
-        sh (script: "./develop.sh prospector", returnStatus: false)
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+            sh(script: "./develop.sh prospector || true")
+        }
         step([$class: 'JUnitResultArchiver', testResults: 'prospector.xml'])
 
     stage 'Docker dev build'
