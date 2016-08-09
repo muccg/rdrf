@@ -62,13 +62,13 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
     name='Registry Definition',
     dirname='registry_definition',
     models = (
+        'rdrf.Section', # because registry has a potentially non-null "PatientDataSection" ..
         'rdrf.Registry',
         'groups.WorkingGroup',
         'auth.Group',
         'rdrf.RegistryForm',
         # Lee says adjudication code is dead so not including AdjudicationDefinitions
         # 'rdrf.AdjudicationDefinition',
-        'rdrf.Section',
         'rdrf.CdePolicy',
         'rdrf.ConsentSection',
         'rdrf.ConsentQuestion',
