@@ -21,11 +21,14 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 def clean_models():
+    # import refuses to blat existing models to this is an attempt to delete everything pre-import
     from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
     from rdrf.models import ContextFormGroup, ContextFormGroupItem
     from registry.groups.models import WorkingGroup
     from registry.genetic.models import Gene, Laboratory
     from django.contrib.auth.models import Group
+    from registry.groups.models import CustomUser
+    from registry.patients.models import Patient
 
     def clean(klass, is_Patient=False):
         logger.info("cleaning models in %s" % klass)
@@ -46,8 +49,10 @@ def clean_models():
                     logger.info("could not delete patient %s" % obj)
 
     for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
-                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group]:
+                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group, CustomUser]:
         clean(klass)
+
+    clean(Patient, is_Patient=True)
 
 def show_stats(export_name):
     """
@@ -55,7 +60,7 @@ def show_stats(export_name):
     """
     from rdrf.models import Registry
     from registry.patients.models import Patient
-    logger.info("After import of export file %s" % export_name)
+    logger.info("Stats after import of export file %s:" % export_name)
     for r in Registry.objects.all():
         logger.info("\tregistry = %s" % r)
 
