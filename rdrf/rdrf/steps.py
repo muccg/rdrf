@@ -24,8 +24,6 @@ def do_restore():
     logger.info("restoring minimal snapshot ...")
     subprocess.check_call(["stellar", "restore", "lettuce_snapshot"])
     subprocess.check_call(["mongorestore", "--host", "mongo"])
-    for r in Registry.objects.all():
-        r.delete() # argh
     # DB reconnect
     db.connection.close()
 
@@ -46,13 +44,28 @@ STEP_REGISTRY.clear()
 
 @step('export "(.*)"')
 def load_export(step, export_name):
-    logger.info("executing load of export for step %s" % step)
-    logger.info("loading export %s" % export_name)
-    logger.info("first deleting all mongo dbs!")
-    do_restore()
-    subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
-    subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-    check_import()
+    """
+    To save time cache the stellar snapshots ( one per export file )
+    Create / reset on first use
+    """
+    snapshot_name = "snapshot_%s" % export_name
+    # create snapshot based on minimal snapshot + import file first time and reload after that
+    if not export_name in world.snapshot_dict:
+        logger.info("no snapshot exists for %s - creating ..." % export_name)
+        logger.info("snapshot name = %s" % snapshot_name)
+        logger.info("clearing data before import ..")
+        subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
+        subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+        subprocess.call(["stellar", "remove", snapshot_name])
+        subprocess.check_call(["stellar", "snapshot", snapshot_name])
+        subprocess.check_call(["mongodump", "--host", "mongo"])
+        world.snapshot_dict[export_name] = snapshot_name
+    else:
+        subprocess.check_call(["stellar", "restore", snapshot_name])
+        subprocess.check_call(["mongorestore", "--host", "mongo"])
+        # DB reconnect
+        db.connection.close()
+        
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):

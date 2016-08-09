@@ -13,11 +13,45 @@ def do_restore():
     subprocess.check_call(["mongorestore", "--host", "mongo"])
     # DB reconnect
     db.connection.close()
+
+
+def clean_models():
+    from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
+    from rdrf.models import ContextFormGroup, ContextFormGroupItem
+    from registry.groups.models import WorkingGroup
+    from registry.genetic.models import Gene, Laboratory
+    from django.contrib.auth.models import Group
+
+    def clean(klass, is_Patient=False):
+        logger.info("cleaning models in %s" % klass)
+        if not is_Patient:
+            for obj in klass.objects.all():
+                logger.info("deleting %s" % obj)
+                try:
+                    obj.delete()
+                except:
+                    logger.info("Could not delete %s" % obj)
+        else:
+            for obj in klass.objects.all():
+                logger.info("deleting %s" % obj)
+                try:
+                    obj.delete()
+                    obj.delete()
+                except:
+                    logger.info("could not delete patient %s" % obj)
+
+    for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
+                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group]:
+        clean(klass)
+
+                    
+    
     
     
 @before.all
 def create_minimal_snapshot():
     logger.info("creating minimal snapshot")
+    clean_models()
     # some data is in the cdes collection already ?? - following line removes everything!
     subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
     subprocess.call(["stellar", "remove", "lettuce_snapshot"])
@@ -34,6 +68,12 @@ def setup():
     )
     world.browser.implicitly_wait(30)
     #world.browser.set_script_timeout(600)
+
+
+@before.all
+def setup_snapshot_dict():
+    world.snapshot_dict = {}
+    
 
 @before.all
 def set_site_url():
