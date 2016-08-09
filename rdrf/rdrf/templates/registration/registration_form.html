@@ -186,27 +186,27 @@
         {% endif %}
 
         <div class="alert alert-info">
-            <strong>Rare Disease Registry - Patient Registration</strong>
+            <strong>{% trans "Rare Disease Registry - Patient Registration" %}</strong>
         </div>
         <div id="underage_msg">
             <div class="alert alert-danger">
-                For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you.
+                {% trans "For legal reasons you must be 18 or over in order to register here. If you are the parent or guardian of a child that you would like to register as a patient, please enter your own data in this first step. You will be asked for the patient’s data in a later step. If you are a patient who is under 18, please get your parent or guardian to fill in this form with you." %}
             </div>            
         </div>
-
         <!-- Registry specific registration form -->
         {% with "registration/registration_form_"|add:registry_code|add:".html" as template_name %}
             {% include template_name %}
         {% endwith %}
- 
     </div>
     
     <nav class="navbar navbar-default navbar-fixed-bottom">
         <div class="container" style="padding-top: 10px;">
             <small>
             <p class="text-justify text-muted">
+            {{ transblock }}
             Privacy Statement - 
             All information we receive from you will be treated confidentially and will be encrypted and stored on a secure server. Your data will not be made available to employers, government organisations, insurance companies or educational institutions, nor to your spouse, other members of your family or your doctor. Only anonymous health information will be made accessible to qualified researchers who are granted permission by the Steering committee. You may also download the TREAT-NMD privacy policy to know more from <a href="www.treat-nmd.eu/downloads/file/registries_toolkit/Charter_Global_Registry_Revised_and_Approved_April_2014.pdf" target="_blank">here</a>.
+            {{ endtransblock }}
             </p>
             </small>
         </div>

@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static from staticfiles %}
+{% load i18n %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -9,7 +10,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> RDRF Reports</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'RDRF Reports' %}</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
@@ -21,10 +22,10 @@
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th><i>Registry</i></th>
-                    <th><i>Report name</i></th>
-                    <th><i>Download</i></th>
-                    <th><i>View</i></th>
+                    <th><i>{% trans "Registry" %}</i></th>
+                    <th><i>{% trans "Report name" %}</i></th>
+                    <th><i>{% trans "Download" %}</i></th>
+                    <th><i>{% trans "View" %}</i></th>
                 </tr>
             </thead>
             <tbody>
@@ -43,7 +44,7 @@
             </tbody>
         </table>
         {% else %}
-            <h4><i>No reports</i></h4>
+            <h4><i>{% trans 'No reports' %}</i></h4>
         {% endif %}
     </div>
 

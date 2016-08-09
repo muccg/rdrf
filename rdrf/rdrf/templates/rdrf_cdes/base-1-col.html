@@ -151,7 +151,7 @@
 
 	{% if location %}
 	  <div class="banner">
-		<div class="col-md-6 col-md-offset-1">
+		<div class="col-md-6 col-sm-6 col-xs-6 col-md-offset-1">
 			<p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe }}{% endblock %}</h3></p>
 			{% if patient_link %}
 			  {{ patient_link | safe}}
@@ -159,7 +159,7 @@
 			  <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
 			{% endif %}
 		</div>
-		<div class="col-md-4" style="text-align: right">
+		<div class="col-md-4 col-sm-5 col-xs-5" style="text-align: right">
 		  {% block formbtns %}
 		  {% endblock %}
 		</div>

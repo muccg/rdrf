@@ -1,10 +1,12 @@
 from django.http import HttpResponse
 from django.views.generic import View
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
 import json
+import requests
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -19,6 +21,34 @@ logger = logging.getLogger(__name__)
 
 
 # TODO replace these views as well with Django REST framework views
+class PatientLookup(View):
+    @method_decorator(login_required)
+    def get(self, request, reg_code):
+        from rdrf.models import Registry
+        from registry.patients.models import Patient
+        from django.db.models import Q
+
+        term = None
+        results = []
+
+        try:
+            registry_model = Registry.objects.get(code=reg_code)
+            if registry_model.has_feature("questionnaires"):
+                term = request.GET.get("term", "")
+                working_groups = [wg for wg in request.user.working_groups.all()]
+
+                query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                         Q(working_groups__in=working_groups)
+
+                for patient_model in Patient.objects.filter(query):
+                    if patient_model.active:
+                        name = "%s" % patient_model
+                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
+
+        except Registry.DoesNotExist:
+            results = []
+
+        return HttpResponse(json.dumps(results))
 
 
 class PatientLookup(View):
@@ -28,7 +58,7 @@ class PatientLookup(View):
         from registry.patients.models import Patient
         from registry.groups.models import WorkingGroup
         from django.db.models import Q
-        
+
         term = None
         results = []
 
@@ -108,6 +138,20 @@ class FamilyLookup(View):
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
+
+
+class UsernameLookup(View):
+
+    def get(self, request, username):
+        result = {}
+
+        try:
+            CustomUser.objects.get(username=username)
+            result["existing"] = True
+        except CustomUser.DoesNotExist:
+            result["existing"] = False
+
+        return HttpResponse(json.dumps(result))
 
 
 # TODO I think that for this one the get will be replaced by Django REST framework view
@@ -211,3 +255,13 @@ class RDRFContextLookup(View):
         success_packet = {"error": context_exception.message}
         success_packet_json = json.dumps(success_packet)
         return HttpResponse(success_packet_json, status=200, content_type="application/json")
+
+
+class RecaptchaValidator(View):
+
+    def post(self, request):
+        response_value = request.POST['response_value']
+        secret_key = getattr(settings, "RECAPTCHA_SECRET_KEY", None)
+        payload = {"secret": secret_key, "response": response_value}
+        r = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
+        return HttpResponse(r)

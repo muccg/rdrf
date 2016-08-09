@@ -63,11 +63,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
-    
+
     USERNAME_FIELD = "username"
-    
+
     objects = UserManager()
-    
+
     def get_full_name(self):
         full_name = "%s %s" % (self.first_name, self.last_name)
         return full_name.strip()
@@ -230,15 +230,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-    from patient_registration.fkrp import FkrpRegistration
-    from patient_registration.ang import AngelmanRegistration
-    
+
     reg_code = request.POST['registry_code']
 
-    patient_reg = None    
+    patient_reg = None
     if reg_code == "fkrp":
+        from fkrp.patient_registration import FkrpRegistration
         patient_reg = FkrpRegistration(user, request)
     elif reg_code == "ang":
+        from angelman.patient_registration import AngelmanRegistration
         patient_reg = AngelmanRegistration(user, request)
-        
+    elif reg_code == "mtm":
+        from mtm.patient_registration import MtmRegistration
+        patient_reg = MtmRegistration(user, request)
+
     patient_reg.process()

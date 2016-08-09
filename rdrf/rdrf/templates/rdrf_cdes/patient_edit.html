@@ -145,7 +145,7 @@
 {% if actions %}
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-        <span class="glyphicon glyphicon-list"></span> Actions<span class="caret"></span></a>
+        <span class="glyphicon glyphicon-list"></span> {% trans "Actions" %}<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
                     {% for action in actions %}
                         <li><a href="{{action.link}}"><span class="glyphicon glyphicon-minus"></span> {{action.title}}</a></li>
@@ -165,16 +165,16 @@
 	<br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 	</div>
@@ -204,17 +204,17 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             {% if patient.is_index %}
-                                <strong><a href="{% url 'family_linkage' registry_code patient.id %}">Family Linkage</a></strong>
+                                <strong><a href="{% url 'family_linkage' registry_code patient.id %}">{% trans 'Family Linkage' %}</a></strong>
                             {% else %}
-                                <strong><a href="{% url 'family_linkage' registry_code patient.my_index.id %}">Family Linkage</a></strong>
+                                <strong><a href="{% url 'family_linkage' registry_code patient.my_index.id %}">{% trans 'Family Linkage' %}</a></strong>
                             {% endif %}
                         </div>
                         <div class="panel-body">
                             {% if patient.my_index %}
-                                This patient is a relative of index <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                                {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
                             {% else %}
                                 {% if patient.is_index %}
-                                    This patient is an index
+                                    {% trans 'This patient is an index' %}
                                 {% endif %}
                             {% endif %}
                         </div>
@@ -228,7 +228,7 @@
                 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
-                        Please correct errors below:<br>
+                        {% trans 'Please correct errors below' %}:<br>
                         {% for error_message in error_messages %}
                         {{ error_message }}<br>
                         {% endfor %}
@@ -242,7 +242,7 @@
                             <div class="form-group">
                                 <div class="col-sm-9 col-sm-offset-3">
                                     <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
                             </div>
@@ -278,7 +278,7 @@
                                 <div class="panel-heading">
                                     <strong>{{name}}</strong>
                                     <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
                                 </div>
                                 <div class="panel-body">
@@ -299,7 +299,7 @@
                                                                 {% endif %}
                                                                 <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
                                                                     {% if element.label == "Delete" %}
-                                                                        Mark for deletion
+                                                                        {% trans 'Mark for deletion' %}
                                                                     {% else %}
                                                                         {{ element.label }}
                                                                         {% if  element.field.required %}
@@ -348,7 +348,7 @@
                                 {% with link=section|get_information_link %}
                                 {% with info_text=section|get_information_text %}
                                 {% with doc="docs/"|add:link %}
-                                    {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
+                                    {% if link %}<br><a href="{% static doc %}">{% trans "Information Sheet - Please Read" %}!</a>{% endif %}
                                     {% if info_text %}
                                         <br>
                                         <hr>

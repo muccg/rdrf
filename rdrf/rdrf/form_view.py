@@ -39,6 +39,8 @@ from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm
 from operator import itemgetter
+from django.utils.translation import ugettext as _
+
 import json
 import os
 from collections import OrderedDict
@@ -725,7 +727,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
-        
+
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
 
@@ -851,7 +853,7 @@ class ConsentFormWrapper(object):
         for field in self.form.errors:
             for message in self.form.errors[field]:
                 logger.debug("consent error for %s: %s" % (self.label, message))
-                messages.append("Consent Section Invalid")
+                messages.append(_("Consent Section Invalid"))
 
         return messages
 
@@ -1053,10 +1055,12 @@ class QuestionnaireView(FormView):
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 if is_multisection(section):
                     questionnaire_response_wrapper.save_dynamic_data(
-                        registry_code, "cdes", data_map[section], multisection=True)
+                        registry_code, "cdes", data_map[section], multisection=True,
+                        additional_data={"questionnaire_context": self.questionnaire_context})
                 else:
                     questionnaire_response_wrapper.save_dynamic_data(
-                    registry_code, "cdes", data_map[section])
+                        registry_code, "cdes", data_map[section],
+                        additional_data={"questionnaire_context": self.questionnaire_context})
 
             def get_completed_questions(
                     questionnaire_form_model,
@@ -1219,7 +1223,7 @@ class QuestionnaireView(FormView):
             messages.add_message(
                 request,
                 messages.ERROR,
-                'The questionnaire was not submitted because of validation errors - please try again')
+                _('The questionnaire was not submitted because of validation errors - please try again'))
             return render_to_response(
                 'rdrf_cdes/questionnaire.html',
                 context,
@@ -1396,7 +1400,7 @@ class QuestionnaireResponseView(FormView):
             qr.delete()
             logger.debug("deleted rejected questionnaire response %s" %
                          questionnaire_response_id)
-            messages.error(request, "Questionnaire rejected")
+            messages.error(request, _("Questionnaire rejected"))
         else:
             logger.debug(
                 "attempting to create patient from questionnaire response %s" %
@@ -1408,22 +1412,12 @@ class QuestionnaireResponseView(FormView):
                 model_class=QuestionnaireResponse)
             logger.debug("questionnaire data = %s" % questionnaire_data)
 
-            patient_creator.create_patient(request.POST, qr, questionnaire_data)
-
-            if patient_creator.state == PatientCreatorState.CREATED_OK:
-                messages.info(
-                    request, "Questionnaire approved - A patient record has now been created")
-            elif patient_creator.state == PatientCreatorState.FAILED_VALIDATION:
-                error = patient_creator.error
-                messages.error(
-                    request,
-                    "Patient failed to be created due to validation errors: %s" %
-                    error)
-            elif patient_creator.state == PatientCreatorState.FAILED:
-                error = patient_creator.error
-                messages.error(request, "Patient failed to be created: %s" % error)
-            else:
-                messages.error(request, "Patient failed to be created")
+            try:
+                patient_creator.create_patient(request.POST, qr, questionnaire_data)
+                messages.info(request, "Patient Created OK")
+            except PatientCreatorError, perr:
+                error = perr.message
+                messages.error(request, "Patient Failed to be created: %s" % error)
 
         context = {}
         context.update(csrf(request))
@@ -1635,14 +1629,14 @@ class AdjudicationInitiationView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
         except AdjudicationDefinition.DoesNotExist:
-            return StandardView.render_error(request, "Adjudication Definition not found!")
+            return StandardView.render_error(request, _("Adjudication Definition not found!"))
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
             return StandardView.render_error(
                 request,
-                "Patient with id %s not found!" %
+                _("Patient with id %s not found!") %
                 patient_id)
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
@@ -1659,7 +1653,7 @@ class AdjudicationInitiationView(View):
         except AdjudicationDefinition.DoesNotExist:
             return StandardView.render_error(
                 request,
-                "Adjudication Definition %s not found" %
+                _("Adjudication Definition %s not found") %
                 def_id)
 
         try:
@@ -1667,7 +1661,7 @@ class AdjudicationInitiationView(View):
         except Patient.DoesNotExist:
             return StandardView.render_error(
                 request,
-                "Patient with id %s not found!" %
+                _("Patient with id %s not found!") %
                 patient_id)
 
         from rdrf.models import AdjudicationState
@@ -1675,15 +1669,15 @@ class AdjudicationInitiationView(View):
         if adjudication_state == AdjudicationState.ADJUDICATED:
             return StandardView.render_error(
                 request,
-                "This patient has already been adjudicated!")
+                _("This patient has already been adjudicated!"))
         elif adjudication_state == AdjudicationState.UNADJUDICATED:
             return StandardView.render_error(
                 request,
-                "This patient has already had an adjudication initiated")
+                _("This patient has already had an adjudication initiated"))
         elif adjudication_state != AdjudicationState.NOT_CREATED:
             return StandardView.render_error(
                 request,
-                "Unknown adjudication state '%s' - contact admin" %
+                _("Unknown adjudication state '%s' - contact admin") %
                 adjudication_state)
         else:
             # no requests have been adjudication requests created for this patient
@@ -1692,13 +1686,12 @@ class AdjudicationInitiationView(View):
             if errors:
                 return StandardView.render_error(
                     request,
-                    "Adjudication Requests created OK for users: %s.<p>But the following errors occurred: %s" %
-                    (sent_ok,
-                     errors))
+                    _("Adjudication Requests created OK for users: %(sent_ok)s.<p>But the following errors occurred: %(errors)s") %
+                    { "sent_ok": sent_ok, "errors": errors })
             else:
                 return StandardView.render_information(
                     request,
-                    "Adjudication Request Sent Successfully!")
+                    _("Adjudication Request Sent Successfully!"))
 
     def _create_adjudication_requests(
             self,
@@ -1715,7 +1708,7 @@ class AdjudicationInitiationView(View):
                 patient_id=patient.pk,
                 requesting_username=requesting_user.username)
             raise AdjudicationError(
-                "Adjudication already created for this patient and definition")
+                _("Adjudication already created for this patient and definition"))
 
         except Adjudication.DoesNotExist:
             # this is good
@@ -1740,11 +1733,11 @@ class AdjudicationInitiationView(View):
             try:
                 target_user = CustomUser.objects.get(username=target_username)
             except CustomUser.DoesNotExist as ex:
-                errors.append("Could not find user for %s: %s" % (target_username, ex))
+                errors.append(_("Could not find user for %s: %s") % (target_username, ex))
                 continue
 
             if not target_user:
-                errors.append("Could not find user for %s" % target_username)
+                errors.append(_("Could not find user for %s") % target_username)
                 continue
             else:
                 try:
@@ -1753,14 +1746,14 @@ class AdjudicationInitiationView(View):
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append(
-                        "Could not create adjudication request object for %s: %s" %
-                        (target_user, ex))
+                        _("Could not create adjudication request object for %(target_user)s: %(ex)s") %
+                        { "target_user": target_user, "ex": ex})
 
         for target_working_group_name in target_working_group_names:
             try:
                 target_working_group = WorkingGroup.objects.get(name=target_working_group_name)
             except WorkingGroup.DoesNotExist:
-                errors.append("There is no working group called %s" % target_working_group_name)
+                errors.append(_("There is no working group called %s") % target_working_group_name)
                 continue
 
             for target_user in target_working_group.users:
@@ -1770,8 +1763,8 @@ class AdjudicationInitiationView(View):
                     request_created_ok.append(target_username)
                 except Exception as ex:
                     errors.append(
-                        "could not create adjudication request for %s in group %s:%s" %
-                        (target_user, target_working_group, ex))
+                        _("could not create adjudication request for %(target_user)s in group %(target_working_group)s:%(ex)s") %
+                        {"target_user": target_user, "target_working_group": target_working_group, "ex": ex })
                     continue
 
         return request_created_ok, errors
@@ -1789,7 +1782,7 @@ class AdjudicationRequestView(View):
                 username=user.username,
                 state=AdjudicationRequestState.REQUESTED)
         except AdjudicationRequest.DoesNotExist:
-            msg = "Adjudication request not found or not for current user or has already been actioned"
+            msg = _("Adjudication request not found or not for current user or has already been actioned")
             return StandardView.render_error(request, msg)
 
         if adj_req.decided:
@@ -1797,7 +1790,7 @@ class AdjudicationRequestView(View):
             # for this patient
             return StandardView.render_information(
                 request,
-                "An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on")
+                _("An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on"))
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 
@@ -1826,14 +1819,14 @@ class AdjudicationRequestView(View):
                 try:
                     adj_req.handle_response(request)
                 except AdjudicationError as aerr:
-                    return StandardView.render_error(request, "Adjudication Error: %s" % aerr)
+                    return StandardView.render_error(request, _("Adjudication Error: %s") % aerr)
 
                 return StandardView.render_information(
                     request,
-                    "Adjudication Response submitted successfully!")
+                    _("Adjudication Response submitted successfully!"))
 
             except AdjudicationRequest.DoesNotExist:
-                msg = "Cannot submit adjudication - adjudication request with id %s not found" %  \
+                msg = _("Cannot submit adjudication - adjudication request with id %s not found") %  \
                     adjudication_request_id
                 return StandardView.render_error(request, msg)
 
@@ -1853,14 +1846,14 @@ class AdjudicationResultsView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:
-            return Http404("Adjudication definition not found")
+            return Http404_(("Adjudication definition not found"))
 
         adjudicating_username = adj_def.adjudicator_username
 
         if adjudicating_username != request.user.username:
             return StandardView.render_error(
                 request,
-                "This adjudication result is not adjudicable by you!")
+                _("This adjudication result is not adjudicable by you!"))
 
         try:
             from registry.groups.models import CustomUser
@@ -1868,7 +1861,7 @@ class AdjudicationResultsView(View):
         except CustomUser.DoesNotExist:
             return StandardView.render_error(
                 request,
-                "Could not find requesting user for this adjudication '%s'" %
+                _("Could not find requesting user for this adjudication '%s'") %
                 requesting_user_id)
 
         try:
@@ -1877,15 +1870,14 @@ class AdjudicationResultsView(View):
                 patient_id=patient_id,
                 requesting_username=requesting_user.username)
         except Adjudication.DoesNotExist:
-            msg = "Could not find adjudication for definition %s patient %s requested by %s" % (
-                adj_def, patient_id, requesting_user)
+            msg = _("Could not find adjudication for definition %(adj_def)s patient %(patient_id)s requested by %(requesting_user)s") % {"adj_def": adj_def, "patient_id": patient_id, "requesting_user": requesting_user}
 
             return StandardView.render_error(request, msg)
 
         stats, adj_responses = self._get_stats_and_responses(
             patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
-            msg = "No one has responded to the adjudication request yet!- stats are %s" % stats
+            msg = _("No one has responded to the adjudication request yet!- stats are %s") % stats
             return StandardView.render_information(request, msg)
 
         class StatsField(object):
@@ -2050,43 +2042,43 @@ class AdjudicationResultsView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:
-            msg = "Adjudication Definition with id %s not found" % adjudication_definition_id
+            msg = _("Adjudication Definition with id %s not found") % adjudication_definition_id
             return StandardView.render_error(request, msg)
 
         if adj_def.adjudicator_username != request.user.username:
             return StandardView.render_error(
                 request,
-                "You are not authorised to submit an adjudication for this patient")
+                _("You are not authorised to submit an adjudication for this patient"))
 
         patient_id_on_form = request.POST["patient_id"]
         if patient_id_on_form != patient_id:
-            return StandardView.render_error(request, "patient incorrect!")
+            return StandardView.render_error(request, _("patient incorrect!"))
 
         try:
             requesting_user = CustomUser.objects.get(pk=requesting_user_id)
         except CustomUser.DoesNotExist:
-            return StandardView.render_error(request, "requesting user cannot be found")
+            return StandardView.render_error(request, _("requesting user cannot be found"))
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
-            return StandardView.render_error(request, "Patient does not exist")
+            return StandardView.render_error(request, _("Patient does not exist"))
 
         adjudication_state = adj_def.get_state(patient)
 
         if adjudication_state == AdjudicationState.NOT_CREATED:
             # No requests have been sent out for this definiton
-            msg = "No Adjudication requests have come back for this patient - it cannot be decided yet!"
+            msg = _("No Adjudication requests have come back for this patient - it cannot be decided yet!")
             return StandardView.render_information(request)
 
         elif adjudication_state == AdjudicationState.ADJUDICATED:
             return StandardView.render_error(
                 request,
-                "This patient has already been adjudicated!")
+                _("This patient has already been adjudicated!"))
         elif adjudication_state != AdjudicationState.UNADJUDICATED:
             return StandardView.render_error(
                 request,
-                "Unknown adjudication state: %s" %
+                _("Unknown adjudication state: %s") %
                 adjudication_state)
         else:
             adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
@@ -2100,7 +2092,7 @@ class AdjudicationResultsView(View):
                     patient_id=patient_id,
                     requesting_username=requesting_user.username)
             except Adjudication.DoesNotExist:
-                return StandardView.render_error(request, "Adjudication object doesn't exist")
+                return StandardView.render_error(request, _("Adjudication object doesn't exist"))
 
             adjudication.decision = adj_dec
             adjudication.save()
@@ -2108,12 +2100,12 @@ class AdjudicationResultsView(View):
             if result.ok:
                 return StandardView.render_information(
                     request,
-                    "Your adjudication decision has been sent to %s" %
+                    _("Your adjudication decision has been sent to %s") %
                     adjudication.requesting_username)
             else:
                 return StandardView.render_error(
                     request,
-                    "Your adjudication decision was not communicated: %s" %
+                    _("Your adjudication decision was not communicated: %s") %
                     result.error_message)
 
     def _get_actions_data(self, definition, post_data):
@@ -2125,6 +2117,7 @@ class AdjudicationResultsView(View):
                     value = post_data[k]
                     actions.append((adjudication_cde_model.code, value))
         return actions
+
 
 
 class ConstructorFormView(View):
@@ -2161,13 +2154,11 @@ class CustomConsentFormView(View):
                                                         patient_model,
                                                         current_form_name="Consents")
 
-        
-
-
         context = {
             "location": "Consents",
             "forms": form_sections,
             "context_id": context_id,
+            "form_name": "fixme",  # required for form_print link
             "patient": patient_model,
             "patient_id": patient_model.id,
             "registry_code": registry_code,
@@ -2176,8 +2167,8 @@ class CustomConsentFormView(View):
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
-            "consent": consent_status_for_patient(registry_code, patient_model)
-
+            "consent": consent_status_for_patient(registry_code, patient_model),
+            "show_print_button": True,
         }
 
         logger.debug("context = %s" % context)

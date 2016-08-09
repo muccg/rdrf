@@ -23,31 +23,31 @@ class QuickLinks(object):
     Explorer = QuickLink("explorer_main", "Explorer", True)
     Users = QuickLink("admin:groups_customuser_changelist", 'Users')
     QuestionnaireResponses = QuickLink(
-        "admin:rdrf_questionnaireresponse_changelist", "Questionnaire Responses")
-    Doctors = QuickLink("admin:patients_doctor_changelist", "Doctors")
+        "admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
+    Doctors = QuickLink("admin:patients_doctor_changelist", _("Doctors"))
     # Genetic Staff
-    Genes = QuickLink("admin:genetic_gene_changelist", "Genes")
-    Laboratories = QuickLink("admin:genetic_laboratory_changelist", "Laboratories")
+    Genes = QuickLink("admin:genetic_gene_changelist", _("Genes"))
+    Laboratories = QuickLink("admin:genetic_laboratory_changelist", _("Laboratories"))
 
-    WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", "Working Groups")
+    WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", _("Working Groups"))
 
     # Admin only
-    Registries = QuickLink("admin:rdrf_registry_changelist", "Registries", True)
-    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", "Registry Form", True)
-    Sections = QuickLink("admin:rdrf_section_changelist", "Sections", True)
-    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", "Data Elements", True)
+    Registries = QuickLink("admin:rdrf_registry_changelist", _("Registries"), True)
+    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", _("Registry Form"), True)
+    Sections = QuickLink("admin:rdrf_section_changelist", _("Sections"), True)
+    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", _("Data Elements"), True)
     PermissibleValueGroups = QuickLink(
-        "admin:rdrf_cdepermittedvaluegroup_changelist", "Permissible Value Groups", True)
+        "admin:rdrf_cdepermittedvaluegroup_changelist", _("Permissible Value Groups"), True)
     PermissibleValues = QuickLink(
-        "admin:rdrf_cdepermittedvalue_changelist", "Permissible Values", True)
+        "admin:rdrf_cdepermittedvalue_changelist", _("Permissible Values"), True)
     ConsentSections = QuickLink(
-        "admin:rdrf_consentsection_changelist", "Consent Sections", True)
+        "admin:rdrf_consentsection_changelist", _("Consent Sections"), True)
     ConsentValues = QuickLink(
-        "admin:patients_consentvalue_changelist", "Consent Values", False)
+        "admin:patients_consentvalue_changelist", _("Consent Values"), False)
     DemographicsFields = QuickLink(
-        "admin:rdrf_demographicfields_changelist", "Demographics Fields", True)
-    Importer = QuickLink("import_registry", "Importer", True)
-    Groups = QuickLink("admin:auth_group_changelist", "Groups", True)
+        "admin:rdrf_demographicfields_changelist", _("Demographics Fields"), True)
+    Importer = QuickLink("import_registry", _("Importer"), True)
+    Groups = QuickLink("admin:auth_group_changelist", _("Groups"), True)
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"), True)
     CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
@@ -60,13 +60,13 @@ class QuickLinks(object):
 
     LoginLog = QuickLink("admin:useraudit_loginlog_changelist", _("User Login Log"), True)
     FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)
+    LoginAttempts = QuickLink("admin:useraudit_loginattempt_changelist", _("User Login Attempts Log"), True)
 
     IPRestrictGroup = QuickLink("admin:iprestrict_ipgroup_changelist", _("IP Restrict Groups"), True)
     IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
 
     # Context Form Groups
     ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Context Form Groups", True)
-
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
     IP_RESTRICT = oset([IPRestrictGroup, IPRestrictRule])
@@ -75,7 +75,7 @@ class QuickLinks(object):
     WORKING_GROUPS = oset([WorkingGroups])
     DOCTORS = oset([Doctors])
     REPORTING = oset([Reports])
-    AUDITING = oset([LoginLog, FailedLoginLog])
+    AUDITING = oset([LoginLog, FailedLoginLog, LoginAttempts])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
     REGISTRY_DESIGN = oset([Registries,

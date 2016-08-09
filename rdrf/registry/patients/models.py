@@ -46,13 +46,13 @@ class Doctor(models.Model):
 
     # TODO: Is it possible for one doctor to work with multiple working groups?
     title = models.CharField(max_length=4, blank=True, null=True)
-    family_name = models.CharField(max_length=100, db_index=True)
-    given_names = models.CharField(max_length=100, db_index=True)
+    family_name = models.CharField(max_length=100, db_index=True, verbose_name="Family/Last name")
+    given_names = models.CharField(max_length=100, db_index=True, verbose_name="Given/First names")
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town")
+    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town/City")
     postcode = models.CharField(max_length=20, blank=True, null=True)
     state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
                               on_delete=models.SET_NULL)
@@ -187,7 +187,7 @@ class Patient(models.Model):
         on_delete=models.SET_NULL)
     next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
     next_of_kin_suburb = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
+        max_length=50, blank=True, null=True, verbose_name="Suburb/Town/City")
     next_of_kin_state = models.CharField(
         max_length=20, verbose_name="State/Province/Territory", blank=True, null=True)
     next_of_kin_postcode = models.IntegerField(verbose_name="Postcode", blank=True, null=True)

@@ -1,5 +1,5 @@
 datastaging:
-  image: muccg/debian8-base
+  image: debian:jessie
   volumes:
     - ./data:/data
 
