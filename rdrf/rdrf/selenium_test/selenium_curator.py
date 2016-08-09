@@ -8,7 +8,7 @@ from base import Base
 class Curator(Base):
 
     def test_curator(self):
-        #self.set_grid_permissions()
+        # self.set_grid_permissions()
         sel = self.selenium
         sel.open("/")
         sel.click("link=Registries on this site")

@@ -40,11 +40,11 @@ def find_sections(doc, form_name=None, section_code=None,
 
     for f, form in enumerate(doc.get("forms") or []):
         if (form_name is None or
-            (form.get("name") == form_name and formp(form, f))):
+                (form.get("name") == form_name and formp(form, f))):
             for s, section in enumerate(form.get("sections") or []):
                 if ((section_code is None or
                      section.get("code") == section_code) and
-                    bool(multisection) == bool(section.get("allow_multiple"))):
+                        bool(multisection) == bool(section.get("allow_multiple"))):
                     if multisection:
                         for s2, section2 in enumerate(section.get("cdes") or []):
                             product = dict(section)
@@ -53,6 +53,7 @@ def find_sections(doc, form_name=None, section_code=None,
                                 yield product
                     elif sectionp(section, s):
                         yield section
+
 
 def find_cdes(doc, form_name=None, section_code=None, cde_code=None,
               formp=None, sectionp=None, cdep=None,
@@ -67,11 +68,12 @@ def find_cdes(doc, form_name=None, section_code=None, cde_code=None,
     for section in sections:
         for c, cde in enumerate(section.get("cdes") or []):
             if (cde_code is None or
-                (cde.get("code") == cde_code and cdep(cde, c))):
+                    (cde.get("code") == cde_code and cdep(cde, c))):
                 yield cde
 
 section_allow_multiple = lambda s, i: bool(s.get("allow_multiple"))
 section_not_allow_multiple = lambda s, i: not s.get("allow_multiple")
+
 
 def get_mongo_value(registry_code, nested_data, delimited_key,
                     multisection_index=None):
@@ -114,9 +116,11 @@ def update_multisection_file_cdes(gridfs_filestore, registry_code,
                 existing_value = get_mongo_value(registry_code, existing_nested_data, key,
                                                  multisection_index=item_index)
                 if is_multiple_file_cde(cde_code):
-                    new_val = DynamicDataWrapper.handle_file_uploads(gridfs_filestore, registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_uploads(
+                        gridfs_filestore, registry_code, key, value, existing_value)
                 else:
-                    new_val = DynamicDataWrapper.handle_file_upload(gridfs_filestore, registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_upload(
+                        gridfs_filestore, registry_code, key, value, existing_value)
                 updates.append((item_index, key, new_val))
 
     for index, key, value in updates:
@@ -139,6 +143,7 @@ class FormDataParser(object):
     (with nested functions) because it's used like a function not like
     an object.
     """
+
     def __init__(self,
                  registry_model,
                  form_model,
@@ -237,7 +242,7 @@ class FormDataParser(object):
             if key == "timestamp":
                 self.global_timestamp = self.form_data[key]
             elif key.endswith("_timestamp"):
-                    self.form_timestamps[key] = self.form_data[key]
+                self.form_timestamps[key] = self.form_data[key]
 
     def _parse_all_forms(self):
         # used in questionnaire approval handling where all form data was being saved in one go
@@ -246,7 +251,7 @@ class FormDataParser(object):
             if key == "timestamp":
                 self.global_timestamp = self.form_data[key]
             elif key.endswith("_timestamp"):
-                    self.form_timestamps[key] = self.form_data[key]
+                self.form_timestamps[key] = self.form_data[key]
             elif key == "custom_consent_data":
                 pass
             elif key == "PatientDataAddressSection":
@@ -391,7 +396,7 @@ class DynamicDataWrapper(object):
             # Create context model just before saving to mongo
             self.CREATE_MODE = True
         else:
-            self.CREATE_MODE = False 
+            self.CREATE_MODE = False
         self.testing = False
         self.obj = obj
         self.django_id = obj.pk
@@ -513,12 +518,14 @@ class DynamicDataWrapper(object):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
                 "value": self._find_cde_val(snapshot["record"], registry_code,
-                                                     form_name, section_code,
-                                                     cde_code),
+                                            form_name, section_code,
+                                            cde_code),
                 "id": str(snapshot["_id"]),
             }
+
         def collapse_same(snapshots):
-            prev = { "": None }  # nonlocal works in python3
+            prev = {"": None}  # nonlocal works in python3
+
             def is_different(snap):
                 diff = prev[""] is None or snap["value"] != prev[""]["value"]
                 prev[""] = snap
@@ -539,7 +546,7 @@ class DynamicDataWrapper(object):
         from rdrf.models import RDRFContext
         django_model = self.obj.__class__.__name__
         mongo_query = {"django_id": self.django_id,
-                       "django_model": django_model }
+                       "django_model": django_model}
         logger.debug("query = %s" % mongo_query)
 
         projection = {"rdrf_context_id": 1, "_id": 0}
@@ -572,7 +579,7 @@ class DynamicDataWrapper(object):
         registry_data = collection.find_one(record_query)
         if registry_data:
             for k in ['django_id', '_id', 'django_model']:
-                    del registry_data[k]
+                del registry_data[k]
             data[registry_model.code] = registry_data
 
         for registry_code in data:
@@ -676,8 +683,8 @@ class DynamicDataWrapper(object):
     def delete_patient_record(self, registry_model, context_id):
         self.rdrf_context_id = context_id
         logger.info("delete_patient_record called: patient %s registry %s context %s" % (self.obj,
-                                                                registry_model,
-                                                                context_id))
+                                                                                         registry_model,
+                                                                                         context_id))
 
         # used _only_ when trying to emulate a roll-back to no data after an exception  in questionnaire handling
         if self.obj.__class__.__name__ != 'Patient':
@@ -685,13 +692,12 @@ class DynamicDataWrapper(object):
 
         patient_model = self.obj
 
-
         collection = self._get_collection(registry_model.code, "cdes")
         logger.debug("collection = %s" % collection)
 
         filter = {"django_id": self.obj.pk,
-                 "django_model": 'Patient',
-                 "context_id": context_id}
+                  "django_model": 'Patient',
+                  "context_id": context_id}
 
         logger.info("Deleting patient record from mongo for rollback: %s" % filter)
         try:
@@ -717,7 +723,6 @@ class DynamicDataWrapper(object):
         if form_group is None:
             raise Exception("Cannot add this form!")
 
-
         from django.contrib.contenttypes.models import ContentType
         from rdrf.models import RDRFContext
         PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
@@ -727,10 +732,9 @@ class DynamicDataWrapper(object):
         context_model.context_form_group = form_group
         context_model.save()
         return context_model.pk
-        
 
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
-                          index_map=None,additional_data=None):
+                          index_map=None, additional_data=None):
         self._convert_date_to_datetime(form_data)
         collection = self._get_collection(registry, collection_name)
 

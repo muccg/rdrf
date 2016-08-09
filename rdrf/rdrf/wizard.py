@@ -15,10 +15,10 @@ class NavigationFormType:
     CLINICAL = 3
 
 PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
- 
 
 
 class NavigationWizard(object):
+
     def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
         self.user = user
         self.registry_model = registry_model
@@ -28,10 +28,9 @@ class NavigationWizard(object):
         self.on_create_form_view = context_id == 'add'
         self.current_form_model = current_form_model
         self.links = []
-        self.current_index = None # set by method below
+        self.current_index = None  # set by method below
 
         self._construct_links()
-
 
     def _construct_links(self):
         # aim is to construct a web ring of links:
@@ -65,41 +64,38 @@ class NavigationWizard(object):
         if not self.on_create_form_view:
             self.current_index = self._determine_current_index()
 
-
     def _construct_free_form_link(self, form_model):
         # get default context model from patient
         context_model = self.patient_model.default_context(self.registry_model)
         return self._form_link(form_model, context_model)
 
-        
     def _form_link(self, form_model, context_model):
         link = reverse('registry_form', args=(self.registry_model.code,
-                                                  form_model.id, self.patient_model.pk, context_model.id))
+                                              form_model.id, self.patient_model.pk, context_model.id))
         return "clinical", form_model.pk, link
 
     def _fixed_form_groups(self):
-        return [ cfg for cfg in self.registry_model.fixed_form_groups]
+        return [cfg for cfg in self.registry_model.fixed_form_groups]
 
     def _multiple_form_groups(self):
-        return [ cfg for cfg in self.registry_model.multiple_form_groups]
+        return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _get_multiple_contexts(self, multiple_form_group):
         contexts = [c for c in self.patient_model.context_models
-                      if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
-        
-        return sorted(contexts, key=lambda c : c.created_at)
-            
+                    if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
+
+        return sorted(contexts, key=lambda c: c.created_at)
 
     def _construct_demographics_link(self):
         return ("demographic", None, reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk]))
 
     def _construct_consents_link(self):
-         return ("consents", None, reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk]))
+        return ("consents", None, reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk]))
 
     def _construct_fixed_form_link(self, fixed_form_group, form_model):
-        context_models = [ cm for cm in RDRFContext.objects.filter(context_form_group=fixed_form_group,
-                                                   object_id=self.patient_model.pk,
-                                                   content_type=PATIENT_CONTENT_TYPE)]
+        context_models = [cm for cm in RDRFContext.objects.filter(context_form_group=fixed_form_group,
+                                                                  object_id=self.patient_model.pk,
+                                                                  content_type=PATIENT_CONTENT_TYPE)]
 
         num_contexts = len(context_models)
         assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
@@ -110,7 +106,7 @@ class NavigationWizard(object):
 
     def _free_forms(self):
         if self.registry_model.is_normal:
-            return [ f for f in self.registry_model.forms if not f.is_questionnaire]
+            return [f for f in self.registry_model.forms if not f.is_questionnaire]
         else:
             return []
 
@@ -132,17 +128,16 @@ class NavigationWizard(object):
                 if form_model.pk == self.current_form_model.pk:
                     if context_id == int(self.context_id):
                         return index
-                        
+
         # shouldn't get here ...
         raise Exception("could not determine current index!")
-        
 
     @property
     def previous_link(self):
         if self.on_create_form_view:
             # unsure what to do here
             return self.links[0]
-        
+
         num_links = len(self.links)
         next_index = (self.current_index - 1) % num_links
         return self.links[next_index][-1]
@@ -155,6 +150,3 @@ class NavigationWizard(object):
         num_links = len(self.links)
         next_index = (self.current_index + 1) % num_links
         return self.links[next_index][-1]
-    
-        
-    

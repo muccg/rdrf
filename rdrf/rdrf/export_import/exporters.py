@@ -91,6 +91,7 @@ class DataGroupExporter(object, DelegateMixin):
 
 
 class ModelExporter(object):
+
     def __init__(self, model_name, logger):
         self.model_name = model_name
         self.model = apps.get_model(self.model_name)
@@ -121,10 +122,10 @@ class ModelExporter(object):
 
         with open(self.full_filename, 'w') as out:
             serializers.serialize(self.format, self.queryset,
-                use_natural_primary_keys=True,
-                use_natural_foreign_keys=True,
-                indent=2,
-                stream=out)
+                                  use_natural_primary_keys=True,
+                                  use_natural_foreign_keys=True,
+                                  indent=2,
+                                  stream=out)
         self.export_finished = True
         return True
 
@@ -133,7 +134,9 @@ class ModelExporter(object):
             raise ValueError('Invalid state: Model %s needs to be exported first' % self.full_modelname)
         return self.meta_collector.collect()
 
+
 class MongoCollectionExporter(object):
+
     def __init__(self, collection_name, logger):
         self.logger = logger
         self.meta_collector = CollectionMetaInfo(self, maybe_indent(logger))
@@ -156,7 +159,7 @@ class MongoCollectionExporter(object):
         db = self.client[mongo_db_name(registry_code)]
         if self.collection_name not in db.collection_names():
             self.logger.info("Collection '%s' doesn't exist for registry '%s'. Ignoring it."
-                % (self.collection_name, registry_code))
+                             % (self.collection_name, registry_code))
             return False
         collection = db[self.collection_name]
 
@@ -174,6 +177,7 @@ class MongoCollectionExporter(object):
 
 
 class BaseMetaInfo(object, DelegateMixin):
+
     def __init__(self, exporter, logger):
         DelegateMixin.__init__(self, delegate_to=exporter)
         self.logger = logger
@@ -190,6 +194,7 @@ class BaseMetaInfo(object, DelegateMixin):
 
 
 class ModelMetaInfo(BaseMetaInfo):
+
     def collect(self):
         d = {
             'model_name': self.model_name,
@@ -200,7 +205,7 @@ class ModelMetaInfo(BaseMetaInfo):
 
     def count_objects_in_file(self):
         def count_generator_items(gen):
-            return reduce(lambda count, _: count+1, gen, 0)
+            return reduce(lambda count, _: count + 1, gen, 0)
 
         with open(self.full_filename) as data:
             count = count_generator_items(serializers.deserialize(self.format, data))
@@ -209,6 +214,7 @@ class ModelMetaInfo(BaseMetaInfo):
 
 
 class CollectionMetaInfo(BaseMetaInfo):
+
     def collect(self):
         d = {'collection_name': self.collection_name}
         d.update(BaseMetaInfo.collect(self))

@@ -14,12 +14,13 @@ from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
 logger = logging.getLogger(__name__)
 
+
 class Cache(object):
     LIMIT_SNAPSHOT = 2000
     LIMIT_CURRENT = 2000
-    
+
     def __init__(self):
-        self.snapshots= {}
+        self.snapshots = {}
         self.current = {}
 
     def _get_data(self, patient, name, cached_data, limit, retriever):
@@ -29,8 +30,8 @@ class Cache(object):
             if len(cached_data) == self.LIMIT_CURRENT:
                 k = cached_data.keys()[0]
                 del cached_data[k]
-                
-            patient_data  = retriever(patient)
+
+            patient_data = retriever(patient)
             cached_data[patient.id] = patient_data
             return patient_data
 
@@ -39,7 +40,7 @@ class Cache(object):
 
     def get_snapshots(self, patient, snapshots_retriever):
         return self._get_data(patient, "snapshots", self.snapshots, self.LIMIT_SNAPSHOT, snapshots_retriever)
-    
+
 
 def attempt(func):
     @functools.wraps(func)
@@ -89,8 +90,6 @@ class SpreadSheetReport(object):
 
         self.gfe_func_map = {}
         self.parser = GeneralisedFieldExpressionParser(self.registry_model)
-        
-        
 
     # Public interface
     def run(self):
@@ -215,8 +214,7 @@ class SpreadSheetReport(object):
         if type(raw_cde_value) is not type([]):
             return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value)
         else:
-            return ",".join([ str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
-
+            return ",".join([str(self.humaniser.display_value2(form_model, section_model, cde_model, x)) for x in raw_cde_value])
 
     def _get_value_retriever(self, column):
         if column in self.gfe_func_map:
@@ -229,7 +227,7 @@ class SpreadSheetReport(object):
     def _write_universal_columns(self, patient, patient_record, universal_columns):
         patient_id = patient.pk
         if patient_id in self._universal_column_map:
-            for column  in universal_columns:
+            for column in universal_columns:
                 self._write_cell(self._universal_column_map[patient_id][column])
         else:
             self._universal_column_map[patient_id] = {}
@@ -238,17 +236,10 @@ class SpreadSheetReport(object):
                 value = value_retriever(patient, patient_record)
                 self._write_cell(value)
                 self._universal_column_map[patient_id][column] = value
-                
-
-                                 
-                                 
-                                
-            
-        
 
     def _create_longitudinal_section_sheet(self, universal_columns, form_model, section_model):
         sheet_name = self.registry_model.code.upper() + section_model.code
-        sheet_name = sheet_name[:30] # 31 max char sheet name size ...
+        sheet_name = sheet_name[:30]  # 31 max char sheet name size ...
         self._create_sheet(sheet_name)
         # this just writes out bit at the beginning
         self._write_header_universal_columns(universal_columns)
@@ -323,7 +314,7 @@ class SpreadSheetReport(object):
         num_blocks = 0  # a "block" is all cdes in one snapshot or the current set of cdes
         # we will write the current set of cdes last
 
-        #for snapshot in self._get_snapshots(patient):
+        # for snapshot in self._get_snapshots(patient):
         for snapshot in self.cache.get_snapshots(patient, self._get_snapshots):
             num_blocks += 1
             timestamp = self._get_timestamp_from_snapshot(snapshot)
@@ -386,7 +377,7 @@ class SpreadSheetReport(object):
                                                      "registry_code": self.registry_model.code,
                                                      "django_model": "Patient",
                                                      "record_type": "snapshot"})
-        return [ s for s in patient_snapshots ]
+        return [s for s in patient_snapshots]
 
     def _get_timestamp_bounds(self):
         dt_lower, dt_upper = self.time_window

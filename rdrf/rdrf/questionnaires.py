@@ -96,8 +96,7 @@ class QuestionnaireReverseMapper(object):
                 default_context = manager.get_or_create_default_context(self.patient)
                 self.default_context_model = default_context
         else:
-            self.default_context_model = None # ???
-        
+            self.default_context_model = None  # ???
 
     def save_patient_fields(self):
         working_groups = []
@@ -369,6 +368,7 @@ class QuestionnaireReverseMapper(object):
                     return form_model.name, section_model.code
         return None, None
 
+
 class PatientCreatorError(Exception):
     pass
 
@@ -383,16 +383,19 @@ class PatientCreator(object):
         log_prefix = "PatientCreator on QR %s" % questionnaire_response.pk
 
         class MyLogger(object):
+
             def __init__(self, logger, log_prefix):
                 self.logger = logger
                 self.log_prefix = log_prefix
+
             def error(self, msg):
                 self.logger.error(self.log_prefix + ": " + msg)
+
             def info(self, msg):
                 self.logger.info(self.log_prefix + ": " + msg)
-                
+
         mylogger = MyLogger(logger, log_prefix)
-        
+
         patient = Patient()
         patient.consent = True
         mapper = QuestionnaireReverseMapper(
@@ -410,7 +413,7 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-            mapper.set_context() # ensure context setup properly before we save any data to Mongfo
+            mapper.set_context()  # ensure context setup properly before we save any data to Mongfo
         except ValidationError as verr:
             mylogger.error("Could not save patient %s: %s" % (patient, verr))
             raise PatientCreatorError("Validation Error: %s" % verr)
@@ -438,8 +441,8 @@ class PatientCreator(object):
             except Exception as ex2:
                 logger.error("could not remove dynamic data for patient %s: %s" %
                              (patient.pk, ex2))
-                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex,ex2))
-            
+                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex, ex2))
+
         try:
             questionnaire_response.patient_id = patient.pk
             questionnaire_response.processed = True
@@ -450,7 +453,6 @@ class PatientCreator(object):
 
         mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
         return patient
-        
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
@@ -759,7 +761,7 @@ class _Question(object):
         self.pos = 0
         self.question_type = None
         self.form_model = RegistryForm.objects.get(registry=self.registry_model,
-                                                       name=form_name)
+                                                   name=form_name)
         self.section_model = Section.objects.get(code=section_code)
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
         self.section_code = section_code
@@ -1064,23 +1066,22 @@ class Questionnaire(object):
 
         return self._correct_ordering(l)
 
-    
     def _correct_ordering(self, questions):
         correct_ordering = ["Centre",
                             "Family Name",
-                            "Given Names",	
+                            "Given Names",
                             "Date of Birth",
                             "Sex",
                             "Home Phone",
-                            "Mobile Phone",	
-                            "Email",	
-                            "Parent/Guardian Family Name",	
-                            "Parent/Guardian Given Names",	
+                            "Mobile Phone",
+                            "Email",
+                            "Parent/Guardian Family Name",
+                            "Parent/Guardian Given Names",
                             "Parent/Guardian Relationship",
                             "Parent/Guardian Email",
-                            "Parent/Guardian Address",	
-                            "Parent/Guardian Suburb"	
-                            "Parent/Guardian State"	
+                            "Parent/Guardian Address",
+                            "Parent/Guardian Suburb"
+                            "Parent/Guardian State"
                             "Parent/Guardian Country"]
 
         consent_block = []
@@ -1089,7 +1090,7 @@ class Questionnaire(object):
                 consent_block.append(question)
                 questions.remove(question)
 
-        demographics_block  = []
+        demographics_block = []
         for name in correct_ordering:
             for question in list(questions):
                 if question.name == name:

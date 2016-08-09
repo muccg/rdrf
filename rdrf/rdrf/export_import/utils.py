@@ -10,6 +10,7 @@ class DelegateMixin():
     Tries to get attributes from object normally, but if attribute doesn't exist
     try getting attributes from the object set by delegate_to in __init__.
     """
+
     def __init__(self, delegate_to=None):
         self._delegate_to = delegate_to
 
@@ -19,7 +20,7 @@ class DelegateMixin():
         if hasattr(self._delegate_to, attr):
             return getattr(self._delegate_to, attr)
         raise AttributeError("'%s' object has no attribute '%s'" %
-                (self.__class__.__name__, attr))
+                             (self.__class__.__name__, attr))
 
 
 class IndentedLogger(object):

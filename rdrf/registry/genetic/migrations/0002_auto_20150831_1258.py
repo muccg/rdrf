@@ -9,6 +9,7 @@ from django.core.management import call_command
 # We're keeping the migration so that it doesn't confuse existing installations
 # that already applied them, but disabling the actual loading of the data.
 
+
 def load_genes(apps, schema_editor):
     # call_command("loaddata", "initial_genes.json", exceptiononerror=True)
     pass

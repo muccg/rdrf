@@ -10,13 +10,13 @@ from registry.patients.models import Patient
 
 
 class MongoContextFixer(object):
+
     def __init__(self, client, apps, schema_editor):
         self.client = client
         self.apps = apps
         self.schema_editor = schema_editor
         self.registry_klass = self._get_registry_class()
         self.registry_codes = self._get_registry_codes()
-
 
     def _get_registry_codes(self):
         #Registry = self.apps.get_model("rdrf", 'Registry')
@@ -128,7 +128,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='mongomigrationdummymodel',
             name='version',
-            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing'), (b'1.0.17', b'populate context_id on all patient records')]),
+            field=models.CharField(max_length=80, choices=[(
+                b'initial', b'initial'), (b'testing', b'testing'), (b'1.0.17', b'populate context_id on all patient records')]),
         ),
         migrations.RunPython(forwards_func, backwards_func)
     ]

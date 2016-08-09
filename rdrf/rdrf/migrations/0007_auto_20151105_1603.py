@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='emailnotification',
             name='description',
-            field=models.CharField(max_length=100, choices=[(b'other-clinician', b'Other Clinician'), (b'new-patient', b'New Patient Registered')]),
+            field=models.CharField(max_length=100, choices=[(
+                b'other-clinician', b'Other Clinician'), (b'new-patient', b'New Patient Registered')]),
         ),
     ]

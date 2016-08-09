@@ -21,11 +21,11 @@ def forward_func(apps, schema_editor):
                 try:
                     context_model.save()
                     print "Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
-                                                                             default_context_form_group.id)
+                                                                                 default_context_form_group.id)
                 except Exception, ex:
                     print "Error updating RDRFContext %s: %s" % (context_model.id, ex)
 
-                    
+
 def backward_func(apps, schema_editor):
     patient_content_type = ContentType.objects.get(model='patient')
     for registry_model in Registry.objects.all():

@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='doctor',
             name='state',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, verbose_name=b'State/Province/Territory', blank=True, to='patients.State', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL,
+                                    verbose_name=b'State/Province/Territory', blank=True, to='patients.State', null=True),
         ),
     ]

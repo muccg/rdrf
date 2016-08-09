@@ -39,4 +39,3 @@ class PatientRelativeLinkWidget(widgets.Widget):
         patient_model = Patient.objects.get(pk=int(patient_id))
         registry_model = Registry.objects.get(code=reg_code)
         return patient_model.default_context(registry_model)
-

@@ -7,7 +7,6 @@ from registry.patients.models import Doctor
 from registry.patients.models import State
 
 
-
 class DataLoadException(Exception):
     pass
 
@@ -139,4 +138,3 @@ class Command(BaseCommand):
             data_loader.load()
         except Exception, ex:
             print "Error importing doctors ( transaction will be rolled back): %s" % ex
-

@@ -115,7 +115,7 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/permissions/?$",
                            PermissionMatrixView.as_view(), name='permission_matrix'),
 
-#---- Consent related URLs -----------------
+                       #---- Consent related URLs -----------------
                        url(r"^(?P<registry_code>\w+)/consent/?$",
                            consent_view.ConsentList.as_view(), name='consent_list'),
 
@@ -131,12 +131,12 @@ urlpatterns = patterns('',
                        url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
                            consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
 
-#-------------------------------------------
+                       #-------------------------------------------
 
-#---- Email Notifications URLs -------------
+                       #---- Email Notifications URLs -------------
                        url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
                            ResendEmail.as_view(), name="resend_email"),
-#-------------------------------------------
+                       #-------------------------------------------
 
                        url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
                            FamilyLinkageView.as_view(), name='family_linkage'),
@@ -171,13 +171,13 @@ urlpatterns = patterns('',
                        url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
                        url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
-#---- Look-ups URLs -----------------------
+                       #---- Look-ups URLs -----------------------
                        url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
                            UsernameLookup.as_view(), name="lookup_username"),
 
                        url(r"^lookup/recaptcha/?$",
                            RecaptchaValidator.as_view(), name="recaptcha_validator"),
-#-------------------------------------------
+                       #-------------------------------------------
 
                        url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
                            RDRFContextLookup.as_view(),

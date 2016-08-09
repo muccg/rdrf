@@ -21,7 +21,6 @@ from rdrf.utils import de_camelcase, check_calculation
 from rdrf.mongo_client import construct_mongo_client
 
 
-
 from django.conf import settings
 import os
 
@@ -190,6 +189,7 @@ class ExporterTestCase(RDRFTestCase):
 
 
 class ImporterTestCase(TestCase):
+
     def _get_yaml_file(self):
         return os.path.join(os.path.dirname(__file__), 'fixtures', 'exported_fh_registry.yaml')
 
@@ -220,7 +220,6 @@ class FormTestCase(RDRFTestCase):
         self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
         self.create_forms()
-
 
         self.patient = self.create_patient()
 
@@ -270,14 +269,14 @@ class FormTestCase(RDRFTestCase):
     def create_form(self, name, sections, is_questionnnaire=False):
         sections = ",".join([section.code for section in sections])
         form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
-                defaults={'sections': sections})
+                                                           defaults={'sections': sections})
         if not created:
             form.sections = sections
         form.name = name
         form.registry = self.registry
         form.is_questionnaire = is_questionnnaire
         form.save()
-        #self.working_group
+        # self.working_group
         return form
 
     def create_forms(self):
@@ -320,10 +319,6 @@ class FormTestCase(RDRFTestCase):
                             for cde in section["cdes"]:
                                 if cde["code"] == cde_code:
                                     return cde["value"]
-
-
-
-
 
         ff = FormFiller(self.simple_form)
         ff.sectionA.CDEName = "Fred"
@@ -373,8 +368,6 @@ class FormTestCase(RDRFTestCase):
                 assert "code" in cde, "cde dictionary should have a code key"
                 assert "value" in cde, "cde dictionary should have a value key"
 
-
-
         assert form_value(self.simple_form.name, self.sectionA.code, "CDEName", mongo_record) == "Fred"
         assert form_value(self.simple_form.name, self.sectionA.code, "CDEAge", mongo_record) == 20
         assert form_value(self.simple_form.name, self.sectionB.code, "CDEHeight", mongo_record) == 1.73
@@ -388,7 +381,7 @@ class LongitudinalTestCase(FormTestCase):
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
         collection = mongo_db["history"]
-        snapshots = [ s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
+        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
         assert len(snapshots) > 0, "History should be filled in on save"
         for snapshot in snapshots:
             assert "record" in snapshot, "Each snapshot should have a record field"
@@ -422,20 +415,21 @@ class LongitudinalTestCase(FormTestCase):
 
         mongo_db = self.client["testing_" + self.registry.code]
         collection = mongo_db["history"]
-        snapshots = [ s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
+        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
         assert len(snapshots) > 1, "History should be filled in on save"
         assert len(snapshots) == 4, "Wrong number of snapshots: expected 4 actual %s" % len(snapshots)
 
         from rdrf.spreadsheet_report import SpreadSheetReport
 
         class FakeModel(object):
+
             def __init__(self, name, code=""):
                 self.name = name
                 self.code = code
 
 
-
 class FormProgressTest(FormTestCase):
+
     def test_progress_calcs(self):
         mongo_db = self.client["testing_" + self.registry.code]
         super(FormProgressTest, self).test_simple_form()
@@ -456,6 +450,7 @@ class DeCamelcaseTestCase(TestCase):
 
 
 class JavascriptCheckTestCase(TestCase):
+
     def test_empty_script(self):
         err = check_calculation("")
         self.assertEqual(err, "")

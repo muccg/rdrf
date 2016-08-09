@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class MatrixRow(object):
+
     def __init__(self, permission, groups):
         self.permission = permission
         self.groups = groups   # auth groups
@@ -40,6 +41,7 @@ class MatrixRow(object):
 
 
 class PermissionMatrix(object):
+
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.groups = self._get_groups()
@@ -67,6 +69,7 @@ class PermissionMatrix(object):
 
 
 class MatrixWrapper(object):
+
     def __init__(self, registry_model):
         self.matrix = PermissionMatrix(registry_model)
         self.name = "Permission Matrix for %s" % registry_model.name

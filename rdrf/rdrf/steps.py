@@ -132,7 +132,6 @@ def our_goto(step, relative_url):
     lettuce_webdriver.webdriver.goto(step, absolute_url)
 
 
-
 def generate_random_str(length):
     s = string.lowercase + string.uppercase
     return ''.join(random.sample(s, length))

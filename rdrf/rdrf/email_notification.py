@@ -71,7 +71,7 @@ class RdrfEmail(object):
         users = CustomUser.objects.filter(groups__in=[group])
 
         for user in users:
-           user_emails.append(user.email)
+            user_emails.append(user.email)
 
         return user_emails
 
@@ -92,7 +92,6 @@ class RdrfEmail(object):
         template_body = template_body.render(context)
 
         return template_subject, template_body
-
 
     def _save_notification_record(self):
         _template_data = {}
@@ -117,9 +116,7 @@ class RdrfEmail(object):
         return self
 
 
-
-
-def process_notification(reg_code=None, description=None, language="en", template_data = {}):
+def process_notification(reg_code=None, description=None, language="en", template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     for note in notes:
         if note.disabled:
@@ -131,7 +128,7 @@ def process_notification(reg_code=None, description=None, language="en", templat
         email.send()
 
 
-def process_notification(reg_code=None, description=None, language="en", template_data = {}):
+def process_notification(reg_code=None, description=None, language="en", template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     for note in notes:
         if note.disabled:

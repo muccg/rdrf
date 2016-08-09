@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 # TODO replace these views as well with Django REST framework views
 class PatientLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, reg_code):
         from rdrf.models import Registry
@@ -38,12 +39,13 @@ class PatientLookup(View):
                 working_groups = [wg for wg in request.user.working_groups.all()]
 
                 query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                         Q(working_groups__in=working_groups)
+                    Q(working_groups__in=working_groups)
 
                 for patient_model in Patient.objects.filter(query):
                     if patient_model.active:
                         name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
+                        results.append({"value": patient_model.pk, "label": name,
+                                        "class": "Patient", "pk": patient_model.pk})
 
         except Registry.DoesNotExist:
             results = []
@@ -52,6 +54,7 @@ class PatientLookup(View):
 
 
 class PatientLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, reg_code):
         from rdrf.models import Registry
@@ -72,12 +75,13 @@ class PatientLookup(View):
                     working_groups = [wg for wg in WorkingGroup.objects.filter(registry=registry_model)]
 
                 query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                         Q(working_groups__in=working_groups)
+                    Q(working_groups__in=working_groups)
 
                 for patient_model in Patient.objects.filter(query):
                     if patient_model.active:
                         name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
+                        results.append({"value": patient_model.pk, "label": name,
+                                        "class": "Patient", "pk": patient_model.pk})
 
         except Registry.DoesNotExist:
             results = []
@@ -86,6 +90,7 @@ class PatientLookup(View):
 
 
 class FamilyLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
         from rdrf.models import Registry
@@ -132,7 +137,6 @@ class FamilyLookup(View):
 
             result["relatives"].append(relative_dict)
 
-
         return HttpResponse(json.dumps(result))
 
     def _get_relationships(self):
@@ -160,6 +164,7 @@ class UsernameLookup(View):
 # session of a user that is using the web UI not consuming the API
 
 class RDRFContextLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         current_rdrf_context_id = request.session.get("rdrf_context_id", None)

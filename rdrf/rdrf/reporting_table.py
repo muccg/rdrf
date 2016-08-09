@@ -123,7 +123,7 @@ class ReportingTableGenerator(object):
         logger.debug("created table based on schema")
 
     def _get_blank_row(self):
-        return { column_name : None for column_name in self.column_names }
+        return {column_name: None for column_name in self.column_names}
 
     @timed
     def drop_table(self):
@@ -369,14 +369,14 @@ class ReportingTableGenerator(object):
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            #try:
-                
+            # try:
+
             new_row = self._get_blank_row()
             new_row.update(row)
             self.insert_row(new_row)
             row_num += 1
             logger.debug("inserted row OK. row_num = %s" % row_num)
-            #except Exception, ex:
+            # except Exception, ex:
             #    errors += 1
             #    src = "query"
             #    logger.error("report error: query %s row after %s error: %s" % (src,
@@ -635,7 +635,6 @@ class ReportTable(object):
             rows.append(result_dict)
         return rows
 
-    
     def _format(self, column, data):
         if data is None:
             return ""
@@ -650,5 +649,5 @@ class ReportTable(object):
         if isinstance(data, datetime):
             iso = data.isoformat()
             return iso
-        
+
         return str(data)

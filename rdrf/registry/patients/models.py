@@ -22,7 +22,6 @@ from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -272,8 +271,6 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
-
-
     def clinical_data_currency(self, days=365):
         """
         If some clinical form ( non genetic ) has been updated  in the window
@@ -356,7 +353,6 @@ class Patient(models.Model):
             else:
                 return mongo_data[key]
 
-
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
@@ -399,7 +395,6 @@ class Patient(models.Model):
                 error_messages.append("Parse error: %s" % field_expression)
                 continue
 
-
             try:
                 logger.debug("attempting to update %s --> %s" % (field_expression, new_value))
                 self, mongo_data = expression_object.set_value(self, mongo_data, new_value, context_id=context_model.pk)
@@ -407,7 +402,7 @@ class Patient(models.Model):
                 succeeded += 1
             except NotImplementedError:
                 errors += 1
-                logger.debug("need to implement %s - skipping" %  field_expression)
+                logger.debug("need to implement %s - skipping" % field_expression)
                 error_messages.append("Not Implemented: %s" % field_expression)
                 continue
 
@@ -415,7 +410,6 @@ class Patient(models.Model):
                 errors += 1
                 logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
                 error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
-
 
         logger.debug("errors = %s" % errors)
         logger.debug("succeeded = %s" % succeeded)
@@ -428,25 +422,25 @@ class Patient(models.Model):
             error_messages.append("Failed to update: %s" % ex)
         try:
             self.save()
-        except Exception,ex:
+        except Exception, ex:
             error_messages.append("Failed to save patient: %s" % ex)
 
         return error_messages
 
     def evaluate_field_expression(self, registry_model, field_expression, **kwargs):
         if "value" in kwargs:
-            setting_value= True
+            setting_value = True
             value = kwargs["value"]
         else:
             setting_value = False
 
-        #TODO need to support contexts - supply in kwargs
+        # TODO need to support contexts - supply in kwargs
         context_model = self.default_context(registry_model)
 
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
         parser = GeneralisedFieldExpressionParser(registry_model)
 
-        wrapper  = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
         mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
         if mongo_data is None:
@@ -455,7 +449,6 @@ class Patient(models.Model):
                           "django_model": "Patient",
                           "context_id": context_model.pk,
                           "forms": []}
-
 
         if not setting_value:
             # ie retrieving a value
@@ -469,8 +462,6 @@ class Patient(models.Model):
             patient_model, mongo_data = setter.set_value(self, mongo_data, value)
             patient_model.save()
             return wrapper.update_dynamic_data(registry_model, mongo_data)
-
-
 
     def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -809,10 +800,10 @@ class Patient(models.Model):
         """
         Return links (pair of url and text)
         to existing forms "of type" (ie being in a context with a link to)  context_form_group
-        
+
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
-        
+
         form_model = context_form_group.form_models[0]
 
         links = []
@@ -827,7 +818,6 @@ class Patient(models.Model):
                 links.append((link_url, link_text))
 
         return links
-        
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
@@ -898,9 +888,6 @@ class Patient(models.Model):
             wrapper.delete_patient_record(registry_model, context_id)
 
 
-
-
-
 class ClinicianOther(models.Model):
     patient = models.ForeignKey(Patient, null=True)
     clinician_name = models.CharField(max_length=200, null=True)
@@ -938,6 +925,7 @@ class ParentGuardian(models.Model):
 
 
 class AddressTypeManager(models.Manager):
+
     def get_by_natural_key(self, type):
         return self.get(type=type)
 
@@ -976,6 +964,7 @@ class PatientConsentStorage(FileSystemStorage):
     This is a normal default file storage, except the URL points to
     authenticated file download view.
     """
+
     def url(self, name):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:
@@ -999,6 +988,7 @@ class PatientConsent(models.Model):
     def filename(self):
         return os.path.basename(self.form.name)
 
+
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient)
     doctor = models.ForeignKey(Doctor)
@@ -1017,25 +1007,25 @@ def get_countries():
 class PatientRelative(models.Model):
 
     RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
-        ("Child (1st degree)",  "Child (1st degree)"),
-        ("Sibling (1st degree)", "Sibling (1st degree)"),
-        ("Identical Twin (0th degree)", "Identical Twin (0th degree)"),
-        ("Non-identical Twin (1st degree)", "Non-identical Twin (1st degree)"),
-        ("Half Sibling (1st degree)", "Half Sibling (1st degree)"),
-        ("Grandparent (2nd degree)", "Grandparent (2nd degree)"),
-        ("Grandchild (2nd degree)",  "Grandchild (2nd degree)"),
-        ("Uncle/Aunt (2nd degree)",  "Uncle/Aunt (2nd degree)"),
-        ("Niece/Nephew (2nd degree)", "Niece/Nephew (2nd degree)"),
-        ("1st Cousin (3rd degree)",  "1st Cousin (3rd degree)"),
-        ("Great Grandparent (3rd degree)", "Great Grandparent (3rd degree)"),
-        ("Great Grandchild (3rd degree)", "Great Grandchild (3rd degree)"),
-        ("Great Uncle/Aunt (3rd degree)", "Great Uncle/Aunt (3rd degree)"),
-        ("Grand Niece/Nephew (3rd degree)", "Grand Niece/Nephew (3rd degree)"),
-        ("1st Cousin once removed (4th degree)", "1st Cousin once removed (4th degree)"),
-        ("Spouse", "Spouse"),
-        ("Unknown", "Unknown"),
-        ("Other", "Other"),
-    )
+                      ("Child (1st degree)",  "Child (1st degree)"),
+                      ("Sibling (1st degree)", "Sibling (1st degree)"),
+                      ("Identical Twin (0th degree)", "Identical Twin (0th degree)"),
+                      ("Non-identical Twin (1st degree)", "Non-identical Twin (1st degree)"),
+                      ("Half Sibling (1st degree)", "Half Sibling (1st degree)"),
+                      ("Grandparent (2nd degree)", "Grandparent (2nd degree)"),
+                      ("Grandchild (2nd degree)",  "Grandchild (2nd degree)"),
+                      ("Uncle/Aunt (2nd degree)",  "Uncle/Aunt (2nd degree)"),
+                      ("Niece/Nephew (2nd degree)", "Niece/Nephew (2nd degree)"),
+                      ("1st Cousin (3rd degree)",  "1st Cousin (3rd degree)"),
+                      ("Great Grandparent (3rd degree)", "Great Grandparent (3rd degree)"),
+                      ("Great Grandchild (3rd degree)", "Great Grandchild (3rd degree)"),
+                      ("Great Uncle/Aunt (3rd degree)", "Great Uncle/Aunt (3rd degree)"),
+                      ("Grand Niece/Nephew (3rd degree)", "Grand Niece/Nephew (3rd degree)"),
+                      ("1st Cousin once removed (4th degree)", "1st Cousin once removed (4th degree)"),
+                      ("Spouse", "Spouse"),
+                      ("Unknown", "Unknown"),
+                      ("Other", "Other"),
+                      )
 
     RELATIVE_LOCATIONS = [
         ("AU - WA", "Australia - WA"),

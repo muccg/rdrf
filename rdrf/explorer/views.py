@@ -125,7 +125,7 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             # user clicked Run
             # populate temporary table
-            
+
             humaniser = Humaniser(registry_model)
             multisection_handler = MultisectionHandler({})
             rtg = ReportingTableGenerator(request.user,
@@ -148,7 +148,6 @@ class QueryView(LoginRequiredMixin, View):
                 return redirect(m)
             else:
                 return redirect(query_model)
-                
 
 
 class DownloadQueryView(LoginRequiredMixin, View):
@@ -176,7 +175,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         registry_model = query_model.registry
 
         if query_model.mongo_search_type == "M":
-            return self._spreadsheet(query_model) 
+            return self._spreadsheet(query_model)
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
@@ -212,12 +211,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
         logger.debug("report took %s seconds" % elapsed_time)
         output = open(spreadsheet_report.output_filename)
         filename = "Longitudinal Report.xlsx"
-        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response = HttpResponse(FileWrapper(output), content_type='application/excel')
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
         return response
-    
-
-        
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
@@ -246,7 +242,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 else:
                     # only curators and admin
                     pass
-
 
             return render_to_response('explorer/query_download.html', params)
 
@@ -289,7 +284,7 @@ class SqlQueryView(View):
                 return form.errors["__all__"]
             else:
                 return None
-        
+
         if mongo_search_type == "M":
             report_config_errors = get_report_config_errors(form)
             if report_config_errors is not None:
@@ -342,6 +337,7 @@ class Humaniser(object):
     """
     If a display name/value is appropriate for a field, return it
     """
+
     def __init__(self, registry_model):
         self.registry_model = registry_model
 
@@ -415,8 +411,6 @@ def _get_non_multiple_mongo_keys(registry_model):
     return delimited_keys
 
 
-
-
 def _get_cdes(registry_obj):
     from rdrf.models import RegistryForm
     from rdrf.models import Section
@@ -453,11 +447,11 @@ def _final_cleanup(results):
 
 
 class MultisectionHandler(object):
+
     def __init__(self, reverse_column_map):
         # (form_model, section_model, cde_model, section_index) -> column_name
         self.reverse_map = reverse_column_map
         self.row_count = 0
-
 
     def unroll_wide(self, row_dict):
         for key in row_dict:
@@ -489,7 +483,7 @@ class MultisectionHandler(object):
             :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
-            
+
             Lists _should_ be same length EXCEPT in case
             where a cde has been added to the registry definition AFTER data has been saved to mongo:
             in this case the return values list for that CDE will be empty ( see FH-15 )
@@ -498,7 +492,7 @@ class MultisectionHandler(object):
             padded with None if not
             """
             l = []
-            
+
             max_length = max(map(len, dl.values()))
             indexes = range(max_length)
             for i in indexes:

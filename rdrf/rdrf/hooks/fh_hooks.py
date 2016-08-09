@@ -9,7 +9,7 @@ logger = getLogger(__name__)
 
 
 def get_default_context(fh_registry_model, patient_model):
-    # clinical form is member of default form group 
+    # clinical form is member of default form group
     cfg = fh_registry_model.default_context_form_group
     content_type = ContentType.objects.get_for_model(patient_model)
     # can't use usual get_or_create as generic
@@ -21,7 +21,7 @@ def get_default_context(fh_registry_model, patient_model):
         default_context = RDRFContext(registry=fh_registry_model,
                                       context_form_group=cfg,
                                       content_object=patient_model)
-    
+
         default_context.display_name = cfg.get_default_name(patient_model)
         default_context.save()
 
@@ -39,7 +39,6 @@ def get_main_context(fh_registry_model, patient_model):
         if context_model.context_form_group:
             if context_model.context_form_group.is_default:
                 return context_model
-            
 
     logger.debug("no main context - ???? - returning None")
 
@@ -51,7 +50,7 @@ def mark_as_relative_in_clinical_form(patient):
     if patient.in_registry('fh'):
         fh = Registry.objects.get(code="fh")
         default_context = get_main_context(fh, patient)
-        
+
         patient.set_form_value("fh",
                                "ClinicalData",
                                "fhDateSection",
@@ -66,7 +65,7 @@ def mark_created_patient_as_index(patient, registry_ids):
 
     def has_no_mongo_data(patient, registry_model):
         logger.debug("checking mongo data")
-        context_model  = get_main_context(registry_model, patient)
+        context_model = get_main_context(registry_model, patient)
         if context_model is None:
             logger.debug("context model is None")
             # true when a new patient
@@ -95,7 +94,7 @@ def mark_created_patient_as_index(patient, registry_ids):
 
             if default_context is None:
                 pass
-            
+
             patient.set_form_value("fh",
                                    "ClinicalData",
                                    "fhDateSection",
@@ -104,7 +103,7 @@ def mark_created_patient_as_index(patient, registry_ids):
                                    context_model=default_context)
 
             # form progress/currency wasn't being updated correctly
-            # The following line mimics what happens on a normal form save 
+            # The following line mimics what happens on a normal form save
             patient_wrapper = DynamicDataWrapper(patient, rdrf_context_id=default_context.pk)
             patient_wrapper.save_form_progress(fh.code, default_context)
 
@@ -112,4 +111,3 @@ def mark_created_patient_as_index(patient, registry_ids):
 
         except Exception, ex:
             logger.error("error running hook: %s" % ex)
-            

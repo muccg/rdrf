@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 from .models import PatientConsent
 
+
 def update_session(request):
     key = request.POST["key"]
     value = request.POST["value"]
@@ -14,6 +15,7 @@ def update_session(request):
 
 
 class ConsentFileView(View):
+
     @method_decorator(login_required)
     def get(self, request, consent_id=None, filename=""):
         consent = get_object_or_404(PatientConsent, pk=consent_id)

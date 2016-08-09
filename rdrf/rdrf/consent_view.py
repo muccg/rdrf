@@ -25,7 +25,7 @@ class ConsentList(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code):
-        user_registries = [ reg.code for reg in request.user.get_registries()]
+        user_registries = [reg.code for reg in request.user.get_registries()]
         if not registry_code in user_registries:
             raise PermissionDenied
 
@@ -33,9 +33,10 @@ class ConsentList(View):
 
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
         if request.user.is_superuser:
-            patients = Patient.objects.filter(rdrf_registry__code = registry_code, active=True)
+            patients = Patient.objects.filter(rdrf_registry__code=registry_code, active=True)
         else:
-            patients = Patient.objects.filter(rdrf_registry__code = registry_code, working_groups__in=request.user.working_groups.all(), active=True)
+            patients = Patient.objects.filter(rdrf_registry__code=registry_code,
+                                              working_groups__in=request.user.working_groups.all(), active=True)
 
         patient_list = {}
         for patient in patients:
@@ -48,7 +49,7 @@ class ConsentList(View):
                     questions = ConsentQuestion.objects.filter(section=consent_section)
                     for question in questions:
                         try:
-                            cv = ConsentValue.objects.get(patient=patient, consent_question = question)
+                            cv = ConsentValue.objects.get(patient=patient, consent_question=question)
                             answers.append(cv.answer)
                             if cv.first_save:
                                 first_saves.append(cv.first_save)
@@ -70,9 +71,9 @@ class ConsentList(View):
         context['registry_code'] = registry_code
 
         return render_to_response(
-                self._get_template(),
-                context,
-                context_instance=RequestContext(request))
+            self._get_template(),
+            context,
+            context_instance=RequestContext(request))
 
 
 class PrintConsentList(ConsentList):
@@ -94,12 +95,13 @@ class ConsentDetails(View):
         context = {}
 
         return render_to_response(
-                'rdrf_cdes/consent_details.html',
-                context,
-                context_instance=RequestContext(request))
+            'rdrf_cdes/consent_details.html',
+            context,
+            context_instance=RequestContext(request))
 
     def _get_consent_details_for_patient(self, registry_code, section_id, patient_id):
-        consent_questions = ConsentQuestion.objects.filter(section__id=section_id, section__registry__code=registry_code)
+        consent_questions = ConsentQuestion.objects.filter(
+            section__id=section_id, section__registry__code=registry_code)
 
         values = []
         for consent_question in consent_questions:
@@ -122,6 +124,7 @@ class ConsentDetails(View):
                     "section_id": section_id
                 })
         return values
+
 
 class ConsentDetailsPrint(ConsentDetails):
 
@@ -148,5 +151,5 @@ class ConsentDetailsPrint(ConsentDetails):
             context['self_patient'] = True if parent.self_patient == patient else False
 
         return render_to_response('rdrf_cdes/consent_details_print.html',
-             context,
-             context_instance=RequestContext(request))
+                                  context,
+                                  context_instance=RequestContext(request))

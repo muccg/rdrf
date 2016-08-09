@@ -14,6 +14,7 @@ class ContextBrowserError(Exception):
 
 
 class ContextBrowser(object):
+
     def __init__(self, user, registry_model):
         self.user = user
         self.registry_model = registry_model
@@ -100,18 +101,3 @@ class ContextBrowser(object):
         registry_code = self.registry_model.code
         context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
         return context_menu.html
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

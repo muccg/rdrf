@@ -191,7 +191,7 @@ class ListClinicians(APIView):
 
         def to_dict(c, wg):
             return {
-                'id': "%s_%s" % ( reverse('v1:customuser-detail', args=[c.id,]), reverse('v1:workinggroup-detail', args=[wg.id,]) ),
+                'id': "%s_%s" % (reverse('v1:customuser-detail', args=[c.id, ]), reverse('v1:workinggroup-detail', args=[wg.id, ])),
                 'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
             }
 
@@ -264,7 +264,7 @@ class LookupIndex(APIView):
             return Response([])
 
         query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                 Q(working_groups__in=request.user.working_groups.all(), active=True)
+            Q(working_groups__in=request.user.working_groups.all(), active=True)
 
         def to_dict(patient):
             return {

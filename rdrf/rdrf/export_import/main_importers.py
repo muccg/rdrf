@@ -30,12 +30,13 @@ def zipfile_contents(zipfile):
 
 
 class ZipFileImporter(object):
+
     def __init__(self, zipfile, catalogue=None):
         if catalogue is None:
             catalogue = definitions.Catalogue(
-                    DataGroupImporterCatalogue(),
-                    ModelImporterCatalogue(),
-                    MongoCollectionImporterCatalogue())
+                DataGroupImporterCatalogue(),
+                ModelImporterCatalogue(),
+                MongoCollectionImporterCatalogue())
         self.catalogue = catalogue
         self.zipfile = zipfile
         self.workdir = None
@@ -67,7 +68,7 @@ class ZipFileImporter(object):
         self.requested_type = definitions.EXPORT_TYPES.from_code(requested_import_type)
         if not (self.requested_type is self.file_export_type or self.requested_type in self.file_export_type.includes):
             raise Exception("Invalid import type '%s' requested for file '%s' with type '%s'." %
-                    (requested_import_type, self.zipfile, self.file_export_type.code))
+                            (requested_import_type, self.zipfile, self.file_export_type.code))
 
         if self.requested_type in definitions.EXPORT_TYPES.registry_types:
             return RegistryImporter(self)
@@ -105,6 +106,7 @@ class ZipFileImporter(object):
 
 
 class RegistryLevelChecks(DelegateMixin):
+
     def __init__(self, importer):
         DelegateMixin.__init__(self, delegate_to=importer)
 
@@ -112,7 +114,7 @@ class RegistryLevelChecks(DelegateMixin):
         export_type = get_meta_value(self.meta, 'type')
         if export_type not in definitions.EXPORT_TYPES.registry_types_names:
             raise Exception("Invalid export type '%s' for registry import. Should be one of '%s'."
-                % (export_type, ', '.join(definitions.EXPORT_TYPES.registry_types_names)))
+                            % (export_type, ', '.join(definitions.EXPORT_TYPES.registry_types_names)))
 
     @allow_if_forced
     def check_registry_does_not_exist(self):
@@ -123,6 +125,7 @@ class RegistryLevelChecks(DelegateMixin):
 
 
 class BaseImporter(DelegateMixin):
+
     def __init__(self, zipfile_importer):
         DelegateMixin.__init__(self, delegate_to=zipfile_importer)
 
@@ -137,7 +140,7 @@ class BaseImporter(DelegateMixin):
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
             raise Exception('Schema difference detected between your registry and the export file.'
-                    ' App(s) with different schema: %s' % ', '.join(app_schema_version_different))
+                            ' App(s) with different schema: %s' % ', '.join(app_schema_version_different))
 
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
@@ -162,12 +165,12 @@ class BaseImporter(DelegateMixin):
         also_includes = zipfile_type.includes
         if also_includes:
             logger.debug('(also includes import types: %s)' %
-                    ', '.join(map(lambda t: "'%s' (%s)" % (t.name, t.code), also_includes)))
+                         ', '.join(map(lambda t: "'%s' (%s)" % (t.name, t.code), also_includes)))
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
             logger.warn('WARNING: Schema difference detected between your registry and the export file.'
-                    'App(s): %s', ', '.join(app_schema_version_different))
+                        'App(s): %s', ', '.join(app_schema_version_different))
 
         return logger
 
@@ -178,6 +181,7 @@ class BaseImporter(DelegateMixin):
 
 
 class RegistryImporter(BaseImporter):
+
     def __init__(self, zipfile_importer):
         BaseImporter.__init__(self, zipfile_importer)
         self.checks = RegistryLevelChecks(self)
@@ -211,13 +215,14 @@ class RegistryImporter(BaseImporter):
 
 
 META_FILTERS = {
-        definitions.EXPORT_TYPES.CDES: lambda m: m['name'] == 'CDEs',
-        definitions.EXPORT_TYPES.REFDATA: lambda m: m['name'] == 'Reference Data',
-        definitions.EXPORT_TYPES.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
+    definitions.EXPORT_TYPES.CDES: lambda m: m['name'] == 'CDEs',
+    definitions.EXPORT_TYPES.REFDATA: lambda m: m['name'] == 'Reference Data',
+    definitions.EXPORT_TYPES.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
 }
 
 
 class GenericImporter(BaseImporter):
+
     def do_import(self):
         with transaction.atomic():
             self.import_datagroups(get_meta_value(self.meta, 'data_groups'))

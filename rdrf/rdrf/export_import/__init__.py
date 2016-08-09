@@ -39,4 +39,5 @@ def inspect_zipfile(zipfile):
 
 def import_zipfile(zipfile, import_type=None, verbose=False, indented_logs=True, simulate=False, force=False):
     importer = ZipFileImporter(zipfile)
-    importer.do_import(import_type=import_type, verbose=verbose, indented_logs=indented_logs, simulate=simulate, force=force)
+    importer.do_import(import_type=import_type, verbose=verbose,
+                       indented_logs=indented_logs, simulate=simulate, force=force)

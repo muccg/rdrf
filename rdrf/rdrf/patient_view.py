@@ -139,7 +139,6 @@ class PatientFormMixin(PatientMixin):
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
 
-
     def get_form(self, form_class=None):
         """
         PatientFormMixin.get_form Returns an instance of the form to be used in this view.
@@ -258,7 +257,8 @@ class PatientFormMixin(PatientMixin):
 
         personal_header = _('Patients Personal Details')
         if registry_code == "fkrp":
-            personal_header += "<br><br><i>" + _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
+            personal_header += "<br><br><i>" + \
+                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
 
         personal_details_fields = (personal_header, [
             "family_name",
@@ -585,7 +585,7 @@ class PatientEditView(View):
 
         context = {
             "location": "Demographics",
-            "context_launcher" : context_launcher.html,
+            "context_launcher": context_launcher.html,
             "forms": form_sections,
             "patient": patient,
             "patient_id": patient.id,
@@ -771,11 +771,10 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    #def _get_index_context(self, registry_model, patient_model):
+    # def _get_index_context(self, registry_model, patient_model):
     #    #todo this probabably doesn't apply anymore in fhcontexts branch
     #    if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
     #        return patient_model.my_index.default_context(registry_model)
-
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:

@@ -31,7 +31,7 @@ def nice_name(name):
 
 def percentage(a, b):
     if b > 0:
-        return int(math.floor(100.00 * float(a)/float(b)))
+        return int(math.floor(100.00 * float(a) / float(b)))
     else:
         return 100
 
@@ -48,6 +48,7 @@ def test_value(value):
 
 
 class FormProgress(object):
+
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.progress_data = {}
@@ -57,7 +58,6 @@ class FormProgress(object):
         self.current_patient = None
         self.context_model = None
 
-
     def _get_forms(self):
         if self.context_model is None:
             return self.registry_model.forms
@@ -65,8 +65,6 @@ class FormProgress(object):
             return self.registry_model.forms
         else:
             return self.context_form_group.forms
-
-
 
     def _set_current(self, patient_model):
         if self.current_patient is None:
@@ -131,14 +129,14 @@ class FormProgress(object):
         for form_dict in dynamic_data["forms"]:
             if form_dict["name"] == form_model.name:
                 for section_dict in form_dict["sections"]:
-                        if section_dict["code"] == section_model.code:
-                            values = []
-                            items = section_dict["cdes"]
-                            for item in items:
-                                for cde_dict in item:
-                                    if cde_dict["code"] == cde_model.code:
-                                        values.append(cde_dict["value"])
-                            return values
+                    if section_dict["code"] == section_model.code:
+                        values = []
+                        items = section_dict["cdes"]
+                        for item in items:
+                            for cde_dict in item:
+                                if cde_dict["code"] == cde_model.code:
+                                    values.append(cde_dict["value"])
+                        return values
         return []
 
     def _get_num_items(self, form_model, section_model, dynamic_data):
@@ -305,12 +303,14 @@ class FormProgress(object):
 
                         groups_progress[progress_group]["required"] += form_progress_dict["required"]
                         groups_progress[progress_group]["filled"] += form_progress_dict["filled"]
-                        groups_progress[progress_group]["current"] = groups_progress[progress_group]["current"] or form_currency
-                        groups_progress[progress_group]['has_data'] = groups_progress[progress_group]["has_data"] or form_has_data
+                        groups_progress[progress_group]["current"] = groups_progress[
+                            progress_group]["current"] or form_currency
+                        groups_progress[progress_group]['has_data'] = groups_progress[
+                            progress_group]["has_data"] or form_has_data
 
         for group_name in groups_progress:
             groups_progress[group_name]["percentage"] = percentage(groups_progress[group_name]["filled"],
-                                                                    groups_progress[group_name]["required"])
+                                                                   groups_progress[group_name]["required"])
 
         # now save the metric in form expected by _get_metric
         result = {}
@@ -344,7 +344,7 @@ class FormProgress(object):
         return self.loaded_data
 
     def _get_metric(self, metric, patient_model, context_model=None):
-        self._set_current(patient_model) # if new model passed in this causes progress data reload
+        self._set_current(patient_model)  # if new model passed in this causes progress data reload
         self.context_model = context_model
         # eg _get_metric((SomeFormModel, "progress"), fred, None)
         # or _get_metric("diagnosis_current", fred, context23) etc
@@ -379,7 +379,7 @@ class FormProgress(object):
         return [f for f in form_container_model.forms if not f.is_questionnaire and
                 user.can_view(f)]
 
-        #return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
+        # return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
         #    'position') if not f.is_questionnaire and user.can_view(f)]
 
     def _get_form_container_model(self):
@@ -452,7 +452,7 @@ class FormProgress(object):
         return html
 
     #########################################################################################
-    ### save progress
+    # save progress
     def save_progress(self, patient_model, dynamic_data, context_model=None):
         if not dynamic_data:
             return self.progress_data

@@ -27,11 +27,11 @@ class Notifier(object):
             logger.error(
                 _("Could not create notification for %(from_username)s to %(to_username)s with message %(message)s and link '%(link)s': %(ex)s") %
                 {
-                "from_username": from_user_name,
-                "to_username": to_username,
-                "message": message,
-                "link": link,
-                "ex": ex
+                    "from_username": from_user_name,
+                    "to_username": to_username,
+                    "message": message,
+                    "link": link,
+                    "ex": ex
                 })
             raise NotificationError(_("could not create notification"))
 

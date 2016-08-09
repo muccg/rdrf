@@ -234,7 +234,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
             return query_set.filter(
                 registry__in=[
                     reg for reg in user.registry.all()],
-                )
+            )
 
     process_link.allow_tags = True
     process_link.short_description = _('Process questionnaire')
@@ -396,9 +396,11 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
     groups.short_description = _("Allowed Groups")
 
+
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+
 
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
@@ -426,17 +428,15 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
 
+
 class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
     list_display = ('name', 'registry')
     inlines = [ContextFormGroupItemAdmin]
-    
+
     def registry(obj):
         return obj.registry.name
-    
 
-    
-    
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)

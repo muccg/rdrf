@@ -29,18 +29,19 @@ logger = logging.getLogger("registry_log")
 
 
 class ContextForm(ModelForm):
+
     class Meta:
         model = RDRFContext
         fields = ['display_name']
 
 
 class ContextFormGroupHelperMixin(object):
+
     def get_context_form_group(self, form_group_id):
         if form_group_id is None:
             return None
         else:
             return ContextFormGroup.objects.get(pk=form_group_id)
-
 
     def get_context_name(self, registry_model, context_form_group):
         if not registry_model.has_feature("contexts"):
@@ -59,8 +60,6 @@ class ContextFormGroupHelperMixin(object):
                                                         context_model)
 
         return context_launcher.html
-
-
 
     def get_naming_info(self, form_group_id):
         if form_group_id is not None:
@@ -88,12 +87,12 @@ class ContextFormGroupHelperMixin(object):
                 user_working_groups = set([wg for wg in user.working_groups.all()])
             else:
                 user_working_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
-            
+
             if is_normal_user and not user.in_registry(registry_model):
                 return False
             if context_model.registry.code != registry_model.code:
                 return False
-            if not ( patient_working_groups <= user_working_groups):
+            if not (patient_working_groups <= user_working_groups):
                 return False
             return True
         except Exception, ex:
@@ -112,14 +111,14 @@ class ContextFormGroupHelperMixin(object):
         context_model.registry = registry_model
         context_model.name = "change me"
         context_model.content_object = patient_model
-        context_model.content_type = patient_content_type 
+        context_model.content_type = patient_content_type
         context_model.context_form_group = context_form_group
 
         context_model.save()
         form_link = reverse('registry_form', args=(registry_model.code,
-                                              form_model.id,
-                                              patient_model.pk,
-                                              context_model.id))
+                                                   form_model.id,
+                                                   patient_model.pk,
+                                                   context_model.id))
 
         return HttpResponseRedirect(form_link)
 
@@ -144,8 +143,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
 
         if context_form_group and context_form_group.supports_direct_linking:
             return self.create_context_and_goto_form(registry_model,
-                                             patient_model,
-                                             context_form_group)
+                                                     patient_model,
+                                                     context_form_group)
 
         context = {"location": "Add %s" % context_name,
                    "registry": registry_model.code,
@@ -165,7 +164,6 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
             context,
             context_instance=RequestContext(request))
 
-
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
         form = ContextForm(request.POST)
@@ -175,7 +173,6 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
         context_form_group_model = self.get_context_form_group(context_form_group_id)
         naming_info = self.get_naming_info(context_form_group_id)
         context_name = self.get_context_name(registry_model, context_form_group_model)
-        
 
         if form.is_valid():
             patient_model = Patient.objects.get(id=patient_id)
@@ -187,14 +184,13 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
             context_model.content_object = patient_model
             if context_form_group_model:
                 context_model.context_form_group = context_form_group_model
-                
+
             context_model.save()
             cfg_id = context_form_group_model.pk if context_form_group_model else None
             context_edit = reverse('context_edit', kwargs={"registry_code": registry_model.code,
                                                            "patient_id": patient_model.pk,
                                                            "context_id": context_model.pk})
-            
-                                                           
+
             return HttpResponseRedirect(context_edit)
         else:
             error_messages = get_error_messages([form])
@@ -207,8 +203,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                        "form_links": [],
                        "naming_info": naming_info,
                        "context_launcher": self.get_context_launcher(request.user,
-                                                                 registry_model,
-                                                                 patient_model),
+                                                                     registry_model,
+                                                                     patient_model),
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
@@ -234,7 +230,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             return HttpResponseRedirect("/")
 
         context_form = ContextForm(instance=rdrf_context_model)
-    
+
         patient_model = rdrf_context_model.content_object
         registry_model = rdrf_context_model.registry
         patient_name = patient_model.display_name
@@ -251,7 +247,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                                     rdrf_context_model.object_id,
                                     rdrf_context_model.registry,
                                     rdrf_context_model,
-                                    ) 
+                                    )
 
         context = {"location": "Edit %s" % context_name,
                    "context_id": context_id,
@@ -271,7 +267,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             "rdrf_cdes/rdrf_context.html",
             context,
             context_instance=RequestContext(request))
-
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
@@ -303,12 +298,12 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        'patient_link': PatientLocator(registry_model, patient_model).link,
                        "form_links": form_links,
                        "context_launcher": self.get_context_launcher(request.user,
-                                                                 registry_model,
-                                                                 patient_model),
+                                                                     registry_model,
+                                                                     patient_model),
                        "message": "%s saved successfully" % context_name,
                        "error_messages": [],
                        "registry": registry_model.code,
-                       "naming_info" : naming_info,
+                       "naming_info": naming_info,
                        "patient_id": patient_id,
                        "form": ContextForm(instance=context_model),
                        }
@@ -325,8 +320,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "form_links": [],
                        'patient_link': PatientLocator(registry_model, patient_model).link,
                        "context_launcher": self.get_context_launcher(request.user,
-                                                                 registry_model,
-                                                                 patient_model),
+                                                                     registry_model,
+                                                                     patient_model),
                        "error_messages": error_messages,
                        "naming_info": naming_info,
                        "patient_name": patient_model.display_name,
@@ -336,4 +331,3 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
             "rdrf_cdes/rdrf_context.html",
             context,
             context_instance=RequestContext(request))
-

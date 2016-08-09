@@ -492,7 +492,7 @@ class PatientsListingView(View):
 
     def _get_forms_buttons(self, patient_model):
         buttons = []
-        free_forms = [ form for form in self.registry_model.free_forms if self.user.can_view(form)]
+        free_forms = [form for form in self.registry_model.free_forms if self.user.can_view(form)]
         if free_forms:
             # if there are no context groups -normal registry
             free_forms_button = self._get_forms_button(
@@ -528,7 +528,6 @@ class PatientsListingView(View):
 #                      id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
 #                                                                                             forms_button_component.id,
 #                                                                                             forms_button_component.button_caption)
-
 
         button_html = """
             <div class="dropdown">
@@ -618,7 +617,7 @@ class PatientsListingView(View):
                 if self.sort_direction == "desc":
                     def add_minus(field):
                         return "-" + field if not field.startswith("-") else field
-                    
+
                     sort_fields = map(add_minus, sort_fields)
                     self.patients = self.patients.order_by(*sort_fields)
             else:
