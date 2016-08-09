@@ -319,7 +319,8 @@ class AddressesExpression(GeneralisedFieldExpression):
         #(u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
 
         # delete existing addresses ...
-        from registry.patients.models import PatientAddress, AddressType
+        from registry.patients.models import AddressType
+        from registry.patients.models import PatientAddress
         logger.debug("AddressesExpression - setting new addresses")
         for patient_address in PatientAddress.objects.filter(patient=patient_model):
             logger.debug("deleting existing address")
@@ -589,7 +590,8 @@ class GeneralisedFieldExpressionParser(object):
         Demographics/Address/Postal/State
         Demographics/Address/Postal/Country
         """
-        from registry.patients.models import PatientAddress, AddressType
+        from registry.patients.models import AddressType
+        from registry.patients.models import PatientAddress
         try:
             _, _, address_type, field = address_expression.split("/")
         except ValueError:

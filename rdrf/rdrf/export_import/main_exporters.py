@@ -1,10 +1,9 @@
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from datetime import datetime
 import json
 import logging
 import os
 import shutil
-import sys
 import tempfile
 
 from rdrf.models import Registry

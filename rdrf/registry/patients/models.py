@@ -1,9 +1,7 @@
-import copy
 import json
 import datetime
 import os.path
 
-from django.conf import settings
 from django.core import serializers
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse

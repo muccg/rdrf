@@ -1,7 +1,5 @@
 from selenium import selenium
 import unittest
-import time
-import re
 import string
 import random
 import os

@@ -1,17 +1,18 @@
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.core import urlresolvers
 from django.core.urlresolvers import reverse
-from django.conf import settings
-from django.templatetags.static import static
 import os
 import json
 import datetime
 from rdrf.utils import de_camelcase
-from rdrf.models import Registry, RegistryForm
-from registry.utils import get_static_url, get_working_groups, get_registries
+from rdrf.models import Registry
+from rdrf.models import RegistryForm
+from registry.utils import get_registries
+from registry.utils import get_static_url
+from registry.utils import get_working_groups
 from admin_forms import *
 from models import *
 from rdrf.dynamic_data import DynamicDataWrapper

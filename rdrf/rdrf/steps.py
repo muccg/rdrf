@@ -5,7 +5,8 @@ import string
 from lettuce import step, world
 import lettuce_webdriver.webdriver
 from lettuce_webdriver.webdriver import contains_content
-from lettuce_webdriver.util import assert_true, assert_false
+from lettuce_webdriver.util import assert_false
+from lettuce_webdriver.util import assert_true
 
 from rdrf.models import Registry
 from registry.groups.models import CustomUser

@@ -1,12 +1,10 @@
 from collections import OrderedDict
-from datetime import date
 
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.contrib.auth import logout
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -21,17 +19,27 @@ from form_progress import FormProgress
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from django.contrib.auth.models import Group
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian, ConsentValue
-from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
+from registry.patients.models import ConsentValue
+from registry.patients.models import ParentGuardian
+from registry.patients.models import Patient
+from registry.patients.models import PatientAddress
+from registry.patients.models import PatientConsent
+from registry.patients.models import PatientDoctor
+from registry.patients.models import PatientRelative
+from registry.patients.admin_forms import PatientAddressForm
+from registry.patients.admin_forms import PatientConsentFileForm
+from registry.patients.admin_forms import PatientDoctorForm
+from registry.patients.admin_forms import PatientForm
+from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
-from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.contexts_api import RDRFContextError
+from rdrf.contexts_api import RDRFContextManager
 from rdrf.context_menu import PatientContextMenu
 from rdrf.components import RDRFContextLauncherComponent
 
@@ -104,7 +112,8 @@ class PatientFormMixin(PatientMixin):
         return patient_edit_url
 
     def _get_initial_context(self, registry_code, patient_model):
-        from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+        from rdrf.contexts_api import RDRFContextError
+        from rdrf.contexts_api import RDRFContextManager
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         rdrf_context_manager = RDRFContextManager(registry_model)

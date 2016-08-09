@@ -1014,7 +1014,6 @@ class QuestionnaireResponse(models.Model):
 
     def _get_patient_field(self, patient_field):
         from dynamic_data import DynamicDataWrapper
-        from django.conf import settings
         wrapper = DynamicDataWrapper(self)
 
         if not self.has_mongo_data:

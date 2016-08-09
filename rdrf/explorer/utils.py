@@ -1,4 +1,3 @@
-import re
 import json
 import ast
 
@@ -12,7 +11,8 @@ from models import Query
 
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
-from rdrf.utils import forms_and_sections_containing_cde, get_cached_instance
+from rdrf.utils import forms_and_sections_containing_cde
+from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement

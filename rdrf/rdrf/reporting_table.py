@@ -521,7 +521,10 @@ class MongoFieldSelector(object):
         # the constructed json is independent of db ids ( as these will change
         # is import of registry definition occurs
         import json
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.models import CommonDataElement
+        from rdrf.models import Registry
+        from rdrf.models import RegistryForm
+        from rdrf.models import Section
         projection_data = []
 
         def create_value_dict(checkbox_id):
@@ -551,7 +554,10 @@ class MongoFieldSelector(object):
         return json.dumps(projection_data)
 
     def _get_longitudinal_cdes(self):
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.models import CommonDataElement
+        from rdrf.models import Registry
+        from rdrf.models import RegistryForm
+        from rdrf.models import Section
         d = {}
         for checkbox_id in self.longitudinal_ids:
             _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split(

@@ -5,7 +5,6 @@ from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -14,18 +13,18 @@ from explorer import app_settings
 from forms import QueryForm
 from models import Query
 from utils import DatabaseUtils
-from rdrf.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValue
+from rdrf.models import CDEPermittedValue
+from rdrf.models import CommonDataElement
+from rdrf.models import Registry
+from rdrf.models import RegistryForm
+from rdrf.models import Section
 from registry.groups.models import WorkingGroup
 from rdrf.reporting_table import ReportingTableGenerator
 
 import re
-import csv
-import json
-import urllib2
 from bson.json_util import dumps
 from bson import json_util
 from datetime import datetime
-import collections
 import logging
 from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached

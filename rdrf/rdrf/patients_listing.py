@@ -2,15 +2,13 @@ from operator import itemgetter
 import json
 from django.views.generic.base import View
 from django.template.context_processors import csrf
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.utils.html import escape
-from django.conf import settings
-from django.shortcuts import render_to_response, RequestContext, get_object_or_404
+from django.shortcuts import RequestContext
+from django.shortcuts import render_to_response
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
 from rdrf.models import Registry
@@ -187,7 +185,6 @@ class PatientsListingView(View):
 
         except Registry.DoesNotExist:
             logger.debug("selected registry does not exist")
-            pass
 
     def get_results(self, request):
         if self.registry_model is None:

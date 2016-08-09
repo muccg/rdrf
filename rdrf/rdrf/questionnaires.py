@@ -11,7 +11,8 @@ from dynamic_data import DynamicDataWrapper
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
-from datetime import datetime, date, time
+from datetime import date
+from datetime import datetime
 import pycountry
 
 import logging

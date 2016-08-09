@@ -1,7 +1,6 @@
 import json
 import bson
 from django import template
-from django.utils.html import escapejs
 from django.core.serializers.json import DjangoJSONEncoder
 
 register = template.Library()

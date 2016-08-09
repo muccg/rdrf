@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-from django.contrib.auth import models as authmodels
 
 from registry.genetic import models as genemodels
 from registry.patients import models as patientmodels

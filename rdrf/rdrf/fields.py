@@ -1,6 +1,9 @@
 # Custom Fields
 from itertools import izip_longest
-from django.forms import CharField, ChoiceField, URLField, FileField, Field
+from django.forms import CharField
+from django.forms import ChoiceField
+from django.forms import FileField
+from django.forms import URLField
 from .widgets import MultipleFileInput
 from django.core.exceptions import ValidationError
 

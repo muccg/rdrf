@@ -204,7 +204,8 @@ class RDRFContextLookup(View):
         :param patient_id:
         :return:
         """
-        from rdrf.models import RDRFContext, Registry
+        from rdrf.models import RDRFContext
+        from rdrf.models import Registry
         from registry.patients.models import Patient
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)

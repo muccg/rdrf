@@ -1,8 +1,9 @@
 from django.core.urlresolvers import reverse
-from rdrf.models import RDRFContext, ContextFormGroup, RegistryForm
+from rdrf.models import ContextFormGroup
+from rdrf.models import RDRFContext
+from rdrf.models import RegistryForm
 from django.contrib.contenttypes.models import ContentType
 from rdrf.models import RDRFContext
-from django.db.models import Q
 
 
 class NavigationError(Exception):

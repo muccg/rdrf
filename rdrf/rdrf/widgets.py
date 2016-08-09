@@ -20,7 +20,6 @@ class BadCustomFieldWidget(Textarea):
     """
     Widget to use instead if a custom widget is defined and fails on creation
     """
-    pass
 
 
 class CustomWidgetC18583(Widget):

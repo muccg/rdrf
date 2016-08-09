@@ -1,10 +1,6 @@
 from registry.patients.models import Patient
 from rdrf.models import RDRFContext
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from operator import itemgetter
-from django.core.paginator import Paginator
-from django.core.urlresolvers import reverse
 from rdrf.context_menu import PatientContextMenu
 from . import context_defnitions as definitions
 

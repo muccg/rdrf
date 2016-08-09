@@ -10,7 +10,6 @@ from django.utils.encoding import smart_bytes
 
 import logging
 import re
-import functools
 import os.path
 import subprocess
 
@@ -367,7 +366,6 @@ def get_error_messages(forms):
 
 
 def timed(func):
-    from logging import getLogger
     from datetime import datetime
     logger = logging.getLogger(__name__)
 

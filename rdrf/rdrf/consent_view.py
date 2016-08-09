@@ -1,13 +1,11 @@
 from django.core.serializers.json import DjangoJSONEncoder
 import json
-from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 from django.shortcuts import render_to_response, RequestContext
 from django.http import HttpResponse
-from django.http import HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
 
 from registry.patients.models import ConsentValue

@@ -1,5 +1,3 @@
-from django.http import HttpResponse
-from django.views.generic import TemplateView, ListView
 from django.core.urlresolvers import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View

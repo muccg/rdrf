@@ -296,7 +296,6 @@ class Importer(object):
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
                         logger.info("value does not exist?")
-                        pass
 
                     except Exception as ex:
                         logger.error("err: %s" % ex)

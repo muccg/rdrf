@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.db import models, migrations
-from django.core.management import call_command
+from django.db import migrations
 
 # RDR-1296 introduces the init management command that can be used to load
 # data into new RDRF installations. Therefore, migrations that load data

@@ -3,13 +3,16 @@ import pycountry
 from django import forms
 from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
-from django.forms.utils import ErrorList, ErrorDict
+from django.forms.utils import ErrorDict
 
 from models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.hooking import run_hooks
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect
+from rdrf.widgets import CountryWidget
+from rdrf.widgets import DateWidget
+from rdrf.widgets import ReadOnlySelect
+from rdrf.widgets import StateWidget
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget

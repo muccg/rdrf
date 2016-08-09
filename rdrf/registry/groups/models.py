@@ -2,15 +2,13 @@ import re
 
 from django.core import validators
 
-from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
 
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from django.db.models.signals import post_save
-from django.db import models, transaction
+from django.db import models
 
 from django.dispatch import receiver
 

@@ -1,14 +1,14 @@
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
-from rdrf.utils import mongo_db_name, mongo_key, de_camelcase
+from rdrf.utils import de_camelcase
+from rdrf.utils import mongo_db_name
+from rdrf.utils import mongo_key
 from rdrf.models import RegistryForm
 from rdrf.mongo_client import construct_mongo_client
 
 from registry.patients.models import Patient
 import math
 import logging
-import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +114,6 @@ class FormProgress(object):
 
             except Exception as ex:
                 logger.error("Error getting value for %s %s: %s" % (section_model.code, cde_model.code, ex))
-                pass
 
         if result["required"] > 0:
             result["percentage"] = int(100.00 * (float(result["filled"]) / float(result["required"])))

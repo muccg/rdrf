@@ -1,4 +1,3 @@
-import os
 from rdrf import models
 from registry.patients import models as patientmodels
 from explorer import models as explorermodels

@@ -17,7 +17,8 @@ from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from questionnaires import PatientCreator, PatientCreatorState
+from questionnaires import PatientCreator
+from questionnaires import PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from . import filestorage
 from utils import de_camelcase
@@ -28,17 +29,16 @@ from rdrf.models import RDRFContext
 from rdrf.context_menu import PatientContextMenu
 
 from rdrf.consent_forms import CustomConsentFormGenerator
-from rdrf.utils import get_form_links, consent_status_for_patient
+from rdrf.utils import consent_status_for_patient
+from rdrf.utils import get_form_links
 from rdrf.utils import location_name
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
 from django.shortcuts import redirect
-from django.db.models import Q
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm
-from operator import itemgetter
 from django.utils.translation import ugettext as _
 
 import json
@@ -54,8 +54,6 @@ import logging
 from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
-from django.core.paginator import Paginator, InvalidPage
-from django.contrib.contenttypes.models import ContentType
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.form_progress import FormProgress

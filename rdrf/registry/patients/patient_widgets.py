@@ -1,7 +1,5 @@
 from django.forms import widgets
 import logging
-import hashlib
-import random
 from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)

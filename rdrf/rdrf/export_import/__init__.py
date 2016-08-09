@@ -1,5 +1,3 @@
-import logging
-import sys
 
 from .main_exporters import Exporter, RegistryExporter, RegistryDefExporter
 from .main_importers import ZipFileImporter

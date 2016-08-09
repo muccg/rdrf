@@ -1,4 +1,3 @@
-from django import forms
 from django.shortcuts import render_to_response, RequestContext
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -11,7 +10,6 @@ from django.db import transaction
 
 from rdrf.models import Registry
 from registry.patients.models import Patient, PatientRelative
-from django.contrib import messages
 
 import logging
 

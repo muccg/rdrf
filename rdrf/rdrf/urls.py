@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 from django.conf.urls import patterns, url, include
-from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.views.generic.base import TemplateView
@@ -23,7 +22,8 @@ from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
-from rdrf.trans_view import TranslationView, TranslationViewReload
+from rdrf.trans_view import TranslationView
+from rdrf.trans_view import TranslationViewReload
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import UsernameLookup

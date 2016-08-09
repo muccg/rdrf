@@ -5,7 +5,7 @@ from rdrf.models import Registry
 from rdrf.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 
-from django.db import migrations, models
+from django.db import migrations
 
 
 def forward_func(apps, schema_editor):

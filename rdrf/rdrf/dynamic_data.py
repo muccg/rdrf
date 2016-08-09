@@ -1,10 +1,8 @@
-from copy import deepcopy
 import datetime
 from operator import itemgetter
 from itertools import izip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.conf import settings
 
 from . import filestorage
 from .file_upload import FileUpload, wrap_gridfs_data_for_form
