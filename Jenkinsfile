@@ -7,10 +7,6 @@ node {
     stage 'Checkout'
         checkout scm
 
-    stage 'Lint'
-        sh (script: "./develop.sh prospector", returnStatus: false)
-        step([$class: 'JUnitResultArchiver', testResults: 'prospector.xml'])
-
     stage 'Docker dev build'
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
