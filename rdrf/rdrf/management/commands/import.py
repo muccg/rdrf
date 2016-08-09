@@ -17,6 +17,8 @@ class Command(BaseCommand):
         parser.add_argument('--import-type', choices=self.import_types, help='import type')
 
     def handle(self, **options):
+        from django.conf import settings
+        settings.IMPORT_MODE  = True
         zipfile = options['zipfile']
         verbose = options.get('verbose')
         inspect = options.get('inspect')
@@ -29,3 +31,4 @@ class Command(BaseCommand):
             return
 
         import_zipfile(zipfile, import_type=import_type, verbose=verbose, simulate=simulate, force=force)
+        settings.IMPORT_MODE = False
