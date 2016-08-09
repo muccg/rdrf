@@ -37,6 +37,8 @@ APPEND_SLASH = env.get("append_slash", True)
 
 FORM_SECTION_DELIMITER = "____"
 
+IMPORT_MODE = False
+
 ROOT_URLCONF = 'rdrf.urls'
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

@@ -26,6 +26,9 @@ def _registry_exists_for_hook_module(hook_module_file_name):
 
 
 def run_hooks(hook_name, *args, **kwargs):
+    from django.conf import settings
+    if settings.IMPORT_MODE:
+        return
     import rdrf.hooks as defined_hooks_package
     defined_hooks_package_path = os.path.dirname(defined_hooks_package.__file__)
     hooks_to_run = []
