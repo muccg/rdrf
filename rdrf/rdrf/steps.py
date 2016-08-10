@@ -81,8 +81,6 @@ def load_export(step, export_name):
     # assume export name like <registry_code>.zip for now
     snapshot_name = "snapshot_%s" % export_name
     registry_code = export_name.split(".")[0]
-    mongo_db_name = "prod_%s" % registry_code
-    # create snapshot based on minimal snapshot + import file first time and reload after that
     if not export_name in world.snapshot_dict:
         logger.info("no snapshot exists for %s - creating ..." % export_name)
         logger.info("snapshot name = %s" % snapshot_name)
@@ -95,6 +93,8 @@ def load_export(step, export_name):
         subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
         world.snapshot_dict[export_name] = snapshot_name
     else:
+        clean_models()
+        subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
         subprocess.check_call(["stellar", "restore", snapshot_name])
         subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 

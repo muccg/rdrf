@@ -30,7 +30,7 @@ def set_site_url():
     world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
     logger.info("world.site_url = %s" % world.site_url)
 
-#@before.each_scenario
+@before.each_scenario
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
