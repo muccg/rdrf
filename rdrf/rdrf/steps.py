@@ -34,14 +34,12 @@ def clean_models():
         logger.info("cleaning models in %s" % klass)
         if not is_Patient:
             for obj in klass.objects.all():
-                logger.info("deleting %s" % obj)
                 try:
                     obj.delete()
                 except:
                     logger.info("Could not delete %s" % obj)
         else:
             for obj in klass.objects.all():
-                logger.info("deleting %s" % obj)
                 try:
                     obj.delete()
                     obj.delete()
