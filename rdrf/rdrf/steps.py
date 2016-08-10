@@ -66,8 +66,8 @@ def show_stats(export_name):
 
     for p in Patient.objects.all():
         logger.info("\t\tPatient %s" % p)
-        
-# We started from the step definitions from lettuce_webdriver, but 
+
+# We started from the step definitions from lettuce_webdriver, but
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
 # their step definitons and sometimes they are picked up instead of ours.
@@ -94,16 +94,16 @@ def load_export(step, export_name):
         subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
         subprocess.call(["stellar", "remove", snapshot_name])
         subprocess.check_call(["stellar", "snapshot", snapshot_name])
-        subprocess.check_call(["mongodump", "--host", "mongo","--db", mongo_db_name])
+        subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
         world.snapshot_dict[export_name] = snapshot_name
     else:
         subprocess.check_call(["stellar", "restore", snapshot_name])
-        subprocess.check_call(["mongorestore", "--host", "mongo", "--db",mongo_db_name])
+        subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
     # DB reconnect
     db.connection.close()
     show_stats(export_name)
-        
+
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):
@@ -233,7 +233,7 @@ def the_page_header_should_be(step, header):
 @step('I am logged in as (.*)')
 def login_as_role(step, role):
     # Could map from role to user later if required
-    
+
     world.user = role #?
     logger.debug("about to login as %s registry %s" % (world.user, world.registry))
     go_to_registry(step, world.registry)
