@@ -174,6 +174,26 @@ def location_is(step, location_name):
     world.browser.find_element_by_xpath('//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
+@step(u'When I click Module "(.*)" for patient "(.*)" on patientlisting')
+def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
+    # module_name is "Main/Clinical Form" if we indicate context group  or "FormName" is just Modules list ( no groups)
+    if "/" in module_name:
+        button_caption, form_name = module_name.split("/")
+    else:
+        button_caption, form_name = "Modules", module_name
+
+    patients_table = world.browser.find_element_by_id("patients_table")
+    
+    patient_row = patients_table.find_element_by_xpath("//tr[td[1]//text()[contains(., '%s')]]" % patient_name)
+    
+    form_group_button = patient_row.find_element_by_xpath('//button[contains(., "%s")]' % button_caption)
+    
+    form_group_button.click()
+    form_link = form_group_button.find_element_by_xpath("..").find_element_by_partial_link_text(form_name)
+    form_link.click()
+
+
+
 @step(u'press the navigate back button')
 def press_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
