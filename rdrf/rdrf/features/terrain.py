@@ -23,6 +23,7 @@ def setup():
 def setup_snapshot_dict():
     world.snapshot_dict = {}
     logger.info("set snapshot_dict to %s" % world.snapshot_dict)
+    steps.save_minimal_snapshot()
     
 
 @before.all

@@ -38,17 +38,28 @@ def save_snapshot(snapshot_name, export_name):
     world.snapshot_dict[export_name] = snapshot_name
 
 
+def save_minimal_snapshot():
+    # delete everything so we can import clean later
+    drop_all_mongo()
+    clean_models()
+    save_snapshot("minimal", "minimal")
+
+def restore_minimal_snapshot():
+    if have_snapshot("minimal"):
+        restore_snapshot("minimal")
+    else:
+        save_minimal_snapshot()
+        restore_snapshot("minimal")
+
+
 def restore_snapshot(snapshot_name):
     logger.info("Restoring snapshot: {0}".format(snapshot_name))
     subprocess.check_call(["stellar", "restore", snapshot_name])
-    drop_all_mongo()
     subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
-    drop_all_mongo()
-    clean_models()
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
 
 
@@ -103,6 +114,7 @@ def load_export(step, export_name):
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
     """
+    restore_minimal_snapshot() # start with blank slate
     snapshot_name = "snapshot_%s" % export_name
 
     if have_snapshot(export_name):
