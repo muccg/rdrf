@@ -171,9 +171,33 @@ def click_sidebar_group_item(step, item_name, group_name):
     form_link.click()
     
 
-@step(u'I enter "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
+@step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
-    pass
+    #And I enter "02-08-2016" for  section "" cde "Consent date"
+    location_is(step, form) # sanity check
+    form_block = world.browser.find_element_by_id("main-form")
+    section_headings = [sh for sh in form_block.find_elements_by_xpath("//div[@class='panel-heading']")]
+    section_block = None
+    section_name = "<strong>%s</strong>" % section
+    for sh in section_headings:
+            if section_name in sh.get_attribute('innerHTML'):
+                section_block = sh.find_element_by_xpath("..")
+                break
+
+    if section_block is None:
+        raise Exception("Couldn't find section [%s] on form %s" % (section, form))
+    
+    cde_label_expression = '//label[contains(., "%s")]' % cde
+    
+    
+    for cde_block in section_block.find_elements_by_xpath("/div[@class='rdrf-cde-field']"):
+        if cde_block.find_element_by_xpath(cde_label_expression):
+            cde_input_field = cde_block.find_element_by_xpath("//input")
+            cde_input_field.send_keys(cde_value)
+            return
+
+    raise Exception("could not find cde %s in form %s section [%s]" % (cde, form, section))
+
 
 @step(u'location is "(.*)"')
 def location_is(step, location_name):
