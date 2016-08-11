@@ -20,6 +20,38 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+
+def drop_all_mongo():
+    logger.info("Dropping all mongo databases")
+    subprocess.check_call(["mongo", "--verbose", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+
+
+def have_snapshot(export_name):
+    return (export_name in world.snapshot_dict)
+
+
+def save_snapshot(snapshot_name, export_name):
+    logger.info("Saving snapshot: {0}".format(snapshot_name))
+    subprocess.call(["stellar", "remove", snapshot_name])
+    subprocess.check_call(["stellar", "snapshot", snapshot_name])
+    subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    world.snapshot_dict[export_name] = snapshot_name
+
+
+def restore_snapshot(snapshot_name):
+    logger.info("Restoring snapshot: {0}".format(snapshot_name))
+    subprocess.check_call(["stellar", "restore", snapshot_name])
+    drop_all_mongo()
+    subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+
+
+def import_registry(export_name):
+    logger.info("Importing registry: {0}".format(export_name))
+    drop_all_mongo()
+    clean_models()
+    subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+
+
 def clean_models():
     # import refuses to blat existing models to this is an attempt to delete everything pre-import
     from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
@@ -32,25 +64,17 @@ def clean_models():
 
     def clean(klass, is_Patient=False):
         logger.info("cleaning models in %s" % klass)
-        if not is_Patient:
-            for obj in klass.objects.all():
-                try:
-                    obj.delete()
-                except:
-                    logger.info("Could not delete %s" % obj)
-        else:
-            for obj in klass.objects.all():
-                try:
-                    obj.delete()
-                    obj.delete()
-                except:
-                    logger.info("could not delete patient %s" % obj)
+        klass.objects.all().delete()
+        if is_Patient:
+            # "hard" delete
+            klass.objects.all().delete()
 
     for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
                   ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group, CustomUser]:
         clean(klass)
 
     clean(Patient, is_Patient=True)
+
 
 def show_stats(export_name):
     """
@@ -65,6 +89,7 @@ def show_stats(export_name):
     for p in Patient.objects.all():
         logger.info("\t\tPatient %s" % p)
 
+
 # We started from the step definitions from lettuce_webdriver, but
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
@@ -78,25 +103,13 @@ def load_export(step, export_name):
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
     """
-    # assume export name like <registry_code>.zip for now
     snapshot_name = "snapshot_%s" % export_name
-    registry_code = export_name.split(".")[0]
-    if not export_name in world.snapshot_dict:
-        logger.info("no snapshot exists for %s - creating ..." % export_name)
-        logger.info("snapshot name = %s" % snapshot_name)
-        logger.info("clearing data before import ..")
-        clean_models()
-        subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
-        subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-        subprocess.call(["stellar", "remove", snapshot_name])
-        subprocess.check_call(["stellar", "snapshot", snapshot_name])
-        subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
-        world.snapshot_dict[export_name] = snapshot_name
+
+    if have_snapshot(export_name):
+        restore_snapshot(snapshot_name)
     else:
-        clean_models()
-        subprocess.check_call(["mongo", "--host", "mongo", "/app/lettuce_dropall.js"])
-        subprocess.check_call(["stellar", "restore", snapshot_name])
-        subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+        import_registry(export_name)
+        save_snapshot(snapshot_name, export_name)
 
     # DB reconnect
     db.connection.close()
