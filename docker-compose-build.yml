@@ -5,6 +5,8 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile-base
+    args:
+      http_proxy:
     image: muccg/rdrf-base
 
   build:
