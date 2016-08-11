@@ -58,12 +58,3 @@ def accept_alerts(step):
         Alert(world.browser).accept()
     except:
         pass
-
-
-@before.each_step
-def check_patients(step):
-    from registry.patients.models import Patient
-    num_patients = Patient.objects.count()
-    logger.debug("There are %s patients pre-step %s" % (num_patients,
-                                                        step))
-    
