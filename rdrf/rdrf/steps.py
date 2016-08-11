@@ -161,9 +161,15 @@ def click_patient_listing(step, patient_name):
     link = world.browser.find_element_by_partial_link_text(patient_name)
     link.click()
 
-@step(u'I click "(.*)" in "(.*)" group in sidebar')
+@step(u'I click on "(.*)" in "(.*)" group in sidebar')
 def click_sidebar_group_item(step, item_name, group_name):
-    pass
+    # E.g. And I click "Clinical Data" in "Main" group in sidebar
+    wrap = world.browser.find_element_by_id("wrap")
+    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
+    form_link = form_group_panel.find_element_by_partial_link_text(item_name)
+    form_link.click()
+    
 
 @step(u'I enter "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
