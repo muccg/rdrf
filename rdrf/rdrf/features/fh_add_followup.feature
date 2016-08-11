@@ -4,6 +4,7 @@ Feature: Follow Up forms.
   
   Background:
     Given export "fh.zip"
+    Given a registry named "FH Registry"
     
   Scenario: Navigate to Follow Up Form
     When I am logged in as curator

@@ -131,6 +131,22 @@ def press_button(step, button_text):
     button.click()
 
 
+@step(u'I click "(.*)" on patientlisting')
+def click_patient_listing(step, patient_name):
+    link = world.browser.find_element_by_partial_link_text(patient_name)
+    link.click()
+
+@step(u'I click "(.*)" in "(.*)" group in sidebar')
+def click_sidebar_group_item(step, item_name, group_name):
+    pass
+
+@step(u'I enter "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
+def enter_cde_on_form(step, cde_value, form, section, cde):
+    pass
+
+
+
+
 @step(u'press the navigate back button')
 def press_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
@@ -314,6 +330,10 @@ def refresh_page(step):
 def accept_alert(step):
     Alert(world.browser).accept()
 
+@step(u'When I click "(.*)" in sidebar')
+def sidebar_click(step, sidebar_link_text):
+    world.browser.find_element_by_link_text(sidebar_link_text).click()
+    
 
 def get_site_url(app_name, default_url):
     return os.environ.get('RDRF_URL', default_url).rstrip('/')

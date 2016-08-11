@@ -4,15 +4,16 @@ Feature: Follow Up forms.
   
   Background:
     Given site has loaded export "fh.zip"
+    Given a registry named "FH Registry"
     
   Scenario: Navigate to Follow Up Form
-    Given I login as curator
+    When I am logged in as curator
     When I click "SMITH, John" on patientlisting
     When I click "Add" in "Follow Ups" group in sidebar
     Then location is "Follow Up"
 
   Scenario: Save Follow Up
-    Given I login as curator
+    When I am logged in as curator
     When I click "SMITH, John" on  patientlisting
     And I click "Add" in "Follow Ups" group in sidebar 
     And I enter "02-08-2016" for form FollowUp section FHFollowUp cde DateOfAssessment
@@ -20,7 +21,7 @@ Feature: Follow Up forms.
     Then location is "Follow Up/02-08-2016"
 
   Scenario: Cancel Follow Up
-    Given I login as curator
+    When I am logged in as curator
     When I click "SMITH, John" on  patientlisting
     And I click "Add" in "Follow Ups" group in sidebar 
     And I enter "01-08-2016" for form FollowUp section FHFollowUp cde DateOfAssessment
@@ -29,7 +30,7 @@ Feature: Follow Up forms.
     Then location is "Follow Up"
     
   Scenario: Add Two Follow Ups
-    Given I login as curator
+    When I am logged in as curator
     When I click "SMITH, John" on  patientlisting
     And I click "Add" in "Follow Ups" group in sidebar 
     And I enter "01-08-2016" for form FollowUp section FHFollowUp cde DateOfAssessment
