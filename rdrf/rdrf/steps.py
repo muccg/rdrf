@@ -169,7 +169,9 @@ def click_sidebar_group_item(step, item_name, group_name):
 def enter_cde_on_form(step, cde_value, form, section, cde):
     pass
 
-
+@step(u'location is "(.*)"')
+def location_is(step, location_name):
+    world.browser.find_element_by_xpath('//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
 @step(u'press the navigate back button')
