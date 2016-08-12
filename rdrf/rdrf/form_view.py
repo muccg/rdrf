@@ -2180,7 +2180,7 @@ class CustomConsentFormView(View):
 
         consent_sections = custom_consent_form.get_consent_sections()
 
-        patient_section_consent_file = ("Upload Consent File", None)
+        patient_section_consent_file = ("Upload consent file (if requested)", None)
 
         # form_sections = [
         #     (
@@ -2257,7 +2257,7 @@ class CustomConsentFormView(View):
                                                                   request.FILES,
                                                                   instance=patient_model,
                                                                   prefix="patient_consent_file")
-        patient_section_consent_file = ("Upload Consent File", None)
+        patient_section_consent_file = ("Upload consent file (if requested)", None)
 
         custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
