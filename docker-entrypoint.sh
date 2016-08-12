@@ -207,7 +207,7 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    exec django-admin.py test -v 3 rdrf
+    exec django-admin.py test --noinput -v 3 rdrf
 fi
 
 # lettuce entrypoint
