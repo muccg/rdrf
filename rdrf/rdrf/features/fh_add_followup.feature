@@ -16,7 +16,7 @@ Feature: Follow Up forms.
     When I am logged in as curator
     When I click "SMITH, John" on  patientlisting
     And I click "Add" in "Follow Ups" group in sidebar 
-    And I enter "02-08-2016" for form FollowUp section FHFollowUp cde DateOfAssessment
+    And I enter "02-08-2016" for form "Follow Up" section " " cde "Date Of Assessment"
     And I click Save
     Then location is "Follow Up/02-08-2016"
 
