@@ -30,8 +30,6 @@ COPY rdrf/dev-requirements.txt /app/rdrf/
 RUN NO_PROXY=${PIP_TRUSTED_HOST} pip install --upgrade -r rdrf/dev-requirements.txt
 COPY rdrf/test-requirements.txt /app/rdrf/
 RUN NO_PROXY=${PIP_TRUSTED_HOST} pip install --upgrade -r rdrf/test-requirements.txt
-COPY rdrf/runtime-requirements.txt /app/rdrf/
-RUN NO_PROXY=${PIP_TRUSTED_HOST} pip install --upgrade -r rdrf/runtime-requirements.txt
 
 # Copy code and install the app
 COPY . /app

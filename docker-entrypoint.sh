@@ -133,9 +133,7 @@ if [ "$1" = 'releasetarball' ]; then
     git clone --depth=1 --branch=${GIT_TAG} ${PROJECT_SOURCE} .
     git ls-remote ${PROJECT_SOURCE} ${GIT_TAG} > .version
 
-    # install python deps
     # Note: Environment vars are used to control the behaviour of pip (use local devpi for instance)
-    pip install --upgrade -r rdrf/runtime-requirements.txt
     pip install -e rdrf
     set +x
 
