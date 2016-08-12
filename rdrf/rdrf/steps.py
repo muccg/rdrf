@@ -175,32 +175,35 @@ def click_sidebar_group_item(step, item_name, group_name):
 def enter_cde_on_form(step, cde_value, form, section, cde):
     #And I enter "02-08-2016" for  section "" cde "Consent date"
     location_is(step, form) # sanity check
+    
     form_block = world.browser.find_element_by_id("main-form")
-    section_headings = [sh for sh in form_block.find_elements_by_xpath("//div[@class='panel-heading']")]
-    section_block = None
-    section_name = "<strong>%s</strong>" % section
-    for sh in section_headings:
-            if section_name in sh.get_attribute('innerHTML'):
-                section_block = sh.find_element_by_xpath("..")
-                break
+    section_div_heading  = form_block.find_element_by_xpath(".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+    
+    label_expression = ".//label[contains(., '%s')]" % cde
 
-    if section_block is None:
-        raise Exception("Couldn't find section [%s] on form %s" % (section, form))
-    
-    cde_label_expression = '//label[contains(., "%s")]' % cde
-    
-    
-    for cde_block in section_block.find_elements_by_xpath("//div[@class='rdrf-cde-field']"):
-        html = cde_block.get_attribute("innerHTML")
-        logger.debug("cde block:\n %s" % html)
-        
-        if cde_block.find_element_by_xpath(cde_label_expression):
-            cde_input_field = cde_block.find_element_by_xpath("//input")
-            cde_input_field.send_keys(cde_value)
+    for label_element in section_div.find_elements_by_xpath(label_expression):
+        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        try:
+            input_element = input_div.find_element_by_xpath(".//input")
+            input_element.send_keys(cde_value)
             return
+        except:
+            pass
+        
+    raise Exception("could not find cde %s" % cde)
 
-    raise Exception("could not find cde %s in form %s section [%s]" % (cde, form, section))
+@step(u'And I click Save')
+def click_save_button(step):
+    save_button = world.browser.find_element_by_id("submit-btn")
+    save_button.click()
 
+
+@step(u'error message is "(.*)"')
+def error_message_is(step, error_message):
+    #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
+    world.browser.find_element_by_xpath('//div[@class="alert"]/text()[contains(. "%s")' % error_message)
+    
 
 @step(u'location is "(.*)"')
 def location_is(step, location_name):

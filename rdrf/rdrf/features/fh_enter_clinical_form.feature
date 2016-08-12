@@ -19,6 +19,6 @@ Feature: Enter clinical form.
   Scenario: Invalid Clinical Form doesn't Save
     When I am logged in as curator
     When I click Module "Main/Clinical Data" for patient "SMITH, John" on patientlisting
-    When I enter value "02-08-2016" for form "Clinical Data" section " " cde "Consent date"
+    When I enter value "88" for form "Clinical Data" section "Clinical History" cde "Age at first MI"
     And I click Save
     Then error message is "Patient John SMITH not saved due to validation errors"
