@@ -190,7 +190,10 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     cde_label_expression = '//label[contains(., "%s")]' % cde
     
     
-    for cde_block in section_block.find_elements_by_xpath("/div[@class='rdrf-cde-field']"):
+    for cde_block in section_block.find_elements_by_xpath("//div[@class='rdrf-cde-field']"):
+        html = cde_block.get_attribute("innerHTML")
+        logger.debug("cde block:\n %s" % html)
+        
         if cde_block.find_element_by_xpath(cde_label_expression):
             cde_input_field = cde_block.find_element_by_xpath("//input")
             cde_input_field.send_keys(cde_value)
