@@ -25,6 +25,55 @@ def drop_all_mongo():
     logger.info("Dropping all mongo databases")
     subprocess.check_call(["mongo", "--verbose", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
 
+def reset_database_connection():
+    from django import db
+    db.connection.close()
+
+
+def reset_sequences_after_import():
+    import os
+    from django.core.exceptions import ImproperlyConfigured
+    os.environ['DJANGO_COLORS'] = 'nocolor'
+    from django.core.management import call_command
+    from django.conf import settings
+    from django.db import connection
+    from django.db.models.loading import get_app
+    from django.db.utils import OperationalError
+    from StringIO import StringIO
+    from rdrf.models import Registry
+
+    app_commands = []
+
+    for app in settings.INSTALLED_APPS:
+        command = StringIO()
+        logger.info("resetting sequences in app %s ... "  % app)
+        label = app.split('.')[-1]
+        logger.info("label = %s" % label)
+        try:
+            if get_app(label):
+                logger.info("get_app succeeded - calling command to dump sql")
+                call_command('sqlsequencereset', label, stdout=command)
+                sql_for_app = command.getvalue()
+                app_commands.append((label, sql_for_app))
+                
+        except ImproperlyConfigured, ic:
+            logger.error("Could not get app for label %s: %s co sql generated" % (label, ic))
+
+    for label, sql in app_commands:
+        if not sql:
+            logger.info("sql for app %s is empty - skipping" % label)
+            continue
+        # force reconnection - we were getting OperationalErrors saying connection closed???
+        reset_database_connection()
+        cursor = connection.cursor()
+        try:
+            logger.info("Executing sequence reset for app %s" % label)
+            cursor.execute(sql)
+            logger.info("successfully reset sequences")
+        except OperationalError, oe:
+            logger.error("could not reset sequences: %s" % oe)
+            
+            
 
 def have_snapshot(export_name):
     return (export_name in world.snapshot_dict)
@@ -61,6 +110,7 @@ def restore_snapshot(snapshot_name):
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+    
 
 
 def clean_models():
@@ -123,8 +173,10 @@ def load_export(step, export_name):
         import_registry(export_name)
         save_snapshot(snapshot_name, export_name)
 
+    reset_sequences_after_import()
+
     # DB reconnect
-    db.connection.close()
+    #db.connection.close()
     show_stats(export_name)
 
 
@@ -419,5 +471,30 @@ def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
     
 
+@step(u'I click Cancel')
+def click_cancel(step):
+    link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(text(), "Cancel")]')
+    link.click()
+
 def get_site_url(app_name, default_url):
     return os.environ.get('RDRF_URL', default_url).rstrip('/')
+
+
+#@step(u'And I enter "([^"]*)" for form "([^"]*)" section "([^"]*)" cde "([^"]*)"')
+#lettucehost_1   | def and_i_enter_group1_for_form_group2_section_group3_cde_group4(step, group1, group2, group3, group4):
+#lettucehost_1   |     assert False, 'This step must be implemented'
+#lettucehost_1   | @step(u'And I enter "([^"]*)" for form FollowUp section FHFollowUp cde DateOfAssessment')
+#lettucehost_1   | def and_i_enter_group1_for_form_followup_section_fhfollowup_cde_dateofassessment(step, group1):
+#lettucehost_1   |     assert False, 'This step must be implemented'
+#lettucehost_1   | @step(u'And I click Cancel')
+#lettucehost_1   | def and_i_click_cancel(step):
+#lettucehost_1   |     assert False, 'This step must be implemented'
+#lettucehost_1   | @step(u'And I click Leave')
+#lettucehost_1   | def and_i_click_leave(step):
+#lettucehost_1   |     assert False, 'This step must be implemented'
+
+
+
+
+    
+
