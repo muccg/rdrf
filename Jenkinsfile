@@ -11,6 +11,7 @@ node {
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+            sh './develop.sh docker_warm_cache'
             sh './develop.sh dev_build'
         }
 

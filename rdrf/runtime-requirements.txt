@@ -1,4 +1,4 @@
-Django==1.8.12
+Django==1.8.14
 pymongo==2.9.3
 pyyaml
 django-extensions>=0.7.1
@@ -7,10 +7,8 @@ pyparsing==1.5.7
 wsgiref==0.1.2
 python-memcached==1.58
 django-messages-ui==0.2.7
-django-nose
 django-templatetag-handlebars==1.2.0
 django-ajax-selects
-nose
 sphinxcontrib-httpdomain==1.4.0
 setuptools_scm==1.10.1
 hgtools==6.5.1
