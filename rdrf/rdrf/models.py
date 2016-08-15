@@ -781,7 +781,7 @@ class CommonDataElement(models.Model):
                                                                                                              self.name))
 
         if " " in self.code:
-            raise Exception("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
+            raise ValidationError("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
 
         # check javascript calculation for naughty code
         if self.calculation.strip():
