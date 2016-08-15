@@ -60,6 +60,7 @@ from rdrf.form_progress import FormProgress
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from . import context_definitions as definitions
+from rdrf.questionnaires import PatientCreatorError
 
 
 logger = logging.getLogger(__name__)
