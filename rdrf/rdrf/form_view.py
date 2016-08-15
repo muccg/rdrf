@@ -263,7 +263,12 @@ class FormView(View):
         self.user = request.user
         self.form_id = form_id
         self.patient_id = patient_id
-        patient_model = Patient.objects.get(pk=patient_id)
+
+        try:
+            patient_model = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404
+
         self.registry = self._get_registry(registry_code)
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
