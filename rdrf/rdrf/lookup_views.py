@@ -257,6 +257,7 @@ class RDRFContextLookup(View):
         error_packet_json = json.dumps(error_packet)
         return HttpResponse(error_packet_json, status=200, content_type="application/json")
 
+    # FIXME: spurious reference to context_exception in success_packet
     def _create_success_packet(self, active_context_id):
         success_packet = {"error": context_exception.message}
         success_packet_json = json.dumps(success_packet)
