@@ -1831,7 +1831,7 @@ class AdjudicationResultsView(View):
         try:
             adj_def = AdjudicationDefinition.objects.get(pk=adjudication_definition_id)
         except AdjudicationDefinition.DoesNotExist:
-            return Http404_(("Adjudication definition not found"))
+            return Http404(_("Adjudication definition not found"))
 
         adjudicating_username = adj_def.adjudicator_username
 
