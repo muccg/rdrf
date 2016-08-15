@@ -1146,7 +1146,6 @@ class Questionnaire(object):
         # begin transaction ... etc
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
-        before_update = transaction.savepoint()
         errors = []
 
         logger.info("starting updating patient %s (%s) from questionnaire data" % (
