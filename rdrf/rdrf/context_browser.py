@@ -1,5 +1,3 @@
-from registry.patients.models import Patient
-from rdrf.models import RDRFContext
 from operator import itemgetter
 from rdrf.context_menu import PatientContextMenu
 from . import context_defnitions as definitions
@@ -71,7 +69,6 @@ class ContextBrowser(object):
         row = {}
         for column in self.columns:
             field = column["data"]
-            label = column["label"]
             model = column["model"]
             if model == "Patient":
                 if hasattr(patient_model, field):
@@ -94,6 +91,5 @@ class ContextBrowser(object):
         return row
 
     def get_context_menu(self, patient_model, context_model):
-        registry_code = self.registry_model.code
         context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
         return context_menu.html
