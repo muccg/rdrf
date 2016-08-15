@@ -14,11 +14,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='commondataelement',
             name='max_value',
-            field=models.DecimalField(help_text=b'Only used for numeric fields', null=True, max_digits=10, decimal_places=2, blank=True),
+            field=models.DecimalField(help_text=b'Only used for numeric fields', null=True,
+                                      max_digits=10, decimal_places=2, blank=True),
         ),
         migrations.AlterField(
             model_name='commondataelement',
             name='min_value',
-            field=models.DecimalField(help_text=b'Only used for numeric fields', null=True, max_digits=10, decimal_places=2, blank=True),
+            field=models.DecimalField(help_text=b'Only used for numeric fields', null=True,
+                                      max_digits=10, decimal_places=2, blank=True),
         ),
     ]

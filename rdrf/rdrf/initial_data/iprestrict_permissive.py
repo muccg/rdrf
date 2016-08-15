@@ -12,10 +12,10 @@ def allow_all():
 
     Rule.objects.all().delete()
     Rule.objects.create(
-            ip_group=all_group,
-            action='A',
-            url_pattern='ALL',
-            rank=65536)
+        ip_group=all_group,
+        action='A',
+        url_pattern='ALL',
+        rank=65536)
 
 
 def get_or_create_all_group():

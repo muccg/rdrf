@@ -1,7 +1,5 @@
 from django.forms import widgets
 import logging
-import hashlib
-import random
 from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
@@ -39,4 +37,3 @@ class PatientRelativeLinkWidget(widgets.Widget):
         patient_model = Patient.objects.get(pk=int(patient_id))
         registry_model = Registry.objects.get(code=reg_code)
         return patient_model.default_context(registry_model)
-

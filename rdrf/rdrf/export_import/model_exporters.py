@@ -1,4 +1,3 @@
-import os
 from rdrf import models
 from registry.patients import models as patientmodels
 from explorer import models as explorermodels
@@ -8,12 +7,14 @@ from .exporters import ModelExporter
 
 
 class ModelExporterFilteredByRegistry(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(registry__code=self.exporter_context['registry_code'])
 
 
 class ModelExporterFilteredByPatient(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(patient__rdrf_registry__code=self.exporter_context['registry_code'])
@@ -27,12 +28,14 @@ registry_catalogue = ModelExporterCatalogue()
 
 
 class RegistryExporter(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(code=self.exporter_context['registry_code'])
 
 
 class SectionExporter(ModelExporter):
+
     @staticmethod
     def get_sections(registry_code):
         registry = models.Registry.objects.get(code=registry_code)
@@ -53,6 +56,7 @@ class SectionExporter(ModelExporter):
 
 
 class CommonDataElementExporter(ModelExporter):
+
     @property
     def queryset(self):
         sections = SectionExporter.get_sections(self.exporter_context['registry_code'])
@@ -62,18 +66,21 @@ class CommonDataElementExporter(ModelExporter):
 
 
 class ConsentQuestionExporter(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(section__registry__code=self.exporter_context['registry_code'])
 
 
 class EmailNotificationHistoryExporter(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(email_notification__registry__code=self.exporter_context['registry_code'])
 
 
 class PatientExporter(ModelExporter):
+
     @property
     def queryset(self):
         return self.model.objects.filter(rdrf_registry__code=self.exporter_context['registry_code'])

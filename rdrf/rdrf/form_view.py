@@ -17,7 +17,8 @@ from registry.patients.models import Patient, ParentGuardian
 from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from questionnaires import PatientCreator, PatientCreatorState
+from questionnaires import PatientCreator
+from questionnaires import PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from . import filestorage
 from utils import de_camelcase
@@ -28,17 +29,16 @@ from rdrf.models import RDRFContext
 from rdrf.context_menu import PatientContextMenu
 
 from rdrf.consent_forms import CustomConsentFormGenerator
-from rdrf.utils import get_form_links, consent_status_for_patient
+from rdrf.utils import consent_status_for_patient
+from rdrf.utils import get_form_links
 from rdrf.utils import location_name
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
 from django.shortcuts import redirect
-from django.db.models import Q
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm
-from operator import itemgetter
 from django.utils.translation import ugettext as _
 
 import json
@@ -54,8 +54,6 @@ import logging
 from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
-from django.core.paginator import Paginator, InvalidPage
-from django.contrib.contenttypes.models import ContentType
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.form_progress import FormProgress
@@ -125,12 +123,12 @@ class CustomConsentHelper(object):
         self.custom_consent_data = dynamic_data.get("custom_consent_data", None)
 
 
-
 class SectionInfo(object):
     """
     Info to store a section.
     Used so we save everything after all sections have validated.
     """
+
     def __init__(self, patient_wrapper, is_multiple, registry_code, collection_name, data, index_map=None):
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
@@ -148,6 +146,7 @@ class SectionInfo(object):
                                                    self.data,
                                                    multisection=True,
                                                    index_map=self.index_map)
+
 
 class FormView(View):
 
@@ -192,7 +191,7 @@ class FormView(View):
                 else:
                     self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
             else:
-                    self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
+                self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
 
             if self.rdrf_context is None:
                 raise RDRFContextSwitchError
@@ -200,14 +199,13 @@ class FormView(View):
                 logger.debug("switched context for patient %s to context %s" % (patient_model,
                                                                                 self.rdrf_context.id))
 
-        except RDRFContextError, ex:
+        except RDRFContextError as ex:
             logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
                                                                                         patient_model,
                                                                                         self.registry,
                                                                                         ex))
 
             raise RDRFContextSwitchError
-
 
     def _enable_context_creation_after_save(self,
                                             request,
@@ -223,7 +221,7 @@ class FormView(View):
 
         if not registry_model.has_feature("contexts"):
             raise Http404
-        
+
         if not patient_model.in_registry(registry_model.code):
             raise Http404
 
@@ -242,22 +240,21 @@ class FormView(View):
             raise Http404
 
         self.create_mode_config = {
-            "form_group" : form_group,
+            "form_group": form_group,
         }
 
         self.CREATE_MODE = True
 
-
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
-        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+        self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         if context_id == 'add':
             self._enable_context_creation_after_save(request,
                                                      registry_code,
                                                      form_id,
                                                      patient_id)
-                                                     
+
         if request.user.is_working_group_staff:
             raise PermissionDenied()
         self.user = request.user
@@ -289,15 +286,14 @@ class FormView(View):
         else:
             rdrf_context_id = "add"
             self.dynamic_data = None
-            
 
         self.registry_form = self.get_registry_form(form_id)
 
         context_launcher = RDRFContextLauncherComponent(request.user,
-                                                            self.registry,
-                                                            patient_model,
-                                                            self.registry_form.name,
-                                                            self.rdrf_context)
+                                                        self.registry,
+                                                        patient_model,
+                                                        self.registry_form.name,
+                                                        self.rdrf_context)
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
@@ -308,7 +304,6 @@ class FormView(View):
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
-            
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -346,8 +341,8 @@ class FormView(View):
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         all_errors = []
-        
-        self.CREATE_MODE = False # Normal edit view; False means Create View and context saved AFTER validity check
+
+        self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
         all_sections_valid = True
         if context_id == 'add':
@@ -358,7 +353,7 @@ class FormView(View):
                                                      patient_id)
         if request.user.is_superuser:
             pass
-        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id) :
+        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id):
             raise PermissionDenied()
 
         self.user = request.user
@@ -381,7 +376,6 @@ class FormView(View):
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
-
 
         if self.testing:
             dyn_patient.testing = True
@@ -467,11 +461,12 @@ class FormView(View):
                     for i in reversed(to_remove):
                         del dynamic_data[i]
 
-                    section_dict = { s: dynamic_data }
+                    section_dict = {s: dynamic_data}
 
-                    #dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
+                    # dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
                     #                                 index_map=index_map)
-                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code, "cdes", section_dict, index_map))
+                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code,
+                                                        "cdes", section_dict, index_map))
 
                     #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
@@ -494,7 +489,7 @@ class FormView(View):
                 section_info.save_to_mongo()
             logger.debug("saving snapshot ..")
             dyn_patient.save_snapshot(registry_code, "cdes")
-        
+
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
@@ -560,7 +555,7 @@ class FormView(View):
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
-            "context_launcher" : context_launcher.html,
+            "context_launcher": context_launcher.html,
         }
 
         if request.user.is_parent:
@@ -639,7 +634,7 @@ class FormView(View):
                     selected=(
                         form.name == self.registry_form.name),
                     context_model=self.rdrf_context
-                    ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
+                ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
 
@@ -732,10 +727,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator
         }
 
-
-
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
-
 
             form_progress = FormProgress(self.registry_form.registry)
 
@@ -793,7 +785,6 @@ class FormView(View):
 
         return json_dict
 
-
     # fixme: could replace with TemplateView.get_template_names()
     def _get_template(self):
         if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
@@ -806,6 +797,7 @@ class FormPrintView(FormView):
 
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
+
 
 class FormFieldHistoryView(TemplateView):
     template_name = "rdrf_cdes/form_field_history.html"
@@ -1246,19 +1238,19 @@ class QuestionnaireView(FormView):
 
 
 class QuestionnaireHandlingView(View):
+
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.questionnaires import Questionnaire
         context = {}
         template_name = "rdrf_cdes/questionnaire_handling.html"
         context["registry_model"] = Registry.objects.get(code=registry_code)
-        context["form_model"]  = context["registry_model"].questionnaire
+        context["form_model"] = context["registry_model"].questionnaire
         context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
                                                  context["qr_model"])
-
 
         context.update(csrf(request))
 
@@ -1266,10 +1258,6 @@ class QuestionnaireHandlingView(View):
             template_name,
             context,
             context_instance=RequestContext(request))
-
-
-
-
 
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
@@ -1282,11 +1270,11 @@ class QuestionnaireHandlingView(View):
                                  qr_model,
                                  form_data)
         else:
-           patient_model = Patient.objects.get(pk=existing_patient_id)
-           self._update_existing_patient(patient_model,
-                                         registry_model,
-                                         qr_model,
-                                         form_data)
+            patient_model = Patient.objects.get(pk=existing_patient_id)
+            self._update_existing_patient(patient_model,
+                                          registry_model,
+                                          qr_model,
+                                          form_data)
 
     def _create_patient(self, registry_model, qr_model, form_data):
         pass
@@ -1297,11 +1285,6 @@ class QuestionnaireHandlingView(View):
                                  qr_model,
                                  form_data):
         pass
-
-
-
-
-
 
 
 class QuestionnaireResponseView(FormView):
@@ -1315,8 +1298,6 @@ class QuestionnaireResponseView(FormView):
 
     def _get_patient_name(self):
         return "Questionnaire Response for %s" % self.registry.name
-
-
 
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
@@ -1420,7 +1401,7 @@ class QuestionnaireResponseView(FormView):
             try:
                 patient_creator.create_patient(request.POST, qr, questionnaire_data)
                 messages.info(request, "Patient Created OK")
-            except PatientCreatorError, perr:
+            except PatientCreatorError as perr:
                 error = perr.message
                 messages.error(request, "Patient Failed to be created: %s" % error)
 
@@ -1692,7 +1673,7 @@ class AdjudicationInitiationView(View):
                 return StandardView.render_error(
                     request,
                     _("Adjudication Requests created OK for users: %(sent_ok)s.<p>But the following errors occurred: %(errors)s") %
-                    { "sent_ok": sent_ok, "errors": errors })
+                    {"sent_ok": sent_ok, "errors": errors})
             else:
                 return StandardView.render_information(
                     request,
@@ -1752,7 +1733,7 @@ class AdjudicationInitiationView(View):
                 except Exception as ex:
                     errors.append(
                         _("Could not create adjudication request object for %(target_user)s: %(ex)s") %
-                        { "target_user": target_user, "ex": ex})
+                        {"target_user": target_user, "ex": ex})
 
         for target_working_group_name in target_working_group_names:
             try:
@@ -1769,7 +1750,7 @@ class AdjudicationInitiationView(View):
                 except Exception as ex:
                     errors.append(
                         _("could not create adjudication request for %(target_user)s in group %(target_working_group)s:%(ex)s") %
-                        {"target_user": target_user, "target_working_group": target_working_group, "ex": ex })
+                        {"target_user": target_user, "target_working_group": target_working_group, "ex": ex})
                     continue
 
         return request_created_ok, errors
@@ -1794,8 +1775,7 @@ class AdjudicationRequestView(View):
             # The adjudicator has already acted on the information from other requests
             # for this patient
             return StandardView.render_information(
-                request,
-                _("An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on"))
+                request, _("An adjudicator has already made a decision regarding this adjudication - it can no longer be voted on"))
 
         adjudication_form, datapoints = adj_req.create_adjudication_form()
 
@@ -1875,7 +1855,8 @@ class AdjudicationResultsView(View):
                 patient_id=patient_id,
                 requesting_username=requesting_user.username)
         except Adjudication.DoesNotExist:
-            msg = _("Could not find adjudication for definition %(adj_def)s patient %(patient_id)s requested by %(requesting_user)s") % {"adj_def": adj_def, "patient_id": patient_id, "requesting_user": requesting_user}
+            msg = _("Could not find adjudication for definition %(adj_def)s patient %(patient_id)s requested by %(requesting_user)s") % {
+                "adj_def": adj_def, "patient_id": patient_id, "requesting_user": requesting_user}
 
             return StandardView.render_error(request, msg)
 
@@ -2124,7 +2105,6 @@ class AdjudicationResultsView(View):
         return actions
 
 
-
 class ConstructorFormView(View):
 
     def get(self, request, form_name):
@@ -2132,6 +2112,7 @@ class ConstructorFormView(View):
 
 
 class CustomConsentFormView(View):
+
     def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id])
@@ -2221,7 +2202,7 @@ class CustomConsentFormView(View):
                                        patient_consent_file_forms,
                                        patient_section_consent_file)
 
-        #return form_sections
+        # return form_sections
 
     def _get_consent_file_formset(self, patient_model):
         patient_consent_file_formset = inlineformset_factory(
@@ -2349,8 +2330,6 @@ class CustomConsentFormView(View):
             context["message"] = "Some forms invalid"
             context["error_messages"] = error_messages
             context["errors"] = True
-
-
 
         return render_to_response("rdrf_cdes/custom_consent_form.html",
                                   context,

@@ -10,13 +10,13 @@ from registry.patients.models import Patient
 
 
 class MongoContextFixer(object):
+
     def __init__(self, client, apps, schema_editor):
         self.client = client
         self.apps = apps
         self.schema_editor = schema_editor
         self.registry_klass = self._get_registry_class()
         self.registry_codes = self._get_registry_codes()
-
 
     def _get_registry_codes(self):
         #Registry = self.apps.get_model("rdrf", 'Registry')
@@ -38,7 +38,7 @@ class MongoContextFixer(object):
                 print "Patient ID %s in mongo does not exist in SQL DB" % patient_id
                 return None
             return patient_model
-        except Exception, ex:
+        except Exception as ex:
             print "Error getting patient model for %s: %s" % (patient_id, ex)
             return None
 
@@ -96,7 +96,7 @@ class MongoContextFixer(object):
                         continue
                     try:
                         default_context_model = self._create_default_context(registry_model, patient_model)
-                    except Exception, ex:
+                    except Exception as ex:
                         print "Error creating default context in %s for patient id %s: %s" % (registry_model,
                                                                                               patient_model.pk,
                                                                                               ex)
@@ -128,7 +128,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='mongomigrationdummymodel',
             name='version',
-            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing'), (b'1.0.17', b'populate context_id on all patient records')]),
+            field=models.CharField(
+                max_length=80,
+                choices=[
+                    (b'initial',
+                     b'initial'),
+                    (b'testing',
+                     b'testing'),
+                    (b'1.0.17',
+                     b'populate context_id on all patient records')]),
         ),
-        migrations.RunPython(forwards_func, backwards_func)
-    ]
+        migrations.RunPython(
+            forwards_func,
+            backwards_func)]

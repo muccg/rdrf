@@ -20,7 +20,7 @@ def make_validation_func(val_type, cde):
             if value < cde.min_value:
                 raise ValidationError(
                     _("Value of %(value)s for %(cdename)s is less than minimum value %(cdemin_value)s") %
-                    {"value": value, "cdename": cde.name, "cdemin_value": cde.min_value })
+                    {"value": value, "cdename": cde.name, "cdemin_value": cde.min_value})
 
         return vf
     elif val_type == ValidationType.MAX:
@@ -28,7 +28,7 @@ def make_validation_func(val_type, cde):
             if value > cde.max_value:
                 raise ValidationError(
                     _("Value of %(value)s for %(cdename)s is more than maximum value %(cdemax_value)s") %
-                    {"value": value, "cdename": cde.name, "cdemax_value": cde.max_value })
+                    {"value": value, "cdename": cde.name, "cdemax_value": cde.max_value})
         return vf
     elif val_type == ValidationType.PATTERN:
         try:
@@ -39,7 +39,8 @@ def make_validation_func(val_type, cde):
 
         def vf(value):
             if not re_pattern.match(value):
-                raise ValidationError(_("Value of %(value)s for %(cdename)s does not match pattern '%(cdepattern)s'") % { "value": value, "cdename": cde.name, "cdepattern": cde.pattern})
+                raise ValidationError(_("Value of %(value)s for %(cdename)s does not match pattern '%(cdepattern)s'") % {
+                                      "value": value, "cdename": cde.name, "cdepattern": cde.pattern})
         return vf
     elif val_type == ValidationType.LENGTH:
         def vf(value):

@@ -1,12 +1,10 @@
 from collections import OrderedDict
-from datetime import date
 
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.contrib.auth import logout
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -21,17 +19,27 @@ from form_progress import FormProgress
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from django.contrib.auth.models import Group
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian, ConsentValue
-from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
+from registry.patients.models import ConsentValue
+from registry.patients.models import ParentGuardian
+from registry.patients.models import Patient
+from registry.patients.models import PatientAddress
+from registry.patients.models import PatientConsent
+from registry.patients.models import PatientDoctor
+from registry.patients.models import PatientRelative
+from registry.patients.admin_forms import PatientAddressForm
+from registry.patients.admin_forms import PatientConsentFileForm
+from registry.patients.admin_forms import PatientDoctorForm
+from registry.patients.admin_forms import PatientForm
+from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
-from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.contexts_api import RDRFContextError
+from rdrf.contexts_api import RDRFContextManager
 from rdrf.context_menu import PatientContextMenu
 from rdrf.components import RDRFContextLauncherComponent
 
@@ -104,7 +112,8 @@ class PatientFormMixin(PatientMixin):
         return patient_edit_url
 
     def _get_initial_context(self, registry_code, patient_model):
-        from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+        from rdrf.contexts_api import RDRFContextError
+        from rdrf.contexts_api import RDRFContextManager
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         rdrf_context_manager = RDRFContextManager(registry_model)
@@ -138,7 +147,6 @@ class PatientFormMixin(PatientMixin):
         fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
-
 
     def get_form(self, form_class=None):
         """
@@ -258,7 +266,8 @@ class PatientFormMixin(PatientMixin):
 
         personal_header = _('Patients Personal Details')
         if registry_code == "fkrp":
-            personal_header += "<br><br><i>" + _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
+            personal_header += "<br><br><i>" + \
+                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
 
         personal_details_fields = (personal_header, [
             "family_name",
@@ -430,8 +439,8 @@ class PatientFormMixin(PatientMixin):
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
                 patient_relative_model.sync_relative_patient()
-                logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
-                                                                                            patient_relative_model.patient))
+                logger.debug("saved patient relative model %s OK - owning patient is %s" %
+                             (patient_relative_model, patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
@@ -585,7 +594,7 @@ class PatientEditView(View):
 
         context = {
             "location": "Demographics",
-            "context_launcher" : context_launcher.html,
+            "context_launcher": context_launcher.html,
             "forms": form_sections,
             "patient": patient,
             "patient_id": patient.id,
@@ -771,11 +780,10 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    #def _get_index_context(self, registry_model, patient_model):
+    # def _get_index_context(self, registry_model, patient_model):
     #    #todo this probabably doesn't apply anymore in fhcontexts branch
     #    if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
     #        return patient_model.my_index.default_context(registry_model)
-
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:

@@ -5,7 +5,6 @@ from django.views.generic.base import View
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -14,18 +13,18 @@ from explorer import app_settings
 from forms import QueryForm
 from models import Query
 from utils import DatabaseUtils
-from rdrf.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValue
+from rdrf.models import CDEPermittedValue
+from rdrf.models import CommonDataElement
+from rdrf.models import Registry
+from rdrf.models import RegistryForm
+from rdrf.models import Section
 from registry.groups.models import WorkingGroup
 from rdrf.reporting_table import ReportingTableGenerator
 
 import re
-import csv
-import json
-import urllib2
 from bson.json_util import dumps
 from bson import json_util
 from datetime import datetime
-import collections
 import logging
 from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
@@ -35,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 def encode_row(row):
-    return [s.encode('utf8') if type(s) is unicode else s for s in row]
+    return [s.encode('utf8') if isinstance(s, unicode) else s for s in row]
 
 
 class LoginRequiredMixin(object):
@@ -125,7 +124,7 @@ class QueryView(LoginRequiredMixin, View):
         if request.is_ajax():
             # user clicked Run
             # populate temporary table
-            
+
             humaniser = Humaniser(registry_model)
             multisection_handler = MultisectionHandler({})
             rtg = ReportingTableGenerator(request.user,
@@ -137,7 +136,7 @@ class QueryView(LoginRequiredMixin, View):
             try:
                 database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
                 return HttpResponse("")
-            except Exception, ex:
+            except Exception as ex:
                 return HttpResponse("Report Error: %s" % ex)
         else:
             # user clicked Save
@@ -148,7 +147,6 @@ class QueryView(LoginRequiredMixin, View):
                 return redirect(m)
             else:
                 return redirect(query_model)
-                
 
 
 class DownloadQueryView(LoginRequiredMixin, View):
@@ -176,7 +174,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         registry_model = query_model.registry
 
         if query_model.mongo_search_type == "M":
-            return self._spreadsheet(query_model) 
+            return self._spreadsheet(query_model)
 
         database_utils = DatabaseUtils(query_model)
         humaniser = Humaniser(registry_model)
@@ -212,12 +210,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
         logger.debug("report took %s seconds" % elapsed_time)
         output = open(spreadsheet_report.output_filename)
         filename = "Longitudinal Report.xlsx"
-        response =  HttpResponse(FileWrapper(output), content_type='application/excel')
+        response = HttpResponse(FileWrapper(output), content_type='application/excel')
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
         return response
-    
-
-        
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
@@ -246,7 +241,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 else:
                     # only curators and admin
                     pass
-
 
             return render_to_response('explorer/query_download.html', params)
 
@@ -289,7 +283,7 @@ class SqlQueryView(View):
                 return form.errors["__all__"]
             else:
                 return None
-        
+
         if mongo_search_type == "M":
             report_config_errors = get_report_config_errors(form)
             if report_config_errors is not None:
@@ -342,6 +336,7 @@ class Humaniser(object):
     """
     If a display name/value is appropriate for a field, return it
     """
+
     def __init__(self, registry_model):
         self.registry_model = registry_model
 
@@ -415,8 +410,6 @@ def _get_non_multiple_mongo_keys(registry_model):
     return delimited_keys
 
 
-
-
 def _get_cdes(registry_obj):
     from rdrf.models import RegistryForm
     from rdrf.models import Section
@@ -453,11 +446,11 @@ def _final_cleanup(results):
 
 
 class MultisectionHandler(object):
+
     def __init__(self, reverse_column_map):
         # (form_model, section_model, cde_model, section_index) -> column_name
         self.reverse_map = reverse_column_map
         self.row_count = 0
-
 
     def unroll_wide(self, row_dict):
         for key in row_dict:
@@ -489,16 +482,16 @@ class MultisectionHandler(object):
             :param dl: A dictionary of lists : e.g. {"drug" : ["aspirin", "neurophen"], "dose": [100,200] }
             ( each list must be same length )
             :return: A list of dictionaries = [ {"drug": "aspirin", "dose": 100}, {"drug": "neurophen", "dose": 200}]
-            
+
             Lists _should_ be same length EXCEPT in case
             where a cde has been added to the registry definition AFTER data has been saved to mongo:
             in this case the return values list for that CDE will be empty ( see FH-15 )
-            In order to avoid index errors , in this case the list is padded with Nones up to the 
-            size of the list 
+            In order to avoid index errors , in this case the list is padded with Nones up to the
+            size of the list
             padded with None if not
             """
             l = []
-            
+
             max_length = max(map(len, dl.values()))
             indexes = range(max_length)
             for i in indexes:

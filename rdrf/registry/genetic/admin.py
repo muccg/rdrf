@@ -1,16 +1,14 @@
 import json
 
-import django.forms
-from django.conf import settings
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 import json
 
 from models import *
-from registry.utils import get_static_url, get_working_groups
+from registry.utils import get_static_url
+from registry.utils import get_working_groups
 
 
 class GeneAdmin(admin.ModelAdmin):

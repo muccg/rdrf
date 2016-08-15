@@ -3,13 +3,16 @@ import pycountry
 from django import forms
 from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
-from django.forms.utils import ErrorList, ErrorDict
+from django.forms.utils import ErrorDict
 
 from models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.hooking import run_hooks
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect
+from rdrf.widgets import CountryWidget
+from rdrf.widgets import DateWidget
+from rdrf.widgets import ReadOnlySelect
+from rdrf.widgets import StateWidget
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -49,7 +52,7 @@ class PatientRelativeForm(forms.ModelForm):
         fields = "__all__"  # Added after upgrading to Django 1.8
         exclude = ['id']    # Added after upgrading to Django 1.8  - uniqueness check was failing otherwise (RDR-1039)
         widgets = {
-             'relative_patient': PatientRelativeLinkWidget,
+            'relative_patient': PatientRelativeLinkWidget,
 
         }
 
@@ -137,9 +140,9 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(required=True, widget=CountryWidget(attrs={ 'onChange': 'select_country(this);'}))
+    country = forms.ComboField(required=True, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     state = forms.ComboField(required=True, widget=StateWidget())
-    address = forms.CharField( widget=forms.Textarea(attrs={'rows': 5}) )
+    address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
 
 class PatientConsentFileForm(forms.ModelForm):
@@ -269,7 +272,7 @@ class PatientForm(forms.ModelForm):
             initial_working_groups = user.working_groups.filter(registry=self.registry_model)
             self.fields['working_groups'].queryset = initial_working_groups
             logger.debug("restricted working groups choices to %s" %
-                        [wg.pk for wg in initial_working_groups])
+                         [wg.pk for wg in initial_working_groups])
         else:
             self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 

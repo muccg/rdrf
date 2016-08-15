@@ -10,10 +10,12 @@ logger = logging.getLogger(__name__)
 __all__ = ["get_id", "delete_file_wrapper", "get_file",
            "store_file", "store_file_by_key"]
 
+
 def get_id(value):
     if isinstance(value, dict):
         return value.get("gridfs_file_id") or value.get("django_file_id")
     return None
+
 
 def delete_file_wrapper(fs, file_ref):
     gridfs_file_id = file_ref.get("gridfs_file_id")
@@ -25,7 +27,7 @@ def delete_file_wrapper(fs, file_ref):
 
         try:
             fs.delete(gridfs_file_id)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error deleting file id %s in gridfs: %s" % (gridfs_file_id,
                                                                       ex))
             return None
@@ -43,6 +45,7 @@ def delete_file_wrapper(fs, file_ref):
 
     return None
 
+
 def store_file(registry, cde, file_obj, form=None, section=None):
     cde_file = CDEFile(registry=registry,
                        form=form, section=section, cde=cde,
@@ -54,12 +57,14 @@ def store_file(registry, cde, file_obj, form=None, section=None):
         "file_name": file_obj.name
     }
 
+
 def store_file_by_key(registry_code, patient_record, key, file_obj):
     registry = Registry.objects.get(code=registry_code)
     form, section, cde = models_from_mongo_key(registry, key)
     return store_file(registry, cde, file_obj, form, section)
 
 oid_pat = re.compile(r"[0-9A-F]{24}", re.I)
+
 
 def get_file(file_id, gridfs=None):
     if gridfs and oid_pat.match(str(file_id)):

@@ -55,8 +55,10 @@ class QuickLinks(object):
     ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
     EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
     EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
-    EmailNotificationHistory = QuickLink("admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
-    RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist", _("Registration Profiles"), True)
+    EmailNotificationHistory = QuickLink(
+        "admin:rdrf_emailnotificationhistory_changelist", _("Email Notifications History"), True)
+    RegistrationProfiles = QuickLink("admin:registration_registrationprofile_changelist",
+                                     _("Registration Profiles"), True)
 
     LoginLog = QuickLink("admin:useraudit_loginlog_changelist", _("User Login Log"), True)
     FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)

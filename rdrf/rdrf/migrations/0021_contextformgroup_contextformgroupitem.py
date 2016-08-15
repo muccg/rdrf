@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
             name='ContextFormGroup',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('context_type', models.CharField(default=b'F', max_length=1, choices=[(b'F', b'Fixed'), (b'M', b'Multiple')])),
+                ('context_type', models.CharField(default=b'F', max_length=1,
+                                                  choices=[(b'F', b'Fixed'), (b'M', b'Multiple')])),
                 ('name', models.CharField(max_length=80)),
                 ('registry', models.ForeignKey(to='rdrf.Registry')),
             ],

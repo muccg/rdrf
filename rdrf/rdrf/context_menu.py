@@ -1,5 +1,4 @@
 from django.core.urlresolvers import reverse
-from django.templatetags.static import static
 from django.template import loader, Context
 from django.utils.html import escape
 from rdrf.models import RegistryForm
@@ -10,6 +9,7 @@ from rdrf.form_progress import FormProgress
 
 
 class ContextMenuForm(object):
+
     def __init__(self, title, link, progress_percentage=0, currency=False):
         self.title = title
         self.link = link
@@ -18,6 +18,7 @@ class ContextMenuForm(object):
 
 
 class ContextMenuAction(object):
+
     def __init__(self, title, link):
         self.title = title
         self.id = id
@@ -25,6 +26,7 @@ class ContextMenuAction(object):
 
 
 class PatientContextMenu(object):
+
     def __init__(self, user, registry_model, form_progress, patient_model, context_model=None):
         """
         :param user: relative to user looking
@@ -78,7 +80,6 @@ class PatientContextMenu(object):
         forms = self.get_context_menu_forms()
         actions = self._get_actions()
 
-
         popup_template = loader.get_template(popup_template)
         context = Context({"forms": forms,
                            "supports_contexts": self.registry_model.has_feature("contexts"),
@@ -105,7 +106,7 @@ class PatientContextMenu(object):
         if not self.has_contexts:
             return []
         elif self.registry_model.context_form_groups.count() == 0:
-            # no context form groups defined 
+            # no context form groups defined
             # show 1 add button to add a context containing all forms by default
             add_context_title = "Add %s" % self.context_name
             add_context_link = reverse("context_add", args=(self.registry_model.code, str(self.patient_model.pk)))
@@ -120,18 +121,16 @@ class PatientContextMenu(object):
                 if context_form_group.patient_can_add(self.patient_model):
                     action_title = "Add %s" % context_form_group.name
                     action_link = reverse("context_add", args=(self.registry_model.code,
-                                                           str(self.patient_model.pk),
-                                                           str(context_form_group.pk)))
-                
+                                                               str(self.patient_model.pk),
+                                                               str(context_form_group.pk)))
+
                     actions.append(ContextMenuAction(action_title, action_link))
-                
+
             return actions
 
     @property
     def actions(self):
         return self._get_actions()
-        
-
 
     def get_forms(self):
         def not_generated(frm):
@@ -139,11 +138,11 @@ class PatientContextMenu(object):
 
         if not self.context_model.context_form_group:
             forms = [
-            f for f in RegistryForm.objects.filter(
-                registry=self.registry_model).order_by('position') if not_generated(f) and self.user.can_view(f)]
+                f for f in RegistryForm.objects.filter(
+                    registry=self.registry_model).order_by('position') if not_generated(f) and self.user.can_view(f)]
         else:
-            forms = [ f for f in self.context_model.context_form_group.forms
-                      if not_generated(f)
-                      and self.user.can_view(f)]
-            
+            forms = [f for f in self.context_model.context_form_group.forms
+                     if not_generated(f)
+                     and self.user.can_view(f)]
+
         return forms

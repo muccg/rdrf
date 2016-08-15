@@ -371,7 +371,6 @@ class FieldFactory(object):
                         from rdrf.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
 
-
                     return django.forms.ChoiceField(**options)
         else:
             # Not a drop down

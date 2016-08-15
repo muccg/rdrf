@@ -2,15 +2,13 @@ from operator import itemgetter
 import json
 from django.views.generic.base import View
 from django.template.context_processors import csrf
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.utils.html import escape
-from django.conf import settings
-from django.shortcuts import render_to_response, RequestContext, get_object_or_404
+from django.shortcuts import RequestContext
+from django.shortcuts import render_to_response
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
 from rdrf.models import Registry
@@ -91,7 +89,8 @@ class PatientsListingView(View):
         ), key=itemgetter('order'), reverse=False)
 
         for definition in sorted_by_order:
-            if self.user.is_superuser or definition["access"]["default"] or self.user.has_perm(definition["access"]["permission"]):
+            if self.user.is_superuser or definition["access"][
+                    "default"] or self.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
                         "data": definition["data"],
@@ -186,7 +185,6 @@ class PatientsListingView(View):
 
         except Registry.DoesNotExist:
             logger.debug("selected registry does not exist")
-            pass
 
     def get_results(self, request):
         if self.registry_model is None:
@@ -204,8 +202,9 @@ class PatientsListingView(View):
         self.do_security_checks()
         if not self.user.is_superuser:
             if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
-                logger.info("User %s tried to browse patients in registry %s of which they are not a member" % (self.user,
-                                                                                                                self.registry_model.code))
+                logger.info(
+                    "User %s tried to browse patients in registry %s of which they are not a member" %
+                    (self.user, self.registry_model.code))
                 return False
         return True
 
@@ -285,7 +284,7 @@ class PatientsListingView(View):
                 try:
                     wg = patient_model.working_groups.get()
                     return wg.name
-                except Exception, ex:
+                except Exception as ex:
                     logger.debug("error wg %s" % ex)
                     return ""
             key_func = get_wg
@@ -390,7 +389,7 @@ class PatientsListingView(View):
             def f(patient):
                 try:
                     return str(getattr(patient, field))
-                except Exception, ex:
+                except Exception as ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (
                         field, patient, ex)
                     logger.error(msg)
@@ -404,7 +403,7 @@ class PatientsListingView(View):
             def f(patient):
                 try:
                     return method(patient)
-                except Exception, ex:
+                except Exception as ex:
                     msg = "Error retrieving grid field %s for patient %s: %s" % (
                         field, patient, ex)
                     logger.error(msg)
@@ -492,7 +491,7 @@ class PatientsListingView(View):
 
     def _get_forms_buttons(self, patient_model):
         buttons = []
-        free_forms = [ form for form in self.registry_model.free_forms if self.user.can_view(form)]
+        free_forms = [form for form in self.registry_model.free_forms if self.user.can_view(form)]
         if free_forms:
             # if there are no context groups -normal registry
             free_forms_button = self._get_forms_button(
@@ -528,7 +527,6 @@ class PatientsListingView(View):
 #                      id="forms_button_%s" data-original-title="" title="">%s</button>""" % (escape(forms_button_component.html),
 #                                                                                             forms_button_component.id,
 #                                                                                             forms_button_component.button_caption)
-
 
         button_html = """
             <div class="dropdown">
@@ -618,7 +616,7 @@ class PatientsListingView(View):
                 if self.sort_direction == "desc":
                     def add_minus(field):
                         return "-" + field if not field.startswith("-") else field
-                    
+
                     sort_fields = map(add_minus, sort_fields)
                     self.patients = self.patients.order_by(*sort_fields)
             else:

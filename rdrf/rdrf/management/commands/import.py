@@ -12,7 +12,7 @@ class Command(BaseCommand):
         parser.add_argument('zipfile')
         parser.add_argument('--verbose', action='store_true', help='less verbose output')
         parser.add_argument('--inspect', action='store_true', help='display information about the zip file')
-        parser.add_argument('--simulate', action='store_true',  help='perform a simulation of the import')
+        parser.add_argument('--simulate', action='store_true', help='perform a simulation of the import')
         parser.add_argument('--force', action='store_true', help='force through import ignoring warnings')
         parser.add_argument('--import-type', choices=self.import_types, help='import type')
 

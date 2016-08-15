@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-from django.contrib.auth import models as authmodels
 
 from registry.genetic import models as genemodels
 from registry.patients import models as patientmodels
@@ -10,6 +9,7 @@ from . import model_exporters, datagroup_exporters, mongo_collection_exporters
 
 
 class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagroups', 'models', 'collections'])):
+
     def __new__(cls, name, dirname, datagroups=(), models=(), collections=()):
         return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models, collections)
 
@@ -23,16 +23,15 @@ ExportDefinition = namedtuple('ExportDefinition', ['type', 'exporters_catalogue'
 ExportType = namedtuple('ExportType', ['code', 'name', 'includes'])
 
 
-
 _MAIN_CATALOGUE = Catalogue(
-        datagroup_exporters.catalogue,
-        model_exporters.catalogue,
-        mongo_collection_exporters.catalogue)
+    datagroup_exporters.catalogue,
+    model_exporters.catalogue,
+    mongo_collection_exporters.catalogue)
 
 _CDE_GROUP = GroupDefinition(
     name='CDEs',
     dirname='CDE',
-    models = (
+    models=(
         'rdrf.CDEPermittedValueGroup',
         'rdrf.CDEPermittedValue',
         'rdrf.CommonDataElement',
@@ -62,7 +61,7 @@ _USERS_AND_USERGROUPS_GROUP = GroupDefinition(
 _REGISTRY_DEF_GROUP = GroupDefinition(
     name='Registry Definition',
     dirname='registry_definition',
-    models = (
+    models=(
         'rdrf.Registry',
         'groups.WorkingGroup',
         'rdrf.RegistryForm',
@@ -85,7 +84,7 @@ class EXPORT_TYPES(object):
     CDES = ExportType('cdes', 'Common Data Elements', ())
     REFDATA = ExportType('refdata', 'Reference Data', ())
     REGISTRY_DEF = ExportType('registry_def', 'Registry Definition', (CDES, REFDATA))
-    REGISTRY_WITH_DATA = ExportType('registry', 'Registry Definition and Data', ( CDES, REFDATA, REGISTRY_DEF))
+    REGISTRY_WITH_DATA = ExportType('registry', 'Registry Definition and Data', (CDES, REFDATA, REGISTRY_DEF))
 
     all_types = (CDES, REFDATA, REGISTRY_DEF, REGISTRY_WITH_DATA)
 
@@ -168,7 +167,7 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                 GroupDefinition(
                     name='Demographic Data',
                     dirname='demographic_data',
-                    models = (
+                    models=(
                         # Leave RDRFContexts before Patients, so that no
                         # default contexts are created on import. This works
                         # because there is no FK from RDRFContext to Patient
@@ -184,24 +183,24 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'patients.PatientConsent',
                         'patients.PatientRelative',
                         'patients.ConsentValue',
-                         #TODO is it ok to include all Notifications?
+                         # TODO is it ok to include all Notifications?
                         # They aren't linked to registry, and from and to are not FKs
                         'rdrf.Notification',
                         'rdrf.EmailNotification',
                         'rdrf.EmailNotificationHistory',
                         'rdrf.CDEFile',
-                )),
+                    )),
                 GroupDefinition(
                     name='MongoDB Data',
                     dirname='mongodb_data',
-                    collections = (
+                    collections=(
                         'cdes',
                         'history',
                         'progress',
                         # Used by FH only currently. Could use an FH specific export
                         # definition, but this will do for now.
                         'registry_specific_patient_data',
-                )),
+                    )),
             )
         ),
     )

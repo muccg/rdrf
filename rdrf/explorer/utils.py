@@ -1,4 +1,3 @@
-import re
 import json
 import ast
 
@@ -12,7 +11,8 @@ from models import Query
 
 from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
-from rdrf.utils import forms_and_sections_containing_cde, get_cached_instance
+from rdrf.utils import forms_and_sections_containing_cde
+from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
@@ -66,7 +66,6 @@ class DatabaseUtils(object):
         except ConnectionFailure as e:
             return False, e
 
-
     def run_sql(self):
         try:
             cursor = self.create_cursor()
@@ -77,9 +76,9 @@ class DatabaseUtils(object):
         return self
 
     def validate_mixed_query(self):
-        # not really parsing - 
+        # not really parsing -
         errors = []
-        if hasattr(self,"query") and self.query.mongo_search_type == "M":
+        if hasattr(self, "query") and self.query.mongo_search_type == "M":
             import json
             from rdrf.utils import evaluate_generalised_field_expression
             try:
@@ -91,10 +90,10 @@ class DatabaseUtils(object):
                     for column in columns:
                         if not isinstance(column, basestring):
                             errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
-                            
-            except ValueError, ve:
+
+            except ValueError as ve:
                 errors.append("JSON malformed: %s" % ve.message)
-            except KeyError, ke:
+            except KeyError as ke:
                 errors.append("key error: %s" % ke.message)
 
             if len(errors) > 0:
@@ -112,7 +111,7 @@ class DatabaseUtils(object):
         logger.debug("*********** running query and dumping to temporary table *******")
         try:
             reporting_table_generator.drop_table()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: dropping table: %s" % ex)
             raise
 
@@ -120,37 +119,37 @@ class DatabaseUtils(object):
 
         try:
             self.cursor = self.create_cursor()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: create cursor: %s" % ex)
             raise
 
         try:
             sql_metadata = self._get_sql_metadata(self.cursor)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: getting sql metadata: %s" % ex)
             raise
 
         try:
             mongo_metadata = self._get_mongo_metadata()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: getting mongo metadata: %s" % ex)
             raise
 
         try:
             reporting_table_generator.create_columns(sql_metadata, mongo_metadata)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: creating columns: %s" % ex)
             raise
 
         try:
             reporting_table_generator.create_schema()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Report Error: creating schema: %s" % ex)
             raise
 
         try:
             return reporting_table_generator.run_explorer_query(self)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error running explorer query: %s" % ex)
             raise
 
@@ -220,10 +219,11 @@ class DatabaseUtils(object):
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
-                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(sql_columns_dict, history_collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
+                        sql_columns_dict, history_collection, max_items):
                     if mongo_columns_dict is None:
                         yield None
-                        
+
                     mongo_columns_dict["snapshot"] = True
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
@@ -235,7 +235,7 @@ class DatabaseUtils(object):
         yield combined_dict
 
     def _get_sql_type_info(self):
-        #reporting=# select oid, typname,typcategory from pg_type;;
+        # reporting=# select oid, typname,typcategory from pg_type;;
         # oid  |                typname                | typcategory
         # -------+---------------------------------------+-------------
         # 16 | bool                                  | B
@@ -273,7 +273,12 @@ class DatabaseUtils(object):
         # cursor description gives list:
         #[Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
         # Column(name='family_name', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None),
-        # Column(name='given_names', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None), Column(name='date_of_birth', type_code=1082, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None), Column(name='Working Group', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None)]
+        # Column(name='given_names', type_code=1043, display_size=None,
+        # internal_size=100, precision=None, scale=None, null_ok=None),
+        # Column(name='date_of_birth', type_code=1082, display_size=None,
+        # internal_size=4, precision=None, scale=None, null_ok=None),
+        # Column(name='Working Group', type_code=1043, display_size=None,
+        # internal_size=100, precision=None, scale=None, null_ok=None)]
 
         if cursor is None:
             return []
@@ -298,7 +303,7 @@ class DatabaseUtils(object):
 
     @timed
     def _get_mongo_metadata(self):
-        #TODO not sure why this called multisection_column_map as it contains any selected mongo fields
+        # TODO not sure why this called multisection_column_map as it contains any selected mongo fields
         data = {"multisection_column_map": OrderedDict()}
 
         if not self.projection:
@@ -327,7 +332,6 @@ class DatabaseUtils(object):
             cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
 
             yield form_model, section_model, cde_model
-
 
     def run_mongo_one_row(self, sql_column_data, mongo_collection, max_items):
         django_model = "Patient"
@@ -362,22 +366,22 @@ class DatabaseUtils(object):
                     form_model, section_model, cde_model, section_index = key
                 else:
                     raise Exception("report key error: %s" % key)
-                    
+
             else:
                 continue
-                
+
             if section_model.allow_multiple:
                 values = self._get_cde_value(form_model,
                                              section_model,
                                              cde_model,
 
                                              record)
-                
+
                 if len(values) > max_items:
-                    self.warning_messages.append("%s %s has more than %s items in the section" % (form_model.name,
-                                                                                                  section_model.display_name,
-                                                                                                  max_items))
-                    
+                    self.warning_messages.append(
+                        "%s %s has more than %s items in the section" %
+                        (form_model.name, section_model.display_name, max_items))
+
                 try:
                     result[column_name] = values[section_index - 1]
                 except IndexError:
@@ -385,13 +389,11 @@ class DatabaseUtils(object):
 
             else:
                 value = self._get_cde_value(form_model,
-                                             section_model,
-                                             cde_model,
-                                             record)
+                                            section_model,
+                                            cde_model,
+                                            record)
                 result[column_name] = value
         return result
-
-        
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection, max_items):
         django_id = sql_column_data["id"]
@@ -432,12 +434,12 @@ class DatabaseUtils(object):
         datatype = cde_model.datatype.strip().lower()
         if datatype == "calculated" and stored_value == "NaN":
             return None
-        if datatype != 'string' and stored_value in  ['', ' ', None]:
+        if datatype != 'string' and stored_value in ['', ' ', None]:
             # ensure we don't pass empty string back for numeric fields.
             # range fields will always be non-blank, non-whitespace
             return None
         if datatype == "file":
-            return "FILE" 
+            return "FILE"
         return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
@@ -463,11 +465,11 @@ class DatabaseUtils(object):
             results = collection.find(criteria, projection)
         elif mongo_search_type == 'A':
             aggregation = []
-    
+
             pipline = self.aggregation.split("|")
             for pipe in pipline:
                 aggregation.append(ast.literal_eval(pipe))
-        
+
             if "$match" in aggregation:
                 aggregation["$match"].update({"django_id": {"$in": django_ids}})
             else:

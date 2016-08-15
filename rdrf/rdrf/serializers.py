@@ -39,6 +39,7 @@ class PatientHyperlinkId(serializers.HyperlinkedRelatedField):
 
 
 class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = CustomUser
         # TODO add groups and user_permissions as well?
@@ -113,6 +114,7 @@ class RegistrySerializer(serializers.HyperlinkedModelSerializer):
 
 
 class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = WorkingGroup
         extra_kwargs = {

@@ -29,6 +29,7 @@ def allow_if_forced(checkfn):
 
 
 class DataGroupImporter(object):
+
     def __init__(self, catalogue):
         self.catalogue = catalogue
         self.logger = logger
@@ -74,16 +75,19 @@ class DataGroupImporter(object):
 
 
 class ModelImporter(object):
+
     @allow_if_forced
     def check_checksum(self, file_name, expected_checksum):
         actual_checksum = file_checksum(file_name)
         if actual_checksum != expected_checksum:
-            raise ImportError("Invalid checksum on file '%s'. Actual: '%s', expected: '%s'" % (file_name, actual_checksum, expected_checksum))
+            raise ImportError("Invalid checksum on file '%s'. Actual: '%s', expected: '%s'" %
+                              (file_name, actual_checksum, expected_checksum))
 
     @allow_if_forced
     def check_object_count(self, model_name, expected, actual):
         if actual != expected:
-            raise ImportError("Invalid object_count for model '%s'. Actual: %d, expected: %d" % (model_name, actual, expected))
+            raise ImportError("Invalid object_count for model '%s'. Actual: %d, expected: %d" %
+                              (model_name, actual, expected))
 
     @allow_if_forced
     def check_no_data_in_table(self, model_name):
@@ -99,7 +103,7 @@ class ModelImporter(object):
         model_name = get_meta_value(model_meta, 'model_name')
         file_name = os.path.join(workdir, get_meta_value(model_meta, 'file_name'))
         checksum = get_meta_value(model_meta, 'md5_checksum')
-        object_count = get_meta_value(model_meta ,'object_count')
+        object_count = get_meta_value(model_meta, 'object_count')
 
         self.logger.debug("Importing model '%s'", model_name)
         self.check_checksum(file_name, checksum)
@@ -125,12 +129,21 @@ class ModelImporter(object):
 
 
 class MongoCollectionImporter(object):
+
     @allow_if_forced
     def check_no_data_in_collection(self, collection):
         if collection.count() > 0:
             raise ImportError("Refusing to import over existing data for collection '%s'." % collection.name)
 
-    def do_import(self, collection_meta, workdir, registry_code=None, logger=None, simulate=False, force=False, **kwargs):
+    def do_import(
+            self,
+            collection_meta,
+            workdir,
+            registry_code=None,
+            logger=None,
+            simulate=False,
+            force=False,
+            **kwargs):
         self.logger = logger
         self.child_logger = maybe_indent(self.logger)
         self.force = force
@@ -144,7 +157,7 @@ class MongoCollectionImporter(object):
         db = client[mongo_db_name(registry_code)]
         if collection_name not in db.collection_names():
             self.logger.warning("Collection '%s' doesn't exist for registry '%s'."
-                % (collection_name, registry_code))
+                                % (collection_name, registry_code))
         collection = db[collection_name]
 
         self.check_no_data_in_collection(collection)
@@ -160,7 +173,7 @@ def get_meta_value(meta, key, path=None):
     if '.' not in key:
         if key not in meta:
             raise ImportError("Invalid META file. Required entry '%s' is missing."
-                    % (key if path is None else '.'.join((path, key))))
+                              % (key if path is None else '.'.join((path, key))))
         return meta[key]
 
     first_key, rest = key.split('.', 1)

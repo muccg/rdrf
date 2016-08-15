@@ -55,7 +55,7 @@ class ColumnLabeller(object):
 
             return s
 
-        except Exception, ex:
+        except Exception as ex:
             return column_name
 
     def _get_sql_field_label(self, field_name):
@@ -123,7 +123,7 @@ class ReportingTableGenerator(object):
         logger.debug("created table based on schema")
 
     def _get_blank_row(self):
-        return { column_name : None for column_name in self.column_names }
+        return {column_name: None for column_name in self.column_names}
 
     @timed
     def drop_table(self):
@@ -369,14 +369,14 @@ class ReportingTableGenerator(object):
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            #try:
-                
+            # try:
+
             new_row = self._get_blank_row()
             new_row.update(row)
             self.insert_row(new_row)
             row_num += 1
             logger.debug("inserted row OK. row_num = %s" % row_num)
-            #except Exception, ex:
+            # except Exception, ex:
             #    errors += 1
             #    src = "query"
             #    logger.error("report error: query %s row after %s error: %s" % (src,
@@ -521,7 +521,10 @@ class MongoFieldSelector(object):
         # the constructed json is independent of db ids ( as these will change
         # is import of registry definition occurs
         import json
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.models import CommonDataElement
+        from rdrf.models import Registry
+        from rdrf.models import RegistryForm
+        from rdrf.models import Section
         projection_data = []
 
         def create_value_dict(checkbox_id):
@@ -551,7 +554,10 @@ class MongoFieldSelector(object):
         return json.dumps(projection_data)
 
     def _get_longitudinal_cdes(self):
-        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.models import CommonDataElement
+        from rdrf.models import Registry
+        from rdrf.models import RegistryForm
+        from rdrf.models import Section
         d = {}
         for checkbox_id in self.longitudinal_ids:
             _, registry_code, form_pk, section_pk, cde_code, _ = checkbox_id.split(
@@ -568,7 +574,7 @@ class ReportTable(object):
     Used by report datatable view
     """
 
-    def __init__(self,  user, query_model):
+    def __init__(self, user, query_model):
         self.query_model = query_model
         self.user = user
         self.engine = self._create_engine()
@@ -635,7 +641,6 @@ class ReportTable(object):
             rows.append(result_dict)
         return rows
 
-    
     def _format(self, column, data):
         if data is None:
             return ""
@@ -650,5 +655,5 @@ class ReportTable(object):
         if isinstance(data, datetime):
             iso = data.isoformat()
             return iso
-        
+
         return str(data)

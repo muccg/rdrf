@@ -10,7 +10,7 @@ class BaseRegistration(object):
 
     _OTHER_CLINICIAN = "clinician-other"
     _UNALLOCATED_GROUP = "Unallocated"
-    
+
     _ADDRESS_TYPE = "Postal"
     _GENDER_CODE = {
         "M": 1,
@@ -39,16 +39,15 @@ class BaseRegistration(object):
             user_group = self._get_group("Parents")
         else:
             user_group = self._get_group("Patients")
-    
+
         django_user.groups = [user_group.id, ] if user_group else []
-    
+
         django_user.first_name = request.POST['first_name']
         django_user.last_name = request.POST['surname']
         django_user.registry = [registry, ] if registry else []
         django_user.is_staff = True
         return django_user
-    
-    
+
     def _create_patient_address(self, patient, request, address_type="POST"):
         address = PatientAddress.objects.create(
             patient=patient,
@@ -60,8 +59,7 @@ class BaseRegistration(object):
             country=request.POST["country"]
         )
         return address
-    
-    
+
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(
             first_name=request.POST["parent_guardian_first_name"],
@@ -76,16 +74,14 @@ class BaseRegistration(object):
             phone=request.POST["parent_guardian_phone"],
         )
         return parent_guardian
-    
-    
+
     def _get_registry_object(self, registry_name):
         try:
             registry = Registry.objects.get(code__iexact=registry_name)
             return registry
         except Registry.DoesNotExist:
             return None
-    
-    
+
     def _get_group(self, group_name):
         try:
             group, created = Group.objects.get_or_create(name=group_name)

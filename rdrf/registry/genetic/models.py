@@ -1,6 +1,4 @@
-import traceback
 from django.db import models
-from django.db.models.signals import post_save
 from registry.patients.models import Patient
 
 import logging

@@ -14,7 +14,8 @@ class AuthFailedLoggerNotificationBackend(AuthFailedLoggerBackend):
         }
 
         if self.registry_code:
-            process_notification(self.registry_code, settings.EMAIL_NOTE_ACCOUNT_LOCKED, get_request().LANGUAGE_CODE, template_data)
+            process_notification(self.registry_code, settings.EMAIL_NOTE_ACCOUNT_LOCKED,
+                                 get_request().LANGUAGE_CODE, template_data)
 
     @property
     def registry_code(self):

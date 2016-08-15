@@ -14,11 +14,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contextformgroup',
             name='naming_cde_to_use',
-            field=models.CharField(max_length=80, null=True, blank=True),
+            field=models.CharField(
+                max_length=80,
+                null=True,
+                blank=True),
         ),
         migrations.AlterField(
             model_name='contextformgroup',
             name='naming_scheme',
-            field=models.CharField(default=b'D', max_length=1, choices=[(b'D', b'Automatic - Date'), (b'N', b'Automatic - Number'), (b'M', b'Manual - Free Text'), (b'C', b'CDE - Nominate CDE to use')]),
+            field=models.CharField(
+                default=b'D',
+                max_length=1,
+                choices=[
+                        (b'D',
+                         b'Automatic - Date'),
+                        (b'N',
+                         b'Automatic - Number'),
+                        (b'M',
+                         b'Manual - Free Text'),
+                        (b'C',
+                         b'CDE - Nominate CDE to use')]),
         ),
     ]

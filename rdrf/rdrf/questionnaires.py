@@ -11,7 +11,8 @@ from dynamic_data import DynamicDataWrapper
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
-from datetime import datetime, date, time
+from datetime import date
+from datetime import datetime
 import pycountry
 
 import logging
@@ -96,8 +97,7 @@ class QuestionnaireReverseMapper(object):
                 default_context = manager.get_or_create_default_context(self.patient)
                 self.default_context_model = default_context
         else:
-            self.default_context_model = None # ???
-        
+            self.default_context_model = None  # ???
 
     def save_patient_fields(self):
         working_groups = []
@@ -178,7 +178,7 @@ class QuestionnaireReverseMapper(object):
             address.state = self._get_state(
                 getcde(address_map, "State"), address.country)
 
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error setting state: %s" % ex)
 
         return address
@@ -369,6 +369,7 @@ class QuestionnaireReverseMapper(object):
                     return form_model.name, section_model.code
         return None, None
 
+
 class PatientCreatorError(Exception):
     pass
 
@@ -383,16 +384,19 @@ class PatientCreator(object):
         log_prefix = "PatientCreator on QR %s" % questionnaire_response.pk
 
         class MyLogger(object):
+
             def __init__(self, logger, log_prefix):
                 self.logger = logger
                 self.log_prefix = log_prefix
+
             def error(self, msg):
                 self.logger.error(self.log_prefix + ": " + msg)
+
             def info(self, msg):
                 self.logger.info(self.log_prefix + ": " + msg)
-                
+
         mylogger = MyLogger(logger, log_prefix)
-        
+
         patient = Patient()
         patient.consent = True
         mapper = QuestionnaireReverseMapper(
@@ -410,7 +414,7 @@ class PatientCreator(object):
             patient.rdrf_registry = [self.registry]
             patient.save()
             mapper.save_address_data()
-            mapper.set_context() # ensure context setup properly before we save any data to Mongfo
+            mapper.set_context()  # ensure context setup properly before we save any data to Mongfo
         except ValidationError as verr:
             mylogger.error("Could not save patient %s: %s" % (patient, verr))
             raise PatientCreatorError("Validation Error: %s" % verr)
@@ -438,19 +442,18 @@ class PatientCreator(object):
             except Exception as ex2:
                 logger.error("could not remove dynamic data for patient %s: %s" %
                              (patient.pk, ex2))
-                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex,ex2))
-            
+                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex, ex2))
+
         try:
             questionnaire_response.patient_id = patient.pk
             questionnaire_response.processed = True
             questionnaire_response.save()
-        except Exception, ex:
+        except Exception as ex:
             logger.error("couldn't set qr to processed: %s" % ex)
             raise PatientCreatorError("Error setting qr to processed: %s" % ex)
 
         mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
         return patient
-        
 
     def _remove_mongo_data(self, registry, patient):
         wrapper = DynamicDataWrapper(patient)
@@ -509,7 +512,7 @@ class _ExistingDataWrapper(object):
                 value = str(value)
             return value
 
-        except Exception, ex:
+        except Exception as ex:
             return "Error[!%s]" % ex
 
     def _get_working_groups_display_value(self, working_group_models):
@@ -554,7 +557,7 @@ class _ExistingDataWrapper(object):
                 try:
                     field_name = question.target.display_name
                     field_expression = question.target.field_expression
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("could not get target for %s %s: %s" % (question.section_code,
                                                                          question.cde_code,
                                                                          ex))
@@ -564,10 +567,16 @@ class _ExistingDataWrapper(object):
                 field_name = question.cde_model.name
 
             if not question.is_multi:
-                existing_answer = {"name": field_name,
-                                   "pos": str(question.pos),
-                                   "is_multi": False,
-                                   "answer": self._get_field_data(field_expression, question.form_model, question.section_model, question.cde_model)}
+                existing_answer = {
+                    "name": field_name,
+                    "pos": str(
+                        question.pos),
+                    "is_multi": False,
+                    "answer": self._get_field_data(
+                        field_expression,
+                        question.form_model,
+                        question.section_model,
+                        question.cde_model)}
             else:
                 if not question.is_address:
                     existing_answer = {"name": field_name,
@@ -621,7 +630,7 @@ class _ExistingDataWrapper(object):
         def address_label(address):
             try:
                 atype = address.address_type.description
-            except Exception, ex:
+            except Exception as ex:
                 atype = "%s" % ex
 
             return "%s: %s %s %s %s %s" % (atype,
@@ -759,7 +768,7 @@ class _Question(object):
         self.pos = 0
         self.question_type = None
         self.form_model = RegistryForm.objects.get(registry=self.registry_model,
-                                                       name=form_name)
+                                                   name=form_name)
         self.section_model = Section.objects.get(code=section_code)
         self.cde_model = CommonDataElement.objects.get(code=cde_code)
         self.section_code = section_code
@@ -805,7 +814,7 @@ class _Question(object):
         # questionnaire name
         try:
             return self.target.display_name
-        except Exception, ex:
+        except Exception as ex:
             logger.error("error getting target: %s" % ex)
             return "%s/%s/%s" % (self.form_name, self.section_model.display_name, self.cde_model.name)
 
@@ -814,8 +823,8 @@ class _Question(object):
             return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
         else:
             if not self.is_address:
-                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, single_value)
-                                 for single_value in value])
+                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model,
+                                                               self.cde_model, single_value) for single_value in value])
             else:
                 return ",".join([x for x in value])
 
@@ -1064,23 +1073,22 @@ class Questionnaire(object):
 
         return self._correct_ordering(l)
 
-    
     def _correct_ordering(self, questions):
         correct_ordering = ["Centre",
                             "Family Name",
-                            "Given Names",	
+                            "Given Names",
                             "Date of Birth",
                             "Sex",
                             "Home Phone",
-                            "Mobile Phone",	
-                            "Email",	
-                            "Parent/Guardian Family Name",	
-                            "Parent/Guardian Given Names",	
+                            "Mobile Phone",
+                            "Email",
+                            "Parent/Guardian Family Name",
+                            "Parent/Guardian Given Names",
                             "Parent/Guardian Relationship",
                             "Parent/Guardian Email",
-                            "Parent/Guardian Address",	
-                            "Parent/Guardian Suburb"	
-                            "Parent/Guardian State"	
+                            "Parent/Guardian Address",
+                            "Parent/Guardian Suburb"
+                            "Parent/Guardian State"
                             "Parent/Guardian Country"]
 
         consent_block = []
@@ -1089,7 +1097,7 @@ class Questionnaire(object):
                 consent_block.append(question)
                 questions.remove(question)
 
-        demographics_block  = []
+        demographics_block = []
         for name in correct_ordering:
             for question in list(questions):
                 if question.name == name:
@@ -1164,14 +1172,14 @@ class Questionnaire(object):
                 patient_model.evaluate_field_expression(self.registry_model,
                                                         q.field_expression,
                                                         value=q.value)
-            except Exception, ex:
+            except Exception as ex:
                 msg = "Error setting field expression %s: %s" % (
                     q.field_expression, ex)
                 errors.append(msg)
 
         try:
             patient_model.save()
-        except Exception, ex:
+        except Exception as ex:
             msg = "Error saving patient for questionnaire update: %s" % ex
             errors.append(msg)
 

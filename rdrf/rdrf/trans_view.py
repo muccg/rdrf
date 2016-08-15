@@ -1,5 +1,4 @@
 import os
-import re
 
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View

@@ -37,6 +37,7 @@ def new_style_questionnaire(registry):
 
 
 class SectionManager(models.Manager):
+
     def get_by_natural_key(self, code):
         return self.get(code=code)
 
@@ -93,6 +94,7 @@ class Section(models.Model):
 
 
 class RegistryManager(models.Manager):
+
     def get_by_natural_key(self, code):
         return self.get(code=code)
 
@@ -100,7 +102,7 @@ class RegistryManager(models.Manager):
 class RegistryType:
     NORMAL = 1                 # no exposed contexts - all forms stored in a default context
     HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
-    HAS_CONTEXT_GROUPS = 3         #  registry has context form groups defined
+    HAS_CONTEXT_GROUPS = 3  # registry has context form groups defined
 
 
 class Registry(models.Model):
@@ -142,7 +144,6 @@ class Registry(models.Model):
     @property
     def is_normal(self):
         return self.registry_type == RegistryType.NORMAL
-
 
     @property
     def metadata(self):
@@ -289,7 +290,7 @@ class Registry(models.Model):
             registry=self,
             name=generated_questionnaire_form_name,
             defaults={"sections": "dummy"}  # Had to add this in the fix RDR-1347
-            )
+        )
 
         # get rid of any existing generated sections
         for section in Section.objects.all():
@@ -512,10 +513,9 @@ class Registry(models.Model):
         self._check_metadata()
         self._check_dupes()
 
-
     def _check_dupes(self):
-        dupes = [ r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk ]
-        names = " ".join([ "%s %s" % (r.code, r.name) for r in dupes])
+        dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
+        names = " ".join(["%s %s" % (r.code, r.name) for r in dupes])
         if len(dupes) > 0:
             raise ValidationError("Code %s already exists ( ignore case) in: %s" % (self.code, names))
 
@@ -532,29 +532,28 @@ class Registry(models.Model):
             if cfg.is_default:
                 return cfg
 
-
     @property
     def free_forms(self):
         # return form models which do not below to any form group
         cfgs = ContextFormGroup.objects.filter(registry=self)
-        owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms ]
-                           
-        forms =  sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
-                         not form_model.pk in owned_form_ids and
-                         not form_model.is_questionnaire],
-                         key=lambda form : form.position)
+        owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms]
+
+        forms = sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
+                        not form_model.pk in owned_form_ids and
+                        not form_model.is_questionnaire],
+                       key=lambda form: form.position)
 
         return forms
-                           
+
     @property
     def fixed_form_groups(self):
-        return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
-                                                                context_type="F").order_by("is_default").order_by("name")]
+        return [cfg for cfg in ContextFormGroup.objects.filter(
+            registry=self, context_type="F").order_by("is_default").order_by("name")]
 
     @property
     def multiple_form_groups(self):
-        return [ cfg for cfg in ContextFormGroup.objects.filter(registry=self,
-                                                                context_type="M").order_by("name")]
+        return [cfg for cfg in ContextFormGroup.objects.filter(registry=self,
+                                                               context_type="M").order_by("name")]
 
     def _check_metadata(self):
         if self.metadata_json == "":
@@ -760,7 +759,7 @@ class CommonDataElement(models.Model):
                         display_value = value_dict["value"]
                         return display_value
 
-            except Exception, ex:
+            except Exception as ex:
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
@@ -827,6 +826,7 @@ class CdePolicy(models.Model):
 
 
 class RegistryFormManager(models.Manager):
+
     def get_by_natural_key(self, registry_code, name):
         return self.get(registry__code=registry_code, name=name)
 
@@ -867,7 +867,7 @@ class RegistryForm(models.Model):
                                     .exclude(pk=self.pk)
                                     .exists()):
                 raise ValidationError("RegistryForm with registry.code '%s' and name '%s' already exists"
-                        % (self.registry.code, self.name))
+                                      % (self.registry.code, self.name))
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -964,7 +964,7 @@ class RegistryForm(models.Model):
     def clean(self):
         if " " in self.name:
             msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
-                    "Camel Case, instead."
+                "Camel Case, instead."
             raise ValidationError({'name': msg})
 
         if self.pk:
@@ -1014,7 +1014,6 @@ class QuestionnaireResponse(models.Model):
 
     def _get_patient_field(self, patient_field):
         from dynamic_data import DynamicDataWrapper
-        from django.conf import settings
         wrapper = DynamicDataWrapper(self)
 
         if not self.has_mongo_data:
@@ -1044,8 +1043,6 @@ class QuestionnaireResponse(models.Model):
         from rdrf.dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
         return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
-
-
 
 
 def appears_in(cde, registry, registry_form, section):
@@ -1681,6 +1678,7 @@ class Notification(models.Model):
 
 
 class ConsentSectionManager(models.Manager):
+
     def get_by_natural_key(self, registry_code, code):
         return self.get(registry__code=registry_code, code=code)
 
@@ -1707,7 +1705,7 @@ class ConsentSection(models.Model):
                                       .exclude(pk=self.pk)
                                       .exists()):
                 raise ValidationError("ConsentSection with registry.code '%s' and code '%s' already exists"
-                        % (self.registry.code, self.code))
+                                      % (self.registry.code, self.code))
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -1732,7 +1730,7 @@ class ConsentSection(models.Model):
             except ParentGuardian.DoesNotExist:
                 pass
 
-            function_context = { "patient": patient, "self_patient": self_patient }
+            function_context = {"patient": patient, "self_patient": self_patient}
 
             is_applicable = eval(
                 self.applicability_condition, {"__builtins__": None}, function_context)
@@ -1811,6 +1809,7 @@ class ConsentSection(models.Model):
 
 
 class ConsentQuestionManager(models.Manager):
+
     def get_by_natural_key(self, section_code, code):
         return self.get(section__code=section_code, code=code)
 
@@ -1852,8 +1851,6 @@ class ConsentQuestion(models.Model):
 
     def __unicode__(self):
         return "%s" % self.question_label
-
-
 
 
 class DemographicFields(models.Model):
@@ -1926,7 +1923,7 @@ class RDRFContext(models.Model):
             if self.context_form_group.naming_scheme == "C":
                 return self._get_name_from_cde()
             else:
-                return self.context_form_group.name # E.G. Assessment or Visit - used for display
+                return self.context_form_group.name  # E.G. Assessment or Visit - used for display
         else:
             try:
                 return self.registry.metadata["context_name"]
@@ -1937,23 +1934,19 @@ class RDRFContext(models.Model):
         cde_path = self.context_form_group.naming_cde_to_use
         form_name, section_code, cde_code = cde_path.split("/")
         cde_value = self.content_object.get_form_value(self.registry.code,
-                                           form_name,
-                                           section_code,
-                                           context_id=self.pk)
+                                                       form_name,
+                                                       section_code,
+                                                       context_id=self.pk)
         return cde_value
-        
-        
-        
 
-        
+
 class ContextFormGroup(models.Model):
-    CONTEXT_TYPES = [("F","Fixed"), ("M", "Multiple")]
+    CONTEXT_TYPES = [("F", "Fixed"), ("M", "Multiple")]
     NAMING_SCHEMES = [("D", "Automatic - Date"),
                       ("N", "Automatic - Number"),
                       ("M", "Manual - Free Text"),
                       ("C", "CDE - Nominate CDE to use")]
-    
-    
+
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
@@ -1963,9 +1956,9 @@ class ContextFormGroup(models.Model):
 
     @property
     def forms(self):
-        sort_func = lambda form : form.position
-        
-        return sorted([ item.registry_form for item in self.items.all()],
+        sort_func = lambda form: form.position
+
+        return sorted([item.registry_form for item in self.items.all()],
                       key=sort_func)
 
     def __unicode__(self):
@@ -1985,7 +1978,6 @@ class ContextFormGroup(models.Model):
     def supports_direct_linking(self):
         return len(self.form_models) == 1
 
-
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":
             return "Modules"
@@ -1997,14 +1989,14 @@ class ContextFormGroup(models.Model):
         elif self.naming_scheme == "N":
             registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
-            existing_contexts = [ c for c in RDRFContext.objects.filter(object_id=patient_model.pk,
-                                                                        content_type=patient_content_type,
-                                                                        registry=registry_model,
-                                                                        context_form_group=self)]
+            existing_contexts = [c for c in RDRFContext.objects.filter(object_id=patient_model.pk,
+                                                                       content_type=patient_content_type,
+                                                                       registry=registry_model,
+                                                                       context_form_group=self)]
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
-            return "Unused" # user will see value from cde when context is created
+            return "Unused"  # user will see value from cde when context is created
         else:
             return "Modules"
 
@@ -2017,11 +2009,9 @@ class ContextFormGroup(models.Model):
                                                      cde_code,
                                                      context_id=context_model.pk)
 
-
-
             cde_model = CommonDataElement.objects.get(code=cde_code)
             # This does not actually do type conversion for dates -
-            # it just looks up range display codes. 
+            # it just looks up range display codes.
             display_value = cde_model.get_display_value(cde_value)
             if isinstance(display_value, datetime):
                 display_value = format_date(display_value)
@@ -2029,7 +2019,6 @@ class ContextFormGroup(models.Model):
         except KeyError:
             # value not filled out yet
             return "NOT SET"
-        
 
     @property
     def naming_info(self):
@@ -2046,12 +2035,12 @@ class ContextFormGroup(models.Model):
 
     def clean(self):
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
-                                                       is_default=True)
+                                                   is_default=True)
         defaults.exclude(pk=self.pk)
         num_defaults = defaults.count()
         if num_defaults > 0 and self.is_default:
             raise ValidationError("Only one Context Form Group can be the default")
-        if num_defaults == 0  and not self.is_default:
+        if num_defaults == 0 and not self.is_default:
             raise ValidationError("One Context Form Group must be chosen as the default")
 
     def patient_can_add(self, patient_model):
@@ -2068,7 +2057,6 @@ class ContextFormGroup(models.Model):
                                               object_id=patient_model.id,
                                               context_form_group=self).count() == 0
 
-
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
             num_forms = len(self.form_models)
@@ -2079,8 +2067,8 @@ class ContextFormGroup(models.Model):
                 # We can't go directly to the form - so we first land on the add context view, which on save
                 # creates the context with links to the forms provided in that context after save
                 action_link = reverse("context_add", args=(self.registry.code,
-                                                       str(patient_model.pk),
-                                                       str(self.pk)))
+                                                           str(patient_model.pk),
+                                                           str(self.pk)))
 
             else:
                 form_model = self.form_models[0]
@@ -2088,20 +2076,17 @@ class ContextFormGroup(models.Model):
                 # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
 
                 action_link = reverse("form_add", args=(self.registry.code,
-                                                       form_model.pk,
-                                                       patient_model.pk,
-                                                       'add'))
-                
-                                                       
-                                                       
+                                                        form_model.pk,
+                                                        patient_model.pk,
+                                                        'add'))
+
             return action_link, action_title
         else:
             return None
 
     @property
     def form_models(self):
-        return sorted([item.registry_form for item in self.items.all()], key=lambda f : f.position)
-        
+        return sorted([item.registry_form for item in self.items.all()], key=lambda f: f.position)
 
 
 class ContextFormGroupItem(models.Model):
@@ -2169,6 +2154,7 @@ def file_upload_to(instance, filename):
         instance.cde.code if instance.cde else "",
         filename]))
 
+
 class CDEFile(models.Model):
     """
     A file record which is referenced by id within the patient's
@@ -2188,6 +2174,7 @@ class CDEFile(models.Model):
 
     def __unicode__(self):
         return self.item.name
+
 
 @receiver(pre_delete, sender=CDEFile)
 def fileuploaditem_delete(sender, instance, **kwargs):
