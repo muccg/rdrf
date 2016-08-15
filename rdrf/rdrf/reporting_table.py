@@ -1,8 +1,5 @@
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
-from rdrf.dynamic_data import DynamicDataWrapper
-import explorer
-from explorer.utils import DatabaseUtils
 from rdrf.utils import timed
 from datetime import datetime
 
@@ -522,7 +519,6 @@ class MongoFieldSelector(object):
         # is import of registry definition occurs
         import json
         from rdrf.models import CommonDataElement
-        from rdrf.models import Registry
         from rdrf.models import RegistryForm
         from rdrf.models import Section
         projection_data = []
@@ -555,7 +551,6 @@ class MongoFieldSelector(object):
 
     def _get_longitudinal_cdes(self):
         from rdrf.models import CommonDataElement
-        from rdrf.models import Registry
         from rdrf.models import RegistryForm
         from rdrf.models import Section
         d = {}
