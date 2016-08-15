@@ -1,5 +1,4 @@
 from django.conf.urls import patterns, url, include
-from rest_framework.routers import DefaultRouter
 from rdrf import api_views
 from rdrf.custom_rest_router import DefaultRouterWithSimpleViews
 
