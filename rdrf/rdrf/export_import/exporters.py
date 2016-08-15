@@ -7,7 +7,6 @@ from django.apps import apps
 from rdrf.utils import mongo_db_name
 from rdrf.mongo_client import construct_mongo_client
 from .utils import DelegateMixin
-from .utils import IndentedLogger
 from .utils import app_schema_version
 from .utils import file_checksum
 from .utils import maybe_indent
