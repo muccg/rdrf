@@ -12,10 +12,8 @@ from django.shortcuts import render_to_response
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
 from rdrf.models import Registry
-from rdrf.models import RDRFContext
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
-from rdrf.context_menu import PatientContextMenu
 from rdrf.components import FormsButton
 from registry.patients.models import Patient
 
@@ -201,7 +199,7 @@ class PatientsListingView(View):
     def check_security(self):
         self.do_security_checks()
         if not self.user.is_superuser:
-            if not self.registry_model.code in [r.code for r in self.user.registry.all()]:
+            if self.registry_model.code not in [r.code for r in self.user.registry.all()]:
                 logger.info(
                     "User %s tried to browse patients in registry %s of which they are not a member" %
                     (self.user, self.registry_model.code))
