@@ -480,19 +480,6 @@ def get_site_url(app_name, default_url):
     return os.environ.get('RDRF_URL', default_url).rstrip('/')
 
 
-#@step(u'And I enter "([^"]*)" for form "([^"]*)" section "([^"]*)" cde "([^"]*)"')
-#lettucehost_1   | def and_i_enter_group1_for_form_group2_section_group3_cde_group4(step, group1, group2, group3, group4):
-#lettucehost_1   |     assert False, 'This step must be implemented'
-#lettucehost_1   | @step(u'And I enter "([^"]*)" for form FollowUp section FHFollowUp cde DateOfAssessment')
-#lettucehost_1   | def and_i_enter_group1_for_form_followup_section_fhfollowup_cde_dateofassessment(step, group1):
-#lettucehost_1   |     assert False, 'This step must be implemented'
-#lettucehost_1   | @step(u'And I click Cancel')
-#lettucehost_1   | def and_i_click_cancel(step):
-#lettucehost_1   |     assert False, 'This step must be implemented'
-#lettucehost_1   | @step(u'And I click Leave')
-#lettucehost_1   | def and_i_click_leave(step):
-#lettucehost_1   |     assert False, 'This step must be implemented'
-
 
 
 
