@@ -1,12 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from rdrf.utils import de_camelcase
-from rdrf.utils import mongo_db_name
-from rdrf.utils import mongo_key
-from rdrf.models import RegistryForm
-from rdrf.mongo_client import construct_mongo_client
 
-from registry.patients.models import Patient
 import math
 import logging
 
@@ -76,8 +71,6 @@ class FormProgress(object):
                 self.reset()
 
     def _get_progress_collection(self):
-        from rdrf.utils import mongo_db_name
-        from rdrf.mongo_client import construct_mongo_client
         db_name = mongo_db_name(self.registry_model.code)
         mongo_client = construct_mongo_client()
         db = mongo_client[db_name]
@@ -142,7 +135,6 @@ class FormProgress(object):
         if not section_model.allow_multiple:
             return 1
         else:
-            n = 0
             if dynamic_data is None:
                 return 0
             if "forms" not in dynamic_data:
@@ -277,7 +269,6 @@ class FormProgress(object):
 
         groups_progress = {}
         forms_progress = {}
-        cdes_status = {}
 
         for form_model in self.registry_model.forms:
             if not form_model.is_questionnaire:
