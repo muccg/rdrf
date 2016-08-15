@@ -1012,7 +1012,7 @@ class Questionnaire(object):
         # self.patient_creator = PatientCreator()
 
     def _generated_secton_code(self, original_form_name, original_section_code):
-        return self.registry_model._generated_section_questionnaire_code(form_name, section_code)
+        return self.registry_model._generated_section_questionnaire_code(original_form_name, original_section_code)
 
     @property
     def questions(self):
