@@ -707,10 +707,6 @@ class Importer(object):
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
                 information_link = section_dict["information_link"]
-                if "information_text" in section_dict:
-                    information_text = section_dict["information_text"]
-                else:
-                    information_text = ""
 
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry, defaults={'section_label': section_label})
