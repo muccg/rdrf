@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO replace these views as well with Django REST framework views
+# FIXME: Same class defined twice!!
 class PatientLookup(View):
 
     @method_decorator(login_required)
@@ -51,6 +52,7 @@ class PatientLookup(View):
         return HttpResponse(json.dumps(results))
 
 
+# FIXME: Same class defined twice!!
 class PatientLookup(View):
 
     @method_decorator(login_required)
