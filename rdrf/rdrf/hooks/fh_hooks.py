@@ -1,5 +1,4 @@
 from rdrf.hooking import hook
-from rdrf.models import ContextFormGroup
 from rdrf.models import RDRFContext
 from rdrf.models import Registry
 from rdrf.dynamic_data import DynamicDataWrapper
@@ -12,7 +11,6 @@ logger = getLogger(__name__)
 def get_default_context(fh_registry_model, patient_model):
     # clinical form is member of default form group
     cfg = fh_registry_model.default_context_form_group
-    content_type = ContentType.objects.get_for_model(patient_model)
     # can't use usual get_or_create as generic
     try:
         default_context = RDRFContext.objects.get(registry=fh_registry_model,
