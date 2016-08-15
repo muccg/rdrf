@@ -18,7 +18,6 @@ from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from questionnaires import PatientCreator
-from questionnaires import PatientCreatorState
 from file_upload import wrap_gridfs_data_for_form
 from . import filestorage
 from utils import de_camelcase
@@ -26,12 +25,9 @@ from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
-from rdrf.context_menu import PatientContextMenu
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import consent_status_for_patient
-from rdrf.utils import get_form_links
-from rdrf.utils import location_name
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
@@ -47,7 +43,6 @@ from collections import OrderedDict
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.models import AdjudicationRequest, AdjudicationRequestState, AdjudicationError, AdjudicationDefinition, Adjudication
-from rdrf.models import ContextFormGroup
 from rdrf.utils import FormLink
 from registry.groups.models import CustomUser
 import logging
@@ -55,11 +50,9 @@ from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
 
-from rdrf.contexts_api import RDRFContextManager, RDRFContextError
-from rdrf.form_progress import FormProgress
+from rdrf.contexts_api import RDRFContextError
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
-from . import context_definitions as definitions
 from rdrf.questionnaires import PatientCreatorError
 
 
@@ -458,7 +451,6 @@ class FormView(View):
                     to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
                     index_map = make_index_map(to_remove, len(dynamic_data))
 
-                    gone = [dynamic_data[i] for i in to_remove]
                     for i in reversed(to_remove):
                         del dynamic_data[i]
 
@@ -815,7 +807,6 @@ class FormFieldHistoryView(TemplateView):
         # find database objects from url route params
         reg = get_object_or_404(Registry, code=registry_code)
         reg_form = get_object_or_404(RegistryForm, registry=reg, pk=form_id)
-        section = get_object_or_404(Section, code=section_code)
         cde = get_object_or_404(CommonDataElement, code=cde_code)
         patient = get_object_or_404(Patient, pk=patient_id)
         rdrf_context = get_object_or_404(RDRFContext, registry=reg, pk=context_id)
