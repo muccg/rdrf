@@ -5,7 +5,6 @@ from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.contenttypes.models import ContentType
 from rdrf.form_progress import FormProgress
 
 PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
