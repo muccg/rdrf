@@ -14,8 +14,6 @@ from registry.patients.models import Patient
 from django.contrib.contenttypes.models import ContentType
 from rdrf.models import RDRFContext, RDRFContextError
 
-import pycountry
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -107,7 +105,6 @@ class FamilyLookup(View):
             result = {"error": "patient is not an index"}
             return HttpResponse(json.dumps(result))
 
-        registry_model = Registry.objects.get(code=reg_code)
         link = reverse("patient_edit", args=[reg_code, patient.pk])
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
@@ -204,7 +201,6 @@ class RDRFContextLookup(View):
         :param patient_id:
         :return:
         """
-        from rdrf.models import RDRFContext
         from rdrf.models import Registry
         from registry.patients.models import Patient
         user = request.user
