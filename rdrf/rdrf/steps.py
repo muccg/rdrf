@@ -202,7 +202,8 @@ def click_save_button(step):
 @step(u'error message is "(.*)"')
 def error_message_is(step, error_message):
     #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
-    world.browser.find_element_by_xpath('//div[@class="alert"]/text()[contains(. "%s")' % error_message)
+    world.browser.find_element_by_xpath('//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
+    
     
 
 @step(u'location is "(.*)"')
