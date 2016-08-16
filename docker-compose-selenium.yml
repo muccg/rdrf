@@ -11,10 +11,18 @@ seleniumhub:
 
 chrome:
   image: selenium/node-chrome
+  environment:
+    - SCREEN_WIDTH=1240
+    - SCREEN_HEIGHT=1024
+    - SCREEN_DEPTH=16
   links:
   - seleniumhub:hub
 
 firefox:
   image: selenium/node-firefox
+  environment:
+    - SCREEN_WIDTH=1240
+    - SCREEN_HEIGHT=1024
+    - SCREEN_DEPTH=16
   links:
   - seleniumhub:hub
