@@ -4,6 +4,8 @@ from django import db
 from lettuce import before, after, world
 from selenium import webdriver
 from rdrf import steps
+from selenium.webdriver.common.alert import Alert
+from selenium.common.exceptions import NoAlertPresentException
 
 logger = logging.getLogger(__name__)
     
@@ -45,7 +47,7 @@ def screenshot(scenario):
 @after.each_step
 def screenshot_step(step):
     if not step.passed:
-        step_name = "%s_%s" % (step.scenario, step)
+        step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
         world.browser.get_screenshot_as_file(file_name)
@@ -54,15 +56,15 @@ def screenshot_step(step):
 @after.each_step
 def accept_alerts(step):
     from selenium.webdriver.common.alert import Alert
+    from selenium.webdriver.support import expected_conditions as EC
     try:
-        Alert(world.browser).accept()
-    except:
+        if EC.alert_is_present:
+            logger.info("alert is present - accepting !")
+            world.browser.switch_to_alert().accept()
+        else:
+            logger.info("No alert present - nothing to do")
+    except NoAlertPresentException:
         pass
-
-    try:
-        leave_button = world.browser.find_element_by_xpath('//input[contains(., "Leave")]')
-        leave_button.click()
-    except Exception, ex:
-        logger.info("could not click Leave button?: %s" % ex)
+    
         
 
