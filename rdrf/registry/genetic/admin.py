@@ -4,11 +4,8 @@ from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
-import json
 
 from models import *
-from registry.utils import get_static_url
-from registry.utils import get_working_groups
 
 
 class GeneAdmin(admin.ModelAdmin):
