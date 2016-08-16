@@ -8,7 +8,6 @@ Includes:
     - sample registry
     - permissive iprestrict rules
 '''
-from django.contrib.auth.models import Group
 from registry.groups import models
 
 

@@ -10,7 +10,6 @@ from django.utils.encoding import smart_bytes
 
 import logging
 import re
-import functools
 import os.path
 import subprocess
 
@@ -77,7 +76,6 @@ def is_delimited_key(s):
     except Exception:
         pass
     return False
-
 
 
 def id_on_page(registry_form_model, section_model, cde_model):
@@ -174,40 +172,46 @@ def location_name(registry_form, current_rdrf_context_model=None):
     form_display_name = de_camelcase(registry_form.name)
     context_form_group = None
     if registry_form.registry.has_feature("contexts"):
-            if current_rdrf_context_model is not None:
-                registry_model = registry_form.registry
-                patient_model = current_rdrf_context_model.content_object
-                context_form_group = current_rdrf_context_model.context_form_group
-                if context_form_group is not None:
-                    # context type name
-                    if context_form_group.naming_scheme == "C":
-                        context_type_name = context_form_group.get_name_from_cde(patient_model, current_rdrf_context_model)
-                        if context_form_group.supports_direct_linking:
-                            return form_display_name + "/" + context_type_name
-                    else:
-                        context_type_name = context_form_group.name
-                    
+        if current_rdrf_context_model is not None:
+            registry_model = registry_form.registry
+            patient_model = current_rdrf_context_model.content_object
+            context_form_group = current_rdrf_context_model.context_form_group
+            if context_form_group is not None:
+                # context type name
+                if context_form_group.naming_scheme == "C":
+                    context_type_name = context_form_group.get_name_from_cde(patient_model, current_rdrf_context_model)
+                    if context_form_group.supports_direct_linking:
+                        return form_display_name + "/" + context_type_name
                 else:
-                    context_type_name = ""
+                    context_type_name = context_form_group.name
 
-                #if context_type_name:
-                #    context_link_text = context_type_name
-                #else:
-                #    context_link_text = current_rdrf_context_model.display_name
-                #    
-                #edit_link = reverse("context_edit", args=(registry_model.code,
-                #                                          patient_model.pk,
-                #                                          current_rdrf_context_model.pk))
-                #context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
-                
-                if context_type_name:
-                    s = "%s/%s" % (context_type_name, form_display_name)
-                else:
-                    s = form_display_name
-                    
-                #s = "%s/%s" % (context_link, form_display_name)
+            else:
+                context_type_name = ""
+
+            # if context_type_name:
+            #    context_link_text = context_type_name
+            # else:
+            #    context_link_text = current_rdrf_context_model.display_name
+            #
+            # edit_link = reverse("context_edit", args=(registry_model.code,
+            #                                          patient_model.pk,
+            #                                          current_rdrf_context_model.pk))
+            #context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
+
+            if context_type_name:
+                s = "%s/%s" % (context_type_name, form_display_name)
+                context_link_text = context_type_name
             else:
                 s = form_display_name
+                context_link_text = current_rdrf_context_model.display_name
+
+            edit_link = reverse("context_edit", args=(registry_model.code,
+                                                      patient_model.pk,
+                                                      current_rdrf_context_model.pk))
+            context_link = """<a href="%s">%s</a>""" % (edit_link, context_link_text)
+            s = "%s/%s" % (context_link, form_display_name)
+        else:
+            s = form_display_name
     else:
         s = form_display_name
     return s
@@ -245,9 +249,11 @@ def get_cde(code):
     from rdrf.models import CommonDataElement
     return CommonDataElement.objects.filter(code=code).first()
 
+
 def is_file_cde(code):
     cde = get_cde(code)
     return cde and cde.datatype == 'file'
+
 
 def is_multiple_file_cde(code):
     cde = get_cde(code)
@@ -287,7 +293,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
             container_model = context_model.context_form_group
         else:
             container_model = registry_model
-            
+
         return [
             FormLink(
                 patient_id,
@@ -316,17 +322,19 @@ def consent_status_for_patient(registry_code, patient):
     from models import ConsentSection, ConsentQuestion
 
     consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-    answers = []
+    answers = {}
+    valid = []
     for consent_section in consent_sections:
         if consent_section.applicable_to(patient):
             questions = ConsentQuestion.objects.filter(section=consent_section)
             for question in questions:
                 try:
-                    cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                    answers.append(cv.answer)
+                    cv = ConsentValue.objects.get(patient=patient, consent_question=question)
+                    answers[cv.consent_question.code] = cv.answer
                 except ConsentValue.DoesNotExist:
-                    answers.append(False)
-    return all(answers)
+                    pass
+            valid.append(consent_section.is_valid(answers))
+    return all(valid)
 
 
 def get_error_messages(forms):
@@ -358,9 +366,9 @@ def get_error_messages(forms):
 
 
 def timed(func):
-    from logging import getLogger
     from datetime import datetime
     logger = logging.getLogger(__name__)
+
     def wrapper(*args, **kwargs):
         a = datetime.now()
         result = func(*args, **kwargs)
@@ -370,6 +378,7 @@ def timed(func):
         logger.debug("%s time = %s secs" % (func_name, c))
         return result
     return wrapper
+
 
 def get_cde_value(form_model, section_model, cde_model, patient_record):
     # should refactor code everywhere to use this func
@@ -402,6 +411,7 @@ def report_function(func):
     func.report_function = True
     return func
 
+
 def check_calculation(calculation):
     """
     Run a calculation javascript fragment through ADsafe to see
@@ -424,6 +434,5 @@ def check_calculation(calculation):
 
 
 def format_date(value):
-     d = value.date()
-     return "%s-%s-%s" % (d.day, d.month, d.year)
-
+    d = value.date()
+    return "%s-%s-%s" % (d.day, d.month, d.year)

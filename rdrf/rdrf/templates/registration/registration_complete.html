@@ -1,8 +1,10 @@
 {% load static from staticfiles %}
+{% load i18n %}
+
 <html>
 
 <head>
-    <title>RDRF | Patient registration</title>
+    <title>RDRF | {% trans 'Patient registration' %}</title>
     
     <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
 
@@ -26,8 +28,8 @@
     <br/>
     <div class="container">
         <div class="alert alert-success" role="alert">
-            <h3>Thank you for registration.</h3><br>
-            Please check your email for activation instructions.
+            <h3>{% trans 'Thank you for registration.' %}</h3><br>
+            {% trans 'Please check your email for activation instructions.' %}
         </div>
     </div>
 </body>

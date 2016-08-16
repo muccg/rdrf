@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from rdrf.spreadsheet_report import SpreadSheetReport
 from rdrf.models import Registry
 
+
 def get_triple(registry_model, form_name, section_code, cde_code):
     for form_model in registry_model.forms:
         if form_model.name == form_name:
@@ -12,7 +13,7 @@ def get_triple(registry_model, form_name, section_code, cde_code):
                     for cde_model in section_model.cde_models:
                         if cde_model.code == cde_code:
                             return form_model, section_model, cde_model
-                        
+
 
 class Command(BaseCommand):
     help = 'Creates longitudinal report'
@@ -49,7 +50,7 @@ class Command(BaseCommand):
             raise
 
         triples = [get_triple(registry_model, "Clinical", "sectionxxx", "CDEHeight")]
-        
+
         report = SpreadSheetReport(None,
                                    registry_model,
                                    [],

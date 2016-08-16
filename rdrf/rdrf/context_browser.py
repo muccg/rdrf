@@ -1,10 +1,6 @@
 from registry.patients.models import Patient
 from rdrf.models import RDRFContext
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from operator import itemgetter
-from django.core.paginator import Paginator
-from django.core.urlresolvers import reverse
 from rdrf.context_menu import PatientContextMenu
 from . import context_defnitions as definitions
 
@@ -14,6 +10,7 @@ class ContextBrowserError(Exception):
 
 
 class ContextBrowser(object):
+
     def __init__(self, user, registry_model):
         self.user = user
         self.registry_model = registry_model
@@ -100,18 +97,3 @@ class ContextBrowser(object):
         registry_code = self.registry_model.code
         context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
         return context_menu.html
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

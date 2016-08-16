@@ -335,7 +335,8 @@ class FieldFactory(object):
                 return fields.CharField(
                     max_length=80,
                     help_text=self.cde.instructions,
-                    widget=widget)
+                    widget=widget,
+                    label=self.cde.name)
             else:
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde.widget_name)
@@ -369,7 +370,6 @@ class FieldFactory(object):
                         # because these are dynamic lookup fields the usual validation wasn't working
                         from rdrf.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
-
 
                     return django.forms.ChoiceField(**options)
         else:

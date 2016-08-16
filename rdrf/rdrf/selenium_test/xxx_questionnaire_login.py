@@ -1,7 +1,4 @@
 from selenium import selenium
-import unittest
-import time
-import re
 from base import Base
 
 

@@ -5,7 +5,7 @@ from rdrf.models import Registry
 from rdrf.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 
-from django.db import migrations, models
+from django.db import migrations
 
 
 def forward_func(apps, schema_editor):
@@ -21,11 +21,11 @@ def forward_func(apps, schema_editor):
                 try:
                     context_model.save()
                     print "Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
-                                                                             default_context_form_group.id)
-                except Exception, ex:
+                                                                                 default_context_form_group.id)
+                except Exception as ex:
                     print "Error updating RDRFContext %s: %s" % (context_model.id, ex)
 
-                    
+
 def backward_func(apps, schema_editor):
     patient_content_type = ContentType.objects.get(model='patient')
     for registry_model in Registry.objects.all():
@@ -38,7 +38,7 @@ def backward_func(apps, schema_editor):
                 try:
                     context_model.save()
                     print "RDRFContext %s context_form_group set to null"
-                except Exception, ex:
+                except Exception as ex:
                     print "Error rolling back change to RDRFContext %s: %s" % (context_model.id,
                                                                                ex)
 

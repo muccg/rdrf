@@ -21,9 +21,9 @@ class ResendEmail(View):
     def get(self, request, notification_history_id):
         history = EmailNotificationHistory.objects.get(pk=notification_history_id)
         self.template_data = history.template_data
-        
+
         self._get_template_data()
-        
+
         email = RdrfEmail(
             language=history.language,
             email_notification=history.email_notification,
@@ -31,9 +31,9 @@ class ResendEmail(View):
         for key, value in self.template_data.iteritems():
             email.append(key, value)
         email.send()
-        
+
         messages.add_message(request, messages.SUCCESS, "Email resend")
-        
+
         return redirect(reverse("admin:rdrf_emailnotificationhistory_changelist"))
 
     def _get_template_data(self):

@@ -1,10 +1,9 @@
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from datetime import datetime
 import json
 import logging
 import os
 import shutil
-import sys
 import tempfile
 
 from rdrf.models import Registry
@@ -16,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TopLevelExporter(object):
+
     def __init__(self, dfns=None):
         self.dfns = dfns
         self.tmpdir = None
@@ -108,6 +108,7 @@ class TopLevelExporter(object):
 
 
 class RegistryDefExporter(TopLevelExporter):
+
     def __init__(self, *args, **kwargs):
         kwargs['dfns'] = REGISTRY_DEF_EXPORT_DEFINITION
         TopLevelExporter.__init__(self, *args, **kwargs)
@@ -131,14 +132,15 @@ class RegistryDefExporter(TopLevelExporter):
         registry = Registry.objects.get(code=self.registry_code)
         return OrderedDict(
             (('registry', OrderedDict((
-                    ('code', registry.code),
-                    ('name', registry.name),
-                    ('version', registry.version),
-                    ('description', registry.desc)))),
-            ))
+                ('code', registry.code),
+                ('name', registry.name),
+                ('version', registry.version),
+                ('description', registry.desc)))),
+             ))
 
 
 class RegistryExporter(RegistryDefExporter):
+
     def __init__(self, *args, **kwargs):
         kwargs['dfns'] = REGISTRY_WITH_DATA_EXPORT_DEFINITION
         TopLevelExporter.__init__(self, *args, **kwargs)
@@ -149,6 +151,7 @@ class RegistryExporter(RegistryDefExporter):
 
 
 class Exporter(TopLevelExporter):
+
     @staticmethod
     def create(dfns):
         exporter = Exporter(dfns=dfns)

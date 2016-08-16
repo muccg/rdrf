@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseConsentForm(forms.BaseForm):
+
     def __init__(self, *args, **kwargs):
         self.custom_consents = []
         self.patient_model = kwargs["patient_model"]

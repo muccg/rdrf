@@ -9,6 +9,7 @@
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
+{% load i18n %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -344,11 +345,11 @@
         </div>
         <div class="col-md-2">
             <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                <button type="submit" class="btn btn-success btn-block">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
                 </button>
                 <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
                 </a>
                 <a class="btn btn-info btn-block" href="{{ next_form_link }}">
                     <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next

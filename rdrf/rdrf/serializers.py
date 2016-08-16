@@ -10,7 +10,7 @@ class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
 
 class DoctorSerializer(serializers.HyperlinkedModelSerializer):
     url = DoctorHyperlinkId(read_only=True, source='*')
-    
+
     class Meta:
         model = Doctor
 
@@ -21,7 +21,7 @@ class NextOfKinRelationshipHyperlinkId(serializers.HyperlinkedRelatedField):
 
 class NextOfKinRelationshipSerializer(serializers.HyperlinkedModelSerializer):
     url = NextOfKinRelationshipHyperlinkId(read_only=True, source='*')
-    
+
     class Meta:
         model = NextOfKinRelationship
 
@@ -38,9 +38,21 @@ class PatientHyperlinkId(serializers.HyperlinkedRelatedField):
         return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
 
 
+class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        # TODO add groups and user_permissions as well?
+        exclude = ('groups', 'user_permissions', 'password')
+        extra_kwargs = {
+            'registry': {'lookup_field': 'code'},
+        }
+
+
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
     url = PatientHyperlinkId(read_only=True, source='*')
+    user = CustomUserSerializer()
 
     class Meta:
         model = Patient
@@ -55,6 +67,20 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         new_patient.rdrf_registry.add(self.initial_data.get('registry'))
         new_patient.save()
         return new_patient
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        user.working_groups.clear()
+        for wg in validated_data.get('working_groups'):
+            user.working_groups.add(wg)
+        user.save()
+
+        instance.clinician = validated_data.get('clinician')
+        instance.working_groups = validated_data.get('working_groups')
+        instance.save()
+
+        return instance
 
 
 class RegistryHyperlink(serializers.HyperlinkedRelatedField):
@@ -88,19 +114,9 @@ class RegistrySerializer(serializers.HyperlinkedModelSerializer):
 
 
 class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = WorkingGroup
         extra_kwargs = {
             'registry': {'lookup_field': 'code'},
         }
-
-
-class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = CustomUser
-        # TODO add groups and user_permissions as well?
-        exclude = ('groups', 'user_permissions', 'password')
-        extra_kwargs = {
-            'registry': {'lookup_field': 'code'},
-        }
-

@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from rdrf.importer import Importer
-import argparse
 
 
 class Command(BaseCommand):

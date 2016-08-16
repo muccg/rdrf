@@ -16,7 +16,6 @@ class ExportException(Exception):
     pass
 
 
-
 def convert_decimal_values(cde_dict):
     for k in cde_dict:
         value = cde_dict[k]
@@ -24,6 +23,7 @@ def convert_decimal_values(cde_dict):
             logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
             cde_dict[k] = str(value)
     return cde_dict
+
 
 class ExportFormat:
     JSON = "JSON"
@@ -485,7 +485,7 @@ class Exporter(object):
             cfg_dict = {}
             cfg_dict["context_type"] = cfg.context_type
             cfg_dict["name"] = cfg.name
-            cfg_dict["naming_scheme"]  = cfg.naming_scheme
+            cfg_dict["naming_scheme"] = cfg.naming_scheme
             cfg_dict["is_default"] = cfg.is_default
             cfg_dict["naming_cde_to_use"] = cfg.naming_cde_to_use
             cfg_dict["forms"] = []
@@ -493,6 +493,3 @@ class Exporter(object):
                 cfg_dict["forms"].append(form.name)
             data.append(cfg_dict)
         return data
-                
-
-            

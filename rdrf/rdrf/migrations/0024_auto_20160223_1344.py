@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contextformgroup',
             name='naming_scheme',
-            field=models.CharField(default=b'D', max_length=1, choices=[(b'D', b'Automatic - Date'), (b'N', b'Automatic - Number'), (b'M', b'Manual - Free Text')]),
+            field=models.CharField(default=b'D', max_length=1, choices=[(
+                b'D', b'Automatic - Date'), (b'N', b'Automatic - Number'), (b'M', b'Manual - Free Text')]),
         ),
         migrations.AlterField(
             model_name='contextformgroup',

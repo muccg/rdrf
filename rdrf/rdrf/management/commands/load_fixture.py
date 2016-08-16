@@ -1,5 +1,4 @@
 import os
-import argparse
 from django.core.management.base import BaseCommand
 
 

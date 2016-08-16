@@ -7,6 +7,7 @@ from dynamic_forms import create_form_class
 from dynamic_data import DynamicDataWrapper
 from django.views.generic import View
 from django.http import HttpResponse
+from django.utils.translation import ugettext as _
 
 from models import Registry
 import json
@@ -39,7 +40,7 @@ def patient_cdes(request, patient_id):
         dyn_patient = DynamicDataWrapper(patient)
 
     except owner_model.DoesNotExist:
-        raise Http404("Patient does not exist")
+        raise Http404(_("Patient does not exist"))
 
     form_class = create_form_class('Patient')
 

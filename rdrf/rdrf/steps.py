@@ -5,7 +5,8 @@ import string
 
 from lettuce.core import STEP_REGISTRY
 from lettuce import step, world
-from lettuce_webdriver.webdriver import contains_content, goto
+import lettuce_webdriver.webdriver
+from lettuce_webdriver.webdriver import contains_content
 from lettuce_webdriver.util import assert_true, assert_false
 
 from selenium.webdriver.common.alert import Alert

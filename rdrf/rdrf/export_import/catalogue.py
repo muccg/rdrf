@@ -4,6 +4,7 @@ from .importers import DataGroupImporter, ModelImporter, MongoCollectionImporter
 
 
 class Catalogue(object):
+
     def __init__(self):
         self._catalogue = defaultdict(lambda: self.factory)
 

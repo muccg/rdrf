@@ -1,12 +1,10 @@
 from collections import OrderedDict
-from datetime import date
 
 from django.shortcuts import render_to_response, RequestContext, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.contrib.auth import logout
 
 from rdrf.models import RegistryForm
 from rdrf.models import Registry
@@ -16,150 +14,38 @@ from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
+from form_progress import FormProgress
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
-from django.contrib.auth.models import Group
 
-from registry.patients.models import Patient, PatientAddress, PatientDoctor, PatientRelative, PatientConsent, ParentGuardian, ConsentValue
-from registry.patients.admin_forms import PatientForm, PatientAddressForm, PatientDoctorForm, PatientRelativeForm, PatientConsentFileForm
+from registry.patients.models import ConsentValue
+from registry.patients.models import ParentGuardian
+from registry.patients.models import Patient
+from registry.patients.models import PatientAddress
+from registry.patients.models import PatientConsent
+from registry.patients.models import PatientDoctor
+from registry.patients.models import PatientRelative
+from registry.patients.admin_forms import PatientAddressForm
+from registry.patients.admin_forms import PatientConsentFileForm
+from registry.patients.admin_forms import PatientDoctorForm
+from registry.patients.admin_forms import PatientForm
+from registry.patients.admin_forms import PatientRelativeForm
+from django.utils.translation import ugettext as _
 
 from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 
-from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.contexts_api import RDRFContextError
+from rdrf.contexts_api import RDRFContextManager
 from rdrf.context_menu import PatientContextMenu
 from rdrf.components import RDRFContextLauncherComponent
-
-
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def calculate_age(born):
-    today = date.today()
-    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-
-
-class PatientToParentView(View):
-
-    _GENDER_CODE = {
-        1: "M",
-        2: "F"
-    }
-
-    def get(self, request, registry_code, patient_id):
-
-        patient = Patient.objects.get(id=patient_id)
-        patient_address = PatientAddress.objects.get(patient=patient)
-
-        parent_group, created = Group.objects.get_or_create(name="Parents")
-
-        patient.user.groups = [parent_group,]
-        patient.save()
-
-        parent = ParentGuardian.objects.create(
-            first_name = patient.given_names,
-            last_name = patient.family_name,
-            date_of_birth = patient.date_of_birth,
-            gender = patient.sex,
-            address = patient_address.address,
-            suburb = patient_address.suburb,
-            state = patient_address.state,
-            postcode = patient_address.postcode,
-            country = patient_address.country,
-
-            user = patient.user,
-            self_patient = patient
-        )
-
-        parent.patient.add(patient)
-        parent.save()
-
-        logout(request)
-        redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
-        return redirect(redirect_url)
-
-
-class PatientView(View):
-
-    def get(self, request, registry_code):
-        context = {
-            'registry_code': registry_code,
-            'access': False,
-            'registry': registry_code
-        }
-
-        try:
-            registry = Registry.objects.get(code=registry_code)
-            context['splash_screen'] = registry.patient_splash_screen
-        except Registry.DoesNotExist:
-            context['error_msg'] = "Registry does not exist"
-            logger.error("Registry %s does not exist" % registry_code)
-            return render_to_response(
-                'rdrf_cdes/patient.html',
-                context,
-                context_instance=RequestContext(request))
-
-        if request.user.is_authenticated():
-            try:
-                registry = Registry.objects.get(code=registry_code)
-                if registry in request.user.registry.all():
-                    context['access'] = True
-                    context['splash_screen'] = registry.patient_splash_screen
-            except Registry.DoesNotExist:
-                context['error_msg'] = "Registry does not exist"
-                logger.error("Registry %s does not exist" % registry_code)
-
-            try:
-                forms = registry.forms
-
-                class FormLink(object):
-
-                    def __init__(self, form):
-                        self.form = form
-                        self.readonly = request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
-                        patient = Patient.objects.get(user=request.user)
-                        self.link = form.link(patient)
-
-                context['forms'] = [FormLink(form) for form in forms]
-            except RegistryForm.DoesNotExist:
-                logger.error("No questionnaire for %s registry" % registry_code)
-
-            if request.user.is_patient:
-                try:
-                    patient = Patient.objects.get(user__id=request.user.id)
-                    context['patient_record'] = patient
-                    context['patient_form'] = PatientForm(
-                        instance=patient, user=request.user, registry_model=registry)
-                    context['patient_id'] = patient.id
-                    context['age'] = calculate_age(patient.date_of_birth)
-                    context['consent'] = self._consent_status(registry_code, patient)
-                except Patient.DoesNotExist:
-                    logger.error("Paient record not found for user %s" % request.user.username)
-
-        return render_to_response(
-            'rdrf_cdes/patient.html',
-            context,
-            context_instance=RequestContext(request))
-
-    def _consent_status(self, registry_code, patient):
-        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        for consent_section in consent_sections:
-            if consent_section.applicable_to(patient):
-                answers = []
-                questions = ConsentQuestion.objects.filter(section=consent_section)
-                for question in questions:
-                    try:
-                        cv = ConsentValue.objects.get(patient=patient, consent_question = question)
-                        answers.append(cv.answer)
-                    except ConsentValue.DoesNotExist:
-                        answers.append(False)
-        return all(answers)
 
 
 class PatientMixin(object):
@@ -226,7 +112,8 @@ class PatientFormMixin(PatientMixin):
         return '%s?just_created=True' % patient_edit_url
 
     def _get_initial_context(self, registry_code, patient_model):
-        from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+        from rdrf.contexts_api import RDRFContextError
+        from rdrf.contexts_api import RDRFContextManager
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         rdrf_context_manager = RDRFContextManager(registry_model)
@@ -260,7 +147,6 @@ class PatientFormMixin(PatientMixin):
         fieldset_title = registry_model.specific_fields_section_title
         field_list = [pair[0].code for pair in field_pairs]
         return fieldset_title, field_list
-
 
     def get_form(self, form_class=None):
         """
@@ -317,7 +203,7 @@ class PatientFormMixin(PatientMixin):
         kwargs["registry_code"] = self.registry_model.code
         kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
-        kwargs["location"] = "Demographics"
+        kwargs["location"] = _("Demographics")
         if self.request.user.is_parent:
             kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
         return kwargs
@@ -378,7 +264,12 @@ class PatientFormMixin(PatientMixin):
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
-        personal_details_fields = ('Patients Personal Details', [
+        personal_header = _('Patients Personal Details')
+        if registry_code == "fkrp":
+            personal_header += "<br><br><i>" + \
+                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
+
+        personal_details_fields = (personal_header, [
             "family_name",
             "given_names",
             "maiden_name",
@@ -426,7 +317,7 @@ class PatientFormMixin(PatientMixin):
         #
         # patient_section_consent = patient_form.get_all_consent_section_info(
         #     patient, registry_code)
-        # patient_section_consent_file = ("Upload Consent File", None)
+        # patient_section_consent_file = (_("Upload Consent File"), None)
 
         form_sections = [
             # (
@@ -469,7 +360,7 @@ class PatientFormMixin(PatientMixin):
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
 
-            patient_doctor_section = ("Patient Doctor", None)
+            patient_doctor_section = (_("Patient Doctor"), None)
 
             form_sections.append((
                 patient_doctor_form,
@@ -490,7 +381,7 @@ class PatientFormMixin(PatientMixin):
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
 
-            patient_relative_section = ("Patient Relative", None)
+            patient_relative_section = (_("Patient Relative"), None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 
@@ -548,8 +439,8 @@ class PatientFormMixin(PatientMixin):
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
                 patient_relative_model.sync_relative_patient()
-                logger.debug("saved patient relative model %s OK - owning patient is %s" % (patient_relative_model,
-                                                                                            patient_relative_model.patient))
+                logger.debug("saved patient relative model %s OK - owning patient is %s" %
+                             (patient_relative_model, patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
@@ -703,7 +594,7 @@ class PatientEditView(View):
 
         context = {
             "location": "Demographics",
-            "context_launcher" : context_launcher.html,
+            "context_launcher": context_launcher.html,
             "forms": form_sections,
             "patient": patient,
             "patient_id": patient.id,
@@ -879,9 +770,10 @@ class PatientEditView(View):
 
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id
-        context["location"] = "Demographics"
+        context["location"] = _("Demographics")
         context["form_links"] = []
         context["consent"] = consent_status_for_patient(registry_code, patient)
+
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
@@ -890,12 +782,11 @@ class PatientEditView(View):
             context,
             context_instance=RequestContext(request))
 
-    #def _get_index_context(self, registry_model, patient_model):
+    # def _get_index_context(self, registry_model, patient_model):
     #    #todo this probabably doesn't apply anymore in fhcontexts branch
     #    if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
     #        return patient_model.my_index.default_context(registry_model)
 
-        
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
             patient_relative_formset.instance = patient_model
@@ -964,7 +855,7 @@ class PatientEditView(View):
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
-        personal_details_fields = ('Patients Personal Details', [
+        personal_details_fields = (_('Patients Personal Details'), [
             "family_name",
             "given_names",
             "maiden_name",
@@ -981,7 +872,7 @@ class PatientEditView(View):
             "living_status",
         ])
 
-        next_of_kin = ("Next of Kin", [
+        next_of_kin = (_("Next of Kin"), [
             "next_of_kin_family_name",
             "next_of_kin_given_names",
             "next_of_kin_relationship",
@@ -997,13 +888,13 @@ class PatientEditView(View):
             "next_of_kin_parent_place_of_birth"
         ])
 
-        rdrf_registry = ("Registry", [
+        rdrf_registry = (_("Registry"), [
             "rdrf_registry",
             "working_groups",
             "clinician"
         ])
 
-        patient_address_section = ("Patient Address", None)
+        patient_address_section = (_("Patient Address"), None)
 
         # patient_consent_file_formset = inlineformset_factory(
         #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
@@ -1012,7 +903,7 @@ class PatientEditView(View):
         #
         # patient_section_consent = patient_form.get_all_consent_section_info(
         #     patient, registry_code)
-        # patient_section_consent_file = ("Upload Consent File", None)
+        # patient_section_consent_file = (_("Upload Consent File"), None)
 
         form_sections = [
             # (
@@ -1055,7 +946,7 @@ class PatientEditView(View):
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
 
-            patient_doctor_section = ("Patient Doctor", None)
+            patient_doctor_section = (_("Patient Doctor"), None)
 
             form_sections.append((
                 patient_doctor_form,
@@ -1080,7 +971,7 @@ class PatientEditView(View):
             else:
                 patient_relative_form = patient_relatives_forms
 
-            patient_relative_section = ("Patient Relative", None)
+            patient_relative_section = (_("Patient Relative"), None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 

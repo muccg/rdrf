@@ -1,6 +1,6 @@
 # data only container pattern
 dataprod:
-  image: muccg/debian8-base:latest
+  image: debian:jessie
   volumes:
     - ./data/prod:/data
 

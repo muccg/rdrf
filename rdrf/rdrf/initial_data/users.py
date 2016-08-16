@@ -24,7 +24,7 @@ def load_data(**kwargs):
 def create_user(username, password=None, groups=[], **kwargs):
     if password is None:
         password = username
-    defaults=dict(
+    defaults = dict(
         email='%s@example.com' % username,
         first_name=username,
         last_name=username,

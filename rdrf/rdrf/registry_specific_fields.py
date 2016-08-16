@@ -48,7 +48,7 @@ class RegistrySpecificFieldsHandler(object):
                             form_value = {}
 
                     elif form_value == FileCommand.DELETE:
-                        #self._delete_existing_file_in_gridfs(cde_model)
+                        # self._delete_existing_file_in_gridfs(cde_model)
                         form_value = {}
 
                     logger.debug("file cde %s value = %s" % (cde_model.code, form_value))
@@ -73,7 +73,7 @@ class RegistrySpecificFieldsHandler(object):
 
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
-            #self._delete_existing_file_in_gridfs(file_cde_model)
+            # self._delete_existing_file_in_gridfs(file_cde_model)
             return filestorage.store_file(
                 self.registry_model, file_cde_model, form_value)
         else:

@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='parentguardian',
             name='gender',
-            field=models.CharField(max_length=1, choices=[(b'M', b'Male'), (b'F', b'Female'), (b'I', b'Indeterminate')]),
+            field=models.CharField(max_length=1, choices=[(b'M', b'Male'),
+                                                          (b'F', b'Female'), (b'I', b'Indeterminate')]),
         ),
     ]

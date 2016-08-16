@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext as _
+
 import logging
 from registry.humangenome.exon import ExonVariation
 from registry.humangenome.protein import ProteinVariation
@@ -56,17 +58,17 @@ class GeneticValidator(object):
         try:
             return ExonVariation(value)
         except ExonVariation.Error as e:
-            raise GeneticValidationError("Exon validation error: %s" % e)
+            raise GeneticValidationError(_("Exon validation error: %s") % e)
 
     def validate_protein(self, value):
         try:
             return ProteinVariation(value)
         except ProteinVariation.Error as e:
-            raise GeneticValidationError("Protein validation error: %s" % e)
+            raise GeneticValidationError(_("Protein validation error: %s") % e)
 
     def validate_sequence(self, value):
         logger.debug("validate_sequence(%s)" % value)
         try:
             return SequenceVariation(value)
         except SequenceVariation.Error as e:
-            raise GeneticValidationError("Sequence validation error: %s" % e)
+            raise GeneticValidationError(_("Sequence validation error: %s") % e)

@@ -1,5 +1,7 @@
 {% load static from staticfiles %}
 {% load version_number %}
+{% load i18n %}
+
 <!DOCTYPE html>
 <html class="bg">
 <head>
@@ -38,11 +40,11 @@
       			<ul class="nav navbar-nav">
       				<li class="dropdown">
         				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-          					Links <b class="caret"></b>
+          					{% trans 'Links' %} <b class="caret"></b>
           				</a>
           				<ul class="dropdown-menu">
-							<li><a href="{% url 'landing' %}">Home</a></li>
-							<li><a href="{% url 'admin:index' %}">Admin</a></li>
+							<li><a href="{% url 'landing' %}">{% trans 'Home' %}</a></li>
+							<li><a href="{% url 'admin:index' %}">{% trans 'Admin' %}</a></li>
 				        </ul>
         			</li>
 
@@ -59,9 +61,9 @@
 		<div class="container">
 			<div class="row header">
 				<div class="col-md-12">
-					<h3>Welcome to Rare Disease Registry Framework!</h3>
+					<h3>{% trans 'Welcome to Rare Disease Registry Framework' %}!</h3>
 
-                    <p>The following registries are defined on this site</p>
+                    <p>{% trans 'The following registries are defined on this site' %}</p>
 				</div>
 			</div>
             {% for reg in registrys %}
@@ -86,10 +88,10 @@
 						<div class="visit">
                             {% if reg.splash_screen %}
 							<a class="button" href="{% url 'registry' reg.code %}">
-								Go to the registry
+								{% trans 'Go to the registry' %}
 							</a>
                             {% else %}
-			                    No further information is available
+			                    {% trans 'No further information is available' %}
 			                {% endif %}
 						</div>
 					</div>
@@ -111,11 +113,11 @@
 				<div class="col-sm-8 menu">
 					<ul>
 	        			<li>
-                            <a href="mailto:rdrf@ccg.murdoch.edu.au">Support</a>
+                            <a href="mailto:rdrf@ccg.murdoch.edu.au">{% trans 'Support' %}</a>
 	        			</li>
 
 	        			<li>
-                            <a href="https://ccgmurdoch.atlassian.net/browse/RDR">Report a bug</a>
+                            <a href="https://ccgmurdoch.atlassian.net/browse/RDR">{% trans 'Report a bug' %}</a>
 	        			</li>
 
 	        			<li>
@@ -127,7 +129,7 @@
                         </li>
 
                         <li>
-                            <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">Documentation</a>
+                            <a href="http://rare-disease-registry-framework.readthedocs.org/en/latest/">{% trans 'Documentation' %}</a>
                         </li>
 
 	      			</ul>

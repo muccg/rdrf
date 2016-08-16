@@ -1,4 +1,3 @@
-from django import forms
 from django.shortcuts import render_to_response, RequestContext
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -11,11 +10,11 @@ from django.db import transaction
 
 from rdrf.models import Registry
 from registry.patients.models import Patient, PatientRelative
-from django.contrib import messages
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def fml_log(msg):
     logger.info("***FAMILY LINKAGE: %s" % msg)
@@ -31,6 +30,7 @@ class FamilyLinkageType:
 
 
 class MongoUndo(object):
+
     def __init__(self, patient, linkage_type):
         self.patient = patient
         self.linkage_type = linkage_type
@@ -43,7 +43,8 @@ class MongoUndo(object):
 
 
 class FamilyLinkageManager(object):
-    def __init__(self,  registry_model, packet):
+
+    def __init__(self, registry_model, packet):
         self.registry_model = registry_model
         self.packet = packet
         if not registry_model.has_feature("family_linkage"):
@@ -179,13 +180,15 @@ class FamilyLinkageManager(object):
 
     def _set_as_relative(self, patient):
         main_context_model = self._get_main_context(patient)
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_relative", main_context_model)
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection",
+                               "CDEIndexOrRelative", "fh_is_relative", main_context_model)
         fml_log("set patient %s to relative" % patient)
         self._add_undo(patient, "fh_is_relative")
 
     def _set_as_index_patient(self, patient):
         main_context_model = self._get_main_context(patient)
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", "fh_is_index", main_context_model)
+        patient.set_form_value("fh", "ClinicalData", "fhDateSection",
+                               "CDEIndexOrRelative", "fh_is_index", main_context_model)
         fml_log("set patient %s to index" % patient)
         self._add_undo(patient, "fh_is_index")
 
@@ -197,10 +200,10 @@ class FamilyLinkageManager(object):
                 return context_model
 
         raise Exception("Can't get main context group")
-    
 
 
 class FamilyLinkageView(View):
+
     @method_decorator(login_required)
     def get(self, request, registry_code, initial_index=None):
 
@@ -212,7 +215,7 @@ class FamilyLinkageView(View):
         except Registry.DoesNotExist:
             raise Http404("Registry does not exist")
 
-        context = {} 
+        context = {}
         context.update(csrf(request))
 
         context['registry_code'] = registry_code
@@ -220,12 +223,10 @@ class FamilyLinkageView(View):
         context["initial_index"] = initial_index
         context["location"] = "Family Linkage"
 
-
         return render_to_response(
             'rdrf_cdes/family_linkage.html',
             context,
             context_instance=RequestContext(request))
-
 
     @method_decorator(login_required)
     def post(self, request, registry_code, initial_index=None):
@@ -238,22 +239,22 @@ class FamilyLinkageView(View):
             #messages.add_message(request, messages.SUCCESS, "Linkages updated successfully")
             return HttpResponse("OK")
 
-        except Exception, err:
+        except Exception as err:
             #messages.add_message(request, messages.ERROR, "Linkage update failed: %s" % err)
             return HttpResponse("FAIL: %s" % err)
 
-    def _process_packet(self, registry_model,  packet):
+    def _process_packet(self, registry_model, packet):
         fml_log("packet = %s" % packet)
         flm = FamilyLinkageManager(registry_model, packet)
         try:
             with transaction.atomic():
                 flm.run()
 
-        except Exception, ex:
+        except Exception as ex:
             for undo in flm.mongo_undos:
                 try:
                     undo()
-                except Exception, ex:
+                except Exception as ex:
                     logger.error("could not undo %s" % undo)
 
             raise ex

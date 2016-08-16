@@ -24,7 +24,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='user',
-            field=models.ForeignKey(related_name='user_object', on_delete=django.db.models.deletion.SET_NULL, blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(related_name='user_object', on_delete=django.db.models.deletion.SET_NULL,
+                                    blank=True, to=settings.AUTH_USER_MODEL, null=True),
         ),
         migrations.AddField(
             model_name='patient',
@@ -44,7 +45,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='parentguardian',
             name='user',
-            field=models.ForeignKey(related_name='parent_user_object', on_delete=django.db.models.deletion.SET_NULL, blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(related_name='parent_user_object', on_delete=django.db.models.deletion.SET_NULL,
+                                    blank=True, to=settings.AUTH_USER_MODEL, null=True),
         ),
         migrations.AddField(
             model_name='doctor',

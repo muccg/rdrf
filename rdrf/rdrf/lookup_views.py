@@ -1,10 +1,12 @@
 from django.http import HttpResponse
 from django.views.generic import View
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
 import json
+import requests
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -19,16 +21,47 @@ logger = logging.getLogger(__name__)
 
 
 # TODO replace these views as well with Django REST framework views
+class PatientLookup(View):
+
+    @method_decorator(login_required)
+    def get(self, request, reg_code):
+        from rdrf.models import Registry
+        from registry.patients.models import Patient
+        from django.db.models import Q
+
+        term = None
+        results = []
+
+        try:
+            registry_model = Registry.objects.get(code=reg_code)
+            if registry_model.has_feature("questionnaires"):
+                term = request.GET.get("term", "")
+                working_groups = [wg for wg in request.user.working_groups.all()]
+
+                query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                    Q(working_groups__in=working_groups)
+
+                for patient_model in Patient.objects.filter(query):
+                    if patient_model.active:
+                        name = "%s" % patient_model
+                        results.append({"value": patient_model.pk, "label": name,
+                                        "class": "Patient", "pk": patient_model.pk})
+
+        except Registry.DoesNotExist:
+            results = []
+
+        return HttpResponse(json.dumps(results))
 
 
 class PatientLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, reg_code):
         from rdrf.models import Registry
         from registry.patients.models import Patient
         from registry.groups.models import WorkingGroup
         from django.db.models import Q
-        
+
         term = None
         results = []
 
@@ -42,12 +75,13 @@ class PatientLookup(View):
                     working_groups = [wg for wg in WorkingGroup.objects.filter(registry=registry_model)]
 
                 query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                         Q(working_groups__in=working_groups)
+                    Q(working_groups__in=working_groups)
 
                 for patient_model in Patient.objects.filter(query):
                     if patient_model.active:
                         name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name, "class": "Patient", "pk": patient_model.pk })
+                        results.append({"value": patient_model.pk, "label": name,
+                                        "class": "Patient", "pk": patient_model.pk})
 
         except Registry.DoesNotExist:
             results = []
@@ -56,6 +90,7 @@ class PatientLookup(View):
 
 
 class FamilyLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
         from rdrf.models import Registry
@@ -96,12 +131,11 @@ class FamilyLookup(View):
             relative_dict = {"pk": relative.pk,
                              "given_names": relative.given_names,
                              "family_name": relative.family_name,
-                             "relationship":  relative.relationship,
+                             "relationship": relative.relationship,
                              "class": "PatientRelative",
                              "link": relative_link}
 
             result["relatives"].append(relative_dict)
-
 
         return HttpResponse(json.dumps(result))
 
@@ -110,12 +144,27 @@ class FamilyLookup(View):
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
 
 
+class UsernameLookup(View):
+
+    def get(self, request, username):
+        result = {}
+
+        try:
+            CustomUser.objects.get(username=username)
+            result["existing"] = True
+        except CustomUser.DoesNotExist:
+            result["existing"] = False
+
+        return HttpResponse(json.dumps(result))
+
+
 # TODO I think that for this one the get will be replaced by Django REST framework view
 # The put that switches contexts should be moved. It isn't a lookup view for sure, but also
 # it doesn't feel "right" to mix it into the REST API because it changes things in the
 # session of a user that is using the web UI not consuming the API
 
 class RDRFContextLookup(View):
+
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         current_rdrf_context_id = request.session.get("rdrf_context_id", None)
@@ -155,7 +204,8 @@ class RDRFContextLookup(View):
         :param patient_id:
         :return:
         """
-        from rdrf.models import RDRFContext, Registry
+        from rdrf.models import RDRFContext
+        from rdrf.models import Registry
         from registry.patients.models import Patient
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
@@ -164,7 +214,7 @@ class RDRFContextLookup(View):
         try:
             self._set_active_context(user, registry_model, patient_model, desired_active_context_id)
 
-        except RDRFContextError, ex:
+        except RDRFContextError as ex:
             # return error packet
             return self._create_error_packet(ex)
 
@@ -211,3 +261,13 @@ class RDRFContextLookup(View):
         success_packet = {"error": context_exception.message}
         success_packet_json = json.dumps(success_packet)
         return HttpResponse(success_packet_json, status=200, content_type="application/json")
+
+
+class RecaptchaValidator(View):
+
+    def post(self, request):
+        response_value = request.POST['response_value']
+        secret_key = getattr(settings, "RECAPTCHA_SECRET_KEY", None)
+        payload = {"secret": secret_key, "response": response_value}
+        r = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
+        return HttpResponse(r)

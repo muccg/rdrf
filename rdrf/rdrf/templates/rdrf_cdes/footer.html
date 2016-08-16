@@ -1,25 +1,26 @@
 {% load version_number %}
+{% load i18n %}
 
 <div class="footer-wrap">
   <div class="row">
     <div class="col-md-4 version">
       <div>
-          <a href="mailto:rdrf@ccg.murdoch.edu.au" class="icon"><i class="icon-question-sign"></i>Support</a>
-          <a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>Report a bug</a>
-          <i class="icon-wrench"></i> Version {% version_number %}
+          <a href="mailto:rdrf@ccg.murdoch.edu.au" class="icon"><i class="icon-question-sign"></i>{% trans "Support" %}</a>
+          <a href="https://ccgmurdoch.atlassian.net/browse/RDR" target="_blank" class="icon"><i class="icon-comment"></i>{% trans "Report a bug" %}</a>
+          <i class="icon-wrench"></i> {% trans "Version" %} {% version_number %}
       </div>
     </div>
     <div class="col-md-4 disclaimer">
       <div>
-          <a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">Disclaimer &amp; Copyright Notice</a> &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
-          <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a><br>
-          <a href="https://muccg.github.io/rdrf/" target="_blank">RDRF Project</a> |
-          <a href="mailto:rdrf@ccg.murdoch.edu.au">Email RDRF</a>
+          <a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">{% trans "Disclaimer &amp; Copyright Notice</a>" %} &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
+          <a href="http://www.murdoch.edu.au" target="_blank">{% trans "Murdoch University" %}</a><br>
+          <a href="https://muccg.github.io/rdrf/" target="_blank">{% trans "RDRF Project" %}</a> |
+          <a href="mailto:rdrf@ccg.murdoch.edu.au">{% trans "Email RDRF" %}</a>
       </div>
     </div>
     <div class="col-md-4 authorised">  
       <div>
-          Authorised by: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
+          {% trans "Authorised by" %}: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> Director, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
       </div>
     </div>
   </div>

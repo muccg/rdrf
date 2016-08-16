@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='doctor',
             name='sex',
-            field=models.CharField(blank=True, max_length=1, null=True, choices=[(b'1', b'Male'), (b'2', b'Female'), (b'3', b'Indeterminate')]),
+            field=models.CharField(blank=True, max_length=1, null=True, choices=[
+                                   (b'1', b'Male'), (b'2', b'Female'), (b'3', b'Indeterminate')]),
         ),
     ]

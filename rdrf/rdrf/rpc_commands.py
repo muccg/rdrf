@@ -99,18 +99,17 @@ def rpc_reporting_command(request, queryId, registry_id, command, arg):
         raise Exception("unknown command: %s" % command)
 
 
-
 # questionnaire handling
 
 
 def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
     """
     Try to return any existing data for a patient corresponding the filled in values
-    of a questionnaire filled out by on the questionnaire interface 
+    of a questionnaire filled out by on the questionnaire interface
     NB. The curator is responsible for matching an existing patient to the incoming
     questionnaire data.
     See RDR-1229 for a description of the use case.
-    
+
     The existing data returned is the existing questionnaire values for this matched patient ( not the data
     provided in the questionnaire response itself - which potentially may overwrite the matched data if
     the curator indicates in the approval GUI.
@@ -125,12 +124,16 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
     existing_data = questionnaire.existing_data(patient_model)
 
-    return { "link": existing_data.link,
-             "name": existing_data.name,
-             "questions": existing_data.questions}
+    return {"link": existing_data.link,
+            "name": existing_data.name,
+            "questions": existing_data.questions}
 
 
-def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnaire_response_id, questionnaire_checked_ids):
+def rpc_update_selected_cdes_from_questionnaire(
+        request,
+        patient_id,
+        questionnaire_response_id,
+        questionnaire_checked_ids):
     from registry.patients.models import Patient
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
@@ -150,30 +153,31 @@ def rpc_update_selected_cdes_from_questionnaire(request, patient_id, questionnai
             errors = questionnaire.update_patient(patient_model, data_to_update)
             if len(errors) > 0:
                 raise Exception("Errors occurred during update: %s" % ",".join(errors))
-    except Exception, ex:
+    except Exception as ex:
         should_revert = True
         logger.error("Update patient failed: rolled back: %s" % ex)
-        
 
     if not should_revert:
         questionnaire_response_model.processed = True
         questionnaire_response_model.patient_id = patient_model.pk
         questionnaire_response_model.save()
-        
+
         return {"status": "success", "message": "Patient updated successfully"}
     else:
         logger.info("Reverting to original mongo record for patient %s" % patient_id)
         patient_model.update_dynamic_data(registry_model, mongo_data_before_update)
-        
+
         return {"status": "fail", "message": ",".join(errors)}
 
+
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
-    from rdrf.models import QuestionnaireResponse, Registry
+    from rdrf.models import QuestionnaireResponse
+    from rdrf.models import Registry
     from rdrf.questionnaires import PatientCreator, PatientCreatorError
     from rdrf.dynamic_data import DynamicDataWrapper
     from django.db import transaction
     from django.core.urlresolvers import reverse
-    
+
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)
     wrapper = DynamicDataWrapper(qr)
@@ -192,18 +196,17 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             patient_id = created_patient.pk
             patient_link = reverse('patient_edit', args=[qr.registry.code, patient_id])
 
-
-    except PatientCreatorError, pce:
+    except PatientCreatorError as pce:
         message = "Error creating patient: %s.Patient not created" % pce
         status = "fail"
 
-    except Exception, ex:
+    except Exception as ex:
         message = "Unhandled error during patient creation: %s. Patient not created" % ex
         status = "fail"
-        
+
     return {"status": status,
             "message": message,
             "patient_id": patient_id,
             "patient_name": "%s" % created_patient,
             "patient_link": patient_link,
-            "patient_blurb" : patient_blurb}
+            "patient_blurb": patient_blurb}

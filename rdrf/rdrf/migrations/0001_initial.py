@@ -37,7 +37,8 @@ class Migration(migrations.Migration):
                 ('result_fields', models.TextField()),
                 ('decision_field', models.TextField(null=True, blank=True)),
                 ('adjudicator_username', models.CharField(default=b'admin', max_length=80)),
-                ('adjudicating_users', models.TextField(help_text=b'Either comma-seperated list of usernames and/or working group names', null=True, blank=True)),
+                ('adjudicating_users', models.TextField(
+                    help_text=b'Either comma-seperated list of usernames and/or working group names', null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -95,16 +96,22 @@ class Migration(migrations.Migration):
                 ('desc', models.TextField(help_text=b'origin of field', blank=True)),
                 ('datatype', models.CharField(help_text=b'type of field', max_length=50)),
                 ('instructions', models.TextField(help_text=b'Used to indicate help text for field', blank=True)),
-                ('allow_multiple', models.BooleanField(default=False, help_text=b'If a range, indicate whether multiple selections allowed')),
+                ('allow_multiple', models.BooleanField(default=False,
+                                                       help_text=b'If a range, indicate whether multiple selections allowed')),
                 ('max_length', models.IntegerField(help_text=b'Length of field - only used for character fields', null=True, blank=True)),
                 ('max_value', models.IntegerField(help_text=b'Only used for numeric fields', null=True, blank=True)),
                 ('min_value', models.IntegerField(help_text=b'Only used for numeric fields', null=True, blank=True)),
                 ('is_required', models.BooleanField(default=False, help_text=b'Indicate whether field is non-optional')),
-                ('pattern', models.CharField(help_text=b'Regular expression to validate string fields (optional)', max_length=50, blank=True)),
-                ('widget_name', models.CharField(help_text=b'If a special widget required indicate here - leave blank otherwise', max_length=80, blank=True)),
-                ('calculation', models.TextField(help_text=b'Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output', blank=True)),
-                ('questionnaire_text', models.TextField(help_text=b'The text to use in any public facing questionnaires/registration forms', blank=True)),
-                ('pv_group', models.ForeignKey(blank=True, to='rdrf.CDEPermittedValueGroup', help_text=b'If a range, indicate the Permissible Value Group', null=True)),
+                ('pattern', models.CharField(
+                    help_text=b'Regular expression to validate string fields (optional)', max_length=50, blank=True)),
+                ('widget_name', models.CharField(
+                    help_text=b'If a special widget required indicate here - leave blank otherwise', max_length=80, blank=True)),
+                ('calculation', models.TextField(
+                    help_text=b'Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output', blank=True)),
+                ('questionnaire_text', models.TextField(
+                    help_text=b'The text to use in any public facing questionnaires/registration forms', blank=True)),
+                ('pv_group', models.ForeignKey(blank=True, to='rdrf.CDEPermittedValueGroup',
+                                               help_text=b'If a range, indicate the Permissible Value Group', null=True)),
             ],
             options={
                 'verbose_name': 'Data Element',
@@ -164,7 +171,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('date_submitted', models.DateTimeField(auto_now_add=True)),
                 ('processed', models.BooleanField(default=False)),
-                ('patient_id', models.IntegerField(help_text=b'The id of the patient created from this response, if any', null=True, blank=True)),
+                ('patient_id', models.IntegerField(
+                    help_text=b'The id of the patient created from this response, if any', null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -190,10 +198,13 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=80)),
                 ('questionnaire_display_name', models.CharField(max_length=80, blank=True)),
                 ('sections', models.TextField(help_text=b'Comma-separated list of sections')),
-                ('is_questionnaire', models.BooleanField(default=False, help_text=b"Check if this form is questionnaire form for it's registry")),
-                ('is_questionnaire_login', models.BooleanField(default=False, help_text=b'If the form is a questionnaire, is it accessible only by logged in users?', verbose_name=b'Questionnaire Login Required')),
+                ('is_questionnaire', models.BooleanField(default=False,
+                                                         help_text=b"Check if this form is questionnaire form for it's registry")),
+                ('is_questionnaire_login', models.BooleanField(default=False,
+                                                               help_text=b'If the form is a questionnaire, is it accessible only by logged in users?', verbose_name=b'Questionnaire Login Required')),
                 ('position', positions.fields.PositionField(default=-1)),
-                ('questionnaire_questions', models.TextField(help_text=b'Comma-separated list of sectioncode.cdecodes for questionnnaire', blank=True)),
+                ('questionnaire_questions', models.TextField(
+                    help_text=b'Comma-separated list of sectioncode.cdecodes for questionnnaire', blank=True)),
                 ('complete_form_cdes', models.ManyToManyField(to='rdrf.CommonDataElement', blank=True)),
                 ('groups_allowed', models.ManyToManyField(to='auth.Group', blank=True)),
                 ('registry', models.ForeignKey(to='rdrf.Registry')),

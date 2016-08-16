@@ -296,13 +296,10 @@ class Importer(object):
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
                         logger.info("value does not exist?")
-                        pass
 
-                    except Exception, ex:
+                    except Exception as ex:
                         logger.error("err: %s" % ex)
                         raise
-
-
 
             for value_map in pvg_map["values"]:
                 try:
@@ -310,8 +307,8 @@ class Importer(object):
                         code=value_map["code"], pv_group=pvg)
                 except MultipleObjectsReturned:
                     raise ValidationError("range %s code %s is duplicated" % (pvg.code,
-                                                                          value_map["code"]))
-            
+                                                                              value_map["code"]))
+
                 if not created:
                     if value.value != value_map["value"]:
                         logger.warning("Existing value code %s.%s = '%s'" %
@@ -493,14 +490,14 @@ class Importer(object):
 
             sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
-                    defaults={'sections': sections})
+                                                            defaults={'sections': sections})
             if not created:
                 f.sections = sections
 
             permission_code_name = "form_%s_is_readonly" % f.id
             permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
-            
+
             f.name = frm_map["name"]
             if "header" in frm_map:
                 f.header = frm_map["header"]
@@ -592,7 +589,7 @@ class Importer(object):
             logger.info("imported context form groups OK")
         else:
             logger.info("no context form groups to import")
-            
+
         logger.info("end of import registry objects!")
 
     def _create_context_form_groups(self, registry):
@@ -615,31 +612,29 @@ class Importer(object):
                 if form.name == name:
                     return form
             raise ImportError("CFG Error: Form name %s not found in registry" % name)
-        
+
         for cfg_dict in default_first(self.data):
             cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, name=cfg_dict["name"])
-            cfg.context_type =  cfg_dict["context_type"]
+            cfg.context_type = cfg_dict["context_type"]
             cfg.name = cfg_dict["name"]
             cfg.naming_scheme = cfg_dict["naming_scheme"]
             cfg.is_default = cfg_dict["is_default"]
             if "naming_cde_to_use" in cfg_dict:
                 cfg.naming_cde_to_use = cfg_dict["naming_cde_to_use"]
-                
+
             cfg.save()
 
             # remove existing context form group items
             for item in cfg.items.all():
                 item.delete()
-            
+
             for form_name in cfg_dict["forms"]:
                 registry_form = get_form(form_name)
                 cfg_item, created = ContextFormGroupItem.objects.get_or_create(context_form_group=cfg,
-                                                registry_form=registry_form)
+                                                                               registry_form=registry_form)
                 cfg_item.save()
 
             logger.info("imported cfg %s" % cfg.name)
-                
-            
 
     def _create_form_permissions(self, registry):
         from registry.groups.models import Group
@@ -815,4 +810,3 @@ class Importer(object):
                 cde_policy.save()
                 cde_policy.groups_allowed = groups
                 cde_policy.save()
-

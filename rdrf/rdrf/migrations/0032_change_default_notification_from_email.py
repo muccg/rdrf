@@ -7,14 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0006_auto_20151105_1422'),
+        ('rdrf', '0031_auto_20160720_1442'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='emailnotification',
-            name='description',
-            field=models.CharField(max_length=100, choices=[(
-                b'other-clinician', b'Other Clinician'), (b'new-patient', b'New Patient Registered')]),
-        ),
+            name='email_from',
+            field=models.EmailField(default=b'No Reply <no-reply@mg.ccgapps.com.au>', max_length=254),
+        )
     ]

@@ -143,9 +143,7 @@ if [ "$1" = 'releasetarball' ]; then
     git clone --depth=1 --branch=${GIT_TAG} ${PROJECT_SOURCE} .
     git ls-remote ${PROJECT_SOURCE} ${GIT_TAG} > .version
 
-    # install python deps
     # Note: Environment vars are used to control the behaviour of pip (use local devpi for instance)
-    pip install --upgrade -r rdrf/runtime-requirements.txt
     pip install -e rdrf
     set +x
 
@@ -235,7 +233,7 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
-    exec django-admin.py test -v 3 rdrf
+    exec django-admin.py test --noinput -v 3 rdrf
 fi
 
 # lettuce entrypoint

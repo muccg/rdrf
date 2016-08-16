@@ -60,6 +60,7 @@ class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
 class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    permission_classes = (IsAuthenticated,)
 
     def _get_registry_by_code(self, registry_code):
         try:
@@ -190,8 +191,19 @@ class ListClinicians(APIView):
 
         def to_dict(c, wg):
             return {
-                'id': "%d_%d" % (c.id, wg.id),
-                'full_name': "%s %s (%s)" % (c.first_name, c.last_name, wg.name),
+                'id': "%s_%s" % (reverse(
+                    'v1:customuser-detail',
+                    args=[
+                        c.id,
+                    ]),
+                    reverse(
+                    'v1:workinggroup-detail',
+                    args=[
+                        wg.id,
+                    ])),
+                'full_name': "%s %s (%s)" % (c.first_name,
+                                             c.last_name,
+                                             wg.name),
             }
 
         return Response([to_dict(c, wg) for c in clinicians for wg in c.working_groups.all()])
@@ -263,7 +275,7 @@ class LookupIndex(APIView):
             return Response([])
 
         query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                 Q(working_groups__in=request.user.working_groups.all(), active=True)
+            Q(working_groups__in=request.user.working_groups.all(), active=True)
 
         def to_dict(patient):
             return {

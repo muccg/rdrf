@@ -50,6 +50,7 @@ class ReportView(LoginRequiredMixin, View):
 
 
 class ReportDataTableView(LoginRequiredMixin, View):
+
     def get(self, request, query_model_id):
         user = request.user
         try:
@@ -76,7 +77,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
             context_instance=RequestContext(request))
 
     def _sanity_check(self, query_model, user):
-        #todo sanity check
+        # todo sanity check
         return True
 
     def post(self, request, query_model_id):
@@ -106,7 +107,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
             d = datetime.now()
             logger.info("time to jsonify = %s" % (d - c))
             return j
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Could not jsonify results: %s" % ex)
             return self._json({})
 
@@ -145,10 +146,10 @@ class ReportDataTableView(LoginRequiredMixin, View):
         return p
 
     def _get_ordering(self, request):
-        #columns[0][data]:full_name
+        # columns[0][data]:full_name
         #...
-        #order[0][column]:1
-        #order[0][dir]:asc
+        # order[0][column]:1
+        # order[0][dir]:asc
         sort_column_index = None
         sort_direction = None
         for key in request.POST:
@@ -162,19 +163,3 @@ class ReportDataTableView(LoginRequiredMixin, View):
         sort_field = request.POST.get(column_name, None)
 
         return sort_field, sort_direction
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

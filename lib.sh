@@ -146,6 +146,7 @@ docker_warm_cache() {
         info 'warming docker cache'
         set -x
         docker pull ${DOCKER_IMAGE}:next_release || true
+        success "$(docker images | grep ${DOCKER_IMAGE} | grep next_release | sed 's/  */ /g')"
         set +x
     fi
 }

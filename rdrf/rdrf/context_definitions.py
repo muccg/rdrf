@@ -1,5 +1,5 @@
 GRID_PATIENT_LISTING = [
-     {
+    {
         "access": {
             "default": False,
             "permission": "patients.can_see_full_name"
@@ -57,7 +57,7 @@ GRID_PATIENT_LISTING = [
         "model": "Patient",
         "order": 5
     },
-     {
+    {
         "access": {
             "default": False,
             "permission": "patients.can_see_data_modules",

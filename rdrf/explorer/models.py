@@ -30,7 +30,7 @@ class Query(models.Model):
     created_by = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    max_items = models.IntegerField(default=3) # max number of multisection items to show in datatable
+    max_items = models.IntegerField(default=3)  # max number of multisection items to show in datatable
 
     def get_absolute_url(self):
         return reverse('explorer_query', kwargs={'query_id': self.pk})
@@ -64,11 +64,9 @@ class Query(models.Model):
                 for column in columns:
                     if not isinstance(column, basestring):
                         errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
-                            
-        except ValueError, ve:
+
+        except ValueError as ve:
             errors.append("JSON malformed: %s" % ve.message)
-        except KeyError, ke:
+        except KeyError as ke:
             errors.append("key error: %s" % ke.message)
         return errors
-
- 

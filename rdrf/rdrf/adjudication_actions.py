@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext as _
 from rdrf.notifications import Notifier
 import logging
 
@@ -39,7 +40,7 @@ class AdjudicationAction(object):
         from django.core.urlresolvers import reverse
         from registry.patients.models import Patient
         from rdrf.utils import get_full_link
-        email_subject = "An Adjudication you requested has been completed"
+        email_subject = _("An Adjudication you requested has been completed")
         patient_id = self.adjudication.patient_id
         patient = Patient.objects.get(pk=patient_id)
         patient_link = get_full_link(request,

@@ -103,8 +103,8 @@
 			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
 		</a>
 
-		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+		{% if False and show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id  %}" target="_blank">
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
 			</a>
 		{% endif %}
@@ -115,11 +115,11 @@
 
 	{% if patient|has_feature:"consent_lock" %}
 		{% if consent %}
-			<a class="previous" href="{{ previous_form_link }}">
+			<a class="previous-form" href="{{ previous_form_link }}">
 				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 			</a>
 		
-			<a class="next" href="{{ next_form_link }}">
+			<a class="next-form" href="{{ next_form_link }}">
 				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 			</a>
 		{% endif %}
@@ -287,21 +287,21 @@
                                                 <div class="form-group">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-2 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-10">
+                                                    <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-2 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-10">
+                                                    <div class="col-sm-1">
                                                 {% endif %}
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}

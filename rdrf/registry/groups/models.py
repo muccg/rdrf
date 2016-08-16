@@ -2,15 +2,13 @@ import re
 
 from django.core import validators
 
-from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
 
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from django.db.models.signals import post_save
-from django.db import models, transaction
+from django.db import models
 
 from django.dispatch import receiver
 
@@ -45,29 +43,34 @@ class WorkingGroup(models.Model):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(_('username'), max_length=254, unique=True,
+    username = models.CharField(
+        _('username'),
+        max_length=254,
+        unique=True,
         help_text=_('Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
         validators=[
-            validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))
-        ])
+            validators.RegexValidator(
+                re.compile('^[\w.@+-]+$'),
+                _('Enter a valid username.'),
+                _('invalid'))])
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=30)
     email = models.EmailField(_('email address'), max_length=254)
     is_staff = models.BooleanField(_('staff status'), default=False,
-        help_text=_('Designates whether the user can log into this admin site.'))
-    is_active = models.BooleanField(_('active'), default=False,
-        help_text=_('Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+                                   help_text=_('Designates whether the user can log into this admin site.'))
+    is_active = models.BooleanField(_('active'), default=False, help_text=_(
+        'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
-    
+
     working_groups = models.ManyToManyField(WorkingGroup, blank=True, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
-    
+
     USERNAME_FIELD = "username"
-    
+
     objects = UserManager()
-    
+
     def get_full_name(self):
         full_name = "%s %s" % (self.first_name, self.last_name)
         return full_name.strip()
@@ -228,17 +231,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return links
 
+
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-    from patient_registration.fkrp import FkrpRegistration
-    from patient_registration.ang import AngelmanRegistration
-    
+
     reg_code = request.POST['registry_code']
 
-    patient_reg = None    
+    patient_reg = None
     if reg_code == "fkrp":
+        from fkrp.patient_registration import FkrpRegistration
         patient_reg = FkrpRegistration(user, request)
     elif reg_code == "ang":
+        from angelman.patient_registration import AngelmanRegistration
         patient_reg = AngelmanRegistration(user, request)
-        
+    elif reg_code == "mtm":
+        from mtm.patient_registration import MtmRegistration
+        patient_reg = MtmRegistration(user, request)
+
     patient_reg.process()

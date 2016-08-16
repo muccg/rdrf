@@ -1,7 +1,6 @@
 import json
 import bson
 from django import template
-from django.utils.html import escapejs
 from django.core.serializers.json import DjangoJSONEncoder
 
 register = template.Library()
@@ -56,12 +55,15 @@ def create_chart_node(parser, token):
 register.tag('bar_chart', create_chart_node)
 register.tag('pie_chart', create_chart_node)
 
+
 class MongoJSONEncoder(DjangoJSONEncoder):
+
     def default(self, o):
         if isinstance(o, bson.ObjectId):
             return str(o)
         else:
             return super(MongoJSONEncoder, self).default(o)
+
 
 def json_filter(value):
     return json.dumps(value, indent=2, cls=MongoJSONEncoder)

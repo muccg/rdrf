@@ -31,6 +31,7 @@ class Command(BaseCommand):
         for registry in rs:
             convert_registry(registry, dry_run=options["dry_run"])
 
+
 def convert_registry(registry, dry_run=False):
     logger.info("Migrating files in registry \"%s\"" % registry.code)
     client = construct_mongo_client()
@@ -43,12 +44,12 @@ def convert_registry(registry, dry_run=False):
                 continue
             django_file_id = convert_file(fs, registry, context, gridfs_file_id, filename, dry_run)
             if django_file_id is not None:
-                q = { "_id": doc["_id"] }
+                q = {"_id": doc["_id"]}
                 logger.info("Updating %s %s %s -> id=%s" % (collection, q, path, django_file_id))
                 if not dry_run:
                     db[collection].update(q, {
-                        "$set": { path + ".django_file_id": django_file_id },
-                        "$unset": { path + ".gridfs_file_id": 1 }
+                        "$set": {path + ".django_file_id": django_file_id},
+                        "$unset": {path + ".gridfs_file_id": 1}
                     })
             mapping[gridfs_file_id] = django_file_id
 
@@ -66,6 +67,7 @@ def convert_registry(registry, dry_run=False):
     logger.info("Migration complete%s" % (" (dry run)" if dry_run else "!"))
 
 DocUpdate = namedtuple("DocUpdate", ["collection", "path", "gridfs_file_id", "filename", "context"])
+
 
 def get_gridfs_file_id(cde):
     val = cde.get("value")
@@ -91,14 +93,16 @@ def find_file_refs(registry, db):
     for doc in db[rspd].find({}):
         yield (doc, list(collect_registry_updates(doc)))
 
+
 def collect_registry_updates(doc):
     for cde_index, cde in enumerate(doc.get("cdes") or []):
         if isinstance(cde, dict):
             gridfs_file_id, filename = get_gridfs_file_id(cde)
             if gridfs_file_id:
                 path = "cdes.%d.value" % cde_idx
-                context = { "cde_code": cde.get("code") }
+                context = {"cde_code": cde.get("code")}
                 yield DocUpdate(rspd, path, gridfs_file_id, filename, context)
+
 
 def collect_patient_updates(collection, doc, prefix=""):
     def update_cde(cde, path, base_context):
@@ -123,10 +127,13 @@ def collect_patient_updates(collection, doc, prefix=""):
                 if isinstance(cde, list):
                     for mcde_index, mcde in enumerate(cde):
                         u = update_cde(mcde, "%s.%d.value" % (path, mcde_index), context)
-                        if u: yield u
+                        if u:
+                            yield u
                 else:
                     u = update_cde(cde, "%s.value" % path, context)
-                    if u: yield u
+                    if u:
+                        yield u
+
 
 def convert_file(fs, registry, context, gridfs_file_id, filename, dry_run=False):
     try:
@@ -158,6 +165,7 @@ def convert_file(fs, registry, context, gridfs_file_id, filename, dry_run=False)
         logger.exception("Problem converting file")
         return None
 
+
 def make_cde_file(file_obj, filename, registry, cde_code=None,
                   form_name=None, section_code=None):
     if form_name:
@@ -187,6 +195,6 @@ def make_cde_file(file_obj, filename, registry, cde_code=None,
 
 def calc_md5(file_obj):
     h = hashlib.new("md5")
-    for buf in iter(lambda: file_obj.read(16*1024), b""):
+    for buf in iter(lambda: file_obj.read(16 * 1024), b""):
         h.update(buf)
     return h.hexdigest()

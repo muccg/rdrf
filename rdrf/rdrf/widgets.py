@@ -20,7 +20,6 @@ class BadCustomFieldWidget(Textarea):
     """
     Widget to use instead if a custom widget is defined and fails on creation
     """
-    pass
 
 
 class CustomWidgetC18583(Widget):
@@ -215,6 +214,7 @@ class DateWidget(widgets.TextInput):
 
 
 class CountryWidget(widgets.Select):
+
     def render(self, name, value, attrs):
         final_attrs = self.build_attrs(attrs, **{
             "name": name,
@@ -519,6 +519,7 @@ class MultipleFileInput(Widget):
 
     class TemplateFile(object):
         url = ""
+
         def __unicode__(self):
             return ""
 
@@ -533,7 +534,6 @@ class MultipleFileInput(Widget):
             self._render_base(name, val, attrs, i)
             for (i, val) in enumerate(value or [])
         ]
-
 
     def value_from_datadict(self, data, files, name):
         """
