@@ -1,5 +1,4 @@
 import logging
-import pycountry
 from django import forms
 from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
@@ -7,11 +6,8 @@ from django.forms.utils import ErrorDict
 
 from models import *
 from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.hooking import run_hooks
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.widgets import CountryWidget
-from rdrf.widgets import DateWidget
-from rdrf.widgets import ReadOnlySelect
 from rdrf.widgets import StateWidget
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
@@ -78,7 +74,6 @@ class PatientRelativeForm(forms.ModelForm):
         if not self.is_bound:  # Stop further processing.
             return
         self.cleaned_data = {}
-        keys_to_update = []
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
         for name, field in self.fields.items():
@@ -311,9 +306,6 @@ class PatientForm(forms.ModelForm):
         for k in self.custom_consents:
             del cleaneddata[k]
             logger.debug("removed custom consent %s" % k)
-
-        family_name = stripspaces(cleaneddata.get("family_name", "") or "").upper()
-        given_names = stripspaces(cleaneddata.get("given_names", "") or "")
 
         if "working_groups" not in cleaneddata:
             raise forms.ValidationError("Patient must be assigned to a working group")
