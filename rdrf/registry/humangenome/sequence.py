@@ -1,6 +1,22 @@
 import re
 
 
+class Error(Exception):
+    pass
+
+
+class Malformed(Error):
+    pass
+
+
+class Protein(Error):
+    pass
+
+
+class NoType(Error):
+    pass
+
+
 class Allele:
 
     def __init__(self, input=None):
@@ -60,18 +76,6 @@ class Gene:
 
 
 class SequenceVariation:
-
-    class Error(Exception):
-        pass
-
-    class Malformed(Error):
-        pass
-
-    class NoType(Error):
-        pass
-
-    class Protein(Error):
-        pass
 
     def __init__(self, input=None):
         if input:
