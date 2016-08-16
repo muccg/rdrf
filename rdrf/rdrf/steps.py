@@ -46,7 +46,6 @@ def reset_sequences_after_import():
 
     for app in settings.INSTALLED_APPS:
         command = StringIO()
-        logger.info("resetting sequences in app %s ... "  % app)
         label = app.split('.')[-1]
         logger.info("label = %s" % label)
         try:
@@ -61,7 +60,6 @@ def reset_sequences_after_import():
 
     for label, sql in app_commands:
         if not sql:
-            logger.info("sql for app %s is empty - skipping" % label)
             continue
         # force reconnection - we were getting OperationalErrors saying connection closed???
         reset_database_connection()
@@ -69,9 +67,8 @@ def reset_sequences_after_import():
         try:
             logger.info("Executing sequence reset for app %s" % label)
             cursor.execute(sql)
-            logger.info("successfully reset sequences")
         except OperationalError, oe:
-            logger.error("could not reset sequences: %s" % oe)
+            logger.error("could not reset sequences for app %s: %s" % (label, oe))
             
             
 

@@ -10,8 +10,8 @@ Feature: Edit consents for a patient
 
   Scenario: Curator navigates to patient consents and edits them
     When I am logged in as curator
-    And I navigate to the patient's page
-    And I click "Consents"
+    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "Consents" in sidebar
 
     And I check "Consent given to store data only while individual is living"
     And I check "Consent given to store data for the duration of the registry"

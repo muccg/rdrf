@@ -17,6 +17,7 @@ Feature: Follow Up forms.
     When I click "SMITH, John" on  patientlisting
     And I click "Add" in "Follow Ups" group in sidebar 
     And I enter "02-08-2016" for form FollowUp section FHFollowUp cde DateOfAssessment
+    When I enter value "02-08-2016" for form "Follow Up" section "xxx" cde "Date of Assessment"
     And I click Save
     Then location is "Follow Up/02-08-2016"
 

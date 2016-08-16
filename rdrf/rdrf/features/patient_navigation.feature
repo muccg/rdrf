@@ -18,7 +18,7 @@ Feature: Navigate through forms for a patient
 
   Scenario: Curator navigates to patient diagnosis using the menu
     When I am logged in as curator
-    And I click "ABBOT, Abigail" on patientlisting
+    And I click "ABBOTT, Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then location is "Diagnosis"
 
