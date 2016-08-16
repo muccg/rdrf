@@ -7,12 +7,11 @@ Feature: Edit diagnosis for a patient
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
     And a patient named "ABBOTT, Abigail"
-    # And patient "ABBOT, Abigail" having birthday on "31-01-1990"
 
-  Scenario: Curator navigates to patient consents and edits them
+  Scenario: Curator navigates to patient diagnosis and edits data
     When I am logged in as curator
-    And I navigate to the patient's page
-    And I click "Diagnosis"
+    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "Diagnosis" in sidebar
 
     And I select "PP (Primary progressive)" from "Condition"
     And I select "DD Affected Status 2" from "Affected Status"
@@ -31,4 +30,4 @@ Feature: Edit diagnosis for a patient
     And option "Family" from "First Suspected By" should be selected
     And value of "Date of Diagnosis" should be "1-2-1991"
     And the "Family Consent" checkbox should be checked
-    And value of "Age in years at clinical diagnosis" should be "1"
+    And value of "Age in years at clinical diagnosis" should be "57"
