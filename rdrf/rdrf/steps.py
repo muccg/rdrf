@@ -218,6 +218,14 @@ def click_sidebar_group_item(step, item_name, group_name):
     form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
     form_link = form_group_panel.find_element_by_partial_link_text(item_name)
     form_link.click()
+
+@step(u'I click on "(.*)" button in "(.*)" group in sidebar')
+def click_button_sidebar_group(step, button_name, group_name):
+    wrap = world.browser.find_element_by_id("wrap")
+    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
+    button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"][contains(., "%s")]' % button_name)
+    button.click()
     
 
 @step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
