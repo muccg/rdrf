@@ -42,13 +42,13 @@ def screenshot(scenario):
         "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
 
 
-#@after.each_step
+@after.each_step
 def screenshot_step(step):
-    step_name = "%s_%s" % (step.scenario, step)
-    step_name = step_name.replace(" ", "")
-    file_name = "/data/{0}-{1}.png".format(step.passed, step_name)
-    logger.debug("screenshot filename = %s" % file_name)
-    #world.browser.get_screenshot_as_file(file_name)
+    if not step.passed:
+        step_name = "%s_%s" % (step.scenario, step)
+        step_name = step_name.replace(" ", "")
+        file_name = "/data/False-step-{0}.png".format(step_name)
+        world.browser.get_screenshot_as_file(file_name)
     
 
 @after.each_step
@@ -58,3 +58,11 @@ def accept_alerts(step):
         Alert(world.browser).accept()
     except:
         pass
+
+    try:
+        leave_button = world.browser.find_element_by_xpath('//input[contains(., "Leave")]')
+        leave_button.click()
+    except Exception, ex:
+        logger.info("could not click Leave button?: %s" % ex)
+        
+
