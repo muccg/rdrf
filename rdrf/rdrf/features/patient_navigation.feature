@@ -7,12 +7,12 @@ Feature: Navigate through forms for a patient
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
     # And registry "Demyelinating Diseases Registry" has "Diagnosis" module
-    And a patient named "ABBOT, Abigail"
+    And a patient named "ABBOTT, Abigail"
     # And patient "ABBOT, Abigail" has no consents given
 
   Scenario: Curator navigates to patient consents using the menu
     When I am logged in as curator
-    And I click "ABBOT, Abigail" on patientlisting
+    And I click "ABBOTT, Abigail" on patientlisting
     When I click "Consents" in sidebar
     Then location is "Consents"
 
@@ -24,7 +24,7 @@ Feature: Navigate through forms for a patient
 
   Scenario: Curator navigates to patient demographics using the menu
     When I am logged in as curator
-    And I click "ABBOT, Abigail" on patientlisting
+    And I click "ABBOTT, Abigail" on patientlisting
     When I click "Consents" in sidebar
     When I click "Demographics" in sidebar
     Then location is "Demographics"

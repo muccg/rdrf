@@ -6,7 +6,7 @@ Feature: Edit diagnosis for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    And a patient named "ABBOT, Abigail"
+    And a patient named "ABBOTT, Abigail"
     # And patient "ABBOT, Abigail" having birthday on "31-01-1990"
 
   Scenario: Curator navigates to patient consents and edits them
@@ -21,7 +21,7 @@ Feature: Edit diagnosis for a patient
     And I check "Family Consent"
     And I press the "Save" button
 
-    Then I should see "Patient Abigail ABBOT saved successfully"
+    Then I should see "Patient Abigail ABBOTT saved successfully"
 
     When I navigate away then back
 

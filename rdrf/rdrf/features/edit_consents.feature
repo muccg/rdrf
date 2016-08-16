@@ -6,8 +6,7 @@ Feature: Edit consents for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    And a patient named "ABBOT, Abigail"
-    # And patient "ABBOT, Abigail" having no consents given
+    And a patient named "ABBOTT, Abigail"
 
   Scenario: Curator navigates to patient consents and edits them
     When I am logged in as curator
