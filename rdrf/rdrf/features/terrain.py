@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 @before.all
 def import_registry_and_snapshot_db():
-    subprocess.call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/dd_with_data.zip"])
+    subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/dd_with_data.zip"])
     # Remove snapshot if exists, but just continue if it doesn't
     subprocess.call(["stellar", "remove", "lettuce_snapshot"])
     subprocess.check_call(["stellar", "snapshot", "lettuce_snapshot"])
