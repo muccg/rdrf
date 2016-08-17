@@ -4,9 +4,12 @@ import json
 import logging
 import os
 import shutil
+from StringIO import StringIO
 import tempfile
 from zipfile import ZipFile
-from django.db import transaction
+
+from django.core.management import call_command
+from django.db import transaction, connection
 
 from rdrf.models import Registry
 from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, MongoCollectionImporterCatalogue
@@ -139,6 +142,23 @@ class BaseImporter(DelegateMixin):
             raise Exception('Schema difference detected between your registry and the export file.'
                     ' App(s) with different schema: %s' % ', '.join(app_schema_version_different))
 
+    def reset_sql_sequences(self):
+        meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
+        apps = set(reduce(lambda d, x: d + x.get('app_versions', {}).keys(), meta, []))
+        self.logger.debug('Apps we are resetting: %s', apps)
+
+        os.environ['DJANGO_COLORS'] = 'nocolor'
+        commands = StringIO()
+
+        for app in apps:
+            call_command('sqlsequencereset', app, stdout=commands)
+
+        cursor = connection.cursor()
+        s = commands.getvalue()
+        self.logger.debug('SQL Reset commands: %s', s)
+        # cursor.execute(commands.getvalue())
+        cursor.execute(s)
+
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
         self.check_app_schema_versions_match()
@@ -154,6 +174,7 @@ class BaseImporter(DelegateMixin):
             if hasattr(self, 'registry_code'):
                 options['registry_code'] = self.registry_code
             importer.do_import(data_group_meta, self.workdir, **options)
+        self.reset_sql_sequences()
 
     def output_import_info(self):
         logger = IndentedLogger(self.logger, indent_level=2)
