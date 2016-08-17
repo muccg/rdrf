@@ -30,48 +30,6 @@ def reset_database_connection():
     db.connection.close()
 
 
-def reset_sequences_after_import():
-    import os
-    from django.core.exceptions import ImproperlyConfigured
-    os.environ['DJANGO_COLORS'] = 'nocolor'
-    from django.core.management import call_command
-    from django.conf import settings
-    from django.db import connection
-    from django.db.models.loading import get_app
-    from django.db.utils import OperationalError
-    from StringIO import StringIO
-    from rdrf.models import Registry
-
-    app_commands = []
-
-    for app in settings.INSTALLED_APPS:
-        command = StringIO()
-        label = app.split('.')[-1]
-        logger.info("label = %s" % label)
-        try:
-            if get_app(label):
-                logger.info("get_app succeeded - calling command to dump sql")
-                call_command('sqlsequencereset', label, stdout=command)
-                sql_for_app = command.getvalue()
-                app_commands.append((label, sql_for_app))
-                
-        except ImproperlyConfigured, ic:
-            logger.error("Could not get app for label %s: %s co sql generated" % (label, ic))
-
-    for label, sql in app_commands:
-        if not sql:
-            continue
-        # force reconnection - we were getting OperationalErrors saying connection closed???
-        reset_database_connection()
-        cursor = connection.cursor()
-        try:
-            logger.info("Executing sequence reset for app %s" % label)
-            cursor.execute(sql)
-        except OperationalError, oe:
-            logger.error("could not reset sequences for app %s: %s" % (label, oe))
-            
-            
-
 def have_snapshot(export_name):
     return (export_name in world.snapshot_dict)
 
@@ -155,6 +113,7 @@ def show_stats(export_name):
 # Clearing all the lettuce_webdriver step definitions before we register our own.
 STEP_REGISTRY.clear()
 
+
 @step('export "(.*)"')
 def load_export(step, export_name):
     """
@@ -170,10 +129,7 @@ def load_export(step, export_name):
         import_registry(export_name)
         save_snapshot(snapshot_name, export_name)
 
-    reset_sequences_after_import()
-
-    # DB reconnect
-    #db.connection.close()
+    reset_database_connection()
     show_stats(export_name)
 
 
