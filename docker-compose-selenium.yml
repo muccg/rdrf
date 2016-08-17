@@ -12,8 +12,8 @@ seleniumhub:
 chrome:
   image: selenium/node-chrome
   environment:
-    - SCREEN_WIDTH=3520
-    - SCREEN_HEIGHT=1200
+    - SCREEN_WIDTH=1240
+    - SCREEN_HEIGHT=1024
     - SCREEN_DEPTH=16
   links:
   - seleniumhub:hub
@@ -21,8 +21,8 @@ chrome:
 firefox:
   image: selenium/node-firefox
   environment:
-    - SCREEN_WIDTH=3520
-    - SCREEN_HEIGHT=1200
+    - SCREEN_WIDTH=1240
+    - SCREEN_HEIGHT=1024
     - SCREEN_DEPTH=16
   links:
   - seleniumhub:hub
