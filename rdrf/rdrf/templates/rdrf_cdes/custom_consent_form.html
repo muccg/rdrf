@@ -237,7 +237,6 @@
 
                                                                         {% endif %}
                                                                     {% else %}
-
                                                                         {{ element }}
 
                                                                     {% endif %}
@@ -297,6 +296,10 @@
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
                                                         {{ element.label }}
+							<br>
+                                                    <small class="text-muted">
+                                                        {{ element.help_text }}
+                                                    </small>
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
@@ -308,9 +311,6 @@
                                                     {% else %}
                                                         {{ element }}
                                                     {% endif %}
-                                                    <small class="text-muted">
-                                                        {{ element.help_text }}
-                                                    </small>
                                                     {% if element.errors %}
                                                         <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                     {% endif %}

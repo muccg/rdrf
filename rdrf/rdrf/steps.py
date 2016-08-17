@@ -224,7 +224,8 @@ def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
-    button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"][contains(., "%s")]' % button_name)
+    #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
+    button = form_group_panel.find_element_by_xpath('//a[@class="btn"]')
     button.click()
     
 
