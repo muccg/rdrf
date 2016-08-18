@@ -435,7 +435,7 @@ def sidebar_click(step, sidebar_link_text):
 
 @step(u'I click Cancel')
 def click_cancel(step):
-    link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(text(), "Cancel")]')
+    link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()
 
 def get_site_url(app_name, default_url):
