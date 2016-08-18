@@ -44,7 +44,7 @@ body {
 .footer-wrap {
     border-top: 5px solid #e1e3e5;;
     height: 60px;
-    position: fixed;
+    /* position: fixed; */
     width: 100%;
     z-index: 99;
     background-color: #eeeeee;
