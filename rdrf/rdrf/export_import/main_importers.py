@@ -163,6 +163,23 @@ class BaseImporter(DelegateMixin):
         # cursor.execute(commands.getvalue())
         cursor.execute(s)
 
+    def reset_sql_sequences(self):
+        meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
+        apps = set(reduce(lambda d, x: d + x.get('app_versions', {}).keys(), meta, []))
+        self.logger.debug('Apps we are resetting: %s', apps)
+
+        os.environ['DJANGO_COLORS'] = 'nocolor'
+        commands = StringIO()
+
+        for app in apps:
+            call_command('sqlsequencereset', app, stdout=commands)
+
+        cursor = connection.cursor()
+        s = commands.getvalue()
+        self.logger.debug('SQL Reset commands: %s', s)
+        # cursor.execute(commands.getvalue())
+        cursor.execute(s)
+
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
         self.check_app_schema_versions_match()
