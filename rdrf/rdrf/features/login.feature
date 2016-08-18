@@ -5,8 +5,8 @@ Feature: Login support
 
   Background:
     Given a user named "admin"
-    And a registry named "Sample Registry"
-    When I go to the registry "Sample Registry"
+    And a registry named "Demyelinating Diseases Registry"
+    When I go to the registry "Demyelinating Diseases Registry"
 
   Scenario: Login successful
     When I log in as "admin" with "admin" password
