@@ -5,6 +5,7 @@ from django.template.context_processors import csrf
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import RequestContext
@@ -52,6 +53,10 @@ class PatientsListingView(View):
         # see http://datatables.net/manual/server-side
 
         self.user = request.user
+        if self.user and self.user.is_anonymous():
+            login_url = "%s?next=/router/" % reverse("login")
+            return redirect(login_url)
+        
         self.do_security_checks()
         self.set_csrf(request)
         self.set_registry(request)
