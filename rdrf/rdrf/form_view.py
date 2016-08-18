@@ -923,7 +923,8 @@ class QuestionnaireView(FormView):
         else:
             prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
 
-        file_path = os.path.join(settings.TEMPLATE_DIRS[0], 'rdrf_cdes', prelude_file)
+        file_path = os.path.join(settings.TEMPLATES[0]["DIRS"][0], 'rdrf_cdes', prelude_file)
+        logger.debug("file path = %s" % file_path)
         if os.path.exists(file_path):
             return os.path.join('rdrf_cdes', prelude_file)
         else:
