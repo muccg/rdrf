@@ -244,14 +244,7 @@ if [ "$1" = 'lettuce' ]; then
     exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 
-# selenium entrypoint
-if [ "$1" = 'selenium' ]; then
-    echo "[Run] Starting selenium"
-    selenium_defaults
-    exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
-fi
-
-echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi|uwsgi_fixtures]"
+echo "[RUN]: Builtin command not provided [tarball|lettuce|runtests|runserver|uwsgi|uwsgi_fixtures]"
 echo "[RUN]: $@"
 
 exec "$@"
