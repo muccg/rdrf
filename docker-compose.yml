@@ -57,7 +57,7 @@ runserver:
 uwsgi:
   extends:
     file: docker-compose-common.yml
-    service: uwsgi
+    service: uwsgi_local
   volumes_from:
     - datadev
   links:

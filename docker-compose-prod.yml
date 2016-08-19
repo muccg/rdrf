@@ -40,12 +40,13 @@ nginxprod:
 
 uwsgiprod:
   image: muccg/rdrf:${GIT_TAG}
-  command: uwsgi_fixtures
+  command: uwsgi_local
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
+    - DEPLOYMENT=test
   volumes_from:
     - dataprod
   links:

@@ -32,13 +32,14 @@ function wait_for_services {
     if [[ "$WAIT_FOR_MONGO" ]] ; then
         dockerwait $MONGOSERVER $MONGOPORT
     fi
-
     if [[ "$WAIT_FOR_REPORTING" ]]; then
         dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
     fi
-
     if [[ "$WAIT_FOR_HOST_PORT" ]]; then
         dockerwait $DOCKER_ROUTE $WAIT_FOR_HOST_PORT
+    fi
+    if [[ "$WAIT_FOR_UWSGI" ]] ; then
+        dockerwait $UWSGISERVER $UWSGIPORT
     fi
 }
 
@@ -58,35 +59,29 @@ function defaults {
     : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
     : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
 
+    : ${UWSGISERVER:="uwsgi"}
+    : ${UWSGIPORT:="9000"}
     : ${RUNSERVER:="web"}
     : ${RUNSERVERPORT:="8000"}
-    : ${SELENIUMRUNSERVERPORT:="18000"}
     : ${CACHESERVER:="cache"}
     : ${CACHEPORT:="11211"}
     : ${MEMCACHE:="${CACHESERVER}:${CACHEPORT}"}
     : ${MONGOSERVER:="mongo"}
     : ${MONGOPORT:="27017"}
 
+    # variables to control where tests will look for the app (lettuce via selenium hub)
+    : ${TEST_APP_SCHEME:="http"}
+    : ${TEST_APP_HOST:=$DOCKER_ROUTE}
+    : ${TEST_APP_PORT:="18000"}
+    : ${TEST_APP_PATH:="/"}
+    : ${TEST_APP_URL:="${TEST_APP_SCHEME}://${TEST_APP_HOST}:${TEST_APP_PORT}${TEST_APP_PATH}"}
+
+    #: ${TEST_BROWSER:="*googlechrome"}
+    : ${TEST_BROWSER:="*firefox"}
+
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
     export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
-}
-
-
-function selenium_defaults {
-    : ${RDRF_URL:="http://$DOCKER_ROUTE:$SELENIUMRUNSERVERPORT/"}
-    #: ${RDRF_BROWSER:="*googlechrome"}
-    : ${RDRF_BROWSER:="*firefox"}
-
-    if [ ${DEPLOYMENT} = "prod" ]; then
-        RDRF_URL="https://$DOCKER_ROUTE:8443/app/"
-    fi
-
-    # stellar config needs to be in PWD at runtime for lettuce tests
-    if [ ! -f ${PWD}/stellar.yaml ]; then
-        cp /app/stellar.yaml ${PWD}/stellar.yaml
-    fi
-
-    export RDRF_URL RDRF_BROWSER
+    export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER
 }
 
 
@@ -125,37 +120,25 @@ function _rdrf_import_grdr {
     django-admin.py import_registry --file=/app/grdr.yaml
 }
 
+function _django_fixtures {
+    if [ "${DEPLOYMENT}" = 'test' ]; then
+        _django_iprestrict_permissive_fixtures
+    fi
+
+    if [ "${DEPLOYMENT}" = 'dev' ]; then
+        _django_dev_fixtures
+    fi
+}
+
 
 trap exit SIGHUP SIGINT SIGTERM
 defaults
 env | grep -iv PASS | sort
 wait_for_services
 
-# prepare a tarball of build
-if [ "$1" = 'releasetarball' ]; then
-    echo "[Run] Preparing a release tarball"
-
-    set -e
-    cd /app
-    rm -rf /app/*
-    echo $GIT_TAG
-    set -x
-    git clone --depth=1 --branch=${GIT_TAG} ${PROJECT_SOURCE} .
-    git ls-remote ${PROJECT_SOURCE} ${GIT_TAG} > .version
-
-    # Note: Environment vars are used to control the behaviour of pip (use local devpi for instance)
-    pip install -e rdrf
-    set +x
-
-    # create release tarball
-    DEPS="/env /app/uwsgi /app/docker-entrypoint.sh /app/rdrf /app/scripts"
-    cd /data
-    exec tar -cpzf ${PROJECT_NAME}-${GIT_TAG}.tar.gz ${DEPS}
-fi
-
-# uwsgi entrypoint
+# prod uwsgi entrypoint
 if [ "$1" = 'uwsgi' ]; then
-    echo "[Run] Starting uwsgi"
+    echo "[Run] Starting prod uwsgi"
 
     : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
@@ -167,16 +150,16 @@ if [ "$1" = 'uwsgi' ]; then
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
 fi
 
-# uwsgi entrypoint, with fixtures, intended for use in local environment only
-if [ "$1" = 'uwsgi_fixtures' ]; then
-    echo "[Run] Starting uwsgi with fixtures"
+# local and test uwsgi entrypoint
+if [ "$1" = 'uwsgi_local' ]; then
+    echo "[Run] Starting local uwsgi"
 
     : ${UWSGI_OPTS="/app/uwsgi/docker.ini"}
     echo "UWSGI_OPTS is ${UWSGI_OPTS}"
 
     _django_collectstatic
     _django_migrate
-    _django_dev_fixtures
+    _django_fixtures
     _django_check_deploy
 
     exec uwsgi --die-on-term --ini ${UWSGI_OPTS}
@@ -191,7 +174,7 @@ if [ "$1" = 'runserver' ]; then
 
     _django_collectstatic
     _django_migrate
-    _django_dev_fixtures
+    _django_fixtures
 
     echo "running runserver ..."
     exec django-admin.py ${RUNSERVER_OPTS}
@@ -206,29 +189,12 @@ if [ "$1" = 'grdr' ]; then
 
     _django_collectstatic
     _django_migrate
-    _django_dev_fixtures
+    _django_fixtures
     _rdrf_import_grdr
 
     echo "running runserver ..."
     exec django-admin.py ${RUNSERVER_OPTS}
 fi
-
-# runserver lettuce entrypoint
-if [ "$1" = 'runserverlettuce' ]; then
-    echo "[Run] Starting runserver"
-
-    : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
-    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
-
-    _django_collectstatic
-    _django_migrate
-    _django_iprestrict_permissive_fixtures
-
-    echo "running runserver ..."
-    exec django-admin.py ${RUNSERVER_OPTS}
-fi
-
-
 
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
@@ -239,19 +205,16 @@ fi
 # lettuce entrypoint
 if [ "$1" = 'lettuce' ]; then
     echo "[Run] Starting lettuce"
-    selenium_defaults
+
+    # stellar config needs to be in PWD at runtime for lettuce tests
+    if [ ! -f ${PWD}/stellar.yaml ]; then
+        cp /app/stellar.yaml ${PWD}/stellar.yaml
+    fi
     rm -f /data/*.png
     exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml
 fi
 
-# selenium entrypoint
-if [ "$1" = 'selenium' ]; then
-    echo "[Run] Starting selenium"
-    selenium_defaults
-    exec django-admin.py test --noinput -v 3 /app/rdrf/rdrf/selenium_test/ --pattern=selenium_*.py
-fi
-
-echo "[RUN]: Builtin command not provided [tarball|lettuce|selenium|runtests|runserver|uwsgi|uwsgi_fixtures]"
+echo "[RUN]: Builtin command not provided [tarball|lettuce|runtests|runserver|uwsgi|uwsgi_fixtures]"
 echo "[RUN]: $@"
 
 exec "$@"

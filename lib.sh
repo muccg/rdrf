@@ -37,8 +37,8 @@ usage() {
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build)"
     echo " ./develop.sh (start_prod|prod_build)"
-    echo " ./develop.sh (runtests|lettuce|selenium)"
-    echo " ./develop.sh (start_test_stack|start_seleniumhub|start_seleniumtests|start_prodseleniumtests)"
+    echo " ./develop.sh (runtests|lettuce|lettuce_prod)"
+    echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
     echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
     echo " ./develop.sh (ci_docker_login)"
@@ -287,14 +287,7 @@ create_release_tarball() {
 
 
 start_prod() {
-    info 'start prod'
-    mkdir -p data/prod
-    chmod o+rwx data/prod
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up
-    set +x
+    _start_prod_stack
 }
 
 
@@ -356,6 +349,34 @@ start_test_stack() {
 }
 
 
+_start_prod_stack() {
+    info 'test stack up'
+    mkdir -p data/prod
+    chmod o+rwx data/prod
+
+
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
+    set +x
+    success 'test stack up'
+}
+
+
+_stop_prod_stack() {
+    info 'test stack down'
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
+    set +x
+    success 'test stack down'
+}
+
+
+start_prod_stack() {
+    _start_prod_stack --force-recreate
+}
+
+
 run_unit_tests() {
     info 'run unit tests'
     _start_test_stack --force-recreate -d
@@ -400,7 +421,7 @@ start_seleniumhub() {
 start_lettucetests() {
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up --force-recreate
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
     local rval=$?
     set -e
     set +x
@@ -409,15 +430,30 @@ start_lettucetests() {
 }
 
 
-lettuce() {
+lettuce_dev() {
     info 'lettuce'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
-    start_lettucetests
+    start_lettucetests up --force-recreate devlettuce
     local rval=$?
 
     _stop_test_stack
+    _stop_selenium
+
+    exit $rval
+}
+
+
+lettuce_prod() {
+    info 'lettuce'
+    _start_selenium --force-recreate -d
+    _start_prod_stack --force-recreate -d
+
+    start_lettucetests up --force-recreate prodlettuce
+    local rval=$?
+
+    _stop_prod_stack
     _stop_selenium
 
     exit $rval

@@ -66,7 +66,7 @@ def restore_snapshot(snapshot_name):
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-    
+
 
 
 def clean_models():
@@ -184,17 +184,17 @@ def click_button_sidebar_group(step, button_name, group_name):
     #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
     button.click()
-    
+
 
 @step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
     #And I enter "02-08-2016" for  section "" cde "Consent date"
     location_is(step, form) # sanity check
-    
+
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading  = form_block.find_element_by_xpath(".//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
-    
+
     label_expression = ".//label[contains(., '%s')]" % cde
 
     for label_element in section_div.find_elements_by_xpath(label_expression):
@@ -205,7 +205,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
             return
         except:
             pass
-        
+
     raise Exception("could not find cde %s" % cde)
 
 @step(u'And I click Save')
@@ -218,8 +218,8 @@ def click_save_button(step):
 def error_message_is(step, error_message):
     #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath('//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
-    
-    
+
+
 
 @step(u'location is "(.*)"')
 def location_is(step, location_name):
@@ -235,11 +235,11 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
         button_caption, form_name = "Modules", module_name
 
     patients_table = world.browser.find_element_by_id("patients_table")
-    
+
     patient_row = patients_table.find_element_by_xpath("//tr[td[1]//text()[contains(., '%s')]]" % patient_name)
-    
+
     form_group_button = patient_row.find_element_by_xpath('//button[contains(., "%s")]' % button_caption)
-    
+
     form_group_button.click()
     form_link = form_group_button.find_element_by_xpath("..").find_element_by_partial_link_text(form_name)
     form_link.click()
@@ -432,7 +432,7 @@ def accept_alert(step):
 @step(u'When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
-    
+
 
 @step(u'I click Cancel')
 def click_cancel(step):
@@ -440,11 +440,11 @@ def click_cancel(step):
     link.click()
 
 def get_site_url(app_name, default_url):
-    return os.environ.get('RDRF_URL', default_url).rstrip('/')
+    return os.environ.get('APP_URL', default_url).rstrip('/')
 
 
 
 
 
-    
+
 
