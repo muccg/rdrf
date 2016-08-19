@@ -47,7 +47,6 @@ def save_snapshot(snapshot_name, export_name):
 def save_minimal_snapshot():
     # delete everything so we can import clean later
     drop_all_mongo()
-    clean_models()
     save_snapshot("minimal", "minimal")
 
 def restore_minimal_snapshot():
@@ -67,30 +66,6 @@ def restore_snapshot(snapshot_name):
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-
-
-def clean_models():
-    # import refuses to blat existing models to this is an attempt to delete everything pre-import
-    from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
-    from rdrf.models import ContextFormGroup, ContextFormGroupItem
-    from registry.groups.models import WorkingGroup
-    from registry.genetic.models import Gene, Laboratory
-    from django.contrib.auth.models import Group
-    from registry.groups.models import CustomUser
-    from registry.patients.models import Patient
-
-    def clean(klass, is_Patient=False):
-        logger.info("cleaning models in %s" % klass)
-        klass.objects.all().delete()
-        if is_Patient:
-            # "hard" delete
-            klass.objects.all().delete()
-
-    for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
-                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group, CustomUser]:
-        clean(klass)
-
-    clean(Patient, is_Patient=True)
 
 
 def show_stats(export_name):
