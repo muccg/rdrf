@@ -429,6 +429,7 @@ def refresh_page(step):
 def accept_alert(step):
     Alert(world.browser).accept()
 
+
 @step(u'When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
@@ -439,12 +440,6 @@ def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()
 
-def get_site_url(app_name, default_url):
-    return os.environ.get('APP_URL', default_url).rstrip('/')
 
-
-
-
-
-
-
+def get_site_url(default_url):
+    return os.environ.get('TEST_APP_URL', default_url)

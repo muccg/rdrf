@@ -1,3 +1,4 @@
+import os
 import logging
 import subprocess
 from django import db
@@ -8,10 +9,18 @@ from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import NoAlertPresentException
 
 logger = logging.getLogger(__name__)
-    
+
+
+def get_desired_capabilities(browser):
+        return {
+            'firefox': webdriver.DesiredCapabilities.FIREFOX,
+            'chrome': webdriver.DesiredCapabilities.CHROME,
+        }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
+
+
 @before.all
 def setup():
-    desired_capabilities = webdriver.DesiredCapabilities.FIREFOX
+    desired_capabilities = get_desired_capabilities(os.environ.get('TEST_BROWSER'))
 
     world.browser = webdriver.Remote(
         desired_capabilities=desired_capabilities,
@@ -26,11 +35,11 @@ def setup_snapshot_dict():
     world.snapshot_dict = {}
     logger.info("set snapshot_dict to %s" % world.snapshot_dict)
     steps.save_minimal_snapshot()
-    
+
 
 @before.all
 def set_site_url():
-    world.site_url = steps.get_site_url("rdrf", default_url="http://web:8000")
+    world.site_url = steps.get_site_url(default_url="http://web:8000")
     logger.info("world.site_url = %s" % world.site_url)
 
 @before.each_scenario
@@ -51,7 +60,7 @@ def screenshot_step(step):
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
         world.browser.get_screenshot_as_file(file_name)
-    
+
 
 @after.each_step
 def accept_alerts(step):
@@ -65,6 +74,3 @@ def accept_alerts(step):
             logger.info("No alert present - nothing to do")
     except NoAlertPresentException:
         pass
-    
-        
-
