@@ -71,7 +71,7 @@ function defaults {
 
     # variables to control where tests will look for the app (lettuce via selenium hub)
     : ${TEST_APP_SCHEME:="http"}
-    : ${TEST_APP_HOST:=$DOCKER_ROUTE}
+    : ${TEST_APP_HOST:=${DOCKER_ROUTE}}
     : ${TEST_APP_PORT:="18000"}
     : ${TEST_APP_PATH:="/"}
     : ${TEST_APP_URL:="${TEST_APP_SCHEME}://${TEST_APP_HOST}:${TEST_APP_PORT}${TEST_APP_PATH}"}

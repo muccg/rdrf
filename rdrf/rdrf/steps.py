@@ -26,6 +26,7 @@ def drop_all_mongo():
     logger.info("Dropping all mongo databases")
     subprocess.check_call(["mongo", "--verbose", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
 
+
 def reset_database_connection():
     from django import db
     db.connection.close()
@@ -66,7 +67,6 @@ def restore_snapshot(snapshot_name):
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-
 
 
 def clean_models():

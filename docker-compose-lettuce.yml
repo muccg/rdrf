@@ -31,6 +31,7 @@ prodlettuce:
     - WAIT_FOR_DB=1
     - WAIT_FOR_MONGO=1
     - TEST_APP_PORT=8443
+    - TEST_APP_SCHEME=https
     - TEST_APP_PATH="/app"
   volumes_from:
     - dataselenium
