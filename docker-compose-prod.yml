@@ -47,6 +47,7 @@ uwsgiprod:
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - DEPLOYMENT=test
+    - ALLOWED_HOSTS=*
   volumes_from:
     - dataprod
   links:
