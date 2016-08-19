@@ -32,7 +32,7 @@ prodlettuce:
     - WAIT_FOR_MONGO=1
     - TEST_APP_PORT=8443
     - TEST_APP_SCHEME=https
-    - TEST_APP_PATH="/app"
+    - TEST_APP_PATH=/app/
   volumes_from:
     - dataselenium
   external_links:
