@@ -36,8 +36,8 @@ usage() {
     echo "Usage:"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build)"
-    echo " ./develop.sh (start_prod|prod_build)"
-    echo " ./develop.sh (runtests|lettuce|lettuce_prod)"
+    echo " ./develop.sh (prod|prod_build)"
+    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
     echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
@@ -328,7 +328,7 @@ _start_test_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -f dbtest mongotest
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'
@@ -356,7 +356,7 @@ _start_prod_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
     success 'test stack up'
@@ -431,7 +431,7 @@ start_lettucetests() {
 }
 
 
-lettuce_dev() {
+dev_lettuce() {
     info 'lettuce'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
@@ -446,7 +446,7 @@ lettuce_dev() {
 }
 
 
-lettuce_prod() {
+prod_lettuce() {
     info 'lettuce'
     _start_selenium --force-recreate -d
     _start_prod_stack --force-recreate -d

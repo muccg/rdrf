@@ -94,7 +94,7 @@ dev_build)
 releasetarball)
     create_release_tarball
     ;;
-start_prod)
+prod)
     start_prod
     ;;
 prod_build)
@@ -143,18 +143,14 @@ ci_docker_staging)
 docker_staging_lettuce)
     docker_staging_lettuce
     ;;
-lettuce)
-    create_base_image
-    create_build_image
-    create_dev_image
-    lettuce_dev
+dev_lettuce)
+    dev_lettuce
     ;;
-lettuce_prod)
-    create_base_image
-    create_build_image
-    create_release_tarball
-    create_prod_image
-    lettuce_prod
+lettuce)
+    dev_lettuce
+    ;;
+prod_lettuce)
+    prod_lettuce
     ;;
 *)
     usage
