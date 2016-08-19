@@ -189,9 +189,9 @@
 
         <div class="panel panel-default">
             <div class="panel-body">
-                {{ blocktrans with registry_name=registry.name}}
+                {% blocktrans with registry_name=registry.name %}
                 Thank you for completing the {{ registry_name }} questionnaire. The information you have provided will be reviewed by your clinician and downloaded into the registry.
-                {{ endblocktrans }}
+                {% endblocktrans %}
             </div>
         </div>
 
