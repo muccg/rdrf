@@ -350,7 +350,7 @@ start_test_stack() {
 
 
 _start_prod_stack() {
-    info 'test stack up'
+    info 'prod stack up'
     mkdir -p data/prod
     chmod o+rwx data/prod
 
@@ -359,16 +359,16 @@ _start_prod_stack() {
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
-    success 'test stack up'
+    success 'prod stack up'
 }
 
 
 _stop_prod_stack() {
-    info 'test stack down'
+    info 'prod stack down'
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
     set +x
-    success 'test stack down'
+    success 'prod stack down'
 }
 
 
@@ -432,7 +432,7 @@ start_lettucetests() {
 
 
 dev_lettuce() {
-    info 'lettuce'
+    info 'dev lettuce'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
@@ -447,7 +447,7 @@ dev_lettuce() {
 
 
 prod_lettuce() {
-    info 'lettuce'
+    info 'prod lettuce'
     _start_selenium --force-recreate -d
     _start_prod_stack --force-recreate -d
 
