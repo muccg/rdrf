@@ -398,7 +398,7 @@ _start_selenium() {
     chmod o+rwx data/selenium
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull --ignore-pull-failures
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up $@
     set +x
     success 'selenium stack up'
