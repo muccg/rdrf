@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
-    subprocess.check_call(["mongo", "--verbose", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+    subprocess.check_call(["mongo", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
 
 
 def reset_database_connection():
@@ -40,7 +40,7 @@ def save_snapshot(snapshot_name, export_name):
     logger.info("Saving snapshot: {0}".format(snapshot_name))
     subprocess.call(["stellar", "remove", snapshot_name])
     subprocess.check_call(["stellar", "snapshot", snapshot_name])
-    subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    subprocess.check_call(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
     world.snapshot_dict[export_name] = snapshot_name
 
 
@@ -60,7 +60,7 @@ def restore_minimal_snapshot():
 def restore_snapshot(snapshot_name):
     logger.info("Restoring snapshot: {0}".format(snapshot_name))
     subprocess.check_call(["stellar", "restore", snapshot_name])
-    subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+    subprocess.check_call(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
 def import_registry(export_name):
@@ -377,13 +377,13 @@ def our_goto(step, relative_url):
 
 @step('go to the registry "(.*)"')
 def go_to_registry(step, name):
-    logger.info("**********  in go_to_registry *******")
+    logger.debug("**********  in go_to_registry *******")
     world.browser.get(world.site_url)
-    logger.info("navigated to %s" % world.site_url)
+    logger.debug("navigated to %s" % world.site_url)
     world.browser.find_element_by_link_text('Registries on this site').click()
-    logger.info("clicked dropdown for registry")
+    logger.debug("clicked dropdown for registry")
     world.browser.find_element_by_partial_link_text(name).click()
-    logger.info("found link text to click")
+    logger.debug("found link text to click")
 
 
 @step('navigate away then back')

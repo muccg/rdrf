@@ -13,6 +13,7 @@ devlettuce:
     - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
     - WAIT_FOR_MONGO=1
+    - DEBUG=0
   volumes_from:
     - dataselenium
   external_links:
@@ -33,6 +34,7 @@ prodlettuce:
     - TEST_APP_PORT=8443
     - TEST_APP_SCHEME=https
     - TEST_APP_PATH=/app/
+    - DEBUG=0
   volumes_from:
     - dataselenium
   external_links:

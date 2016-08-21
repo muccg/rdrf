@@ -52,7 +52,7 @@ def delete_cookies():
 
 @before.each_scenario
 def before_each_scenario(scenario):
-    logger.info(scenario.name)
+    logger.info('Scenario: ' + scenario.name)
     delete_cookies()
 
 

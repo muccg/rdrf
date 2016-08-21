@@ -2,6 +2,12 @@ import os
 from optparse import make_option
 from lettuce import Runner
 from django.core.management.base import BaseCommand
+from django.conf import settings
+import logging
+
+
+# set up the root logger
+logger = logging.getLogger()
 
 
 class Command(BaseCommand):
@@ -54,7 +60,16 @@ class Command(BaseCommand):
 
         return features[selection]
 
+    def logging_setup(self):
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
+        console.setFormatter(
+            logging.Formatter(settings.LOGGING['formatters']['verbose']['format'])
+        )
+        logger.addHandler(console)
+
     def handle(self, *args, **options):
+        self.logging_setup()
         app_name = 'rdrf'
         module = __import__(app_name)
         int_or_None = lambda x: None if x is None else int(x)
@@ -69,4 +84,5 @@ class Command(BaseCommand):
         runner = Runner(path, verbosity=int_or_None(options.get('lettuce_verbosity')),
                         enable_xunit=options.get('enable_xunit'),
                         xunit_filename=options.get('xunit_file'),)
+
         runner.run()
