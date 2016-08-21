@@ -395,6 +395,7 @@ def refresh_page(step):
     # Accepting the dialog for now to get around it
     try:
         Alert(world.browser).accept()
+        logger.warn("TODO Had to accept unsaved confirmation dialog")
     except NoAlertPresentException:
         pass
     world.browser.get(current_url)

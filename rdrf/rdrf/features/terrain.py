@@ -15,8 +15,7 @@ def get_desired_capabilities(browser):
     }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
 
 
-@before.all
-def setup():
+def setup_browser():
     desired_capabilities = get_desired_capabilities(os.environ.get('TEST_BROWSER'))
 
     world.browser = webdriver.Remote(
@@ -27,23 +26,34 @@ def setup():
     # world.browser.set_script_timeout(30)
 
 
-@before.all
-def setup_snapshot_dict():
+def reset_snapshot_dict():
     world.snapshot_dict = {}
     logger.info("set snapshot_dict to %s" % world.snapshot_dict)
-    steps.save_minimal_snapshot()
 
 
-@before.all
 def set_site_url():
     world.site_url = steps.get_site_url(default_url="http://web:8000")
     logger.info("world.site_url = %s" % world.site_url)
 
 
-@before.each_scenario
-def delete_cookies(scenario):
+@before.all
+def before_all():
+    logger.info('')
+    setup_browser()
+    reset_snapshot_dict()
+    set_site_url()
+    steps.save_minimal_snapshot()
+
+
+def delete_cookies():
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
+
+
+@before.each_scenario
+def before_each_scenario(scenario):
+    logger.info(scenario.name)
+    delete_cookies()
 
 
 @after.each_scenario
@@ -54,7 +64,7 @@ def screenshot(scenario):
 
 @after.each_step
 def screenshot_step(step):
-    if not step.passed:
+    if not step.passed and step.scenario != None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
