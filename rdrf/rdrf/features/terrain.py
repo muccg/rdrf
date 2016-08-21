@@ -1,21 +1,18 @@
 import os
 import logging
-import subprocess
-from django import db
 from lettuce import before, after, world
 from selenium import webdriver
 from rdrf import steps
-from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import NoAlertPresentException
 
 logger = logging.getLogger(__name__)
 
 
 def get_desired_capabilities(browser):
-        return {
-            'firefox': webdriver.DesiredCapabilities.FIREFOX,
-            'chrome': webdriver.DesiredCapabilities.CHROME,
-        }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
+    return {
+        'firefox': webdriver.DesiredCapabilities.FIREFOX,
+        'chrome': webdriver.DesiredCapabilities.CHROME,
+    }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
 
 
 @before.all
@@ -27,7 +24,7 @@ def setup():
         command_executor="http://hub:4444/wd/hub"
     )
     world.browser.implicitly_wait(15)
-    #world.browser.set_script_timeout(30)
+    # world.browser.set_script_timeout(30)
 
 
 @before.all
@@ -42,10 +39,12 @@ def set_site_url():
     world.site_url = steps.get_site_url(default_url="http://web:8000")
     logger.info("world.site_url = %s" % world.site_url)
 
+
 @before.each_scenario
 def delete_cookies(scenario):
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
+
 
 @after.each_scenario
 def screenshot(scenario):
@@ -64,7 +63,6 @@ def screenshot_step(step):
 
 @after.each_step
 def accept_alerts(step):
-    from selenium.webdriver.common.alert import Alert
     from selenium.webdriver.support import expected_conditions as EC
     try:
         if EC.alert_is_present:
