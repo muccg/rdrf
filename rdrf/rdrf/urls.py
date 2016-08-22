@@ -25,7 +25,6 @@ from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
 from rdrf.permission_matrix import PermissionMatrixView
 from rdrf.lookup_views import UsernameLookup
-from rdrf.lookup_views import RDRFContextLookup
 from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf import patients_listing
@@ -177,11 +176,7 @@ urlpatterns = patterns('',
                            RecaptchaValidator.as_view(), name="recaptcha_validator"),
                        #-------------------------------------------
 
-                       url(r'api/contextlookup/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
-                           RDRFContextLookup.as_view(),
-                           name="rdrf_context_lookup"))
-
-
+                       
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',
                             RdrfRegistrationView.as_view(),
