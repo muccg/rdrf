@@ -92,7 +92,7 @@ runserver:
 
 uwsgi:
   image: muccg/rdrf-dev
-  command: uwsgi
+  command: uwsgi_local
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
