@@ -69,16 +69,3 @@ def screenshot_step(step):
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
         world.browser.get_screenshot_as_file(file_name)
-
-
-@after.each_step
-def accept_alerts(step):
-    from selenium.webdriver.support import expected_conditions as EC
-    try:
-        if EC.alert_is_present:
-            logger.info("alert is present - accepting !")
-            world.browser.switch_to_alert().accept()
-        else:
-            logger.info("No alert present - nothing to do")
-    except NoAlertPresentException:
-        pass

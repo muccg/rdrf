@@ -26,6 +26,7 @@ Feature: Follow Up forms.
     And I press "Add" button in "Follow Ups" group in sidebar 
     And I enter value "02-8-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click Cancel
+    And I accept the alert
     Then location is "Follow Up"
     
   Scenario: Add Two Follow Ups
