@@ -45,6 +45,12 @@ class Command(BaseCommand):
             action='store',
             dest='single_feature',
             help='Specify a feature file to invoke'),
+        make_option(
+            '--no-teardown',
+            action='store_true',
+            dest='disable_teardown',
+            default=False,
+            help='Don\'t perform tear down after scenario'),
     )
 
     def interactive_feature(self, features_dir):
@@ -73,13 +79,7 @@ class Command(BaseCommand):
         )
         logger.addHandler(console)
 
-    def handle(self, *args, **options):
-        self.logging_setup()
-        app_name = 'rdrf'
-        module = __import__(app_name)
-        int_or_None = lambda x: None if x is None else int(x)
-        features_dir = '{0}/features'.format(os.path.dirname(module.__file__))
-
+    def get_base_path(self, features_dir, options):
         path = None
         if options.get('enable_interactive'):
             path = '{0}/{1}'.format(features_dir, self.interactive_feature(features_dir))
@@ -88,7 +88,22 @@ class Command(BaseCommand):
         else:
             path = '{0}/'.format(features_dir)
 
-        runner = Runner(path, verbosity=int_or_None(options.get('lettuce_verbosity')),
+        return path
+
+    def env_options(self, options):
+        os.environ['LETTUCE_DISABLE_TEARDOWN'] = '1' if options.get('disable_teardown') else '0'
+
+    def handle(self, *args, **options):
+        self.logging_setup()
+        app_name = 'rdrf'
+        module = __import__(app_name)
+        int_or_None = lambda x: None if x is None else int(x)
+        features_dir = '{0}/features'.format(os.path.dirname(module.__file__))
+
+        base_path = self.get_base_path(features_dir, options)
+        self.env_options(options)
+
+        runner = Runner(base_path, verbosity=int_or_None(options.get('lettuce_verbosity')),
                         enable_xunit=options.get('enable_xunit'),
                         xunit_filename=options.get('xunit_file'),)
 

@@ -36,6 +36,11 @@ def set_site_url():
     logger.info("world.site_url = %s" % world.site_url)
 
 
+def do_teardown():
+    return ('LETTUCE_DISABLE_TEARDOWN' not in os.environ or
+        os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
+
+
 @before.all
 def before_all():
     logger.info('')
@@ -48,7 +53,8 @@ def before_all():
 @after.all
 def after_all(total):
     logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
-    world.browser.quit()
+    if do_teardown():
+        world.browser.quit()
 
 
 def delete_cookies():
@@ -66,7 +72,8 @@ def before_each_scenario(scenario):
 def after_scenario(scenario):
     world.browser.get_screenshot_as_file(
         "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
-    steps.restore_minimal_snapshot()
+    if do_teardown():
+        steps.restore_minimal_snapshot()
 
 
 @after.each_step
