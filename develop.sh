@@ -53,7 +53,7 @@ docker_staging_lettuce() {
 # lint using flake8
 python_lint() {
     info "python lint"
-    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations,selenium_test --ignore=E501 --count
+    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations --ignore=E501 --count
     success "python lint"
 }
 
@@ -94,7 +94,7 @@ dev_build)
 releasetarball)
     create_release_tarball
     ;;
-start_prod)
+prod)
     start_prod
     ;;
 prod_build)
@@ -130,12 +130,6 @@ start_test_stack)
 start_seleniumhub)
     start_seleniumhub
     ;;
-start_seleniumtests)
-    start_seleniumtests
-    ;;
-start_prodseleniumtests)
-    start_prodseleniumtests
-    ;;
 docker_warm_cache)
     docker_warm_cache
     ;;
@@ -149,17 +143,14 @@ ci_docker_staging)
 docker_staging_lettuce)
     docker_staging_lettuce
     ;;
-lettuce)
-    create_base_image
-    create_build_image
-    create_dev_image
-    lettuce
+dev_lettuce)
+    dev_lettuce
     ;;
-selenium)
-    create_base_image
-    create_build_image
-    create_dev_image
-    selenium
+lettuce)
+    dev_lettuce
+    ;;
+prod_lettuce)
+    prod_lettuce
     ;;
 *)
     usage

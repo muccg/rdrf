@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
-    subprocess.check_call(["mongo", "--verbose", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+    subprocess.check_call(["mongo", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+
 
 def reset_database_connection():
     from django import db
@@ -39,14 +40,13 @@ def save_snapshot(snapshot_name, export_name):
     logger.info("Saving snapshot: {0}".format(snapshot_name))
     subprocess.call(["stellar", "remove", snapshot_name])
     subprocess.check_call(["stellar", "snapshot", snapshot_name])
-    subprocess.check_call(["mongodump", "--verbose", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    subprocess.check_call(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
     world.snapshot_dict[export_name] = snapshot_name
 
 
 def save_minimal_snapshot():
     # delete everything so we can import clean later
     drop_all_mongo()
-    clean_models()
     save_snapshot("minimal", "minimal")
 
 def restore_minimal_snapshot():
@@ -60,37 +60,12 @@ def restore_minimal_snapshot():
 def restore_snapshot(snapshot_name):
     logger.info("Restoring snapshot: {0}".format(snapshot_name))
     subprocess.check_call(["stellar", "restore", snapshot_name])
-    subprocess.check_call(["mongorestore", "--verbose", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+    subprocess.check_call(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
-    
-
-
-def clean_models():
-    # import refuses to blat existing models to this is an attempt to delete everything pre-import
-    from rdrf.models import Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup
-    from rdrf.models import ContextFormGroup, ContextFormGroupItem
-    from registry.groups.models import WorkingGroup
-    from registry.genetic.models import Gene, Laboratory
-    from django.contrib.auth.models import Group
-    from registry.groups.models import CustomUser
-    from registry.patients.models import Patient
-
-    def clean(klass, is_Patient=False):
-        logger.info("cleaning models in %s" % klass)
-        klass.objects.all().delete()
-        if is_Patient:
-            # "hard" delete
-            klass.objects.all().delete()
-
-    for klass in [Registry, RegistryForm, CommonDataElement, Section, CDEPermittedValue, CDEPermittedValueGroup,
-                  ContextFormGroup, ContextFormGroupItem, Gene, Laboratory, Group, CustomUser]:
-        clean(klass)
-
-    clean(Patient, is_Patient=True)
 
 
 def show_stats(export_name):
@@ -184,17 +159,17 @@ def click_button_sidebar_group(step, button_name, group_name):
     #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
     button.click()
-    
+
 
 @step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
     #And I enter "02-08-2016" for  section "" cde "Consent date"
     location_is(step, form) # sanity check
-    
+
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading  = form_block.find_element_by_xpath(".//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
-    
+
     label_expression = ".//label[contains(., '%s')]" % cde
 
     for label_element in section_div.find_elements_by_xpath(label_expression):
@@ -205,7 +180,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
             return
         except:
             pass
-        
+
     raise Exception("could not find cde %s" % cde)
 
 @step(u'And I click Save')
@@ -218,8 +193,8 @@ def click_save_button(step):
 def error_message_is(step, error_message):
     #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath('//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
-    
-    
+
+
 
 @step(u'location is "(.*)"')
 def location_is(step, location_name):
@@ -235,11 +210,11 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
         button_caption, form_name = "Modules", module_name
 
     patients_table = world.browser.find_element_by_id("patients_table")
-    
+
     patient_row = patients_table.find_element_by_xpath("//tr[td[1]//text()[contains(., '%s')]]" % patient_name)
-    
+
     form_group_button = patient_row.find_element_by_xpath('//button[contains(., "%s")]' % button_caption)
-    
+
     form_group_button.click()
     form_link = form_group_button.find_element_by_xpath("..").find_element_by_partial_link_text(form_name)
     form_link.click()
@@ -402,13 +377,13 @@ def our_goto(step, relative_url):
 
 @step('go to the registry "(.*)"')
 def go_to_registry(step, name):
-    logger.info("**********  in go_to_registry *******")
+    logger.debug("**********  in go_to_registry *******")
     world.browser.get(world.site_url)
-    logger.info("navigated to %s" % world.site_url)
+    logger.debug("navigated to %s" % world.site_url)
     world.browser.find_element_by_link_text('Registries on this site').click()
-    logger.info("clicked dropdown for registry")
+    logger.debug("clicked dropdown for registry")
     world.browser.find_element_by_partial_link_text(name).click()
-    logger.info("found link text to click")
+    logger.debug("found link text to click")
 
 
 @step('navigate away then back')
@@ -420,6 +395,7 @@ def refresh_page(step):
     # Accepting the dialog for now to get around it
     try:
         Alert(world.browser).accept()
+        logger.warn("TODO Had to accept unsaved confirmation dialog")
     except NoAlertPresentException:
         pass
     world.browser.get(current_url)
@@ -429,22 +405,17 @@ def refresh_page(step):
 def accept_alert(step):
     Alert(world.browser).accept()
 
+
 @step(u'When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
-    
+
 
 @step(u'I click Cancel')
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()
 
-def get_site_url(app_name, default_url):
-    return os.environ.get('RDRF_URL', default_url).rstrip('/')
 
-
-
-
-
-    
-
+def get_site_url(default_url):
+    return os.environ.get('TEST_APP_URL', default_url)

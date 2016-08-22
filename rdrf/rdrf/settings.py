@@ -247,7 +247,8 @@ CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 
 # Testing settings
-INSTALLED_APPS.extend(['django_nose'])
+if not PRODUCTION:
+    INSTALLED_APPS.extend(['django_nose'])
 
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
 
