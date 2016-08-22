@@ -10,19 +10,23 @@ seleniumhub:
     - "4444"
 
 chrome:
-  image: selenium/node-chrome
+  image: selenium/node-chrome-debug
   environment:
     - SCREEN_WIDTH=3520
     - SCREEN_HEIGHT=1200
     - SCREEN_DEPTH=16
+  ports:
+    - 5901:5900
   links:
   - seleniumhub:hub
 
 firefox:
-  image: selenium/node-firefox
+  image: selenium/node-firefox-debug
   environment:
     - SCREEN_WIDTH=3520
     - SCREEN_HEIGHT=1200
     - SCREEN_DEPTH=16
+  ports:
+    - 5900:5900
   links:
   - seleniumhub:hub
