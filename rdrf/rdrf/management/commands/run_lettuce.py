@@ -40,6 +40,11 @@ class Command(BaseCommand):
             dest='enable_interactive',
             default=False,
             help='Interactively ask user what feature file to invoke'),
+        make_option(
+            '--feature',
+            action='store',
+            dest='single_feature',
+            help='Specify a feature file to invoke'),
     )
 
     def interactive_feature(self, features_dir):
@@ -78,6 +83,8 @@ class Command(BaseCommand):
         path = None
         if options.get('enable_interactive'):
             path = '{0}/{1}'.format(features_dir, self.interactive_feature(features_dir))
+        elif options.get('single_feature'):
+            path = '{0}/{1}'.format(features_dir, options.get('single_feature'))
         else:
             path = '{0}/'.format(features_dir)
 
