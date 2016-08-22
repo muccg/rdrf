@@ -45,6 +45,12 @@ def before_all():
     steps.save_minimal_snapshot()
 
 
+@after.all
+def after_all(total):
+    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
+    world.browser.quit()
+
+
 def delete_cookies():
     # delete all cookies so when we browse to a url at the start we have to log in
     world.browser.delete_all_cookies()
@@ -57,9 +63,10 @@ def before_each_scenario(scenario):
 
 
 @after.each_scenario
-def screenshot(scenario):
+def after_scenario(scenario):
     world.browser.get_screenshot_as_file(
         "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+    steps.restore_minimal_snapshot()
 
 
 @after.each_step

@@ -49,12 +49,9 @@ def save_minimal_snapshot():
     drop_all_mongo()
     save_snapshot("minimal", "minimal")
 
+
 def restore_minimal_snapshot():
-    if have_snapshot("minimal"):
-        restore_snapshot("minimal")
-    else:
-        save_minimal_snapshot()
-        restore_snapshot("minimal")
+    restore_snapshot("minimal")
 
 
 def restore_snapshot(snapshot_name):
@@ -96,7 +93,6 @@ def load_export(step, export_name):
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
     """
-    restore_minimal_snapshot() # start with blank slate
     snapshot_name = "snapshot_%s" % export_name
 
     if have_snapshot(export_name):
