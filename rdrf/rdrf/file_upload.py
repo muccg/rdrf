@@ -1,6 +1,5 @@
 import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
-from .models import CDEFile
 from . import filestorage
 
 logger = logging.getLogger(__name__)

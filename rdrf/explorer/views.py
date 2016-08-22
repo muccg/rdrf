@@ -13,8 +13,6 @@ from explorer import app_settings
 from forms import QueryForm
 from models import Query
 from utils import DatabaseUtils
-from rdrf.models import CDEPermittedValue
-from rdrf.models import CommonDataElement
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
@@ -23,7 +21,6 @@ from rdrf.reporting_table import ReportingTableGenerator
 
 import re
 from bson.json_util import dumps
-from bson import json_util
 from datetime import datetime
 import logging
 from itertools import product
@@ -411,9 +408,6 @@ def _get_non_multiple_mongo_keys(registry_model):
 
 
 def _get_cdes(registry_obj):
-    from rdrf.models import RegistryForm
-    from rdrf.models import Section
-
     cdes = []
     forms = RegistryForm.objects.filter(registry__code=registry_obj.code)
 
@@ -475,7 +469,6 @@ class MultisectionHandler(object):
         :param row:
         :return:
         """
-        from itertools import product
 
         def dl2ld(dl):
             """

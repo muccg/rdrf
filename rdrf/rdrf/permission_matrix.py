@@ -7,7 +7,6 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from rdrf.utils import get_form_links
 from django.utils.translation import ugettext_lazy as _
 import logging
 
@@ -84,7 +83,6 @@ class PermissionMatrixView(View):
         except Registry.DoesNotExist:
             return Http404("Registry with code %s does not exist" % registry_code)
 
-        user = request.user
         context = {}
         context["location"] = "Permissions"
         context["matrix_wrapper"] = MatrixWrapper(registry_model)

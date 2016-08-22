@@ -488,10 +488,8 @@ class DynamicDataWrapper(object):
                         for cde_list in multisection_items:
                             d = {}
                             for cde_dict in cde_list:
-                                cde_code = cde_dict["code"]
-                                cde_value = cde_dict["value"]
                                 delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
-                                d[delimited_key] = cde_value
+                                d[delimited_key] = cde_dict["value"]
                             flattened_data[multisection_code].append(d)
 
             return flattened_data
@@ -687,8 +685,6 @@ class DynamicDataWrapper(object):
         # used _only_ when trying to emulate a roll-back to no data after an exception  in questionnaire handling
         if self.obj.__class__.__name__ != 'Patient':
             raise Exception("can't delete non-patient record")
-
-        patient_model = self.obj
 
         collection = self._get_collection(registry_model.code, "cdes")
         logger.debug("collection = %s" % collection)

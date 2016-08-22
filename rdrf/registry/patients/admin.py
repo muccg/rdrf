@@ -7,10 +7,7 @@ from django.core.urlresolvers import reverse
 import os
 import json
 import datetime
-from rdrf.utils import de_camelcase
 from rdrf.models import Registry
-from rdrf.models import RegistryForm
-from registry.utils import get_registries
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from admin_forms import *
@@ -318,7 +315,6 @@ class PatientAdmin(admin.ModelAdmin):
         obj.save()
 
         if hasattr(obj, 'mongo_patient_data'):
-            patient_id = obj.pk
             self._save_registry_specific_data_in_mongo(obj)
 
     def save_formset(self, request, form, formset, change):

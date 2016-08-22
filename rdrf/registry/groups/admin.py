@@ -68,7 +68,6 @@ class CustomUserAdmin(UserAdmin):
             return super(UserAdmin, self).get_fieldsets(request, obj)
 
     def get_queryset(self, request):
-        from itertools import chain
         from django.db.models import Q
 
         if request.user.is_superuser:

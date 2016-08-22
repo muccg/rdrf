@@ -1,5 +1,4 @@
 from rdrf.models import RegistryForm, Section, CommonDataElement
-from rdrf.utils import de_camelcase
 from explorer.views import Humaniser
 from django.core.urlresolvers import reverse
 from collections import OrderedDict
@@ -496,7 +495,6 @@ class _ExistingDataWrapper(object):
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
         logger.debug("getting existing data for %s" % field_expression)
         if field_expression in KEY_MAP.keys():
-            original_expression = field_expression
             field_expression = KEY_MAP[field_expression][
                 0]  # the demographic field
 
@@ -606,7 +604,6 @@ class _ExistingDataWrapper(object):
         #first_save = models.DateField(null=True, blank=True)
         #last_update = models.DateField(null=True, blank=True)
 
-        from rdrf.models import ConsentQuestion
         from registry.patients.models import ConsentValue
         try:
             consent_value_model = ConsentValue.objects.get(patient=self.patient_model,
@@ -1011,9 +1008,6 @@ class Questionnaire(object):
                                                                        self.data)
         # self.patient_creator = PatientCreator()
 
-    def _generated_secton_code(self, original_form_name, original_section_code):
-        return self.registry_model._generated_section_questionnaire_code(form_name, section_code)
-
     @property
     def questions(self):
         l = []
@@ -1146,7 +1140,6 @@ class Questionnaire(object):
         # begin transaction ... etc
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
-        before_update = transaction.savepoint()
         errors = []
 
         logger.info("starting updating patient %s (%s) from questionnaire data" % (

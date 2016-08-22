@@ -25,7 +25,6 @@ from models import EmailNotificationHistory
 from models import ContextFormGroup
 from models import ContextFormGroupItem
 from models import CDEFile
-from models import ContextFormGroupItem
 
 import logging
 from django.http import HttpResponse

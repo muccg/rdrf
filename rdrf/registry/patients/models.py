@@ -2,6 +2,7 @@ import json
 import datetime
 import os.path
 
+from django.core.exceptions import ValidationError
 from django.core import serializers
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
@@ -13,8 +14,6 @@ import pycountry
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Registry, Section, ConsentQuestion
 from rdrf.hooking import run_hooks
-from rdrf.utils import mongo_db_name
-from rdrf.mongo_client import construct_mongo_client
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -354,7 +353,6 @@ class Patient(models.Model):
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
-        from rdrf.form_progress import FormProgress
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
         elif not registry_model.has_feature("contexts") and context_model is not None:
@@ -1058,7 +1056,6 @@ class PatientRelative(models.Model):
     def create_patient_from_myself(self, registry_model, working_groups):
         # Create the patient corresponding to this relative
         logger.debug("creating a patient model from patient relative %s ..." % self)
-        patient_whose_relative_this_is = self.patient
         p = Patient()
         p.given_names = self.given_names
         p.family_name = self.family_name
