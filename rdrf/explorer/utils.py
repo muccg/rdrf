@@ -9,14 +9,11 @@ from collections import OrderedDict
 
 from models import Query
 
-from explorer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
-from rdrf.utils import forms_and_sections_containing_cde
 from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-from models import Query
 from forms import QueryForm
 
 import logging
@@ -80,7 +77,6 @@ class DatabaseUtils(object):
         errors = []
         if hasattr(self, "query") and self.query.mongo_search_type == "M":
             import json
-            from rdrf.utils import evaluate_generalised_field_expression
             try:
                 data = json.loads(self.query.sql_query)
                 static_sheets = data["static_sheets"]
@@ -97,7 +93,7 @@ class DatabaseUtils(object):
                 errors.append("key error: %s" % ke.message)
 
             if len(errors) > 0:
-                self.result = {'error_msg': error.message}
+                self.result = {'error_msg': ','.join(errors)}
                 return self
             else:
                 # client assumed a dict made from cursor - not sure what to put here
@@ -268,7 +264,6 @@ class DatabaseUtils(object):
 
     @timed
     def _get_sql_metadata(self, cursor):
-        import sqlalchemy as alc
         # type_code is looked up in the oid map
         # cursor description gives list:
         #[Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),

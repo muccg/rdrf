@@ -319,7 +319,6 @@ class AddressesExpression(GeneralisedFieldExpression):
         #(u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
 
         # delete existing addresses ...
-        from registry.patients.models import AddressType
         from registry.patients.models import PatientAddress
         logger.debug("AddressesExpression - setting new addresses")
         for patient_address in PatientAddress.objects.filter(patient=patient_model):
@@ -425,11 +424,9 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                 for form_dict in forms:
                     if form_dict["name"] == self.form_model.name:
                         form_exists = True
-                        sections = form_dict["sections"]
                         for section_dict in form_dict["sections"]:
                             if section_dict["code"] == self.section_model.code:
                                 section_exists = True
-                                cdes = section_dict["cdes"]
                                 for cde_dict in section_dict["cdes"]:
                                     if cde_dict["code"] == self.cde_model.code:
                                         cde_exists = True
@@ -516,7 +513,7 @@ class GeneralisedFieldExpressionParser(object):
         try:
             section_model = Section.objects.get(code=multisection_code)
         except Section.DoesNotExist:
-            raise FieldExpressionError("Cannot find section %s" % multisectioncode)
+            raise FieldExpressionError("Cannot find section %s" % multisection_code)
 
         if action_code == "clear":
             return ClearMultiSectionExpression(self.registry_model,
@@ -591,7 +588,6 @@ class GeneralisedFieldExpressionParser(object):
         Demographics/Address/Postal/Country
         """
         from registry.patients.models import AddressType
-        from registry.patients.models import PatientAddress
         try:
             _, _, address_type, field = address_expression.split("/")
         except ValueError:

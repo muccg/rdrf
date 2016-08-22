@@ -138,7 +138,6 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
     from django.db import transaction
-    user = request.user
     questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
@@ -172,7 +171,6 @@ def rpc_update_selected_cdes_from_questionnaire(
 
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.models import QuestionnaireResponse
-    from rdrf.models import Registry
     from rdrf.questionnaires import PatientCreator, PatientCreatorError
     from rdrf.dynamic_data import DynamicDataWrapper
     from django.db import transaction

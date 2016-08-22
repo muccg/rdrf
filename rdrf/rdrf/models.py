@@ -539,7 +539,7 @@ class Registry(models.Model):
         owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms]
 
         forms = sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
-                        not form_model.pk in owned_form_ids and
+                        form_model.pk not in owned_form_ids and
                         not form_model.is_questionnaire],
                        key=lambda form: form.position)
 

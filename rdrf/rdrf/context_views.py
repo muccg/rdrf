@@ -2,7 +2,6 @@ from django.core.urlresolvers import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
 from django.shortcuts import render_to_response, RequestContext
-from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
@@ -184,7 +183,6 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                 context_model.context_form_group = context_form_group_model
 
             context_model.save()
-            cfg_id = context_form_group_model.pk if context_form_group_model else None
             context_edit = reverse('context_edit', kwargs={"registry_code": registry_model.code,
                                                            "patient_id": patient_model.pk,
                                                            "context_id": context_model.pk})

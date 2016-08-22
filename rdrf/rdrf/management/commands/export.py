@@ -20,8 +20,6 @@ class Command(BaseCommand):
     def handle(self, **options):
         export_type = options['export_type']
         registry_code = options.get('registry_code')
-        verbose = options.get('verbose')
-        filename = options.get('filename')
 
         if export_type in definitions.EXPORT_TYPES.registry_types_codes and registry_code is None:
             self.stderr.write('When exporting a registry the --registry-code option is mandatory')

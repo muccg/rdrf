@@ -3,7 +3,6 @@ from django import forms
 from rdrf.models import Registry
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
-from registry.patients.models import Patient
 
 import logging
 

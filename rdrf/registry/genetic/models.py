@@ -1,5 +1,4 @@
 from django.db import models
-from registry.patients.models import Patient
 
 import logging
 logger = logging.getLogger('genetic')

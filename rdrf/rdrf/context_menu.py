@@ -3,8 +3,6 @@ from django.template import loader, Context
 from django.utils.html import escape
 from rdrf.models import RegistryForm
 
-from rdrf.form_progress import FormProgress
-
 # NB "Context" is not the same as RDRF Context, it's just a "normal" context menu that pops up
 
 
