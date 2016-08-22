@@ -173,7 +173,7 @@ urlpatterns = patterns('',
                            UsernameLookup.as_view(), name="lookup_username"),
 
                        url(r"^lookup/recaptcha/?$",
-                           RecaptchaValidator.as_view(), name="recaptcha_validator"),
+                           RecaptchaValidator.as_view(), name="recaptcha_validator"))
                        #-------------------------------------------
 
                        
