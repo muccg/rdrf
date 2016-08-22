@@ -23,7 +23,7 @@ node {
 
     stage 'Lettuce tests'
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh './develop.sh lettuce'
+            sh './develop.sh dev_lettuce'
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
@@ -33,6 +33,11 @@ node {
         stage 'Docker prod build'
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                 sh './develop.sh prod_build'
+            }
+
+        stage 'Prod lettuce tests'
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                sh './develop.sh prod_lettuce'
             }
 
         stage 'Publish docker image'

@@ -36,8 +36,8 @@ usage() {
     echo "Usage:"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build)"
-    echo " ./develop.sh (start_prod|prod_build)"
-    echo " ./develop.sh (runtests|lettuce)"
+    echo " ./develop.sh (prod|prod_build)"
+    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
     echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
@@ -287,14 +287,7 @@ create_release_tarball() {
 
 
 start_prod() {
-    info 'start prod'
-    mkdir -p data/prod
-    chmod o+rwx data/prod
-
-    set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --force
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up
-    set +x
+    _start_prod_stack
 }
 
 
@@ -335,7 +328,7 @@ _start_test_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -f dbtest mongotest
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'
@@ -353,6 +346,34 @@ _stop_test_stack() {
 
 start_test_stack() {
     _start_test_stack --force-recreate
+}
+
+
+_start_prod_stack() {
+    info 'prod stack up'
+    mkdir -p data/prod
+    chmod o+rwx data/prod
+
+
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
+    set +x
+    success 'prod stack up'
+}
+
+
+_stop_prod_stack() {
+    info 'prod stack down'
+    set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
+    set +x
+    success 'prod stack down'
+}
+
+
+start_prod_stack() {
+    _start_prod_stack --force-recreate
 }
 
 
@@ -377,6 +398,7 @@ _start_selenium() {
     chmod o+rwx data/selenium
 
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull --ignore-pull-failures
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml up $@
     set +x
     success 'selenium stack up'
@@ -400,7 +422,7 @@ start_seleniumhub() {
 start_lettucetests() {
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml up --force-recreate
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
     local rval=$?
     set -e
     set +x
@@ -409,15 +431,30 @@ start_lettucetests() {
 }
 
 
-lettuce() {
-    info 'lettuce'
+dev_lettuce() {
+    info 'dev lettuce'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
-    start_lettucetests
+    start_lettucetests up --force-recreate devlettuce
     local rval=$?
 
     _stop_test_stack
+    _stop_selenium
+
+    exit $rval
+}
+
+
+prod_lettuce() {
+    info 'prod lettuce'
+    _start_selenium --force-recreate -d
+    _start_prod_stack --force-recreate -d
+
+    start_lettucetests up --force-recreate prodlettuce
+    local rval=$?
+
+    _stop_prod_stack
     _stop_selenium
 
     exit $rval
