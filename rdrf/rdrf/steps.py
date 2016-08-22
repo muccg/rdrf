@@ -1,12 +1,10 @@
 import logging
 import os
-import random
-import string
-from django import db
 
 from lettuce.core import STEP_REGISTRY
 from lettuce import step, world
-from lettuce_webdriver.webdriver import contains_content, goto
+from lettuce_webdriver.webdriver import contains_content
+from lettuce_webdriver.webdriver import goto
 from lettuce_webdriver.util import assert_false
 from lettuce_webdriver.util import assert_true
 
@@ -24,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
-    subprocess.check_call(["mongo", "--host", "mongo", "--eval", "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+    subprocess.check_call(["mongo", "--host", "mongo", "--eval",
+                           "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
 
 
 def reset_database_connection():
@@ -138,20 +137,24 @@ def click_patient_listing(step, patient_name):
     link = world.browser.find_element_by_partial_link_text(patient_name)
     link.click()
 
+
 @step(u'I click on "(.*)" in "(.*)" group in sidebar')
 def click_sidebar_group_item(step, item_name, group_name):
     # E.g. And I click "Clinical Data" in "Main" group in sidebar
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
-    form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
+    form_group_panel = sidebar.find_element_by_xpath(
+        '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
     form_link = form_group_panel.find_element_by_partial_link_text(item_name)
     form_link.click()
+
 
 @step(u'I press "(.*)" button in "(.*)" group in sidebar')
 def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
-    form_group_panel = sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
+    form_group_panel = sidebar.find_element_by_xpath(
+        '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
     #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
     button.click()
@@ -159,11 +162,12 @@ def click_button_sidebar_group(step, button_name, group_name):
 
 @step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
-    #And I enter "02-08-2016" for  section "" cde "Consent date"
-    location_is(step, form) # sanity check
+    # And I enter "02-08-2016" for  section "" cde "Consent date"
+    location_is(step, form)  # sanity check
 
     form_block = world.browser.find_element_by_id("main-form")
-    section_div_heading  = form_block.find_element_by_xpath(".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div_heading = form_block.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -179,6 +183,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     raise Exception("could not find cde %s" % cde)
 
+
 @step(u'And I click Save')
 def click_save_button(step):
     save_button = world.browser.find_element_by_id("submit-btn")
@@ -188,13 +193,14 @@ def click_save_button(step):
 @step(u'error message is "(.*)"')
 def error_message_is(step, error_message):
     #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
-    world.browser.find_element_by_xpath('//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
-
+    world.browser.find_element_by_xpath(
+        '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
 
 
 @step(u'location is "(.*)"')
 def location_is(step, location_name):
-    world.browser.find_element_by_xpath('//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
+    world.browser.find_element_by_xpath(
+        '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
 @step(u'When I click Module "(.*)" for patient "(.*)" on patientlisting')
@@ -214,7 +220,6 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     form_group_button.click()
     form_link = form_group_button.find_element_by_xpath("..").find_element_by_partial_link_text(form_name)
     form_link.click()
-
 
 
 @step(u'press the navigate back button')
@@ -238,7 +243,7 @@ def select_from_list(step, option, dropdown_label_or_id):
         label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % dropdown_label_or_id)
         select_id = label.get_attribute('for')
     option = world.browser.find_element_by_xpath('//select[@id="%s"]/option[contains(., "%s")]' %
-                (select_id, option))
+                                                 (select_id, option))
     option.click()
 
 
@@ -246,7 +251,7 @@ def select_from_list(step, option, dropdown_label_or_id):
 def option_should_be_selected(step, option, dropdown_label):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % dropdown_label)
     option = world.browser.find_element_by_xpath('//select[@id="%s"]/option[contains(., "%s")]' %
-                (label.get_attribute('for'), option))
+                                                 (label.get_attribute('for'), option))
     assert_true(step, option.get_attribute('selected'))
 
 
@@ -291,6 +296,7 @@ def create_user(step, username):
     #world.user = CustomUser.objects.get(username=username)
     world.user = username
 
+
 @step('a patient named "(.*)"')
 def set_patient(step, name):
     world.patient = name
@@ -318,7 +324,7 @@ def the_page_header_should_be(step, header):
 def login_as_role(step, role):
     # Could map from role to user later if required
 
-    world.user = role #?
+    world.user = role  # ?
     logger.debug("about to login as %s registry %s" % (world.user, world.registry))
     go_to_registry(step, world.registry)
     logger.debug("selected registry %s OK" % world.registry)

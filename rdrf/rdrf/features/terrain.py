@@ -38,7 +38,7 @@ def set_site_url():
 
 def do_teardown():
     return ('LETTUCE_DISABLE_TEARDOWN' not in os.environ or
-        os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
+            os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
 
 
 @before.all
@@ -78,7 +78,7 @@ def after_scenario(scenario):
 
 @after.each_step
 def screenshot_step(step):
-    if not step.passed and step.scenario != None:
+    if not step.passed and step.scenario is not None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
