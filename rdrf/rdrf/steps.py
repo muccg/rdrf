@@ -11,7 +11,6 @@ from lettuce_webdriver.util import assert_false
 from lettuce_webdriver.util import assert_true
 
 from selenium.webdriver.common.alert import Alert
-from selenium.common.exceptions import NoAlertPresentException
 
 from rdrf.models import Registry
 from registry.groups.models import CustomUser
@@ -390,14 +389,6 @@ def go_to_registry(step, name):
 def refresh_page(step):
     current_url = world.browser.current_url
     world.browser.get(world.site_url)
-    # TODO For some reason the confirmation dialog about unsaved changes
-    # appears after save, although it isn't visible on the screenshots.
-    # Accepting the dialog for now to get around it
-    try:
-        Alert(world.browser).accept()
-        logger.warn("TODO Had to accept unsaved confirmation dialog")
-    except NoAlertPresentException:
-        pass
     world.browser.get(current_url)
 
 
