@@ -464,7 +464,7 @@ prod_lettuce() {
 django_admin() {
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} run --rm runserver django-admin $@
+    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin $@
     local rval=$?
     set -e
     set +x
@@ -480,7 +480,7 @@ check_migrations() {
 
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations --dry-run --noinput -e
+    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin makemigrations --dry-run --noinput -e
     local check=$?
     set -e
     set +x

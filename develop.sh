@@ -53,7 +53,7 @@ docker_staging_lettuce() {
 # lint using flake8
 python_lint() {
     info "python lint"
-    docker-compose -f docker-compose-build.yml run lint flake8 rdrf --exclude=migrations --ignore=E501 --count
+    docker-compose -f docker-compose-build.yml run --rm lint flake8 rdrf --exclude=migrations --ignore=E501 --count
     success "python lint"
 }
 
