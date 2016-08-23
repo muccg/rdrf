@@ -13,6 +13,7 @@ from django.db import transaction, connection
 
 from rdrf.models import Registry
 from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, MongoCollectionImporterCatalogue
+from .exceptions import ImportError
 from .importers import get_meta_value, allow_if_forced
 import definitions
 from .utils import DelegateMixin, IndentedLogger, app_schema_version
@@ -56,7 +57,7 @@ class ZipFileImporter(object):
 
         meta = [(path, os.path.join(path, 'META')) for path, _, files in os.walk(startdir) if 'META' in files]
         if len(meta) == 0:
-            raise Exception("Invalid export file '%s'.'META' file is missing." % self.zipfile)
+            raise ImportError("Invalid export file '%s'.'META' file is missing." % self.zipfile)
 
         return meta[0]
 
@@ -71,7 +72,7 @@ class ZipFileImporter(object):
 
         self.requested_type = definitions.EXPORT_TYPES.from_code(requested_import_type)
         if not (self.requested_type is self.file_export_type or self.requested_type in self.file_export_type.includes):
-            raise Exception("Invalid import type '%s' requested for file '%s' with type '%s'." %
+            raise ImportError("Invalid import type '%s' requested for file '%s' with type '%s'." %
                             (requested_import_type, self.zipfile, self.file_export_type.code))
 
         if self.requested_type in definitions.EXPORT_TYPES.registry_types:
@@ -80,7 +81,7 @@ class ZipFileImporter(object):
             return GenericImporter(self)
         if self.requested_type is definitions.EXPORT_TYPES.REFDATA:
             return GenericImporter(self)
-        raise Exception("Unrecognized export type '%s'." % (self.requested_type.code))
+        raise ImportError("Unrecognized export type '%s'." % (self.requested_type.code))
 
     def do_import(self, import_type=None, verbose=False, indented_logs=True, simulate=False, force=False):
         if verbose:
@@ -117,7 +118,7 @@ class RegistryLevelChecks(DelegateMixin):
     def check_registry_export_type_in_meta(self):
         export_type = get_meta_value(self.meta, 'type')
         if export_type not in definitions.EXPORT_TYPES.registry_types_names:
-            raise Exception("Invalid export type '%s' for registry import. Should be one of '%s'."
+            raise ImportError("Invalid export type '%s' for registry import. Should be one of '%s'."
                             % (export_type, ', '.join(definitions.EXPORT_TYPES.registry_types_names)))
 
     @allow_if_forced
@@ -125,7 +126,7 @@ class RegistryLevelChecks(DelegateMixin):
         if self.force:
             return
         if Registry.objects.filter(code=self.registry_code).exists():
-            raise Exception("Registry '%s' already exists." % self.registry_code)
+            raise ImportError("Registry '%s' already exists." % self.registry_code)
 
 
 class BaseImporter(DelegateMixin):
@@ -143,7 +144,7 @@ class BaseImporter(DelegateMixin):
     def check_app_schema_versions_match(self):
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
-            raise Exception('Schema difference detected between your registry and the export file.'
+            raise ImportError('Schema difference detected between your registry and the export file.'
                             ' App(s) with different schema: %s' % ', '.join(app_schema_version_different))
 
     def reset_sql_sequences(self):
@@ -158,23 +159,6 @@ class BaseImporter(DelegateMixin):
 
         cursor = connection.cursor()
         cursor.execute(commands.getvalue())
-
-    def reset_sql_sequences(self):
-        meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
-        apps = set(reduce(lambda d, x: d + x.get('app_versions', {}).keys(), meta, []))
-        self.logger.debug('Apps we are resetting: %s', apps)
-
-        os.environ['DJANGO_COLORS'] = 'nocolor'
-        commands = StringIO()
-
-        for app in apps:
-            call_command('sqlsequencereset', app, stdout=commands)
-
-        cursor = connection.cursor()
-        s = commands.getvalue()
-        self.logger.debug('SQL Reset commands: %s', s)
-        # cursor.execute(commands.getvalue())
-        cursor.execute(s)
 
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
