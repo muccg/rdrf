@@ -459,30 +459,3 @@ prod_lettuce() {
 
     exit $rval
 }
-
-
-start_seleniumtests() {
-    set -x
-    set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-seleniumtests.yml up --force-recreate
-    local rval=$?
-    set -e
-    set +x
-
-    return $rval
-}
-
-
-selenium() {
-    info 'selenium'
-    _start_selenium --force-recreate -d
-    _start_test_stack --force-recreate -d
-
-    start_seleniumtests
-    local rval=$?
-
-    _stop_test_stack
-    _stop_selenium
-
-    exit $rval
-}
