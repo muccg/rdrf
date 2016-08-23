@@ -474,6 +474,10 @@ django_admin() {
 
 
 check_migrations() {
+    info 'check migrations'
+    mkdir -p data/dev
+    chmod o+rwx data/dev
+
     set -x
     set +e
     docker-compose --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations --dry-run --noinput -e
