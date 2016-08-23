@@ -35,6 +35,8 @@ services:
         ARG_PIP_INDEX_URL: ${PIP_INDEX_URL}
         ARG_PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST}
     image: muccg/rdrf-dev
+    volumes:
+      - .:/app
 
   prod:
     build:
