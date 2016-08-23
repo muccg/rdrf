@@ -91,6 +91,13 @@ dev_build)
     create_build_image
     create_dev_image
     ;;
+django-admin)
+    shift
+    django_admin $@
+    ;;
+check_migrations)
+    check_migrations
+    ;;
 releasetarball)
     create_release_tarball
     ;;

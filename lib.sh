@@ -35,7 +35,7 @@ usage() {
     echo ""
     echo "Usage:"
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
-    echo " ./develop.sh (dev|dev_build)"
+    echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
     echo " ./develop.sh (prod|prod_build)"
     echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
@@ -458,4 +458,28 @@ prod_lettuce() {
     _stop_selenium
 
     exit $rval
+}
+
+
+django_admin() {
+    set -x
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} run --rm runserver django-admin $@
+    local rval=$?
+    set -e
+    set +x
+
+    exit $rval
+}
+
+
+check_migrations() {
+    set -x
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations --dry-run --noinput -e
+    local check=$?
+    set -e
+    set +x
+
+    exec expr $check = 1 > /dev/null
 }

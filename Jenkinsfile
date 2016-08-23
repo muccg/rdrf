@@ -13,6 +13,7 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh docker_warm_cache'
             sh './develop.sh dev_build'
+            sh './develop.sh check_migrations'
         }
 
     stage 'Unit tests'
