@@ -36,6 +36,11 @@ def set_site_url():
     logger.info("world.site_url = %s" % world.site_url)
 
 
+def do_teardown():
+    return ('LETTUCE_DISABLE_TEARDOWN' not in os.environ or
+            os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
+
+
 @before.all
 def before_all():
     logger.info('')
@@ -43,6 +48,13 @@ def before_all():
     reset_snapshot_dict()
     set_site_url()
     steps.save_minimal_snapshot()
+
+
+@after.all
+def after_all(total):
+    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
+    if do_teardown():
+        world.browser.quit()
 
 
 def delete_cookies():
@@ -57,14 +69,16 @@ def before_each_scenario(scenario):
 
 
 @after.each_scenario
-def screenshot(scenario):
+def after_scenario(scenario):
     world.browser.get_screenshot_as_file(
         "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+    if do_teardown():
+        steps.restore_minimal_snapshot()
 
 
 @after.each_step
 def screenshot_step(step):
-    if not step.passed and step.scenario != None:
+    if not step.passed and step.scenario is not None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
