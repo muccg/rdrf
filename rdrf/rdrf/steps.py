@@ -19,6 +19,14 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
+def steps_path():
+    return os.path.dirname(os.path.realpath(__file__))
+
+
+def exported_data_path():
+    return '{0}/{1}'.format(steps_path(), 'features/exported_data')
+
+
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
     subprocess.check_call(["mongo", "--host", "mongo", "--eval",
@@ -60,7 +68,7 @@ def restore_snapshot(snapshot_name):
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
-    subprocess.check_call(["django-admin.py", "import", "/app/rdrf/rdrf/features/exported_data/%s" % export_name])
+    subprocess.check_call(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
 
 def show_stats(export_name):
