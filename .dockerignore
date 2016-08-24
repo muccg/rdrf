@@ -9,7 +9,6 @@ docs
 sql
 tmp
 data
-build
 */log/*
 */scratch/*
 Dockerfile*
