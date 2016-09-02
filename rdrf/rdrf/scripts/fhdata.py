@@ -37,12 +37,16 @@ SEXES = ["Male", "Female", "Indeterminate"]
 
 LIVING_STATUSES = ["Living", "Deceased"]
 AUS_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+BOOLEAN = ["True","False"]
+
 
 
 class DemographicForm:
     SECTION_REGISTRY = "Registry"
     SECTION_PATIENT_DETAILS = "Patients Personal Details"
     HOME_ADDRESS = "Home Address"
+    PEDIGREE = "Pedigree"
+    
 
 
 class DemographicField(object):
@@ -209,7 +213,23 @@ class DataDefinitionReport(object):
         fields.append(DemographicField(
             DemographicForm.HOME_ADDRESS, "Country", "RANGE", COUNTRIES))
 
+        
         return fields
+
+
+    def _get_consent_fields(self):
+        fields = []
+        def mk_consent(sec, field, required=False):
+            fields.append(DemographicField(sec, field, "RANGE", BOOLEAN, required=required))
+        
+        mk_consent("FH Registry Consent", "Adult Consent")
+        mk_consent("FH Registry Consent", "Child Consent")
+        mk_consent("FH Optional Consents", "Clinical Trials")
+        mk_consent("FH Optional Consents", "Information")
+        mk_consent("FH Registry Subset", "FCHL")
+        mk_consent("FH Registry Subset", "Hyper-Lp(a)")
+        return fields
+    
 
     def __iter__(self):
         col = 1
@@ -220,6 +240,11 @@ class DataDefinitionReport(object):
 
         for demographic_field in self._get_demographic_fields():
             yield str(col), "DEMOGRAPHICS", demographic_field.section, demographic_field.name, demographic_field.datatype, demographic_field.required, demographic_field.members, demographic_field.validation
+            col += 1
+
+
+        for field in self._get_consent_fields():
+            yield str(col), "CONSENTS", field.section, field.name, field.datatype, field.required, field.members, field.validation
             col += 1
 
         for form_dict in self.data["forms"]:
