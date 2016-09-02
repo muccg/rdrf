@@ -3,6 +3,7 @@ import argparse
 import yaml
 import xlsxwriter as xl
 from xlsxwriter.utility import xl_rowcol_to_cell as get_cell
+from datetime import date
 
 
 def tolist(s):
@@ -47,7 +48,10 @@ class SpreadSheetCreator(object):
         self.nrows = nrows
 
     def create(self):
-        self.workbook = xl.Workbook(self.output_filename, {"default_date_format": "dd/mm/yyyy"})
+        self.workbook = xl.Workbook(self.output_filename, {
+                                    "default_date_format": "dd/mm/yy"})
+        self.date_format = self.workbook.add_format(
+            {'num_format': 'dd/mm/yyyy'})
         self.sheet = self.workbook.add_worksheet()
         self._create_demographic_fields()
         self._create_registry_specific_fields()
@@ -102,7 +106,12 @@ class SpreadSheetCreator(object):
             validation = {"validate": "integer", "criteria": 'between',
                           "minimum": 0, "maximum": 1000000}
         elif datatype == DATE:
-            validation = {"validate": 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
+            validation = {"validate": 'date',
+                          'input_title': 'Enter a date dd/mm/yyyy',
+                          'criteria': 'between',
+                          'minimum': date(1900, 1, 1),
+                          'maximum': date(2020, 12, 31)
+                          }
         elif datatype == DECIMAL:
             validation = {"validate": 'decimal', 'input_title': 'Enter a decimal',
                           'criteria': 'between', 'minimum': -1000000.00, "maximum": 1000000.00}
@@ -112,6 +121,13 @@ class SpreadSheetCreator(object):
             if values is not None:
                 if "---" not in values:
                     values.insert(0, '---')
+
+                # excel can't take total length of more than 255 chars for concat of all values ..
+                length_of_values = len("".join(values))
+
+                if length_of_values > 255:
+                    print "LENGTH OF RANGE > 255:  %s" % column
+                
                 validation = {"validate": 'list', 'source': values}
             else:
                 return
@@ -146,11 +162,14 @@ class SpreadSheetCreator(object):
         elif cde_dict["pv_group"]:
             return RANGE
         else:
-            raise Exception("Unknown datatype for %s: %s" % (cde_dict, datatype))
+            raise Exception("Unknown datatype for %s: %s" %
+                            (cde_dict, datatype))
 
     def _get_range(self, cde_dict):
         pv_group = cde_dict['pv_group']
-        return "\n".join(self._get_values(pv_group))
+        r = "\n".join(self._get_values(pv_group))
+        print "RANGE FOR %s\n" % cde_dict["code"]
+        print r
 
     def _get_values(self, pv_group):
         for group_dict in self.registry_dict['pvgs']:
@@ -200,7 +219,8 @@ class SpreadSheetCreator(object):
                     self._write_header(self.current_column, field_header)
                     self._write_info(self.current_column, field_info)
                     if datatype == RANGE:
-                        self._apply_validation(self.current_column, datatype, values=values)
+                        self._apply_validation(
+                            self.current_column, datatype, values=values)
                     else:
                         self._apply_validation(self.current_column, datatype)
                     self.current_column += 1
@@ -218,5 +238,6 @@ if __name__ == "__main__":
     print "excludes = %s" % excludes
     with open(args.yaml_file) as f:
         data = yaml.load(f)
-    spreadsheet = SpreadSheetCreator(data, args.output_file, args.nrows, excludes=excludes)
+    spreadsheet = SpreadSheetCreator(
+        data, args.output_file, args.nrows, excludes=excludes)
     spreadsheet.create()
