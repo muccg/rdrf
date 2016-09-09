@@ -18,7 +18,7 @@ from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from questionnaires import PatientCreator
-from file_upload import wrap_gridfs_data_for_form
+from file_upload import wrap_gridfs_data_for_form, merge_gridfs_data_for_form
 from . import filestorage
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -415,13 +415,11 @@ class FormView(View):
                     sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
                     #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
 
-                    from copy import deepcopy
-                    form2 = form_class(
-                        dynamic_data,
-                        initial=wrap_gridfs_data_for_form(
-                            registry_code,
-                            deepcopy(dynamic_data)))
-                    form_section[s] = form2
+                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
+                    merge_gridfs_data_for_form(registry_code, form_data, current_data)
+
+                    form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     logger.debug("form is invalid")
                     all_sections_valid = False
