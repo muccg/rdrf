@@ -3,6 +3,12 @@ from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
+from rdrf.utils import form_key
+from rdrf.form_view import FormView
+from django.test import RequestFactory
+
+
+
 
 
 from registry.patients.models import Patient
@@ -21,6 +27,17 @@ class DataDictionaryFile:
 class DataImporterError(Exception):
     pass
 
+
+class FormError(Exception):
+    # represent a form validation error
+    pass
+
+
+class FieldType:
+    CDE = 1
+    DEMOGRAPHICS = 1
+    PEDIGREE_FORM = 2
+    CONSENT = 3
 
 class RowWrapper(object):
 
@@ -68,25 +85,65 @@ class DataImporter(object):
         self.import_file = import_file
         self.created_patient_ids = []
         self.field_map = self._build_map()
+        self.request_factory = RequestFactory()
 
     def _build_map(self):
         # map cde codes to field nums: field nums are unique ids of
         # form/section/cdes  or consents or demographic fields
+        field_map = {}
         with open(self.data_dictionary) as dd:
             lines = map(strip, dd.readlines())[1:]  # skip header
             columns = lines.split(DataDictionaryFile.ROW_DELIMITER)
             for line in lines:
                 field_num = columns[DataDictionaryFile.FIELD_NUM_COLUMN]
-                form_name = columns[DataDictionaryFile.FORM_NAME_COLUMN]
-                section_name = columns[DataDictionaryFile.SECTION_NAME_COLUMN]
-                cde_name = columns[DataDictionaryFile.CDE_NAME_COLUMN]
+                spec = self._get_form_section_cde(columns)
+                if type(spec) is tuple:
+                    form_model, section_model, cde_model = spec
+                    field_map[(FieldType.CDE, form_model, section_model, cde_model)] = field_num
+                else:
+                    # field is demographic or consent
+                    form_name = columns[DataDictionaryFile.FORM_NAME_COLUMN]
+                    section_name = columns[DataDictionaryFile.SECTION_NAME_COLUMN]
+                    field_name = columns[DataDictionaryFile.CDE_NAME_COLUMN]
+                    if form_name == "Demographics":
+                        field_map[(FieldType.DEMOGRAPHICS, form_name, section_name, field_name)] = field_num
+                    elif form_name == "Consent":
+                        field_map[(FieldType.CONSENT, form_name, section_name, field_name)] = field_num
+                    elif form_name == "Pedigree":
+                        field_map[(FieldType.PEDIGREE_FORM, form_name, section_name, field_name)] = field_num
 
-                try:
-                    form_model = RegistryForm.objects.get(name=form_name,
-                                                          registry=self.registry_model)
+                    else:
+                        raise DataImporterError("Unknown form: %s" % form_name)
 
-                except RegistryForm.DoesNotExist:
-                    pass
+        print field_map
+        return field_map
+
+
+    def _get_form_section_cde(self, columns):
+        # return (form_model, section_model, cde_model)
+        # if this makes sense otherwise None
+        field_num = columns[DataDictionaryFile.FIELD_NUM_COLUMN]
+        form_name = columns[DataDictionaryFile.FORM_NAME_COLUMN]
+        section_name = columns[DataDictionaryFile.SECTION_NAME_COLUMN]
+        cde_name = columns[DataDictionaryFile.CDE_NAME_COLUMN]
+
+        try:
+           form_model = RegistryForm.objects.get(name=form_name,
+                                                 registry=self.registry_model)
+        except Registry.DoesNotExist:
+            return None
+
+        # get the section in the form ...
+        section_models = [section_model for section_model in form_model.section_models if section_model.display_name == section_name]
+        if len(section_models) == 1:
+            section_model = section_models[0]
+        else:
+            return None
+
+        cde_models = [cde_model for cde_model in section_model.cde_models if cde_model.name == cde_name]
+        if len(cde_models) == 1:
+            cde_model = cde_models[0]
+            return form_model, section_model, cde_model
 
     def run(self):
         try:
@@ -112,7 +169,6 @@ class DataImporter(object):
             patient_model.save()
 
             for form_model in self.registry_model.forms:
-
                 form_data = self._get_form_data(form_model, row)
                 try:
                     self.submit_form_data(patient_model, form_model, form_data)
@@ -123,15 +179,39 @@ class DataImporter(object):
         with open(self.import_file, "rb") as csv_file:
             reader = csv.CSVReader(csv_file)
             for row_dict in reader:
-                wrapped_row = RowWrapper()
+                wrapped_row = RowWrapper(self.registry_model, self.field_map, row_dict)
                 yield wrapped_row
 
     def _get_form_data(self, form_model, row):
+        form_data = {}
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
                 for cde_model in section_model.cde_models:
+                    key = form_key(form_model, section_model, cde_model)
+                    value = row[(form_model, section_model, cde_model)]
+                form_data[key] = value
+        return form_data
 
-    def _get_form_key_and_data(self, form_model, section_model, cde_model, row):
-        field_key = None
-        field_value = row[(form_model, section_model, cde_model)]
-        return field_key, field_value
+    def _submit_form_data(self, patient_model, form_model, form_data):
+        request = self._create_request(form_model, form_data)
+        view = FormView()
+        view.request = request
+        default_context_model = None
+        try:
+            # need to test for validation errors - how ?
+            default_context_model = patient_model.default_context
+            response = view.post(request, self.registry_model.code, form_model.pk, patient_model.pk, default_context_model.pk)
+        except Exception:
+            pass
+
+    def _create_request(self, patient_model, form_model, form_data):
+        url = "/%s/forms/%s/%s" % (form_model.registry.code, form_model.pk, patient_model.pk)
+        request = self.request_factory.post(url, form_data)
+        request.user = self.admin_user
+        return request
+
+    
+        
+
+    
+                    
