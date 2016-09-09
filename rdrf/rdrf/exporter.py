@@ -20,7 +20,7 @@ def convert_decimal_values(cde_dict):
     for k in cde_dict:
         value = cde_dict[k]
         if isinstance(value, Decimal):
-            logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
+            # logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
             cde_dict[k] = str(value)
     return cde_dict
 
@@ -210,11 +210,10 @@ class Exporter(object):
                 data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
-            logger.debug("About to yaml dump the export: data = %s" % data)
             try:
                 export_data = yaml.safe_dump(data, allow_unicode=True)
             except Exception as ex:
-                logger.error("Error yaml dumping: %s" % ex)
+                logger.exception("Error yaml dumping")
                 export_data = None
         elif format == ExportFormat.JSON:
             export_data = json.dumps(data)
@@ -223,10 +222,7 @@ class Exporter(object):
         else:
             raise Exception("Unknown format: %s" % format)
 
-        logger.debug("Export of Registry %s" % self.registry.name)
-        logger.debug("Format = %s" % format)
-        logger.debug("Export Data:")
-        logger.debug("%s" % export_data)
+        logger.debug("Export of Registry %s in %s format" % (self.registry.name, format))
         return export_data
 
     def export_cdes_yaml(self, all_cdes=False):
