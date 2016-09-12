@@ -7,10 +7,6 @@ from rdrf.utils import form_key
 from rdrf.form_view import FormView
 from django.test import RequestFactory
 
-
-
-
-
 from registry.patients.models import Patient
 import csv
 from string import strip
@@ -86,6 +82,7 @@ class DataImporter(object):
         self.created_patient_ids = []
         self.field_map = self._build_map()
         self.request_factory = RequestFactory()
+        self.admin_user = CustomUser.objects.get(username="admin")
 
     def _build_map(self):
         # map cde codes to field nums: field nums are unique ids of
@@ -193,7 +190,7 @@ class DataImporter(object):
         return form_data
 
     def _submit_form_data(self, patient_model, form_model, form_data):
-        request = self._create_request(form_model, form_data)
+        request = self._create_request(patient_model, form_model, form_data)
         view = FormView()
         view.request = request
         default_context_model = None
@@ -201,6 +198,8 @@ class DataImporter(object):
             # need to test for validation errors - how ?
             default_context_model = patient_model.default_context
             response = view.post(request, self.registry_model.code, form_model.pk, patient_model.pk, default_context_model.pk)
+            validation_errors = self._get_validation_errors(response)
+            
         except Exception:
             pass
 
@@ -209,6 +208,9 @@ class DataImporter(object):
         request = self.request_factory.post(url, form_data)
         request.user = self.admin_user
         return request
+
+    def _get_validation_errors(self, response):
+        return [] #todo
 
     
         
