@@ -42,8 +42,12 @@ class BaseRegistration(object):
 
         django_user.groups = [user_group.id, ] if user_group else []
 
-        django_user.first_name = request.POST['first_name']
-        django_user.last_name = request.POST['surname']
+        if is_parent:
+            django_user.first_name = request.POST['parent_guardian_first_name']
+            django_user.last_name = request.POST['parent_guardian_last_name']
+        else:
+            django_user.first_name = request.POST['first_name']
+            django_user.last_name = request.POST['surname']
         django_user.registry = [registry, ] if registry else []
         django_user.is_staff = True
         return django_user
