@@ -614,6 +614,8 @@ class Importer(object):
             raise ImportError("CFG Error: Form name %s not found in registry" % name)
 
         for cfg_dict in default_first(self.data):
+            if cfg_dict is None:
+                continue
             cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, name=cfg_dict["name"])
             cfg.context_type = cfg_dict["context_type"]
             cfg.name = cfg_dict["name"]
