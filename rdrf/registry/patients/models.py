@@ -894,7 +894,7 @@ class ClinicianOther(models.Model):
 
 
 class ParentGuardian(models.Model):
-    GENDER_CHOICES = (("M", "Male"), ("F", "Female"), ("I", "Indeterminate"))
+    GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
