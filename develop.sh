@@ -156,6 +156,9 @@ dev_lettuce)
 lettuce)
     dev_lettuce
     ;;
+reexport_test_zips)
+    reexport_test_zips
+    ;;
 prod_lettuce)
     prod_lettuce
     ;;
