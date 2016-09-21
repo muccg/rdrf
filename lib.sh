@@ -37,7 +37,7 @@ usage() {
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
     echo " ./develop.sh (prod|prod_build)"
-    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce|reexport_test_zips)"
+    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
     echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
@@ -444,31 +444,6 @@ dev_lettuce() {
 
     exit $rval
 }
-
-reexport_test_zips() {
-  ZIPFILES=rdrf/rdrf/features/exported_data/*.zip
-  for f in $ZIPFILES
-  do
-      f2="/app/$f"
-      reexport_test_zip $f2
-  done
-}
-
-reexport_test_zip() {
-    info 'reexport test zips'
-    _start_test_stack --force-recreate -d
-
-    set -x
-    set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run testhost /app/docker-entrypoint.sh /app/reexport_zip.sh $1
-    local rval=$?
-    set -e
-    set +x
-
-    _stop_test_stack
-    return $rval
-}
-
 
 prod_lettuce() {
     info 'prod lettuce'

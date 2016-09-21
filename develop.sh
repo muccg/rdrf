@@ -11,6 +11,35 @@ set -e
 
 ACTION="$1"
 
+
+usage() {
+    echo ""
+    echo "Environment:"
+    echo " Pull during build              DOCKER_PULL                 ${DOCKER_PULL} "
+    echo " No cache during build          DOCKER_NO_CACHE             ${DOCKER_NO_CACHE} "
+    echo " Use proxy during builds        DOCKER_BUILD_PROXY          ${DOCKER_BUILD_PROXY}"
+    echo " Push/pull from docker hub      DOCKER_USE_HUB              ${DOCKER_USE_HUB}"
+    echo " Release docker image           DOCKER_IMAGE                ${DOCKER_IMAGE}"
+    echo " Use a http proxy               SET_HTTP_PROXY              ${SET_HTTP_PROXY}"
+    echo " Use a pip proxy                SET_PIP_PROXY               ${SET_PIP_PROXY}"
+    echo ""
+    echo "Usage:"
+    echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
+    echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
+    echo " ./develop.sh (prod|prod_build)"
+    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce|reexport_test_zips)"
+    echo " ./develop.sh (start_test_stack|start_seleniumhub)"
+    echo " ./develop.sh (pythonlint|jslint)"
+    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
+    echo " ./develop.sh (ci_docker_login)"
+    echo ""
+    echo "Example, start dev with no proxy and rebuild everything:"
+    echo "SET_PIP_PROXY=0 SET_HTTP_PROXY=0 ./develop.sh dev_build"
+    echo ""
+    exit 1
+}
+
+
 # build a docker image and start stack on staging using docker-compose
 ci_docker_staging() {
     info 'ci docker staging'
@@ -68,6 +97,31 @@ js_lint() {
         docker-compose -f docker-compose-build.yml run lint gjslint ${EXCLUDES} --disable 0131 --max_line_length 100 --nojsdoc $JS
     done
     success "js lint"
+}
+
+
+reexport_test_zips() {
+  ZIPFILES=rdrf/rdrf/features/exported_data/*.zip
+  for f in $ZIPFILES
+  do
+      f2="/app/$f"
+      reexport_test_zip $f2
+  done
+}
+
+reexport_test_zip() {
+    info 'reexport test zips'
+    _start_test_stack --force-recreate -d
+
+    set -x
+    set +e
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost /app/docker-entrypoint.sh /app/scripts/reexport_zip.sh $1
+    local rval=$?
+    set -e
+    set +x
+
+    _stop_test_stack
+    return $rval
 }
 
 
