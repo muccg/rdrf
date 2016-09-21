@@ -445,7 +445,6 @@ dev_lettuce() {
     exit $rval
 }
 
-
 prod_lettuce() {
     info 'prod lettuce'
     _start_selenium --force-recreate -d
