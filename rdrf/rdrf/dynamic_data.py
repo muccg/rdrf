@@ -628,6 +628,8 @@ class DynamicDataWrapper(object):
             # Store file and convert value into a file wrapper
             to_delete = current_value
             value = filestorage.store_file_by_key(registry_code, None, key, value)
+        else:
+            to_delete = None
 
         if to_delete:
             filestorage.delete_file_wrapper(fs, to_delete)

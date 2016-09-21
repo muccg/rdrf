@@ -1,4 +1,4 @@
-from itertools import izip_longest
+from itertools import izip_longest, chain
 import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.files.uploadedfile import UploadedFile
@@ -85,9 +85,12 @@ def merge_gridfs_data_for_form(registry, form_data, dyn_patient):
     they need to be copied over from dyn_patient.
     """
     def merge(form, dyn, key):
-        if isinstance(form, list) and isinstance(dyn, list):
+        if form is False:
+            pass  # deleted file
+        elif isinstance(form, list) and isinstance(dyn, list):
             return [merge(form_item, dyn_item, key)
-                    for (form_item, dyn_item) in izip_longest(form, dyn)]
+                    for (form_item, dyn_item) in izip_longest(form, dyn)
+                    if form_item is not False]
         elif isinstance(form, UploadedFile):
             return FileUpload(registry, key,
                               {"file_name": form.name, "django_file_id": 0})
@@ -101,3 +104,11 @@ def merge_gridfs_data_for_form(registry, form_data, dyn_patient):
         return form
 
     return merge(form_data, dyn_patient, None)
+
+def merge_gridfs_data_for_form_multi(registry, form_data, dyn_patient):
+    """
+    Merges multisection mongo file data into the form fields.
+    """
+    flat_dyn = chain.from_iterable(v for k, v in dyn_patient.items()
+                                   if isinstance(v, list))
+    return merge_gridfs_data_for_form(registry, form_data, list(flat_dyn))
