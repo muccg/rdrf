@@ -430,7 +430,11 @@ class FormView(View):
                     for e in form.errors:
                         error_count += 1
                         all_errors.append(e)
-                    form_section[s] = form_class(request.POST, request.FILES)
+
+                    from rdrf.utils import wrap_uploaded_files
+                    request.POST.update(request.FILES)
+                    
+                    form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
 
             else:
                 logger.debug("handling POST of multisection %s" % section_model)
