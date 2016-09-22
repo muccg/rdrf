@@ -19,6 +19,7 @@ from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from questionnaires import PatientCreator
 from file_upload import wrap_gridfs_data_for_form, merge_gridfs_data_for_form, merge_gridfs_data_for_form_multi
+from file_upload import wrap_file_cdes
 from . import filestorage
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -416,8 +417,11 @@ class FormView(View):
                     #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
 
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
-                    merge_gridfs_data_for_form(registry_code, form_data, current_data)
+                    #form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
+                    #merge_gridfs_data_for_form(registry_code, form_data, current_data)
+
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
+
 
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
@@ -452,14 +456,19 @@ class FormView(View):
                     for i in reversed(to_remove):
                         del dynamic_data[i]
 
+
+                    logger.debug("CLEANED DATA FOR MULTISECTION:\n%s" % dynamic_data)
+
                     section_dict = {s: dynamic_data}
 
                     sections_to_save.append(SectionInfo(dyn_patient, True, registry_code,
                                                         "cdes", section_dict, index_map))
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
-                    if current_data:
-                        merge_gridfs_data_for_form_multi(registry_code, form_data, current_data)
+                    #form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
+                    #if current_data:
+                    #    merge_gridfs_data_for_form_multi(registry_code, form_data, current_data)
+
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True)
 
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 
