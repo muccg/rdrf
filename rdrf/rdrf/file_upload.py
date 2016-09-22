@@ -124,6 +124,8 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         return filestorage.get_id(value)
 
     def is_existing_in_mongo(section_index, key, value):
+        if mongo_data is None:
+            return False
         if section_index is None:
             # section is not multi
             return value is None  and key in mongo_data
