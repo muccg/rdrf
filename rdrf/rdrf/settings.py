@@ -229,10 +229,8 @@ STATIC_SERVER_PATH = STATIC_ROOT
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
-if env.get("storage_backend", "fs") == "db":
-    DEFAULT_FILE_STORAGE = "storages.backends.database.DatabaseStorage"
-else:
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+# valid values django.core.files.storage.FileSystemStorage and storages.backends.database.DatabaseStorage
+DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
 
 # settings used when FileSystemStorage is enabled
 MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
