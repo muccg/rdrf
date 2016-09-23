@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpq5 \
   mime-support \
   nodejs-legacy \
-  unixodbc-dev \
+  unixodbc \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENTRYPOINT ["/bin/sh"]
