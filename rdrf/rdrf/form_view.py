@@ -18,7 +18,8 @@ from dynamic_forms import create_form_class_for_section
 from dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from questionnaires import PatientCreator
-from file_upload import wrap_gridfs_data_for_form, merge_gridfs_data_for_form, merge_gridfs_data_for_form_multi
+from file_upload import wrap_gridfs_data_for_form
+from file_upload import wrap_file_cdes
 from . import filestorage
 from utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
@@ -413,12 +414,8 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     # save all sections ONLY is all valid!
                     sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
-                    #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
-
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
-                    merge_gridfs_data_for_form(registry_code, form_data, current_data)
-
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     logger.debug("form is invalid")
@@ -426,7 +423,11 @@ class FormView(View):
                     for e in form.errors:
                         error_count += 1
                         all_errors.append(e)
-                    form_section[s] = form_class(request.POST, request.FILES)
+
+                    from rdrf.utils import wrap_uploaded_files
+                    request.POST.update(request.FILES)
+                    
+                    form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
 
             else:
                 logger.debug("handling POST of multisection %s" % section_model)
@@ -453,13 +454,12 @@ class FormView(View):
                         del dynamic_data[i]
 
                     section_dict = {s: dynamic_data}
-
                     sections_to_save.append(SectionInfo(dyn_patient, True, registry_code,
                                                         "cdes", section_dict, index_map))
+
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
-                    if current_data:
-                        merge_gridfs_data_for_form_multi(registry_code, form_data, current_data)
+
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True)
 
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 

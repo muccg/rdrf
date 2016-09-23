@@ -416,3 +416,20 @@ def check_calculation(calculation):
 def format_date(value):
     d = value.date()
     return "%s-%s-%s" % (d.day, d.month, d.year)
+
+
+def wrap_uploaded_files(registry_code, post_files_data):
+    from django.core.files.uploadedfile import UploadedFile
+    from rdrf.file_upload import FileUpload
+    
+    def wrap(key, value):
+        logger.debug("checking key %s" % key)
+        if isinstance(value, UploadedFile):
+            logger.debug("Is an UploadedFile ...")
+            return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
+        else:
+            return value
+
+    return { key: wrap(key, value) for key, value in post_files_data.items() }
+
+            
