@@ -175,6 +175,7 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'registration',
+    'storages',
 ]
 
 
@@ -220,9 +221,6 @@ MANAGERS = ADMINS
 STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
 STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
-MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
-MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
-
 # TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For
 # deployment use Apache Alias
@@ -230,6 +228,29 @@ STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
+
+if env.get("storage_backend", "fs") == "db":
+    DEFAULT_FILE_STORAGE = "storages.backends.database.DatabaseStorage"
+else:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+
+# settings used when FileSystemStorage is enabled
+MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
+MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
+
+# setting used when DatabaseStorage is enabled
+DB_FILES = {
+    "db_table": "rdrf_filestorage",
+    "fname_column": "name",
+    "blob_column": "data",
+    "size_column": "size",
+    "base_url": None,
+}
+DATABASE_ODBC_DRIVER = "{PostgreSQL}" # depends on odbcinst.ini
+DATABASE_NAME = DATABASES["default"]["NAME"]
+DATABASE_USER = DATABASES["default"]["USER"]
+DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
+DATABASE_HOST = DATABASES["default"]["HOST"]
 
 # session and cookies
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)

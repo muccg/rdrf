@@ -4,7 +4,7 @@ import os.path
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import DefaultStorage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
@@ -955,7 +955,7 @@ class PatientAddress(models.Model):
         return ""
 
 
-class PatientConsentStorage(FileSystemStorage):
+class PatientConsentStorage(DefaultStorage):
     """
     This is a normal default file storage, except the URL points to
     authenticated file download view.
@@ -977,12 +977,7 @@ class PatientConsent(models.Model):
         verbose_name="Consent form",
         blank=True,
         null=True)
-
-    # fixme: add filename as a field, using the filename which was
-    # given at time of upload.
-    @property
-    def filename(self):
-        return os.path.basename(self.form.name)
+    filename = models.CharField(max_length=255)
 
 
 class PatientDoctor(models.Model):

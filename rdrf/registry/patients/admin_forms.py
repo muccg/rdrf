@@ -7,8 +7,7 @@ from django.forms.utils import ErrorDict
 from models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget
-from rdrf.widgets import StateWidget
+from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -141,13 +140,18 @@ class PatientAddressForm(forms.ModelForm):
 
 
 class PatientConsentFileForm(forms.ModelForm):
-
     class Meta:
         model = PatientConsent
-        fields = "__all__"
+        fields = ["form"]
+        exclude = ["filename"]
 
-    form = forms.FileField(widget=AdminFileWidget, required=False)
+    form = forms.FileField(widget=ConsentFileInput, required=False)
 
+    def save(self, commit=True):
+        # remember the filename of the uploaded file
+        if self.cleaned_data.get("form"):
+            self.instance.filename = self.cleaned_data["form"].name
+        return super(PatientConsentFileForm, self).save(commit)
 
 class PatientForm(forms.ModelForm):
 
