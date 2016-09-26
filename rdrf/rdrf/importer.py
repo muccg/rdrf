@@ -708,13 +708,11 @@ class Importer(object):
             for section_dict in self.data["consent_sections"]:
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
-                information_link = section_dict["information_link"]
-
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry, defaults={'section_label': section_label})
-                if not created:
-                    section_model.section_label = section_label
-                section_model.information_link = information_link
+                section_model.section_label = section_label
+                section_model.information_link = section_dict.get("information_link", section_model.information_link)
+                section_model.information_text = section_dict.get("information_text", section_model.information_text)
                 section_model.applicability_condition = section_dict["applicability_condition"]
                 if "validation_rule" in section_dict:
                     section_model.validation_rule = section_dict['validation_rule']
