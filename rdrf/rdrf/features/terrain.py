@@ -22,8 +22,7 @@ def setup_browser():
         desired_capabilities=desired_capabilities,
         command_executor="http://hub:4444/wd/hub"
     )
-    world.browser.implicitly_wait(15)
-    # world.browser.set_script_timeout(30)
+    world.browser.implicitly_wait(int(os.environ['TEST_WAIT']))
 
 
 def reset_snapshot_dict():
