@@ -196,11 +196,10 @@ EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
 EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
-SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # Email Notifications
 DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
-SERVER_EMAIL = env.get('DJANGO_SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
