@@ -919,6 +919,18 @@ class ParentGuardian(models.Model):
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
 
+@receiver(post_save, sender=ParentGuardian)
+def update_my_user(sender, **kwargs):
+    """
+    Propagate name change on parent to user if they
+    have one.
+    """
+    parent_guardian = kwargs["instance"]
+    user = parent_guardian.user
+    if user:
+        user.first_name = parent_guardian.first_name
+        user.last_name = parent_guardian.last_name
+        user.save()
 
 class AddressTypeManager(models.Manager):
 
