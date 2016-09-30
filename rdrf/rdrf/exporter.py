@@ -4,6 +4,7 @@ import yaml
 import json
 from operator import attrgetter
 from django.forms.models import model_to_dict
+from django.db.models import fields
 from rdrf import VERSION
 import datetime
 from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
@@ -27,7 +28,8 @@ def convert_decimal_values(cde_dict):
 
 
 def cde_to_dict(cde):
-    return convert_decimal_values(model_to_dict(cde))
+    cde_dict = model_to_dict(cde)
+    return convert_decimal_values(cull_defaults(CommonDataElement, cde_dict))
 
 
 class ExportFormat:
@@ -149,7 +151,7 @@ class Exporter(object):
         section_map["allow_multiple"] = section_model.allow_multiple
         section_map["elements"] = section_model.get_elements()
         section_map["questionnaire_help"] = section_model.questionnaire_help
-        return section_map
+        return cull_defaults(Section, section_map)
 
     def _create_form_map(self, form_model):
         frm_map = {}
@@ -163,6 +165,8 @@ class Exporter(object):
 
         for section_code in form_model.get_sections():
             frm_map["sections"].append(self._create_section_map(section_code))
+
+        cull_defaults(RegistryForm, frm_map)
 
         return frm_map
 
@@ -286,7 +290,7 @@ class Exporter(object):
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
 
-            data["cdes"].append(cde_map)
+            data["cdes"].append(cull_defaults(CommonDataElement, cde_map))
 
         for group_code in groups_used:
             group_map = {}
@@ -302,7 +306,7 @@ class Exporter(object):
                 value_map["desc"] = value.desc
                 value_map["position"] = value.position
 
-                group_map["values"].append(value_map)
+                group_map["values"].append(cull_defaults(CDEPermittedValue, value_map))
 
             data["value_groups"].append(group_map)
 
@@ -419,6 +423,7 @@ class Exporter(object):
             adj_def_map["adjudicating_users"] = adj_def.adjudicating_users
             adj_def_map["display_name"] = adj_def.display_name
             adj_def_map["sections_required"] = get_section_maps(adj_def)
+            cull_defaults(AdjudicationDefinition, adj_def_map)
             adj_def_maps.append(adj_def_map)
 
         return adj_def_maps
@@ -433,6 +438,7 @@ class Exporter(object):
             fields['field'] = demographic_field.field
             fields['hidden'] = demographic_field.hidden
             fields['readonly'] = demographic_field.readonly
+            cull_defaults(DemographicFields, fields)
             demographic_fields.append(fields)
 
         return demographic_fields
@@ -499,6 +505,13 @@ class Exporter(object):
             data.append(cfg_dict)
         return data
 
+def cull_defaults(Model, d):
+    for field in Model._meta.fields:
+        if (field.name in d and
+            (d[field.name] == field.default or
+             (not d[field.name] and field.default == fields.NOT_PROVIDED))):
+            del d[field.name]
+    return d
 
 def str_presenter(dumper, data):
     lines = data.splitlines()
