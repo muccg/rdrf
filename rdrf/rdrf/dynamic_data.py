@@ -502,7 +502,8 @@ class DynamicDataWrapper(object):
 
     @staticmethod
     def _find_cde_val(record, registry_code, form_name, section_code, cde_code):
-        form_map = {f.get("name"): f for f in record.get("forms", [])}
+        forms = record.get("forms", []) if record else []
+        form_map = {f.get("name"): f for f in forms}
         sections = form_map.get(form_name, {}).get("sections", [])
         section_map = {s.get("code"): s for s in sections}
         cdes = section_map.get(section_code, {}).get("cdes", [])
