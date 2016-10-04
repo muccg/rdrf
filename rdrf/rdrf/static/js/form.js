@@ -235,7 +235,7 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
 
   setupRestore();
 
-  if (_.contains(["integer", "float", "boolean", "date"], datatype)) {
+  if (_.contains(["integer", "float", "boolean", "date"], datatype.toLowerCase())) {
     setupChart(chartCanvas);
   } else {
     chartCanvas.replaceWith("<p>This type of data element can't be plotted.</p>");
