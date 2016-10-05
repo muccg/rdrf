@@ -1,6 +1,6 @@
-from exon import ExonVariation
-from protein import ProteinVariation
-from sequence import SequenceVariation
+from .exon import ExonVariation
+from .protein import ProteinVariation
+from .sequence import SequenceVariation
 
 
 def parse_variation(input):

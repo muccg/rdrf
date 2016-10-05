@@ -620,7 +620,7 @@ class PatientsListingView(View):
                     def add_minus(field):
                         return "-" + field if not field.startswith("-") else field
 
-                    sort_fields = map(add_minus, sort_fields)
+                    sort_fields = list(map(add_minus, sort_fields))
                     self.patients = self.patients.order_by(*sort_fields)
             else:
                 self.patients = self.patients.order_by(self.sort_field)

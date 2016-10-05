@@ -15,7 +15,7 @@ class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagro
 
     @property
     def model_classes(self):
-        return map(lambda n: apps.get_model(n), self.models)
+        return [apps.get_model(n) for n in self.models]
 
 
 Catalogue = namedtuple('Catalogue', ['datagroups', 'models', 'mongo_collections'])
@@ -89,8 +89,8 @@ class EXPORT_TYPES(object):
     all_types = (CDES, REFDATA, REGISTRY_DEF, REGISTRY_WITH_DATA)
 
     registry_types = (REGISTRY_DEF, REGISTRY_WITH_DATA)
-    registry_types_names = map(lambda t: t.name, registry_types)
-    registry_types_codes = map(lambda t: t.code, registry_types)
+    registry_types_names = [t.name for t in registry_types]
+    registry_types_codes = [t.code for t in registry_types]
 
     @classmethod
     def from_code(cls, code):

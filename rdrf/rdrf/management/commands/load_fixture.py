@@ -18,5 +18,5 @@ class Command(BaseCommand):
         path = '%s/fixtures' % (os.path.dirname(module.__file__))
         file_path = '%s/%s' % (path, options.get('json_file'))
         from django.core.management import call_command
-        print file_path
+        print(file_path)
         call_command("loaddata", file_path)

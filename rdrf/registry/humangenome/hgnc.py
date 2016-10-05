@@ -5,12 +5,12 @@ def open(url_or_file):
 class HGNC:
 
     def __init__(self, url_or_file):
-        from urlparse import urlparse
+        from urllib.parse import urlparse
 
         if urlparse(url_or_file)[0] == "":
             self.fp = file(url_or_file, "r")
         else:
-            from urllib2 import urlopen
+            from urllib.request import urlopen
             self.fp = urlopen(url_or_file)
 
         self.parse_header()
@@ -23,7 +23,7 @@ class HGNC:
                 return
 
             line = line.rstrip()
-            record = dict(zip(self.fields, line.split("\t")))
+            record = dict(list(zip(self.fields, line.split("\t"))))
 
             yield record
 

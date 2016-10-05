@@ -1,6 +1,6 @@
 from django.forms import BaseForm
 from collections import OrderedDict
-from field_lookup import FieldFactory
+from .field_lookup import FieldFactory
 from django.conf import settings
 import logging
 from rdrf.models import CdePolicy
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_form_class(owner_class_name):
-    from models import CommonDataElement
+    from .models import CommonDataElement
     form_class_name = "CDEForm"
     cde_map = {}
     base_fields = {}

@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from models import Query
+from .models import Query
 
 
 class QueryForm(ModelForm):

@@ -11,17 +11,17 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from models import RegistryForm, Registry, QuestionnaireResponse
-from models import Section, CommonDataElement
+from .models import RegistryForm, Registry, QuestionnaireResponse
+from .models import Section, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian
-from dynamic_forms import create_form_class_for_section
-from dynamic_data import DynamicDataWrapper
+from .dynamic_forms import create_form_class_for_section
+from .dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from questionnaires import PatientCreator
-from file_upload import wrap_gridfs_data_for_form
-from file_upload import wrap_file_cdes
+from .questionnaires import PatientCreator
+from .file_upload import wrap_gridfs_data_for_form
+from .file_upload import wrap_file_cdes
 from . import filestorage
-from utils import de_camelcase
+from .utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
@@ -330,7 +330,7 @@ class FormView(View):
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
         dummy = form_class()
-        ids = [field for field in dummy.fields.keys()]
+        ids = [field for field in list(dummy.fields.keys())]
         return ",".join(ids)
 
     @login_required_method
@@ -756,7 +756,7 @@ class FormView(View):
         We only provide overrides here at the moment
         """
         json_dict = {}
-        from utils import id_on_page
+        from .utils import id_on_page
         for section in registry_form.get_sections():
             metadata = {}
             section_model = Section.objects.filter(code=section).first()
@@ -863,7 +863,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
 
-    from patient_decorators import patient_has_access
+    from .patient_decorators import patient_has_access
 
     @method_decorator(patient_has_access)
     def get(self, request, registry_code, questionnaire_context="au"):
@@ -1334,7 +1334,7 @@ class QuestionnaireResponseView(FormView):
         return 'au'
 
     def _fix_centre_dropdown(self, context):
-        for field_key, field_object in context['forms']['PatientData'].fields.items():
+        for field_key, field_object in list(context['forms']['PatientData'].fields.items()):
             if 'CDEPatientCentre' in field_key:
                 if hasattr(field_object.widget, "_widget_context"):
                     field_object.widget._widget_context[
@@ -1347,12 +1347,12 @@ class QuestionnaireResponseView(FormView):
 
     def _fix_state_and_country_dropdowns(self, context):
         from django.forms.widgets import TextInput
-        for key, field_object in context["forms"]['PatientData'].fields.items():
+        for key, field_object in list(context["forms"]['PatientData'].fields.items()):
             if "CDEPatientNextOfKinState" in key:
                 field_object.widget = TextInput()
 
         for address_form in context["forms"]["PatientDataAddressSection"].forms:
-            for key, field_object in address_form.fields.items():
+            for key, field_object in list(address_form.fields.items()):
                 if "State" in key:
                     field_object.widget = TextInput()
 
@@ -1699,7 +1699,7 @@ class AdjudicationInitiationView(View):
 
         target_usernames = []
         target_working_group_names = []
-        for k in form_data.keys():
+        for k in list(form_data.keys()):
             if k.startswith("user_"):
                 target_usernames.append(form_data[k])
             elif k.startswith('group_'):
@@ -1897,7 +1897,7 @@ class AdjudicationResultsView(View):
 
             def _is_numeric(self, values):
                 try:
-                    map(float, values)
+                    list(map(float, values))
                     return True
                 except ValueError:
                     return False
@@ -1926,7 +1926,7 @@ class AdjudicationResultsView(View):
 
             def _munge_type(self, values):
                 if self._is_numeric(values):
-                    return map(float, values)
+                    return list(map(float, values))
                 else:
                     return values
 
@@ -1949,7 +1949,7 @@ class AdjudicationResultsView(View):
             def bar_chart_data(self):
                 histogram = self._create_histogram()
                 data = {
-                    "labels": histogram.keys(),
+                    "labels": list(histogram.keys()),
                     "datasets": [
                         {
                             "label": self.label,
@@ -1957,7 +1957,7 @@ class AdjudicationResultsView(View):
                             "strokeColor": "rgba(220,220,220,0.8)",
                             "highlightFill": "rgba(220,220,220,0.75)",
                             "highlightStroke": "rgba(220,220,220,1)",
-                            "data": histogram.values()
+                            "data": list(histogram.values())
                         }
                     ]
                 }

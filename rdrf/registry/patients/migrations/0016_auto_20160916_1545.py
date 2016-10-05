@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -27,7 +27,7 @@ def update_gender(pg, forward=True):
         pg.gender = updated_value
         pg.save()
     else:
-        print "Could not map ParentGuardian gender for %s" % pg
+        print("Could not map ParentGuardian gender for %s" % pg)
 
 
 def forwards_func(apps, schema_editor):

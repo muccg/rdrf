@@ -52,7 +52,7 @@ class TranslationView(View):
         po = polib.pofile(self._get_po_file_path(country_code, "django.po"))
 
         for entry in po:
-            for trans_msgid, trans_msgstr in request.POST.iteritems():
+            for trans_msgid, trans_msgstr in request.POST.items():
                 if trans_msgid in entry.msgid:
                     entry.msgstr = trans_msgstr
 

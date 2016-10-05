@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
-from models import WorkingGroup
+from .models import WorkingGroup
 from rdrf.models import Registry
 from django.core.exceptions import ValidationError
 import logging

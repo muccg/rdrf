@@ -26,7 +26,7 @@ class Cache(object):
             return cached_data[patient.id]
         else:
             if len(cached_data) == self.LIMIT_CURRENT:
-                k = cached_data.keys()[0]
+                k = list(cached_data.keys())[0]
                 del cached_data[k]
 
             patient_data = retriever(patient)

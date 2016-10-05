@@ -1,6 +1,6 @@
-import test_exon
-import test_protein
-import test_sequence
+from . import test_exon
+from . import test_protein
+from . import test_sequence
 
 from unittest import TestSuite, defaultTestLoader
 

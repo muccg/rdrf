@@ -96,7 +96,7 @@ class RdrfEmail(object):
     def _save_notification_record(self):
         _template_data = {}
 
-        for key, value in self.template_data.iteritems():
+        for key, value in self.template_data.items():
             if value:
                 _template_data[key] = {
                     "app": value._meta.app_label,

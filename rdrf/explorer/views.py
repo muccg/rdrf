@@ -10,9 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from explorer import app_settings
-from forms import QueryForm
-from models import Query
-from utils import DatabaseUtils
+from .forms import QueryForm
+from .models import Query
+from .utils import DatabaseUtils
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def encode_row(row):
-    return [s.encode('utf8') if isinstance(s, unicode) else s for s in row]
+    return [s.encode('utf8') if isinstance(s, str) else s for s in row]
 
 
 class LoginRequiredMixin(object):
@@ -317,7 +317,7 @@ def _get_default_params(request, form):
 def _get_header(result):
     header = []
     if result:
-        for key in result[0].keys():
+        for key in list(result[0].keys()):
             header.append(key.encode("utf8"))
         return header
 
@@ -378,7 +378,7 @@ def _human_friendly(registry_model, result):
     humaniser = Humaniser(registry_model)
 
     for r in result:
-        for key in r.keys():
+        for key in list(r.keys()):
             mongo_value = r[key]
             cde_value = humaniser.display_value(key, mongo_value)
             if cde_value:
@@ -433,7 +433,7 @@ def _filler(result, cdes):
 
 def _final_cleanup(results):
     for res in results:
-        for key, value in res.iteritems():
+        for key, value in res.items():
             if key.endswith('timestamp'):
                 del res[key]
     return results
@@ -485,8 +485,8 @@ class MultisectionHandler(object):
             """
             l = []
 
-            max_length = max(map(len, dl.values()))
-            indexes = range(max_length)
+            max_length = max(list(map(len, list(dl.values()))))
+            indexes = list(range(max_length))
             for i in indexes:
                 d = {}
                 for k in dl:
@@ -514,7 +514,7 @@ class MultisectionHandler(object):
 
         row_count = 0
         # choice tuple is one choice from each sublist
-        for choice_tuple in product(*sublists.values()):
+        for choice_tuple in product(*list(sublists.values())):
             new_row = row.copy()
             row_count += 1
             for section_dict in choice_tuple:

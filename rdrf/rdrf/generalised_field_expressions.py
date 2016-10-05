@@ -6,6 +6,7 @@ from rdrf.utils import get_cde_value
 from collections import OrderedDict
 
 import logging
+import collections
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +201,7 @@ class PatientFieldExpression(GeneralisedFieldExpression):
         elif self.field == "working_groups":
             logger.debug("field is working group")
             from registry.groups.models import WorkingGroup
-            if isinstance(new_value, basestring):
+            if isinstance(new_value, str):
                 logger.debug("updating working group to %s" % new_value)
                 try:
                     working_group = WorkingGroup.objects.get(registry=self.registry_model,
@@ -566,7 +567,7 @@ class GeneralisedFieldExpressionParser(object):
         """
         try:
             func = getattr(report_field_functions, field_expression[1:])
-            if callable(func) and hasattr(func, "report_function") and func.report_function:
+            if isinstance(func, collections.Callable) and hasattr(func, "report_function") and func.report_function:
                 return ReportExpression(self.registry_model, func)
             else:
                 raise FieldExpressionError(

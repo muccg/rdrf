@@ -1,14 +1,14 @@
 import logging
-from models import Registry
-from models import RegistryForm
-from models import Section
-from models import CommonDataElement
-from models import CDEPermittedValueGroup
-from models import CDEPermittedValue
-from models import AdjudicationDefinition
-from models import ConsentSection
-from models import ConsentQuestion
-from models import DemographicFields
+from .models import Registry
+from .models import RegistryForm
+from .models import Section
+from .models import CommonDataElement
+from .models import CDEPermittedValueGroup
+from .models import CDEPermittedValue
+from .models import AdjudicationDefinition
+from .models import ConsentSection
+from .models import ConsentQuestion
+from .models import DemographicFields
 
 from registry.groups.models import WorkingGroup
 
@@ -19,7 +19,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
 
-from utils import create_permission
+from .utils import create_permission
 
 import yaml
 import json
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # We want all YAML strings to be converted to unicode objects
 # Python 3 defaults to that, Django defaults to that, we default to that
-yaml.add_constructor(u'tag:yaml.org,2002:str',
+yaml.add_constructor('tag:yaml.org,2002:str',
                      yaml.constructor.Constructor.construct_python_unicode)
 
 

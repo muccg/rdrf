@@ -8,7 +8,7 @@ class TestSequenceVariation(unittest.TestCase):
         try:
             super(TestSequenceVariation, self).assertEqual(first, second, *args, **kwargs)
         except:
-            print first, second
+            print(first, second)
             raise
 
     def test_fail_deletion(self):
@@ -61,7 +61,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_deletion_without_base(self):
         input = "c.42del"
@@ -85,7 +85,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_duplication_with_base(self):
         input = "c.42dupG"
@@ -109,7 +109,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_duplication_without_base(self):
         input = "c.42dup"
@@ -133,7 +133,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_insertion(self):
         input = "c.42insACGT"
@@ -157,7 +157,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_inversion(self):
         input = "c.42inv"
@@ -180,7 +180,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_nochange(self):
         input = "c.(=)"
@@ -198,7 +198,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertTrue(isinstance(variation, NoChange), "Variation is not no change")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_position(self):
         def assertPosition(
@@ -283,7 +283,7 @@ class TestSequenceVariation(unittest.TestCase):
         self.assertEqual(location.position, 42, "Location is not the answer")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_substitution_with_old_style_mosaic(self):
         input = "c.[=,42A>G]"
@@ -325,7 +325,7 @@ class TestSequenceVariation(unittest.TestCase):
 
         self.assertTrue(isinstance(variation, Deletion), "Variation is not an deletion")
         location = variation.location
-        print location
+        print(location)
         self.assertTrue(isinstance(location, Range), "Location is not a range")
         self.assertEqual(str(location), '112_117', "Location is not correct")
 

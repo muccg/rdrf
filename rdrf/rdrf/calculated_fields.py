@@ -66,11 +66,9 @@ class CalculatedFieldParser(object):
 
     def _parse_subjects(self, calculation):
         import re
-        return filter(
-            lambda code: code != self.result_name,
-            re.findall(
+        return [code for code in re.findall(
                 self.pattern,
-                calculation))
+                calculation) if code != self.result_name]
 
     def _get_id_in_section(self, cde_code):
         """

@@ -49,14 +49,14 @@ class DataLoader(object):
     def load(self):
         self.work_book = load_workbook(self.data_file)
         self.rows = self.work_book.worksheets[0].rows
-        print "starting to import doctors from %s .." % self.data_file
-        print "There are %s doctor rows to import" % len(self.rows)
+        print("starting to import doctors from %s .." % self.data_file)
+        print("There are %s doctor rows to import" % len(self.rows))
         for row_num, row in enumerate(self.rows[1:]):
             real_row = row_num + 2
             doctor = self._create_doctor(row)
             doctor.save()
-            print "row %s doctor %s OK" % (real_row, doctor)
-        print "all done"
+            print("row %s doctor %s OK" % (real_row, doctor))
+        print("all done")
 
     def _create_doctor(self, row):
         d = Doctor()
@@ -101,7 +101,7 @@ class DataLoader(object):
             state_model = State.objects.get(short_name=short_name.upper())
             return state_model
         except State.DoesNotExist:
-            print "State %s does not exist in DB" % short_name
+            print("State %s does not exist in DB" % short_name)
             raise
 
     def get_sex(self, value):
@@ -136,4 +136,4 @@ class Command(BaseCommand):
         try:
             data_loader.load()
         except Exception as ex:
-            print "Error importing doctors ( transaction will be rolled back): %s" % ex
+            print("Error importing doctors ( transaction will be rolled back): %s" % ex)

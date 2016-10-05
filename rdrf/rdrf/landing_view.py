@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, RequestContext
 from django.views.generic.base import View
-from models import Registry
+from .models import Registry
 
 
 class LandingView(View):

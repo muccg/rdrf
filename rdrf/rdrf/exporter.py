@@ -1,4 +1,4 @@
-from models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from .models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 import logging
 import yaml
 import json
@@ -178,7 +178,7 @@ class Exporter(object):
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
-        data["cdes"] = map(cde_to_dict, self._get_cdes(export_type))
+        data["cdes"] = list(map(cde_to_dict, self._get_cdes(export_type)))
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
@@ -506,15 +506,15 @@ def unicode_presenter(dumper, data):
         # strip trailing whitespace on lines -- it's not significant,
         # and otherwise the dumper will use the quoted and escaped
         # string style.
-        data = u"\n".join(map(unicode.rstrip, lines))
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style=u"|")
+        data = "\n".join(map(str.rstrip, lines))
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style="|")
     else:
         return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 class ExportDumper(yaml.SafeDumper):
     pass
 
-ExportDumper.add_representer(unicode, unicode_presenter)
+ExportDumper.add_representer(str, unicode_presenter)
 
 def dump_yaml(data):
     return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,

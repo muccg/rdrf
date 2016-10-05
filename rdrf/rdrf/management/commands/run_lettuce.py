@@ -20,7 +20,7 @@ class Command(BaseCommand):
             dest='lettuce_verbosity',
             default=4,
             type='choice',
-            choices=map(str, range(5)),
+            choices=list(map(str, list(range(5)))),
             help='Verbosity level; 0=no output, 1=only dots, 2=only scenario names, 3=colorless output, 4=normal output (colorful)'),
         make_option(
             '--with-xunit',
@@ -63,11 +63,11 @@ class Command(BaseCommand):
             if filename.endswith('.feature'):
                 i+=1
                 features[str(i)] = filename
-                print('{0} - {1}'.format(i, filename))
+                print(('{0} - {1}'.format(i, filename)))
 
-        selection = raw_input('Choose a feature file: ')
+        selection = input('Choose a feature file: ')
         while not selection in features:
-            selection = raw_input('Choose a feature file: ')
+            selection = input('Choose a feature file: ')
 
         return features[selection]
 

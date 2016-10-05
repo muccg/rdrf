@@ -1,4 +1,4 @@
-import sequence
+from . import sequence
 
 
 class ExonVariation(sequence.SequenceVariation):

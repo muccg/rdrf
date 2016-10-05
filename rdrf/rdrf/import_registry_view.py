@@ -56,8 +56,8 @@ class ImportRegistryView(View):
                 "state": "fail",
                 "error_message": ex.message
             }
-            import urllib
-            url_string = urllib.urlencode(url_params)
+            import urllib.request, urllib.parse, urllib.error
+            url_string = urllib.parse.urlencode(url_params)
 
             return HttpResponseRedirect(reverse('import_registry') + "?" + url_string)
 

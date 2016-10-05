@@ -307,7 +307,7 @@ class ReportingTableGenerator(object):
 
         column_ops = ColumnOps(max_items=self.max_items)
 
-        for ((form_model, section_model, cde_model), column_name) in column_map.items():
+        for ((form_model, section_model, cde_model), column_name) in list(column_map.items()):
             logger.debug("creating column op for %s %s %s ( %s )" % (form_model.name,
                                                                      section_model.code,
                                                                      cde_model.code,
@@ -389,7 +389,7 @@ class ReportingTableGenerator(object):
     def insert_row(self, value_dict):
         for k in value_dict:
             value = value_dict[k]
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value_dict[k] = value.encode("ascii", "replace")
 
         self.engine.execute(self.table.insert().values(**value_dict))
@@ -426,7 +426,7 @@ class ReportingTableGenerator(object):
         db_connection = self.engine.connect()
         result = db_connection.execute(select_query)
         writer.writerow([self.column_labeller.get_label(key)
-                         for key in result.keys()])
+                         for key in list(result.keys())])
         writer.writerows(result)
         db_connection.close()
         return stream
@@ -644,7 +644,7 @@ class ReportTable(object):
             # these are artifacts of the multichoice fields
             return ""
 
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             return data
 
         if isinstance(data, datetime):

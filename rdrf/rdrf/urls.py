@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from django.conf.urls import patterns, url, include
 from django.contrib import admin
 from django.shortcuts import render_to_response

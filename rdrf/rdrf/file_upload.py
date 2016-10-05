@@ -1,4 +1,4 @@
-from itertools import izip_longest, chain
+from itertools import zip_longest, chain
 import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.files.uploadedfile import UploadedFile
@@ -16,7 +16,7 @@ class FileUpload(object):
     """
 
     def __init__(self, registry, cde_code, gridfs_dict):
-        if isinstance(registry, unicode):
+        if isinstance(registry, str):
             from rdrf.models import Registry
             self.registry = Registry.objects.get(code=registry)
         else:
@@ -71,7 +71,7 @@ def wrap_gridfs_data_for_form(registry, data):
             return FileUpload(registry, key,
                               {"file_name": value.name, "django_file_id": 0})
         elif isinstance(value, dict):
-            return {key: wrap(item, key) for key, item in value.items()}
+            return {key: wrap(item, key) for key, item in list(value.items())}
         return value
 
     return wrap(data, None)
@@ -188,7 +188,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
             return wrap_filestorage_dict(key, mongo_value)
 
     def wrap_section(section_index, section_dict):
-        return {key: wrap(section_index, key, value) for key, value in section_dict.items()}
+        return {key: wrap(section_index, key, value) for key, value in list(section_dict.items())}
 
     def wrap_multisection(multisection_list):
         return [wrap_section(section_index, section_dict) for section_index, section_dict in enumerate(multisection_list)]

@@ -50,7 +50,7 @@ class TestProteinVariation(unittest.TestCase):
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_duplication(self):
         input = "p.Trp42dup"
@@ -74,7 +74,7 @@ class TestProteinVariation(unittest.TestCase):
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_insertion(self):
         input = "p.Trp42insGlnSer"
@@ -98,7 +98,7 @@ class TestProteinVariation(unittest.TestCase):
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
     def test_parse_position(self):
         def assertPosition(
@@ -168,7 +168,7 @@ class TestProteinVariation(unittest.TestCase):
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
         self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+            str(seq), input, "Sequence variation as string does not match input")
 
 
 # TODO: Tests for multiple alleles, multiple variations, mosaicism, uncertain

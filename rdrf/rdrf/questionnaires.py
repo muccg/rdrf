@@ -6,7 +6,7 @@ from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 from django.core.exceptions import ValidationError
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress, AddressType
-from dynamic_data import DynamicDataWrapper
+from .dynamic_data import DynamicDataWrapper
 from django.conf import settings
 from registry.groups.models import WorkingGroup
 from django.db import transaction
@@ -113,7 +113,7 @@ class QuestionnaireReverseMapper(object):
         self.patient.save()
 
     def _empty_address_data(self, address_map):
-        for value in address_map.values():
+        for value in list(address_map.values()):
             if value:
                 return False
         return True
@@ -494,7 +494,7 @@ class _ExistingDataWrapper(object):
 
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
         logger.debug("getting existing data for %s" % field_expression)
-        if field_expression in KEY_MAP.keys():
+        if field_expression in list(KEY_MAP.keys()):
             field_expression = KEY_MAP[field_expression][
                 0]  # the demographic field
 

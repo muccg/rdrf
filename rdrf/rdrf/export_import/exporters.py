@@ -230,4 +230,4 @@ class CollectionMetaInfo(BaseMetaInfo):
 
 
 def omit_empty(xs):
-    return filter(lambda x: x[1], xs)
+    return [x for x in xs if x[1]]

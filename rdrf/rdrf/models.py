@@ -898,7 +898,7 @@ class RegistryForm(models.Model):
 
     def get_sections(self):
         import string
-        return map(string.strip, self.sections.split(","))
+        return list(map(string.strip, self.sections.split(",")))
 
     @property
     def questionnaire_list(self):
@@ -906,9 +906,8 @@ class RegistryForm(models.Model):
         returns a list of sectioncode.cde_code strings
         E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
         """
-        return filter(
-            lambda s: len(s) > 0, map(
-                string.strip, self.questionnaire_questions.split(",")))
+        return [s for s in map(
+                string.strip, self.questionnaire_questions.split(",")) if len(s) > 0]
 
     @property
     def section_models(self):
@@ -1013,7 +1012,7 @@ class QuestionnaireResponse(models.Model):
         return dob.date()
 
     def _get_patient_field(self, patient_field):
-        from dynamic_data import DynamicDataWrapper
+        from .dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
 
         if not self.has_mongo_data:
@@ -1142,7 +1141,7 @@ class AdjudicationDefinition(models.Model):
 
     def create_form(self):
         adjudication_section = Section.objects.get(code=self.result_fields)
-        from dynamic_forms import create_form_class_for_section
+        from .dynamic_forms import create_form_class_for_section
 
         class DummyForm(object):
 
@@ -1156,7 +1155,7 @@ class AdjudicationDefinition(models.Model):
 
     def create_decision_form(self):
         decision_section = Section.objects.get(code=self.decision_field)
-        from dynamic_forms import create_form_class_for_section
+        from .dynamic_forms import create_form_class_for_section
 
         class DummyForm(object):
 
@@ -1211,7 +1210,7 @@ class AdjudicationDefinition(models.Model):
                 self.value = value
 
         field_map = self.get_field_data(patient)
-        missing_flag = MissingData in field_map.values()
+        missing_flag = MissingData in list(field_map.values())
 
         for form_name, section_code, cde_code in field_map:
             if form_name == 'demographics':

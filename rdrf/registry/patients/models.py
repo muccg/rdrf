@@ -730,7 +730,7 @@ class Patient(models.Model):
 
             section_array = registry_form.sections.split(",")
 
-            cde_complete = registry_form.complete_form_cdes.values()
+            cde_complete = list(registry_form.complete_form_cdes.values())
             total_required_for_completion += len(registry_form.complete_form_cdes.values_list())
 
             for cde in cde_complete:

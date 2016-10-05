@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 import logging
 
-from models import Registry
+from .models import Registry
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 import re
-import sequence
+from . import sequence
 
 
 class Allele(sequence.Allele):

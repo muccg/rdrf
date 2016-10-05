@@ -122,30 +122,30 @@ def click_link(step, link_text):
     link.click()
 
 
-@step(u'should see a link to "(.*)"')
+@step('should see a link to "(.*)"')
 def should_see_link_to(step, link_text):
     return world.browser.find_element_by_xpath('//a[contains(., "%s")]' % link_text)
 
 
-@step(u'should NOT see a link to "(.*)"')
+@step('should NOT see a link to "(.*)"')
 def should_not_see_link_to(step, link_text):
     links = world.browser.find_elements_by_xpath('//a[contains(., "%s")]' % link_text)
     assert_true(step, len(links) == 0)
 
 
-@step(u'press the "(.*)" button')
+@step('press the "(.*)" button')
 def press_button(step, button_text):
     button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button.click()
 
 
-@step(u'I click "(.*)" on patientlisting')
+@step('I click "(.*)" on patientlisting')
 def click_patient_listing(step, patient_name):
     link = world.browser.find_element_by_partial_link_text(patient_name)
     link.click()
 
 
-@step(u'I click on "(.*)" in "(.*)" group in sidebar')
+@step('I click on "(.*)" in "(.*)" group in sidebar')
 def click_sidebar_group_item(step, item_name, group_name):
     # E.g. And I click "Clinical Data" in "Main" group in sidebar
     wrap = world.browser.find_element_by_id("wrap")
@@ -156,7 +156,7 @@ def click_sidebar_group_item(step, item_name, group_name):
     form_link.click()
 
 
-@step(u'I press "(.*)" button in "(.*)" group in sidebar')
+@step('I press "(.*)" button in "(.*)" group in sidebar')
 def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
@@ -167,7 +167,7 @@ def click_button_sidebar_group(step, button_name, group_name):
     button.click()
 
 
-@step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
+@step('I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
     # And I enter "02-08-2016" for  section "" cde "Consent date"
     location_is(step, form)  # sanity check
@@ -191,26 +191,26 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     raise Exception("could not find cde %s" % cde)
 
 
-@step(u'And I click Save')
+@step('And I click Save')
 def click_save_button(step):
     save_button = world.browser.find_element_by_id("submit-btn")
     save_button.click()
 
 
-@step(u'error message is "(.*)"')
+@step('error message is "(.*)"')
 def error_message_is(step, error_message):
     #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath(
         '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
 
 
-@step(u'location is "(.*)"')
+@step('location is "(.*)"')
 def location_is(step, location_name):
     world.browser.find_element_by_xpath(
         '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
-@step(u'When I click Module "(.*)" for patient "(.*)" on patientlisting')
+@step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
 def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     # module_name is "Main/Clinical Form" if we indicate context group  or "FormName" is just Modules list ( no groups)
     if "/" in module_name:
@@ -229,13 +229,13 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     form_link.click()
 
 
-@step(u'press the navigate back button')
+@step('press the navigate back button')
 def press_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
     button.click()
 
 
-@step(u'press the navigate forward button')
+@step('press the navigate forward button')
 def press_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="next-form"]')
     button.click()
@@ -349,7 +349,7 @@ def login_as_user(step, username, password):
     password_field.submit()
 
 
-@step(u'should be logged in')
+@step('should be logged in')
 def should_be_logged_in(step):
     user_link = world.browser.find_element_by_partial_link_text(world.user)
     user_link.click()
@@ -402,17 +402,17 @@ def refresh_page(step):
     world.browser.get(current_url)
 
 
-@step(u'accept the alert')
+@step('accept the alert')
 def accept_alert(step):
     Alert(world.browser).accept()
 
 
-@step(u'When I click "(.*)" in sidebar')
+@step('When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
 
 
-@step(u'I click Cancel')
+@step('I click Cancel')
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()

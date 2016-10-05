@@ -4,7 +4,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
 
-from models import *
+from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect, ConsentFileInput
@@ -75,7 +75,7 @@ class PatientRelativeForm(forms.ModelForm):
         self.cleaned_data = {}
         # check for 'on' checkbox value for patient relative checkbox ( which means create patient )\
         # this 'on' value from widget is replaced by the pk of the created patient
-        for name, field in self.fields.items():
+        for name, field in list(self.fields.items()):
             try:
                 value = field.widget.value_from_datadict(
                     self.data, self.files, self.add_prefix(name))
@@ -378,7 +378,7 @@ class PatientForm(forms.ModelForm):
         logger.debug("patient registries = %s" % patient_registries)
 
         logger.debug("persisting custom consents from form")
-        logger.debug("There are %s custom consents" % len(self.custom_consents.keys()))
+        logger.debug("There are %s custom consents" % len(list(self.custom_consents.keys())))
 
         if "user" in self.cleaned_data:
             patient_model.user = self.cleaned_data["user"]

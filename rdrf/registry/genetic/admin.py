@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
 
-from models import *
+from .models import *
 
 
 class GeneAdmin(admin.ModelAdmin):
@@ -54,7 +54,7 @@ class LaboratoryAdmin(admin.ModelAdmin):
                                    Q(address__icontains=term) |
                                    Q(contact_name__icontains=term))
         queryset = queryset.order_by("name")
-        response = [[unicode(lab)] for lab in queryset]
+        response = [[str(lab)] for lab in queryset]
 
         return HttpResponse(json.dumps(response), content_type="application/json")
 

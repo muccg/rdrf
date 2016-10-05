@@ -10,8 +10,8 @@ import datetime
 from rdrf.models import Registry
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
-from admin_forms import *
-from models import *
+from .admin_forms import *
+from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
@@ -386,14 +386,14 @@ class PatientAdmin(admin.ModelAdmin):
             # Check if the search term is numeric, in which case it's a record
             # ID.
             patient = queryset.get(id=int(term))
-            response = [[patient.id, unicode(patient), unicode(patient.date_of_birth)]]
+            response = [[patient.id, str(patient), str(patient.date_of_birth)]]
         except ValueError:
             # Guess not.
             patients = queryset.filter(Q(family_name__icontains=term) | Q(
                 given_names__icontains=term)).order_by("family_name", "given_names")
             response = [[patient.id,
-                         unicode(patient),
-                         unicode(patient.date_of_birth)] for patient in patients]
+                         str(patient),
+                         str(patient.date_of_birth)] for patient in patients]
         except Patient.DoesNotExist:
             response = []
 

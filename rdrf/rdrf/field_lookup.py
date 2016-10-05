@@ -6,16 +6,17 @@ from collections import OrderedDict
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
-import fields
-import widgets
+from . import fields
+from . import widgets
 import logging
-from calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
-from validation import ValidatorFactory
-from models import CommonDataElement
+from .calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
+from .validation import ValidatorFactory
+from .models import CommonDataElement
 
 from django.utils import six
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
+import collections
 
 mark_safe_lazy = lazy(mark_safe, six.text_type)
 
@@ -102,7 +103,7 @@ class FieldFactory(object):
         customisation_module = self._get_customisation_module()
         custom_field_function = getattr(
             customisation_module, self._get_custom_field_function_name())
-        if not callable(custom_field_function):
+        if not isinstance(custom_field_function, collections.Callable):
             raise Exception("Custom Field Definition for %s is not a function" %
                             self._get_custom_field_function_name())
         else:
@@ -121,7 +122,7 @@ class FieldFactory(object):
 
     def _get_cde_link(self, name):
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
-        label_link = mark_safe_lazy(u"<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
+        label_link = mark_safe_lazy("<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
         return label_link
 
     def _get_code(self):
@@ -397,7 +398,7 @@ class FieldFactory(object):
                             injected_model=self.primary_model,
                             injected_model_id=self.primary_id)
                         script = parser.get_script()
-                        from widgets import CalculatedFieldWidget
+                        from .widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
                         return django.forms.CharField(**options)
 
@@ -510,7 +511,7 @@ class ComplexFieldFactory(object):
             :return:
             """
             if value:
-                return value.values()
+                return list(value.values())
             else:
                 return [None] * len(self.component_cdes)
 
@@ -538,7 +539,7 @@ class ComplexFieldFactory(object):
             :return: a sorted dictionary of cde code : value
             """
             codes = [cde.code for cde in self.component_cdes]
-            return OrderedDict(zip(codes, data_list))
+            return OrderedDict(list(zip(codes, data_list)))
 
         class_dict["widget"] = self._create_multi_widget()
         class_dict['compress'] = compress_method

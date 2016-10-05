@@ -1,5 +1,5 @@
 # Custom Fields
-from itertools import izip_longest
+from itertools import zip_longest
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
@@ -44,11 +44,11 @@ class MultipleFileField(FileField):
 
     def clean(self, data, initial=None):
         return [super(MultipleFileField, self).clean(item, init)
-                for (item, init) in izip_longest(data, initial or [])]
+                for (item, init) in zip_longest(data, initial or [])]
 
     def bound_data(self, data, initial):
         return [super(MultipleFileField, self).bound_data(item, init)
-                for (item, init) in izip_longest(data, initial or [])]
+                for (item, init) in zip_longest(data, initial or [])]
 
     def has_changed(self, initial, data):
         return any(super(MultipleFileField, self).has_changed(initial, item)

@@ -199,7 +199,7 @@ class PatientFormMixin(PatientMixin):
             if not form.is_valid():
                 for error in form.errors:
                     error_messages.append(form.errors[error])
-        return map(strip_tags, error_messages)
+        return list(map(strip_tags, error_messages))
 
     def _get_patient_id(self):
         if self.object:
@@ -1002,7 +1002,7 @@ class PatientEditView(View):
                     if patient.is_index:
                         additional_fields[cde.code] = field_object
 
-        if len(additional_fields.keys()) == 0:
+        if len(list(additional_fields.keys())) == 0:
             additional_fields["HIDDEN"] = True
         else:
             additional_fields["HIDDEN"] = False

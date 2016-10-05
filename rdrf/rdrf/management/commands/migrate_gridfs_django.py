@@ -53,7 +53,7 @@ def convert_registry(registry, dry_run=False):
                     })
             mapping[gridfs_file_id] = django_file_id
 
-    for gridfs_file_id, django_id in mapping.iteritems():
+    for gridfs_file_id, django_id in mapping.items():
         if django_id is not None:
             logger.debug("Deleting GridFS %s" % gridfs_file_id)
             if not dry_run:

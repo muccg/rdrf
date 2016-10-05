@@ -9,7 +9,7 @@ from django.forms.widgets import ClearableFileInput
 
 import re
 import logging
-from models import CommonDataElement
+from .models import CommonDataElement
 from registry.patients.models import PatientConsent
 import pycountry
 
@@ -51,7 +51,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         super(OtherPleaseSpecifyWidget, self).__init__(_widgets, attrs)
 
     def format_output(self, rendered_widgets):
-        output = u'<BR>'.join(rendered_widgets)
+        output = '<BR>'.join(rendered_widgets)
         return output
 
     def decompress(self, value):
@@ -337,7 +337,7 @@ class DataSourceSelect(ParametrisedSelectWidget):
         if hasattr(datasources, self._widget_parameter):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
-            return datasource.values()
+            return list(datasource.values())
 
 
 class PositiveIntegerInput(widgets.TextInput):
@@ -360,7 +360,7 @@ class PositiveIntegerInput(widgets.TextInput):
 class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
 
     def render(self):
-        return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+        return mark_safe('\n'.join(['%s\n' % w for w in self]))
 
 
 class RadioSelect(widgets.RadioSelect):
