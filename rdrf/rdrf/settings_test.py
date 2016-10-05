@@ -5,3 +5,4 @@ INSTALLED_APPS += [
 ]
 
 MIGRATION_MODULES = {"iprestrict": None}
+IPRESTRICT_GEOIP_ENABLED = False

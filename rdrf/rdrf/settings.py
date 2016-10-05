@@ -31,6 +31,8 @@ IPRESRICT_TRUSTED_PROXIES = env.getlist("iprestrict_trusted_proxies", [])
 IPRESTRICT_RELOAD_RULES = env.get("iprestrict_reload_rules", True)
 IPRESTRICT_IGNORE_PROXY_HEADER = env.get("iprestrict_ignore_proxy_header", False)
 
+# If iprestrict by location is enabled then the MaxMind database needs
+# to be available.
 IPRESTRICT_GEOIP_ENABLED = env.get("iprestrict_geoip_enabled", False)
 GEOIP_PATH = env.get("geoip_path", os.path.join(WEBAPP_ROOT, "geoip"))
 
