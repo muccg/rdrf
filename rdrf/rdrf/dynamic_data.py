@@ -86,7 +86,7 @@ def get_mongo_value(registry_code, nested_data, delimited_key,
     if multisection_index is None:
         sectionp = None
     else:
-        sectionp = lambda s, (i, j): j == multisection_index
+        sectionp = lambda s, ij: ij[1] == multisection_index
 
     cdes = find_cdes(nested_data, form_model.name, section_model.code,
                      cde_model.code, sectionp=sectionp,
