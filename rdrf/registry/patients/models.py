@@ -1,6 +1,7 @@
 import json
 import datetime
 import os.path
+from operator import attrgetter
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
@@ -1004,7 +1005,7 @@ class PatientDoctor(models.Model):
 
 def get_countries():
     return [(c.alpha2, c.name)
-            for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
+            for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
 
 class PatientRelative(models.Model):
