@@ -2,7 +2,6 @@ import re
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
-from collections import OrderedDict
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
@@ -103,7 +102,7 @@ class FieldFactory(object):
         customisation_module = self._get_customisation_module()
         custom_field_function = getattr(
             customisation_module, self._get_custom_field_function_name())
-        if not isinstance(custom_field_function, collections.Callable):
+        if not callable(custom_field_function):
             raise Exception("Custom Field Definition for %s is not a function" %
                             self._get_custom_field_function_name())
         else:
@@ -539,7 +538,7 @@ class ComplexFieldFactory(object):
             :return: a sorted dictionary of cde code : value
             """
             codes = [cde.code for cde in self.component_cdes]
-            return OrderedDict(list(zip(codes, data_list)))
+            return OrderedDict(zip(codes, data_list))
 
         class_dict["widget"] = self._create_multi_widget()
         class_dict['compress'] = compress_method

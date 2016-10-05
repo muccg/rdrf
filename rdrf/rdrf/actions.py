@@ -1,6 +1,5 @@
 from rdrf import rpc_commands
 import logging
-import collections
 logger = logging.getLogger(__name__)
 
 
@@ -37,7 +36,7 @@ class ActionExecutor(object):
         command_name = "rpc_%s" % rpc_command
         if hasattr(rpc_commands, command_name):
             rpc_function = getattr(rpc_commands, command_name)
-            if isinstance(rpc_function, collections.Callable):
+            if callable(rpc_function):
                 return rpc_function
         else:
             logger.info("could not find a callable with that name")

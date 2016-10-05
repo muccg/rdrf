@@ -152,7 +152,7 @@ class ListCountries(APIView):
             }
 
             d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
-            for attr, alias in list(ALIASES.items()):
+            for attr, alias in ALIASES.items():
                 d[alias] = getattr(country, attr)
             d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
 

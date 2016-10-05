@@ -1,4 +1,5 @@
 import logging
+import re
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
@@ -65,10 +66,8 @@ class CalculatedFieldParser(object):
             raise CalculatedFieldParseError("Calculation does not depend on any fields")
 
     def _parse_subjects(self, calculation):
-        import re
-        return [code for code in re.findall(
-                self.pattern,
-                calculation) if code != self.result_name]
+        return [code for code in re.findall(self.pattern, calculation)
+                if code != self.result_name]
 
     def _get_id_in_section(self, cde_code):
         """

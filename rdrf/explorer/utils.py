@@ -354,7 +354,7 @@ class DatabaseUtils(object):
         # timestamp from top level in for current and snapshot
         result['timestamp'] = mongo_document.get("timestamp", None)
 
-        for key, column_name in list(self.col_map.items()):
+        for key, column_name in self.col_map.items():
             if isinstance(key, tuple):
                 if len(key) == 4:
                     # NB section index is 1 based in report
@@ -513,7 +513,7 @@ class DatabaseUtils(object):
         "Returns all rows from a cursor as a dict"
         desc = cursor.description
         return [
-            dict(list(zip([col[0] for col in desc], row)))
+            dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
 

@@ -30,10 +30,6 @@ from rdrf.utils import mongo_key_from_models
 logger = logging.getLogger(__name__)
 
 
-def encode_row(row):
-    return [s.encode('utf8') if isinstance(s, str) else s for s in row]
-
-
 class LoginRequiredMixin(object):
 
     @method_decorator(login_required)
@@ -317,7 +313,7 @@ def _get_default_params(request, form):
 def _get_header(result):
     header = []
     if result:
-        for key in list(result[0].keys()):
+        for key in result[0].keys():
             header.append(key.encode("utf8"))
         return header
 
@@ -378,7 +374,7 @@ def _human_friendly(registry_model, result):
     humaniser = Humaniser(registry_model)
 
     for r in result:
-        for key in list(r.keys()):
+        for key in r.keys():
             mongo_value = r[key]
             cde_value = humaniser.display_value(key, mongo_value)
             if cde_value:
@@ -485,9 +481,8 @@ class MultisectionHandler(object):
             """
             l = []
 
-            max_length = max(list(map(len, list(dl.values()))))
-            indexes = list(range(max_length))
-            for i in indexes:
+            max_length = max(map(len, list(dl.values())))
+            for i in range(max_length):
                 d = {}
                 for k in dl:
                     this_list = dl[k]
@@ -514,7 +509,7 @@ class MultisectionHandler(object):
 
         row_count = 0
         # choice tuple is one choice from each sublist
-        for choice_tuple in product(*list(sublists.values())):
+        for choice_tuple in product(*sublists.values()):
             new_row = row.copy()
             row_count += 1
             for section_dict in choice_tuple:

@@ -108,7 +108,7 @@ def update_multisection_file_cdes(gridfs_filestore, registry_code,
     for item_index, section_item_dict in enumerate(form_section_items):
         logger.debug("checking new saved section %s" % item_index)
 
-        for key, value in list(section_item_dict.items()):
+        for key, value in section_item_dict.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
                 existing_value = get_mongo_value(registry_code, existing_nested_data, key,
@@ -210,7 +210,7 @@ class FormDataParser(object):
         for form_timestamp in self.form_timestamps:
             d[form_timestamp] = self.form_timestamps[form_timestamp]
 
-        for (form_model, section_model, cde_model), value in list(self.parsed_data.items()):
+        for (form_model, section_model, cde_model), value in self.parsed_data.items():
             if not section_model.allow_multiple:
                 cde_dict = self._get_cde_dict(form_model, section_model, cde_model, d)
                 logger.debug("existing cde dict = %s" % cde_dict)
@@ -222,7 +222,7 @@ class FormDataParser(object):
 
                 cde_dict["value"] = value
 
-        for (form_model, section_model), items_list in list(self.parsed_multisections.items()):
+        for (form_model, section_model), items_list in self.parsed_multisections.items():
             section_dict = self._get_section_dict(form_model, section_model, d)
             section_dict["allow_multiple"] = True
             section_dict["cdes"] = items_list
@@ -530,7 +530,7 @@ class DynamicDataWrapper(object):
         record_query = self._get_record_query(filter_by_context=False)
         record_query["record_type"] = "snapshot"
         collection = self._get_collection(registry_code, "history")
-        data = list(map(fmt, collection.find(record_query)))
+        data = map(fmt, collection.find(record_query))
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
@@ -645,7 +645,7 @@ class DynamicDataWrapper(object):
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
         fs = self.get_filestore(registry)
 
-        for key, value in list(new_data.items()):
+        for key, value in new_data.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
                 existing_value = get_mongo_value(registry, existing_record, key)
@@ -823,7 +823,7 @@ class DynamicDataWrapper(object):
             for x in data:
                 self._convert_date_to_datetime(x)
         elif hasattr(data, "items"):
-            for k, value in list(data.items()):
+            for k, value in data.items():
                 if isinstance(value, datetime.date):
                     data[k] = datetime.datetime(value.year, value.month, value.day)
                 else:

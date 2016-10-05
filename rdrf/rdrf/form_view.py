@@ -329,9 +329,7 @@ class FormView(View):
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
-        dummy = form_class()
-        ids = [field for field in list(dummy.fields.keys())]
-        return ",".join(ids)
+        return ",".join(form_class().fields.keys())
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
@@ -1334,7 +1332,7 @@ class QuestionnaireResponseView(FormView):
         return 'au'
 
     def _fix_centre_dropdown(self, context):
-        for field_key, field_object in list(context['forms']['PatientData'].fields.items()):
+        for field_key, field_object in context['forms']['PatientData'].fields.items():
             if 'CDEPatientCentre' in field_key:
                 if hasattr(field_object.widget, "_widget_context"):
                     field_object.widget._widget_context[
@@ -1347,12 +1345,12 @@ class QuestionnaireResponseView(FormView):
 
     def _fix_state_and_country_dropdowns(self, context):
         from django.forms.widgets import TextInput
-        for key, field_object in list(context["forms"]['PatientData'].fields.items()):
+        for key, field_object in context["forms"]['PatientData'].fields.items():
             if "CDEPatientNextOfKinState" in key:
                 field_object.widget = TextInput()
 
         for address_form in context["forms"]["PatientDataAddressSection"].forms:
-            for key, field_object in list(address_form.fields.items()):
+            for key, field_object in address_form.fields.items():
                 if "State" in key:
                     field_object.widget = TextInput()
 
@@ -1699,7 +1697,7 @@ class AdjudicationInitiationView(View):
 
         target_usernames = []
         target_working_group_names = []
-        for k in list(form_data.keys()):
+        for k in form_data.keys():
             if k.startswith("user_"):
                 target_usernames.append(form_data[k])
             elif k.startswith('group_'):
