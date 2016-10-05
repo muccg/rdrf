@@ -3,7 +3,6 @@ import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from positions.fields import PositionField
-import string
 from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
@@ -897,8 +896,7 @@ class RegistryForm(models.Model):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
     def get_sections(self):
-        import string
-        return list(map(string.strip, self.sections.split(",")))
+        return list(map(str.strip, self.sections.split(",")))
 
     @property
     def questionnaire_list(self):
@@ -906,8 +904,7 @@ class RegistryForm(models.Model):
         returns a list of sectioncode.cde_code strings
         E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
         """
-        return [s for s in map(
-                string.strip, self.questionnaire_questions.split(",")) if len(s) > 0]
+        return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
 
     @property
     def section_models(self):
