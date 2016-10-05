@@ -1533,10 +1533,8 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         return HttpResponse(json.dumps(data), content_type="application/json")
 
     def post(self, request, reg_pk):
-        import json
-        registry_structure_json = request.body
         try:
-            registry_structure = json.loads(registry_structure_json)
+            registry_structure = json.loads(request.body.decode("utf-8"))
         except Exception as ex:
             message = {"message": "Error: Could not load registry structure: %s" %
                        ex, "message_type": "error"}
@@ -1570,9 +1568,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 class RPCHandler(View):
 
     def post(self, request):
-        import json
-        rpc_command = request.body
-        action_dict = json.loads(rpc_command)
+        action_dict = json.loads(request.body.decode("utf-8"))
         action_executor = ActionExecutor(request, action_dict)
         client_response_dict = action_executor.run()
         client_response_json = json.dumps(client_response_dict)
