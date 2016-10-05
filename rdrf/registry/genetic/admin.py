@@ -1,6 +1,6 @@
 import json
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
@@ -13,12 +13,9 @@ class GeneAdmin(admin.ModelAdmin):
     search_fields = ["symbol", "name"]
 
     def get_urls(self):
-        urls = super(GeneAdmin, self).get_urls()
-        local_urls = patterns("",
-                              url(r"search/(.*)$", self.admin_site.admin_view(self.search),
-                                  name="gene_search")
-                              )
-        return local_urls + urls
+        search_url = url(r"search/(.*)$", self.admin_site.admin_view(self.search),
+                         name="gene_search")
+        return [search_url] + super(GeneAdmin, self).get_urls()
 
     def search(self, request, term):
         genes = Gene.objects.filter(
@@ -37,12 +34,9 @@ class LaboratoryAdmin(admin.ModelAdmin):
                                          "contact_phone")}))
 
     def get_urls(self):
-        urls = super(LaboratoryAdmin, self).get_urls()
-        local_urls = patterns("",
-                              url(r"search/(.*)$", self.admin_site.admin_view(self.search),
-                                  name="laboratory_search")
-                              )
-        return local_urls + urls
+        search_url = url(r"search/(.*)$", self.admin_site.admin_view(self.search),
+                         name="laboratory_search")
+        return [search_url] + super(LaboratoryAdmin, self).get_urls()
 
     def get_queryset(self, request):
         return Laboratory.objects.all()

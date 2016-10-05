@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
@@ -363,12 +363,8 @@ class PatientAdmin(admin.ModelAdmin):
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
     def get_urls(self):
-        urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns("",
-                              url(r"search/(.*)$",
-                                  self.admin_site.admin_view(self.search),
-                                  name="patient_search"))
-        return local_urls + urls
+        search_url = url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
+        return [search_url] + super(PatientAdmin, self).get_urls()
 
     def get_queryset(self, request):
         self.request = request
