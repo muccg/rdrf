@@ -336,6 +336,7 @@ class FormView(View):
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         all_errors = []
+        progress_dict = {}
 
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
@@ -473,18 +474,18 @@ class FormView(View):
 
         # Save one snapshot after all sections have being persisted
         if all_sections_valid:
-            logger.debug("All sections valid so saving to mongo ..")
             for section_info in sections_to_save:
-                logger.debug("saving section %s" % section_info)
                 section_info.save_to_mongo()
-            logger.debug("saving snapshot ..")
+
+            progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
+
             dyn_patient.save_snapshot(registry_code, "cdes")
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
-                logger.debug("saving form progress for add form")
                 dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
+
                 return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
                                                                            form_id,
                                                                            patient.pk,
@@ -493,14 +494,12 @@ class FormView(View):
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
         else:
-            logger.debug("validation errors occurred - no data saved to Mongo")
             for e in all_errors:
                 logger.debug("validation Error: %s" % e)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
-        progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
 
         logger.debug("rdrf context = %s" % self.rdrf_context)
 
@@ -561,7 +560,9 @@ class FormView(View):
             context["form_progress"] = progress_percentage
             initial_completion_cdes = {cde_model.name: False for cde_model in
                                        self.registry_form.complete_form_cdes.all()}
-            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status",
+
+            
+            context["form_progress_cdes"]  = progress_dict.get(self.registry_form.name + "_form_cdes_status",
                                                               initial_completion_cdes)
 
         context.update(csrf(request))
@@ -729,9 +730,8 @@ class FormView(View):
                                                                   patient_model,
                                                                   self.rdrf_context)
 
-            #cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = form_progress_percentage
-            context["form_progress_cdes"] = form_cdes_status
+            context["form_progress_cdes"] =  form_cdes_status
 
         context.update(kwargs)
         return context
