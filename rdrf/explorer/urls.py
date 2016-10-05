@@ -1,11 +1,10 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from explorer.views import MainView
 from explorer.views import QueryView, NewQueryView
 from explorer.views import DeleteQueryView, DownloadQueryView
 from explorer.views import SqlQueryView
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^query/(?P<query_id>\w+)/?$',
         QueryView.as_view(), name='explorer_query'),
     url(r'^query/download/(?P<query_id>\w+)?/(?P<action>\w+)?/?$',
@@ -19,4 +18,4 @@ urlpatterns = patterns(
     url(r'^new$', NewQueryView.as_view(), name='explorer_new'),
 
     url(r'$', MainView.as_view(), name='explorer_main'),
-)
+]
