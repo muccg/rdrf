@@ -369,8 +369,8 @@ class RadioSelect(widgets.RadioSelect):
 
 class ReadOnlySelect(widgets.Select):
 
-    def render(self, name, value, attrs, choices=()):
-        html = super(ReadOnlySelect, self).render(name, value, attrs, choices)
+    def render(self, name, value, attrs=None):
+        html = super(ReadOnlySelect, self).render(name, value, attrs)
         return self._make_label(html) + self._make_hidden_field(name, value, attrs)
 
     def _make_hidden_field(self, name, value, attrs):
