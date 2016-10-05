@@ -521,7 +521,7 @@ class MultipleFileInput(Widget):
     class TemplateFile(object):
         url = ""
 
-        def __unicode__(self):
+        def __str__(self):
             return ""
 
     def _render_base(self, name, value, attrs, index):

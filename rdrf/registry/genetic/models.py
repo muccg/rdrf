@@ -16,14 +16,14 @@ class Gene(models.Model):
     class Meta:
         ordering = ["symbol"]
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.symbol, self.name)
 
 
 class Technique(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.name)
 
 
@@ -42,6 +42,6 @@ class Laboratory(models.Model):
     class Meta:
         verbose_name_plural = "laboratories"
 
-    def __unicode__(self):
+    def __str__(self):
         val = self.name
         return val

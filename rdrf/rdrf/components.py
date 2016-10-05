@@ -38,7 +38,7 @@ class _Form(object):
         self.heading = ""
         self.existing_links = []  # for multiple contexts
 
-    def __unicode__(self):
+    def __str__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
 
 

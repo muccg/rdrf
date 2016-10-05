@@ -41,7 +41,7 @@ class FileUpload(object):
 
         return ""
 
-    def __unicode__(self):
+    def __str__(self):
         """
         This is to satisfy Django's ClearableFileInputWidget which
         uses django's force_text function

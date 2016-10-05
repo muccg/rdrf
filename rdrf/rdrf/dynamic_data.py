@@ -419,7 +419,7 @@ class DynamicDataWrapper(object):
     def client(self, c):
         self._client = c
 
-    def __unicode__(self):
+    def __str__(self):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
     def _get_record_query(self, filter_by_context=True):

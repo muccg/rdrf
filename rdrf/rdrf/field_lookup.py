@@ -470,7 +470,7 @@ class ComplexFieldFactory(object):
     def _is_complex(self):
         return re.match(self.DATATYPE_PATTERN, self.cde.datatype)
 
-    def __unicode__(self):
+    def __str__(self):
         return "ComplexField for CDE %s with datatype %s" % (self, self.cde.datatype)
 
     def _get_field(self, cde):

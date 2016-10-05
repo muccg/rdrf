@@ -61,7 +61,7 @@ class Section(models.Model):
     def natural_key(self):
         return (self.code, )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.code
 
     def get_elements(self):
@@ -374,7 +374,7 @@ class Registry(models.Model):
             codes.extend(generic_section_model.get_elements())
         return codes
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.name, self.code)
 
     def as_json(self):
@@ -647,7 +647,7 @@ class CDEPermittedValueGroup(models.Model):
                 att) for v in CDEPermittedValue.objects.filter(
                 pv_group=self).order_by('position')]
 
-    def __unicode__(self):
+    def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
 
@@ -686,7 +686,7 @@ class CDEPermittedValue(models.Model):
     position_formatted.allow_tags = True
     position_formatted.short_description = 'Order position'
 
-    def __unicode__(self):
+    def __str__(self):
         return "Member of %s" % self.pv_group.code
 
 
@@ -727,7 +727,7 @@ class CommonDataElement(models.Model):
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
 
-    def __unicode__(self):
+    def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 
     class Meta:
@@ -893,7 +893,7 @@ class RegistryForm(models.Model):
         else:
             return de_camelcase(self.name)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
     def get_sections(self):
@@ -1784,7 +1784,7 @@ class ConsentSection(models.Model):
 
             return False
 
-    def __unicode__(self):
+    def __str__(self):
         return "Consent Section %s" % self.section_label
 
     @property
@@ -1848,7 +1848,7 @@ class ConsentQuestion(models.Model):
         else:
             return self.question_label
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.question_label
 
 
@@ -1871,7 +1871,7 @@ class EmailTemplate(models.Model):
     subject = models.CharField(max_length=50)
     body = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
 
 
@@ -1884,7 +1884,7 @@ class EmailNotification(models.Model):
     email_templates = models.ManyToManyField(EmailTemplate)
     disabled = models.BooleanField(null=False, blank=False, default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
 
 
@@ -1909,7 +1909,7 @@ class RDRFContext(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     display_name = models.CharField(max_length=80, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.display_name, self.created_at)
 
     def clean(self):
@@ -1960,7 +1960,7 @@ class ContextFormGroup(models.Model):
         return sorted([item.registry_form for item in self.items.all()],
                       key=sort_func)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @property
@@ -2171,7 +2171,7 @@ class CDEFile(models.Model):
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.item.name
 
 

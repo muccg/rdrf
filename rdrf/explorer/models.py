@@ -39,7 +39,7 @@ class Query(models.Model):
         ordering = ['title']
         verbose_name_plural = 'Queries'
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.title)
 
     def has_view(self):

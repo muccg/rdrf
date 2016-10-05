@@ -97,7 +97,7 @@ class PatientAdmin(admin.ModelAdmin):
     list_filter = [RegistryFilter]
 
     def full_name(self, obj):
-        return obj.__unicode__()
+        return str(obj)
 
     full_name.short_description = 'Name'
 

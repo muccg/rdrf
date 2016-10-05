@@ -28,7 +28,7 @@ class WorkingGroup(models.Model):
     class Meta:
         ordering = ["registry__code"]
 
-    def __unicode__(self):
+    def __str__(self):
         if self.registry:
             return "%s %s" % (self.registry.code, self.name)
         else:
