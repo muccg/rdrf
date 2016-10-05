@@ -1,6 +1,6 @@
 from django.views.generic import View
 from rdrf.models import Registry
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.http import Http404
 from registry.groups.models import CustomUser
 from django.contrib.auth.models import Group
@@ -83,9 +83,7 @@ class PermissionMatrixView(View):
         except Registry.DoesNotExist:
             return Http404("Registry with code %s does not exist" % registry_code)
 
-        context = {}
-        context["location"] = "Permissions"
-        context["matrix_wrapper"] = MatrixWrapper(registry_model)
-        return render_to_response("rdrf_cdes/permission_matrix.html",
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/permission_matrix.html", {
+            "location": "Permissions",
+            "matrix_wrapper": MatrixWrapper(registry_model),
+        })

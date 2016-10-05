@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from django.shortcuts import render_to_response, RequestContext, redirect
+from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.core.urlresolvers import reverse
@@ -185,7 +185,6 @@ class PatientFormMixin(PatientMixin):
         else:
             kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
-        kwargs["context_instance"] = RequestContext(self.request)
         logger.debug("updated kwargs = %s" % kwargs)
         kwargs["location"] = _("Demographics")
         if self.request.user.is_parent:
@@ -468,7 +467,7 @@ class PatientFormMixin(PatientMixin):
                      errors):
         logger.debug("errors = %s" % errors)
         has_errors = len(errors) > 0
-        return self.render_to_response(
+        return self.render(
             self.get_context_data(
                 form=patient_form,
                 all_errors=errors,
@@ -602,10 +601,7 @@ class PatientEditView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        return render_to_response(
-            'rdrf_cdes/patient_edit.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/patient_edit.html', context)
 
     def post(self, request, registry_code, patient_id):
         user = request.user
@@ -761,10 +757,7 @@ class PatientEditView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        return render_to_response(
-            'rdrf_cdes/patient_edit.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/patient_edit.html', context)
 
     # def _get_index_context(self, registry_model, patient_model):
     #    #todo this probabably doesn't apply anymore in fhcontexts branch

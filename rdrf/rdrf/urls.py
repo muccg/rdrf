@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.generic.base import TemplateView
 
 import rdrf.form_view as form_view
@@ -31,16 +31,17 @@ admin.autodiscover()
 
 
 def handler404(request):
-    return render_to_response("404.html")
+    return render(request, "404.html")
 
 
 def handler500(request):
-    return render_to_response("500.html")
+    return render(request, "500.html")
 
 
 def handlerApplicationError(request):
-    return render_to_response(
-        "rdrf_cdes/application_error.html", {"application_error": "Example config Error"})
+    return render(request, "rdrf_cdes/application_error.html", {
+        "application_error": "Example config Error",
+    })
 
 import django.contrib.auth.views
 

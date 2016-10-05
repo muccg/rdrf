@@ -45,7 +45,7 @@
                               Registries on this site <b class="caret"></b>
                           </a>
                           <ul class="dropdown-menu">
-                            {% for reg in registrys %}
+                            {% for reg in registries %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
                                     {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}

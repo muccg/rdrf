@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.conf import settings
@@ -58,4 +58,4 @@ def patient_cdes(request, patient_id):
 
     context.update(csrf(request))
 
-    return render_to_response('rdrf_cdes/cde.html', context)
+    return render(request, 'rdrf_cdes/cde.html', context)

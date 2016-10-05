@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, RequestContext, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
@@ -322,10 +322,7 @@ class FormView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(
-            self._get_template(),
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self._get_template(), context)
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
@@ -425,7 +422,7 @@ class FormView(View):
 
                     from rdrf.utils import wrap_uploaded_files
                     request.POST.update(request.FILES)
-                    
+
                     form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
 
             else:
@@ -576,10 +573,7 @@ class FormView(View):
                     'Patient %s not saved due to validation errors' %
                     patient_name)
 
-        return render_to_response(
-            self._get_template(),
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self._get_template(), context)
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
@@ -899,7 +893,7 @@ class QuestionnaireView(FormView):
                 'registry': self.registry,
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
-        return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+        return render(request, 'rdrf_cdes/questionnaire_error.html', context)
 
     def _get_template(self):
         return "rdrf_cdes/questionnaire.html"
@@ -1179,9 +1173,7 @@ class QuestionnaireView(FormView):
             context["completed_sections"] = section_map
             context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
 
-            return render_to_response(
-                'rdrf_cdes/completed_questionnaire_thankyou.html',
-                context)
+            return render(request, 'rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
             logger.debug("Error count non-zero!:  %s" % error_count)
 
@@ -1209,10 +1201,7 @@ class QuestionnaireView(FormView):
                 request,
                 messages.ERROR,
                 _('The questionnaire was not submitted because of validation errors - please try again'))
-            return render_to_response(
-                'rdrf_cdes/questionnaire.html',
-                context,
-                context_instance=RequestContext(request))
+            return render(request, 'rdrf_cdes/questionnaire.html', context)
 
     def _get_patient_id(self):
         return "questionnaire"
@@ -1242,10 +1231,7 @@ class QuestionnaireHandlingView(View):
 
         context.update(csrf(request))
 
-        return render_to_response(
-            template_name,
-            context,
-            context_instance=RequestContext(request))
+        return render(request, template_name, context)
 
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
@@ -1424,7 +1410,7 @@ class StandardView(object):
     def _render(request, view_type, context):
         context.update(csrf(request))
         template = StandardView.TEMPLATE_DIR + "/" + view_type
-        return render_to_response(template, context, context_instance=RequestContext(request))
+        return render(request, template, context)
 
     @staticmethod
     def render_information(request, message):
@@ -1508,10 +1494,7 @@ class QuestionnaireConfigurationView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(
-            self.TEMPLATE,
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self.TEMPLATE, context)
 
 
 class RDRFDesignerCDESEndPoint(View):
@@ -1535,7 +1518,7 @@ class RDRFDesigner(View):
     def get(self, request, reg_pk=0):
         context = {"reg_pk": reg_pk}
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/rdrf-designer.html', context)
+        return render(request, 'rdrf_cdes/rdrf-designer.html', context)
 
 
 class RDRFDesignerRegistryStructureEndPoint(View):
@@ -1615,10 +1598,7 @@ class AdjudicationInitiationView(View):
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
-        return render_to_response(
-            'rdrf_cdes/adjudication_initiation_form.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_initiation_form.html', context)
 
     @login_required_method
     def post(self, request, def_id, patient_id):
@@ -1772,10 +1752,7 @@ class AdjudicationRequestView(View):
                    "req": adj_req}
 
         context.update(csrf(request))
-        return render_to_response(
-            'rdrf_cdes/adjudication_form.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_form.html', context)
 
     @login_required_method
     def post(self, request, adjudication_request_id):
@@ -1972,8 +1949,7 @@ class AdjudicationResultsView(View):
         context['decision_form'] = adj_def.create_decision_form()
         context['adjudication'] = adjudication
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/adjudication_results.html', context,
-                                  context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_results.html', context)
 
     def _get_results_for_one_cde(self, adjudication_responses, cde_model):
         results = []
@@ -2096,7 +2072,7 @@ class AdjudicationResultsView(View):
 class ConstructorFormView(View):
 
     def get(self, request, form_name):
-        return render_to_response('rdrf_cdes/%s.html' % form_name)
+        return render(request, 'rdrf_cdes/%s.html' % form_name)
 
 
 class CustomConsentFormView(View):
@@ -2148,9 +2124,7 @@ class CustomConsentFormView(View):
         logger.debug("context = %s" % context)
 
         logger.debug("******************** rendering get *********************")
-        return render_to_response("rdrf_cdes/custom_consent_form.html",
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/custom_consent_form.html", context)
 
     def _get_initial_consent_data(self, patient_model):
         # load initial consent data for custom consent form
@@ -2319,6 +2293,4 @@ class CustomConsentFormView(View):
             context["error_messages"] = error_messages
             context["errors"] = True
 
-        return render_to_response("rdrf_cdes/custom_consent_form.html",
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/custom_consent_form.html", context)

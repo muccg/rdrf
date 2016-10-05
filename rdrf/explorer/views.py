@@ -1,9 +1,8 @@
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.core.urlresolvers import reverse
-from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.decorators import login_required
@@ -55,10 +54,9 @@ class MainView(LoginRequiredMixin, View):
                 access_group__in=[
                     g.id for g in user.get_groups()])
 
-        return render_to_response(
-            'explorer/query_list.html',
-            {'object_list': reports},
-            _get_default_params(request, None))
+        return render(request, 'explorer/query_list.html', {
+            'object_list': reports
+        })
 
 
 class NewQueryView(LoginRequiredMixin, View):
@@ -69,7 +67,7 @@ class NewQueryView(LoginRequiredMixin, View):
 
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
-        return render_to_response('explorer/query.html', params)
+        return render(request, 'explorer/query.html', params)
 
     def post(self, request):
         if not request.user.is_superuser:
@@ -105,7 +103,7 @@ class QueryView(LoginRequiredMixin, View):
         params = _get_default_params(request, query_form)
         params['edit'] = True
         params['registries'] = Registry.objects.all()
-        return render_to_response('explorer/query.html', params)
+        return render(request, 'explorer/query.html', params)
 
     def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
@@ -235,7 +233,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
                     # only curators and admin
                     pass
 
-            return render_to_response('explorer/query_download.html', params)
+            return render(request, 'explorer/query_download.html', params)
 
         if query_model.mongo_search_type == "M":
             return self._spreadsheet(query_model)
@@ -300,14 +298,14 @@ def _get_default_params(request, form):
     database_utils = DatabaseUtils()
     status, error = database_utils.connection_status()
 
-    return RequestContext(request, {
+    return {
         'version': app_settings.APP_VERSION,
         'host': app_settings.VIEWER_MONGO_HOST,
         'status': status,
         'error_msg': error,
         'form': form,
         'csrf_token_name': app_settings.CSRF_NAME
-    })
+    }
 
 
 def _get_header(result):

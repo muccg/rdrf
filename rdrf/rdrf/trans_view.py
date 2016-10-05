@@ -1,6 +1,6 @@
 import os
 
-from django.shortcuts import render_to_response, RequestContext, redirect
+from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -41,11 +41,7 @@ class TranslationView(View):
         context["translations"] = translations
         context["country_code"] = country_code
 
-        return render_to_response(
-            "rdrf_cdes/translation.html",
-            context,
-            context_instance=RequestContext(request)
-        )
+        return render(request, "rdrf_cdes/translation.html", context)
 
     @method_decorator(login_required)
     def post(self, request, country_code):

@@ -8,8 +8,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
 from rdrf.models import Registry
@@ -56,7 +55,7 @@ class PatientsListingView(View):
         if self.user and self.user.is_anonymous():
             login_url = "%s?next=/router/" % reverse("login")
             return redirect(login_url)
-        
+
         self.do_security_checks()
         self.set_csrf(request)
         self.set_registry(request)
@@ -66,10 +65,7 @@ class PatientsListingView(View):
         template_context = self.build_context()
         template = self.get_template()
 
-        return render_to_response(
-            template,
-            template_context,
-            context_instance=RequestContext(request))
+        return render(request, template, template_context)
 
     def get_template(self):
         template = 'rdrf_cdes/patients_listing_no_registries.html' if len(

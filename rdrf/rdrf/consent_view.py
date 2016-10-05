@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
@@ -68,10 +68,7 @@ class ConsentList(View):
         context['registry'] = Registry.objects.get(code=registry_code).name
         context['registry_code'] = registry_code
 
-        return render_to_response(
-            self._get_template(),
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self._get_template(), context)
 
 
 class PrintConsentList(ConsentList):
@@ -84,18 +81,11 @@ class ConsentDetails(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
-
         if request.is_ajax:
             values = self._get_consent_details_for_patient(registry_code, section_id, patient_id)
-
             return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
 
-        context = {}
-
-        return render_to_response(
-            'rdrf_cdes/consent_details.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/consent_details.html', {})
 
     def _get_consent_details_for_patient(self, registry_code, section_id, patient_id):
         consent_questions = ConsentQuestion.objects.filter(
@@ -148,6 +138,4 @@ class ConsentDetailsPrint(ConsentDetails):
             context['parent'] = parent
             context['self_patient'] = True if parent.self_patient == patient else False
 
-        return render_to_response('rdrf_cdes/consent_details_print.html',
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/consent_details_print.html', context)

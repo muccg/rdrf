@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
@@ -156,10 +156,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                    "naming_info": naming_info,
                    "form": ContextForm(initial=default_values)}
 
-        return render_to_response(
-            "rdrf_cdes/rdrf_context.html",
-            context,
-            context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/rdrf_context.html", context)
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
@@ -204,10 +201,7 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
-        return render_to_response(
-            "rdrf_cdes/rdrf_context.html",
-            context,
-            context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/rdrf_context.html", context)
 
 
 class RDRFContextEditView(View, ContextFormGroupHelperMixin):
@@ -259,10 +253,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                    "patient_id": patient_id,
                    "form": context_form}
 
-        return render_to_response(
-            "rdrf_cdes/rdrf_context.html",
-            context,
-            context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/rdrf_context.html", context)
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
@@ -323,7 +314,4 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
-        return render_to_response(
-            "rdrf_cdes/rdrf_context.html",
-            context,
-            context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/rdrf_context.html", context)

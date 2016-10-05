@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
@@ -223,10 +223,7 @@ class FamilyLinkageView(View):
         context["initial_index"] = initial_index
         context["location"] = "Family Linkage"
 
-        return render_to_response(
-            'rdrf_cdes/family_linkage.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/family_linkage.html', context)
 
     @method_decorator(login_required)
     def post(self, request, registry_code, initial_index=None):
