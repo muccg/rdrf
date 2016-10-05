@@ -12,12 +12,11 @@ from .calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from .validation import ValidatorFactory
 from .models import CommonDataElement
 
-from django.utils import six
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
 import collections
 
-mark_safe_lazy = lazy(mark_safe, six.text_type)
+mark_safe_lazy = lazy(mark_safe, str)
 
 logger = logging.getLogger(__name__)
 
