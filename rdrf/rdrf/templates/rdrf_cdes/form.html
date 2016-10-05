@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
 {% load get_display_name %}
+{% load get_cde_name %}
 {% load get_section_id %}
 {% load is_formset %}
 {% load get_management_form %}
@@ -293,7 +294,7 @@
                                     {% elif fpc.1 == False %}
                                         <img src='{% static 'images/cross.png'%}'>
                                     {% endif %}
-                                    {{fpc.0}}
+                                    {{fpc.0|get_cde_name}}
                                 </li>
                             {% endfor %}
                         </ul>
