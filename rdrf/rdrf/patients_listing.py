@@ -20,8 +20,6 @@ from registry.patients.models import Patient
 import logging
 logger = logging.getLogger(__name__)
 
-PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
-
 
 class PatientsListingView(View):
 

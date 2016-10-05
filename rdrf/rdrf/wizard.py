@@ -13,9 +13,6 @@ class NavigationFormType:
     CONSENTS = 2
     CLINICAL = 3
 
-PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
-
-
 class NavigationWizard(object):
 
     def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
@@ -92,9 +89,9 @@ class NavigationWizard(object):
         return ("consents", None, reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk]))
 
     def _construct_fixed_form_link(self, fixed_form_group, form_model):
-        context_models = [cm for cm in RDRFContext.objects.filter(context_form_group=fixed_form_group,
-                                                                  object_id=self.patient_model.pk,
-                                                                  content_type=PATIENT_CONTENT_TYPE)]
+        context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
+                                                         object_id=self.patient_model.pk,
+                                                         content_type__model="patient"))
 
         num_contexts = len(context_models)
         assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts

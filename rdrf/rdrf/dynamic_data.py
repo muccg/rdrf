@@ -720,8 +720,8 @@ class DynamicDataWrapper(object):
             raise Exception("Cannot add this form!")
 
         from django.contrib.contenttypes.models import ContentType
-        from rdrf.models import RDRFContext
         PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
+        from rdrf.models import RDRFContext
         context_model = RDRFContext(registry=registry_model,
                                     object_id=self.obj.pk,
                                     content_type=PATIENT_CONTENT_TYPE)
