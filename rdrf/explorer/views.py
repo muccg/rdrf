@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from wsgiref.util import FileWrapper
 
 from explorer import app_settings
 from .forms import QueryForm
@@ -192,7 +193,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
     def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
         from datetime import datetime
-        from django.core.servers.basehttp import FileWrapper
         from rdrf.spreadsheet_report import SpreadSheetReport
         humaniser = Humaniser(query_model.registry)
         spreadsheet_report = SpreadSheetReport(query_model, humaniser)
