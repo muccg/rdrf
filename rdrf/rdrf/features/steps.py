@@ -1,18 +1,13 @@
 import logging
 import os
 
-from lettuce.core import STEP_REGISTRY
-from lettuce import step, world
-from lettuce_webdriver.webdriver import contains_content
-from lettuce_webdriver.webdriver import goto
-from lettuce_webdriver.util import assert_false
-from lettuce_webdriver.util import assert_true
+from aloe.registry import STEP_REGISTRY
+from aloe import step, world
+from aloe_webdriver.webdriver import contains_content
+from aloe_webdriver import assert_true
 
 from selenium.webdriver.common.alert import Alert
 
-from rdrf.models import Registry
-from registry.groups.models import CustomUser
-from registry.patients.models import Patient
 import subprocess
 
 
@@ -24,7 +19,7 @@ def steps_path():
 
 
 def exported_data_path():
-    return '{0}/{1}'.format(steps_path(), 'features/exported_data')
+    return '{0}/{1}'.format(steps_path(), 'exported_data')
 
 
 def drop_all_mongo():

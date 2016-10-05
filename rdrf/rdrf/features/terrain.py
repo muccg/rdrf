@@ -1,12 +1,12 @@
 import os
 import logging
-from lettuce import before, after, world
+from contextlib import contextmanager
+from aloe import before, after, around, world
 from selenium import webdriver
-from rdrf import steps
+from . import steps
 from selenium.common.exceptions import NoAlertPresentException
 
 logger = logging.getLogger(__name__)
-
 
 def get_desired_capabilities(browser):
     return {
@@ -15,7 +15,9 @@ def get_desired_capabilities(browser):
     }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
 
 
-def setup_browser():
+@around.all
+@contextmanager
+def with_browser():
     desired_capabilities = get_desired_capabilities(os.environ.get('TEST_BROWSER'))
 
     world.browser = webdriver.Remote(
@@ -24,6 +26,12 @@ def setup_browser():
     )
     world.browser.implicitly_wait(int(os.environ['TEST_WAIT']))
 
+    yield
+
+    if do_teardown():
+        world.browser.quit()
+
+    delattr(world, "browser")
 
 def reset_snapshot_dict():
     world.snapshot_dict = {}
@@ -43,7 +51,6 @@ def do_teardown():
 @before.all
 def before_all():
     logger.info('')
-    setup_browser()
     reset_snapshot_dict()
     set_site_url()
     steps.save_minimal_snapshot()
@@ -52,8 +59,6 @@ def before_all():
 @after.all
 def after_all(total):
     logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
-    if do_teardown():
-        world.browser.quit()
 
 
 def delete_cookies():
@@ -61,16 +66,17 @@ def delete_cookies():
     world.browser.delete_all_cookies()
 
 
-@before.each_scenario
-def before_each_scenario(scenario):
+@before.each_example
+def before_scenario(scenario, outline, steps):
     logger.info('Scenario: ' + scenario.name)
     delete_cookies()
 
 
-@after.each_scenario
-def after_scenario(scenario):
+@after.each_example
+def after_scenario(scenario, outline, test_steps):
+    passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
-        "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+        "/data/{0}-{1}.png".format(passfail, scenario.name))
     if do_teardown():
         steps.restore_minimal_snapshot()
 

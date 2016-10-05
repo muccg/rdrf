@@ -212,8 +212,10 @@ if [ "$1" = 'lettuce' ]; then
         cp /app/stellar.yaml ${PWD}/stellar.yaml
     fi
     rm -f /data/*.png
+    export DJANGO_SETTINGS_MODULE=rdrf.settings_test
     shift
-    exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml $@
+    cd /app/rdrf
+    exec django-admin.py harvest --with-xunit --xunit-file=/data/tests.xml $@
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|lettuce|runtests|runserver|uwsgi|uwsgi_fixtures]"
