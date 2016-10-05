@@ -64,14 +64,15 @@ class QuickLinks(object):
     FailedLoginLog = QuickLink("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"), True)
     LoginAttempts = QuickLink("admin:useraudit_loginattempt_changelist", _("User Login Attempts Log"), True)
 
-    IPRestrictGroup = QuickLink("admin:iprestrict_ipgroup_changelist", _("IP Restrict Groups"), True)
+    IPRestrictRangeGroup = QuickLink("admin:iprestrict_rangebasedipgroup_changelist", _("IP Restrict Ranges"), True)
+    IPRestrictGeoGroup = QuickLink("admin:iprestrict_locationbasedipgroup_changelist", _("IP Restrict Geolocations"), True)
     IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
 
     # Context Form Groups
     ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Context Form Groups", True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
-    IP_RESTRICT = oset([IPRestrictGroup, IPRestrictRule])
+    IP_RESTRICT = oset([IPRestrictRangeGroup, IPRestrictGeoGroup, IPRestrictRule])
 
     DATA_ENTRY = oset([PatientsListing, ClinicianOther])
     WORKING_GROUPS = oset([WorkingGroups])
