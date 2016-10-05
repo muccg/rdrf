@@ -500,7 +500,7 @@ class Exporter(object):
         return data
 
 
-def unicode_presenter(dumper, data):
+def str_presenter(dumper, data):
     lines = data.splitlines()
     if len(lines) > 1:
         # strip trailing whitespace on lines -- it's not significant,
@@ -514,7 +514,7 @@ def unicode_presenter(dumper, data):
 class ExportDumper(yaml.SafeDumper):
     pass
 
-ExportDumper.add_representer(str, unicode_presenter)
+ExportDumper.add_representer(str, str_presenter)
 
 def dump_yaml(data):
     return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,

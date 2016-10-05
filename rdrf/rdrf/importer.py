@@ -27,12 +27,6 @@ import json
 logger = logging.getLogger(__name__)
 
 
-# We want all YAML strings to be converted to unicode objects
-# Python 3 defaults to that, Django defaults to that, we default to that
-yaml.add_constructor('tag:yaml.org,2002:str',
-                     yaml.constructor.Constructor.construct_python_unicode)
-
-
 def _registries_using_cde(cde_code):
     registries = set([])
     for r in Registry.objects.all():
