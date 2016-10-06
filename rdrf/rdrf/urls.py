@@ -53,7 +53,7 @@ urlpatterns = patterns('',
                        url(r'^test404', handler404),
                        url(r'^test500', handler500),
                        url(r'^testAppError', handlerApplicationError),
-                       url(r'^iprestrict', include('iprestrict.urls')),
+                       url(r'^iprestrict', include('iprestrict.urls', namespace='iprestrict')),
                        url(r'^useraudit', include('useraudit.urls')),
 
                        (r'^api/v1/', include(api_urls, namespace='v1')),
@@ -176,7 +176,7 @@ urlpatterns = patterns('',
                            RecaptchaValidator.as_view(), name="recaptcha_validator"))
                        #-------------------------------------------
 
-                       
+
 urlpatterns += patterns('',
                         url(r'^(?P<registry_code>\w+)/register/$',
                             RdrfRegistrationView.as_view(),
@@ -199,7 +199,7 @@ urlpatterns += patterns('',
                             name='registration_activate'),
 
                         url(r'^iprestrict/',
-                            include('iprestrict.urls')),
+                            include('iprestrict.urls', namespace='iprestrict')),
 
                         )
 
