@@ -56,9 +56,9 @@ def before_all():
     steps.save_minimal_snapshot()
 
 
-@after.all
-def after_all(total):
-    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
+# @after.all
+# def after_all(total):
+#    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
 
 
 def delete_cookies():

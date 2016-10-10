@@ -273,7 +273,13 @@ CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 if not PRODUCTION:
     INSTALLED_APPS.extend(['django_nose'])
 
+# Used by unit tests
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+
+# Used by lettuce tests
+# We don't want to run against the Test DB and we don't want a Transaction Test Case
+GHERKIN_TEST_RUNNER = 'rdrf.features.runner.GherkinNoDjangoTestDBTestRunner'
+GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
 
 SOUTH_TESTS_MIGRATE = True
 NOSE_ARGS = [
