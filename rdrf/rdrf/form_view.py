@@ -540,6 +540,7 @@ class FormView(View):
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
+            "have_dynamic_data": all_sections_valid,
         }
 
         if request.user.is_parent:
@@ -707,7 +708,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "has_form_progress": self.registry_form.has_progress_indicator
+            "has_form_progress": self.registry_form.has_progress_indicator,
+            "have_dynamic_data": bool(self.dynamic_data),
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
