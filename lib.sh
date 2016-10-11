@@ -436,7 +436,8 @@ dev_lettuce() {
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
-    start_lettucetests up --force-recreate devlettuce
+    # Use run so we can get correct return codes from test run
+    start_lettucetests run --rm devlettuce
     local rval=$?
 
     _stop_test_stack
@@ -450,7 +451,8 @@ prod_lettuce() {
     _start_selenium --force-recreate -d
     _start_prod_stack --force-recreate -d
 
-    start_lettucetests up --force-recreate prodlettuce
+    # Use run so we can get correct return codes from test run
+    start_lettucetests run --rm prodlettuce
     local rval=$?
 
     _stop_prod_stack
