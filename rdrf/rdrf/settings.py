@@ -391,9 +391,6 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True
         },
-        'null': {
-            'class': 'logging.NullHandler',
-        },
     },
     'loggers': {
         '': {
