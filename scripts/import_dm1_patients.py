@@ -133,6 +133,7 @@ class ProcessingError(Exception):
         self.row_number = row_number
         self.column_label = column_label
         self.patient_model = patient_model
+        self.message = message
 
     def __str__(self):
         return "Error row %s column %s patient %s: %s" % (self.row_number,
@@ -468,21 +469,21 @@ class Dm1Importer(object):
     def _update_consent_date(self, consent_section_code, question_code, field, date_value):
         if field not in ["last_update", "first_save"]:
             raise Exception("consent answer must be saved first - this method used only for last_update and first_save")
-        
+
         consent_section_model = ConsentSection.objects.get(registry=self.registry_model,
                                                            code=consent_section_code)
-        
+
         consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
                                                              code=question_code)
 
         # assume exists after creation for answer field
         consent_value_model = ConsentValue.objects.get(patient=self.current_patient,
                                                        consent_question=consent_question_model)
-        
+
         setattr(consent_value_model, field, date_value) #first_save, last_update now
 
         consent_value_model.save()
-        
+
 
 
     def set_consent(self, consent_date):

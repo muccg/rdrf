@@ -68,7 +68,7 @@ class DatabaseUtils(object):
             cursor = self.create_cursor()
             self.result = self._dictfetchall(cursor)
         except ProgrammingError as error:
-            self.result = {'error_msg': error.message}
+            self.result = {'error_msg': str(error)}
 
         return self
 
@@ -88,9 +88,9 @@ class DatabaseUtils(object):
                             errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
 
             except ValueError as ve:
-                errors.append("JSON malformed: %s" % ve.message)
+                errors.append("JSON malformed: %s" % ve)
             except KeyError as ke:
-                errors.append("key error: %s" % ke.message)
+                errors.append("key error: %s" % ke)
 
             if len(errors) > 0:
                 self.result = {'error_msg': ','.join(errors)}

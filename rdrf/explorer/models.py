@@ -66,7 +66,7 @@ class Query(models.Model):
                         errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
 
         except ValueError as ve:
-            errors.append("JSON malformed: %s" % ve.message)
+            errors.append("JSON malformed: %s" % ve)
         except KeyError as ke:
-            errors.append("key error: %s" % ke.message)
+            errors.append("key error: %s" % ke)
         return errors

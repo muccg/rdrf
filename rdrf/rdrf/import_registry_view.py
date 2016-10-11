@@ -51,7 +51,7 @@ class ImportRegistryView(View):
             logger.error("Import failed: %s" % ex)
             url_params = {
                 "state": "fail",
-                "error_message": ex.message
+                "error_message": str(ex),
             }
             import urllib.request, urllib.parse, urllib.error
             url_string = urllib.parse.urlencode(url_params)

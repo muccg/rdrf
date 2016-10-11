@@ -557,7 +557,7 @@ class FormView(View):
             initial_completion_cdes = {cde_model.name: False for cde_model in
                                        self.registry_form.complete_form_cdes.all()}
 
-            
+
             context["form_progress_cdes"]  = progress_dict.get(self.registry_form.name + "_form_cdes_status",
                                                               initial_completion_cdes)
 
@@ -1378,8 +1378,7 @@ class QuestionnaireResponseView(FormView):
                 patient_creator.create_patient(request.POST, qr, questionnaire_data)
                 messages.info(request, "Patient Created OK")
             except PatientCreatorError as perr:
-                error = perr.message
-                messages.error(request, "Patient Failed to be created: %s" % error)
+                messages.error(request, "Patient Failed to be created: %s" % perr)
 
         context = {}
         context.update(csrf(request))
