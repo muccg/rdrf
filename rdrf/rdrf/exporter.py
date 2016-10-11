@@ -506,11 +506,14 @@ class Exporter(object):
         return data
 
 def cull_defaults(Model, d):
+    def is_default(val, field):
+        return (val == field.default or
+                (val in (None, "") and field.default == fields.NOT_PROVIDED))
+
     for field in Model._meta.fields:
-        if (field.name in d and
-            (d[field.name] == field.default or
-             (not d[field.name] and field.default == fields.NOT_PROVIDED))):
+        if field.name in d and is_default(d[field.name], field):
             del d[field.name]
+
     return d
 
 def str_presenter(dumper, data):
