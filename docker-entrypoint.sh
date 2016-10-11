@@ -215,7 +215,7 @@ if [ "$1" = 'lettuce' ]; then
     export DJANGO_SETTINGS_MODULE=rdrf.settings_test
     shift
     cd /app/rdrf
-    exec django-admin.py harvest --with-xunit --xunit-file=/data/tests.xml $@
+    exec django-admin.py harvest --with-xunit --xunit-file=/data/tests.xml --verbosity=2 $@
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|lettuce|runtests|runserver|uwsgi|uwsgi_fixtures]"
