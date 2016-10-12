@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             model_name='parentguardian',
             name='gender',
             field=models.CharField(max_length=1, choices=[(
-                b'1', b'Male'), (b'2', b'Female'), (b'3', b'Indeterminate')]),
+                '1', 'Male'), ('2', 'Female'), ('3', 'Indeterminate')]),
         ),
         migrations.RunPython(
             forwards_func,

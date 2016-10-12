@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='emailnotification',
             name='email_from',
-            field=models.EmailField(default=b'no-reply@DOMAIN.COM', max_length=254),
+            field=models.EmailField(default='no-reply@DOMAIN.COM', max_length=254),
         ),
     ]

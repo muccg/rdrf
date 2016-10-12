@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
             model_name='patientconsent',
             name='form',
             field=models.FileField(storage=registry.patients.models.PatientConsentStorage(),
-                                   upload_to=b'consents', null=True, verbose_name=b'Consent form', blank=True),
+                                   upload_to='consents', null=True, verbose_name='Consent form', blank=True),
         ),
     ]

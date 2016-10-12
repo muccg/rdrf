@@ -14,13 +14,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='living_status',
-            field=models.CharField(default=b'Alive', max_length=80, choices=[
-                                   (b'Alive', b'Living'), (b'Deceased', b'Deceased')]),
+            field=models.CharField(default='Alive', max_length=80, choices=[
+                                   ('Alive', 'Living'), ('Deceased', 'Deceased')]),
         ),
         migrations.AlterField(
             model_name='patientrelative',
             name='sex',
-            field=models.CharField(max_length=1, choices=[(b'1', b'Male'),
-                                                          (b'2', b'Female'), (b'3', b'Indeterminate')]),
+            field=models.CharField(max_length=1, choices=[('1', 'Male'),
+                                                          ('2', 'Female'), ('3', 'Indeterminate')]),
         ),
     ]

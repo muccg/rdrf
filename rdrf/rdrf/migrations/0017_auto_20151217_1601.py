@@ -131,12 +131,12 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 max_length=80,
                 choices=[
-                    (b'initial',
-                     b'initial'),
-                    (b'testing',
-                     b'testing'),
-                    (b'1.0.17',
-                     b'populate context_id on all patient records')]),
+                    ('initial',
+                     'initial'),
+                    ('testing',
+                     'testing'),
+                    ('1.0.17',
+                     'populate context_id on all patient records')]),
         ),
         migrations.RunPython(
             forwards_func,

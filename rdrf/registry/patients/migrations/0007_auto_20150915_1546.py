@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='state',
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.SET_NULL,
-                verbose_name=b'State/Province/Territory',
+                verbose_name='State/Province/Territory',
                 blank=True,
                 to='patients.State',
                 null=True),
