@@ -476,13 +476,11 @@ class ColumnContextMenu(Column):
             self.free_forms = filter(user.can_view, registry.free_forms)
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
-        logger.debug("!!!!!!!!!!!!!!! returning cell for patient %s" % patient)
         return "".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
         if not self.registry_has_context_form_groups:
             # if there are no context groups -normal registry
-            logger.debug("there are no context groups ")
             return [self._get_forms_button(patient, None, self.free_forms)]
         else:
             # display one button per form group
@@ -498,7 +496,6 @@ class ColumnContextMenu(Column):
                                                       multiple_form_group.forms))
 
 
-            logger.debug("buttons = %s" % buttons)
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
