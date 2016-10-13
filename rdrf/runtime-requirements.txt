@@ -4,7 +4,7 @@ django-ajax-selects==1.5.0
 django-anymail==0.4.2
 django-countries==4.0
 django-extensions==1.7.4
-django-iprestrict==1.0.1
+django-iprestrict==1.0.2
 django-messages-ui==0.2.7
 django-nose==1.4.4
 django-positions==0.5.3
