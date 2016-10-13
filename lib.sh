@@ -481,7 +481,7 @@ check_migrations() {
 
     set -x
     set +e
-    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin makemigrations --dry-run --noinput -e
+    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin makemigrations  --dry-run --noinput --check 
     local check=$?
     set -e
     set +x
