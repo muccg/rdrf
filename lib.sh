@@ -481,10 +481,11 @@ check_migrations() {
 
     set -x
     set +e
-    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin makemigrations  --dry-run --noinput --check 
-    local check=$?
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations  --dry-run --noinput --check 
+    local rval=$?
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} stop
     set -e
     set +x
 
-    exec expr $check = 1 > /dev/null
+    exit $rval
 }
