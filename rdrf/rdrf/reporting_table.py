@@ -18,7 +18,7 @@ class ColumnLabeller(object):
     def get_label(self, column_name):
         s = self._get_label(column_name)
 
-        return s.upper().encode('ascii', 'replace')
+        return s.upper()
 
     def _get_label(self, column_name):
         # relies on the encoding of the column names
@@ -390,7 +390,7 @@ class ReportingTableGenerator(object):
         for k in value_dict:
             value = value_dict[k]
             if isinstance(value, str):
-                value_dict[k] = value.encode("ascii", "replace")
+                value_dict[k] = value
 
         self.engine.execute(self.table.insert().values(**value_dict))
 
