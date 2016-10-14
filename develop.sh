@@ -115,7 +115,7 @@ reexport_test_zip() {
 
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost /app/docker-entrypoint.sh /app/scripts/reexport_zip.sh $1
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml run --rm runservertest /app/docker-entrypoint.sh /app/scripts/reexport_zip.sh $1
     local rval=$?
     set -e
     set +x
