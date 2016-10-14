@@ -99,7 +99,7 @@ class ReportingTableGenerator(object):
         self.warning_messages = []
 
     def _create_engine(self):
-        report_db_data = settings.DATABASES["reporting"]
+        report_db_data = settings.DATABASES["default"]
         db_user = report_db_data["USER"]
         db_pass = report_db_data["PASSWORD"]
         database = report_db_data["NAME"]
@@ -592,7 +592,7 @@ class ReportTable(object):
         return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
 
     def _create_engine(self):
-        report_db_data = settings.DATABASES["reporting"]
+        report_db_data = settings.DATABASES["default"]
         db_user = report_db_data["USER"]
         db_pass = report_db_data["PASSWORD"]
         database = report_db_data["NAME"]
