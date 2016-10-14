@@ -24,8 +24,11 @@ def exported_data_path():
 
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
-    subprocess.check_call(["mongo", "--host", "mongo", "--eval",
-                           "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+    cmd = "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"
+    try:
+        subprocess.check_call(["mongo", "--host", "mongo", "--eval", cmd])
+    except subprocess.CalledProcessError:
+        logger.exception("Dropping mongo databases failed")
 
 
 def reset_database_connection():
