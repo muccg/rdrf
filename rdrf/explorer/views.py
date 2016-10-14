@@ -308,21 +308,6 @@ def _get_default_params(request, form):
     }
 
 
-def _get_header(result):
-    header = []
-    if result:
-        for key in result[0].keys():
-            header.append(key.encode("utf8"))
-        return header
-
-
-def _get_content(result, header):
-    row = []
-    for h in header:
-        row.append(result.get(h.decode("utf8"), "?"))
-    return row
-
-
 class Humaniser(object):
     """
     If a display name/value is appropriate for a field, return it

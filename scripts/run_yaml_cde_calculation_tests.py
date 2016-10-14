@@ -23,7 +23,7 @@ def main():
     parser.add_argument("test_csvs", metavar="CSV", nargs="+",
                         type=argparse.FileType("r"),
                         help="CSV files containing test definitions")
-    parser.add_argument("--outfile", metavar="FILE", type=argparse.FileType("wb"),
+    parser.add_argument("--outfile", metavar="FILE", type=argparse.FileType("w"),
                         help="Output file")
     parser.add_argument("--verbose", "-v", action="count",
                         help="More info for debugging tests")
@@ -77,12 +77,10 @@ def run_tests(registry, csv_file, opts):
     return num_tests == num_success
 
 def setup_test(cols, num, filename):
-    check_code = cols["check"].decode("utf-8")
-    desc = cols.get("testcase", "").decode("utf-8")
-    params = {code.decode("utf-8"): val.decode("utf-8")
-              for code, val in cols.items()
+    params = {code: val for code, val in cols.items()
               if code not in ("check", "testcase")}
-    return TestCase(filename, num, check_code, params, desc)
+    desc = cols.get("testcase", "")
+    return TestCase(filename, num, cols["check"], params, desc)
 
 def load_adsafe_js():
     adsafe_path = "../rdrf/rdrf/static/js/vendor/adsafe-min.js"
@@ -127,7 +125,7 @@ def parse_output(output):
 
 def exec_script(script):
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".js", prefix="registry_test_") as js:
-        js.write(script.encode("utf-8"))
+        js.write(script)
         js.flush()
 
         try:
@@ -163,7 +161,7 @@ def print_failure(registry, result, params, opts):
             log(opts, result.output)
 
 def log(opts, text):
-    opts.outfile.write(text.encode("utf-8"))
+    opts.outfile.write(text)
 
 if __name__ == '__main__':
     sys.exit(main())
