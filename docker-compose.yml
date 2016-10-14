@@ -36,7 +36,6 @@ runserver:
     - db
     - cache
     - mongo
-    - smtp
   ports:
     - "8000:8000"
 

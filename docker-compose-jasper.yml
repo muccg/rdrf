@@ -10,11 +10,6 @@ jasper:
   links:
     - db:db
 
-smtp:
-  extends:
-    file: docker-compose-common.yml
-    service: smtp
-
 db:
   extends:
     file: docker-compose-common.yml
@@ -47,7 +42,6 @@ runserver:
     - db
     - cache
     - mongo
-    - smtp
     - jasper
   ports:
     - "8000:8000"
