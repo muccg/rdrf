@@ -52,7 +52,7 @@ class BaseRegistration(object):
         django_user.is_staff = True
         return django_user
 
-    def _create_patient_address(self, patient, request, address_type="POST"):
+    def _create_patient_address(self, patient, request, address_type="Postal"):
         address = PatientAddress.objects.create(
             patient=patient,
             address_type=self.get_address_type(address_type),
