@@ -83,7 +83,7 @@ def after_scenario(scenario, outline, test_steps):
 
 @after.each_step
 def screenshot_step(step):
-    if not step.passed and step.scenario is not None:
+    if not step.passed and getattr(step, "scenario", None) is not None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
         file_name = "/data/False-step-{0}.png".format(step_name)
