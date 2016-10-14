@@ -8,13 +8,6 @@ dbtest:
     file: docker-compose-common.yml
     service: db
 
-reportingtest:
-  extends:
-    file: docker-compose-common.yml
-    service: reporting
-  ports:
-    - "25633:5432"
-
 cachetest:
   extends:
     file: docker-compose-common.yml
@@ -36,7 +29,6 @@ runservertest:
     - DEPLOYMENT=test
   links:
     - dbtest:db
-    - reportingtest:reporting
     - cachetest:cache
     - mongotest:mongo
   ports:

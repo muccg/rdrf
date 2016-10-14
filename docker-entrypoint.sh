@@ -32,9 +32,6 @@ function wait_for_services {
     if [[ "$WAIT_FOR_MONGO" ]] ; then
         dockerwait $MONGOSERVER $MONGOPORT
     fi
-    if [[ "$WAIT_FOR_REPORTING" ]]; then
-        dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
-    fi
     if [[ "$WAIT_FOR_HOST_PORT" ]]; then
         dockerwait $DOCKER_ROUTE $WAIT_FOR_HOST_PORT
     fi
@@ -52,12 +49,6 @@ function defaults {
     : ${DBPASS:="${DBUSER}"}
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
-
-    : ${REPORTINGDBSERVER:=${DBSERVER}}
-    : ${REPORTINGDBPORT:=${DBPORT}}
-    : ${REPORTINGDBUSER:=${DBUSER}}
-    : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
-    : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
 
     : ${UWSGISERVER:="uwsgi"}
     : ${UWSGIPORT:="9000"}
@@ -81,7 +72,6 @@ function defaults {
     : ${TEST_WAIT:="30"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
-    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT
 }
 
