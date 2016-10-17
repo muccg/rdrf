@@ -328,6 +328,7 @@ _start_test_stack() {
 
 
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
