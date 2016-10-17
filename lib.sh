@@ -328,6 +328,7 @@ _start_test_stack() {
 
 
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
@@ -356,6 +357,7 @@ _start_prod_stack() {
 
 
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
@@ -484,6 +486,7 @@ check_migrations() {
     docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations  --dry-run --noinput --check 
     local rval=$?
     docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} stop
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} rm --all -v --force
     set -e
     set +x
 

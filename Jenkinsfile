@@ -29,7 +29,8 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_lettuce'
         }
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png', fingerprint: true])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
