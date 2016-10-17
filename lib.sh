@@ -486,6 +486,7 @@ check_migrations() {
     docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations  --dry-run --noinput --check 
     local rval=$?
     docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} stop
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} rm --all -v --force
     set -e
     set +x
 
