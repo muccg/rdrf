@@ -28,8 +28,11 @@ node {
     stage('Lettuce tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_lettuce'
+            sh 'pwd'
+            sh 'ls -la'
+            sh 'ls -la ./data/selenium/*'
         }
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png', fingerprint: true])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
