@@ -29,7 +29,6 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_lettuce'
         }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/tests.xml'])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
     }
 
