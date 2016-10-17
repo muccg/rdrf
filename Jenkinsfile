@@ -30,6 +30,7 @@ node {
             sh './develop.sh dev_lettuce'
             sh 'pwd'
             sh 'ls -la'
+            sh 'ls -la ./data/*'
             sh 'ls -la ./data/selenium/*'
         }
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png', fingerprint: true])
