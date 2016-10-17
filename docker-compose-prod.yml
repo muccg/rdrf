@@ -41,7 +41,6 @@ uwsgiprod:
   links:
     - dbprod:db
     - cacheprod:cache
-    - reportingprod:reporting
     - mongoprod:mongo
   ports:
     - "8433:8433"
