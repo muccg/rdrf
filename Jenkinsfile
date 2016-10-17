@@ -15,14 +15,12 @@ node {
             sh './develop.sh docker_warm_cache'
             sh './develop.sh dev_build'
             sh './develop.sh check_migrations'
-            sh 'docker ps'
         }
     }
 
     stage('Unit tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
-            sh 'docker ps'
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
@@ -30,10 +28,6 @@ node {
     stage('Lettuce tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_lettuce'
-            sh 'pwd'
-            sh 'ls -la'
-            sh 'ls -la ./data/*'
-            sh 'docker ps'
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png', fingerprint: true])
