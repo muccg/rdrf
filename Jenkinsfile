@@ -35,6 +35,7 @@ node {
             sh 'ls -la ./data/*'
             sh 'docker ps'
         }
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png', fingerprint: true])
     }
 
