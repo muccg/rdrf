@@ -66,7 +66,7 @@ def restore_snapshot(snapshot_name):
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
-    subprocess.check_call(["django-admin.py", "import", "--force", "{0}/{1}".format(exported_data_path(), export_name)])
+    subprocess.check_call(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
 
 def show_stats(export_name):
