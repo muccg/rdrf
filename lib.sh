@@ -356,6 +356,7 @@ _start_prod_stack() {
 
 
     set -x
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
