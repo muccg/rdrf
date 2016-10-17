@@ -328,7 +328,7 @@ _start_test_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'
@@ -356,7 +356,7 @@ _start_prod_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
     success 'prod stack up'
