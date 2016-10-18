@@ -56,6 +56,19 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Patient
+        exclude = ('next_of_kin_family_name',
+                   'next_of_kin_given_names',
+                   'next_of_kin_relationship',
+                   'next_of_kin_address',
+                   'next_of_kin_suburb',
+                   'next_of_kin_state',
+                   'next_of_kin_postcode',
+                   'next_of_kin_home_phone',
+                   'next_of_kin_mobile_phone',
+                   'next_of_kin_work_phone',
+                   'next_of_kin_email',
+                   'next_of_kin_parent_place_of_birth',
+                   'next_of_kin_country')
         extra_kwargs = {
             'rdrf_registry': {'required': False, 'lookup_field': 'code'},
             'consent': {'required': True},
