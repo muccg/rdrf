@@ -1,6 +1,7 @@
 import pycountry
 
 from django.db.models import Q
+from django.http import Http404
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -13,7 +14,14 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from .serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from .serializers import (CountryAdapter,
+                          CountrySerializer,
+                          PatientSerializer,
+                          RegistrySerializer,
+                          WorkingGroupSerializer,
+                          CustomUserSerializer,
+                          DoctorSerializer,
+                          NextOfKinRelationshipSerializer)
 
 
 import logging
@@ -137,28 +145,24 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
 
 
-class ListCountries(APIView):
+class CountryViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get(self, request, format=None):
-        countries = sorted(pycountry.countries, key=lambda c: c.name)
+    def list(self, request, format=None):
+        countries = sorted([CountryAdapter(c) for c in pycountry.countries], key=lambda c: c.name)
+        serializer = CountrySerializer(countries, many=True, context={'request': request})
+        return Response(serializer.data)
 
-        def to_dict(country):
-            # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
-            WANTED_FIELDS = ('name', 'numeric', 'official_name')
-            ALIASES = {
-                'alpha2': 'country_code',
-                'alpha3': 'country_code3',
-            }
+    def retrieve(self, request, pk, format=None):
+        country = self.get_object(pk)
+        serializer = CountrySerializer(CountryAdapter(country), context={'request': request})
+        return Response(serializer.data)
 
-            d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
-            for attr, alias in ALIASES.items():
-                d[alias] = getattr(country, attr)
-            d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
-
-            return d
-
-        return Response(list(map(to_dict, countries)))
+    def get_object(self, code):
+        try:
+            return pycountry.countries.get(alpha2=code)
+        except KeyError:
+            raise Http404
 
 
 class ListStates(APIView):

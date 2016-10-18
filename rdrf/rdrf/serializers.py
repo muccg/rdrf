@@ -133,3 +133,32 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'registry': {'lookup_field': 'code'},
         }
+
+
+class CountryAdapter(object):
+    '''Adapter from pycountry's Country object.
+
+    Adds aliases and return None for unset attrs.'''
+
+    ALIASES = {
+        'country_code': 'alpha2',
+        'pk': 'alpha2',
+        'country_code3': 'alpha3',
+    }
+
+    def __init__(self, country):
+        self._country = country
+
+    def __getattr__(self, attr):
+        if attr in self.ALIASES:
+            attr = self.ALIASES[attr]
+        return getattr(self._country, attr, None)
+
+
+class CountrySerializer(serializers.Serializer):
+    url = serializers.HyperlinkedIdentityField(view_name='country-detail')
+    numeric = serializers.IntegerField()
+    country_code = serializers.CharField(min_length=2, max_length=2)
+    country_code3 = serializers.CharField(min_length=3, max_length=3)
+    name = serializers.CharField()
+    official_name = serializers.CharField()
