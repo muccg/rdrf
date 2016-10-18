@@ -454,8 +454,10 @@ REST_FRAMEWORK = {
 
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
 EMAIL_NOTE_NEW_PATIENT = "new-patient"
+EMAIL_ACCOUNT_LOCKED = "account-locked"
 
 EMAIL_NOTIFICATIONS = (
+    (EMAIL_ACCOUNT_LOCKED, "Account Locked"),
     (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )
