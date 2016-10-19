@@ -396,6 +396,9 @@ run_unit_tests() {
 
 _start_selenium() {
     info 'selenium stack up'
+
+    # remove any previous build artifacts from top level selenium dir
+    rm --force data/selenium/* || true
     mkdir -p data/selenium
     chmod o+rwx data/selenium
 
