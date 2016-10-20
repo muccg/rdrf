@@ -430,6 +430,9 @@ _start_lettucetests() {
     local rval=$?
     set +x
 
+    info 'artifacts'
+    ls -lath data/selenium/ || true
+
     return $rval
 }
 
