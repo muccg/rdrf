@@ -432,4 +432,32 @@ def wrap_uploaded_files(registry_code, post_files_data):
 
     return { key: wrap(key, value) for key, value in list(post_files_data.items()) }
 
-            
+
+# TODO review - needed this quickly
+def print_registry_definition(registry_code, indent=4, no_cdes=False, no_pvgs=False):
+    from .models import Registry
+    registry = Registry.objects.get(code=registry_code)
+    print('Registry: %s (%s)' % (registry.name, registry.code))
+    for form in registry.forms:
+        title = '%s (Form)' % form.nice_name
+        pref = ' ' * indent
+        print()
+        print('%s%s' % (pref, title))
+        if not no_cdes:
+            print('%s%s' % (pref, '=' * len(title)))
+        for section in form.section_models:
+            title = '%s (section of "%s")' % (section.display_name, form.nice_name)
+            pref = ' ' * indent * 2
+            if not no_cdes:
+                print()
+            print('%s%s' % (pref, title))
+            if not no_cdes:
+                print('%s%s' % (pref, '-' * len(title)))
+            if not no_cdes:
+                for cde in section.cde_models:
+                    pvg = cde.pv_group
+                    datatype = 'choice' if pvg else cde.datatype
+                    print('%s - %s (%s): %s' % (' ' * indent * 3, cde.code, cde.name, datatype))
+                    if pvg and not no_pvgs:
+                        for pv in pvg.permitted_value_set.all().order_by('position'):
+                            print('%s * %s.%s - %s' % (' ' * indent * 4, pvg.code, pv.code, pv.value))
