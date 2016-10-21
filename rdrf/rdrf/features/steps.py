@@ -5,6 +5,7 @@ from aloe.registry import STEP_REGISTRY
 from aloe import step, world
 from aloe_webdriver.webdriver import contains_content
 from aloe_webdriver import assert_true
+import aloe_webdriver.screenshot_failed
 
 from selenium.webdriver.common.alert import Alert
 
