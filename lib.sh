@@ -431,7 +431,7 @@ _start_lettucetests() {
     set +x
 
     info 'artifacts'
-    ls -larth data/selenium/ || true
+    ls -laRth data/selenium/ || true
 
     return $rval
 }
