@@ -396,6 +396,9 @@ run_unit_tests() {
 
 _start_selenium() {
     info 'selenium stack up'
+
+    # remove any previous build artifacts from top level selenium dir
+    rm --force -v data/selenium/* || true
     mkdir -p data/selenium
     chmod o+rwx data/selenium
 
@@ -421,13 +424,14 @@ start_seleniumhub() {
 }
 
 
-start_lettucetests() {
+_start_lettucetests() {
     set -x
-    set +e
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
     local rval=$?
-    set -e
     set +x
+
+    info 'artifacts'
+    ls -lath data/selenium/ || true
 
     return $rval
 }
@@ -439,8 +443,10 @@ dev_lettuce() {
     _start_test_stack --force-recreate -d
 
     # Use run so we can get correct return codes from test run
-    start_lettucetests run --rm devlettuce
+    set +e
+    _start_lettucetests run --rm devlettuce
     local rval=$?
+    set -e
 
     _stop_test_stack
     _stop_selenium
@@ -454,8 +460,10 @@ prod_lettuce() {
     _start_prod_stack --force-recreate -d
 
     # Use run so we can get correct return codes from test run
-    start_lettucetests run --rm prodlettuce
+    set +e
+    _start_lettucetests run --rm prodlettuce
     local rval=$?
+    set -e
 
     _stop_prod_stack
     _stop_selenium

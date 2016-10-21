@@ -10,7 +10,7 @@ class RdrfRegistrationView(RegistrationView):
         self.registry_code = kwargs['registry_code']
         form_class = self.get_form_class(request)
         form = self.get_form(form_class)
-        return self.render(self.get_context_data(form=form))
+        return self.render_to_response(self.get_context_data(form=form))
 
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class(request)
