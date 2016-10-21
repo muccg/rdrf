@@ -88,6 +88,15 @@ def de_camelcase(s):
     return " ".join(chunks)
 
 
+def camel_to_snake(s, sep='_'):
+    chunks = re.findall('[A-Z][^A-Z]*', s)
+    return sep.join([x.lower() for x in chunks])
+
+
+def camel_to_dash_separated(s):
+    return camel_to_snake(s, sep='-')
+
+
 class FormLink(object):
 
     def __init__(self, patient_id, registry, registry_form, selected=False, context_model=None):

@@ -1,5 +1,9 @@
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from . import models as m
+from .utils import camel_to_snake, camel_to_dash_separated, mongo_key
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 
@@ -49,10 +53,15 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class ClinicalDataHyperlinkId(PatientHyperlinkId):
+    view_name = 'clinical-data-detail'
+
+
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
     url = PatientHyperlinkId(read_only=True, source='*')
     user = CustomUserSerializer()
+    clinical_data = ClinicalDataHyperlinkId(read_only=True, source='*')
 
     class Meta:
         model = Patient
@@ -162,3 +171,182 @@ class CountrySerializer(serializers.Serializer):
     country_code3 = serializers.CharField(min_length=3, max_length=3)
     name = serializers.CharField()
     official_name = serializers.CharField()
+
+
+# Used for self-url on PermittedValue
+class PermittedValueHyperlinkId(serializers.HyperlinkedRelatedField):
+    view_name = 'permitted-value-detail'
+
+    def get_url(self, obj, view_name, request, format):
+        if obj is None:
+            return None
+        url_kwargs = {
+            'pvg_code': obj.pv_group.code,
+            'code': obj.code,
+        }
+        return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
+
+
+class PermittedValueSerializer(serializers.HyperlinkedModelSerializer):
+    url = PermittedValueHyperlinkId(read_only=True, source='*')
+
+    class Meta:
+        model = m.CDEPermittedValue
+        fields = ('url', 'code', 'value', 'desc')
+        extra_kwargs = {
+            'url': {'lookup_field': 'code'},
+        }
+
+
+# Used for url links from sections to PermittedValues
+class PermittedValueFieldHyperlink(PermittedValueHyperlinkId):
+    def get_url(self, obj, *args, **kwargs):
+        attr = getattr(obj, self.attr_name)
+        return super(PermittedValueFieldHyperlink, self).get_url(attr, *args, **kwargs)
+
+
+# Used for url links from sections to multiples of PermittedValues
+# TODO this currently displays the first value instead of nested links
+class PermittedValueMultipleFieldHyperlink(PermittedValueHyperlinkId):
+    def get_url(self, obj, *args, **kwargs):
+        attr = getattr(obj, self.attr_name)
+        if not attr:
+            return None
+        try:
+            first = m.CDEPermittedValue.objects.get(code=attr[0])
+            return super(PermittedValueMultipleFieldHyperlink, self).get_url(first, *args, **kwargs)
+        except m.CDEPermittedValue.DoesNotExist:
+            return None
+
+
+def cde_code_to_field_name(code):
+    # TODO hardcoded
+    if code.startswith('MTM'):
+        code = code[3:]
+    return camel_to_snake(code)
+
+
+class SectionAdapter(object):
+    '''Makes the Mongo doc look like a python object representing data in a Section.
+
+    For field names drop 'MTM' prefix and convert camelCase to snake_case.
+    If a value is a permitted value's name it returns the permitted value.
+    '''
+    def __init__(self, doc):
+        self._doc = doc
+        self.ALIASES = {}
+        try:
+            section = m.Section.objects.get(code=self.SECTION_CODE)
+            self.ALIASES = {
+                cde_code_to_field_name(cde.code): mongo_key(self.FORM_CODE, self.SECTION_CODE, cde.code)
+                for cde in section.cde_models}
+        except m.Section.DoesNotExist:
+            pass
+
+    def __getattr__(self, attr):
+        if attr in self.ALIASES:
+            attr = self.ALIASES[attr]
+        val = self._doc.get(attr)
+        pv = self._get_pv(attr, val)
+        if pv is not None:
+            return pv
+        return val
+
+    def _get_pv(self, name, val):
+        try:
+            cde_name = name.split(settings.FORM_SECTION_DELIMITER)[-1]
+            cde = m.CommonDataElement.objects.get(code=cde_name)
+            if cde.pv_group is not None:
+                pv = cde.pv_group.permitted_value_set.get(code=val)
+                return pv
+        except ObjectDoesNotExist:
+            pass
+
+
+def create_adapter(form_code, section_code):
+    '''Create a SectionAdapter subclass for the given section.'''
+    # TODO hardcoded
+    name = section_code[3:] if section_code.startswith('MTM') else section_code
+    return type(name + 'Adapter', (SectionAdapter, ),
+                {'FORM_CODE': form_code, 'SECTION_CODE': section_code})
+
+
+def create_link_to_pv(field_name):
+    '''Creates a field that is a URL link to the given PermittedValue'''
+    return type('PermittedValueFieldHyperlink' + field_name,
+                (PermittedValueFieldHyperlink,),
+                {'attr_name': field_name})
+
+
+def create_link_to_multiple_pv(field_name):
+    '''Creates a field that is a URL link to the a list of PermittedValues'''
+    return type('PermittedValueMultipleFieldHyperlink' + field_name,
+                (PermittedValueMultipleFieldHyperlink,),
+                {'attr_name': field_name})
+
+
+def cde_field(cde):
+    '''Creates a SerializerField for a given cde'''
+    if cde.pv_group is not None:
+        # TODO handle multiple choices
+        field_name = cde_code_to_field_name(cde.code)
+        if cde.allow_multiple:
+            cls = create_link_to_multiple_pv(field_name)
+        else:
+            cls = create_link_to_pv(cde_code_to_field_name(cde.code))
+        return cls(read_only=True, source='*')
+    elif cde.datatype == 'date':
+        return serializers.DateTimeField()
+    elif cde.datatype == 'file':
+        # TODO deal with files, currently they're all None
+        return serializers.FileField()
+    return serializers.CharField()
+
+
+def create_section_serializer(form_code, section_code):
+    '''Dynamically creates a Serializer for a Section with fields representing each CDE'''
+    # TODO hardcoded
+    name = section_code[3:] if section_code.startswith('MTM') else section_code
+
+    fields = {}
+    try:
+        section = m.Section.objects.get(code=section_code)
+        fields = dict([
+            (cde_code_to_field_name(cde.code), cde_field(cde))
+            for cde in section.cde_models])
+
+    except m.Section.DoesNotExist:
+        pass
+
+    return type(name + 'Serializer', (serializers.Serializer,), fields)
+
+
+def create_patient_hyperlink_id(name, view_name):
+    if not name.endswith('HyperlinkId'):
+        name += 'HyperlinkId'
+    return type(name, (PatientHyperlinkId,), {'view_name': view_name})
+
+
+def create_link_to_section_field(form_name, section_code):
+    # TODO hardcoded
+    # and similar logic as in api_urls.create_url
+    # Make class that is initialised once with section and can create url
+    # detail view and this field
+    name = section_code[3:] if section_code.startswith('MTM') else section_code
+    field_name = camel_to_snake(name)
+    view_name = 'clinical:' + camel_to_dash_separated(name + 'Detail')
+    link_field = create_patient_hyperlink_id(name, view_name)(read_only=True, source='*')
+
+    return (field_name, link_field)
+
+
+def create_clinical_data_serialzer():
+    fields = dict([create_link_to_section_field(form.name, section.code)
+                   for registry in Registry.objects.all()
+                   for form in registry.forms
+                   for section in form.section_models])
+
+    return type('ClinicalDataSerializer', (serializers.Serializer,), fields)
+
+
+ClinicalDataSerializer = create_clinical_data_serialzer()

@@ -2,6 +2,7 @@ import pycountry
 
 from django.db.models import Q
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -14,9 +15,15 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
+from .models import CDEPermittedValueGroup, CDEPermittedValue
+from .dynamic_data import DynamicDataWrapper
 from .serializers import (CountryAdapter,
                           CountrySerializer,
+                          create_adapter,
+                          create_section_serializer,
+                          ClinicalDataSerializer,
                           PatientSerializer,
+                          PermittedValueSerializer,
                           RegistrySerializer,
                           WorkingGroupSerializer,
                           CustomUserSerializer,
@@ -91,7 +98,6 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PatientList(generics.ListCreateAPIView):
-
     serializer_class = PatientSerializer
 
     def _get_registry_by_code(self, registry_code):
@@ -135,6 +141,37 @@ class RegistryViewSet(viewsets.ModelViewSet):
         return obj
 
 
+# TODO add resources for PermittedValueGrous, and CDEs
+# review permissions etc.
+
+
+class PermittedValueDetail(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get(self, request, pvg_code, code, format=None):
+        pv = self.get_pv(pvg_code, code)
+        serializer = PermittedValueSerializer(pv, context={'request': request})
+        return Response(serializer.data)
+
+    def get_pv(self, pvg_code, code):
+        return get_object_or_404(CDEPermittedValue, pv_group__code=pvg_code, code=code)
+
+
+class PermittedValueList(generics.ListCreateAPIView):
+    serializer_class = PermittedValueSerializer
+
+    def _get_pvg_by_code(self, pvg_code):
+        try:
+            return CDEPermittedValueGroup.objects.get(code=pvg_code)
+        except CDEPermittedValueGroup.DoesNotExist:
+            raise BadRequestError("Invalid permittable value group code '%s'" % pvg_code)
+
+    def get_queryset(self):
+        pvg_code = self.kwargs.get('pvg_code')
+        pvg = self._get_pvg_by_code(pvg_code)
+        return CDEPermittedValue.objects.filter(pv_group=pvg)
+
+
 class WorkingGroupViewSet(viewsets.ModelViewSet):
     queryset = WorkingGroup.objects.all()
     serializer_class = WorkingGroupSerializer
@@ -167,6 +204,7 @@ class CountryViewSet(viewsets.ViewSet):
 
 class ListStates(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
 
     def get(self, request, country_code, format=None):
         try:
@@ -177,10 +215,10 @@ class ListStates(APIView):
             # raise BadRequestError("Invalid country code '%s'" % country_code)
             states = []
 
-        WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
-        to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
+        def to_dict(x):
+            return {k: getattr(x, k) for k in self.WANTED_FIELDS}
 
-        return Response(list(map(to_dict, states)))
+        return Response([to_dict(s) for s in states])
 
 
 class ListClinicians(APIView):
@@ -288,3 +326,42 @@ class LookupIndex(APIView):
             }
 
         return Response(list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))
+
+
+class ClinicalDataDetail(APIView):
+    '''Clinical Data entry point'''
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, registry_code, pk, format=None):
+        patient = get_object_or_404(Patient, pk=pk)
+        serializer = ClinicalDataSerializer(patient, context={'request': request})
+        return Response(serializer.data)
+
+
+class SectionDetail(APIView):
+    permission_classes = (IsAuthenticated,)
+    adapter = None
+    serializer = None
+
+    def get(self, request, registry_code, pk, format=None):
+        doc = self.get_doc(registry_code, pk)
+        serializer = self.serializer(self.adapter(doc), context={'request': request})
+        return Response(serializer.data)
+
+    def get_doc(self, registry_code, pk):
+        patient = get_object_or_404(Patient, pk=pk)
+        wrapper = DynamicDataWrapper(patient)
+        doc = wrapper.load_dynamic_data(registry_code, 'cdes')
+        if doc is None:
+            raise Http404
+        return doc
+
+
+def create_section_detail(name, form, section):
+    if not name.endswith('Detail'):
+        name += 'Detail'
+    doc = 'Section of Form "%s"' % form.nice_name
+    return type(name, (SectionDetail,),
+                {'__doc__': doc,
+                 'adapter': create_adapter(form.name, section.code),
+                 'serializer': create_section_serializer(form.name, section.code)})
