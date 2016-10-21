@@ -398,9 +398,9 @@ _start_selenium() {
     info 'selenium stack up'
 
     # remove any previous build artifacts from top level selenium dir
-    rm --force -v data/selenium/* || true
-    mkdir -p data/selenium
-    chmod o+rwx data/selenium
+    rm --force -v data/selenium/dev/*  data/selenium/prod/* || true
+    mkdir -p data/selenium/dev data/selenium/prod
+    chmod o+rwx data/selenium/dev data/selenium/prod
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull --ignore-pull-failures
@@ -431,7 +431,7 @@ _start_lettucetests() {
     set +x
 
     info 'artifacts'
-    ls -lath data/selenium/ || true
+    ls -larth data/selenium/ || true
 
     return $rval
 }

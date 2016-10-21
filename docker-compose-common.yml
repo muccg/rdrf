@@ -11,11 +11,17 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
-dataselenium:
+dataprodselenium:
   image: debian:jessie
   volumes:
     - .:/app
-    - ./data/selenium:/data
+    - ./data/selenium/prod:/data
+
+datadevselenium:
+  image: debian:jessie
+  volumes:
+    - .:/app
+    - ./data/selenium/dev:/data
 
 jasper:
   image: muccg/jasper-reports-server:6.1.1

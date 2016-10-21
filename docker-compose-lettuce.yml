@@ -1,8 +1,13 @@
 #
-dataselenium:
+datadevselenium:
   extends:
     file: docker-compose-common.yml
-    service: dataselenium
+    service: datadevselenium
+
+dataprodselenium:
+  extends:
+    file: docker-compose-common.yml
+    service: dataprodselenium
 
 # runs the lettuce tests against docker-compose-teststack.yml
 devlettuce:
@@ -17,7 +22,7 @@ devlettuce:
     - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:
-    - dataselenium
+    - datadevselenium
   external_links:
     - rdrf_runservertest_1:web
     - rdrf_seleniumhub_1:hub
@@ -40,7 +45,7 @@ prodlettuce:
     - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:
-    - dataselenium
+    - dataprodselenium
   external_links:
     - rdrf_uwsgiprod_1:uwsgi
     - rdrf_seleniumhub_1:hub
