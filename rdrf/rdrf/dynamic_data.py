@@ -425,7 +425,7 @@ class DynamicDataWrapper(object):
     def _get_record_query(self, filter_by_context=True):
         django_model = self.obj.__class__.__name__
         django_id = self.obj.pk
-        if filter_by_context:
+        if filter_by_context and self.rdrf_context_id is not None:
             return {"django_model": django_model,
                     "django_id": django_id,
                     "context_id": self.rdrf_context_id}
