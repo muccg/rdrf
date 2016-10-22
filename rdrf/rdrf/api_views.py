@@ -23,16 +23,13 @@ from .serializers import (CountryAdapter,
                           create_section_serializer,
                           ClinicalDataSerializer,
                           PatientSerializer,
+                          PermittedValueGroupSerializer,
                           PermittedValueSerializer,
                           RegistrySerializer,
                           WorkingGroupSerializer,
                           CustomUserSerializer,
                           DoctorSerializer,
                           NextOfKinRelationshipSerializer)
-
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 class BadRequestError(APIException):
@@ -58,11 +55,6 @@ class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
-
-
-class NextOfKinRelationshipDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = NextOfKinRelationship.objects.all()
-    serializer_class = NextOfKinRelationshipSerializer
 
 
 class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
@@ -141,8 +133,13 @@ class RegistryViewSet(viewsets.ModelViewSet):
         return obj
 
 
-# TODO add resources for PermittedValueGrous, and CDEs
+# TODO add resources for PermittedValueGroups, and CDEs
 # review permissions etc.
+
+class PermittedValueGroupViewSet(viewsets.ModelViewSet):
+    queryset = CDEPermittedValueGroup.objects.all()
+    serializer_class = PermittedValueGroupSerializer
+    lookup_field = 'code'
 
 
 class PermittedValueDetail(APIView):

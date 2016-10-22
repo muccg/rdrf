@@ -173,7 +173,7 @@ class CountrySerializer(serializers.Serializer):
     official_name = serializers.CharField()
 
 
-# Used for self-url on PermittedValue
+# Used for url to a PermittedValue
 class PermittedValueHyperlinkId(serializers.HyperlinkedRelatedField):
     view_name = 'permitted-value-detail'
 
@@ -187,14 +187,26 @@ class PermittedValueHyperlinkId(serializers.HyperlinkedRelatedField):
         return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
 
 
+class PermittedValueGroupSerializer(serializers.HyperlinkedModelSerializer):
+    permitted_values = PermittedValueHyperlinkId(many=True, read_only=True)
+
+    class Meta:
+        model = m.CDEPermittedValueGroup
+        fields = ('url', 'code', 'permitted_values')
+        extra_kwargs = {
+            'url': {'lookup_field': 'code'},
+        }
+
+
 class PermittedValueSerializer(serializers.HyperlinkedModelSerializer):
     url = PermittedValueHyperlinkId(read_only=True, source='*')
 
     class Meta:
         model = m.CDEPermittedValue
-        fields = ('url', 'code', 'value', 'desc')
+        fields = ('url', 'code', 'value', 'desc', 'pv_group')
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
+            'pv_group': {'lookup_field': 'code'},
         }
 
 

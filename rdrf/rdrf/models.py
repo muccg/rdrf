@@ -620,6 +620,10 @@ def get_owner_choices():
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
+    @property
+    def permitted_values(self):
+        return self.permitted_value_set
+
     def as_dict(self):
         return {
             'code': self.code,
