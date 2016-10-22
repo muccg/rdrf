@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from .models import CDEPermittedValueGroup, CDEPermittedValue
+from .models import CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from .dynamic_data import DynamicDataWrapper
 from .serializers import (CountryAdapter,
                           CountrySerializer,
@@ -23,6 +23,7 @@ from .serializers import (CountryAdapter,
                           create_section_serializer,
                           ClinicalDataSerializer,
                           PatientSerializer,
+                          CommonDataElementSerializer,
                           PermittedValueGroupSerializer,
                           PermittedValueSerializer,
                           RegistrySerializer,
@@ -139,6 +140,12 @@ class RegistryViewSet(viewsets.ModelViewSet):
 class PermittedValueGroupViewSet(viewsets.ModelViewSet):
     queryset = CDEPermittedValueGroup.objects.all()
     serializer_class = PermittedValueGroupSerializer
+    lookup_field = 'code'
+
+
+class CommonDataElementViewSet(viewsets.ModelViewSet):
+    queryset = CommonDataElement.objects.all()
+    serializer_class = CommonDataElementSerializer
     lookup_field = 'code'
 
 

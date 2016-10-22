@@ -173,6 +173,16 @@ class CountrySerializer(serializers.Serializer):
     official_name = serializers.CharField()
 
 
+class CommonDataElementSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = m.CommonDataElement
+        extra_kwargs = {
+            'url': {'lookup_field': 'code'},
+            'pv_group': {'lookup_field': 'code'},
+        }
+
+
 # Used for url to a PermittedValue
 class PermittedValueHyperlinkId(serializers.HyperlinkedRelatedField):
     view_name = 'permitted-value-detail'
