@@ -61,7 +61,8 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
     url = PatientHyperlinkId(read_only=True, source='*')
     user = CustomUserSerializer()
-    clinical_data = ClinicalDataHyperlinkId(read_only=True, source='*')
+    if getattr(settings, 'API_CLINICAL_DATA_ENABLED', False):
+        clinical_data = ClinicalDataHyperlinkId(read_only=True, source='*')
 
     class Meta:
         model = Patient
@@ -363,10 +364,12 @@ def create_link_to_section_field(form_name, section_code):
 
 
 def create_clinical_data_serialzer():
-    fields = dict([create_link_to_section_field(form.name, section.code)
-                   for registry in Registry.objects.all()
-                   for form in registry.forms
-                   for section in form.section_models])
+    fields = {}
+    if getattr(settings, 'API_CLINICAL_DATA_ENABLED', False):
+        fields = dict([create_link_to_section_field(form.name, section.code)
+                       for registry in Registry.objects.all()
+                       for form in registry.forms
+                       for section in form.section_models])
 
     return type('ClinicalDataSerializer', (serializers.Serializer,), fields)
 

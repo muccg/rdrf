@@ -452,6 +452,8 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': 'v1',
 }
 
+API_CLINICAL_DATA_ENABLED = env.get('api_clinical_data_enabled', False)
+
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
 EMAIL_NOTE_NEW_PATIENT = "new-patient"
 

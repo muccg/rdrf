@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import url, include
 from . import api_views
 from .custom_rest_router import DefaultRouterWithSimpleViews
@@ -22,13 +23,17 @@ router.register(r'registries/(?P<registry_code>\w+)/indices', api_views.LookupIn
 router.register(r'registries/(?P<registry_code>\w+)/clinicians', api_views.ListClinicians, base_name='clinician')
 
 
-urlpatterns = [
-    # Dynamic urls
-    # TODO make sure we avoid clashing urls
-    url(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/clinical_data/$',
-        api_views.ClinicalDataDetail.as_view(), name='clinical-data-detail'),
-    url(r'^clinical_data/', include('rdrf.api_dynamic_urls', namespace='clinical')),
+# Dynamic urls
+# TODO make sure we avoid clashing urls
+clinical_data_urlpatterns = []
+if getattr(settings, 'API_CLINICAL_DATA_ENABLED', False):
+    clinical_data_urlpatterns = [
+        url(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/clinical_data/$',
+            api_views.ClinicalDataDetail.as_view(), name='clinical-data-detail'),
+        url(r'^clinical_data/', include('rdrf.api_dynamic_urls', namespace='clinical')),
+    ]
 
+urlpatterns = clinical_data_urlpatterns + [
     url(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
     url(r'registries/(?P<registry_code>\w+)/patients/$',
         api_views.PatientList.as_view(), name='patient-list'),
