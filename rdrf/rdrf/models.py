@@ -621,30 +621,16 @@ class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
     def as_dict(self):
-        d = {}
-        d["code"] = self.code
-        d["values"] = []
-        for value in CDEPermittedValue.objects.filter(pv_group=self):
-            value_dict = {}
-            value_dict["code"] = value.code
-            value_dict["value"] = value.value
-            value_dict["questionnaire_value"] = value.questionnaire_value
-            value_dict["desc"] = value.desc
-            value_dict["position"] = value.position
-            d["values"].append(value_dict)
-        return d
+        return {
+            'code': self.code,
+            'values': [v.as_dict() for v in self.permitted_value_set.all()]
+        }
 
     def members(self, get_code=True):
-        if get_code:
-            att = "code"
-        else:
-            att = "value"
+        att = "code" if get_code else "value"
+        pvs = self.permitted_value_set.order_by('position')
 
-        return [
-            getattr(
-                v,
-                att) for v in CDEPermittedValue.objects.filter(
-                pv_group=self).order_by('position')]
+        return [getattr(v, att) for v in pvs]
 
     def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
@@ -684,6 +670,10 @@ class CDEPermittedValue(models.Model):
 
     position_formatted.allow_tags = True
     position_formatted.short_description = 'Order position'
+
+    def as_dict(self):
+        return {attr: getattr(self, attr)
+                for attr in ('code', 'value', 'questionnaire_value', 'desc', 'position')}
 
     def __str__(self):
         return "Member of %s" % self.pv_group.code
