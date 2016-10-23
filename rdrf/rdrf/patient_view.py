@@ -467,7 +467,7 @@ class PatientFormMixin(PatientMixin):
                      errors):
         logger.debug("errors = %s" % errors)
         has_errors = len(errors) > 0
-        return self.render(
+        return self.render_to_response(
             self.get_context_data(
                 form=patient_form,
                 all_errors=errors,

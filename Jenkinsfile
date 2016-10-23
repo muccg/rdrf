@@ -29,7 +29,8 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_lettuce'
         }
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/*.xml'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/*.png', fingerprint: true])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
@@ -43,6 +44,8 @@ node {
         stage('Prod lettuce tests') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                 sh './develop.sh prod_lettuce'
+                step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/*.xml'])
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/*.png', fingerprint: true])
             }
         }
 
