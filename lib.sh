@@ -321,7 +321,7 @@ start_dev() {
 
 publish_docker_image() {
     # check we are on master or next_release
-    if [ "${GIT_BRANCH}" = "master" ] || [ "${GIT_BRANCH}" = "next_release" ]; then
+    if [ "${GIT_BRANCH}" = "master" ] || [ "${GIT_BRANCH}" = "next_release" ] || [ "${GIT_BRANCH}" = "rest_api" ]; then
         info "publishing docker image for ${GIT_BRANCH} branch, version ${GIT_TAG}"
     else
         info "skipping publishing docker image for ${GIT_BRANCH} branch"
