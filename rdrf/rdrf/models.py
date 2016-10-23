@@ -42,11 +42,11 @@ class SectionManager(models.Manager):
 
 
 class Section(models.Model):
-    objects = SectionManager()
-
     """
     A group of fields that appear on a form as a unit
     """
+    objects = SectionManager()
+
     code = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=200)
     questionnaire_display_name = models.CharField(max_length=200, blank=True)
@@ -67,11 +67,12 @@ class Section(models.Model):
         return [code.strip() for code in self.elements.split(",")]
 
     @property
+    def cdes(self):
+        return CommonDataElement.objects.filter(code__in=self.get_elements())
+
+    @property
     def cde_models(self):
-        codes = self.get_elements()
-        qs = CommonDataElement.objects.filter(code__in=codes)
-        cdes = {cde.code: cde for cde in qs}
-        return [cdes[code] for code in codes]
+        return list(self.cdes)
 
     def clean(self):
         errors = {}
