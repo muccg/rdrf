@@ -18,20 +18,21 @@ from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelatio
 from registry.groups.models import CustomUser, WorkingGroup
 from .models import CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue, RegistryForm, Section
 from .dynamic_data import DynamicDataWrapper
-from .serializers import (CountryAdapter,
-                          CountrySerializer,
-                          create_adapter,
+from .serializers import (create_adapter,
                           create_section_serializer,
                           ClinicalDataSerializer,
-                          PatientSerializer,
                           CommonDataElementSerializer,
+                          CountryAdapter,
+                          CountrySerializer,
+                          CustomUserSerializer,
+                          DoctorSerializer,
+                          PatientSerializer,
                           PermittedValueGroupSerializer,
                           PermittedValueSerializer,
                           RegistrySerializer,
                           RegistryFormSerializer,
+                          SectionSerializer,
                           WorkingGroupSerializer,
-                          CustomUserSerializer,
-                          DoctorSerializer,
                           NextOfKinRelationshipSerializer)
 
 
@@ -53,14 +54,15 @@ class RegistryList(generics.ListCreateAPIView):
     serializer_class = RegistrySerializer
 
 
-class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
-
-
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
+
+
+class SectionViewSet(viewsets.ModelViewSet):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+    lookup_field = 'code'
 
 
 class RegistryFormList(generics.ListCreateAPIView):

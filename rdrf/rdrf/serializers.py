@@ -154,11 +154,17 @@ class RegistryFormHyperlinkId(serializers.HyperlinkedRelatedField):
 
 class RegistryFormSerializer(serializers.HyperlinkedModelSerializer):
     url = RegistryFormHyperlinkId(read_only=True, source='*')
+    form_sections = serializers.HyperlinkedRelatedField(
+            many=True,
+            read_only=True,
+            lookup_field='code',
+            view_name='section-detail')
+
 
     class Meta:
         model = m.RegistryForm
         fields = ('url', 'name', 'registry', 'header', 'questionnaire_display_name',
-                  'is_questionnaire', 'is_questionnaire_login', 'sections',
+                  'is_questionnaire', 'is_questionnaire_login', 'form_sections',
                   # 'complete_form_cdes',
                   'position')
         extra_kwargs = {
@@ -170,6 +176,22 @@ class RegistryFormSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         validated_data['registry'] = self.initial_data.get('registry')
         return super(RegistryFormSerializer, self).create(validated_data)
+
+
+class SectionSerializer(serializers.HyperlinkedModelSerializer):
+    cdes = serializers.HyperlinkedRelatedField(
+            many=True,
+            read_only=True,
+            lookup_field='code',
+            view_name='commondataelement-detail')
+
+    class Meta:
+        model = m.Section
+        fields = ('url', 'code', 'display_name', 'questionnaire_display_name',
+                  'allow_multiple', 'extra', 'cdes')
+        extra_kwargs = {
+            'url': {'lookup_field': 'code'},
+        }
 
 
 class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
