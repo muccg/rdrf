@@ -49,9 +49,12 @@ usage() {
     exit 1
 }
 
-
 info () {
   printf "\r  [ \033[00;34mINFO\033[0m ] $1\n"
+}
+
+warn () {
+  printf "\r  [ \033[00;33mWARN\033[0m ] $1\n"
 }
 
 success () {
@@ -107,7 +110,7 @@ _http_proxy() {
             HTTP_PROXY_HOST=${DOCKER_ROUTE}
         fi
         if [ -z ${HTTP_PROXY_HOST} ]; then
-            fail "SET_HTTP_PROXY is set but couldn't detect a proxy. Please set HTTP_PROXY_HOST, or disable proxying by unsetting SET_HTTP_PROXY"
+            warn  "SET_HTTP_PROXY is set but couldn't detect a proxy. Please set HTTP_PROXY_HOST, or disable proxying by unsetting SET_HTTP_PROXY"
         else
             http_proxy="http://${HTTP_PROXY_HOST}:3128"
             HTTP_PROXY="http://${HTTP_PROXY_HOST}:3128"
@@ -137,7 +140,7 @@ _pip_proxy() {
             PIP_PROXY_HOST=${DOCKER_ROUTE}
         fi
         if [ -z ${PIP_PROXY_HOST} ]; then
-            fail "SET_PIP_PROXY is set but couldn't detect a proxy. Please set PIP_PROXY_HOST, or disable proxying by unsetting SET_PIP_PROXY"
+            warn "SET_PIP_PROXY is set but couldn't detect a proxy. Please set PIP_PROXY_HOST, or disable proxying by unsetting SET_PIP_PROXY"
         else
             info ${PIP_PROXY_HOST}
             # use a local devpi install
