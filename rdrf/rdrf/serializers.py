@@ -123,17 +123,53 @@ class PatientsHyperlink(RegistryHyperlink):
     view_name = 'patient-list'
 
 
+class RegistryFormsHyperlink(RegistryHyperlink):
+    view_name = 'registry-form-list'
+
+
 class RegistrySerializer(serializers.HyperlinkedModelSerializer):
     # Add some more urls for better browsability
     patients_url = PatientsHyperlink(read_only=True, source='*')
     clinicians_url = CliniciansHyperlink(read_only=True, source='*')
+    registry_forms_url = RegistryFormsHyperlink(read_only=True, source='*')
 
     class Meta:
         model = Registry
-        fields = ('pk', 'name', 'code', 'desc', 'version', 'url', 'patients_url', 'clinicians_url')
+        fields = ('pk', 'name', 'code', 'desc', 'version', 'url', 'patients_url', 'clinicians_url', 'registry_forms_url')
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }
+
+
+class RegistryFormHyperlinkId(serializers.HyperlinkedRelatedField):
+    view_name = 'registry-form-detail'
+
+    def get_url(self, obj, view_name, request, format):
+        url_kwargs = {
+            'registry_code': obj.registry.code,
+            'name': obj.name,
+        }
+        return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
+
+
+class RegistryFormSerializer(serializers.HyperlinkedModelSerializer):
+    url = RegistryFormHyperlinkId(read_only=True, source='*')
+
+    class Meta:
+        model = m.RegistryForm
+        fields = ('url', 'name', 'registry', 'header', 'questionnaire_display_name',
+                  'is_questionnaire', 'is_questionnaire_login', 'sections',
+                  # 'complete_form_cdes',
+                  'position')
+        extra_kwargs = {
+            'url': {'lookup_field': 'name'},
+            'registry': {'read_only': True, 'lookup_field': 'code'},
+            'complete_form_cdes': {'lookup_field': 'code'},
+        }
+
+    def create(self, validated_data):
+        validated_data['registry'] = self.initial_data.get('registry')
+        return super(RegistryFormSerializer, self).create(validated_data)
 
 
 class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):

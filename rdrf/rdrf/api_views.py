@@ -1,3 +1,4 @@
+import logging
 import pycountry
 
 from django.db.models import Q
@@ -15,7 +16,7 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from .models import CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from .models import CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue, RegistryForm, Section
 from .dynamic_data import DynamicDataWrapper
 from .serializers import (CountryAdapter,
                           CountrySerializer,
@@ -27,10 +28,14 @@ from .serializers import (CountryAdapter,
                           PermittedValueGroupSerializer,
                           PermittedValueSerializer,
                           RegistrySerializer,
+                          RegistryFormSerializer,
                           WorkingGroupSerializer,
                           CustomUserSerializer,
                           DoctorSerializer,
                           NextOfKinRelationshipSerializer)
+
+
+logger = logging.getLogger(__name__)
 
 
 class BadRequestError(APIException):
@@ -56,6 +61,38 @@ class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
+
+
+class RegistryFormList(generics.ListCreateAPIView):
+    serializer_class = RegistryFormSerializer
+
+    def _get_registry_by_code(self, registry_code):
+        try:
+            return Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            raise BadRequestError("Invalid registry code '%s'" % registry_code)
+
+    def get_queryset(self):
+        registry_code = self.kwargs.get('registry_code')
+        registry = self._get_registry_by_code(registry_code)
+        return registry.registry_forms
+
+    def post(self, request, *args, **kwargs):
+        registry_code = kwargs.get('registry_code')
+        if len(request.data) > 0:
+            # For empty posts don't set the registry as it fails because request.data
+            # is immutable for empty posts. Post request will fail on validation anyways.
+            request.data['registry'] = self._get_registry_by_code(registry_code)
+        if not (request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
+            self.permission_denied(request, message='Not allowed to create Form in this Registry')
+        return super(RegistryFormList, self).post(request, *args, **kwargs)
+
+
+class RegistryFormDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = RegistryForm.objects.all()
+    serializer_class = RegistryFormSerializer
+    permission_classes = (IsAuthenticated,)
+    lookup_field = 'name'
 
 
 class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
