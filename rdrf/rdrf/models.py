@@ -72,7 +72,8 @@ class Section(models.Model):
 
     @property
     def cde_models(self):
-        return list(self.cdes)
+        cdes = {cde.code: cde for cde in self.cdes}
+        return [cdes[code] for code in self.get_elements() if code in cdes]
 
     def clean(self):
         errors = {}
@@ -911,7 +912,8 @@ class RegistryForm(models.Model):
 
     @property
     def section_models(self):
-        return list(self.form_sections)
+        sections = {s.code: s for s in self.form_sections}
+        return [sections[code] for code in self.get_sections() if code in sections]
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
