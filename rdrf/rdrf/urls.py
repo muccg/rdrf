@@ -15,7 +15,6 @@ from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import FamilyLookup
 from rdrf.lookup_views import PatientLookup
-from rdrf.views import RegistryList
 from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
@@ -69,7 +68,6 @@ urlpatterns = [
     url(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
         name="report_datatable"),
     url(r'^explorer/', include('explorer.urls')),
-    url(r'^listregistry/?$', RegistryList.as_view(), name='registry_list'),
     url(r'^patientslisting/?', patients_listing.PatientsListingView.as_view(),
         name="patientslisting"),
     url(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
