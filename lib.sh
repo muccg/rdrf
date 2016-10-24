@@ -443,6 +443,9 @@ start_seleniumhub() {
 
 _start_lettucetests() {
     set -x
+    # ensure previous data containers are removed
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml stop
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
     local rval=$?
     set +x
