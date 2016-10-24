@@ -473,7 +473,7 @@ class ColumnContextMenu(Column):
         
         if registry:
             # fixme: slow, do intersection instead
-            self.free_forms = filter(user.can_view, registry.free_forms)
+            self.free_forms = list(filter(user.can_view, registry.free_forms))
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return "".join(self._get_forms_buttons(patient))
