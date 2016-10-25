@@ -39,9 +39,9 @@ class RegistrySpecificFieldsHandler(object):
                         # preserve existing value
                         existing_data = self.get_registry_specific_data()
                         if existing_data and self.registry_model.code in existing_data:
-                            file_wrapper = existing_data[self.registry_model.code][cde_model.code]
-                            if file_wrapper:
-                                form_value = file_wrapper.gridfs_dict
+                            data = existing_data[self.registry_model.code][cde_model.code]
+                            if data:
+                                form_value = data
                             else:
                                 form_value = {}
                         else:
