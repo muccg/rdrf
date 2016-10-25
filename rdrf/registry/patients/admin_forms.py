@@ -177,9 +177,10 @@ class PatientForm(forms.ModelForm):
         if 'instance' in kwargs and kwargs['instance'] is not None:
             instance = kwargs['instance']
             registry_specific_data = self._get_registry_specific_data(instance)
+            wrapped_data = self._wrap_file_cdes(registry_specific_data)
             initial_data = kwargs.get('initial', {})
-            for reg_code in registry_specific_data:
-                initial_data.update(registry_specific_data[reg_code])
+            for reg_code in wrapped_data:
+                initial_data.update(wrapped_data[reg_code])
 
             self._update_initial_consent_data(instance, initial_data)
 
@@ -246,6 +247,32 @@ class PatientForm(forms.ModelForm):
             return {}
         mongo_wrapper = DynamicDataWrapper(patient_model)
         return mongo_wrapper.load_registry_specific_data(self.registry_model)
+
+    def _wrap_file_cdes(self, registry_specific_data):
+        from rdrf.file_upload import FileUpload
+        from rdrf.file_upload import is_filestorage_dict
+        from rdrf.utils import is_file_cde
+        
+        def wrap_file_cde_dict(registry_code, cde_code, filestorage_dict):
+            return FileUpload(registry_code, cde_code, filestorage_dict)
+
+        def wrap(registry_code, cde_code, value):
+            if is_file_cde(cde_code) and is_filestorage_dict(value):
+                return wrap_file_cde_dict(registry_code, cde_code, value)
+            else:
+                return value
+            
+        wrapped_dict = {}
+        
+        for reg_code in registry_specific_data:
+            reg_data = registry_specific_data[reg_code]
+            wrapped_data = {key: wrap(reg_code, key, value)
+                            for key, value in reg_data.items()}
+            wrapped_dict[reg_code] = wrapped_data
+
+        return wrapped_dict
+        
+        
 
     def _update_initial_consent_data(self, patient_model, initial_data):
         if patient_model is None:

@@ -7,6 +7,14 @@ from . import filestorage
 logger = logging.getLogger(__name__)
 
 
+def is_upload_file(value):
+    return isinstance(value, UploadedFile)
+
+
+def is_filestorage_dict(value):
+    return filestorage.get_id(value)
+
+
 class FileUpload(object):
 
     """
@@ -117,11 +125,6 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
 
     from rdrf.utils import is_file_cde, get_code, get_form_section_code
 
-    def is_upload_file(value):
-        return isinstance(value, UploadedFile)
-
-    def is_filestorage_dict(value):
-        return filestorage.get_id(value)
 
     def is_existing_in_mongo(section_index, key, value):
         if mongo_data is None:
