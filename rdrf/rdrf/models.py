@@ -2,7 +2,6 @@ from django.db import models
 import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from positions.fields import PositionField
 from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
@@ -850,7 +849,7 @@ class RegistryForm(models.Model):
         default=False,
         help_text="If the form is a questionnaire, is it accessible only by logged in users?",
         verbose_name="Questionnaire Login Required")
-    position = PositionField(collection='registry')
+    position = models.IntegerField(default=-1)
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
