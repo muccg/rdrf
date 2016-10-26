@@ -93,7 +93,7 @@ class RegistryFormList(generics.ListCreateAPIView):
 class RegistryFormDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = RegistryForm.objects.all()
     serializer_class = RegistryFormSerializer
-    permission_classes = (IsAuthenticated,)
+#    permission_classes = (IsAuthenticated,)
     lookup_field = 'name'
 
 
@@ -105,7 +105,7 @@ class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
 class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = (IsAuthenticated,)
+#    permission_classes = (IsAuthenticated,)
 
     def _get_registry_by_code(self, registry_code):
         try:
@@ -142,6 +142,8 @@ class PatientList(generics.ListCreateAPIView):
         """We're always filtering the patients by the registry code form the url and the user's working groups"""
         registry_code = self.kwargs.get('registry_code')
         registry = self._get_registry_by_code(registry_code)
+        # TODO: delete the following line
+        return Patient.objects.get_by_registry(registry.pk)
         if self.request.user.is_superuser:
             return Patient.objects.get_by_registry(registry.pk)
         return Patient.objects.get_by_registry_and_working_group(registry, self.request.user)
@@ -189,7 +191,7 @@ class CommonDataElementViewSet(viewsets.ModelViewSet):
 
 
 class PermittedValueDetail(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+#    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, pvg_code, code, format=None):
         pv = self.get_pv(pvg_code, code)
@@ -226,7 +228,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 
 class CountryViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+#    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def list(self, request, format=None):
         countries = sorted([CountryAdapter(c) for c in pycountry.countries], key=lambda c: c.name)
@@ -246,7 +248,7 @@ class CountryViewSet(viewsets.ViewSet):
 
 
 class ListStates(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+#    permission_classes = (IsAuthenticatedOrReadOnly,)
     WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
 
     def get(self, request, country_code, format=None):
@@ -266,7 +268,7 @@ class ListStates(APIView):
 
 class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+#     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
@@ -373,7 +375,7 @@ class LookupIndex(APIView):
 
 class ClinicalDataDetail(APIView):
     '''Clinical Data entry point'''
-    permission_classes = (IsAuthenticated,)
+#    permission_classes = (IsAuthenticated,)
 
     def get(self, request, registry_code, pk, format=None):
         patient = get_object_or_404(Patient, pk=pk)
@@ -382,7 +384,7 @@ class ClinicalDataDetail(APIView):
 
 
 class SectionDetail(APIView):
-    permission_classes = (IsAuthenticated,)
+#    permission_classes = (IsAuthenticated,)
     adapter = None
     serializer = None
 
