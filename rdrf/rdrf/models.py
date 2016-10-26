@@ -870,7 +870,7 @@ class RegistryForm(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def open(self):
@@ -1705,7 +1705,7 @@ class ConsentSection(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     def applicable_to(self, patient):
         if patient is None:
