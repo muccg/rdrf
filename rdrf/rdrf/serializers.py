@@ -378,6 +378,8 @@ def cde_field(cde):
         return cls(read_only=True, source='*')
     elif cde.datatype == 'date':
         return serializers.DateTimeField()
+    elif cde.datatype == 'boolean':
+        return serializers.BooleanField()
     elif cde.datatype == 'file':
         # TODO deal with files, currently they're all None
         return serializers.FileField()
