@@ -49,8 +49,8 @@ urlpatterns = [
     url(r'^test404', handler404),
     url(r'^test500', handler500),
     url(r'^testAppError', handlerApplicationError),
-    url(r'^iprestrict', include('iprestrict.urls')),
-    url(r'^useraudit', include('useraudit.urls')),
+    url(r'^iprestrict/', include('iprestrict.urls')),
+    url(r'^useraudit/', include('useraudit.urls')),
 
     url(r'^api/v1/', include('rdrf.api_urls', namespace='v1')),
     url(r'^constructors/(?P<form_name>\w+)/?$',
@@ -191,5 +191,5 @@ urlpatterns = [
         ActivationView.as_view(),
         name='registration_activate'),
 
-    url(r'^i18n', include('django.conf.urls.i18n')),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
