@@ -120,15 +120,15 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk])
 
     def _get_family_linkage_link(self):
+        pk = None
         if self.registry_model.has_feature("family_linkage"):
-            registry_code = self.registry_model.code
             if self.patient_model.is_index:
-                family_linkage_link = reverse('family_linkage', args=(registry_code,
-                                                                      self.patient_model.pk))
-            else:
-                family_linkage_link = reverse('family_linkage', args=(registry_code,
-                                                                      self.patient_model.my_index.pk))
-            return family_linkage_link
+                pk = self.patient_model.pk
+            elif self.patient_model.my_index:
+                pk = self.patient_model.my_index.pk
+
+        if pk is not None:
+            return reverse('family_linkage', args=(self.registry_model.code, pk))
         else:
             return None
 
