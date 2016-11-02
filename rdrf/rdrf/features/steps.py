@@ -22,11 +22,22 @@ def exported_data_path():
     return '{0}/{1}'.format(steps_path(), 'exported_data')
 
 
+def subprocess_logging(command):
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if stdout:
+        logger.info(stdout)
+    if stderr:
+        logger.error(stderr)
+    if p.returncode != 0:
+        logger.error("Return code {0}".format(p.returncode))
+
+
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
     cmd = "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"
     try:
-        subprocess.check_call(["mongo", "--host", "mongo", "--eval", cmd])
+        subprocess_logging(["mongo", "--host", "mongo", "--eval", cmd])
     except subprocess.CalledProcessError:
         logger.exception("Dropping mongo databases failed")
 
@@ -42,9 +53,9 @@ def have_snapshot(export_name):
 
 def save_snapshot(snapshot_name, export_name):
     logger.info("Saving snapshot: {0}".format(snapshot_name))
-    subprocess.call(["stellar", "remove", snapshot_name])
-    subprocess.check_call(["stellar", "snapshot", snapshot_name])
-    subprocess.check_call(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    subprocess_logging(["stellar", "remove", snapshot_name])
+    subprocess_logging(["stellar", "snapshot", snapshot_name])
+    subprocess_logging(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
     world.snapshot_dict[export_name] = snapshot_name
 
 
@@ -60,13 +71,13 @@ def restore_minimal_snapshot():
 
 def restore_snapshot(snapshot_name):
     logger.info("Restoring snapshot: {0}".format(snapshot_name))
-    subprocess.check_call(["stellar", "restore", snapshot_name])
-    subprocess.check_call(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+    subprocess_logging(["stellar", "restore", snapshot_name])
+    subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
-    subprocess.check_call(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
+    subprocess_logging(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
 
 def show_stats(export_name):
@@ -160,7 +171,6 @@ def click_button_sidebar_group(step, button_name, group_name):
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
-    #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
     button.click()
 
@@ -197,7 +207,7 @@ def click_save_button(step):
 
 @step('error message is "(.*)"')
 def error_message_is(step, error_message):
-    #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
+    # <div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath(
         '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
 
@@ -228,13 +238,13 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
 
 
 @step('press the navigate back button')
-def press_button(step):
+def press_back_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
     button.click()
 
 
 @step('press the navigate forward button')
-def press_button(step):
+def press_forward_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="next-form"]')
     button.click()
 
@@ -291,14 +301,11 @@ def checkbox_should_be_checked(step, checkbox_label):
 
 @step('a registry named "(.*)"')
 def create_registry(step, name):
-    #
-    #world.registry = Registry.objects.get(name=name)
     world.registry = name
 
 
 @step('a user named "(.*)"')
 def create_user(step, username):
-    #world.user = CustomUser.objects.get(username=username)
     world.user = username
 
 
@@ -367,7 +374,7 @@ def click_user_menu(step):
 
 
 @step('the progress indicator should be "(.*)"')
-def the_page_header_should_be(step, percentage):
+def the_progress_indicator_should_be(step, percentage):
     progress_bar = world.browser.find_element_by_xpath('//div[@class="progress"]/div[@class="progress-bar"]')
     assert_true(step, progress_bar.text.strip() == percentage)
 
@@ -414,7 +421,3 @@ def sidebar_click(step, sidebar_link_text):
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()
-
-
-def get_site_url(default_url):
-    return os.environ.get('TEST_APP_URL', default_url)

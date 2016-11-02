@@ -4,9 +4,16 @@ from contextlib import contextmanager
 from aloe import before, after, around, world
 from selenium import webdriver
 from . import steps
-from selenium.common.exceptions import NoAlertPresentException
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+TEST_BROWSER = os.environ.get('TEST_BROWSER')
+TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB')
+TEST_WAIT = int(os.environ.get('TEST_WAIT'))
+TEST_APP_URL = os.environ.get('TEST_APP_URL')
+TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
+
 
 def get_desired_capabilities(browser):
     return {
@@ -18,13 +25,13 @@ def get_desired_capabilities(browser):
 @around.all
 @contextmanager
 def with_browser():
-    desired_capabilities = get_desired_capabilities(os.environ.get('TEST_BROWSER'))
+    desired_capabilities = get_desired_capabilities(TEST_BROWSER)
 
     world.browser = webdriver.Remote(
         desired_capabilities=desired_capabilities,
-        command_executor="http://hub:4444/wd/hub"
+        command_executor=TEST_SELENIUM_HUB
     )
-    world.browser.implicitly_wait(int(os.environ['TEST_WAIT']))
+    world.browser.implicitly_wait(TEST_WAIT)
 
     yield
 
@@ -33,24 +40,26 @@ def with_browser():
 
     delattr(world, "browser")
 
+
 def reset_snapshot_dict():
     world.snapshot_dict = {}
     logger.info("set snapshot_dict to %s" % world.snapshot_dict)
 
 
 def set_site_url():
-    world.site_url = steps.get_site_url(default_url="http://web:8000")
+    world.site_url = TEST_APP_URL
     logger.info("world.site_url = %s" % world.site_url)
 
 
 def do_teardown():
-    return ('LETTUCE_DISABLE_TEARDOWN' not in os.environ or
-            os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
+    return not TEST_DISABLE_TEARDOWN
 
 
 @before.all
 def before_all():
     logger.info('')
+    if not os.path.exists(settings.WRITABLE_DIRECTORY):
+        os.makedirs(settings.WRITABLE_DIRECTORY)
     reset_snapshot_dict()
     set_site_url()
     steps.save_minimal_snapshot()
@@ -76,7 +85,7 @@ def before_scenario(scenario, outline, steps):
 def after_scenario(scenario, outline, test_steps):
     passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
-        "/data/{0}-{1}.png".format(passfail, scenario.name))
+        os.path.join(settings.WRITABLE_DIRECTORY, "{0}-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
         steps.restore_minimal_snapshot()
 
@@ -86,5 +95,5 @@ def screenshot_step(step):
     if not step.passed and getattr(step, "scenario", None) is not None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
-        file_name = "/data/False-step-{0}.png".format(step_name)
+        file_name = os.path.join(settings.WRITABLE_DIRECTORY, "False-step-{0}.png".format(step_name))
         world.browser.get_screenshot_as_file(file_name)
