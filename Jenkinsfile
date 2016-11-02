@@ -29,11 +29,9 @@ node {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh dev_aloe'
         }
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
-        step([$class: 'ArtifactArchiver',
-              artifacts: '**/data/selenium/dev/scratch/*.png **/data/selenium/dev/log/*.log',
-              fingerprint: false,
-              excludes: null])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
@@ -47,11 +45,9 @@ node {
         stage('Prod aloe tests') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                 sh './develop.sh prod_aloe'
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
                 step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
-                step([$class: 'ArtifactArchiver',
-                      artifacts: '**/data/selenium/prod/scratch/*.png **/data/selenium/prod/log/*.log',
-                      fingerprint: false,
-                      excludes: null])
             }
         }
 
