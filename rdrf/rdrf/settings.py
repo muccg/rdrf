@@ -258,6 +258,11 @@ CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
+# django-useraudit
+# The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
+# If the settings is not set or set to 0, the feature is disabled.
+LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
+
 # Testing settings
 if not PRODUCTION:
     INSTALLED_APPS.extend(['django_nose'])
