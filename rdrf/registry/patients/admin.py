@@ -15,7 +15,6 @@ from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
-from rdrf.utils import has_feature
 from registry.patients.models import ConsentValue
 
 logger = logging.getLogger(__name__)
@@ -89,10 +88,7 @@ class PatientAdmin(admin.ModelAdmin):
                PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list',
-                    'date_of_birth', 'demographic_btn']
-
-    if has_feature('adjudication'):
-        list_display.append('adjudications_btn')
+                    'date_of_birth', 'demographic_btn', 'adjudications_btn']
 
     list_filter = [RegistryFilter]
 

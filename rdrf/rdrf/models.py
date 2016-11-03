@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import has_feature, get_full_link, check_calculation
+from rdrf.utils import get_full_link, check_calculation
 from rdrf.utils import format_date
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
@@ -237,9 +237,6 @@ class Registry(models.Model):
         return len(self.genetic_progress_cde_triples) > 0
 
     def get_adjudications(self):
-        if not has_feature("adjudication"):
-            return []
-
         class ActionDropDownItem(object):
 
             def __init__(self):
