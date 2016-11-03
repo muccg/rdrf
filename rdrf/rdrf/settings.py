@@ -194,11 +194,6 @@ ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
 }
 
-# list of features  '*' means all , '' means none and ['x','y'] means site
-# supports features x and y
-FEATURES = env.get("features", "*")
-
-
 # default emailsn
 ADMINS = [
     ('alerts', env.get("alert_email", "root@localhost"))

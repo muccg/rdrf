@@ -36,7 +36,6 @@ from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
-from rdrf.utils import has_feature
 from .admin_forms import RegistryFormAdminForm
 from .admin_forms import DemographicFieldsAdminForm
 from functools import reduce
@@ -492,8 +491,7 @@ admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 
 admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
 
-
-if has_feature('adjudication'):
+def register_adjudication_admin():
     admin.site.register(Notification, NotificationAdmin)
     admin.site.register(Adjudication, AdjudicationAdmin)
     admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
@@ -501,6 +499,7 @@ if has_feature('adjudication'):
     admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
     admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
 
+register_adjudication_admin()
 
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile

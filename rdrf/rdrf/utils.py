@@ -133,25 +133,6 @@ def get_users(usernames):
     return [x for x in [get_user(username) for username in usernames] if x is not None]
 
 
-def has_feature(feature_name):
-    if settings.FEATURES == "*":
-        return True
-    return feature_name in settings.FEATURES  # e.g. [ 'email_notification', 'adjudication' ]
-
-
-def requires_feature(feature_name):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if has_feature(feature_name):
-                return func(*args, **kwargs)
-            else:
-                logger.info(
-                    "%s will not be run with args %s kwargs %s as the site lacks feature %s" %
-                    (func.__name__, args, kwargs, feature_name))
-        return wrapper
-    return decorator
-
-
 def get_full_link(request, partial_link, login_link=False):
     if login_link:
         # return a redirect login    https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
