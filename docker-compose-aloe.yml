@@ -9,10 +9,10 @@ dataprodselenium:
     file: docker-compose-common.yml
     service: dataprodselenium
 
-# runs the lettuce tests against docker-compose-teststack.yml
-devlettuce:
+# runs the aloe tests against docker-compose-teststack.yml
+devaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_RUNSERVER=1
@@ -29,10 +29,10 @@ devlettuce:
     - rdrf_dbtest_1:db
     - rdrf_mongotest_1:mongo
 
-# runs the lettuce tests against docker-compose-teststack.yml
-prodlettuce:
+# runs the aloe tests against docker-compose-teststack.yml
+prodaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_UWSGI=1

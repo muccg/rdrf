@@ -8,7 +8,7 @@ node {
         checkout scm
     }
 
-    stage('Docker dev build') {
+    stage('Dev build') {
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -25,27 +25,29 @@ node {
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
 
-    stage('Lettuce tests') {
+    stage('Dev aloe tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh './develop.sh dev_lettuce'
+            sh './develop.sh dev_aloe'
         }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/*.xml'])
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/*.png', fingerprint: true])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
 
-        stage('Docker prod build') {
+        stage('Prod build') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                 sh './develop.sh prod_build'
             }
         }
 
-        stage('Prod lettuce tests') {
+        stage('Prod aloe tests') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-                sh './develop.sh prod_lettuce'
-                step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/*.xml'])
-                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/*.png', fingerprint: true])
+                sh './develop.sh prod_aloe'
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
+                step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
             }
         }
 

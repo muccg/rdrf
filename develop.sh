@@ -27,55 +27,15 @@ usage() {
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
     echo " ./develop.sh (prod|prod_build)"
-    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce|reexport_test_zips)"
+    echo " ./develop.sh (runtests|dev_aloe|prod_aloe|reexport_test_zips)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
-    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
     echo " ./develop.sh (ci_docker_login)"
     echo ""
     echo "Example, start dev with no proxy and rebuild everything:"
     echo "SET_PIP_PROXY=0 SET_HTTP_PROXY=0 ./develop.sh dev_build"
     echo ""
     exit 1
-}
-
-
-# build a docker image and start stack on staging using docker-compose
-ci_docker_staging() {
-    info 'ci docker staging'
-    ssh ubuntu@staging.ccgapps.com.au << EOF
-      mkdir -p ${PROJECT_NAME}/data
-      chmod o+w ${PROJECT_NAME}/data
-EOF
-
-    scp docker-compose-*.yml ubuntu@staging.ccgapps.com.au:${PROJECT_NAME}/
-
-    # TODO This doesn't actually do a whole lot, some tests should be run against the staging stack
-    ssh ubuntu@staging.ccgapps.com.au << EOF
-      cd ${PROJECT_NAME}
-      docker-compose -f docker-compose-staging.yml stop
-      docker-compose -f docker-compose-staging.yml kill
-      docker-compose -f docker-compose-staging.yml rm --force -v
-      docker-compose -f docker-compose-staging.yml up -d
-EOF
-}
-
-
-docker_staging_lettuce() {
-    _selenium_stack_up
-
-    set -x
-    set +e
-    ( docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml rm --force || exit 0 )
-    (${CMD_ENV}; docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml build)
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-staging-lettuce.yml up
-    rval=$?
-    set -e
-    set +x
-
-    _selenium_stack_down
-
-    exit $rval
 }
 
 
@@ -197,24 +157,17 @@ docker_warm_cache)
 ci_docker_login)
     ci_docker_login
     ;;
-ci_docker_staging)
-    _ci_ssh_agent
-    ci_docker_staging
+dev_aloe)
+    dev_aloe
     ;;
-docker_staging_lettuce)
-    docker_staging_lettuce
-    ;;
-dev_lettuce)
-    dev_lettuce
-    ;;
-lettuce)
-    dev_lettuce
+aloe)
+    dev_aloe
     ;;
 reexport_test_zips)
     reexport_test_zips
     ;;
-prod_lettuce)
-    prod_lettuce
+prod_aloe)
+    prod_aloe
     ;;
 *)
     usage
