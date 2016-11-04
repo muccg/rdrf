@@ -388,53 +388,6 @@ class LongitudinalTestCase(FormTestCase):
             assert "timestamp" in snapshot, "Each snapshot should have a timestamp field"
             assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
 
-    def xxx_longitudinal_spreadsheet_report(self):
-
-        self._reset_mongo()
-
-        def simulate_edit(name, age, height, weight):
-            ff = FormFiller(self.simple_form)
-            ff.sectionA.CDEName = name
-            ff.sectionA.CDEAge = age
-            ff.sectionB.CDEHeight = height
-            ff.sectionB.CDEWeight = weight
-            form_data = ff.data
-            request = self._create_request(self.simple_form, form_data)
-            view = FormView()
-            view.request = request
-            # This switches off messaging , which requires request middleware which
-            # doesn't exist in RequestFactory requests
-            view.testing = True
-            view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
-
-        # this should create some snapshots
-        simulate_edit("Fred", 23, 172.5, 85.0)
-        simulate_edit("Fred", 24, 172.5, 87.0)
-        simulate_edit("Fred", 25, 172.5, 88.0)
-        simulate_edit("Fred", 26, 172.5, 95.0)
-
-        mongo_db = self.client["testing_" + self.registry.code]
-        collection = mongo_db["history"]
-        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
-        assert len(snapshots) > 1, "History should be filled in on save"
-        assert len(snapshots) == 4, "Wrong number of snapshots: expected 4 actual %s" % len(snapshots)
-
-        from rdrf.spreadsheet_report import SpreadSheetReport
-
-        class FakeModel(object):
-
-            def __init__(self, name, code=""):
-                self.name = name
-                self.code = code
-
-
-class FormProgressTest(FormTestCase):
-
-    def test_progress_calcs(self):
-        mongo_db = self.client["testing_" + self.registry.code]
-        super(FormProgressTest, self).test_simple_form()
-        collection = mongo_db["progress"]
-
 
 class DeCamelcaseTestCase(TestCase):
 
