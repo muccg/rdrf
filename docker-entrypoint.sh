@@ -48,6 +48,12 @@ function defaults {
     : ${DBNAME:="${DBUSER}"}
     : ${DBPASS:="${DBUSER}"}
 
+    : ${CLINICAL_DBSERVER:="clinical"}
+    : ${CLINICAL_DBPORT:="5432"}
+    : ${CLINICAL_DBUSER:="webapp"}
+    : ${CLINICAL_DBNAME:="${DBUSER}"}
+    : ${CLINICAL_DBPASS:="${DBUSER}"}
+
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
     : ${UWSGISERVER:="uwsgi"}
@@ -72,6 +78,7 @@ function defaults {
     : ${TEST_SELENIUM_HUB:="http://hub:4444/wd/hub"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
+    export DBSERVER_CLINICAL DBPORT_CLINICAL DBUSER_CLINICAL DBNAME_CLINICAL DBPASS_CLINICAL
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
 }
 
@@ -85,6 +92,7 @@ function _django_check_deploy {
 function _django_migrate {
     echo "running migrate"
     django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-migrate.log
+    django-admin.py migrate --database=clinical --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-migrate-clinical.log
     django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-permissions.log
 }
 
