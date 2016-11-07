@@ -146,7 +146,7 @@ class ExporterTestCase(RDRFTestCase):
 
         from rdrf.models import CommonDataElement
         dummy_cde = CommonDataElement.objects.create()
-        cde_fields = model_to_dict(dummy_cde).keys()
+        cde_fields = list(model_to_dict(dummy_cde).keys())
         for cde_map in data['cdes']:
             assert isinstance(
                 cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
@@ -236,10 +236,10 @@ class FormTestCase(RDRFTestCase):
         # delete any testing databases
         for db in self.client.database_names():
             if db.startswith("testing_"):
-                print "deleting %s" % db
+                print("deleting %s" % db)
                 self.client.drop_database(db)
 
-        print "Testing Mongo Reset OK"
+        print("Testing Mongo Reset OK")
 
     def create_patient(self):
         from rdrf.contexts_api import RDRFContextManager
@@ -327,7 +327,7 @@ class FormTestCase(RDRFTestCase):
         ff.sectionB.CDEWeight = 88.23
 
         form_data = ff.data
-        print str(form_data)
+        print(str(form_data))
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
@@ -346,7 +346,7 @@ class FormTestCase(RDRFTestCase):
         collection = mongo_db[collection_name]
         mongo_record = collection.find_one(mongo_query)
 
-        print "*** MONGO RECORD = %s ***" % mongo_record
+        print("*** MONGO RECORD = %s ***" % mongo_record)
 
         assert "forms" in mongo_record, "Mongo record should have a forms key"
         assert isinstance(mongo_record["forms"], list)
@@ -487,5 +487,5 @@ class JavascriptCheckTestCase(TestCase):
         self.assertEqual(err, "")
 
     def test_nonascii(self):
-        err = check_calculation(u"context.result = '💩';")
+        err = check_calculation("context.result = '💩';")
         self.assertEqual(err, "")

@@ -2,8 +2,6 @@ from django.db import models
 import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from positions.fields import PositionField
-import string
 from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
@@ -61,7 +59,7 @@ class Section(models.Model):
     def natural_key(self):
         return (self.code, )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.code
 
     def get_elements(self):
@@ -374,7 +372,7 @@ class Registry(models.Model):
             codes.extend(generic_section_model.get_elements())
         return codes
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.name, self.code)
 
     def as_json(self):
@@ -647,7 +645,7 @@ class CDEPermittedValueGroup(models.Model):
                 att) for v in CDEPermittedValue.objects.filter(
                 pv_group=self).order_by('position')]
 
-    def __unicode__(self):
+    def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
 
@@ -686,7 +684,7 @@ class CDEPermittedValue(models.Model):
     position_formatted.allow_tags = True
     position_formatted.short_description = 'Order position'
 
-    def __unicode__(self):
+    def __str__(self):
         return "Member of %s" % self.pv_group.code
 
 
@@ -727,7 +725,7 @@ class CommonDataElement(models.Model):
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
 
-    def __unicode__(self):
+    def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 
     class Meta:
@@ -851,7 +849,7 @@ class RegistryForm(models.Model):
         default=False,
         help_text="If the form is a questionnaire, is it accessible only by logged in users?",
         verbose_name="Questionnaire Login Required")
-    position = PositionField(collection='registry')
+    position = models.IntegerField(default=-1)
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
@@ -871,7 +869,7 @@ class RegistryForm(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def open(self):
@@ -893,12 +891,11 @@ class RegistryForm(models.Model):
         else:
             return de_camelcase(self.name)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
     def get_sections(self):
-        import string
-        return map(string.strip, self.sections.split(","))
+        return list(map(str.strip, self.sections.split(",")))
 
     @property
     def questionnaire_list(self):
@@ -906,9 +903,7 @@ class RegistryForm(models.Model):
         returns a list of sectioncode.cde_code strings
         E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
         """
-        return filter(
-            lambda s: len(s) > 0, map(
-                string.strip, self.questionnaire_questions.split(",")))
+        return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
 
     @property
     def section_models(self):
@@ -1013,7 +1008,7 @@ class QuestionnaireResponse(models.Model):
         return dob.date()
 
     def _get_patient_field(self, patient_field):
-        from dynamic_data import DynamicDataWrapper
+        from .dynamic_data import DynamicDataWrapper
         wrapper = DynamicDataWrapper(self)
 
         if not self.has_mongo_data:
@@ -1142,7 +1137,7 @@ class AdjudicationDefinition(models.Model):
 
     def create_form(self):
         adjudication_section = Section.objects.get(code=self.result_fields)
-        from dynamic_forms import create_form_class_for_section
+        from .dynamic_forms import create_form_class_for_section
 
         class DummyForm(object):
 
@@ -1156,7 +1151,7 @@ class AdjudicationDefinition(models.Model):
 
     def create_decision_form(self):
         decision_section = Section.objects.get(code=self.decision_field)
-        from dynamic_forms import create_form_class_for_section
+        from .dynamic_forms import create_form_class_for_section
 
         class DummyForm(object):
 
@@ -1211,7 +1206,7 @@ class AdjudicationDefinition(models.Model):
                 self.value = value
 
         field_map = self.get_field_data(patient)
-        missing_flag = MissingData in field_map.values()
+        missing_flag = MissingData in list(field_map.values())
 
         for form_name, section_code, cde_code in field_map:
             if form_name == 'demographics':
@@ -1709,7 +1704,7 @@ class ConsentSection(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     def applicable_to(self, patient):
         if patient is None:
@@ -1785,7 +1780,7 @@ class ConsentSection(models.Model):
 
             return False
 
-    def __unicode__(self):
+    def __str__(self):
         return "Consent Section %s" % self.section_label
 
     @property
@@ -1849,7 +1844,7 @@ class ConsentQuestion(models.Model):
         else:
             return self.question_label
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.question_label
 
 
@@ -1872,20 +1867,20 @@ class EmailTemplate(models.Model):
     subject = models.CharField(max_length=50)
     body = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
 
 
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry)
-    email_from = models.EmailField(default=settings.DEFAULT_FROM_EMAIL)
+    email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     email_templates = models.ManyToManyField(EmailTemplate)
     disabled = models.BooleanField(null=False, blank=False, default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
 
 
@@ -1910,7 +1905,7 @@ class RDRFContext(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     display_name = models.CharField(max_length=80, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.display_name, self.created_at)
 
     def clean(self):
@@ -1961,7 +1956,7 @@ class ContextFormGroup(models.Model):
         return sorted([item.registry_form for item in self.items.all()],
                       key=sort_func)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @property
@@ -2172,10 +2167,20 @@ class CDEFile(models.Model):
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.item.name
 
 
 @receiver(pre_delete, sender=CDEFile)
 def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)
+
+
+class FileStorage(models.Model):
+    """
+    This model is used only when the database file storage backend is
+    enabled. These exact columns are required by the backend code.
+    """
+    name = models.CharField(primary_key=True, max_length=255)
+    data = models.BinaryField()
+    size = models.IntegerField(default=0)

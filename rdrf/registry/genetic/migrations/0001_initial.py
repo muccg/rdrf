@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,12 +15,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('symbol', models.TextField()),
-                ('hgnc_id', models.TextField(verbose_name=b'HGNC ID')),
+                ('hgnc_id', models.TextField(verbose_name='HGNC ID')),
                 ('name', models.TextField()),
                 ('status', models.TextField()),
                 ('chromosome', models.TextField()),
                 ('accession_numbers', models.TextField()),
-                ('refseq_id', models.TextField(verbose_name=b'RefSeq ID')),
+                ('refseq_id', models.TextField(verbose_name='RefSeq ID')),
             ],
             options={
                 'ordering': ['symbol'],

@@ -1,37 +1,32 @@
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, redirect
-from django.views.generic.base import View
-from django.core.urlresolvers import reverse
-from django.template import RequestContext
-from django.core.exceptions import PermissionDenied
+from datetime import datetime
+from itertools import product
+import logging
+import re
+from tempfile import NamedTemporaryFile
+from bson.json_util import dumps
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
+from django.views.generic.base import View
 
-from explorer import app_settings
-from forms import QueryForm
-from models import Query
-from utils import DatabaseUtils
+from . import app_settings
+from .forms import QueryForm
+from .models import Query
+from .utils import DatabaseUtils
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from registry.groups.models import WorkingGroup
+from rdrf.spreadsheet_report import SpreadSheetReport
 from rdrf.reporting_table import ReportingTableGenerator
-
-import re
-from bson.json_util import dumps
-from datetime import datetime
-import logging
-from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.utils import mongo_key_from_models
 
 logger = logging.getLogger(__name__)
-
-
-def encode_row(row):
-    return [s.encode('utf8') if isinstance(s, unicode) else s for s in row]
 
 
 class LoginRequiredMixin(object):
@@ -58,10 +53,9 @@ class MainView(LoginRequiredMixin, View):
                 access_group__in=[
                     g.id for g in user.get_groups()])
 
-        return render_to_response(
-            'explorer/query_list.html',
-            {'object_list': reports},
-            _get_default_params(request, None))
+        return render(request, 'explorer/query_list.html', {
+            'object_list': reports
+        })
 
 
 class NewQueryView(LoginRequiredMixin, View):
@@ -72,7 +66,7 @@ class NewQueryView(LoginRequiredMixin, View):
 
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
-        return render_to_response('explorer/query.html', params)
+        return render(request, 'explorer/query.html', params)
 
     def post(self, request):
         if not request.user.is_superuser:
@@ -108,7 +102,7 @@ class QueryView(LoginRequiredMixin, View):
         params = _get_default_params(request, query_form)
         params['edit'] = True
         params['registries'] = Registry.objects.all()
-        return render_to_response('explorer/query.html', params)
+        return render(request, 'explorer/query.html', params)
 
     def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
@@ -195,21 +189,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
-        from datetime import datetime
-        from django.core.servers.basehttp import FileWrapper
-        from rdrf.spreadsheet_report import SpreadSheetReport
         humaniser = Humaniser(query_model.registry)
         spreadsheet_report = SpreadSheetReport(query_model, humaniser)
-        start = datetime.now()
-        spreadsheet_report.run()
-        finish = datetime.now()
-        elapsed_time = finish - start
-        logger.debug("report took %s seconds" % elapsed_time)
-        output = open(spreadsheet_report.output_filename)
-        filename = "Longitudinal Report.xlsx"
-        response = HttpResponse(FileWrapper(output), content_type='application/excel')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-        return response
+        with NamedTemporaryFile(suffix=".xlsx") as output:
+            start = datetime.now()
+            spreadsheet_report.run(output.name)
+            logger.debug("report took %s seconds" % (datetime.now() - start))
+            response = FileResponse(open(output.name, "rb"), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
+            return response
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
@@ -239,7 +227,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
                     # only curators and admin
                     pass
 
-            return render_to_response('explorer/query_download.html', params)
+            return render(request, 'explorer/query_download.html', params)
 
         if query_model.mongo_search_type == "M":
             return self._spreadsheet(query_model)
@@ -304,29 +292,14 @@ def _get_default_params(request, form):
     database_utils = DatabaseUtils()
     status, error = database_utils.connection_status()
 
-    return RequestContext(request, {
+    return {
         'version': app_settings.APP_VERSION,
         'host': app_settings.VIEWER_MONGO_HOST,
         'status': status,
         'error_msg': error,
         'form': form,
         'csrf_token_name': app_settings.CSRF_NAME
-    })
-
-
-def _get_header(result):
-    header = []
-    if result:
-        for key in result[0].keys():
-            header.append(key.encode("utf8"))
-        return header
-
-
-def _get_content(result, header):
-    row = []
-    for h in header:
-        row.append(result.get(h.decode("utf8"), "?"))
-    return row
+    }
 
 
 class Humaniser(object):
@@ -433,7 +406,7 @@ def _filler(result, cdes):
 
 def _final_cleanup(results):
     for res in results:
-        for key, value in res.iteritems():
+        for key, value in res.items():
             if key.endswith('timestamp'):
                 del res[key]
     return results
@@ -485,9 +458,8 @@ class MultisectionHandler(object):
             """
             l = []
 
-            max_length = max(map(len, dl.values()))
-            indexes = range(max_length)
-            for i in indexes:
+            max_length = max(map(len, list(dl.values())))
+            for i in range(max_length):
                 d = {}
                 for k in dl:
                     this_list = dl[k]

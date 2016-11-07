@@ -11,11 +11,17 @@ datatest:
     - .:/app
     - ./data/tests:/data
 
-dataselenium:
+dataprodselenium:
   image: debian:jessie
   volumes:
     - .:/app
-    - ./data/selenium:/data
+    - ./data/selenium/prod:/data
+
+datadevselenium:
+  image: debian:jessie
+  volumes:
+    - .:/app
+    - ./data/selenium/dev:/data
 
 jasper:
   image: muccg/jasper-reports-server:6.1.1
@@ -32,17 +38,6 @@ jasper:
     - DB_PASSWORD=rdrfapp
     - WAIT_FOR_DB=1
 
-legacydb:
-  image: postgres:9.3
-  environment:
-    - POSTGRES_USER=legacyrdrf
-    - POSTGRES_PASSWORD=legacyrdrf
-  ports:
-    - "15432:5432"
-
-smtp:
-  image: muccg/postfix:latest
-
 db:
   image: muccg/postgres-ssl:9.4
   environment:
@@ -50,12 +45,6 @@ db:
     - POSTGRES_PASSWORD=rdrfapp
   ports:
     - "5432"
-
-reporting:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
 
 cache:
   image: memcached:1.4
@@ -84,11 +73,7 @@ runserver:
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
-    - WAIT_FOR_REPORTING=1
     - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-    - REPORTINGDBNAME=reporting
-    - REPORTINGDBUSER=reporting
-    - REPORTINGDBPASSWORD=reporting
 
 uwsgi:
   image: muccg/rdrf-dev

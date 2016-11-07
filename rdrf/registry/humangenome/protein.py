@@ -1,9 +1,8 @@
 import re
-import sequence
+from . import sequence
 
 
 class Allele(sequence.Allele):
-
     def parse(self, input):
         # TODO not sure that protein variations can include mosaics
         # http://www.hgvs.org/mutnomen/FAQ.html#mosaic
@@ -31,7 +30,6 @@ class Allele(sequence.Allele):
 
 
 class ProteinVariation(sequence.SequenceVariation):
-
     class NotProtein(sequence.SequenceVariation.Error):
         pass
 
@@ -53,7 +51,6 @@ class ProteinVariation(sequence.SequenceVariation):
 
 
 class Variation(sequence.Variation):
-
     @staticmethod
     def create(input):
         if "del" in input:
@@ -98,7 +95,6 @@ class Variation(sequence.Variation):
 
 
 class Position(sequence.Position):
-
     def __init__(self, input=None):
         self.amino_acid = None
         sequence.Position.__init__(self, input)
@@ -144,14 +140,12 @@ class Position(sequence.Position):
 
 
 class Range(sequence.Range):
-
     @staticmethod
     def create_position(position):
         return Position(position)
 
 
 class Substitution(sequence.Substitution):
-
     @staticmethod
     def create_position_or_range(input):
         return Variation.create_position_or_range(input)
@@ -190,7 +184,6 @@ class Substitution(sequence.Substitution):
 
 
 class Deletion(sequence.Deletion):
-
     @staticmethod
     def create_position_or_range(input):
         return Variation.create_position_or_range(input)
@@ -205,7 +198,6 @@ class Deletion(sequence.Deletion):
 
 
 class Duplication(sequence.Duplication):
-
     @staticmethod
     def create_position_or_range(input):
         return Variation.create_position_or_range(input)
@@ -220,7 +212,6 @@ class Duplication(sequence.Duplication):
 
 
 class Insertion(sequence.Insertion):
-
     @staticmethod
     def create_position_or_range(input):
         return Variation.create_position_or_range(input)
@@ -235,7 +226,6 @@ class Insertion(sequence.Insertion):
 
 
 class FrameShift(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.new = None

@@ -32,9 +32,6 @@ function wait_for_services {
     if [[ "$WAIT_FOR_MONGO" ]] ; then
         dockerwait $MONGOSERVER $MONGOPORT
     fi
-    if [[ "$WAIT_FOR_REPORTING" ]]; then
-        dockerwait $REPORTINGDBSERVER $REPORTINGDBPORT
-    fi
     if [[ "$WAIT_FOR_HOST_PORT" ]]; then
         dockerwait $DOCKER_ROUTE $WAIT_FOR_HOST_PORT
     fi
@@ -53,12 +50,6 @@ function defaults {
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
-    : ${REPORTINGDBSERVER:=${DBSERVER}}
-    : ${REPORTINGDBPORT:=${DBPORT}}
-    : ${REPORTINGDBUSER:=${DBUSER}}
-    : ${REPORTINGDBNAME:=${REPORTINGDBUSER}}
-    : ${REPORTINGDBPASS:=${REPORTINGDBUSER}}
-
     : ${UWSGISERVER:="uwsgi"}
     : ${UWSGIPORT:="9000"}
     : ${RUNSERVER:="web"}
@@ -69,38 +60,38 @@ function defaults {
     : ${MONGOSERVER:="mongo"}
     : ${MONGOPORT:="27017"}
 
-    # variables to control where tests will look for the app (lettuce via selenium hub)
+    # variables to control where tests will look for the app (aloe via selenium hub)
     : ${TEST_APP_SCHEME:="http"}
     : ${TEST_APP_HOST:=${DOCKER_ROUTE}}
     : ${TEST_APP_PORT:="18000"}
     : ${TEST_APP_PATH:="/"}
     : ${TEST_APP_URL:="${TEST_APP_SCHEME}://${TEST_APP_HOST}:${TEST_APP_PORT}${TEST_APP_PATH}"}
-
     #: ${TEST_BROWSER:="chrome"}
     : ${TEST_BROWSER:="firefox"}
+    : ${TEST_WAIT:="30"}
+    : ${TEST_SELENIUM_HUB:="http://hub:4444/wd/hub"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
-    export REPORTINGDBSERVER REPORTINGDBPORT REPORTINGDBUSER REPORTINGDBNAME REPORTINGDBPASS
-    export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER
+    export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
 }
 
 
 function _django_check_deploy {
     echo "running check --deploy"
-    django-admin.py check --deploy --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-check.log
+    django-admin.py check --deploy --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-check.log
 }
 
 
 function _django_migrate {
     echo "running migrate"
-    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-migrate.log
-    django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-permissions.log
+    django-admin.py migrate --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-migrate.log
+    django-admin.py update_permissions --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-permissions.log
 }
 
 
 function _django_collectstatic {
     echo "running collectstatic"
-    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee /data/uwsgi-collectstatic.log
+    django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-collectstatic.log
 }
 
 function _django_iprestrict_permissive_fixtures {
@@ -202,20 +193,21 @@ if [ "$1" = 'runtests' ]; then
     exec django-admin.py test --noinput -v 3 rdrf
 fi
 
-# lettuce entrypoint
-if [ "$1" = 'lettuce' ]; then
-    echo "[Run] Starting lettuce"
+# aloe entrypoint
+if [ "$1" = 'aloe' ]; then
+    echo "[Run] Starting aloe"
 
-    # stellar config needs to be in PWD at runtime for lettuce tests
+    # stellar config needs to be in PWD at runtime for aloe tests
     if [ ! -f ${PWD}/stellar.yaml ]; then
         cp /app/stellar.yaml ${PWD}/stellar.yaml
     fi
-    rm -f /data/*.png
+    export DJANGO_SETTINGS_MODULE=rdrf.settings_test
     shift
-    exec django-admin.py run_lettuce --with-xunit --xunit-file=/data/tests.xml $@
+    cd /app/rdrf
+    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 $@
 fi
 
-echo "[RUN]: Builtin command not provided [tarball|lettuce|runtests|runserver|uwsgi|uwsgi_fixtures]"
+echo "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|uwsgi|uwsgi_fixtures]"
 echo "[RUN]: $@"
 
 exec "$@"

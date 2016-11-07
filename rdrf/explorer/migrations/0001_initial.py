@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -17,9 +17,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=255)),
                 ('description', models.TextField(null=True, blank=True)),
-                ('mongo_search_type', models.CharField(default=b'F', max_length=1,
-                                                       choices=[(b'F', b'Find'), (b'A', b'Aggregation')])),
-                ('collection', models.CharField(default=b'cdes', max_length=255)),
+                ('mongo_search_type', models.CharField(default='F', max_length=1,
+                                                       choices=[('F', 'Find'), ('A', 'Aggregation')])),
+                ('collection', models.CharField(default='cdes', max_length=255)),
                 ('criteria', models.TextField(null=True, blank=True)),
                 ('projection', models.TextField(null=True, blank=True)),
                 ('aggregation', models.TextField(null=True, blank=True)),

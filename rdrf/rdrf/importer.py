@@ -1,14 +1,14 @@
 import logging
-from models import Registry
-from models import RegistryForm
-from models import Section
-from models import CommonDataElement
-from models import CDEPermittedValueGroup
-from models import CDEPermittedValue
-from models import AdjudicationDefinition
-from models import ConsentSection
-from models import ConsentQuestion
-from models import DemographicFields
+from .models import Registry
+from .models import RegistryForm
+from .models import Section
+from .models import CommonDataElement
+from .models import CDEPermittedValueGroup
+from .models import CDEPermittedValue
+from .models import AdjudicationDefinition
+from .models import ConsentSection
+from .models import ConsentQuestion
+from .models import DemographicFields
 
 from registry.groups.models import WorkingGroup
 
@@ -19,18 +19,12 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
 
-from utils import create_permission
+from .utils import create_permission
 
 import yaml
 import json
 
 logger = logging.getLogger(__name__)
-
-
-# We want all YAML strings to be converted to unicode objects
-# Python 3 defaults to that, Django defaults to that, we default to that
-yaml.add_constructor(u'tag:yaml.org,2002:str',
-                     yaml.constructor.Constructor.construct_python_unicode)
 
 
 def _registries_using_cde(cde_code):
@@ -614,6 +608,8 @@ class Importer(object):
             raise ImportError("CFG Error: Form name %s not found in registry" % name)
 
         for cfg_dict in default_first(self.data):
+            if cfg_dict is None:
+                continue
             cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, name=cfg_dict["name"])
             cfg.context_type = cfg_dict["context_type"]
             cfg.name = cfg_dict["name"]
@@ -706,13 +702,11 @@ class Importer(object):
             for section_dict in self.data["consent_sections"]:
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
-                information_link = section_dict["information_link"]
-
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry, defaults={'section_label': section_label})
-                if not created:
-                    section_model.section_label = section_label
-                section_model.information_link = information_link
+                section_model.section_label = section_label
+                section_model.information_link = section_dict.get("information_link", section_model.information_link)
+                section_model.information_text = section_dict.get("information_text", section_model.information_text)
                 section_model.applicability_condition = section_dict["applicability_condition"]
                 if "validation_rule" in section_dict:
                     section_model.validation_rule = section_dict['validation_rule']

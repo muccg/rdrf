@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations
 
@@ -17,7 +17,7 @@ def fix_patient_relative_sex(apps, schema_editor):
         try:
             patient_relative.save()
         except Exception as ex:
-            print "could not update PatientRelative pk=%s: %s" % (patient_relative.pk, ex)
+            print("could not update PatientRelative pk=%s: %s" % (patient_relative.pk, ex))
 
 
 class Migration(migrations.Migration):

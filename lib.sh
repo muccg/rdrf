@@ -37,10 +37,10 @@ usage() {
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
     echo " ./develop.sh (prod|prod_build)"
-    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
+    echo " ./develop.sh (runtests|dev_aloe|prod_aloe)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
-    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
+    echo " ./develop.sh (ci_docker_staging|docker_staging_aloe)"
     echo " ./develop.sh (ci_docker_login)"
     echo ""
     echo "Example, start dev with no proxy and rebuild everything:"
@@ -49,9 +49,12 @@ usage() {
     exit 1
 }
 
-
 info () {
   printf "\r  [ \033[00;34mINFO\033[0m ] $1\n"
+}
+
+warn () {
+  printf "\r  [ \033[00;33mWARN\033[0m ] $1\n"
 }
 
 success () {
@@ -67,8 +70,11 @@ fail () {
 
 
 docker_options() {
-    DOCKER_ROUTE=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
-    success "Docker ip ${DOCKER_ROUTE}"
+    if [ "$(uname)" != "Darwin" ]; then
+        # There is no docker0 interface on Mac OS, so don't do any proxy detection
+        DOCKER_ROUTE=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
+        success "Docker ip ${DOCKER_ROUTE}"
+    fi
 
     _http_proxy
     _pip_proxy
@@ -100,14 +106,18 @@ _http_proxy() {
     info 'http proxy'
 
     if [ ${SET_HTTP_PROXY} = "1" ]; then
-        if [ -z ${HTTP_PROXY_HOST+x} ]; then
+        if [ -z ${HTTP_PROXY_HOST} ]; then
             HTTP_PROXY_HOST=${DOCKER_ROUTE}
         fi
-        http_proxy="http://${HTTP_PROXY_HOST}:3128"
-        HTTP_PROXY="http://${HTTP_PROXY_HOST}:3128"
-        NO_PROXY=${HTTP_PROXY_HOST}
-        no_proxy=${HTTP_PROXY_HOST}
-        success "Proxy $http_proxy"
+        if [ -z ${HTTP_PROXY_HOST} ]; then
+            warn  "SET_HTTP_PROXY is set but couldn't detect a proxy. Please set HTTP_PROXY_HOST, or disable proxying by unsetting SET_HTTP_PROXY"
+        else
+            http_proxy="http://${HTTP_PROXY_HOST}:3128"
+            HTTP_PROXY="http://${HTTP_PROXY_HOST}:3128"
+            NO_PROXY=${HTTP_PROXY_HOST}
+            no_proxy=${HTTP_PROXY_HOST}
+            success "Proxy $http_proxy"
+        fi
     else
         info 'Not setting http_proxy'
     fi
@@ -126,12 +136,19 @@ _pip_proxy() {
     PIP_TRUSTED_HOST='127.0.0.1'
 
     if [ ${SET_PIP_PROXY} = "1" ]; then
-        if [ -z ${PIP_PROXY_HOST+x} ]; then
+        if [ -z ${PIP_PROXY_HOST} ]; then
             PIP_PROXY_HOST=${DOCKER_ROUTE}
         fi
-        # use a local devpi install
-        PIP_INDEX_URL="http://${PIP_PROXY_HOST}:3141/root/pypi/+simple/"
-        PIP_TRUSTED_HOST="${PIP_PROXY_HOST}"
+        if [ -z ${PIP_PROXY_HOST} ]; then
+            warn "SET_PIP_PROXY is set but couldn't detect a proxy. Please set PIP_PROXY_HOST, or disable proxying by unsetting SET_PIP_PROXY"
+        else
+            info ${PIP_PROXY_HOST}
+            # use a local devpi install
+            PIP_INDEX_URL="http://${PIP_PROXY_HOST}:3141/root/pypi/+simple/"
+            PIP_TRUSTED_HOST="${PIP_PROXY_HOST}"
+        fi
+    else
+        info 'Not setting pip proxy'
     fi
 
     export PIP_INDEX_URL PIP_TRUSTED_HOST
@@ -328,7 +345,8 @@ _start_test_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml stop
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml up $@
     set +x
     success 'test stack up'
@@ -356,7 +374,8 @@ _start_prod_stack() {
 
 
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml stop
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml rm --all -v --force
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-prod.yml up $@
     set +x
     success 'prod stack up'
@@ -382,7 +401,7 @@ run_unit_tests() {
     _start_test_stack --force-recreate -d
 
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-unittests.yml run --rm testhost
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml run --rm runservertest runtests
     rval=$?
     set -e
 
@@ -392,10 +411,23 @@ run_unit_tests() {
 }
 
 
+_purge_dir() {
+    rm --recursive --force -v $@ || true
+    mkdir -p $@
+    chmod o+rwx $@ || true
+}
+
+
 _start_selenium() {
     info 'selenium stack up'
-    mkdir -p data/selenium
-    chmod o+rwx data/selenium
+
+    # remove any previous build artifacts from top level selenium dir
+    _purge_dir data/selenium/dev
+    _purge_dir data/selenium/dev/scratch
+    _purge_dir data/selenium/dev/log
+    _purge_dir data/selenium/prod
+    _purge_dir data/selenium/prod/scratch
+    _purge_dir data/selenium/prod/log
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull --ignore-pull-failures
@@ -419,25 +451,32 @@ start_seleniumhub() {
 }
 
 
-start_lettucetests() {
+_start_aloetests() {
     set -x
-    set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
+    # ensure previous data containers are removed
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml stop
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml rm --all -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml $@
     local rval=$?
-    set -e
     set +x
+
+    info 'artifacts'
+    ls -laRth data/selenium/ || true
 
     return $rval
 }
 
 
-dev_lettuce() {
-    info 'dev lettuce'
+dev_aloe() {
+    info 'dev aloe'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
-    start_lettucetests up --force-recreate devlettuce
+    # Use run so we can get correct return codes from test run
+    set +e
+    _start_aloetests run --rm devaloe
     local rval=$?
+    set -e
 
     _stop_test_stack
     _stop_selenium
@@ -445,14 +484,16 @@ dev_lettuce() {
     exit $rval
 }
 
-
-prod_lettuce() {
-    info 'prod lettuce'
+prod_aloe() {
+    info 'prod aloe'
     _start_selenium --force-recreate -d
     _start_prod_stack --force-recreate -d
 
-    start_lettucetests up --force-recreate prodlettuce
+    # Use run so we can get correct return codes from test run
+    set +e
+    _start_aloetests run --rm prodaloe
     local rval=$?
+    set -e
 
     _stop_prod_stack
     _stop_selenium
@@ -480,10 +521,12 @@ check_migrations() {
 
     set -x
     set +e
-    docker-compose -f docker-compose-build.yml --project-name ${PROJECT_NAME} run --rm dev django-admin makemigrations --dry-run --noinput -e
-    local check=$?
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} run --rm runserver django-admin makemigrations  --dry-run --noinput --check 
+    local rval=$?
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} stop
+    docker-compose -f docker-compose.yml --project-name ${PROJECT_NAME} rm --all -v --force
     set -e
     set +x
 
-    exec expr $check = 1 > /dev/null
+    exit $rval
 }

@@ -2,14 +2,15 @@
 from django.forms import Textarea, Widget, MultiWidget, HiddenInput
 from django.forms import widgets
 from django.forms.utils import flatatt
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse_lazy
 from django.forms.widgets import ClearableFileInput
 
 import re
 import logging
-from models import CommonDataElement
+from .models import CommonDataElement
+from registry.patients.models import PatientConsent
 import pycountry
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         super(OtherPleaseSpecifyWidget, self).__init__(_widgets, attrs)
 
     def format_output(self, rendered_widgets):
-        output = u'<BR>'.join(rendered_widgets)
+        output = '<BR>'.join(rendered_widgets)
         return output
 
     def decompress(self, value):
@@ -336,7 +337,7 @@ class DataSourceSelect(ParametrisedSelectWidget):
         if hasattr(datasources, self._widget_parameter):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
-            return datasource.values()
+            return list(datasource.values())
 
 
 class PositiveIntegerInput(widgets.TextInput):
@@ -359,7 +360,7 @@ class PositiveIntegerInput(widgets.TextInput):
 class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
 
     def render(self):
-        return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+        return mark_safe('\n'.join(['%s\n' % w for w in self]))
 
 
 class RadioSelect(widgets.RadioSelect):
@@ -368,8 +369,8 @@ class RadioSelect(widgets.RadioSelect):
 
 class ReadOnlySelect(widgets.Select):
 
-    def render(self, name, value, attrs, choices=()):
-        html = super(ReadOnlySelect, self).render(name, value, attrs, choices)
+    def render(self, name, value, attrs=None):
+        html = super(ReadOnlySelect, self).render(name, value, attrs)
         return self._make_label(html) + self._make_hidden_field(name, value, attrs)
 
     def _make_hidden_field(self, name, value, attrs):
@@ -520,7 +521,7 @@ class MultipleFileInput(Widget):
     class TemplateFile(object):
         url = ""
 
-        def __unicode__(self):
+        def __str__(self):
             return ""
 
     def _render_base(self, name, value, attrs, index):
@@ -549,3 +550,12 @@ class MultipleFileInput(Widget):
 
         return [base_widget.value_from_datadict(data, files, self.input_name(name, i))
                 for i in nums]
+
+
+class ConsentFileInput(ClearableFileInput):
+    def get_template_substitution_values(self, value):
+        patient_consent = PatientConsent.objects.get(form=value.name)
+        return {
+            'initial': conditional_escape(patient_consent.filename),
+            'initial_url': conditional_escape(value.url),
+        }

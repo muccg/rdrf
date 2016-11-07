@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
             model_name='doctor',
             name='sex',
             field=models.CharField(blank=True, max_length=1, null=True, choices=[
-                                   (b'1', b'Male'), (b'2', b'Female'), (b'3', b'Indeterminate')]),
+                                   ('1', 'Male'), ('2', 'Female'), ('3', 'Indeterminate')]),
         ),
     ]

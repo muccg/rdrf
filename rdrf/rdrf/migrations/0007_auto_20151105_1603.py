@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
             model_name='emailnotification',
             name='description',
             field=models.CharField(max_length=100, choices=[(
-                b'other-clinician', b'Other Clinician'), (b'new-patient', b'New Patient Registered')]),
+                'other-clinician', 'Other Clinician'), ('new-patient', 'New Patient Registered')]),
         ),
     ]

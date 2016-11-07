@@ -1,18 +1,13 @@
 import logging
 import os
 
-from lettuce.core import STEP_REGISTRY
-from lettuce import step, world
-from lettuce_webdriver.webdriver import contains_content
-from lettuce_webdriver.webdriver import goto
-from lettuce_webdriver.util import assert_false
-from lettuce_webdriver.util import assert_true
+from aloe.registry import STEP_REGISTRY
+from aloe import step, world
+from aloe_webdriver.webdriver import contains_content
+from aloe_webdriver import assert_true
 
 from selenium.webdriver.common.alert import Alert
 
-from rdrf.models import Registry
-from registry.groups.models import CustomUser
-from registry.patients.models import Patient
 import subprocess
 
 
@@ -24,13 +19,27 @@ def steps_path():
 
 
 def exported_data_path():
-    return '{0}/{1}'.format(steps_path(), 'features/exported_data')
+    return '{0}/{1}'.format(steps_path(), 'exported_data')
+
+
+def subprocess_logging(command):
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if stdout:
+        logger.info(stdout)
+    if stderr:
+        logger.error(stderr)
+    if p.returncode != 0:
+        logger.error("Return code {0}".format(p.returncode))
 
 
 def drop_all_mongo():
     logger.info("Dropping all mongo databases")
-    subprocess.check_call(["mongo", "--host", "mongo", "--eval",
-                           "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"])
+    cmd = "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"
+    try:
+        subprocess_logging(["mongo", "--host", "mongo", "--eval", cmd])
+    except subprocess.CalledProcessError:
+        logger.exception("Dropping mongo databases failed")
 
 
 def reset_database_connection():
@@ -44,9 +53,9 @@ def have_snapshot(export_name):
 
 def save_snapshot(snapshot_name, export_name):
     logger.info("Saving snapshot: {0}".format(snapshot_name))
-    subprocess.call(["stellar", "remove", snapshot_name])
-    subprocess.check_call(["stellar", "snapshot", snapshot_name])
-    subprocess.check_call(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    subprocess_logging(["stellar", "remove", snapshot_name])
+    subprocess_logging(["stellar", "snapshot", snapshot_name])
+    subprocess_logging(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
     world.snapshot_dict[export_name] = snapshot_name
 
 
@@ -62,13 +71,13 @@ def restore_minimal_snapshot():
 
 def restore_snapshot(snapshot_name):
     logger.info("Restoring snapshot: {0}".format(snapshot_name))
-    subprocess.check_call(["stellar", "restore", snapshot_name])
-    subprocess.check_call(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+    subprocess_logging(["stellar", "restore", snapshot_name])
+    subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
 def import_registry(export_name):
     logger.info("Importing registry: {0}".format(export_name))
-    subprocess.check_call(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
+    subprocess_logging(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
 
 def show_stats(export_name):
@@ -122,30 +131,30 @@ def click_link(step, link_text):
     link.click()
 
 
-@step(u'should see a link to "(.*)"')
+@step('should see a link to "(.*)"')
 def should_see_link_to(step, link_text):
     return world.browser.find_element_by_xpath('//a[contains(., "%s")]' % link_text)
 
 
-@step(u'should NOT see a link to "(.*)"')
+@step('should NOT see a link to "(.*)"')
 def should_not_see_link_to(step, link_text):
     links = world.browser.find_elements_by_xpath('//a[contains(., "%s")]' % link_text)
     assert_true(step, len(links) == 0)
 
 
-@step(u'press the "(.*)" button')
+@step('press the "(.*)" button')
 def press_button(step, button_text):
     button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button.click()
 
 
-@step(u'I click "(.*)" on patientlisting')
+@step('I click "(.*)" on patientlisting')
 def click_patient_listing(step, patient_name):
     link = world.browser.find_element_by_partial_link_text(patient_name)
     link.click()
 
 
-@step(u'I click on "(.*)" in "(.*)" group in sidebar')
+@step('I click on "(.*)" in "(.*)" group in sidebar')
 def click_sidebar_group_item(step, item_name, group_name):
     # E.g. And I click "Clinical Data" in "Main" group in sidebar
     wrap = world.browser.find_element_by_id("wrap")
@@ -156,18 +165,17 @@ def click_sidebar_group_item(step, item_name, group_name):
     form_link.click()
 
 
-@step(u'I press "(.*)" button in "(.*)" group in sidebar')
+@step('I press "(.*)" button in "(.*)" group in sidebar')
 def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
-    #button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
     button.click()
 
 
-@step(u'I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
+@step('I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
     # And I enter "02-08-2016" for  section "" cde "Consent date"
     location_is(step, form)  # sanity check
@@ -191,26 +199,26 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     raise Exception("could not find cde %s" % cde)
 
 
-@step(u'And I click Save')
+@step('And I click Save')
 def click_save_button(step):
     save_button = world.browser.find_element_by_id("submit-btn")
     save_button.click()
 
 
-@step(u'error message is "(.*)"')
+@step('error message is "(.*)"')
 def error_message_is(step, error_message):
-    #<div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
+    # <div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath(
         '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' % error_message)
 
 
-@step(u'location is "(.*)"')
+@step('location is "(.*)"')
 def location_is(step, location_name):
     world.browser.find_element_by_xpath(
         '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
-@step(u'When I click Module "(.*)" for patient "(.*)" on patientlisting')
+@step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
 def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     # module_name is "Main/Clinical Form" if we indicate context group  or "FormName" is just Modules list ( no groups)
     if "/" in module_name:
@@ -229,14 +237,14 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     form_link.click()
 
 
-@step(u'press the navigate back button')
-def press_button(step):
+@step('press the navigate back button')
+def press_back_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
     button.click()
 
 
-@step(u'press the navigate forward button')
-def press_button(step):
+@step('press the navigate forward button')
+def press_forward_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="next-form"]')
     button.click()
 
@@ -293,14 +301,11 @@ def checkbox_should_be_checked(step, checkbox_label):
 
 @step('a registry named "(.*)"')
 def create_registry(step, name):
-    #
-    #world.registry = Registry.objects.get(name=name)
     world.registry = name
 
 
 @step('a user named "(.*)"')
 def create_user(step, username):
-    #world.user = CustomUser.objects.get(username=username)
     world.user = username
 
 
@@ -349,7 +354,7 @@ def login_as_user(step, username, password):
     password_field.submit()
 
 
-@step(u'should be logged in')
+@step('should be logged in')
 def should_be_logged_in(step):
     user_link = world.browser.find_element_by_partial_link_text(world.user)
     user_link.click()
@@ -369,7 +374,7 @@ def click_user_menu(step):
 
 
 @step('the progress indicator should be "(.*)"')
-def the_page_header_should_be(step, percentage):
+def the_progress_indicator_should_be(step, percentage):
     progress_bar = world.browser.find_element_by_xpath('//div[@class="progress"]/div[@class="progress-bar"]')
     assert_true(step, progress_bar.text.strip() == percentage)
 
@@ -402,21 +407,17 @@ def refresh_page(step):
     world.browser.get(current_url)
 
 
-@step(u'accept the alert')
+@step('accept the alert')
 def accept_alert(step):
     Alert(world.browser).accept()
 
 
-@step(u'When I click "(.*)" in sidebar')
+@step('When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
     world.browser.find_element_by_link_text(sidebar_link_text).click()
 
 
-@step(u'I click Cancel')
+@step('I click Cancel')
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     link.click()
-
-
-def get_site_url(default_url):
-    return os.environ.get('TEST_APP_URL', default_url)

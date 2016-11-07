@@ -42,29 +42,29 @@ class RdrfEmail(object):
         except RdrfEmailException:
             logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
         except Exception as e:
-            logger.error("Email has failed to send - %s" % e)
+            logger.exception("Email has failed to send")
 
     def _get_email_notification(self):
-        try:
-            if self.email_notification:
-                email_note = self.email_notification
-            else:
-                email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
-            self.email_notification = email_note
-            self.email_from = email_note.email_from
+        if self.email_notification:
+            email_note = self.email_notification
+        else:
             try:
-                self.email_templates = email_note.email_templates.get(language=self.language)
-            except EmailTemplate.DoesNotExist:
-                self.email_templates = email_note.email_templates.get(language=self._DEFAULT_LANGUAGE)
+                email_note = EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
+            except EmailNotification.DoesNotExist:
+                raise RdrfEmailException()
+        self.email_notification = email_note
+        self.email_from = email_note.email_from
+        try:
+            self.email_templates = email_note.email_templates.get(language=self.language)
+        except EmailTemplate.DoesNotExist:
+            self.email_templates = email_note.email_templates.get(language=self._DEFAULT_LANGUAGE)
 
-            if email_note.recipient:
-                recipient = self._get_recipient_template(email_note.recipient)
-                self.recipient.append(recipient)
-            if email_note.group_recipient:
-                self.recipient = self.recipient + self._get_group_emails(email_note.group_recipient)
-
-        except EmailNotification.DoesNotExist:
-            raise RdrfEmailException()
+        if email_note.recipient:
+            recipient = self._get_recipient_template(email_note.recipient)
+            self.recipient.append(recipient)
+        if email_note.group_recipient:
+            self.recipient = self.recipient + self._get_group_emails(email_note.group_recipient)
+        self.recipient = list(filter(bool, self.recipient))
 
     def _get_group_emails(self, group):
         user_emails = []
@@ -96,7 +96,7 @@ class RdrfEmail(object):
     def _save_notification_record(self):
         _template_data = {}
 
-        for key, value in self.template_data.iteritems():
+        for key, value in self.template_data.items():
             if value:
                 _template_data[key] = {
                     "app": value._meta.app_label,

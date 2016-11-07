@@ -1,22 +1,32 @@
 from useraudit.backend import AuthFailedLoggerBackend
-from django.conf import settings
+from useraudit.signals import login_failure_limit_reached
+
+import logging
+logger = logging.getLogger(__name__)
+
+def account_lockout_handler(sender, user=None, **kwargs):
+    from django.conf import settings
+    logger.debug("account locked notification hit: sender %s kwargs %s" % (sender,
+                                                                           kwargs))
+
+    from rdrf.email_notification import process_notification
+    from useraudit.middleware import get_request
+
+    template_data = {
+        "user": user,
+    }
+
+    registry_code = getattr(settings, "FALLBACK_REGISTRY_CODE", None)
+
+    if registry_code:
+        process_notification(registry_code,"account-locked",
+                             get_request().LANGUAGE_CODE, template_data)
+    else:
+        logger.debug("No settings.FALLBACK_REGISTRY_CODE- no notifications sent")
 
 
-class AuthFailedLoggerNotificationBackend(AuthFailedLoggerBackend):
 
-    def notification(self):
-        super(AuthFailedLoggerBackend, self).notification()
-        from rdrf.email_notification import process_notification
-        from useraudit.middleware import get_request
 
-        template_data = {
-            "user": self._get_user()
-        }
+login_failure_limit_reached.connect(account_lockout_handler)
 
-        if self.registry_code:
-            process_notification(self.registry_code, settings.EMAIL_NOTE_ACCOUNT_LOCKED,
-                                 get_request().LANGUAGE_CODE, template_data)
 
-    @property
-    def registry_code(self):
-        return getattr(settings, "FALLBACK_REGISTRY_CODE", None)

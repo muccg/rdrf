@@ -1,31 +1,38 @@
 #
-dataselenium:
+datadevselenium:
   extends:
     file: docker-compose-common.yml
-    service: dataselenium
+    service: datadevselenium
 
-# runs the lettuce tests against docker-compose-teststack.yml
-devlettuce:
+dataprodselenium:
+  extends:
+    file: docker-compose-common.yml
+    service: dataprodselenium
+
+# runs the aloe tests against docker-compose-teststack.yml
+devaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
     - WAIT_FOR_MONGO=1
+    - TEST_WAIT=45
+    - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:
-    - dataselenium
+    - datadevselenium
   external_links:
     - rdrf_runservertest_1:web
     - rdrf_seleniumhub_1:hub
     - rdrf_dbtest_1:db
     - rdrf_mongotest_1:mongo
 
-# runs the lettuce tests against docker-compose-teststack.yml
-prodlettuce:
+# runs the aloe tests against docker-compose-teststack.yml
+prodaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_UWSGI=1
@@ -34,9 +41,11 @@ prodlettuce:
     - TEST_APP_PORT=8443
     - TEST_APP_SCHEME=https
     - TEST_APP_PATH=/app/
+    - TEST_WAIT=45
+    - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:
-    - dataselenium
+    - dataprodselenium
   external_links:
     - rdrf_uwsgiprod_1:uwsgi
     - rdrf_seleniumhub_1:hub

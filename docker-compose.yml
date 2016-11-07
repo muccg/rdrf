@@ -4,22 +4,10 @@ datadev:
     file: docker-compose-common.yml
     service: datadev
 
-smtp:
-  extends:
-    file: docker-compose-common.yml
-    service: smtp
-
 db:
   extends:
     file: docker-compose-common.yml
     service: db
-
-reporting:
-  extends:
-    file: docker-compose-common.yml
-    service: reporting
-  ports:
-    - "15633:5432"
 
 cache:
   extends:
@@ -46,11 +34,8 @@ runserver:
     - datadev
   links:
     - db
-    #- legacydb
-    - reporting
     - cache
     - mongo
-    - smtp
   ports:
     - "8000:8000"
 
@@ -62,7 +47,6 @@ uwsgi:
     - datadev
   links:
     - db
-    - reporting
     - cache
     - mongo
     - runserver:web

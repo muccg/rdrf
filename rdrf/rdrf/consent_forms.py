@@ -70,31 +70,17 @@ class BaseConsentForm(forms.BaseForm):
             patient_registries = []
 
         for consent_field in self.custom_consents:
-            logger.debug("saving consent field %s ( value to save = %s)" %
-                         (consent_field, self.custom_consents[consent_field]))
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
                 consent_field)
 
             if registry_model in patient_registries:
-                logger.debug("saving consents for %s %s" %
-                             (registry_model, consent_section_model))
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(self.patient_model):
-                    logger.debug("%s is applicable to %s" %
-                                 (consent_section_model, self.patient_model))
                     cv = self.patient_model.set_consent(
                         consent_question_model, self.custom_consents[consent_field], commit)
-                    logger.debug("set consent value ok : cv = %s" % cv)
-                else:
-                    logger.debug("%s is not applicable to model %s" %
-                                 (consent_section_model, self.patient_model))
-
-            else:
-                logger.debug("patient not in %s ?? no consents added here" % registry_model)
 
     def clean(self):
-        logger.debug("in %s clean" % self.__class__.__name__)
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
 

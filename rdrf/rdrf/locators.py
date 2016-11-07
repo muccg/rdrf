@@ -28,7 +28,7 @@ class Locator(object):
     def get_link(self):
         raise NotImplementedError("subclass responsiblity")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.link
 
 

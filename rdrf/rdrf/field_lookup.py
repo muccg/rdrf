@@ -2,22 +2,21 @@ import re
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
-from collections import OrderedDict
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
-import fields
-import widgets
+from . import fields
+from . import widgets
 import logging
-from calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
-from validation import ValidatorFactory
-from models import CommonDataElement
+from .calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
+from .validation import ValidatorFactory
+from .models import CommonDataElement
 
-from django.utils import six
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
+import collections
 
-mark_safe_lazy = lazy(mark_safe, six.text_type)
+mark_safe_lazy = lazy(mark_safe, str)
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +120,7 @@ class FieldFactory(object):
 
     def _get_cde_link(self, name):
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
-        label_link = mark_safe_lazy(u"<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
+        label_link = mark_safe_lazy("<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
         return label_link
 
     def _get_code(self):
@@ -397,7 +396,7 @@ class FieldFactory(object):
                             injected_model=self.primary_model,
                             injected_model_id=self.primary_id)
                         script = parser.get_script()
-                        from widgets import CalculatedFieldWidget
+                        from .widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
                         return django.forms.CharField(**options)
 
@@ -470,7 +469,7 @@ class ComplexFieldFactory(object):
     def _is_complex(self):
         return re.match(self.DATATYPE_PATTERN, self.cde.datatype)
 
-    def __unicode__(self):
+    def __str__(self):
         return "ComplexField for CDE %s with datatype %s" % (self, self.cde.datatype)
 
     def _get_field(self, cde):
@@ -510,7 +509,7 @@ class ComplexFieldFactory(object):
             :return:
             """
             if value:
-                return value.values()
+                return list(value.values())
             else:
                 return [None] * len(self.component_cdes)
 

@@ -4,6 +4,7 @@ import os
 import logging
 
 from rdrf.models import Registry
+import collections
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ def run_hooks(hook_name, *args, **kwargs):
         defined_hook_module = __import__(
             "rdrf.hooks." + defined_hook_module_name, fromlist=['rdrf.hooks'])
         for thing_name, thing in inspect.getmembers(defined_hook_module):
-            if callable(thing) and hasattr(thing, "rdrf_hook") and thing.rdrf_hook == hook_name:
+            if isinstance(thing, collections.Callable) and hasattr(thing, "rdrf_hook") and thing.rdrf_hook == hook_name:
                 logger.debug("found hook %s for %s" % (thing_name, hook_name))
                 hooks_to_run.append(thing)
 

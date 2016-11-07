@@ -1,7 +1,8 @@
-from models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from .models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 import logging
 import yaml
 import json
+from operator import attrgetter
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
@@ -20,9 +21,13 @@ def convert_decimal_values(cde_dict):
     for k in cde_dict:
         value = cde_dict[k]
         if isinstance(value, Decimal):
-            logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
+            # logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
             cde_dict[k] = str(value)
     return cde_dict
+
+
+def cde_to_dict(cde):
+    return convert_decimal_values(model_to_dict(cde))
 
 
 class ExportFormat:
@@ -101,12 +106,16 @@ class Exporter(object):
         elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
             cdes = set([cde for cde in self._get_cdes_in_registry(self.registry)])
         elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            cdes = set([cde for cde in CommonDataElement.objects.all()])
+            cdes = set([cde for cde in CommonDataElement.objects.order_by("code")])
         else:
             raise ExportException("Unknown export type")
 
         generic_cdes = self._get_generic_cdes()
-        return cdes.union(generic_cdes)
+        return self._sort_codes(cdes.union(generic_cdes))
+
+    @staticmethod
+    def _sort_codes(items):
+        return sorted(items, key=attrgetter("code"))
 
     def _get_pvgs_in_registry(self, registry):
         pvgs = set([])
@@ -122,10 +131,10 @@ class Exporter(object):
         elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
             pvgs = set([pvg for pvg in self._get_pvgs_in_registry(self.registry)])
         elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            pvgs = set([pvg for pvg in CDEPermittedValueGroup.objects.all()])
+            pvgs = set([pvg for pvg in CDEPermittedValueGroup.objects.order_by("code")])
         else:
             raise ExportException("Unknown export type")
-        return pvgs
+        return self._sort_codes(pvgs)
 
     def _get_registry_version(self):
         return self.registry.version.strip()
@@ -161,7 +170,7 @@ class Exporter(object):
         d = {}
 
         for form in self.registry.forms:
-            d[form.name] = [g.name for g in form.groups_allowed.all()]
+            d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
         return d
 
     def _export(self, format, export_type):
@@ -169,7 +178,7 @@ class Exporter(object):
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
-        data["cdes"] = [convert_decimal_values(model_to_dict(cde)) for cde in self._get_cdes(export_type)]
+        data["cdes"] = list(map(cde_to_dict, self._get_cdes(export_type)))
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
@@ -203,18 +212,17 @@ class Exporter(object):
             for section_code in self.registry.generic_sections:
                 data["generic_sections"].append(self._create_section_map(section_code))
 
-            for frm in RegistryForm.objects.all().filter(registry=self.registry):
+            for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
                 if frm.name == self.registry.generated_questionnaire_name:
                     # don't export the generated questionnaire
                     continue
                 data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
-            logger.debug("About to yaml dump the export: data = %s" % data)
             try:
-                export_data = yaml.safe_dump(data, allow_unicode=True)
+                export_data = dump_yaml(data)
             except Exception as ex:
-                logger.error("Error yaml dumping: %s" % ex)
+                logger.exception("Error yaml dumping")
                 export_data = None
         elif format == ExportFormat.JSON:
             export_data = json.dumps(data)
@@ -223,10 +231,7 @@ class Exporter(object):
         else:
             raise Exception("Unknown format: %s" % format)
 
-        logger.debug("Export of Registry %s" % self.registry.name)
-        logger.debug("Format = %s" % format)
-        logger.debug("Export Data:")
-        logger.debug("%s" % export_data)
+        logger.debug("Export of Registry %s in %s format" % (self.registry.name, format))
         return export_data
 
     def export_cdes_yaml(self, all_cdes=False):
@@ -241,7 +246,7 @@ class Exporter(object):
 
     def _export_cdes(self, all_cdes):
         if all_cdes:
-            cdes = CommonDataElement.objects.all()
+            cdes = CommonDataElement.objects.order_by("code")
         else:
             cdes = self._get_cdes_in_registry(self.registry)
 
@@ -289,7 +294,7 @@ class Exporter(object):
             pvg = CDEPermittedValueGroup.objects.get(code=group_code)
             group_map["code"] = pvg.code
             group_map["values"] = []
-            for value in CDEPermittedValue.objects.all().filter(pv_group=pvg):
+            for value in CDEPermittedValue.objects.filter(pv_group=pvg).order_by("position", "code"):
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
@@ -302,7 +307,7 @@ class Exporter(object):
             data["value_groups"].append(group_map)
 
         if format == ExportFormat.YAML:
-            export_cde__data = yaml.dump(data)
+            export_cde__data = dump_yaml(data)
         elif format == ExportFormat.JSON:
             export_cde__data = json.dumps(data)
         else:
@@ -329,11 +334,11 @@ class Exporter(object):
         cdes = cdes.union(generic_cdes)
         cdes = cdes.union(adjudication_cdes)
 
-        return cdes
+        return self._sort_codes(cdes)
 
     def _get_consent_sections(self):
         section_dicts = []
-        for consent_section in self.registry.consent_sections.all():
+        for consent_section in self.registry.consent_sections.order_by("code"):
             section_dict = {"code": consent_section.code,
                             "section_label": consent_section.section_label,
                             "information_link": consent_section.information_link,
@@ -341,7 +346,7 @@ class Exporter(object):
                             "applicability_condition": consent_section.applicability_condition,
                             "validation_rule": consent_section.validation_rule,
                             "questions": []}
-            for consent_model in consent_section.questions.all():
+            for consent_model in consent_section.questions.order_by("position", "code"):
                 cm = {"code": consent_model.code,
                       "position": consent_model.position,
                       "question_label": consent_model.question_label,
@@ -440,7 +445,7 @@ class Exporter(object):
             if form.complete_form_cdes.exists():
                 form_cdes = {}
                 form_cdes["form_name"] = form.name
-                form_cdes["cdes"] = [cde.code for cde in form.complete_form_cdes.all()]
+                form_cdes["cdes"] = [cde.code for cde in form.complete_form_cdes.order_by("code")]
                 complete_fields.append(form_cdes)
 
         return complete_fields
@@ -452,7 +457,7 @@ class Exporter(object):
         for query in registry_queries:
             q = {}
             q["registry"] = query.registry.code
-            q["access_group"] = [ag.id for ag in query.access_group.all()]
+            q["access_group"] = [ag.id for ag in query.access_group.order_by("name")]
             q["title"] = query.title
             q["description"] = query.description
             q["mongo_search_type"] = query.mongo_search_type
@@ -470,10 +475,10 @@ class Exporter(object):
     def _get_cde_policies(self):
         from rdrf.models import CdePolicy
         cde_policies = []
-        for cde_policy in CdePolicy.objects.filter(registry=self.registry):
+        for cde_policy in CdePolicy.objects.filter(registry=self.registry).order_by("cde__code"):
             cde_pol_dict = {}
             cde_pol_dict["cde_code"] = cde_policy.cde.code
-            cde_pol_dict["groups_allowed"] = [group.name for group in cde_policy.groups_allowed.all()]
+            cde_pol_dict["groups_allowed"] = [group.name for group in cde_policy.groups_allowed.order_by("name")]
             cde_pol_dict["condition"] = cde_policy.condition
             cde_policies.append(cde_pol_dict)
         return cde_policies
@@ -493,3 +498,24 @@ class Exporter(object):
                 cfg_dict["forms"].append(form.name)
             data.append(cfg_dict)
         return data
+
+
+def str_presenter(dumper, data):
+    lines = data.splitlines()
+    if len(lines) > 1:
+        # strip trailing whitespace on lines -- it's not significant,
+        # and otherwise the dumper will use the quoted and escaped
+        # string style.
+        data = "\n".join(map(str.rstrip, lines))
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style="|")
+    else:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+class ExportDumper(yaml.SafeDumper):
+    pass
+
+ExportDumper.add_representer(str, str_presenter)
+
+def dump_yaml(data):
+    return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,
+                     default_flow_style=False)

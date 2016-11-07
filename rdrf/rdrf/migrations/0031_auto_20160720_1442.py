@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -23,16 +23,16 @@ class Migration(migrations.Migration):
             model_name='contextformgroup',
             name='naming_scheme',
             field=models.CharField(
-                default=b'D',
+                default='D',
                 max_length=1,
                 choices=[
-                        (b'D',
-                         b'Automatic - Date'),
-                        (b'N',
-                         b'Automatic - Number'),
-                        (b'M',
-                         b'Manual - Free Text'),
-                        (b'C',
-                         b'CDE - Nominate CDE to use')]),
+                        ('D',
+                         'Automatic - Date'),
+                        ('N',
+                         'Automatic - Number'),
+                        ('M',
+                         'Manual - Free Text'),
+                        ('C',
+                         'CDE - Nominate CDE to use')]),
         ),
     ]

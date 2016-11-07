@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -28,10 +28,7 @@ class ImportRegistryView(View):
             'error_message': error_message,
         }
 
-        return render_to_response(
-            'rdrf_cdes/import_registry.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/import_registry.html', context)
 
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
@@ -54,10 +51,10 @@ class ImportRegistryView(View):
             logger.error("Import failed: %s" % ex)
             url_params = {
                 "state": "fail",
-                "error_message": ex.message
+                "error_message": str(ex),
             }
-            import urllib
-            url_string = urllib.urlencode(url_params)
+            import urllib.request, urllib.parse, urllib.error
+            url_string = urllib.parse.urlencode(url_params)
 
             return HttpResponseRedirect(reverse('import_registry') + "?" + url_string)
 

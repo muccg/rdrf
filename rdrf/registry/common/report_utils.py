@@ -1,5 +1,6 @@
 import logging
 from functools import reduce
+import collections
 logger = logging.getLogger(__name__)
 
 
@@ -17,7 +18,7 @@ class SimpleReport(object):
     def _get_selector_function(self, field_spec):
         selector = field_spec[1]
 
-        if isinstance(selector, str) or isinstance(selector, basestring):
+        if isinstance(selector, str) or isinstance(selector, str):
 
             def mk_lookup(selector):
                 def g(obj):
@@ -27,7 +28,7 @@ class SimpleReport(object):
 
             return mk_lookup(selector)
 
-        elif callable(selector):
+        elif isinstance(selector, collections.Callable):
             return selector
         else:
             raise Exception("Unknown selector: %s" % selector)

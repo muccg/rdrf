@@ -42,13 +42,17 @@ class BaseRegistration(object):
 
         django_user.groups = [user_group.id, ] if user_group else []
 
-        django_user.first_name = request.POST['first_name']
-        django_user.last_name = request.POST['surname']
+        if is_parent:
+            django_user.first_name = request.POST['parent_guardian_first_name']
+            django_user.last_name = request.POST['parent_guardian_last_name']
+        else:
+            django_user.first_name = request.POST['first_name']
+            django_user.last_name = request.POST['surname']
         django_user.registry = [registry, ] if registry else []
         django_user.is_staff = True
         return django_user
 
-    def _create_patient_address(self, patient, request, address_type="POST"):
+    def _create_patient_address(self, patient, request, address_type="Postal"):
         address = PatientAddress.objects.create(
             patient=patient,
             address_type=self.get_address_type(address_type),

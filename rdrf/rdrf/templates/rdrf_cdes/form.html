@@ -1,5 +1,6 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
 {% load get_display_name %}
+{% load get_cde_name %}
 {% load get_section_id %}
 {% load is_formset %}
 {% load get_management_form %}
@@ -293,7 +294,7 @@
                                     {% elif fpc.1 == False %}
                                         <img src='{% static 'images/cross.png'%}'>
                                     {% endif %}
-                                    {{fpc.0}}
+                                    {{fpc.0|get_cde_name}}
                                 </li>
                             {% endfor %}
                         </ul>
@@ -399,17 +400,14 @@
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group rdrf-cde-field invisibutton-container">
                                     <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
-                                        {% if field.field.cde.code %}
-					{% if not CREATE_MODE %}
+                                        {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"
                                            class="btn btn-default btn-xs invisibutton pull-left"
                                            data-toggle="tooltip" title="View previous values"
                                            aria-label="Previous values">
-                                          <!-- fixme: need a time-series chart or clock icon -->
-                                          <i class="glyphicon glyphicon-stats" aria-hidden="true"></i>
+                                          <i class="glyphicon glyphicon-time" aria-hidden="true"></i>
                                         </a>
-					{% endif %}
                                         {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='MongoMigrationDummyModel',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('version', models.CharField(max_length=80, choices=[(b'initial', b'initial')])),
+                ('version', models.CharField(max_length=80, choices=[('initial', 'initial')])),
             ],
         ),
     ]

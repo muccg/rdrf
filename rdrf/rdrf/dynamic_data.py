@@ -1,6 +1,6 @@
 import datetime
 from operator import itemgetter
-from itertools import izip_longest
+from itertools import zip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
@@ -86,7 +86,7 @@ def get_mongo_value(registry_code, nested_data, delimited_key,
     if multisection_index is None:
         sectionp = None
     else:
-        sectionp = lambda s, (i, j): j == multisection_index
+        sectionp = lambda s, ij: ij[1] == multisection_index
 
     cdes = find_cdes(nested_data, form_model.name, section_model.code,
                      cde_model.code, sectionp=sectionp,
@@ -419,7 +419,7 @@ class DynamicDataWrapper(object):
     def client(self, c):
         self._client = c
 
-    def __unicode__(self):
+    def __str__(self):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
     def _get_record_query(self, filter_by_context=True):
@@ -502,7 +502,8 @@ class DynamicDataWrapper(object):
 
     @staticmethod
     def _find_cde_val(record, registry_code, form_name, section_code, cde_code):
-        form_map = {f.get("name"): f for f in record.get("forms", [])}
+        forms = record.get("forms", []) if record else []
+        form_map = {f.get("name"): f for f in forms}
         sections = form_map.get(form_name, {}).get("sections", [])
         section_map = {s.get("code"): s for s in sections}
         cdes = section_map.get(section_code, {}).get("cdes", [])
@@ -606,7 +607,7 @@ class DynamicDataWrapper(object):
 
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
-        from models import Section
+        from .models import Section
         return Section.objects.filter(code=code).exists()
 
     @staticmethod
@@ -628,6 +629,8 @@ class DynamicDataWrapper(object):
             # Store file and convert value into a file wrapper
             to_delete = current_value
             value = filestorage.store_file_by_key(registry_code, None, key, value)
+        else:
+            to_delete = None
 
         if to_delete:
             filestorage.delete_file_wrapper(fs, to_delete)
@@ -637,8 +640,8 @@ class DynamicDataWrapper(object):
     @classmethod
     def handle_file_uploads(cls, fs, registry_code, key, value, current_value):
         updated = [cls.handle_file_upload(fs, registry_code, key, val, cur) for
-                   val, cur in izip_longest(value, current_value or [])]
-        return filter(bool, updated)
+                   val, cur in zip_longest(value, current_value or [])]
+        return list(filter(bool, updated))
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
         fs = self.get_filestore(registry)
@@ -718,8 +721,8 @@ class DynamicDataWrapper(object):
             raise Exception("Cannot add this form!")
 
         from django.contrib.contenttypes.models import ContentType
-        from rdrf.models import RDRFContext
         PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
+        from rdrf.models import RDRFContext
         context_model = RDRFContext(registry=registry_model,
                                     object_id=self.obj.pk,
                                     content_type=PATIENT_CONTENT_TYPE)

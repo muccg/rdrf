@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -43,10 +43,7 @@ class ReportView(LoginRequiredMixin, View):
         context = {}
         context['reports'] = reports
         context["location"] = 'Reports'
-        return render_to_response(
-            'rdrf_cdes/reports.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/reports.html', context)
 
 
 class ReportDataTableView(LoginRequiredMixin, View):
@@ -64,17 +61,14 @@ class ReportDataTableView(LoginRequiredMixin, View):
         report_table = ReportTable(user, query_model)
         registry_model = query_model.registry
 
-        context = {}
-        context["location"] = report_table.title
-        context["registry_code"] = registry_model.code
-        context["max_items"] = query_model.max_items
-        context["columns"] = report_table.columns
-        context["report_title"] = query_model.title
-        context["api_url"] = reverse('report_datatable', args=[query_model_id])
-        return render_to_response(
-            'rdrf_cdes/report_table_view.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/report_table_view.html', {
+            "location": report_table.title,
+            "registry_code": registry_model.code,
+            "max_items": query_model.max_items,
+            "columns": report_table.columns,
+            "report_title": query_model.title,
+            "api_url": reverse('report_datatable', args=[query_model_id]),
+        })
 
     def _sanity_check(self, query_model, user):
         # todo sanity check

@@ -1,24 +1,7 @@
 import re
 
 
-class Error(Exception):
-    pass
-
-
-class Malformed(Error):
-    pass
-
-
-class Protein(Error):
-    pass
-
-
-class NoType(Error):
-    pass
-
-
 class Allele:
-
     def __init__(self, input=None):
         self.mosaic = False
         self.variations = []
@@ -55,7 +38,6 @@ class Allele:
 
 
 class Gene:
-
     def __init__(self, gene):
         # Check for an embedded accession number.
         pattern = re.compile(r"\{([\w\.]+)\}", re.UNICODE)
@@ -76,6 +58,17 @@ class Gene:
 
 
 class SequenceVariation:
+    class Error(Exception):
+        pass
+
+    class Malformed(Error):
+        pass
+
+    class NoType(Error):
+        pass
+
+    class Protein(Error):
+        pass
 
     def __init__(self, input=None):
         if input:
@@ -115,13 +108,13 @@ class SequenceVariation:
 
     def parse(self, input):
         # Check for a gene.
-        # print 'parsing gene'
+        #print 'parsing gene'
         (self.gene, input) = self.parse_gene(input)
 
-        # print 'parsing type'
+        #print 'parsing type'
         (self.type, input) = self.parse_type(input)
 
-        # print 'splitting alleles'
+        #print 'splitting alleles'
         # The next step is basically to split out the alleles and then parse
         # them individually.
         pattern = re.compile(r"\[([^\]]+)\]")
@@ -179,7 +172,6 @@ class Type:
 
 
 class Variation:
-
     class Malformed(SequenceVariation.Malformed):
         pass
 
@@ -236,7 +228,6 @@ class Variation:
 
 
 class Position:
-
     class Malformed(SequenceVariation.Malformed):
         pass
 
@@ -329,7 +320,6 @@ class Position:
 
 
 class Range:
-
     class Malformed(SequenceVariation.Malformed):
         pass
 
@@ -366,7 +356,6 @@ class Range:
 
 
 class Substitution(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.old = None
@@ -397,8 +386,7 @@ class Substitution(Variation):
             (self.old, self.new) = input.split(">", 1)
 
             if not (len(self.old) == 1 and len(self.new) == 1):
-                raise Variation.Malformed(
-                    "Substitutions can only be one nucleotide; indels should be used for multiple nucleotide substitutions")
+                raise Variation.Malformed("Substitutions can only be one nucleotide; indels should be used for multiple nucleotide substitutions")
 
             if not (self.valid_base(self.old) and self.valid_base(self.new)):
                 raise Variation.Malformed("Bad base in substitution")
@@ -407,7 +395,6 @@ class Substitution(Variation):
 
 
 class Deletion(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.deletion = None
@@ -433,8 +420,7 @@ class Deletion(Variation):
             # non-trivial, so we'll only validate the simple case: you can only
             # delete one nucleotide if the position is a single position.
             if isinstance(self.location, Position) and len(deletion) != 1:
-                raise Variation.Malformed(
-                    "Single position deletions cannot have more than one nucleotide")
+                raise Variation.Malformed("Single position deletions cannot have more than one nucleotide")
         else:
             raise Variation.Malformed("One or more deleted bases are invalid")
 
@@ -453,7 +439,6 @@ class Deletion(Variation):
 
 
 class Duplication(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.duplication = None
@@ -479,8 +464,7 @@ class Duplication(Variation):
             # non-trivial, so we'll only validate the simple case: you can only
             # duplicate one nucleotide if the position is a single position.
             if isinstance(self.location, Position) and len(duplication) != 1:
-                raise Variation.Malformed(
-                    "Single position duplications cannot have more than one nucleotide")
+                raise Variation.Malformed("Single position duplications cannot have more than one nucleotide")
         else:
             raise Variation.Malformed("One or more duplicated bases are invalid")
 
@@ -499,7 +483,6 @@ class Duplication(Variation):
 
 
 class Insertion(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.insertion = None
@@ -530,7 +513,6 @@ class Insertion(Variation):
 
 
 class Inversion(Variation):
-
     def __init__(self, input=None):
         self.location = None
         self.uncertain = False
@@ -556,14 +538,12 @@ class Inversion(Variation):
 
 
 class Conversion(Variation):
-
     def __init__(self, input=None):
         # This isn't in Mutalyzer yet, so we'll skip it for now.
         raise NotImplemented
 
 
 class NoChange(Variation):
-
     def __init__(self, input=None):
         self.uncertain = False
 

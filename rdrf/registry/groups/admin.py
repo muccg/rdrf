@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
-from admin_forms import UserChangeForm, RDRFUserCreationForm
-from models import WorkingGroup
+from .admin_forms import UserChangeForm, RDRFUserCreationForm
+from .models import WorkingGroup
 from django.core.exceptions import ValidationError
 
 import logging

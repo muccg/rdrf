@@ -1,6 +1,6 @@
 """Disable iprestriction completely."""
 
-from iprestrict.models import IPGroup, IPRange, Rule
+from iprestrict.models import RangeBasedIPGroup, IPRange, Rule
 
 
 def load_data(**kwargs):
@@ -19,7 +19,7 @@ def allow_all():
 
 
 def get_or_create_all_group():
-    all_group, created = IPGroup.objects.get_or_create(name='ALL', description='Matches ALL IP Addresses')
+    all_group, created = RangeBasedIPGroup.objects.get_or_create(name='ALL', description='Matches ALL IP Addresses')
     if created:
         IPRange.objects.create(
             ip_group=all_group,

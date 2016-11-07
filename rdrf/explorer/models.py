@@ -39,8 +39,8 @@ class Query(models.Model):
         ordering = ['title']
         verbose_name_plural = 'Queries'
 
-    def __unicode__(self):
-        return unicode(self.title)
+    def __str__(self):
+        return str(self.title)
 
     def has_view(self):
         return self.mongo_search_type in ['C', 'L']
@@ -62,11 +62,11 @@ class Query(models.Model):
                 sheet_name = sheet["name"]
                 columns = sheet["columns"]
                 for column in columns:
-                    if not isinstance(column, basestring):
+                    if not isinstance(column, str):
                         errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
 
         except ValueError as ve:
-            errors.append("JSON malformed: %s" % ve.message)
+            errors.append("JSON malformed: %s" % ve)
         except KeyError as ke:
-            errors.append("key error: %s" % ke.message)
+            errors.append("key error: %s" % ke)
         return errors

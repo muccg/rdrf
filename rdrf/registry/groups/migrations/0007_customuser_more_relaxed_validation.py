@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customuser',
             name='title',
-            field=models.CharField(max_length=50, null=True, verbose_name=b'position', blank=True),
+            field=models.CharField(max_length=50, null=True, verbose_name='position', blank=True),
         ),
         migrations.AlterField(
             model_name='customuser',

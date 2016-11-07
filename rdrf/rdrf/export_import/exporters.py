@@ -13,7 +13,7 @@ from .utils import maybe_indent
 from functools import reduce
 
 
-class DataGroupExporter(object, DelegateMixin):
+class DataGroupExporter(DelegateMixin):
     """Exports a group of data like "Reference Data", "CDEs", etc."""
 
     def __init__(self, dfn, exporters_catalogue, logger):
@@ -178,7 +178,7 @@ class MongoCollectionExporter(object):
         return self.meta_collector.collect()
 
 
-class BaseMetaInfo(object, DelegateMixin):
+class BaseMetaInfo(DelegateMixin):
 
     def __init__(self, exporter, logger):
         DelegateMixin.__init__(self, delegate_to=exporter)
@@ -230,4 +230,4 @@ class CollectionMetaInfo(BaseMetaInfo):
 
 
 def omit_empty(xs):
-    return filter(lambda x: x[1], xs)
+    return [x for x in xs if x[1]]

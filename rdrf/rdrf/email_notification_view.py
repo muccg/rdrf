@@ -7,9 +7,9 @@ from django.core.urlresolvers import reverse
 from django.apps import apps
 from django.contrib import messages
 
-from models import EmailNotificationHistory
+from .models import EmailNotificationHistory
 
-from email_notification import RdrfEmail
+from .email_notification import RdrfEmail
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class ResendEmail(View):
             language=history.language,
             email_notification=history.email_notification,
         )
-        for key, value in self.template_data.iteritems():
+        for key, value in self.template_data.items():
             email.append(key, value)
         email.send()
 
@@ -38,7 +38,7 @@ class ResendEmail(View):
 
     def _get_template_data(self):
         self.template_data = json.loads(self.template_data)
-        for key, value in self.template_data.iteritems():
+        for key, value in self.template_data.items():
             app = value.get("app")
             model = value.get("model")
             app_model = apps.get_model(app_label=app, model_name=model)

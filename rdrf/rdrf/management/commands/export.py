@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from ... import export_import
 from ...export_import import definitions
@@ -22,8 +22,10 @@ class Command(BaseCommand):
         registry_code = options.get('registry_code')
 
         if export_type in definitions.EXPORT_TYPES.registry_types_codes and registry_code is None:
-            self.stderr.write('When exporting a registry the --registry-code option is mandatory')
-            return
+            if len(self.registry_codes) == 1:
+                registry_code = self.registry_codes[0]
+            else:
+                raise CommandError('When exporting a registry the --registry-code option is mandatory')
 
         options = {
             'verbose': options.get('verbose'),

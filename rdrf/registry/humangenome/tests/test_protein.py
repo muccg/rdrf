@@ -3,30 +3,35 @@ from registry.humangenome.protein import *
 
 
 class TestProteinVariation(unittest.TestCase):
-
     def test_fail_deletion(self):
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42delTp"))
+
 
     def test_fail_duplication(self):
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42dupTp"))
 
+
     def test_fail_insertion(self):
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42ins"))
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42insTp"))
+
 
     def test_fail_position(self):
         self.assertRaises(Position.Malformed, lambda: Position("Tp42"))
         self.assertRaises(Position.Malformed, lambda: Position("(T42"))
         self.assertRaises(Position.Malformed, lambda: Position("2*2"))
 
+
     def test_fail_range(self):
         self.assertRaises(ProteinVariation.Malformed, lambda: Range("Trp2_Trp3_"))
         self.assertRaises(ProteinVariation.Malformed, lambda: Range("Trp2"))
         self.assertRaises(ProteinVariation.Malformed, lambda: Range("(Trp2_Trp3"))
 
+
     def test_fail_substitution(self):
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42"))
         self.assertRaises(Variation.Malformed, lambda: ProteinVariation("p.Trp42Cy"))
+
 
     def test_parse_deletion(self):
         input = "p.Trp42del"
@@ -49,8 +54,8 @@ class TestProteinVariation(unittest.TestCase):
         self.assertTrue(isinstance(location, Position), "Location is not a single position")
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
-        self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+        self.assertEqual(str(seq), input, "Sequence variation as string does not match input")
+
 
     def test_parse_duplication(self):
         input = "p.Trp42dup"
@@ -73,8 +78,8 @@ class TestProteinVariation(unittest.TestCase):
         self.assertTrue(isinstance(location, Position), "Location is not a single position")
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
-        self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+        self.assertEqual(str(seq), input, "Sequence variation as string does not match input")
+
 
     def test_parse_insertion(self):
         input = "p.Trp42insGlnSer"
@@ -97,32 +102,21 @@ class TestProteinVariation(unittest.TestCase):
         self.assertTrue(isinstance(location, Position), "Location is not a single position")
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
-        self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+        self.assertEqual(str(seq), input, "Sequence variation as string does not match input")
+
 
     def test_parse_position(self):
-        def assertPosition(
-                string,
-                acid,
-                position,
-                intron_offset,
-                uncertain,
-                stop_codon,
-                unknown):
+        def assertPosition(string, acid, position, intron_offset, uncertain, stop_codon, unknown):
             location = ProteinVariation("p.%sdel" % string).alleles[0].variations[0].location
 
             self.assertTrue(isinstance(location, Position), "Location is not a Position")
             self.assertEqual(location.unknown, unknown, "Position's unknown flag is incorrect")
-            self.assertEqual(
-                location.stop_codon, stop_codon, "Position's stop codon flag is incorrect")
-            self.assertEqual(
-                location.uncertain, uncertain, "Position's uncertainty flag is incorrect")
-            self.assertEqual(
-                location.intron_offset, intron_offset, "Position's intron offset is incorrect")
+            self.assertEqual(location.stop_codon, stop_codon, "Position's stop codon flag is incorrect")
+            self.assertEqual(location.uncertain, uncertain, "Position's uncertainty flag is incorrect")
+            self.assertEqual(location.intron_offset, intron_offset, "Position's intron offset is incorrect")
             self.assertEqual(location.amino_acid, acid, "Position's amino acid is incorrect")
             self.assertEqual(location.position, position, "Position's position is incorrect")
-            self.assertEqual(
-                str(location), string, "Position's string representation is incorrect")
+            self.assertEqual(str(location), string, "Position's string representation is incorrect")
 
         assertPosition("Trp42", "Trp", 42, None, False, False, False)
         assertPosition("?", None, None, None, False, False, True)
@@ -133,6 +127,7 @@ class TestProteinVariation(unittest.TestCase):
         assertPosition("(Trp42+0)", "Trp", 42, 0, True, False, False)
         assertPosition("(?)", None, None, None, True, False, True)
         assertPosition("(Trp*42-2)", "Trp", 42, -2, True, True, False)
+
 
     def test_parse_range(self):
         range = Range("Trp2_Gly3")
@@ -145,6 +140,7 @@ class TestProteinVariation(unittest.TestCase):
 
         self.assertTrue(range.uncertain, "Range is uncertain")
         self.assertEqual(str(range), "(Trp2_Gly3)", "Range output does not match input")
+
 
     def test_parse_substitution(self):
         input = "p.Trp42Cys"
@@ -167,8 +163,7 @@ class TestProteinVariation(unittest.TestCase):
         self.assertTrue(isinstance(location, Position), "Location is not a single position")
         self.assertEqual(str(location), "Trp42", "Location is incorrect")
 
-        self.assertEqual(
-            unicode(seq), input, "Sequence variation as string does not match input")
+        self.assertEqual(str(seq), input, "Sequence variation as string does not match input")
 
 
 # TODO: Tests for multiple alleles, multiple variations, mosaicism, uncertain

@@ -33,7 +33,7 @@ class NINDSReportParser:
             return
         try:
             CDEPermittedValueGroup.objects.get(code__exact=pvg_code)
-            print "PVG %s already exists." % pvg_code
+            print("PVG %s already exists." % pvg_code)
             return
         except CDEPermittedValueGroup.DoesNotExist:
             pass
@@ -41,7 +41,7 @@ class NINDSReportParser:
         pvg = CDEPermittedValueGroup(code=pvg_code)
         pvg.save()
 
-        print "Created: ", pvg
+        print("Created: ", pvg)
 
         for detail in etree.ETXPath('./{rptAllCDE}Detail_Collection/{rptAllCDE}Detail')(elem):
             pv_code = detail.get(cls.PV_CODE)
@@ -52,7 +52,7 @@ class NINDSReportParser:
                 value=detail.get(cls.PV_VALUE),
                 desc=detail.get(cls.PV_DESC),
                 pv_group=pvg)
-            print "Created:", pv
+            print("Created:", pv)
             pv.save()
 
         return pvg
@@ -62,7 +62,7 @@ class NINDSReportParser:
         cde_code = elem.get(cls.CDE_CODE)
         try:
             CommonDataElement.objects.get(code__exact=cde_code)
-            print "CDE %s already exists." % cde_code
+            print("CDE %s already exists." % cde_code)
             return
         except CommonDataElement.DoesNotExist:
             pass
@@ -84,12 +84,12 @@ class NINDSReportParser:
             domain=elem.get(cls.CDE_DOMAIN),
             pv_group=pvg,
         )
-        print "Created: ", new_obj
+        print("Created: ", new_obj)
         new_obj.save()
 
     @classmethod
     def parse_file(cls, xml_file):
-        print "Parsing: " + xml_file
+        print("Parsing: " + xml_file)
         with open(xml_file, 'r') as fd:
             et = etree.parse(fd)
         for table1_group1 in etree.ETXPath(

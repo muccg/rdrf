@@ -1,11 +1,18 @@
 import os
 import logging
-from lettuce import before, after, world
+from contextlib import contextmanager
+from aloe import before, after, around, world
 from selenium import webdriver
-from rdrf import steps
-from selenium.common.exceptions import NoAlertPresentException
+from . import steps
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+TEST_BROWSER = os.environ.get('TEST_BROWSER')
+TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB')
+TEST_WAIT = int(os.environ.get('TEST_WAIT'))
+TEST_APP_URL = os.environ.get('TEST_APP_URL')
+TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
 
 
 def get_desired_capabilities(browser):
@@ -15,15 +22,23 @@ def get_desired_capabilities(browser):
     }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
 
 
-def setup_browser():
-    desired_capabilities = get_desired_capabilities(os.environ.get('TEST_BROWSER'))
+@around.all
+@contextmanager
+def with_browser():
+    desired_capabilities = get_desired_capabilities(TEST_BROWSER)
 
     world.browser = webdriver.Remote(
         desired_capabilities=desired_capabilities,
-        command_executor="http://hub:4444/wd/hub"
+        command_executor=TEST_SELENIUM_HUB
     )
-    world.browser.implicitly_wait(15)
-    # world.browser.set_script_timeout(30)
+    world.browser.implicitly_wait(TEST_WAIT)
+
+    yield
+
+    if do_teardown():
+        world.browser.quit()
+
+    delattr(world, "browser")
 
 
 def reset_snapshot_dict():
@@ -32,29 +47,27 @@ def reset_snapshot_dict():
 
 
 def set_site_url():
-    world.site_url = steps.get_site_url(default_url="http://web:8000")
+    world.site_url = TEST_APP_URL
     logger.info("world.site_url = %s" % world.site_url)
 
 
 def do_teardown():
-    return ('LETTUCE_DISABLE_TEARDOWN' not in os.environ or
-            os.environ['LETTUCE_DISABLE_TEARDOWN'] == '0')
+    return not TEST_DISABLE_TEARDOWN
 
 
 @before.all
 def before_all():
     logger.info('')
-    setup_browser()
+    if not os.path.exists(settings.WRITABLE_DIRECTORY):
+        os.makedirs(settings.WRITABLE_DIRECTORY)
     reset_snapshot_dict()
     set_site_url()
     steps.save_minimal_snapshot()
 
 
-@after.all
-def after_all(total):
-    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
-    if do_teardown():
-        world.browser.quit()
+# @after.all
+# def after_all(total):
+#    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
 
 
 def delete_cookies():
@@ -62,24 +75,25 @@ def delete_cookies():
     world.browser.delete_all_cookies()
 
 
-@before.each_scenario
-def before_each_scenario(scenario):
+@before.each_example
+def before_scenario(scenario, outline, steps):
     logger.info('Scenario: ' + scenario.name)
     delete_cookies()
 
 
-@after.each_scenario
-def after_scenario(scenario):
+@after.each_example
+def after_scenario(scenario, outline, test_steps):
+    passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
-        "/data/{0}-{1}.png".format(scenario.passed, scenario.name))
+        os.path.join(settings.WRITABLE_DIRECTORY, "{0}-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
         steps.restore_minimal_snapshot()
 
 
 @after.each_step
 def screenshot_step(step):
-    if not step.passed and step.scenario is not None:
+    if not step.passed and getattr(step, "scenario", None) is not None:
         step_name = "%s_%s" % (step.scenario.name, step)
         step_name = step_name.replace(" ", "")
-        file_name = "/data/False-step-{0}.png".format(step_name)
+        file_name = os.path.join(settings.WRITABLE_DIRECTORY, "False-step-{0}.png".format(step_name))
         world.browser.get_screenshot_as_file(file_name)

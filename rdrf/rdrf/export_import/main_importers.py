@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import shutil
-from StringIO import StringIO
+from io import StringIO
 import tempfile
 from zipfile import ZipFile
 
@@ -15,7 +15,7 @@ from rdrf.models import Registry
 from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, MongoCollectionImporterCatalogue
 from .exceptions import ImportError
 from .importers import get_meta_value, allow_if_forced
-import definitions
+from . import definitions
 from .utils import DelegateMixin, IndentedLogger, app_schema_version
 from functools import reduce
 
@@ -138,7 +138,7 @@ class BaseImporter(DelegateMixin):
         if self.file_export_type is self.requested_type:
             return meta
         else:
-            return filter(definitions.META_FILTERS[self.requested_type], meta)
+            return list(filter(definitions.META_FILTERS[self.requested_type], meta))
 
     @allow_if_forced
     def check_app_schema_versions_match(self):
@@ -149,7 +149,7 @@ class BaseImporter(DelegateMixin):
 
     def reset_sql_sequences(self):
         meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
-        apps = set(reduce(lambda d, x: d + x.get('app_versions', {}).keys(), meta, []))
+        apps = set(reduce(lambda d, x: d + list(x.get('app_versions', {}).keys()), meta, []))
 
         os.environ['DJANGO_COLORS'] = 'nocolor'
         commands = StringIO()
@@ -184,7 +184,7 @@ class BaseImporter(DelegateMixin):
         also_includes = zipfile_type.includes
         if also_includes:
             logger.debug('(also includes import types: %s)' %
-                         ', '.join(map(lambda t: "'%s' (%s)" % (t.name, t.code), also_includes)))
+                         ', '.join("'%s' (%s)" % (t.name, t.code) for t in also_includes))
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
@@ -195,8 +195,8 @@ class BaseImporter(DelegateMixin):
 
     def diff_app_versions(self):
         meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
-        app_versions = dict(reduce(lambda d, x: d + x.get('app_versions', {}).items(), meta, []))
-        return filter(lambda app: app_versions[app] != app_schema_version(app), app_versions)
+        app_versions = dict(reduce(lambda d, x: d + list(x.get('app_versions', {}).items()), meta, []))
+        return [app for app in app_versions if app_versions[app] != app_schema_version(app)]
 
 
 class RegistryImporter(BaseImporter):

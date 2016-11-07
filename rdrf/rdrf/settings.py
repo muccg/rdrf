@@ -31,6 +31,11 @@ IPRESRICT_TRUSTED_PROXIES = env.getlist("iprestrict_trusted_proxies", [])
 IPRESTRICT_RELOAD_RULES = env.get("iprestrict_reload_rules", True)
 IPRESTRICT_IGNORE_PROXY_HEADER = env.get("iprestrict_ignore_proxy_header", False)
 
+# If iprestrict by location is enabled then the MaxMind database needs
+# to be available.
+IPRESTRICT_GEOIP_ENABLED = env.get("iprestrict_geoip_enabled", False)
+GEOIP_PATH = env.get("geoip_path", os.path.join(WEBAPP_ROOT, "geoip"))
+
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
@@ -69,24 +74,7 @@ DATABASES = {
         'PORT': env.get("dbport", ""),
     }
 }
-# 'legacydb': {
-#     'ENGINE': env.get_db_engine("dbtype", "pgsql"),
-#     'NAME': "legacyrdrf",
-#     'USER': "legacyrdrf",
-#     'PASSWORD': "legacyrdrf",
-#     'HOST': "legacydb",
-#     'PORT': "5432",
 
-
-# Reporing Database ( defaults to main db if not specified
-DATABASES["reporting"] = {}
-
-DATABASES["reporting"]['ENGINE'] = env.get_db_engine("reporting_dbtype", "pgsql")
-DATABASES["reporting"]['NAME'] = env.get("reporting_dbname", DATABASES["default"]["NAME"])
-DATABASES["reporting"]['USER'] = env.get("reporting_dbuser", DATABASES["default"]["USER"])
-DATABASES["reporting"]['PASSWORD'] = env.get("reporting_dbpass", DATABASES["default"]["PASSWORD"])
-DATABASES["reporting"]['HOST'] = env.get("reporting_dbserver", DATABASES["default"]["HOST"])
-DATABASES["reporting"]['PORT'] = env.get("reporting_dbport", DATABASES["default"]["PORT"])
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
 # These settings ( and only )  are consumed by rdrf.mongo_client
@@ -175,6 +163,7 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'registration',
+    'storages',
 ]
 
 
@@ -184,7 +173,7 @@ INSTALLED_APPS = [
 AUTHENTICATION_BACKENDS = [
     'useraudit.password_expiry.AccountExpiryBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'rdrf.backends.AuthFailedLoggerNotificationBackend'
+    'useraudit.backend.AuthFailedLoggerBackend',
 ]
 
 # email
@@ -195,11 +184,11 @@ EMAIL_HOST_USER = env.get("email_host_user", "webmaster@localhost")
 EMAIL_HOST_PASSWORD = env.get("email_host_password", "")
 EMAIL_APP_NAME = env.get("email_app_name", "RDRF {0}".format(SCRIPT_NAME))
 EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_NAME))
-SERVER_EMAIL = env.get("server_email", "noreply@ccg_rdrf")
 
 # Email Notifications
+# NB. This initialises the email notification form
 DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
-SERVER_EMAIL = env.get('DJANGO_SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
@@ -220,9 +209,6 @@ MANAGERS = ADMINS
 STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
 STATIC_URL = '{0}/static/'.format(SCRIPT_NAME)
 
-MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
-MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
-
 # TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For
 # deployment use Apache Alias
@@ -230,6 +216,27 @@ STATIC_SERVER_PATH = STATIC_ROOT
 
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
+
+# valid values django.core.files.storage.FileSystemStorage and storages.backends.database.DatabaseStorage
+DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+
+# settings used when FileSystemStorage is enabled
+MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
+MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
+
+# setting used when DatabaseStorage is enabled
+DB_FILES = {
+    "db_table": "rdrf_filestorage",
+    "fname_column": "name",
+    "blob_column": "data",
+    "size_column": "size",
+    "base_url": None,
+}
+DATABASE_ODBC_DRIVER = "{PostgreSQL}" # depends on odbcinst.ini
+DATABASE_NAME = DATABASES["default"]["NAME"]
+DATABASE_USER = DATABASES["default"]["USER"]
+DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
+DATABASE_HOST = DATABASES["default"]["HOST"]
 
 # session and cookies
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
@@ -240,17 +247,33 @@ SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get(
     "session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
+
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
+CSRF_COOKIE_AGE = env.get("csrf_cookie_age", 31449600)
+CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure")
+CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
+CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
+
+# django-useraudit
+# The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
+# If the settings is not set or set to 0, the feature is disabled.
+LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
 
 # Testing settings
 if not PRODUCTION:
     INSTALLED_APPS.extend(['django_nose'])
 
+# Used by unit tests
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+
+# Used by lettuce tests
+# We don't want to run against the Test DB and we don't want a Transaction Test Case
+GHERKIN_TEST_RUNNER = 'rdrf.features.runner.GherkinNoDjangoTestDBTestRunner'
+GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
 
 SOUTH_TESTS_MIGRATE = True
 NOSE_ARGS = [
@@ -326,7 +349,7 @@ LOGGING = {
     'handlers': {
         'null': {
             'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
+            'class': 'logging.NullHandler',
         },
         'console': {
             'level': 'DEBUG',
@@ -361,9 +384,6 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True
-        },
-        'null': {
-            'class': 'django.utils.log.NullHandler',
         },
     },
     'loggers': {
@@ -445,8 +465,10 @@ REST_FRAMEWORK = {
 
 EMAIL_NOTE_OTHER_CLINICIAN = "other-clinician"
 EMAIL_NOTE_NEW_PATIENT = "new-patient"
+EMAIL_ACCOUNT_LOCKED = "account-locked"
 
 EMAIL_NOTIFICATIONS = (
+    (EMAIL_ACCOUNT_LOCKED, "Account Locked"),
     (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )

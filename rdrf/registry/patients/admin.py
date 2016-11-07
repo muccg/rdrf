@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
@@ -10,8 +10,8 @@ import datetime
 from rdrf.models import Registry
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
-from admin_forms import *
-from models import *
+from .admin_forms import *
+from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
@@ -79,7 +79,7 @@ class PatientAdmin(admin.ModelAdmin):
 
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
-        self.list_display_links = (None, )
+        self.list_display_links = None
 
     app_url = os.environ.get("SCRIPT_NAME", "")
     form = PatientForm
@@ -97,7 +97,7 @@ class PatientAdmin(admin.ModelAdmin):
     list_filter = [RegistryFilter]
 
     def full_name(self, obj):
-        return obj.__unicode__()
+        return str(obj)
 
     full_name.short_description = 'Name'
 
@@ -363,12 +363,8 @@ class PatientAdmin(admin.ModelAdmin):
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
     def get_urls(self):
-        urls = super(PatientAdmin, self).get_urls()
-        local_urls = patterns("",
-                              url(r"search/(.*)$",
-                                  self.admin_site.admin_view(self.search),
-                                  name="patient_search"))
-        return local_urls + urls
+        search_url = url(r"search/(.*)$", self.admin_site.admin_view(self.search), name="patient_search")
+        return [search_url] + super(PatientAdmin, self).get_urls()
 
     def get_queryset(self, request):
         self.request = request
@@ -386,14 +382,14 @@ class PatientAdmin(admin.ModelAdmin):
             # Check if the search term is numeric, in which case it's a record
             # ID.
             patient = queryset.get(id=int(term))
-            response = [[patient.id, unicode(patient), unicode(patient.date_of_birth)]]
+            response = [[patient.id, str(patient), str(patient.date_of_birth)]]
         except ValueError:
             # Guess not.
             patients = queryset.filter(Q(family_name__icontains=term) | Q(
                 given_names__icontains=term)).order_by("family_name", "given_names")
             response = [[patient.id,
-                         unicode(patient),
-                         unicode(patient.date_of_birth)] for patient in patients]
+                         str(patient),
+                         str(patient.date_of_birth)] for patient in patients]
         except Patient.DoesNotExist:
             response = []
 

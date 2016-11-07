@@ -26,7 +26,7 @@ def mongo_db_name(registry, testing=False):
 
 
 def mongo_db_name_reg_id(registry_id):
-    from models import Registry
+    from .models import Registry
     reg = Registry.objects.get(id=registry_id)
     return settings.MONGO_DB_PREFIX + reg.code
 
@@ -130,7 +130,7 @@ def get_user(username):
 
 
 def get_users(usernames):
-    return filter(lambda x: x is not None, [get_user(username) for username in usernames])
+    return [x for x in [get_user(username) for username in usernames] if x is not None]
 
 
 def has_feature(feature_name):
@@ -253,7 +253,7 @@ def make_index_map(to_remove, count):
     """
     to_remove = set(to_remove)
     cut = [i for i in range(count) if i not in to_remove]
-    return dict(zip(range(count), cut))
+    return dict(list(zip(list(range(count)), cut)))
 
 
 def create_permission(app_label, model, code_name, name):
@@ -299,7 +299,7 @@ def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
 
 def consent_status_for_patient(registry_code, patient):
     from registry.patients.models import ConsentValue
-    from models import ConsentSection, ConsentQuestion
+    from .models import ConsentSection, ConsentQuestion
 
     consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
     answers = {}
@@ -341,7 +341,7 @@ def get_error_messages(forms):
                             # these errors are indicated next to the field
                             continue
                         messages.append(display(form, field, error))
-    results = map(strip_tags, messages)
+    results = list(map(strip_tags, messages))
     return results
 
 
@@ -416,3 +416,20 @@ def check_calculation(calculation):
 def format_date(value):
     d = value.date()
     return "%s-%s-%s" % (d.day, d.month, d.year)
+
+
+def wrap_uploaded_files(registry_code, post_files_data):
+    from django.core.files.uploadedfile import UploadedFile
+    from rdrf.file_upload import FileUpload
+    
+    def wrap(key, value):
+        logger.debug("checking key %s" % key)
+        if isinstance(value, UploadedFile):
+            logger.debug("Is an UploadedFile ...")
+            return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
+        else:
+            return value
+
+    return { key: wrap(key, value) for key, value in list(post_files_data.items()) }
+
+            

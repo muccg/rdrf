@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry
 from rdrf.models import RDRFContext
@@ -20,10 +20,10 @@ def forward_func(apps, schema_editor):
                 context_model.context_form_group = default_context_form_group
                 try:
                     context_model.save()
-                    print "Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
-                                                                                 default_context_form_group.id)
+                    print("Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
+                                                                                 default_context_form_group.id))
                 except Exception as ex:
-                    print "Error updating RDRFContext %s: %s" % (context_model.id, ex)
+                    print("Error updating RDRFContext %s: %s" % (context_model.id, ex))
 
 
 def backward_func(apps, schema_editor):
@@ -37,10 +37,10 @@ def backward_func(apps, schema_editor):
                 context_model.context_form_group = None
                 try:
                     context_model.save()
-                    print "RDRFContext %s context_form_group set to null"
+                    print("RDRFContext %s context_form_group set to null")
                 except Exception as ex:
-                    print "Error rolling back change to RDRFContext %s: %s" % (context_model.id,
-                                                                               ex)
+                    print("Error rolling back change to RDRFContext %s: %s" % (context_model.id,
+                                                                               ex))
 
 
 class Migration(migrations.Migration):

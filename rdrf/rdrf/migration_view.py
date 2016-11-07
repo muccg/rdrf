@@ -3,13 +3,13 @@ import json
 
 from django.http import HttpResponse
 from django.views.generic.base import View
-from django.shortcuts import render_to_response, RequestContext
+from django.shortcuts import render
 
 
 class MigrationView(View):
 
     def get(self, request):
-        return render_to_response('rdrf_cdes/migration.html', context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/migration.html')
 
     def post(self, request):
         sma_legacy = None
@@ -39,4 +39,4 @@ class MigrationView(View):
             response['Content-Disposition'] = 'attachment; filename=migration_map.json'
             return response
 
-        return render_to_response('rdrf_cdes/migration.html', context, context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/migration.html', context)

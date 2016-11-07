@@ -4,10 +4,11 @@ node {
     env.DOCKER_USE_HUB = 1
     def deployable_branches = ["master", "next_release"]
 
-    stage 'Checkout'
+    stage('Checkout') {
         checkout scm
+    }
 
-    stage 'Docker dev build'
+    stage('Dev build') {
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -15,33 +16,42 @@ node {
             sh './develop.sh dev_build'
             sh './develop.sh check_migrations'
         }
+    }
 
-    stage 'Unit tests'
+    stage('Unit tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
         }
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
+    }
 
-    stage 'Lettuce tests'
+    stage('Dev aloe tests') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh './develop.sh dev_lettuce'
+            sh './develop.sh dev_aloe'
         }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/*.xml'])
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/*.png'])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
+        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
+        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
+    }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
 
-        stage 'Docker prod build'
+        stage('Prod build') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                 sh './develop.sh prod_build'
             }
+        }
 
-        stage 'Prod lettuce tests'
+        stage('Prod aloe tests') {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-                sh './develop.sh prod_lettuce'
+                sh './develop.sh prod_aloe'
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
+                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
+                step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
             }
+        }
 
-        stage 'Publish docker image'
+        stage('Publish docker image') {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerbot',
                               usernameVariable: 'DOCKER_USERNAME',
                               passwordVariable: 'DOCKER_PASSWORD']]) {
@@ -50,5 +60,6 @@ node {
                     sh './develop.sh publish_docker_image'
                 }
             }
+        }
     }
 }

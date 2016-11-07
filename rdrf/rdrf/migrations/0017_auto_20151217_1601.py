@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -22,7 +22,7 @@ class MongoContextFixer(object):
         #Registry = self.apps.get_model("rdrf", 'Registry')
         if self.registry_klass:
             codes = [r.code for r in self.registry_klass.objects.all()]
-            print "found codes: %s" % ",".join(codes)
+            print("found codes: %s" % ",".join(codes))
             return codes
         else:
             return []
@@ -35,11 +35,11 @@ class MongoContextFixer(object):
             try:
                 patient_model = Patient.objects.get(pk=patient_id)
             except Patient.DoesNotExist:
-                print "Patient ID %s in mongo does not exist in SQL DB" % patient_id
+                print("Patient ID %s in mongo does not exist in SQL DB" % patient_id)
                 return None
             return patient_model
         except Exception as ex:
-            print "Error getting patient model for %s: %s" % (patient_id, ex)
+            print("Error getting patient model for %s: %s" % (patient_id, ex))
             return None
 
     def _get_registry_class(self):
@@ -64,11 +64,11 @@ class MongoContextFixer(object):
         rdrf_context_manager = RDRFContextManager(registry_model)
 
         default_rdrf_context = rdrf_context_manager.create_initial_context_for_new_patient(patient_model)
-        print "registry_code %s patient id %s %s default context = %s %s" % (registry_model.code,
+        print("registry_code %s patient id %s %s default context = %s %s" % (registry_model.code,
                                                                              patient_model.pk,
                                                                              patient_model,
                                                                              default_rdrf_context.pk,
-                                                                             default_rdrf_context.display_name)
+                                                                             default_rdrf_context.display_name))
         return default_rdrf_context
 
     def _update_record(self, registry, patient_record, context_id):
@@ -76,8 +76,8 @@ class MongoContextFixer(object):
         patient_record["context_id"] = context_id
 
         registry["cdes"].update({'_id': mongo_id}, {"$set": patient_record}, upsert=False)
-        print "Updated patient %s mongo record with context_id %s" % (patient_record["django_id"],
-                                                                      context_id)
+        print("Updated patient %s mongo record with context_id %s" % (patient_record["django_id"],
+                                                                      context_id))
 
     def fix_registries(self):
         self.registry_klass = self._get_registry_class()
@@ -85,7 +85,7 @@ class MongoContextFixer(object):
             registry = self.client[mongo_db_name(registry_code)]
             registry_model = self._get_registry_model(registry_code)
             if registry_model is None:
-                print "Registry %s not found - skipping" % registry_code
+                print("Registry %s not found - skipping" % registry_code)
                 continue
 
             for patient_record in registry["cdes"].find({"django_model": "Patient"}):
@@ -97,15 +97,15 @@ class MongoContextFixer(object):
                     try:
                         default_context_model = self._create_default_context(registry_model, patient_model)
                     except Exception as ex:
-                        print "Error creating default context in %s for patient id %s: %s" % (registry_model,
+                        print("Error creating default context in %s for patient id %s: %s" % (registry_model,
                                                                                               patient_model.pk,
-                                                                                              ex)
+                                                                                              ex))
                         continue
 
                     if default_context_model is not None:
                         self._update_record(registry, patient_record, default_context_model.pk)
                     else:
-                        print "default context None for patient %s - mongo not updated" % patient_model.pk
+                        print("default context None for patient %s - mongo not updated" % patient_model.pk)
 
 
 def forwards_func(apps, schema_editor):
@@ -131,12 +131,12 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 max_length=80,
                 choices=[
-                    (b'initial',
-                     b'initial'),
-                    (b'testing',
-                     b'testing'),
-                    (b'1.0.17',
-                     b'populate context_id on all patient records')]),
+                    ('initial',
+                     'initial'),
+                    ('testing',
+                     'testing'),
+                    ('1.0.17',
+                     'populate context_id on all patient records')]),
         ),
         migrations.RunPython(
             forwards_func,

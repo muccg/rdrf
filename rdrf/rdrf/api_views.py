@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from .serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 
 
 import logging
@@ -158,7 +158,7 @@ class ListCountries(APIView):
 
             return d
 
-        return Response(map(to_dict, countries))
+        return Response(list(map(to_dict, countries)))
 
 
 class ListStates(APIView):
@@ -176,7 +176,7 @@ class ListStates(APIView):
         WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
         to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
 
-        return Response(map(to_dict, states))
+        return Response(list(map(to_dict, states)))
 
 
 class ListClinicians(APIView):
@@ -185,7 +185,7 @@ class ListClinicians(APIView):
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
-        clinicians = filter(lambda u: u.is_clinician, users)
+        clinicians = [u for u in users if u.is_clinician]
 
         def to_dict(c, wg):
             return {
@@ -229,7 +229,7 @@ class LookupGenes(APIView):
             genes = Gene.objects.all()
         else:
             genes = Gene.objects.filter(symbol__icontains=query)
-        return Response(map(to_dict, genes))
+        return Response(list(map(to_dict, genes)))
 
 
 class LookupLaboratories(APIView):
@@ -254,7 +254,7 @@ class LookupLaboratories(APIView):
             labs = Laboratory.objects.all()
         else:
             labs = Laboratory.objects.filter(name__icontains=query)
-        return Response(map(to_dict, labs))
+        return Response(list(map(to_dict, labs)))
 
 
 class LookupIndex(APIView):
@@ -283,4 +283,4 @@ class LookupIndex(APIView):
                 'label': "%s" % patient,
             }
 
-        return Response(map(to_dict, filter(lambda p: p.is_index, Patient.objects.filter(query))))
+        return Response(list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))

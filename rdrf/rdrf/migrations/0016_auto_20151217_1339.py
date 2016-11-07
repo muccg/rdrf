@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='mongomigrationdummymodel',
             name='version',
-            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing')]),
+            field=models.CharField(max_length=80, choices=[('initial', 'initial'), ('testing', 'testing')]),
         ),
         migrations.RunPython(forwards_func, backwards_func),
     ]

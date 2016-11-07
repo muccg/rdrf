@@ -1,10 +1,11 @@
 import json
 import datetime
 import os.path
+from operator import attrgetter
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import DefaultStorage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
@@ -33,7 +34,7 @@ class State(models.Model):
     class Meta:
         ordering = ["name"]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -60,7 +61,7 @@ class Doctor(models.Model):
     class Meta:
         ordering = ['family_name']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s (%s)" % (self.family_name.upper(), self.given_names, self.surgery_name)
 
 
@@ -70,7 +71,7 @@ class NextOfKinRelationship(models.Model):
     class Meta:
         verbose_name = 'Next of Kin Relationship'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.relationship
 
 
@@ -642,7 +643,7 @@ class Patient(models.Model):
         else:
             return "%s" % self
 
-    def __unicode__(self):
+    def __str__(self):
         if self.active:
             return "%s %s" % (self.family_name, self.given_names)
         else:
@@ -730,7 +731,7 @@ class Patient(models.Model):
 
             section_array = registry_form.sections.split(",")
 
-            cde_complete = registry_form.complete_form_cdes.values()
+            cde_complete = list(registry_form.complete_form_cdes.values())
             total_required_for_completion += len(registry_form.complete_form_cdes.values_list())
 
             for cde in cde_complete:
@@ -894,7 +895,7 @@ class ClinicianOther(models.Model):
 
 
 class ParentGuardian(models.Model):
-    GENDER_CHOICES = (("M", "Male"), ("F", "Female"), ("I", "Indeterminate"))
+    GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
@@ -919,6 +920,18 @@ class ParentGuardian(models.Model):
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
 
+@receiver(post_save, sender=ParentGuardian)
+def update_my_user(sender, **kwargs):
+    """
+    Propagate name change on parent to user if they
+    have one.
+    """
+    parent_guardian = kwargs["instance"]
+    user = parent_guardian.user
+    if user:
+        user.first_name = parent_guardian.first_name
+        user.last_name = parent_guardian.last_name
+        user.save()
 
 class AddressTypeManager(models.Manager):
 
@@ -935,7 +948,7 @@ class AddressType(models.Model):
     def natural_key(self):
         return (self.type,)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % (self.type)
 
 
@@ -951,11 +964,11 @@ class PatientAddress(models.Model):
     class Meta:
         verbose_name_plural = "Patient Addresses"
 
-    def __unicode__(self):
+    def __str__(self):
         return ""
 
 
-class PatientConsentStorage(FileSystemStorage):
+class PatientConsentStorage(DefaultStorage):
     """
     This is a normal default file storage, except the URL points to
     authenticated file download view.
@@ -977,12 +990,7 @@ class PatientConsent(models.Model):
         verbose_name="Consent form",
         blank=True,
         null=True)
-
-    # fixme: add filename as a field, using the filename which was
-    # given at time of upload.
-    @property
-    def filename(self):
-        return os.path.basename(self.form.name)
+    filename = models.CharField(max_length=255)
 
 
 class PatientDoctor(models.Model):
@@ -997,7 +1005,7 @@ class PatientDoctor(models.Model):
 
 def get_countries():
     return [(c.alpha2, c.name)
-            for c in sorted(pycountry.countries, cmp=lambda a, b: a.name < b.name)]
+            for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
 
 class PatientRelative(models.Model):
@@ -1152,7 +1160,7 @@ class ConsentValue(models.Model):
     first_save = models.DateField(null=True, blank=True)
     last_update = models.DateField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "Consent Value for %s question %s is %s" % (
             self.patient, self.consent_question, self.answer)
 

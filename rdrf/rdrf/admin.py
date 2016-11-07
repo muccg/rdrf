@@ -1,35 +1,35 @@
 from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.core.urlresolvers import reverse
-from models import Registry
-from models import RegistryForm
-from models import QuestionnaireResponse
-from models import CDEPermittedValue
-from models import AdjudicationRequest
-from models import AdjudicationResponse
-from models import AdjudicationDecision
-from models import AdjudicationDefinition
-from models import Notification
-from models import AdjudicationRequestState
-from models import Adjudication
-from models import CDEPermittedValueGroup
-from models import CommonDataElement
-from models import Section
-from models import ConsentSection
-from models import ConsentQuestion
-from models import DemographicFields
-from models import CdePolicy
-from models import EmailNotification
-from models import EmailTemplate
-from models import EmailNotificationHistory
-from models import ContextFormGroup
-from models import ContextFormGroupItem
-from models import CDEFile
+from .models import Registry
+from .models import RegistryForm
+from .models import QuestionnaireResponse
+from .models import CDEPermittedValue
+from .models import AdjudicationRequest
+from .models import AdjudicationResponse
+from .models import AdjudicationDecision
+from .models import AdjudicationDefinition
+from .models import Notification
+from .models import AdjudicationRequestState
+from .models import Adjudication
+from .models import CDEPermittedValueGroup
+from .models import CommonDataElement
+from .models import Section
+from .models import ConsentSection
+from .models import ConsentQuestion
+from .models import DemographicFields
+from .models import CdePolicy
+from .models import EmailNotification
+from .models import EmailTemplate
+from .models import EmailNotificationHistory
+from .models import ContextFormGroup
+from .models import ContextFormGroupItem
+from .models import CDEFile
 
 import logging
 from django.http import HttpResponse
-from django.core.servers.basehttp import FileWrapper
-import cStringIO as StringIO
+from wsgiref.util import FileWrapper
+import io as StringIO
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.conf import settings
@@ -37,8 +37,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from rdrf.utils import has_feature
-from admin_forms import RegistryFormAdminForm
-from admin_forms import DemographicFieldsAdminForm
+from .admin_forms import RegistryFormAdminForm
+from .admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -399,6 +399,10 @@ class CdePolicyAdmin(admin.ModelAdmin):
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+
+    def get_changeform_initial_data(self, request):
+        from django.conf import settings
+        return {'email_from': settings.DEFAULT_FROM_EMAIL}
 
 
 class EmailTemplateAdmin(admin.ModelAdmin):

@@ -231,17 +231,10 @@ class FormProgress(object):
     def _calculate_form_cdes_status(self, form_model, dynamic_data):
         if dynamic_data is None:
             return {}
-        from rdrf.models import CommonDataElement
-
-        def get_name(cde_code):
-            cde_model = CommonDataElement.objects.get(code=cde_code)
-            return cde_model.name
 
         cdes_status = {}
         required_cdes = self.progress_cdes_map[form_model.name]
-        for cde_code in required_cdes:
-            cde_name = get_name(cde_code)
-            cdes_status[cde_name] = False
+        cdes_status = {code : False for code in required_cdes}
 
         for form_dict in dynamic_data["forms"]:
             if form_dict["name"] == form_model.name:
@@ -250,15 +243,15 @@ class FormProgress(object):
                         for cde_dict in section_dict["cdes"]:
                             if cde_dict["code"] in required_cdes:
                                 if cde_dict["value"]:
-                                    cde_name = get_name(cde_dict['code'])
-                                    cdes_status[cde_name] = True
+                                    code = cde_dict["code"]
+                                    cdes_status[code] = True
                     else:
                         for item in section_dict["cdes"]:
                             for cde_dict in item:
                                 if cde_dict["code"] in required_cdes:
-                                    cde_name = get_name(cde_dict['code'])
                                     if cde_dict["value"]:
-                                        cdes_status[cde_name] = True
+                                        code = cde_dict["code"]
+                                        cdes_status[code] = True
         return cdes_status
 
     def _calculate(self, dynamic_data):
@@ -330,6 +323,8 @@ class FormProgress(object):
 
     def _load(self, patient_model, context_model=None):
         query = self._get_query(patient_model, context_model)
+        logger.debug("loading progress data for patient: query = %s" % query)
+        
         self.loaded_data = self.progress_collection.find_one(query)
         if self.loaded_data is None:
             self.loaded_data = {}

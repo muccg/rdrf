@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, RequestContext, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,16 +11,17 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from models import RegistryForm, Registry, QuestionnaireResponse
-from models import Section, CommonDataElement
+from .models import RegistryForm, Registry, QuestionnaireResponse
+from .models import Section, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian
-from dynamic_forms import create_form_class_for_section
-from dynamic_data import DynamicDataWrapper
+from .dynamic_forms import create_form_class_for_section
+from .dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from questionnaires import PatientCreator
-from file_upload import wrap_gridfs_data_for_form, merge_gridfs_data_for_form
+from .questionnaires import PatientCreator
+from .file_upload import wrap_gridfs_data_for_form
+from .file_upload import wrap_file_cdes
 from . import filestorage
-from utils import de_camelcase
+from .utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
 from rdrf.wizard import NavigationWizard, NavigationFormType
@@ -321,20 +322,16 @@ class FormView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(
-            self._get_template(),
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self._get_template(), context)
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
-        dummy = form_class()
-        ids = [field for field in dummy.fields.keys()]
-        return ",".join(ids)
+        return ",".join(form_class().fields.keys())
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         all_errors = []
+        progress_dict = {}
 
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
@@ -413,12 +410,8 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     # save all sections ONLY is all valid!
                     sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
-                    #dyn_patient.save_dynamic_data(registry_code, "cdes", dynamic_data)
-
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_gridfs_data_for_form(registry_code, dynamic_data)
-                    merge_gridfs_data_for_form(registry_code, form_data, current_data)
-
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     logger.debug("form is invalid")
@@ -426,7 +419,11 @@ class FormView(View):
                     for e in form.errors:
                         error_count += 1
                         all_errors.append(e)
-                    form_section[s] = form_class(request.POST, request.FILES)
+
+                    from rdrf.utils import wrap_uploaded_files
+                    request.POST.update(request.FILES)
+
+                    form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
 
             else:
                 logger.debug("handling POST of multisection %s" % section_model)
@@ -453,16 +450,14 @@ class FormView(View):
                         del dynamic_data[i]
 
                     section_dict = {s: dynamic_data}
-
-                    # dyn_patient.save_dynamic_data(registry_code, "cdes", section_dict, multisection=True,
-                    #                                 index_map=index_map)
                     sections_to_save.append(SectionInfo(dyn_patient, True, registry_code,
                                                         "cdes", section_dict, index_map))
 
-                    #data_after_save = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    wrapped_data_for_form = wrap_gridfs_data_for_form(registry_code, dynamic_data)
+                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
 
-                    form_section[s] = form_set_class(initial=wrapped_data_for_form, prefix=prefix)
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True)
+
+                    form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 
                 else:
                     all_sections_valid = False
@@ -474,18 +469,18 @@ class FormView(View):
 
         # Save one snapshot after all sections have being persisted
         if all_sections_valid:
-            logger.debug("All sections valid so saving to mongo ..")
             for section_info in sections_to_save:
-                logger.debug("saving section %s" % section_info)
                 section_info.save_to_mongo()
-            logger.debug("saving snapshot ..")
+
+            progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
+
             dyn_patient.save_snapshot(registry_code, "cdes")
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
-                logger.debug("saving form progress for add form")
                 dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
+
                 return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
                                                                            form_id,
                                                                            patient.pk,
@@ -494,14 +489,12 @@ class FormView(View):
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
         else:
-            logger.debug("validation errors occurred - no data saved to Mongo")
             for e in all_errors:
                 logger.debug("validation Error: %s" % e)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
-        progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
 
         logger.debug("rdrf context = %s" % self.rdrf_context)
 
@@ -547,6 +540,7 @@ class FormView(View):
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
+            "have_dynamic_data": all_sections_valid,
         }
 
         if request.user.is_parent:
@@ -562,7 +556,9 @@ class FormView(View):
             context["form_progress"] = progress_percentage
             initial_completion_cdes = {cde_model.name: False for cde_model in
                                        self.registry_form.complete_form_cdes.all()}
-            context["form_progress_cdes"] = progress_dict.get(self.registry_form.name + "_form_cdes_status",
+
+
+            context["form_progress_cdes"]  = progress_dict.get(self.registry_form.name + "_form_cdes_status",
                                                               initial_completion_cdes)
 
         context.update(csrf(request))
@@ -578,10 +574,7 @@ class FormView(View):
                     'Patient %s not saved due to validation errors' %
                     patient_name)
 
-        return render_to_response(
-            self._get_template(),
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self._get_template(), context)
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
@@ -715,7 +708,8 @@ class FormView(View):
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
-            "has_form_progress": self.registry_form.has_progress_indicator
+            "has_form_progress": self.registry_form.has_progress_indicator,
+            "have_dynamic_data": bool(self.dynamic_data),
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
@@ -730,9 +724,8 @@ class FormView(View):
                                                                   patient_model,
                                                                   self.rdrf_context)
 
-            #cdes_status, progress = self._get_patient_object().form_progress(self.registry_form)
             context["form_progress"] = form_progress_percentage
-            context["form_progress_cdes"] = form_cdes_status
+            context["form_progress_cdes"] =  form_cdes_status
 
         context.update(kwargs)
         return context
@@ -757,7 +750,7 @@ class FormView(View):
         We only provide overrides here at the moment
         """
         json_dict = {}
-        from utils import id_on_page
+        from .utils import id_on_page
         for section in registry_form.get_sections():
             metadata = {}
             section_model = Section.objects.filter(code=section).first()
@@ -864,7 +857,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
 
-    from patient_decorators import patient_has_access
+    from .patient_decorators import patient_has_access
 
     @method_decorator(patient_has_access)
     def get(self, request, registry_code, questionnaire_context="au"):
@@ -902,7 +895,7 @@ class QuestionnaireView(FormView):
                 'registry': self.registry,
                 'error_msg': "Multiple questionnaire exists for %s" % registry_code
             }
-        return render_to_response('rdrf_cdes/questionnaire_error.html', context)
+        return render(request, 'rdrf_cdes/questionnaire_error.html', context)
 
     def _get_template(self):
         return "rdrf_cdes/questionnaire.html"
@@ -1182,9 +1175,7 @@ class QuestionnaireView(FormView):
             context["completed_sections"] = section_map
             context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
 
-            return render_to_response(
-                'rdrf_cdes/completed_questionnaire_thankyou.html',
-                context)
+            return render(request, 'rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
             logger.debug("Error count non-zero!:  %s" % error_count)
 
@@ -1212,10 +1203,7 @@ class QuestionnaireView(FormView):
                 request,
                 messages.ERROR,
                 _('The questionnaire was not submitted because of validation errors - please try again'))
-            return render_to_response(
-                'rdrf_cdes/questionnaire.html',
-                context,
-                context_instance=RequestContext(request))
+            return render(request, 'rdrf_cdes/questionnaire.html', context)
 
     def _get_patient_id(self):
         return "questionnaire"
@@ -1245,10 +1233,7 @@ class QuestionnaireHandlingView(View):
 
         context.update(csrf(request))
 
-        return render_to_response(
-            template_name,
-            context,
-            context_instance=RequestContext(request))
+        return render(request, template_name, context)
 
     def post(self, request, registry_code, questionnaire_response_id):
         registry_model = Registry.objects.get(code=registry_code)
@@ -1393,8 +1378,7 @@ class QuestionnaireResponseView(FormView):
                 patient_creator.create_patient(request.POST, qr, questionnaire_data)
                 messages.info(request, "Patient Created OK")
             except PatientCreatorError as perr:
-                error = perr.message
-                messages.error(request, "Patient Failed to be created: %s" % error)
+                messages.error(request, "Patient Failed to be created: %s" % perr)
 
         context = {}
         context.update(csrf(request))
@@ -1427,7 +1411,7 @@ class StandardView(object):
     def _render(request, view_type, context):
         context.update(csrf(request))
         template = StandardView.TEMPLATE_DIR + "/" + view_type
-        return render_to_response(template, context, context_instance=RequestContext(request))
+        return render(request, template, context)
 
     @staticmethod
     def render_information(request, message):
@@ -1511,10 +1495,7 @@ class QuestionnaireConfigurationView(View):
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render_to_response(
-            self.TEMPLATE,
-            context,
-            context_instance=RequestContext(request))
+        return render(request, self.TEMPLATE, context)
 
 
 class RDRFDesignerCDESEndPoint(View):
@@ -1538,7 +1519,7 @@ class RDRFDesigner(View):
     def get(self, request, reg_pk=0):
         context = {"reg_pk": reg_pk}
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/rdrf-designer.html', context)
+        return render(request, 'rdrf_cdes/rdrf-designer.html', context)
 
 
 class RDRFDesignerRegistryStructureEndPoint(View):
@@ -1553,10 +1534,8 @@ class RDRFDesignerRegistryStructureEndPoint(View):
         return HttpResponse(json.dumps(data), content_type="application/json")
 
     def post(self, request, reg_pk):
-        import json
-        registry_structure_json = request.body
         try:
-            registry_structure = json.loads(registry_structure_json)
+            registry_structure = json.loads(request.body.decode("utf-8"))
         except Exception as ex:
             message = {"message": "Error: Could not load registry structure: %s" %
                        ex, "message_type": "error"}
@@ -1590,9 +1569,7 @@ class RDRFDesignerRegistryStructureEndPoint(View):
 class RPCHandler(View):
 
     def post(self, request):
-        import json
-        rpc_command = request.body
-        action_dict = json.loads(rpc_command)
+        action_dict = json.loads(request.body.decode("utf-8"))
         action_executor = ActionExecutor(request, action_dict)
         client_response_dict = action_executor.run()
         client_response_json = json.dumps(client_response_dict)
@@ -1618,10 +1595,7 @@ class AdjudicationInitiationView(View):
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
-        return render_to_response(
-            'rdrf_cdes/adjudication_initiation_form.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_initiation_form.html', context)
 
     @login_required_method
     def post(self, request, def_id, patient_id):
@@ -1775,10 +1749,7 @@ class AdjudicationRequestView(View):
                    "req": adj_req}
 
         context.update(csrf(request))
-        return render_to_response(
-            'rdrf_cdes/adjudication_form.html',
-            context,
-            context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_form.html', context)
 
     @login_required_method
     def post(self, request, adjudication_request_id):
@@ -1898,7 +1869,7 @@ class AdjudicationResultsView(View):
 
             def _is_numeric(self, values):
                 try:
-                    map(float, values)
+                    list(map(float, values))
                     return True
                 except ValueError:
                     return False
@@ -1927,7 +1898,7 @@ class AdjudicationResultsView(View):
 
             def _munge_type(self, values):
                 if self._is_numeric(values):
-                    return map(float, values)
+                    return list(map(float, values))
                 else:
                     return values
 
@@ -1950,7 +1921,7 @@ class AdjudicationResultsView(View):
             def bar_chart_data(self):
                 histogram = self._create_histogram()
                 data = {
-                    "labels": histogram.keys(),
+                    "labels": list(histogram.keys()),
                     "datasets": [
                         {
                             "label": self.label,
@@ -1958,7 +1929,7 @@ class AdjudicationResultsView(View):
                             "strokeColor": "rgba(220,220,220,0.8)",
                             "highlightFill": "rgba(220,220,220,0.75)",
                             "highlightStroke": "rgba(220,220,220,1)",
-                            "data": histogram.values()
+                            "data": list(histogram.values())
                         }
                     ]
                 }
@@ -1975,8 +1946,7 @@ class AdjudicationResultsView(View):
         context['decision_form'] = adj_def.create_decision_form()
         context['adjudication'] = adjudication
         context.update(csrf(request))
-        return render_to_response('rdrf_cdes/adjudication_results.html', context,
-                                  context_instance=RequestContext(request))
+        return render(request, 'rdrf_cdes/adjudication_results.html', context)
 
     def _get_results_for_one_cde(self, adjudication_responses, cde_model):
         results = []
@@ -2099,7 +2069,7 @@ class AdjudicationResultsView(View):
 class ConstructorFormView(View):
 
     def get(self, request, form_name):
-        return render_to_response('rdrf_cdes/%s.html' % form_name)
+        return render(request, 'rdrf_cdes/%s.html' % form_name)
 
 
 class CustomConsentFormView(View):
@@ -2151,9 +2121,7 @@ class CustomConsentFormView(View):
         logger.debug("context = %s" % context)
 
         logger.debug("******************** rendering get *********************")
-        return render_to_response("rdrf_cdes/custom_consent_form.html",
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/custom_consent_form.html", context)
 
     def _get_initial_consent_data(self, patient_model):
         # load initial consent data for custom consent form
@@ -2322,6 +2290,4 @@ class CustomConsentFormView(View):
             context["error_messages"] = error_messages
             context["errors"] = True
 
-        return render_to_response("rdrf_cdes/custom_consent_form.html",
-                                  context,
-                                  context_instance=RequestContext(request))
+        return render(request, "rdrf_cdes/custom_consent_form.html", context)

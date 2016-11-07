@@ -22,7 +22,7 @@ labs = [{
         "contact_email": "",
         "address": "PO Box 110031\r\nAuckland City Hospital\r\nAuckland 1148"
         }, {
-        "name": "Genetics and Molecular Pathology, SA Pathology (Women\u2019s and Children\u2019s Hospital) ",
+        "name": "Genetics and Molecular Pathology, SA Pathology (Women\\u2019s and Children\\u2019s Hospital) ",
         "contact_phone": "08 8111 2222",
         "contact_name": "Kathie Friend",
         "contact_email": "kathryn.friend@adelaide.edu.au",
@@ -42,7 +42,7 @@ labs = [{
         }, {
         "name": "VCGS Molecular Genetics Laboratory, Murdoch Childrens research Institute",
         "contact_phone": "",
-        "contact_name": "Desir\u00e9e du Sart",
+        "contact_name": "Desir\\u00e9e du Sart",
         "contact_email": "dusart.desiree@mcri.edu.au",
         "address": ""
         }, {

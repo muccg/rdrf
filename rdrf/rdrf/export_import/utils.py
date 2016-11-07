@@ -57,6 +57,9 @@ def maybe_indent(logger):
     return IndentedLogger(logger) if hasattr(logger, 'indentation') else logger
 
 
+def calculate_checksum_str(iterable):
+    return calculate_checksum(s.encode("utf-8") for s in iterable)
+
 def calculate_checksum(iterable):
     h = hashlib.md5()
     for item in iterable:
@@ -65,11 +68,11 @@ def calculate_checksum(iterable):
 
 
 def file_checksum(filename):
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         return calculate_checksum(f)
 
 
 def app_schema_version(app_label):
     recorder = MigrationRecorder(connection)
     applied_migrations = sorted((x[1] for x in recorder.applied_migrations() if x[0] == app_label))
-    return calculate_checksum(applied_migrations)
+    return calculate_checksum_str(applied_migrations)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='patient',
             name='maiden_name',
-            field=models.CharField(max_length=100, null=True, verbose_name=b'Maiden name (if applicable)', blank=True),
+            field=models.CharField(max_length=100, null=True, verbose_name='Maiden name (if applicable)', blank=True),
         ),
     ]

@@ -24,7 +24,7 @@ class ActionExecutor(object):
                 client_response['status'] = 'success'
             except Exception as ex:
                 client_response['status'] = 'fail'
-                client_response['error'] = ex.message
+                client_response['error'] = str(ex)
         else:
             client_response['status'] = 'fail'
             client_response['error'] = 'could not locate command: %s' % rpc_command

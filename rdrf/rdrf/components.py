@@ -7,8 +7,6 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.form_progress import FormProgress
 
-PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
-
 import logging
 
 logger = logging.getLogger("registry_log")
@@ -38,7 +36,7 @@ class _Form(object):
         self.heading = ""
         self.existing_links = []  # for multiple contexts
 
-    def __unicode__(self):
+    def __str__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
 
 
@@ -122,15 +120,15 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk])
 
     def _get_family_linkage_link(self):
+        pk = None
         if self.registry_model.has_feature("family_linkage"):
-            registry_code = self.registry_model.code
             if self.patient_model.is_index:
-                family_linkage_link = reverse('family_linkage', args=(registry_code,
-                                                                      self.patient_model.pk))
-            else:
-                family_linkage_link = reverse('family_linkage', args=(registry_code,
-                                                                      self.patient_model.my_index.pk))
-            return family_linkage_link
+                pk = self.patient_model.pk
+            elif self.patient_model.my_index:
+                pk = self.patient_model.my_index.pk
+
+        if pk is not None:
+            return reverse('family_linkage', args=(self.registry_model.code, pk))
         else:
             return None
 
@@ -354,10 +352,10 @@ class FormsButton(RDRFComponent):
                                      default_context) for form_model in self.forms]
         elif self.context_form_group.context_type == "F":
             # there should only be one context
-            contexts = [cm for cm in RDRFContext.objects.filter(registry=self.registry_model,
-                                                                context_form_group=self.context_form_group,
-                                                                object_id=self.patient_model.pk,
-                                                                content_type=PATIENT_CONTENT_TYPE)]
+            contexts = list(RDRFContext.objects.filter(registry=self.registry_model,
+                                                       context_form_group=self.context_form_group,
+                                                       object_id=self.patient_model.pk,
+                                                       content_type__model="patient"))
 
             assert len(contexts) == 1, "There should only be one context in %s" % self.context_form_group
 
@@ -370,13 +368,10 @@ class FormsButton(RDRFComponent):
         else:
             # multiple group
             # we may have more than one assessment etc
-
-            context_models = sorted([cm for cm in RDRFContext.objects.filter(registry=self.registry_model,
-                                                                             context_form_group=self.context_form_group,
-                                                                             object_id=self.patient_model.pk,
-                                                                             content_type=PATIENT_CONTENT_TYPE)],
-                                    key=lambda cm: cm.pk,
-                                    reverse=True)
+            context_models = RDRFContext.objects.filter(registry=self.registry_model,
+                                                        context_form_group=self.context_form_group,
+                                                        object_id=self.patient_model.pk,
+                                                        content_type__model="patient")
 
             return [
                 self.FormWrapper(self.registry_model,
@@ -384,7 +379,7 @@ class FormsButton(RDRFComponent):
                                  form_model,
                                  self.context_form_group,
                                  context_model) for form_model in self.forms
-                for context_model in context_models]
+                for context_model in context_models.order_by("-pk")]
 
     @property
     def id(self):

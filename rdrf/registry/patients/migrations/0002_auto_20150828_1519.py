@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.db.models.deletion
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='working_groups',
-            field=models.ManyToManyField(related_name='my_patients', verbose_name=b'Centre', to='groups.WorkingGroup'),
+            field=models.ManyToManyField(related_name='my_patients', verbose_name='Centre', to='groups.WorkingGroup'),
         ),
         migrations.AddField(
             model_name='parentguardian',
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='doctor',
             name='state',
-            field=models.ForeignKey(verbose_name=b'State/Province/Territory', to='patients.State'),
+            field=models.ForeignKey(verbose_name='State/Province/Territory', to='patients.State'),
         ),
         migrations.AddField(
             model_name='consentvalue',

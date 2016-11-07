@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url
 from rdrf import api_views
 from rdrf.custom_rest_router import DefaultRouterWithSimpleViews
 
@@ -14,13 +14,12 @@ router.register(r'laboratories', api_views.LookupLaboratories, base_name='labora
 router.register(r'registries/(?P<registry_code>\w+)/indices', api_views.LookupIndex, base_name='index')
 router.register(r'registries/(?P<registry_code>\w+)/clinicians', api_views.ListClinicians, base_name='clinician')
 
-urlpatterns = patterns('rdrf.api_views',
-                       url(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
-                       url(r'registries/(?P<registry_code>\w+)/patients/$',
-                           api_views.PatientList.as_view(), name='patient-list'),
-                       url(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
-                           api_views.PatientDetail.as_view(), name='patient-detail'),
-
-                       url(r'^countries/(?P<country_code>[A-Z]{2})/states/$',
-                           api_views.ListStates.as_view(), name="state_lookup"),
-                       (r'', include(router.urls)))
+urlpatterns = [
+    url(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
+    url(r'registries/(?P<registry_code>\w+)/patients/$',
+        api_views.PatientList.as_view(), name='patient-list'),
+    url(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
+        api_views.PatientDetail.as_view(), name='patient-detail'),
+    url(r'^countries/(?P<country_code>[A-Z]{2})/states/$',
+        api_views.ListStates.as_view(), name="state_lookup"),
+] + router.urls
