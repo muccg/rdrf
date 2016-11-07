@@ -105,6 +105,24 @@ class Importer2(object):
 
         return patient
 
+    def _import_clinical_form(self, form_model, patient_model, row):
+        form_updates = []
+        for section_model in form_model.section_models:
+            if not section_model.allow_multiple:
+                for cde_model in section_model.cde_models:
+                    field_num = self._get_field_num(form_model, section_model, cde_model)
+                    field_value = self._get_field_value(row, field_num)
+                    field_expression = self._generate_field_expression(patient_model, form_model, section_model, cde_model)
+                    form_updates.append((field_expression, field_value))
+
+        patient_model.update_field_expressions(form_updates)
+                    
+
+
+    def _generate_field_expression(self, patient_model, form_model, section_model, cde_model):
+        expression = None
+        return expresssion 
+
 
 class RowWrapper(object):
 
