@@ -8,6 +8,8 @@ from rdrf.form_view import FormView
 from django.test import RequestFactory
 
 from registry.patients.models import Patient
+from registry.groups.models import CustomUser
+
 import csv
 from string import strip
 
@@ -31,9 +33,74 @@ class FormError(Exception):
 
 class FieldType:
     CDE = 1
-    DEMOGRAPHICS = 1
-    PEDIGREE_FORM = 2
-    CONSENT = 3
+    DEMOGRAPHICS = 2
+    PEDIGREE_FORM = 3
+    CONSENT = 4
+
+
+class Importer2(object):
+    
+    def __init__(self):
+        self.indexes = []
+        self.relatives = []
+        self.family_linkage_map = {}
+        self.index_patient_map = {}
+        
+        self.id_map = {}
+        
+    def run(self, rows):
+        for row in rows:
+            if self.is_index(row):
+                self.indexes.append(row)
+            elif self.is_relative(row):
+                self.relatives.append(row)
+
+        self._create_indexes()
+        self._create_relatives()
+
+    def is_index(self, row):
+        return False
+
+    def _is_relative(self, row):
+        return False
+
+    def _create_indexes(self):
+        for row in self.indexes:
+            index_patient = self._import_patient(row)
+            external_id = self._get_external_id(row)
+            self._update_id_map(external_id, index_patient.pk)
+
+    def _update_id_map(self, external_id, rdrf_id):
+        if external_id in self.id_map:
+            raise ImportError("Dupe ID?")
+        else:
+            self.id_map[external_id] = rdrf_id
+            
+
+    def _create_relatives(self):
+        for row in self.relatives:
+            patient = self._create_minimal_patient(row)
+            external_id = self._get_external_id(row)
+            self._import_demographics_data(patient, row)
+            for form_model in self.form_models:
+                self._import_clinical_form(form_model, patient, row)
+
+            self._update_id_map(external_id, patient.pk)
+
+            index_patient = self._get_index_patient(row)
+            self._add_relative(index_patient, patient)
+            
+
+
+    def _import_patient(self, row):
+        patient = self._create_minimal_patient(row)
+        self._import_demographics_data(patient, row)
+        self._import_pedigree_data(patient, row)
+        for form_model in self.form_models:
+            self._import_clinical_form(form_model, patient, row)
+
+        return patient
+
 
 class RowWrapper(object):
 
@@ -43,6 +110,7 @@ class RowWrapper(object):
         self.row_dict = row_dict
 
     def __getitem__(self, tuple_or_string):
+        form_model = section_model = cde_model = None
         if type(tuple_or_string) is tuple:
             form_model, section_model, cde_model = tuple_or_string
             key = form_model.name + "/" + section_model.code + "/" + cde_model.code
