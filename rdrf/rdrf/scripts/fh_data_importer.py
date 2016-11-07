@@ -37,8 +37,12 @@ class FieldType:
     PEDIGREE_FORM = 3
     CONSENT = 4
 
+    
 
 class Importer2(object):
+    # rewriting importer
+    # as we need to link relatives to index patients
+    # so we do two passes
     
     def __init__(self):
         self.indexes = []
