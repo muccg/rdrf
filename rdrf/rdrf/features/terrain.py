@@ -9,8 +9,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 TEST_BROWSER = os.environ.get('TEST_BROWSER')
-TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB')
-TEST_WAIT = int(os.environ.get('TEST_WAIT'))
+TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB') or 'http://localhost:4444/wd/hub'
+TEST_WAIT = int(os.environ.get('TEST_WAIT') or '10')
 TEST_APP_URL = os.environ.get('TEST_APP_URL')
 TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
 
