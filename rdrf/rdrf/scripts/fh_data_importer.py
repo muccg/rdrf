@@ -12,22 +12,19 @@ from registry.groups.models import CustomUser
 
 import csv
 from string import strip
+import openpyxl as xl
+import os
 
 
-class DataDictionaryFile:
-    ROW_DELIMITER = '\t'
+
+class DataDictionarySheet:
     FIELD_NUM_COLUMN = 1
     FORM_NAME_COLUMN = 6
     SECTION_NAME_COLUMN = 9
     CDE_NAME_COLUMN = 10
 
 
-class DataImporterError(Exception):
-    pass
-
-
-class FormError(Exception):
-    # represent a form validation error
+class ImporterError(Exception):
     pass
 
 
@@ -39,18 +36,61 @@ class FieldType:
 
     
 
-class Importer2(object):
+class SpreadsheetImporter(object):
     # rewriting importer
     # as we need to link relatives to index patients
     # so we do two passes
+    # also FH introduced form groups
+    # we need to be aware of them
     
-    def __init__(self):
+    def __init__(self, registry_model, import_spreadsheet_filepath, datadictionary_sheetname):
+        self.registry_model = registry_model
+        self.import_spreadsheet_filepath = import_spreadsheet_filepath
+        self.datadictionary_sheetname = datadictionary_sheetname
+        self.datadictionary_sheet = None
         self.indexes = []
         self.relatives = []
         self.family_linkage_map = {}
         self.index_patient_map = {}
-        
+        self.field_map = {}
         self.id_map = {}
+        self.workbook = self._load_workbook()
+        self._build_field_map()
+
+
+    def _load_workbook(self):
+        if not os.path.exists(self.import_spreadsheet_filepath):
+            raise ImportError("Spreadsheet file %s does not exist" %
+                            self.import_spreadsheet_filepath)
+        
+        try:
+            self.workbook = xl.load_workbook(self.import_spreadsheet_filepath)
+        except Exception, ex:
+            raise ImporterError("Could not load Import spreadsheet: %s",
+                                ex)
+
+    def _build_field_map(self):
+        d = {}
+        sheet = self.datadictionary_sheet
+        finished = False
+        row_num = 1
+        
+        while not finished:
+            field_num = sheet.cell(row=row_num, column=DataDictionary.FIELD_NUM_COLUMN)
+            if not field_num:
+                finished = True
+            else:
+                form_name = sheet.cell(row=row_num, column=DataDictionary.FORM_NAME_COLUMN)
+                section_name = sheet.cell(row=row_num, column=DataDictionary.SECTION_NAME_COLUMN)
+                cde_name = sheet.cell(row=row_num, column=DataDictionary.CDE_NAME_COLUMN)
+
+                
+        
+        
+        
+        
+        
+        
         
     def run(self, rows):
         for row in rows:
@@ -67,6 +107,8 @@ class Importer2(object):
 
     def _is_relative(self, row):
         return False
+
+    
 
     def _create_indexes(self):
         for row in self.indexes:
@@ -100,27 +142,54 @@ class Importer2(object):
         patient = self._create_minimal_patient(row)
         self._import_demographics_data(patient, row)
         self._import_pedigree_data(patient, row)
-        for form_model in self.form_models:
-            self._import_clinical_form(form_model, patient, row)
+        # ensure we import data into the correct context
+        
+        for context_model, form_model in self.get_forms_and_contexts():
+            self._import_clinical_form(form_model, patient, context_model, row)
 
         return patient
 
-    def _import_clinical_form(self, form_model, patient_model, row):
-        form_updates = []
+    def _get_forms_and_contexts(self, patient_model):
+        # get forms in fixed groups
+        results = []
+        for context_form_group in self.registry_model.context_form_groups:
+            if context_form_group.is_default and context_form_group.type == "F":
+                try:
+                    context_model = RDRFContext.objects.get(object_id=patient_model.pk,
+                                                        registry=self.registry_model,
+                                                        context_form_group=context_form_group)
+                except RDRFContext.DoesNotExist:
+                    # should not happen as contexts for fixed groups created when patient craeted
+                    pass
+
+                except RDRFContext.MultipleObjectsReturned:
+                    # eek
+                    pass
+
+                for form_model in context_form_group.form_models:
+                    results.append((context_model, form_model))
+        return results
+
+    def _import_clinical_form(self, form_model, patient_model, context_model, row):
+        field_updates = []
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
+                # 1st data import sheet does not contain any multisections as is 1 row per patient
                 for cde_model in section_model.cde_models:
-                    field_num = self._get_field_num(form_model, section_model, cde_model)
-                    field_value = self._get_field_value(row, field_num)
-                    field_expression = self._generate_field_expression(patient_model, form_model, section_model, cde_model)
-                    form_updates.append((field_expression, field_value))
+                    if self.included(form_model, section_model, cde_model):
+                        field_num = self._get_field_num(form_model, section_model, cde_model)
+                        field_value = self._get_field_value(row, field_num)
+                        field_expression = self._get_field_expression(patient_model, form_model, section_model, cde_model)
+                        field_updates.append((field_expression, field_value))
 
-        patient_model.update_field_expressions(form_updates)
-                    
+        patient_model.update_field_expressions(self.registry_model,field_updates)
 
+    def cde_included(self, form_model, section_model, cde_model):
+        model_tuple = (form_model, section_model, cde_model)
+        return model_tuple in self.field_map
 
-    def _generate_field_expression(self, patient_model, form_model, section_model, cde_model):
-        expression = None
+    def _get_field_expression(self, patient_model, form_model, section_model, cde_model):
+        
         return expresssion 
 
 
