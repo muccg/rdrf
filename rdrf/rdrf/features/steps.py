@@ -4,7 +4,8 @@ import os
 from aloe.registry import STEP_REGISTRY
 from aloe import step, world
 from aloe_webdriver.webdriver import contains_content
-from aloe_webdriver import assert_true
+
+from nose.tools import assert_true
 
 from selenium.webdriver.common.alert import Alert
 
