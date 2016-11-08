@@ -16,6 +16,7 @@ import openpyxl as xl
 import os
 
 
+PATIENT_ID_FIELDNUM = 1
 
 class DataDictionarySheet:
     FIELD_NUM_COLUMN = 1
@@ -25,6 +26,9 @@ class DataDictionarySheet:
 
 
 class ImporterError(Exception):
+    pass
+
+class FieldNumNotFound(ImporterError):
     pass
 
 
@@ -70,28 +74,51 @@ class SpreadsheetImporter(object):
                                 ex)
 
     def _build_field_map(self):
+        # map RDRF "fields" to fieldnums in the spreadsheet
         d = {}
+        d["patient_id"] = PATIENT_ID_FIELDNUM
+        
         sheet = self.datadictionary_sheet
         finished = False
-        row_num = 1
+        row_num = 3 # fields start here
         
         while not finished:
             field_num = sheet.cell(row=row_num, column=DataDictionary.FIELD_NUM_COLUMN)
+            
             if not field_num:
                 finished = True
             else:
                 form_name = sheet.cell(row=row_num, column=DataDictionary.FORM_NAME_COLUMN)
                 section_name = sheet.cell(row=row_num, column=DataDictionary.SECTION_NAME_COLUMN)
                 cde_name = sheet.cell(row=row_num, column=DataDictionary.CDE_NAME_COLUMN)
-
+                key = (form_name, section_name, cde_name)
                 
-        
-        
-        
-        
-        
-        
-        
+                d[key] = field_num
+
+                row_num += 1
+        return d
+    
+
+    def _get_field_num(self, key):
+        if type(key) is tuple:
+            form_model, section_model, cde_model = key
+            form_name = form_model.name
+            section_name = section_model.display_name
+            cde_name = cde_model.name
+
+            k = (form_name, section_name, cde_name)
+            if k in self.field_map:
+                return self.field_map[k]
+            else:
+                msg = "%s/%s/%s" % (form_name, section_name, cde_name)
+                raise FieldNumNotFound(msg)
+        else:
+            # string key
+            if key in self.field_map:
+                return self.field_map[key]
+            else:
+                raise FieldNumNotFound(key)
+
     def run(self, rows):
         for row in rows:
             if self.is_index(row):
