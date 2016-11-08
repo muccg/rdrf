@@ -94,6 +94,14 @@ def show_stats(export_name):
         logger.info("\t\tPatient %s" % p)
 
 
+def click(element):
+    scrollElementIntoMiddle = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);" + \
+                              "var elementTop  = arguments[0].getBoundingClientRect().top;" + \
+                              "window.scrollBy(0, elementTop-(viewPortHeight/2));"
+    world.browser.execute_script(scrollElementIntoMiddle, element)
+    element.click()
+
+
 # We started from the step definitions from lettuce_webdriver, but
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
@@ -128,7 +136,7 @@ def should_see(step, text):
 @step('click "(.*)"')
 def click_link(step, link_text):
     link = world.browser.find_element_by_partial_link_text(link_text)
-    link.click()
+    click(link)
 
 
 @step('should see a link to "(.*)"')
@@ -145,13 +153,13 @@ def should_not_see_link_to(step, link_text):
 @step('press the "(.*)" button')
 def press_button(step, button_text):
     button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
-    button.click()
+    click(button)
 
 
 @step('I click "(.*)" on patientlisting')
 def click_patient_listing(step, patient_name):
     link = world.browser.find_element_by_partial_link_text(patient_name)
-    link.click()
+    click(link)
 
 
 @step('I click on "(.*)" in "(.*)" group in sidebar')
@@ -162,7 +170,7 @@ def click_sidebar_group_item(step, item_name, group_name):
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
     form_link = form_group_panel.find_element_by_partial_link_text(item_name)
-    form_link.click()
+    click(form_link)
 
 
 @step('I press "(.*)" button in "(.*)" group in sidebar')
@@ -172,7 +180,7 @@ def click_button_sidebar_group(step, button_name, group_name):
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="panel-heading"][contains(., "%s")]' % group_name).find_element_by_xpath("..")
     button = form_group_panel.find_element_by_xpath('//a[@class="btn btn-info btn-xs pull-right"]')
-    button.click()
+    click(button)
 
 
 @step('I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
@@ -202,7 +210,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 @step('And I click Save')
 def click_save_button(step):
     save_button = world.browser.find_element_by_id("submit-btn")
-    save_button.click()
+    click(save_button)
 
 
 @step('error message is "(.*)"')
@@ -232,21 +240,21 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
 
     form_group_button = patient_row.find_element_by_xpath('//button[contains(., "%s")]' % button_caption)
 
-    form_group_button.click()
+    click(form_group_button)
     form_link = form_group_button.find_element_by_xpath("..").find_element_by_partial_link_text(form_name)
-    form_link.click()
+    click(form_link)
 
 
 @step('press the navigate back button')
 def press_back_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
-    button.click()
+    click(button)
 
 
 @step('press the navigate forward button')
 def press_forward_button(step):
     button = world.browser.find_element_by_xpath('//a[@class="next-form"]')
-    button.click()
+    click(button)
 
 
 @step('select "(.*)" from "(.*)"')
@@ -259,7 +267,7 @@ def select_from_list(step, option, dropdown_label_or_id):
         select_id = label.get_attribute('for')
     option = world.browser.find_element_by_xpath('//select[@id="%s"]/option[contains(., "%s")]' %
                                                  (select_id, option))
-    option.click()
+    click(option)
 
 
 @step('option "(.*)" from "(.*)" should be selected')
@@ -289,7 +297,7 @@ def check_checkbox(step, checkbox_label):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % checkbox_label)
     checkbox = world.browser.find_element_by_xpath('//input[@id="%s"]' % label.get_attribute('for'))
     if not checkbox.is_selected():
-        checkbox.click()
+        click(checkbox)
 
 
 @step('the "(.*)" checkbox should be checked')
@@ -346,7 +354,7 @@ def login_as_role(step, role):
 
 @step('log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
-    world.browser.find_element_by_link_text("Log in").click()
+    click(world.browser.find_element_by_link_text("Log in"))
     username_field = world.browser.find_element_by_xpath('.//input[@name="username"]')
     username_field.send_keys(username)
     password_field = world.browser.find_element_by_xpath('.//input[@name="password"]')
@@ -357,7 +365,7 @@ def login_as_user(step, username, password):
 @step('should be logged in')
 def should_be_logged_in(step):
     user_link = world.browser.find_element_by_partial_link_text(world.user)
-    user_link.click()
+    click(user_link)
     world.browser.find_element_by_link_text('Logout')
 
 
@@ -394,9 +402,9 @@ def go_to_registry(step, name):
     logger.debug("**********  in go_to_registry *******")
     world.browser.get(world.site_url)
     logger.debug("navigated to %s" % world.site_url)
-    world.browser.find_element_by_link_text('Registries on this site').click()
+    click(world.browser.find_element_by_link_text('Registries on this site'))
     logger.debug("clicked dropdown for registry")
-    world.browser.find_element_by_partial_link_text(name).click()
+    click(world.browser.find_element_by_partial_link_text(name))
     logger.debug("found link text to click")
 
 
@@ -414,10 +422,10 @@ def accept_alert(step):
 
 @step('When I click "(.*)" in sidebar')
 def sidebar_click(step, sidebar_link_text):
-    world.browser.find_element_by_link_text(sidebar_link_text).click()
+    click(world.browser.find_element_by_link_text(sidebar_link_text))
 
 
 @step('I click Cancel')
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
-    link.click()
+    click(link)
