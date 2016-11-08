@@ -18,6 +18,7 @@ import os
 
 PATIENT_ID_FIELDNUM = 1
 
+
 class DataDictionarySheet:
     FIELD_NUM_COLUMN = 1
     FORM_NAME_COLUMN = 6
@@ -27,6 +28,7 @@ class DataDictionarySheet:
 
 class ImporterError(Exception):
     pass
+
 
 class FieldNumNotFound(ImporterError):
     pass
@@ -38,7 +40,6 @@ class FieldType:
     PEDIGREE_FORM = 3
     CONSENT = 4
 
-    
 
 class SpreadsheetImporter(object):
     # rewriting importer
@@ -46,7 +47,7 @@ class SpreadsheetImporter(object):
     # so we do two passes
     # also FH introduced form groups
     # we need to be aware of them
-    
+
     def __init__(self, registry_model, import_spreadsheet_filepath, datadictionary_sheetname):
         self.registry_model = registry_model
         self.import_spreadsheet_filepath = import_spreadsheet_filepath
@@ -61,12 +62,11 @@ class SpreadsheetImporter(object):
         self.workbook = self._load_workbook()
         self._build_field_map()
 
-
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
             raise ImportError("Spreadsheet file %s does not exist" %
-                            self.import_spreadsheet_filepath)
-        
+                              self.import_spreadsheet_filepath)
+
         try:
             self.workbook = xl.load_workbook(self.import_spreadsheet_filepath)
         except Exception, ex:
@@ -77,27 +77,30 @@ class SpreadsheetImporter(object):
         # map RDRF "fields" to fieldnums in the spreadsheet
         d = {}
         d["patient_id"] = PATIENT_ID_FIELDNUM
-        
+
         sheet = self.datadictionary_sheet
         finished = False
-        row_num = 3 # fields start here
-        
+        row_num = 3  # fields start here
+
         while not finished:
-            field_num = sheet.cell(row=row_num, column=DataDictionary.FIELD_NUM_COLUMN)
-            
+            field_num = sheet.cell(
+                row=row_num, column=DataDictionary.FIELD_NUM_COLUMN)
+
             if not field_num:
                 finished = True
             else:
-                form_name = sheet.cell(row=row_num, column=DataDictionary.FORM_NAME_COLUMN)
-                section_name = sheet.cell(row=row_num, column=DataDictionary.SECTION_NAME_COLUMN)
-                cde_name = sheet.cell(row=row_num, column=DataDictionary.CDE_NAME_COLUMN)
+                form_name = sheet.cell(
+                    row=row_num, column=DataDictionary.FORM_NAME_COLUMN)
+                section_name = sheet.cell(
+                    row=row_num, column=DataDictionary.SECTION_NAME_COLUMN)
+                cde_name = sheet.cell(
+                    row=row_num, column=DataDictionary.CDE_NAME_COLUMN)
                 key = (form_name, section_name, cde_name)
-                
+
                 d[key] = field_num
 
                 row_num += 1
         return d
-    
 
     def _get_field_num(self, key):
         if type(key) is tuple:
@@ -135,8 +138,6 @@ class SpreadsheetImporter(object):
     def _is_relative(self, row):
         return False
 
-    
-
     def _create_indexes(self):
         for row in self.indexes:
             index_patient = self._import_patient(row)
@@ -148,7 +149,6 @@ class SpreadsheetImporter(object):
             raise ImportError("Dupe ID?")
         else:
             self.id_map[external_id] = rdrf_id
-            
 
     def _create_relatives(self):
         for row in self.relatives:
@@ -162,15 +162,13 @@ class SpreadsheetImporter(object):
 
             index_patient = self._get_index_patient(row)
             self._add_relative(index_patient, patient)
-            
-
 
     def _import_patient(self, row):
         patient = self._create_minimal_patient(row)
         self._import_demographics_data(patient, row)
         self._import_pedigree_data(patient, row)
         # ensure we import data into the correct context
-        
+
         for context_model, form_model in self.get_forms_and_contexts():
             self._import_clinical_form(form_model, patient, context_model, row)
 
@@ -183,10 +181,11 @@ class SpreadsheetImporter(object):
             if context_form_group.is_default and context_form_group.type == "F":
                 try:
                     context_model = RDRFContext.objects.get(object_id=patient_model.pk,
-                                                        registry=self.registry_model,
-                                                        context_form_group=context_form_group)
+                                                            registry=self.registry_model,
+                                                            context_form_group=context_form_group)
                 except RDRFContext.DoesNotExist:
-                    # should not happen as contexts for fixed groups created when patient craeted
+                    # should not happen as contexts for fixed groups created
+                    # when patient craeted
                     pass
 
                 except RDRFContext.MultipleObjectsReturned:
@@ -201,23 +200,27 @@ class SpreadsheetImporter(object):
         field_updates = []
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
-                # 1st data import sheet does not contain any multisections as is 1 row per patient
+                # 1st data import sheet does not contain any multisections as
+                # is 1 row per patient
                 for cde_model in section_model.cde_models:
                     if self.included(form_model, section_model, cde_model):
-                        field_num = self._get_field_num(form_model, section_model, cde_model)
+                        field_num = self._get_field_num(
+                            form_model, section_model, cde_model)
                         field_value = self._get_field_value(row, field_num)
-                        field_expression = self._get_field_expression(patient_model, form_model, section_model, cde_model)
+                        field_expression = self._get_field_expression(
+                            patient_model, form_model, section_model, cde_model)
                         field_updates.append((field_expression, field_value))
 
-        patient_model.update_field_expressions(self.registry_model,field_updates)
+        patient_model.update_field_expressions(
+            self.registry_model, field_updates)
 
     def cde_included(self, form_model, section_model, cde_model):
         model_tuple = (form_model, section_model, cde_model)
         return model_tuple in self.field_map
 
     def _get_field_expression(self, patient_model, form_model, section_model, cde_model):
-        
-        return expresssion 
+
+        return expresssion
 
 
 class RowWrapper(object):
@@ -282,25 +285,29 @@ class DataImporter(object):
                 spec = self._get_form_section_cde(columns)
                 if type(spec) is tuple:
                     form_model, section_model, cde_model = spec
-                    field_map[(FieldType.CDE, form_model, section_model, cde_model)] = field_num
+                    field_map[(FieldType.CDE, form_model,
+                               section_model, cde_model)] = field_num
                 else:
                     # field is demographic or consent
                     form_name = columns[DataDictionaryFile.FORM_NAME_COLUMN]
-                    section_name = columns[DataDictionaryFile.SECTION_NAME_COLUMN]
+                    section_name = columns[
+                        DataDictionaryFile.SECTION_NAME_COLUMN]
                     field_name = columns[DataDictionaryFile.CDE_NAME_COLUMN]
                     if form_name == "Demographics":
-                        field_map[(FieldType.DEMOGRAPHICS, form_name, section_name, field_name)] = field_num
+                        field_map[(FieldType.DEMOGRAPHICS, form_name,
+                                   section_name, field_name)] = field_num
                     elif form_name == "Consent":
-                        field_map[(FieldType.CONSENT, form_name, section_name, field_name)] = field_num
+                        field_map[(FieldType.CONSENT, form_name,
+                                   section_name, field_name)] = field_num
                     elif form_name == "Pedigree":
-                        field_map[(FieldType.PEDIGREE_FORM, form_name, section_name, field_name)] = field_num
+                        field_map[(FieldType.PEDIGREE_FORM, form_name,
+                                   section_name, field_name)] = field_num
 
                     else:
                         raise DataImporterError("Unknown form: %s" % form_name)
 
         print field_map
         return field_map
-
 
     def _get_form_section_cde(self, columns):
         # return (form_model, section_model, cde_model)
@@ -311,19 +318,21 @@ class DataImporter(object):
         cde_name = columns[DataDictionaryFile.CDE_NAME_COLUMN]
 
         try:
-           form_model = RegistryForm.objects.get(name=form_name,
-                                                 registry=self.registry_model)
+            form_model = RegistryForm.objects.get(name=form_name,
+                                                  registry=self.registry_model)
         except Registry.DoesNotExist:
             return None
 
         # get the section in the form ...
-        section_models = [section_model for section_model in form_model.section_models if section_model.display_name == section_name]
+        section_models = [
+            section_model for section_model in form_model.section_models if section_model.display_name == section_name]
         if len(section_models) == 1:
             section_model = section_models[0]
         else:
             return None
 
-        cde_models = [cde_model for cde_model in section_model.cde_models if cde_model.name == cde_name]
+        cde_models = [
+            cde_model for cde_model in section_model.cde_models if cde_model.name == cde_name]
         if len(cde_models) == 1:
             cde_model = cde_models[0]
             return form_model, section_model, cde_model
@@ -362,7 +371,8 @@ class DataImporter(object):
         with open(self.import_file, "rb") as csv_file:
             reader = csv.CSVReader(csv_file)
             for row_dict in reader:
-                wrapped_row = RowWrapper(self.registry_model, self.field_map, row_dict)
+                wrapped_row = RowWrapper(
+                    self.registry_model, self.field_map, row_dict)
                 yield wrapped_row
 
     def _get_form_data(self, form_model, row):
@@ -383,23 +393,19 @@ class DataImporter(object):
         try:
             # need to test for validation errors - how ?
             default_context_model = patient_model.default_context
-            response = view.post(request, self.registry_model.code, form_model.pk, patient_model.pk, default_context_model.pk)
+            response = view.post(request, self.registry_model.code,
+                                 form_model.pk, patient_model.pk, default_context_model.pk)
             validation_errors = self._get_validation_errors(response)
-            
+
         except Exception:
             pass
 
     def _create_request(self, patient_model, form_model, form_data):
-        url = "/%s/forms/%s/%s" % (form_model.registry.code, form_model.pk, patient_model.pk)
+        url = "/%s/forms/%s/%s" % (form_model.registry.code,
+                                   form_model.pk, patient_model.pk)
         request = self.request_factory.post(url, form_data)
         request.user = self.admin_user
         return request
 
     def _get_validation_errors(self, response):
-        return [] #todo
-
-    
-        
-
-    
-                    
+        return []  # todo
