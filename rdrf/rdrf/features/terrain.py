@@ -85,7 +85,7 @@ def before_scenario(scenario, outline, steps):
 def after_scenario(scenario, outline, test_steps):
     passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
-        os.path.join(settings.WRITABLE_DIRECTORY, "{0}-{1}.png".format(passfail, scenario.name)))
+        os.path.join(settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
         steps.restore_minimal_snapshot()
 
@@ -93,7 +93,7 @@ def after_scenario(scenario, outline, test_steps):
 @after.each_step
 def screenshot_step(step):
     if not step.passed and getattr(step, "scenario", None) is not None:
-        step_name = "%s_%s" % (step.scenario.name, step)
+        step_name = "%s_%s" % (step.scenario.name, step.sentance)
         step_name = step_name.replace(" ", "")
-        file_name = os.path.join(settings.WRITABLE_DIRECTORY, "False-step-{0}.png".format(step_name))
+        file_name = os.path.join(settings.WRITABLE_DIRECTORY, "FAIL-step-{0}.png".format(step_name))
         world.browser.get_screenshot_as_file(file_name)

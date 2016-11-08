@@ -35,6 +35,8 @@ usage() {
     echo "Example, start dev with no proxy and rebuild everything:"
     echo "SET_PIP_PROXY=0 SET_HTTP_PROXY=0 ./develop.sh dev_build"
     echo ""
+    echo "Example, run test suite against a single feature:"
+    echo "./develop.sh dev_aloe rdrf/features/landing.feature"
     exit 1
 }
 
@@ -158,16 +160,19 @@ ci_docker_login)
     ci_docker_login
     ;;
 dev_aloe)
-    dev_aloe
+    shift
+    dev_aloe $@
     ;;
 aloe)
-    dev_aloe
+    shift
+    dev_aloe $@
     ;;
 reexport_test_zips)
     reexport_test_zips
     ;;
 prod_aloe)
-    prod_aloe
+    shift
+    prod_aloe $@
     ;;
 *)
     usage

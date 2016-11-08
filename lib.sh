@@ -474,7 +474,7 @@ dev_aloe() {
 
     # Use run so we can get correct return codes from test run
     set +e
-    _start_aloetests run --rm devaloe
+    _start_aloetests run --rm devaloe aloe $@
     local rval=$?
     set -e
 
@@ -491,7 +491,7 @@ prod_aloe() {
 
     # Use run so we can get correct return codes from test run
     set +e
-    _start_aloetests run --rm prodaloe
+    _start_aloetests run --rm prodaloe aloe $@
     local rval=$?
     set -e
 
