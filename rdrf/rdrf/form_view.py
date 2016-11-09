@@ -24,6 +24,7 @@ from . import filestorage
 from .utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
 from rdrf.mongo_client import construct_mongo_client
+from .patient_decorators import patient_questionnaire_access
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
 
@@ -857,9 +858,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
 
-    from .patient_decorators import patient_has_access
-
-    @method_decorator(patient_has_access)
+    @method_decorator(patient_questionnaire_access)
     def get(self, request, registry_code, questionnaire_context="au"):
         try:
             if questionnaire_context is not None:
@@ -934,7 +933,7 @@ class QuestionnaireView(FormView):
 
         return consent_form_wrappers
 
-    @method_decorator(patient_has_access)
+    @method_decorator(patient_questionnaire_access)
     def post(self, request, registry_code, **kwargs):
         error_count = 0
         registry = self._get_registry(registry_code)
