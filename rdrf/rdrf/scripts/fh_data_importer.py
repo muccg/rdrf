@@ -1,18 +1,21 @@
+import django
+django.setup()
+
 from django.db import transaction
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
-from rdrf.utils import form_key
 from rdrf.form_view import FormView
 from django.test import RequestFactory
 
 from registry.patients.models import Patient
 from registry.groups.models import CustomUser
 
+
 import openpyxl as xl
 import os
-
+import sys
 
 class DataDictionary:
     FIELD_NUM_COLUMN = 1
@@ -60,27 +63,35 @@ class SpreadsheetImporter(object):
         self.index_patient_map = {}
         self.field_map = {}
         self.id_map = {}
-        self.workbook = self._load_workbook()
+        self._load_workbook()
+        self._load_datasheet()
+        self._load_datadictionary_sheet()
         self._build_field_map()
 
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
-            raise ImportError("Spreadsheet file %s does not exist" %
+            raise ImporterError("Spreadsheet file %s does not exist" %
                               self.import_spreadsheet_filepath)
 
         try:
             self.workbook = xl.load_workbook(self.import_spreadsheet_filepath)
-        except Exception, ex:
+
+        except Exception as ex:
             raise ImporterError("Could not load Import spreadsheet: %s",
                                 ex)
 
     def _load_datadictionary_sheet(self):
-        self.datadictionary_sheet = self.work_book.get_sheet_by_name(self.datadictionary_sheetname)
+        self.datadictionary_sheet = self.workbook.get_sheet_by_name(self.datadictionary_sheetname)
     
     def _load_datasheet(self):
-        self.data_sheet = self.work_book.get_sheet_by_name(self.datasheet_name)
+        self.data_sheet = self.workbook.get_sheet_by_name(self.datasheet_name)
+
+    def _get_value(self, sheet, row, column):
+        return sheet.cell(row=row,
+                          column=column).value
 
     def _build_field_map(self):
+        print("building field map ..")
         # map RDRF "fields" to fieldnums in the spreadsheet
         d = {}
         d["patient_id"] = DataDictionary.PATIENT_ID_FIELDNUM
@@ -90,21 +101,29 @@ class SpreadsheetImporter(object):
         row_num = 3  # fields start here
 
         while not finished:
-            field_num = sheet.cell(
-                row=row_num, column=DataDictionary.FIELD_NUM_COLUMN)
+            field_num = self._get_value(sheet,
+                                        row_num,
+                                        DataDictionary.FIELD_NUM_COLUMN)
 
             if not field_num:
                 finished = True
             else:
-                form_name = sheet.cell(
-                    row=row_num, column=DataDictionary.FORM_NAME_COLUMN)
-                section_name = sheet.cell(
-                    row=row_num, column=DataDictionary.SECTION_NAME_COLUMN)
-                cde_name = sheet.cell(
-                    row=row_num, column=DataDictionary.CDE_NAME_COLUMN)
+                form_name = self._get_value(sheet,
+                                            row_num,
+                                            DataDictionary.FORM_NAME_COLUMN)
+
+                section_name = self._get_value(sheet,
+                                               row_num,
+                                               DataDictionary.SECTION_NAME_COLUMN)
+
+                cde_name = self._get_value(sheet,
+                                           row_num,
+                                           DataDictionary.CDE_NAME_COLUMN)
+
                 key = (form_name, section_name, cde_name)
 
                 d[key] = field_num
+                print("field map key %s = %s" % (key, field_num))
 
                 row_num += 1
         return d
@@ -242,3 +261,17 @@ class SpreadsheetImporter(object):
     def _get_field_expression(self, patient_model, form_model, section_model, cde_model):
 
         return expresssion
+
+if __name__=="__main__":
+    registry_code = sys.argv[1]
+    spreadsheet_file = sys.argv[2]
+    dictionary_sheet_name = sys.argv[3]
+    data_sheet_name = sys.argv[4]
+    registry_model = Registry.objects.get(code=registry_code)
+    spreadsheet_importer = SpreadsheetImporter(registry_model,
+                                               spreadsheet_file,
+                                               dictionary_sheet_name,
+                                               data_sheet_name)
+    spreadsheet_importer.run()
+    
+    
