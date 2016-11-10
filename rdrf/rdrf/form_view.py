@@ -1220,46 +1220,17 @@ class QuestionnaireHandlingView(View):
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.questionnaires import Questionnaire
-        context = {}
+        context = csrf(request)
         template_name = "rdrf_cdes/questionnaire_handling.html"
-        context["registry_model"] = Registry.objects.get(code=registry_code)
+        context["registry_model"] = get_object_or_404(Registry, code=registry_code)
         context["form_model"] = context["registry_model"].questionnaire
-        context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        context["qr_model"] = get_object_or_404(QuestionnaireResponse, id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
                                                  context["qr_model"])
 
-        context.update(csrf(request))
-
         return render(request, template_name, context)
-
-    def post(self, request, registry_code, questionnaire_response_id):
-        registry_model = Registry.objects.get(code=registry_code)
-        existing_patient_id = request.POST.get("existing_patient_id", None)
-        qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
-        form_data = request.POST.get("form_data")
-
-        if existing_patient_id is None:
-            self._create_patient(registry_model,
-                                 qr_model,
-                                 form_data)
-        else:
-            patient_model = Patient.objects.get(pk=existing_patient_id)
-            self._update_existing_patient(patient_model,
-                                          registry_model,
-                                          qr_model,
-                                          form_data)
-
-    def _create_patient(self, registry_model, qr_model, form_data):
-        pass
-
-    def _update_existing_patient(self,
-                                 patient_model,
-                                 registry_model,
-                                 qr_model,
-                                 form_data):
-        pass
 
 
 class FileUploadView(View):
