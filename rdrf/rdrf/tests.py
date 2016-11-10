@@ -1,5 +1,14 @@
 # -*- encoding: utf-8 -*-
+import logging
+import os
+import yaml
+from datetime import datetime
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.forms.models import model_to_dict
 from django.test import TestCase, RequestFactory
+
 from rdrf.exporter import Exporter, ExportType
 from rdrf.importer import Importer, ImportState
 from rdrf.models import Section
@@ -10,19 +19,25 @@ from rdrf.models import CommonDataElement
 from rdrf.models import RegistryForm
 from rdrf.form_view import FormView
 from registry.patients.models import Patient
-from registry.groups.models import WorkingGroup
-from registry.groups.models import CustomUser
 from registry.patients.models import State, PatientAddress, AddressType
-from datetime import datetime
-from django.forms.models import model_to_dict
-import yaml
-from django.contrib.auth import get_user_model
+from registry.groups.models import WorkingGroup, CustomUser
 from rdrf.utils import de_camelcase, check_calculation
 from rdrf.mongo_client import construct_mongo_client
 
+logger = logging.getLogger(__name__)
 
-from django.conf import settings
-import os
+def mock_messages():
+    """
+    This switches off messaging, which requires request middleware
+    which doesn't exist in RequestFactory requests.
+    """
+    def mock_add_message(request, level, msg, *args, **kwargs):
+        logger.info("Django %s Message: %s" % (level, msg))
+    def mock_error(request, msg, *args, **kwargs):
+        logger.info("Django Error Message: %s" % msg)
+    messages.add_message = mock_add_message
+    messages.error = mock_error
+mock_messages()
 
 
 class SectionFiller(object):
@@ -331,9 +346,6 @@ class FormTestCase(RDRFTestCase):
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
-        # This switches off messaging , which requires request middleware which
-        # doesn't exist in RequestFactory requests
-        view.testing = True
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
 
         mongo_query = {"django_id": self.patient.pk,

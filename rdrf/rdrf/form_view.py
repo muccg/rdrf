@@ -148,7 +148,6 @@ class FormView(View):
 
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
-        self.testing = False
         self.template = None
         self.registry = None
         self.dynamic_data = {}
@@ -171,8 +170,6 @@ class FormView(View):
                           model_class=Patient, id=None):
         obj = model_class.objects.get(pk=id)
         dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
-        if self.testing:
-            dyn_obj.testing = True
         dynamic_data = dyn_obj.load_dynamic_data(registry_code, "cdes")
         return dynamic_data
 
@@ -369,8 +366,6 @@ class FormView(View):
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
-        if self.testing:
-            dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
@@ -564,16 +559,14 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            if not self.testing:
-                messages.add_message(
-                    request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+            messages.add_message(
+                request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
         else:
-            if not self.testing:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    'Patient %s not saved due to validation errors' %
-                    patient_name)
+            messages.add_message(
+                request,
+                messages.ERROR,
+                'Patient %s not saved due to validation errors' %
+                patient_name)
 
         return render(request, self._get_template(), context)
 
@@ -1029,8 +1022,6 @@ class QuestionnaireView(FormView):
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
 
-            if self.testing:
-                questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 if is_multisection(section):
