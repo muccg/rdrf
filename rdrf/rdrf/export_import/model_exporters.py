@@ -13,6 +13,13 @@ class ModelExporterFilteredByRegistry(ModelExporter):
         return self.model.objects.filter(registry__code=self.exporter_context['registry_code'])
 
 
+class ModelExporterFilteredByRegistryCode(ModelExporter):
+
+    @property
+    def queryset(self):
+        return self.model.objects.filter(registry_code=self.exporter_context['registry_code'])
+
+
 class ModelExporterFilteredByPatient(ModelExporter):
 
     @property
@@ -128,7 +135,6 @@ registry_catalogue.register(models.CdePolicy, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.Wizard, WizardExporter)
 registry_catalogue.register(models.ContextFormGroup, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.ContextFormGroupItem, ContextFormGroupItemExporter)
-registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(groupmodels.CustomUser, CustomUserExporter)
 registry_catalogue.register(patientmodels.Patient, PatientExporter)
@@ -141,5 +147,13 @@ registry_catalogue.register(patientmodels.PatientRelative, ModelExporterFiltered
 registry_catalogue.register(patientmodels.ConsentValue, ModelExporterFilteredByPatient)
 registry_catalogue.register(models.RDRFContext, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredByRegistry)
+
+registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.Modjgo, ModelExporterFilteredByRegistryCode)
+
+registry_catalogue.register(models.Clinical, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.FormProgress, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.PatientData, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.QuestionnaireResponseData, ModelExporterFilteredByRegistryCode)
 
 registry_catalogue.register(explorermodels.Query, ModelExporterFilteredByRegistry)

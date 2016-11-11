@@ -187,9 +187,17 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'rdrf.Notification',
                         'rdrf.EmailNotification',
                         'rdrf.EmailNotificationHistory',
-                        'rdrf.CDEFile',
                     )),
                 GroupDefinition(
+                    name='Clinical Data',
+                    dirname='clinical_data',
+                    models=(
+                        'rdrf.CDEFile',
+                        'rdrf.Modgjo',
+                        'rdrf.Clinical',
+                        'rdrf.FormProgress',
+                        'rdrf.PatientData',
+                        'rdrf.QuestionnaireResponseData',
                     )),
             )
         ),
