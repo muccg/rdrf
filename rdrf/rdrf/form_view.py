@@ -23,7 +23,6 @@ from .file_upload import wrap_file_cdes
 from . import filestorage
 from .utils import de_camelcase
 from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
-from rdrf.mongo_client import construct_mongo_client
 from .patient_decorators import patient_questionnaire_access
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
