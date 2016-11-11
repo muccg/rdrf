@@ -308,10 +308,10 @@ class SpreadsheetImporter(object):
 
 
     def _dump_id_map(self):
-        with open("id_map.txt","w") as f:
+        with open("id_map.csv","w") as f:
+            f.write("OLD_ID,RDRF_ID\n")
             for key in sorted(self.id_map.keys()):
-                line = "External ID = %s RDRF ID = %s\n" % (key,
-                                                            self.id_map[key])
+                line = "%s,%s\n" % (key, self.id_map[key])
                 f.write(line)
 
     def _create_relatives(self):
