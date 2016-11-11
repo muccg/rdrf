@@ -17,6 +17,7 @@ import openpyxl as xl
 import os
 import sys
 
+
 class DataDictionary:
     FIELD_NUM_COLUMN = 1
     FORM_NAME_COLUMN = 2
@@ -44,29 +45,28 @@ class FieldType:
 
 
 DEMOGRAPHICS_TABLE = [
-    # fieldnum(column for data), English, field_expression, converter func (if any)
+    # fieldnum(column for data), English, field_expression, converter func (if
+    # any)
     (1, "Centre"),
-    (2,"Family name", "family_name"),
+    (2, "Family name", "family_name"),
     (3, "Given names", "given_names"),
     (4, "Maiden name", "maiden_name"),
-    (5, "Hospital/Clinic ID",""),
+    (5, "Hospital/Clinic ID", ""),
     (6, "Date of birth", "date_of_birth"),
-    (7, "Country of birth","country_of_birth"),
+    (7, "Country of birth", "country_of_birth"),
     (8, "Ethnic Origin", "ethnic_origin"),
     (9, "Sex", "gender"),
     (10, "Home Phone", "home_phone"),
-    (11,"Mobile Phone", "mobile_phone"),
-    (12,"Work Phone","work_phone"),
+    (11, "Mobile Phone", "mobile_phone"),
+    (12, "Work Phone", "work_phone"),
     (14, "Email", "email"),
-    (15, "Living status","living_status"),
+    (15, "Living status", "living_status"),
     (17, "Address", "Demographics/Address/Home/Address"),
-    (18, "Suburb/Town", "Demographics/Address/Home/Suburb")
-    (19,"State", "Demographics/Address/Home/State"),
-    (20,"Postcode","Demographics/Address/Home/Postcode"),
-    (21,"Country","Demographic/Address/Home/Country")
-    ]
-
-
+    (18, "Suburb/Town", "Demographics/Address/Home/Suburb"),
+    (19, "State", "Demographics/Address/Home/State"),
+    (20, "Postcode", "Demographics/Address/Home/Postcode"),
+    (21, "Country", "Demographic/Address/Home/Country")
+]
 
 
 class SpreadsheetImporter(object):
@@ -97,7 +97,7 @@ class SpreadsheetImporter(object):
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
             raise ImporterError("Spreadsheet file %s does not exist" %
-                              self.import_spreadsheet_filepath)
+                                self.import_spreadsheet_filepath)
 
         try:
             self.workbook = xl.load_workbook(self.import_spreadsheet_filepath)
@@ -107,8 +107,9 @@ class SpreadsheetImporter(object):
                                 ex)
 
     def _load_datadictionary_sheet(self):
-        self.datadictionary_sheet = self.workbook.get_sheet_by_name(self.datadictionary_sheetname)
-    
+        self.datadictionary_sheet = self.workbook.get_sheet_by_name(
+            self.datadictionary_sheetname)
+
     def _load_datasheet(self):
         self.data_sheet = self.workbook.get_sheet_by_name(self.datasheet_name)
 
@@ -177,7 +178,7 @@ class SpreadsheetImporter(object):
     def run(self):
         print("beginning run")
         self._load_datasheet()
-        row = 2 # data starts here
+        row = 2  # data starts here
 
         # first find which rows are index patients, which relatives
         print("sorting indexes from relatives ...")
@@ -211,12 +212,13 @@ class SpreadsheetImporter(object):
             check_value = DataDictionary.INDEX_VALUE
         else:
             check_value = DataDictionary.RELATIVE_VALUE
-            
+
         value = index_cell == check_value
         return value
-    
+
     def _is_relative(self, row):
-        value = self._get_column(DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.RELATIVE_VALUE
+        value = self._get_column(
+            DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.RELATIVE_VALUE
         print("checking row %s value =%s" % (row, value))
         if value:
             print("row %s in relative" % row)
@@ -255,7 +257,7 @@ class SpreadsheetImporter(object):
                                     row,
                                     field_num)
             return value
-            
+
     def _import_demographics_data(self, patient, row):
         for t in DEMOGRAPHICS_TABLE:
             updates = []
@@ -330,7 +332,7 @@ class SpreadsheetImporter(object):
 
         return expresssion
 
-if __name__=="__main__":
+if __name__ == "__main__":
     registry_code = sys.argv[1]
     spreadsheet_file = sys.argv[2]
     dictionary_sheet_name = sys.argv[3]
@@ -341,5 +343,3 @@ if __name__=="__main__":
                                                dictionary_sheet_name,
                                                data_sheet_name)
     spreadsheet_importer.run()
-    
-    
