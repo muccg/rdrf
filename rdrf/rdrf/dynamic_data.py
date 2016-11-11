@@ -7,7 +7,6 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from . import filestorage
 from .file_upload import FileUpload, wrap_gridfs_data_for_form
 from .models import Registry
-from .mongo_client import construct_mongo_client
 from .utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
@@ -397,25 +396,12 @@ class DynamicDataWrapper(object):
         self.obj = obj
         self.django_id = obj.pk
         self.django_model = obj.__class__
-        # We inject these to allow unit testing
-        self._client = None
-        self.filestore_class = filestore_class
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
         self.rdrf_context_id = rdrf_context_id
 
         # holds reference to the complete data record for this object
         self.patient_record = None
-
-    @property
-    def client(self):
-        if self._client is None:
-            self._client = construct_mongo_client()
-        return self._client
-
-    @client.setter
-    def client(self, c):
-        self._client = c
 
     def __str__(self):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
@@ -430,13 +416,6 @@ class DynamicDataWrapper(object):
         else:
             return {"django_model": django_model,
                     "django_id": django_id}
-
-    def get_db(self, registry_code):
-        db_name = mongo_db_name(registry_code, testing=self.testing)
-        return self.client[db_name]
-
-    def _get_collection(self, registry, collection_name):
-        return self.get_db(registry)[collection_name]
 
     def has_data(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes")
@@ -570,10 +549,6 @@ class DynamicDataWrapper(object):
             wrap_gridfs_data_for_form(registry_model, data[registry_code])
         logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
-
-    def _get_registry_codes(self):
-        reg_codes = self.client.database_names()
-        return reg_codes
 
     def save_registry_specific_data(self, data):
         logger.debug("saving registry specific mongo data: %s" % data)

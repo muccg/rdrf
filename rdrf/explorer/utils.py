@@ -146,8 +146,7 @@ class DatabaseUtils(object):
         logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
         self.col_map = col_map
-        self.mongo_client = self._get_mongo_client()
-        logger.debug("created mongo client")
+        raise NotImplementedError("fixme")
         self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
         collection = self.database[self.collection]
         history_collection = self.database["history"]
@@ -430,9 +429,9 @@ class DatabaseUtils(object):
         return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
-        client = self._get_mongo_client()
         projection = {}
         criteria = {}
+        raise NotImplementedError("fixme")
         database = client[mongo_db_name_reg_id(self.registry_id)]
         collection = database[self.collection]
 
@@ -508,9 +507,6 @@ class DatabaseUtils(object):
             dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
-
-    def _get_mongo_client(self):
-        return construct_mongo_client()
 
 
 class ParseQuery(object):

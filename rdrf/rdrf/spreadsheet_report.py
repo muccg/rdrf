@@ -6,7 +6,6 @@ from rdrf.utils import get_cde_value
 from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import CommonDataElement
-from rdrf.mongo_client import construct_mongo_client
 from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
 logger = logging.getLogger(__name__)
