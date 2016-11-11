@@ -125,20 +125,64 @@ def update_multisection_file_cdes(registry_code,
     return form_section_items
 
 
-class FormDataParser(object):
+def build_form_data(data):
+    """
+    Converts clinical json data to the flattened form, suitable for
+    use in template view context.
+    :param data: json field value dict
+    :return: a dictionary of nested or flattened data for this instance
+    """
+    flattened = {}
+    for k in data:
+        if k != "forms":
+            flattened[k] = data[k]
+
+    for form_dict in data["forms"]:
+        for section_dict in form_dict["sections"]:
+            if not section_dict["allow_multiple"]:
+                for cde_dict in section_dict["cdes"]:
+                    value = cde_dict["value"]
+                    delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                    flattened[delimited_key] = value
+            else:
+                multisection_code = section_dict["code"]
+                flattened[multisection_code] = []
+                multisection_items = section_dict["cdes"]
+                for cde_list in multisection_items:
+                    d = {}
+                    for cde_dict in cde_list:
+                        delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                        d[delimited_key] = cde_dict["value"]
+                    flattened[multisection_code].append(d)
+
+    return flattened
+
+
+def parse_form_data(registry, form, data,
+                    existing_record=None, is_multisection=False,
+                    parse_all_forms=False, django_instance=None):
     """
     This class takes a bag of values with keys like:
+    Takes a bag of values with keys like:
       form_name____section_code____cde_code
     and converts them into a nested document suitable for storing in
     the mongodb.
 
+    This is more or less the opposite of `build_form_data`.
+    """
+    return FormDataParser(registry, form, data,
+                          existing_record, is_multisection,
+                          parse_all_forms, django_instance).nested_data
+
+
+class FormDataParser(object):
+    """
     The nested document is accessed by the `nested_data` property.
 
     I think this class should be converted into a single function
     (with nested functions) because it's used like a function not like
     an object.
     """
-
     def __init__(self,
                  registry_model,
                  form_model,
@@ -181,10 +225,7 @@ class FormDataParser(object):
         else:
             self._parse_all_forms()
 
-        if self.existing_record:
-            d = self.existing_record
-        else:
-            d = {"forms": []}
+        d = self.existing_record or {"forms": []}
 
         if self.django_id:
             d["django_id"] = self.django_id
@@ -435,30 +476,7 @@ class DynamicDataWrapper(object):
             return None
 
         if flattened:
-            flattened_data = {}
-            for k in nested_data:
-                if k != "forms":
-                    flattened_data[k] = nested_data[k]
-
-            for form_dict in nested_data["forms"]:
-                for section_dict in form_dict["sections"]:
-                    if not section_dict["allow_multiple"]:
-                        for cde_dict in section_dict["cdes"]:
-                            value = cde_dict["value"]
-                            delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
-                            flattened_data[delimited_key] = value
-                    else:
-                        multisection_code = section_dict["code"]
-                        flattened_data[multisection_code] = []
-                        multisection_items = section_dict["cdes"]
-                        for cde_list in multisection_items:
-                            d = {}
-                            for cde_dict in cde_list:
-                                delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
-                                d[delimited_key] = cde_dict["value"]
-                            flattened_data[multisection_code].append(d)
-
-            return flattened_data
+            return build_form_data(nested_data)
         else:
             return nested_data
 
@@ -713,13 +731,13 @@ class DynamicDataWrapper(object):
 
         self._update_files_in_gridfs(record, registry, form_data, index_map)
 
-        nested_data = FormDataParser(Registry.objects.get(code=registry),
-                                     self.current_form_model,
-                                     form_data,
-                                     existing_record=record,
-                                     is_multisection=multisection,
-                                     parse_all_forms=parse_all_forms,
-                                     django_instance=self.obj).nested_data
+        nested_data = parse_form_data(Registry.objects.get(code=registry),
+                                      self.current_form_model,
+                                      form_data,
+                                      existing_record=record,
+                                      is_multisection=multisection,
+                                      parse_all_forms=parse_all_forms,
+                                      django_instance=self.obj)
 
         if additional_data is not None:
             nested_data.update(additional_data)
