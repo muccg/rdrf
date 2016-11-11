@@ -5,3 +5,6 @@ INSTALLED_APPS += [
 ]
 
 IPRESTRICT_GEOIP_ENABLED = False
+
+# https://code.djangoproject.com/ticket/16713
+del DATABASES["clinical"]
