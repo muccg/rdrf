@@ -813,14 +813,8 @@ class DynamicDataWrapper(object):
         cdes = self._get_collection(registry_model, "cdes")
         cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
 
-    def get_cde(self, registry, section, cde_code):
-        collection = self._get_collection(registry, "cdes")
-        cde_mongo_key = "%s____%s____%s" % (registry.upper(), section, cde_code)
-        cde_record = collection.find_one(self._get_record_query(), {cde_mongo_key: True})
-        return cde_record.get(cde_mongo_key)
-
     def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
-
+        # fixme: clean this up
         for form_dict, section_dict, item in self.iter_cdes(registry_code):
             if form_dict["name"] == form_name:
                 if section_dict["code"] == section_code:
