@@ -503,6 +503,6 @@ register_adjudication_admin()
 
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile
-    list_display = ("form", "section", "cde", "item")
+    list_display = ("form_name", "section_code", "cde_code", "item")
 
 admin.site.register(CDEFile, CDEFileAdmin)

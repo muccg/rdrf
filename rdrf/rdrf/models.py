@@ -2098,10 +2098,9 @@ class Modjgo(models.Model):
 
 def file_upload_to(instance, filename):
     return "/".join(filter(bool, [
-        instance.registry.code,
-        instance.section.code if instance.section else "_",
-        instance.cde.code if instance.cde else "",
-        filename]))
+        instance.registry_code,
+        instance.section_code or "_",
+        instance.cde_code, filename]))
 
 
 class CDEFile(models.Model):
@@ -2114,10 +2113,10 @@ class CDEFile(models.Model):
 
     See filestorage.py for usage of this model.
     """
-    registry = models.ForeignKey(Registry)
-    form = models.ForeignKey(RegistryForm, null=True, blank=True)
-    section = models.ForeignKey(Section, null=True, blank=True)
-    cde = models.ForeignKey(CommonDataElement)
+    registry_code = models.CharField(max_length=10)
+    form_name = models.CharField(max_length=10, blank=True)
+    section_code = models.CharField(max_length=100, blank=True)
+    cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
 
