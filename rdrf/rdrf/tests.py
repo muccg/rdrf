@@ -70,7 +70,7 @@ class FormFiller(object):
 
 
 class RDRFTestCase(TestCase):
-    fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
+    fixtures = ['testing_auth', 'testing_users', 'testing_rdrf']
 
 
 class TestFormPermissions(RDRFTestCase):
