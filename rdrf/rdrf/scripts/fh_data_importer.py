@@ -19,9 +19,9 @@ import sys
 
 class DataDictionary:
     FIELD_NUM_COLUMN = 1
-    FORM_NAME_COLUMN = 6
-    SECTION_NAME_COLUMN = 9
-    CDE_NAME_COLUMN = 10
+    FORM_NAME_COLUMN = 2
+    SECTION_NAME_COLUMN = 3
+    CDE_NAME_COLUMN = 4
     PATIENT_ID_FIELDNUM = 1
     INDEX_FIELD_NUM = 29
     INDEX_VALUE = "index"
@@ -41,6 +41,32 @@ class FieldType:
     DEMOGRAPHICS = 2
     PEDIGREE_FORM = 3
     CONSENT = 4
+
+
+DEMOGRAPHICS_TABLE = [
+    # fieldnum(column for data), English, field_expression, converter func (if any)
+    (1,"Centre"),
+    (2,"Family name", "family_name"),
+    (3, "Given names", "given_names"),
+    (4, "Maiden name", "maiden_name"),
+    (5, "Hospital/Clinic ID",""),
+    (6, "Date of birth", "date_of_birth"),
+    (7, "Country of birth","country_of_birth")
+    (8, "Ethnic Origin", "ethnic_origin"),
+    (9, "Sex", "gender"),
+    (10, "Home Phone", "home_phone"),
+    (11,"Mobile Phone", "mobile_phone"),
+    (12,"Work Phone","work_phone"),
+    (14, "Email", "email"),
+    (15, "Living status","living_status"),
+    (17, "Address", "Demographics/Address/Home/Address"),
+    (18, "Suburb/Town", "Demographics/Address/Home/Suburb")
+    (19,"State", "Demographics/Address/Home/State"),
+    (20,"Postcode","Demographics/Address/Home/Postcode"),
+    (21,"Country","jkasdha")
+    ]
+
+
 
 
 class SpreadsheetImporter(object):
@@ -149,19 +175,23 @@ class SpreadsheetImporter(object):
                 raise FieldNumNotFound(key)
 
     def run(self):
+        print("beginning run")
         self._load_datasheet()
         row = 2 # data starts here
 
         # first find which rows are index patients, which relatives
+        print("sorting indexes from relatives ...")
         scanned = False
         while not scanned:
-            if self.is_index(row):
+            print("checking row %s" % row)
+            if self._check_type(row, check_index=True):
                 self.indexes.append(row)
                 row += 1
-            elif self.is_relative(row):
+            elif self._check_type(row, check_index=False):
                 self.relatives.append(row)
                 row += 1
             else:
+                print("finished scanning")
                 scanned = True
 
         # now begin processing for real
@@ -172,11 +202,25 @@ class SpreadsheetImporter(object):
         return self.data_sheet.cell(row=row,
                                     column=int(field_num))
 
-    def is_index(self, row):
-        return self._get_column(DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.INDEX_VALUE
+    def _check_type(self, row, check_index=True):
+        index_cell = self._get_value(self.data_sheet,
+                                     row,
+                                     DataDictionary.INDEX_FIELD_NUM)
+
+        if check_index:
+            check_value = DataDictionary.INDEX_VALUE
+        else:
+            check_value = DataDictionary.RELATIVE_VALUE
+            
+        value = index_cell == check_value
+        return value
     
     def _is_relative(self, row):
-        return self._get_column(DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.RELATIVE_VALUE
+        value = self._get_column(DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.RELATIVE_VALUE
+        print("checking row %s value =%s" % (row, value))
+        if value:
+            print("row %s in relative" % row)
+        return value
 
     def _create_indexes(self):
         for row in self.indexes:
@@ -202,6 +246,21 @@ class SpreadsheetImporter(object):
 
             index_patient = self._get_index_patient(row)
             self._add_relative(index_patient, patient)
+
+    def _get_field(self, row, field):
+        if type(field) is type(basestring):
+            # demographics
+            field_num = self._get_field_num(field)
+            value = self._get_value(self.data_sheet,
+                                    row,
+                                    field_num)
+            return value
+            
+    
+    def _create_minimal_patient(self, row):
+        first_name = self._get_field("first_name")
+        family_name = self._get_field("family_name")
+        sex = self._get_field(
 
     def _import_patient(self, row):
         patient = self._create_minimal_patient(row)
