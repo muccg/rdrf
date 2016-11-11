@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import shutil
-from io import StringIO
 import tempfile
 from zipfile import ZipFile
 
@@ -12,7 +11,7 @@ from django.core.management import call_command
 from django.db import transaction, connection
 
 from rdrf.models import Registry
-from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, MongoCollectionImporterCatalogue
+from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue
 from .exceptions import ImportError
 from .importers import get_meta_value, allow_if_forced
 from . import definitions
@@ -41,7 +40,7 @@ class ZipFileImporter(object):
             catalogue = definitions.Catalogue(
                 DataGroupImporterCatalogue(),
                 ModelImporterCatalogue(),
-                MongoCollectionImporterCatalogue())
+            )
         self.catalogue = catalogue
         self.zipfile = zipfile
         self.workdir = None
