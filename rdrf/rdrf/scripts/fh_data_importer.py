@@ -167,7 +167,8 @@ class SpreadsheetImporter(object):
 
                 row_num += 1
 
-        return d
+        self.field_map = d
+        
 
     def _get_converter_func(self, converter_name):
         # look for methods on me like  converter_<converter_name>)
@@ -213,7 +214,6 @@ class SpreadsheetImporter(object):
     
 
     def _get_field_num(self, key):
-        print("getting fieldnum for key %s" % key)
         if type(key) is tuple:
             form_model, section_model, cde_model = key
             form_name = form_model.name
@@ -457,13 +457,11 @@ class SpreadsheetImporter(object):
 
 
     def _convert_cde_value(self, cde_model, spreadsheet_value):
-        if cde_model.pvg:
-            for pv in cde_model.pvg.permitted_value_set.all():
+        if cde_model.pv_group:
+            for pv in cde_model.pv_group.permitted_value_set.all():
                 if spreadsheet_value == pv.value:
                     return pv.code
-            raise Exception("Could not find value %s in %s" % (spreadsheet_value,
-                                                               cde_model))
-
+            return None
         else:
             return spreadsheet_value
         
@@ -488,7 +486,10 @@ class SpreadsheetImporter(object):
                                                          cde_model))
                         field_num = self._get_field_num((form_model, section_model, cde_model))
                         print("corresponding field_num is %s" % field_num)
-                        spreadsheet_value = self._get_field_value(row, field_num)
+                        spreadsheet_value = self._get_value(self.data_sheet,
+                                                            row,
+                                                            field_num)
+                        
                         print("value in spreadsheet = %s" % spreadsheet_value)
 
                         rdrf_value = self._convert_cde_value(cde_model, spreadsheet_value)
@@ -496,10 +497,9 @@ class SpreadsheetImporter(object):
                         print("converted value = %s" % rdrf_value)
 
                         
-                        field_expression = self._get_field_expression(
-                            patient_model, form_model, section_model, cde_model)
+                        field_expression = self._get_field_expression(form_model, section_model, cde_model)
                         
-                        field_updates.append((field_expression, field_value))
+                        field_updates.append((field_expression, rdrf_value))
                         print("Added update %s --> %s" % (field_expression, rdrf_value))
 
                     else:
@@ -532,8 +532,11 @@ class SpreadsheetImporter(object):
         print("name_tuple = %s" % str(name_tuple))
         return name_tuple in self.field_map
 
-    def _get_field_expression(self, patient_model, form_model, section_model, cde_model):
-
+    def _get_field_expression(self, form_model, section_model, cde_model):
+        expression = "%s/%s/%s" % (form_model.name,
+                                    section_model.code,
+                                    cde_model.code)
+        
         return expression
 
 if __name__ == "__main__":
