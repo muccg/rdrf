@@ -15,6 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
+from django.forms.models import model_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -2087,6 +2088,26 @@ class ContextFormGroupItem(models.Model):
     registry_form = models.ForeignKey(RegistryForm)
 
 
+class ModjgoQuerySet(models.QuerySet):
+    def collection(self, registry_code, collection):
+        qs = self.filter(registry_code=registry_code, collection=collection)
+        return qs.order_by("pk")
+
+    def find(self, obj=None, context_id=None, **query):
+        q = {}
+        if obj is not None:
+            q["data__django_model"] = obj.__class__.__name__
+            q["data__django_id"] = obj.id
+        if context_id is not None:
+            q["data__context_id"] = context_id
+        for attr, value in query.items():
+            q["data__" + attr] = value
+        return self.filter(**q)
+
+    def data(self):
+        return self.values_list("data", flat=True)
+
+
 class Modjgo(models.Model):
     """
     MongoDB collections in Django.
@@ -2094,6 +2115,27 @@ class Modjgo(models.Model):
     registry_code = models.CharField(max_length=10, db_index=True)
     collection = models.CharField(max_length=100, db_index=True)
     data = DataField()
+
+    objects = ModjgoQuerySet.as_manager()
+
+    @classmethod
+    def for_obj(cls, obj, **kwargs):
+        self = cls(**kwargs)
+        self.data["django_model"] = obj.__class__.__name__
+        self.data["django_id"] = obj.id
+        return self
+
+    def __str__(self):
+        return json.dumps(model_to_dict(self), indent=2)
+
+    def cde_val(self, form_name, section_code, cde_code):
+        forms = self.data.get("forms", [])
+        form_map = {f.get("name"): f for f in forms}
+        sections = form_map.get(form_name, {}).get("sections", [])
+        section_map = {s.get("code"): s for s in sections}
+        cdes = section_map.get(section_code, {}).get("cdes", [])
+        cde_map = {c.get("code"): c for c in cdes}
+        return cde_map.get(cde_code, {}).get("value")
 
 
 def file_upload_to(instance, filename):
