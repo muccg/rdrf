@@ -36,8 +36,7 @@ class FileUpload(object):
     def url(self):
         kwargs = {
             "registry_code": self.registry.code,
-            "file_id": (self.gridfs_dict.get("django_file_id") or
-                        self.gridfs_dict.get("gridfs_file_id")),
+            "file_id": self.gridfs_dict.get("django_file_id"),
         }
 
         if kwargs["file_id"]:

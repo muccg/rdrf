@@ -96,7 +96,7 @@ def get_mongo_value(registry_code, nested_data, delimited_key,
     return None
 
 
-def update_multisection_file_cdes(gridfs_filestore, registry_code,
+def update_multisection_file_cdes(registry_code,
                                   multisection_code, form_section_items,
                                   form_model, existing_nested_data, index_map):
 
@@ -114,11 +114,9 @@ def update_multisection_file_cdes(gridfs_filestore, registry_code,
                 existing_value = get_mongo_value(registry_code, existing_nested_data, key,
                                                  multisection_index=item_index)
                 if is_multiple_file_cde(cde_code):
-                    new_val = DynamicDataWrapper.handle_file_uploads(
-                        gridfs_filestore, registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_uploads(registry_code, key, value, existing_value)
                 else:
-                    new_val = DynamicDataWrapper.handle_file_upload(
-                        gridfs_filestore, registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_upload(registry_code, key, value, existing_value)
                 updates.append((item_index, key, new_val))
 
     for index, key, value in updates:
@@ -440,17 +438,6 @@ class DynamicDataWrapper(object):
     def _get_collection(self, registry, collection_name):
         return self.get_db(registry)[collection_name]
 
-    def get_filestore(self, registry):
-        db = self.get_db(registry)
-
-        if self.filestore_class is None:
-            import gridfs
-            cls = gridfs.GridFS
-        else:
-            cls = self.filestore_class
-
-        return cls(db, collection=registry + ".files")
-
     def has_data(self, registry_code):
         data = self.load_dynamic_data(registry_code, "cdes")
         return data is not None
@@ -611,7 +598,7 @@ class DynamicDataWrapper(object):
         return Section.objects.filter(code=code).exists()
 
     @staticmethod
-    def handle_file_upload(fs, registry_code, key, value, current_value):
+    def handle_file_upload(registry_code, key, value, current_value):
         if value is False and current_value:
             # Django uses a "clear" checkbox value of False to indicate file should be removed
             # we need to delete the file but not here
@@ -633,31 +620,29 @@ class DynamicDataWrapper(object):
             to_delete = None
 
         if to_delete:
-            filestorage.delete_file_wrapper(fs, to_delete)
+            filestorage.delete_file_wrapper(to_delete)
 
         return value
 
     @classmethod
-    def handle_file_uploads(cls, fs, registry_code, key, value, current_value):
-        updated = [cls.handle_file_upload(fs, registry_code, key, val, cur) for
+    def handle_file_uploads(cls, registry_code, key, value, current_value):
+        updated = [cls.handle_file_upload(registry_code, key, val, cur) for
                    val, cur in zip_longest(value, current_value or [])]
         return list(filter(bool, updated))
 
     def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
-        fs = self.get_filestore(registry)
-
         for key, value in new_data.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
                 existing_value = get_mongo_value(registry, existing_record, key)
                 if is_multiple_file_cde(cde_code):
-                    new_data[key] = self.handle_file_uploads(fs, registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_uploads(registry, key, value, existing_value)
                 else:
-                    new_data[key] = self.handle_file_upload(fs, registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_upload(registry, key, value, existing_value)
 
             elif (self._is_section_code(key) and self.current_form_model and
                   index_map is not None):
-                new_data[key] = update_multisection_file_cdes(fs, registry, key, value,
+                new_data[key] = update_multisection_file_cdes(registry, key, value,
                                                               self.current_form_model,
                                                               existing_record, index_map)
 

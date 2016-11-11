@@ -1228,11 +1228,7 @@ class FileUploadView(View):
 
     @login_required_method
     def get(self, request, registry_code, file_id):
-        import gridfs
-        client = construct_mongo_client()
-        db = client[mongo_db_name(registry_code)]
-        fs = gridfs.GridFS(db, collection=registry_code + ".files")
-        data, filename = filestorage.get_file(file_id, fs)
+        data, filename = filestorage.get_file(file_id)
         if data is not None:
             response = FileResponse(data, content_type='application/octet-stream')
             response['Content-disposition'] = "filename=%s" % filename

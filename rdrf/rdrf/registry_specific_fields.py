@@ -21,7 +21,6 @@ class RegistrySpecificFieldsHandler(object):
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.mongo_wrapper = DynamicDataWrapper(self.patient_model)
-        self.gridfs = self.mongo_wrapper.get_filestore(self.registry_model.code)
 
     def save_registry_specific_data_in_mongo(self, request):
         if self.registry_model.patient_fields and self.allowed_to_write_data():
@@ -48,7 +47,6 @@ class RegistrySpecificFieldsHandler(object):
                             form_value = {}
 
                     elif form_value == FileCommand.DELETE:
-                        # self._delete_existing_file_in_gridfs(cde_model)
                         form_value = {}
 
                     logger.debug("file cde %s value = %s" % (cde_model.code, form_value))
@@ -69,11 +67,10 @@ class RegistrySpecificFieldsHandler(object):
     def _delete_existing_file_in_gridfs(self, file_cde_model):
         existing_data = self.get_registry_specific_data()
         file_upload_wrapper = existing_data[self.registry_model.code][file_cde_model.code]
-        filestorage.delete_file_wrapper(self.gridfs, file_upload_wrapper)
+        filestorage.delete_file_wrapper(file_upload_wrapper)
 
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
-            # self._delete_existing_file_in_gridfs(file_cde_model)
             return filestorage.store_file(
                 self.registry_model, file_cde_model, form_value)
         else:
