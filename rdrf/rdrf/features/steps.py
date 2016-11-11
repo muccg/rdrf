@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
-
 @step('development fixtures')
 def load_development_fixtures(step):
     utils.django_init_dev()
