@@ -8,6 +8,8 @@ from django.db import transaction
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_bytes
 
+import datetime
+import dateutil.parser
 import logging
 import re
 import os.path
@@ -18,17 +20,6 @@ logger = logging.getLogger(__name__)
 
 class BadKeyError(Exception):
     pass
-
-
-def mongo_db_name(registry, testing=False):
-    prefix = "testing_" if testing else settings.MONGO_DB_PREFIX
-    return prefix + registry
-
-
-def mongo_db_name_reg_id(registry_id):
-    from .models import Registry
-    reg = Registry.objects.get(id=registry_id)
-    return settings.MONGO_DB_PREFIX + reg.code
 
 
 def get_code(delimited_key):
@@ -327,13 +318,12 @@ def get_error_messages(forms):
 
 
 def timed(func):
-    from datetime import datetime
     logger = logging.getLogger(__name__)
 
     def wrapper(*args, **kwargs):
-        a = datetime.now()
+        a = datetime.datetime.now()
         result = func(*args, **kwargs)
-        b = datetime.now()
+        b = datetime.datetime.now()
         c = b - a
         func_name = func.__name__
         logger.debug("%s time = %s secs" % (func_name, c))
@@ -395,14 +385,24 @@ def check_calculation(calculation):
 
 
 def format_date(value):
-    d = value.date()
-    return "%s-%s-%s" % (d.day, d.month, d.year)
+    """
+    Formats a date in Australian order, separated by hyphens, without
+    leading zeroes.
+    """
+    return "{d.day}-{d.month}-{d.year}".format(d=value)
 
+def parse_iso_date(s):
+    "Opposite of datetime.datetime.isoformat()"
+    return datetime.datetime.strptime(s, "%Y-%m-%d").date() if s else None
+
+def parse_iso_datetime(s):
+    "Opposite of datetime.date.isoformat()"
+    return dateutil.parser.parse(s) if s else None
 
 def wrap_uploaded_files(registry_code, post_files_data):
     from django.core.files.uploadedfile import UploadedFile
     from rdrf.file_upload import FileUpload
-    
+
     def wrap(key, value):
         logger.debug("checking key %s" % key)
         if isinstance(value, UploadedFile):
@@ -412,5 +412,3 @@ def wrap_uploaded_files(registry_code, post_files_data):
             return value
 
     return { key: wrap(key, value) for key, value in list(post_files_data.items()) }
-
-            

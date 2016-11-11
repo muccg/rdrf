@@ -6,8 +6,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from . import filestorage
 from .file_upload import FileUpload, wrap_gridfs_data_for_form
-from .models import Registry
-from .utils import get_code, mongo_db_name, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
+from .models import Registry, Modjgo
+from .utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
 logger = logging.getLogger(__name__)
@@ -447,20 +447,18 @@ class DynamicDataWrapper(object):
     def __str__(self):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
-    def _get_record_query(self, filter_by_context=True):
-        django_model = self.obj.__class__.__name__
-        django_id = self.obj.pk
-        if filter_by_context:
-            return {"django_model": django_model,
-                    "django_id": django_id,
-                    "context_id": self.rdrf_context_id}
-        else:
-            return {"django_model": django_model,
-                    "django_id": django_id}
+    def _get_record(self, registry, collection_name, filter_by_context=True):
+        qs = Modjgo.objects.collection(registry, collection_name)
+        return qs.find(self.obj, self.rdrf_context_id if filter_by_context else None)
+
+    def _make_record(self, registry_code, collection_name, data=None, **kwargs):
+        data = dict(data or {})
+        data["context_id"] = self.rdrf_context_id
+        return Modjgo.for_obj(self.obj, registry_code=registry_code,
+                              collection=collection_name, data=data, **kwargs)
 
     def has_data(self, registry_code):
-        data = self.load_dynamic_data(registry_code, "cdes")
-        return data is not None
+        return self._get_record(registry_code, "cdes").exists()
 
     def load_dynamic_data(self, registry, collection_name, flattened=True):
         """
@@ -469,30 +467,16 @@ class DynamicDataWrapper(object):
         :param flattened: use flattened to get data in a form suitable for the view
         :return: a dictionary of nested or flattened data for this instance
         """
-        record_query = self._get_record_query()
-        collection = self._get_collection(registry, collection_name)
-        nested_data = collection.find_one(record_query)
-        if nested_data is None:
-            return None
+        nested_data = self._get_record(registry, collection_name).data().first()
 
-        if flattened:
+        if flattened and nested_data is not None:
             return build_form_data(nested_data)
         else:
             return nested_data
 
     def get_cde_val(self, registry_code, form_name, section_code, cde_code):
-        data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        return self._find_cde_val(data, registry_code, form_name, section_code, cde_code)
-
-    @staticmethod
-    def _find_cde_val(record, registry_code, form_name, section_code, cde_code):
-        forms = record.get("forms", []) if record else []
-        form_map = {f.get("name"): f for f in forms}
-        sections = form_map.get(form_name, {}).get("sections", [])
-        section_map = {s.get("code"): s for s in sections}
-        cdes = section_map.get(section_code, {}).get("cdes", [])
-        cde_map = {c.get("code"): c for c in cdes}
-        return cde_map.get(cde_code, {}).get("value")
+        data = self._get_record(registry_code, "cdes")
+        return data.cde_val(form_name, section_code, cde_code)
 
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
         def fmt(snapshot):
@@ -512,10 +496,9 @@ class DynamicDataWrapper(object):
                 prev[""] = snap
                 return diff
             return list(filter(is_different, snapshots))
-        record_query = self._get_record_query(filter_by_context=False)
-        record_query["record_type"] = "snapshot"
-        collection = self._get_collection(registry_code, "history")
-        data = map(fmt, collection.find(record_query))
+        record_query = self._get_record(registry_code, "history", filter_by_context=False)
+        record_query = record_query.find(record_type="snapshot")
+        data = map(fmt, record_query.data())
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
@@ -553,11 +536,8 @@ class DynamicDataWrapper(object):
         data = {}
         if registry_model is None:
             return data
-        record_query = self._get_record_query()
-        logger.debug("record_query = %s" % record_query)
-        collection = self._get_collection(registry_model.code,
-                                          self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
-        registry_data = collection.find_one(record_query)
+        record_query = self._get_record(registry_model.code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+        registry_data = record_query.data().first()
         if registry_data:
             for k in ['django_id', '_id', 'django_model']:
                 del registry_data[k]
@@ -574,16 +554,12 @@ class DynamicDataWrapper(object):
             registry_data = data[reg_code]
             if not registry_data:
                 continue
-            collection = self._get_collection(reg_code, "registry_specific_patient_data")
-            query = self._get_record_query()
-            record = collection.find_one(query)
-            if record:
-                mongo_id = record['_id']
-                collection.update({'_id': mongo_id}, {"$set": registry_data}, upsert=False)
-            else:
-                record = self._get_record_query()
-                record.update(registry_data)
-                collection.insert(record)
+            query = (reg_code, "registry_specific_patient_data")
+            record = self._get_record(*query).first()
+            if not record:
+                record = self._make_record(*query)
+            record.data.update(registry_data)
+            record.save()
 
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
@@ -711,12 +687,11 @@ class DynamicDataWrapper(object):
     def save_dynamic_data(self, registry, collection_name, form_data, multisection=False, parse_all_forms=False,
                           index_map=None, additional_data=None):
         self._convert_date_to_datetime(form_data)
-        collection = self._get_collection(registry, collection_name)
 
         if self.CREATE_MODE:
             record = None
         else:
-            record = self.load_dynamic_data(registry, collection_name, flattened=False)
+            record = self._get_record(registry, collection_name).first()
 
         form_data["timestamp"] = datetime.datetime.now()
 
@@ -726,15 +701,15 @@ class DynamicDataWrapper(object):
 
         if not record:
             logger.debug("saving dynamic data - new record")
-            record = self._get_record_query()
-            record["forms"] = []
+            record = self._make_record(registry, collection_name)
+            record.data["forms"] = []
 
-        self._update_files_in_gridfs(record, registry, form_data, index_map)
+        self._update_files_in_gridfs(record.data, registry, form_data, index_map)
 
         nested_data = parse_form_data(Registry.objects.get(code=registry),
                                       self.current_form_model,
                                       form_data,
-                                      existing_record=record,
+                                      existing_record=record.data,
                                       is_multisection=multisection,
                                       parse_all_forms=parse_all_forms,
                                       django_instance=self.obj)
@@ -742,50 +717,43 @@ class DynamicDataWrapper(object):
         if additional_data is not None:
             nested_data.update(additional_data)
 
-        if "_id" in record:
-            collection.update({'_id': record['_id']}, {"$set": nested_data})
-        else:
-            if self.CREATE_MODE:
-                # create context_model NOW  to get context_id
-                # CREATE MODE is used ONLY by multiple context form groups to enable cancellation in GUI
-                context_id = self._create_context_model_on_fly()
-                nested_data["context_id"] = context_id
-                collection.insert(nested_data)
-                # not any subsequent calls won't try to create new context models
-                self.CREATE_MODE = False
-                self.rdrf_context_id = context_id
-            else:
-                collection.insert(nested_data)
+        if record.id is None and self.CREATE_MODE:
+            # create context_model NOW  to get context_id
+            # CREATE MODE is used ONLY by multiple context form groups to enable cancellation in GUI
+            context_id = self._create_context_model_on_fly()
+            nested_data["context_id"] = context_id
+            # not any subsequent calls won't try to create new context models
+            self.CREATE_MODE = False
+            self.rdrf_context_id = context_id
+
+        record.data.update(nested_data)
+        record.save()
 
     def _save_longitudinal_snapshot(self, registry_code, record):
         try:
             timestamp = str(datetime.datetime.now())
-            patient_id = record['django_id']
-            history = self._get_collection(registry_code, "history")
+            patient_id = record.data['django_id']
             snapshot = {"django_id": patient_id,
-                        "django_model": record.get("django_model", None),
+                        "django_model": record.data.get("django_model", None),
                         "registry_code": registry_code,
                         "record_type": "snapshot",
                         "timestamp": timestamp,
-                        "record": record,
+                        "record": record.data,
                         }
-            history.insert(snapshot)
+            history = self._make_record(registry_code, "history", data=snapshot)
+            history.save()
             logger.debug("snapshot added for %s patient %s timestamp %s" % (registry_code, patient_id, timestamp))
 
         except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
     def save_snapshot(self, registry_code, collection_name):
-        try:
-            record = self.load_dynamic_data(registry_code, collection_name, flattened=False)
-            if record is not None:
-                self._save_longitudinal_snapshot(registry_code, record)
-        except Exception as ex:
-            logger.error("Error saving longitudinal snapshot: %s" % ex)
+        record = self._get_record(registry_code, collection_name).first()
+        if record is not None:
+            self._save_longitudinal_snapshot(registry_code, record)
 
     def save_form_progress(self, registry_code, context_model=None):
         from rdrf.form_progress import FormProgress
-        from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         form_progress = FormProgress(registry_model)
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
@@ -837,5 +805,7 @@ class DynamicDataWrapper(object):
                         yield form_dict, section_dict, cde_dict
 
     def get_form_timestamp(self, registry_form):
-        collection = self._get_collection(registry_form.registry.code, "cdes")
-        return collection.find_one(self._get_record_query(), {"timestamp": True})
+        qs = self._get_record(registry_form.registry.code, "cdes")
+        qs = qs.exclude(data__timestamp="")
+        qs = qs.exclude(data__timestamp__isnull=True)
+        return qs.values_list("data__timestamp").first()
