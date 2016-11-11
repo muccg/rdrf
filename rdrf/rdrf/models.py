@@ -7,6 +7,7 @@ import json
 from rdrf.notifications import Notifier, NotificationError
 from rdrf.utils import get_full_link, check_calculation
 from rdrf.utils import format_date
+from .jsonb import DataField
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
