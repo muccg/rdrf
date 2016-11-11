@@ -2086,6 +2086,15 @@ class ContextFormGroupItem(models.Model):
     registry_form = models.ForeignKey(RegistryForm)
 
 
+class Modjgo(models.Model):
+    """
+    MongoDB collections in Django.
+    """
+    registry_code = models.CharField(max_length=10, db_index=True)
+    collection = models.CharField(max_length=100, db_index=True)
+    data = DataField()
+
+
 class MongoMigrationDummyModel(models.Model):
     """
     This model should never be instantiated.
