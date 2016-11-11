@@ -45,7 +45,7 @@ class FieldType:
 
 DEMOGRAPHICS_TABLE = [
     # fieldnum(column for data), English, field_expression, converter func (if any)
-    (1,"Centre"),
+    (1, "Centre"),
     (2,"Family name", "family_name"),
     (3, "Given names", "given_names"),
     (4, "Maiden name", "maiden_name"),
@@ -63,7 +63,7 @@ DEMOGRAPHICS_TABLE = [
     (18, "Suburb/Town", "Demographics/Address/Home/Suburb")
     (19,"State", "Demographics/Address/Home/State"),
     (20,"Postcode","Demographics/Address/Home/Postcode"),
-    (21,"Country","jkasdha")
+    (21,"Country","Demographic/Address/Home/Country")
     ]
 
 
