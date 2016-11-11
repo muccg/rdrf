@@ -389,7 +389,7 @@ LOGGING = {
             'level': 'CRITICAL',
             'propagate': True,
         },
-        'rdrf.rdrf.management.commands': {
+        'rdrf.management.commands': {
             'handlers': ['shell'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
