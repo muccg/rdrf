@@ -21,8 +21,8 @@ from .questionnaires import PatientCreator
 from .file_upload import wrap_gridfs_data_for_form
 from .file_upload import wrap_file_cdes
 from . import filestorage
-from .utils import de_camelcase
-from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
+from .utils import de_camelcase, location_name, is_multisection, make_index_map
+from .utils import parse_iso_date
 from .patient_decorators import patient_questionnaire_access
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
@@ -1100,7 +1100,7 @@ class QuestionnaireView(FormView):
                                 else:
                                     return "No"
                             elif cde_model.datatype == 'date':
-                                return self.value.strftime("%d-%m-%Y")
+                                return parse_iso_date(self.value).strftime("%d-%m-%Y")
                             return str(self.value)
 
                     def _get_cde_model(self):

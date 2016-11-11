@@ -2,11 +2,11 @@ from django.db import models
 import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from datetime import datetime
+import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import get_full_link, check_calculation
-from rdrf.utils import format_date
+from .utils import get_full_link, check_calculation
+from .utils import format_date, parse_iso_date
 from .jsonb import DataField
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
@@ -760,6 +760,11 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
+        elif self.datatype.lower() == "date":
+            try:
+                return parse_iso_date(stored_value)
+            except ValueError:
+                return ""
 
         if stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
@@ -1004,7 +1009,7 @@ class QuestionnaireResponse(models.Model):
     @property
     def date_of_birth(self):
         dob = self._get_patient_field("CDEPatientDateOfBirth")
-        return dob.date()
+        return parse_iso_date(dob)
 
     def _get_patient_field(self, patient_field):
         from .dynamic_data import DynamicDataWrapper
@@ -1976,8 +1981,7 @@ class ContextFormGroup(models.Model):
         if self.naming_scheme == "M":
             return "Modules"
         elif self.naming_scheme == "D":
-            from datetime import datetime
-            d = datetime.now()
+            d = datetime.datetime.now()
             s = d.strftime("%d-%b-%Y")
             return "%s/%s" % (self.name, s)
         elif self.naming_scheme == "N":
@@ -2007,7 +2011,7 @@ class ContextFormGroup(models.Model):
             # This does not actually do type conversion for dates -
             # it just looks up range display codes.
             display_value = cde_model.get_display_value(cde_value)
-            if isinstance(display_value, datetime):
+            if isinstance(display_value, datetime.date):
                 display_value = format_date(display_value)
             return display_value
         except KeyError:
