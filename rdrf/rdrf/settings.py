@@ -75,6 +75,15 @@ DATABASES = {
     }
 }
 
+# Clinical database (defaults to main db if not specified).
+DATABASES["clinical"] = {
+    "ENGINE": env.get_db_engine("clinical_dbtype", "pgsql"),
+    "NAME": env.get("clinical_dbname", DATABASES["default"]["NAME"]),
+    "USER": env.get("clinical_dbuser", DATABASES["default"]["USER"]),
+    "PASSWORD": env.get("clinical_dbpass", DATABASES["default"]["PASSWORD"]),
+    "HOST": env.get("clinical_dbserver", DATABASES["default"]["HOST"]),
+    "PORT": env.get("clinical_dbport", DATABASES["default"]["PORT"]),
+}
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
 # These settings ( and only )  are consumed by rdrf.mongo_client
@@ -92,6 +101,7 @@ MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 200
 MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
 MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
 MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
+DATABASE_ROUTERS = ["rdrf.db.RegistryRouter"]
 
 MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
 MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
