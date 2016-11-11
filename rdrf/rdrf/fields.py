@@ -1,9 +1,11 @@
 # Custom Fields
 from itertools import zip_longest
+import datetime
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
+from django.forms import DateField
 from .widgets import MultipleFileInput
 from django.core.exceptions import ValidationError
 
@@ -53,3 +55,28 @@ class MultipleFileField(FileField):
     def has_changed(self, initial, data):
         return any(super(MultipleFileField, self).has_changed(initial, item)
                    for item in data)
+
+
+class IsoDateField(DateField):
+    """
+    A date field which stores dates as strings in iso format, instead
+    of as date objects.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("input_formats", []).append("%Y-%m-%d")
+        super().__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        if isinstance(value, str):
+            for fmt in self.input_formats:
+                try:
+                    return self.strptime(value, fmt) if value else None
+                except (ValueError, TypeError):
+                    continue
+        return value
+
+    def to_python(self, value):
+        value = super().to_python(value)
+        if isinstance(value, datetime.date):
+            return value.isoformat()
+        return value
