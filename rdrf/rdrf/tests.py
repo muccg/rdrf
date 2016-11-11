@@ -221,7 +221,6 @@ class FormTestCase(RDRFTestCase):
 
     def setUp(self):
         super(FormTestCase, self).setUp()
-        self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
         self.user = CustomUser.objects.get(username="curator")
         self.user.registry = [self.registry]
@@ -245,16 +244,6 @@ class FormTestCase(RDRFTestCase):
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
-
-    def _reset_mongo(self):
-        self.client = construct_mongo_client()
-        # delete any testing databases
-        for db in self.client.database_names():
-            if db.startswith("testing_"):
-                print("deleting %s" % db)
-                self.client.drop_database(db)
-
-        print("Testing Mongo Reset OK")
 
     def create_patient(self):
         from rdrf.contexts_api import RDRFContextManager

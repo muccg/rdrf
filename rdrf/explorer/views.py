@@ -3,7 +3,6 @@ from itertools import product
 import logging
 import re
 from tempfile import NamedTemporaryFile
-from bson.json_util import dumps
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -23,6 +22,7 @@ from rdrf.models import Section
 from registry.groups.models import WorkingGroup
 from rdrf.spreadsheet_report import SpreadSheetReport
 from rdrf.reporting_table import ReportingTableGenerator
+
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.utils import mongo_key_from_models
 
@@ -278,14 +278,7 @@ class SqlQueryView(View):
         else:
             results = database_utils.run_sql().result
 
-        response = HttpResponse(dumps(results, default=json_serial))
-        return response
-
-
-def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-    serial = obj.isoformat()
-    return serial
+        return JsonResponse(results)
 
 
 def _get_default_params(request, form):

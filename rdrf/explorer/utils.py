@@ -1,18 +1,14 @@
 import json
 import ast
 
-from pymongo.errors import ConnectionFailure
-
 from django.db import ProgrammingError
 from django.db import connection
 from collections import OrderedDict
 
 from .models import Query
 
-from rdrf.utils import mongo_db_name_reg_id
 from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
-from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
 from .forms import QueryForm
 
@@ -55,13 +51,9 @@ class DatabaseUtils(object):
                 self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
 
+    # fixme: remove
     def connection_status(self):
-        try:
-            client = self._get_mongo_client()
-            client.close()
-            return True, None
-        except ConnectionFailure as e:
-            return False, e
+        return True, None
 
     def run_sql(self):
         try:
