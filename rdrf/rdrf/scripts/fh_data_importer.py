@@ -51,7 +51,7 @@ DEMOGRAPHICS_TABLE = [
     (4, "Maiden name", "maiden_name"),
     (5, "Hospital/Clinic ID",""),
     (6, "Date of birth", "date_of_birth"),
-    (7, "Country of birth","country_of_birth")
+    (7, "Country of birth","country_of_birth"),
     (8, "Ethnic Origin", "ethnic_origin"),
     (9, "Sex", "gender"),
     (10, "Home Phone", "home_phone"),
@@ -256,14 +256,23 @@ class SpreadsheetImporter(object):
                                     field_num)
             return value
             
-    
-    def _create_minimal_patient(self, row):
-        first_name = self._get_field("first_name")
-        family_name = self._get_field("family_name")
-        sex = self._get_field(
+    def _import_demographics_data(self, patient, row):
+        for t in DEMOGRAPHICS_TABLE:
+            updates = []
+            has_converter = len(t) == 4
+            field_num = t[0]
+            field_expression = t[2]
+            value = self._get_column(field_num, row)
+            if has_converter:
+                converter_name = t[3]
+                converter_func = self._get_converter_func(converter_name)
+                value = converter_func(value)
+            updates.append((field_expression, value))
+
+        patient.update_field_expressions(updates)
 
     def _import_patient(self, row):
-        patient = self._create_minimal_patient(row)
+        patient = Patient()
         self._import_demographics_data(patient, row)
         self._import_pedigree_data(patient, row)
         # ensure we import data into the correct context
