@@ -21,6 +21,7 @@ requirements=[
      "django-templatetag-sugar==1.0",
      "django-useraudit==1.3.3",
      "geoip2==2.4.0",
+     "jsonschema==2.5.1",
      "openpyxl==2.3.5",
      "polib==1.0.8",
      "psycopg2==2.6.2",
