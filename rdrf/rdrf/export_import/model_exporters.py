@@ -151,9 +151,4 @@ registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredB
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
 registry_catalogue.register(models.Modjgo, ModelExporterFilteredByRegistryCode)
 
-registry_catalogue.register(models.Clinical, ModelExporterFilteredByRegistryCode)
-registry_catalogue.register(models.FormProgress, ModelExporterFilteredByRegistryCode)
-registry_catalogue.register(models.PatientData, ModelExporterFilteredByRegistryCode)
-registry_catalogue.register(models.QuestionnaireResponseData, ModelExporterFilteredByRegistryCode)
-
 registry_catalogue.register(explorermodels.Query, ModelExporterFilteredByRegistry)
