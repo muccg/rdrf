@@ -9,20 +9,17 @@ from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
 from django.test import TestCase, RequestFactory
 
-from rdrf.exporter import Exporter, ExportType
-from rdrf.importer import Importer, ImportState
-from rdrf.models import Section
-from rdrf.models import Registry
-from rdrf.models import CDEPermittedValueGroup
-from rdrf.models import CDEPermittedValue
-from rdrf.models import CommonDataElement
-from rdrf.models import RegistryForm
-from rdrf.form_view import FormView
+from .exporter import Exporter, ExportType
+from .importer import Importer, ImportState
+from .models import Registry, RegistryForm, Section
+from .models import CDEPermittedValueGroup, CDEPermittedValue
+from .models import CommonDataElement
+from .models import Modjgo
+from .form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
 from registry.groups.models import WorkingGroup, CustomUser
-from rdrf.utils import de_camelcase, check_calculation
-from rdrf.mongo_client import construct_mongo_client
+from .utils import de_camelcase, check_calculation
 
 logger = logging.getLogger(__name__)
 
@@ -337,15 +334,9 @@ class FormTestCase(RDRFTestCase):
         view.request = request
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
 
-        mongo_query = {"django_id": self.patient.pk,
-                       "django_model": self.patient.__class__.__name__,
-                       "context_id": self.patient.default_context(self.registry).pk}
-
-        mongo_db = self.client["testing_" + self.registry.code]
-
-        collection_name = "cdes"
-        collection = mongo_db[collection_name]
-        mongo_record = collection.find_one(mongo_query)
+        collection = Modjgo.objects.collection(self.registry.code, "cdes")
+        context_id = self.patient.default_context(self.registry).id
+        mongo_record = collection.find(self.patient, context_id).data().first()
 
         print("*** MONGO RECORD = %s ***" % mongo_record)
 
@@ -378,16 +369,19 @@ class FormTestCase(RDRFTestCase):
 class LongitudinalTestCase(FormTestCase):
 
     def test_simple_form(self):
-        mongo_db = self.client["testing_" + self.registry.code]
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
-        collection = mongo_db["history"]
-        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
-        assert len(snapshots) > 0, "History should be filled in on save"
+        qs = Modjgo.objects.collection(self.registry.code, "history")
+        snapshots = qs.find(self.patient, record_type="snapshot").data()
+        self.assertGreater(len(snapshots), 0,
+                           "History should be filled in on save")
         for snapshot in snapshots:
-            assert "record" in snapshot, "Each snapshot should have a record field"
-            assert "timestamp" in snapshot, "Each snapshot should have a timestamp field"
-            assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
+            self.assertIn("record", snapshot,
+                          "Each snapshot should have a record field")
+            self.assertIn("timestamp", snapshot,
+                          "Each snapshot should have a timestamp field")
+            self.assertIn("forms", snapshot["record"],
+                          "Each  snapshot should record dict contain a forms field")
 
 
 class DeCamelcaseTestCase(TestCase):
