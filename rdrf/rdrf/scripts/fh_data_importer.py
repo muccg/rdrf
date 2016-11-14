@@ -19,6 +19,7 @@ from rdrf.form_view import FormView
 from django.test import RequestFactory
 
 from registry.patients.models import Patient
+from registry.patients.models import PatientRelative
 from registry.groups.models import CustomUser
 from registry.groups.models import WorkingGroup
 
@@ -39,6 +40,7 @@ class DataDictionary:
     RELATIVE_VALUE = "relative"
     EXTERNAL_ID_COLUMN = 1
     MY_INDEX_COLUMN = 113
+    RELATIONSHIP_COLUMN = 114
 
 
 class ImporterError(Exception):
@@ -439,7 +441,33 @@ class SpreadsheetImporter(object):
     def _add_relative(self, index_patient, relative_patient_model):
         self.stage = "ADDRELATIVE"
         self.patient = relative_patient_model
-        self.log("TODO!")
+        patient_relative_model = PatientRelative()
+        patient_relative_model.family_name = relative_patient_model.family_name
+        patient_relative_model.given_names = relative_patient_model.given_names
+        patient_relative_model.date_of_birth = relative_patient_model.date_of_birth
+        patient_relative_model.sex = relative_patient_model.sex
+        patient_relative_model.relationship = self._get_relationship_to_index()
+        patient_relative_model.living_status = relative_patient_model.living_status
+        # set index of this relative
+        patient_relative_model.patient = index_patient
+
+        # as all imported relatives are also patients in the registry
+        # point this PatientRelative to the relative
+        patient_relative_model.relative_patient = relative_patient_model
+
+        patient_relative_model.save()
+        self.log("Linked relative %s to index %s" % (relative_patient_model,
+                                                     index_patient))
+
+        
+
+    def _get_relationship_to_index(self):
+        relationship = self._get_value(self.data_sheet,
+                                       self.row,
+                                       DataDictionary.RELATIONSHIP_COLUMN)
+
+        return relationship
+
 
     def _get_field(self, row, field):
         if type(field) is type(basestring):
