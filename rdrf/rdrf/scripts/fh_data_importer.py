@@ -7,6 +7,10 @@ from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
 from rdrf.models import RDRFContext
+from rdrf.models import ConsentSection
+from rdrf.models import ConsentQuestion
+
+
 
 from rdrf.contexts_api import RDRFContextManager
 
@@ -34,6 +38,7 @@ class DataDictionary:
     INDEX_VALUE = "index"
     RELATIVE_VALUE = "relative"
     EXTERNAL_ID_COLUMN = 1
+    MY_INDEX_COLUMN = 113
 
 
 class ImporterError(Exception):
@@ -78,6 +83,19 @@ DEMOGRAPHICS_TABLE = [
 ]
 
 
+CONSENT_MAP = {
+    # consent label -> fieldnum
+    "Adult Consent": 21,
+    "Adult consent": 21,
+    "Child Consent": 22,
+    "Child consent": 22,
+    "Clinical Trials": 23,
+    "Clinical trials": 23,
+    "Information": 24,
+    "FCHL": 25,
+    "Hyper-Lp(a)": 26,
+}
+
 
 
 
@@ -93,7 +111,7 @@ class SpreadsheetImporter(object):
         self.row = None
         self.patient = None
         self.stage = None
-        self.log_prefix = "IMPORTER"
+        self.log_prefix = "IMP"
 
         self.registry_model = registry_model
         self.rdrf_context_manager = RDRFContextManager(registry_model)
@@ -118,7 +136,7 @@ class SpreadsheetImporter(object):
         
     def log(self, msg):
         if self.row:
-            print("%s> STAGE %s ROW %s PATIENT %s: %s" % (self.log_prefix,
+            print("%s STAGE %s ROW %s PATIENT %s: %s" % (self.log_prefix,
                                                          self.stage,
                                                          self.row,
                                                          self.patient,
@@ -259,6 +277,12 @@ class SpreadsheetImporter(object):
                 return self.field_map[key]
             else:
                 raise FieldNumNotFound(key)
+
+
+    def reset(self):
+        self.stage = ""
+        self.patient = None
+        self.row = None
             
 
     def run(self):
@@ -293,7 +317,8 @@ class SpreadsheetImporter(object):
 
         self.stage = "RELATIVES"
         
-        #self._create_relatives()
+        self._create_relatives()
+        self.reset()
         self.stage = "DUMPING IDS"
         self.log("About to dump id map ...")
         self._dump_id_map()
@@ -373,17 +398,48 @@ class SpreadsheetImporter(object):
                 f.write(line)
 
     def _create_relatives(self):
+        self.stage = "CREATERELATIVES"
+        
         for row in self.relatives:
+            self.row = row
             patient = self._create_minimal_patient(row)
+            self.patient = patient
+            self._import_patient(row)
+            self.log("Finished import of relative patient")
+            self.stage = "UPDATEIDMAP"
             external_id = self._get_external_id(row)
-            self._import_demographics_data(patient, row)
-            for form_model in self.form_models:
-                self._import_clinical_form(form_model, patient, row)
-
             self._update_id_map(external_id, patient.pk)
-
+            self.stage = "LINKAGE"
             index_patient = self._get_index_patient(row)
-            self._add_relative(index_patient, patient)
+            self.log("Index of %s is %s" % (patient, index_patient))
+
+            if index_patient is not None:
+                self._add_relative(index_patient, patient)
+            else:
+                self.log("Could not link to my index as index was not found")
+
+
+    def _get_index_patient(self, row):
+        self.log("Getting relative's index patient ...")
+        my_index_external_id = self._get_value(self.data_sheet,
+                                   row,
+                                   DataDictionary.MY_INDEX_COLUMN)
+
+        rdrf_index_pk = self.id_map.get(my_index_external_id, None)
+        if rdrf_index_pk is None:
+            self.log("Could not locate MYINDEX??")
+            return None
+        else:
+            try:
+                return Patient.objects.get(pk=rdrf_index_pk)
+            except Patient.DoesNotExist:
+                self.log("No matching index patient for patient id = %s" % rdrf_index_pk)
+                return None
+
+    def _add_relative(self, index_patient, relative_patient_model):
+        self.stage = "ADDRELATIVE"
+        self.patient = relative_patient_model
+        self.log("TODO!")
 
     def _get_field(self, row, field):
         if type(field) is type(basestring):
@@ -484,20 +540,16 @@ class SpreadsheetImporter(object):
         self.log("Finished pedigree import")
         self._import_consents(patient, row)
 
+        self.stage = "CLINICAL"
+        self.log("About to import clinical data ...")
+        self._import_clinical_data(patient, row)
+        self.log("Finished importing clinical data")
+
         return patient
 
     def _import_clinical_data(self, patient, row):
         for context_model, form_model in self._get_forms_and_contexts(patient):
-            print("Importing CDEs on form %s for patient %s row %s" % (form_model,
-                                                                       patient,
-                                                                       row))
-            
             self._import_clinical_form(form_model, patient, context_model, row)
-            print("finished form import of %s for patient %s row %s" % (form_model,
-                                                                        patient,
-                                                                        row))
-
-            
         
 
     def _get_forms_and_contexts(self, patient_model):
@@ -527,8 +579,63 @@ class SpreadsheetImporter(object):
         self.stage = "CONSENTS"
         self.patient = patient
         self.row = row
-        self.log("TODO!")
+        # NB these are FH specific
+        self._import_consent("Registry Consent", "Adult consent")
+        self._import_consent("Registry Consent", "Child consent")
+        self._import_consent("Optional Consents", "Clinical trials")
+        self._import_consent("Optional Consents", "Information")
         
+        self._import_consent("Registry Subset", "FCHL")
+        self._import_consent("Registry Subset", "Hyper-Lp(a)")
+        
+
+    def _import_consent(self, section_label, question_label):
+        self.stage = "CONSENT/%s" % section_label
+        self.log("Importing %s" % question_label)
+        field_num = CONSENT_MAP.get(question_label, None)
+        if field_num is None:
+            raise Exception("Unknown consent question: %s" % question_label)
+
+        answer = self._get_value(self.data_sheet,
+                                 self.row,
+                                 field_num)
+
+        if answer is None:
+            answer = "False"
+            
+        if answer.lower() in ["true", "yes", "y"]:
+            answer = True
+        else:
+            answer = False
+            
+        self._import_consent_question(section_label, question_label, answer)
+        
+    def _import_consent_question(self, section_label, question_label, answer):
+        consent_section_model = self._get_consent_section(section_label)
+        consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
+                                                             question_label=question_label)
+        
+        answer_field_expression = "Consents/%s/%s/answer" % (consent_section_model.code,
+                                                             consent_question_model.code)
+            
+        self._eval(answer_field_expression, answer)
+        
+    def _get_consent_section(self, section_label):
+        try:
+            consent_section_model = ConsentSection.objects.get(registry=self.registry_model,
+                                                               section_label=section_label)
+            return consent_section_model
+        except ConsentSection.DoesNotExist:
+            self.log("ConsentSection with label %s does not exist" % section_label)
+            return None
+
+    def _eval(self, field_expression, value):
+        self.patient.evaluate_field_expression(self.registry_model,
+                                               field_expression,
+                                               value=value)
+
+        self.log("%s -> %s" % (field_expression,
+                               value))
 
     def _convert_cde_value(self, cde_model, spreadsheet_value):
         if cde_model.pv_group:
@@ -538,9 +645,6 @@ class SpreadsheetImporter(object):
             return None
         else:
             return spreadsheet_value
-        
-            
-        
 
     def _import_clinical_form(self, form_model, patient_model, context_model, row):
         self.stage = "CLINICAL"
@@ -606,6 +710,11 @@ class SpreadsheetImporter(object):
                                     cde_model.code)
         
         return expression
+
+
+        
+   
+        
 
 if __name__ == "__main__":
     registry_code = sys.argv[1]
