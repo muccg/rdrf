@@ -16,6 +16,7 @@ from django.test import RequestFactory
 
 from registry.patients.models import Patient
 from registry.groups.models import CustomUser
+from registry.groups.models import WorkingGroup
 
 
 import openpyxl as xl
@@ -58,8 +59,9 @@ DEMOGRAPHICS_TABLE = [
     (4, "Given names", "given_names"),
     (7, "Date of birth", "date_of_birth"),
     (10, "Sex", "gender", "meteor"),
+    # these fields created by _import_demographics method
     (5, "Maiden name", "maiden_name"),
-    (6, "Hospital/Clinic ID", ""),
+    (6, "Hospital/Clinic ID", "umrn"),
     (8, "Country of birth", "country_of_birth"),
     (9, "Ethnic Origin", "ethnic_origin"),
     (11, "Home Phone", "home_phone"),
@@ -87,6 +89,12 @@ class SpreadsheetImporter(object):
     # we need to be aware of them
 
     def __init__(self, registry_model, import_spreadsheet_filepath, datadictionary_sheetname, datasheet_name):
+        # used for logging
+        self.row = None
+        self.patient = None
+        self.stage = None
+        self.log_prefix = "IMPORTER"
+
         self.registry_model = registry_model
         self.rdrf_context_manager = RDRFContextManager(registry_model)
         self.import_spreadsheet_filepath = import_spreadsheet_filepath
@@ -105,6 +113,23 @@ class SpreadsheetImporter(object):
         self._load_datadictionary_sheet()
         self._build_field_map()
 
+        
+
+        
+    def log(self, msg):
+        if self.row:
+            print("%s> STAGE %s ROW %s PATIENT %s: %s" % (self.log_prefix,
+                                                         self.stage,
+                                                         self.row,
+                                                         self.patient,
+                                                         msg))
+        else:
+            print("%s> STAGE %s: %s" % (self.log_prefix,
+                                        self.stage,
+                                        msg))
+
+            
+            
 
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
@@ -130,7 +155,7 @@ class SpreadsheetImporter(object):
                           column=column).value
 
     def _build_field_map(self):
-        print("building field map ..")
+        self.log("building field map ..")
         # map RDRF "fields" to fieldnums in the spreadsheet
         d = {}
         d["patient_id"] = DataDictionary.PATIENT_ID_FIELDNUM
@@ -163,8 +188,6 @@ class SpreadsheetImporter(object):
 
 
                 d[key] = field_num
-                print("field map key %s = %s" % (key, field_num))
-
                 row_num += 1
 
         self.field_map = d
@@ -201,12 +224,16 @@ class SpreadsheetImporter(object):
                     converter = tup[3]
                 else:
                     converter = None
-                value = self._get_converted_value(row, field_num, converter)
-                print("row %s demographics field %s value = %s" % (row,
-                                                                   long_field_name,
-                                                                   value))
-                
+                if converter is not None:
+                    value = self._get_converted_value(row,
+                                                      field_num,
+                                                      converter)
+                    
+                else:
+                    value = self._get_column(field_num, row)
                                                                         
+                self.log("demographics field %s value = %s" % (long_field_name,
+                                                               value))
                 return value
             
             
@@ -235,14 +262,15 @@ class SpreadsheetImporter(object):
             
 
     def run(self):
-        print("**********************")
-        print("beginning run")
+        self.stage = "SETUP"
+        
+        self.log("Starting data import ...")
         self._load_datasheet()
-        print("loaded datasheet")
+        self.log("Loaded datasheet")
         row = 2  # data starts here
 
         # first find which rows are index patients, which relatives
-        print("sorting indexes from relatives ...")
+        self.log("Sorting indexes from relatives ...")
         scanned = False
         while not scanned:
             if self._check_type(row, check_index=True):
@@ -255,17 +283,24 @@ class SpreadsheetImporter(object):
                 scanned = True
 
         # now begin processing for real
-        print("finished sorting")
+        self.log("Sorting finished")
         num_indexes = len(self.indexes)
         num_relatives = len(self.relatives)
-        print("There are %s indexes and %s relatives to import" % (num_indexes,
-                                                                   num_relatives))
+        self.log("There are %s indexes and %s relatives to import" % (num_indexes,
+                                                                       num_relatives))
         
         self._create_indexes()
+
+        self.stage = "RELATIVES"
         
         #self._create_relatives()
+        self.stage = "DUMPING IDS"
+        self.log("About to dump id map ...")
         self._dump_id_map()
-
+        self.log("Finished dumping id map")
+        self.stage = "COMPLETE"
+        self.log("Data import finished")
+    
     def _get_column(self, field_num, row):
         return self.data_sheet.cell(row=row,
                                     column=int(field_num)).value
@@ -283,22 +318,45 @@ class SpreadsheetImporter(object):
         value = index_cell == check_value
         return value
 
+    def _set_working_group(self, row, patient):
+        # field expression wasn't working for this
+        working_group_name = self._get_demographics_field(row, "Centre")
+        try:
+            working_group_model = WorkingGroup.objects.get(registry=self.registry_model,
+                                                           name=working_group_name)
+        except WorkingGroup.DoesNotExist:
+            self.log("Unknown working group: %s" % working_group_name)
+            working_group_model = None
+
+
+        if working_group_model:
+            patient.working_groups = [working_group_model]
+            patient.save()
+            self.log("set working group to %s" % working_group_model)
+            
+
     def _is_relative(self, row):
         value = self._get_column(
             DataDictionary.INDEX_FIELD_NUM, row) == DataDictionary.RELATIVE_VALUE
-        print("checking row %s value =%s" % (row, value))
-        if value:
-            print("row %s in relative" % row)
         return value
 
     def _create_indexes(self):
-        print("creating index patients")
+        self.stage = "CREATING INDEXES"
+        self.log("creating index patients")
+
         for row in self.indexes:
-            print("processing index row %s" % row)
+            self.stage = "CREATING INDEXES"
+            self.row = row
+            self.log("processing index row %s" % row)
             index_patient = self._import_patient(row)
-            print("created index patient %s for row %s OK" % (index_patient, row))
+            self.patient = index_patient
+            self.log("Finished creating index patient")
+            
             external_id = self._get_external_id(row)
+            self.stage = "IDMAP"
             self._update_id_map(external_id, index_patient.pk)
+            self.log("ID MAP %s --> %s" % (external_id, index_patient.pk))
+            
 
     def _update_id_map(self, external_id, rdrf_id):
         if external_id in self.id_map:
@@ -337,9 +395,11 @@ class SpreadsheetImporter(object):
             return value
 
     def _import_demographics_data(self, patient, row):
-        print("creating patient from row %s" % row)
+        updates = []
+        self.stage = "WORKINGGROUP"
+        self._set_working_group(row, patient)
+        self.stage = "DEMOGRAPHICS"
         for t in DEMOGRAPHICS_TABLE:
-            updates = []
             has_converter = len(t) == 4
             field_num = t[0]
             field_expression = t[2]
@@ -350,25 +410,23 @@ class SpreadsheetImporter(object):
                 value = converter_func(value)
             updates.append((field_expression, value))
 
+            self.log("Will update %s -> %s" % (field_expression,
+                                               value))
 
-        for field_expression, value in updates:
-            print("Will update row %s patient %s field %s --> value %s" % (row,
-                                                               patient,
-                                                               field_expression,
-                                                               value))
-            
-                                                                                
 
         context_model = self.rdrf_context_manager.get_or_create_default_context(patient, new_patient=True)
-        print("context for patient = %s" % context_model)
+
+        self.log("context for patient = %s" % context_model.pk)
+        self.log("Updating demographic fields ...")
         patient.update_field_expressions(self.registry_model, updates, context_model=context_model)
+        self.log("Finished updating demographic fields")
 
 
     def _import_pedigree_data(self, patient, row):
-        print("importing pedigree data for patient %s row %s" % (patient,
-                                                                 row))
-
-        pass
+        self.patient = patient
+        self.row = row
+        self.stage = "PEDIGREE"
+        self.log("TODO!")
 
     def _get_context_for_patient(self, patient_model):
         if not self.registry_model.has_feature("contexts"):
@@ -389,45 +447,58 @@ class SpreadsheetImporter(object):
     
 
     def _create_minimal_patient(self, row):
+        self.stage = "MINIMAL"
         patient = Patient()
+        self.row = row
+        self.patient = patient
         family_name = self._get_demographics_field(row, "Family name")
         given_names = self._get_demographics_field(row, "Given names")
         date_of_birth = self._get_demographics_field(row, "Date of birth")
         sex = self._get_demographics_field(row, "Sex")
-
         patient.family_name = family_name
         patient.given_names = given_names
         patient.date_of_birth = date_of_birth
         patient.sex = sex
         patient.consent = True # to satisfy validation ...
         patient.save()
-        print("saved minimal patient %s" % patient)
-
         patient.rdrf_registry = [self.registry_model]
         patient.save()
-        print("saved patient %s to %s" % (patient,
-                                          self.registry_model))
-        
+        self.log("set patient registry to %s" % self.registry_model)
 
         return patient
 
     def _import_patient(self, row):
+        self.stage = "MINIMAL"
+        self.row = row
+        self.log("creating minimal patient ...")
         patient = self._create_minimal_patient(row)
+        self.patient = patient
+        self.log("Finished minimal patient creation")
+        self.stage = "DEMOGRAPHICS"
+        self.log("Starting demograpics import")
         self._import_demographics_data(patient, row)
-        print("imported demographics OK for patient %s row %s" % (patient, row))
+        self.log("Finished demographics import")
+        self.stage = "PEDIGREE"
+        self.log("Starting pedigree import ...")
         self._import_pedigree_data(patient, row)
+        self.log("Finished pedigree import")
         self._import_consents(patient, row)
-        
-        # ensure we import data into the correct context
 
+        return patient
+
+    def _import_clinical_data(self, patient, row):
         for context_model, form_model in self._get_forms_and_contexts(patient):
             print("Importing CDEs on form %s for patient %s row %s" % (form_model,
                                                                        patient,
                                                                        row))
             
             self._import_clinical_form(form_model, patient, context_model, row)
+            print("finished form import of %s for patient %s row %s" % (form_model,
+                                                                        patient,
+                                                                        row))
 
-        return patient
+            
+        
 
     def _get_forms_and_contexts(self, patient_model):
         # get forms in fixed groups
@@ -453,8 +524,11 @@ class SpreadsheetImporter(object):
         return results
 
     def _import_consents(self, patient, row):
-        print("importing consents TODO for patient %s row %s" % (patient, row))
-
+        self.stage = "CONSENTS"
+        self.patient = patient
+        self.row = row
+        self.log("TODO!")
+        
 
     def _convert_cde_value(self, cde_model, spreadsheet_value):
         if cde_model.pv_group:
@@ -469,9 +543,10 @@ class SpreadsheetImporter(object):
         
 
     def _import_clinical_form(self, form_model, patient_model, context_model, row):
-        print("Importing clinical form %s for patient %s row %s" % (form_model,
-                                                                    patient_model,
-                                                                    row))
+        self.stage = "CLINICAL"
+        self.patient = patient_model
+        self.row = row
+        self.log("Importing clinical form %s ..." % form_model.name)
         field_updates = []
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
@@ -479,57 +554,50 @@ class SpreadsheetImporter(object):
                 # is 1 row per patient
                 for cde_model in section_model.cde_models:
                     if self._cde_included(form_model, section_model, cde_model):
-
-
-                        print("Updating %s %s %s ..." % (form_model,
-                                                         section_model,
-                                                         cde_model))
                         field_num = self._get_field_num((form_model, section_model, cde_model))
-                        print("corresponding field_num is %s" % field_num)
                         spreadsheet_value = self._get_value(self.data_sheet,
                                                             row,
                                                             field_num)
                         
-                        print("value in spreadsheet = %s" % spreadsheet_value)
-
                         rdrf_value = self._convert_cde_value(cde_model, spreadsheet_value)
 
-                        print("converted value = %s" % rdrf_value)
-
+                        self.log("SECTION %s CDE %s: spreadsheet = %s converted = %s" % (section_model.display_name,
+                                                                                         cde_model.name,
+                                                                                         spreadsheet_value,
+                                                                                         rdrf_value))
                         
+
                         field_expression = self._get_field_expression(form_model, section_model, cde_model)
                         
                         field_updates.append((field_expression, rdrf_value))
-                        print("Added update %s --> %s" % (field_expression, rdrf_value))
 
                     else:
-                        print("Form %s Section %s CDE %s NOT INCLUDED IN SPREADSHEET" % (form_model.name,
-                                                                                         section_model.display_name,
-                                                                                         cde_model.name))
+                        self.log("Form %s Section %s CDE %s NOT INCLUDED IN SPREADSHEET" % (form_model.name,
+                                                                                            section_model.display_name,
+                                                                                            cde_model.name))
+                        
 
         if len(field_updates) == 0:
-            print("*** No clinical field updates for patient %s row %s form %s" % (patient_model,
-                                                                               row,
-                                                                               form_model))
+            self.log("No clinical field updates for form %s" % form_model.name)
         else:
-            print("There are %s updates for patient %s row %s" % (len(field_updates),
-                                                                  patient_model,
-                                                                  row))
+            self.log("There are %s clinical field updates for form %s" % (len(field_updates),
+                                                                          form_model.name))
+            
             patient_model.update_field_expressions(
                 self.registry_model,
                 field_updates,
                 context_model
             )
 
+        self.log("Finished clinical field updates for %s" % form_model.name)
+        
+
 
     def _get_external_id(self, row):
         return self._get_column(DataDictionary.EXTERNAL_ID_COLUMN, row)
-    
-        
 
     def _cde_included(self, form_model, section_model, cde_model):
         name_tuple = (form_model.name, section_model.display_name, cde_model.name)
-        print("name_tuple = %s" % str(name_tuple))
         return name_tuple in self.field_map
 
     def _get_field_expression(self, form_model, section_model, cde_model):
