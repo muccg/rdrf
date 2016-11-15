@@ -19,8 +19,12 @@ from django.test import RequestFactory
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientRelative
+from registry.patients.models import PatientAddress
+from registry.patients.models import AddressType
 from registry.groups.models import CustomUser
 from registry.groups.models import WorkingGroup
+
+import pycountry
 
 
 import openpyxl as xl
@@ -75,6 +79,7 @@ DEMOGRAPHICS_TABLE = [
     (13, "Work Phone", "work_phone"),
     (14, "Email", "email"),
     (15, "Living status", "living_status"),
+    # Address handled sep
     (16, "Address", "Demographics/Address/Home/Address"),
     (17, "Suburb/Town", "Demographics/Address/Home/Suburb"),
     (18, "State", "Demographics/Address/Home/State"),
@@ -129,6 +134,8 @@ class SpreadsheetImporter(object):
         self._load_datasheet()
         self._load_datadictionary_sheet()
         self._build_field_map()
+        self.countries = pycountry.countries
+        
 
     def log(self, msg):
         if self.row:
@@ -263,6 +270,50 @@ class SpreadsheetImporter(object):
                 return self.field_map[key]
             else:
                 raise FieldNumNotFound(key)
+
+
+    def _update_address(self, patient_model, row):
+        # field expression not working?
+        #(16, "Address", "Demographics/Address/Home/Address"),
+        #(17, "Suburb/Town", "Demographics/Address/Home/Suburb"),
+        #(18, "State", "Demographics/Address/Home/State"),
+        #(19, "Postcode", "Demographics/Address/Home/Postcode"),
+        #(20, "Country", "Demographic/Address/Home/Country"),
+
+        def get_val(field_num):
+            return self._get_value(self.data_sheet,
+                                   row,
+                                   field_num)
+        address = get_val(16)
+        suburb = get_val(17)
+        state = get_val(18)
+        postcode = get_val(19)
+        country = get_val(20)
+
+        home_address_type = AddressType.objects.get(type="Home")
+
+        try:
+            country_object = self.countries.get(name=country)
+            country_code = country_object.alpha2
+        except Exception as ex:
+            self.log("Unknown country: [%s]" % country)
+            country_code = ""
+
+        try:
+            state_code = "%s-%s" % (country_code, state)
+            
+            address_object = PatientAddress()
+            address_object.patient = patient_model
+            address_object.address = address
+            address_object.suburb = suburb
+            address_object.postcode = postcode
+            address_object.country = country_code
+            address_object.address_type = home_address_type
+            address_object.state = state_code
+            
+            address_object.save()
+        except Exception as ex:
+            self.log("Error saving address: %s" % ex)
 
     def reset(self):
         self.stage = ""
@@ -479,6 +530,13 @@ class SpreadsheetImporter(object):
         self.log("Updating demographic fields ...")
         patient.update_field_expressions(
             self.registry_model, updates, context_model=context_model)
+
+
+        self.stage = "ADDRESS"
+        self.log("Processing Address ...")
+        self._update_address(patient, row)
+        self.log("Finished Address")
+        self.stage = "DEMOGRAPHICS"
         self.log("Finished updating demographic fields")
 
     def _import_pedigree_data(self, patient, row):
