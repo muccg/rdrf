@@ -93,7 +93,7 @@ def after_scenario(scenario, outline, test_steps):
 @after.each_step
 def screenshot_step(step):
     if not step.passed and getattr(step, "scenario", None) is not None:
-        step_name = "%s_%s" % (step.scenario.name, step.sentance)
+        step_name = "%s_%s" % (step.scenario.name, step.sentence)
         step_name = step_name.replace(" ", "")
         file_name = os.path.join(settings.WRITABLE_DIRECTORY, "FAIL-step-{0}.png".format(step_name))
         world.browser.get_screenshot_as_file(file_name)
