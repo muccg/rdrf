@@ -11,7 +11,6 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 
 
-
 from rdrf.contexts_api import RDRFContextManager
 
 
@@ -99,8 +98,6 @@ CONSENT_MAP = {
 }
 
 
-
-
 class SpreadsheetImporter(object):
     # rewriting importer
     # as we need to link relatives to index patients
@@ -133,9 +130,6 @@ class SpreadsheetImporter(object):
         self._load_datadictionary_sheet()
         self._build_field_map()
 
-        
-
-        
     def log(self, msg):
         if self.row:
             print("%s STAGE %s ROW %s PATIENT %s: %s" % (self.log_prefix,
@@ -147,9 +141,6 @@ class SpreadsheetImporter(object):
             print("%s> STAGE %s: %s" % (self.log_prefix,
                                         self.stage,
                                         msg))
-
-            
-            
 
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
@@ -206,12 +197,10 @@ class SpreadsheetImporter(object):
 
                 key = (form_name, section_name, cde_name)
 
-
                 d[key] = field_num
                 row_num += 1
 
         self.field_map = d
-        
 
     def _get_converter_func(self, converter_name):
         # look for methods on me like  converter_<converter_name>)
@@ -222,19 +211,16 @@ class SpreadsheetImporter(object):
                 return converter_func
         raise Exception("Bad converter: %s" % converter_name)
 
-
     # converters
 
     def converter_meteor(self, value):
-        sex_choices = {"Male" : 1,
+        sex_choices = {"Male": 1,
                        "Female": 2,
                        "Indeterminate": 3}
 
         return sex_choices.get(value, None)
-    
 
     # end of converters
-    
 
     def _get_demographics_field(self, row, long_field_name):
         for tup in DEMOGRAPHICS_TABLE:
@@ -248,17 +234,15 @@ class SpreadsheetImporter(object):
                     value = self._get_converted_value(row,
                                                       field_num,
                                                       converter)
-                    
+
                 else:
                     value = self._get_column(field_num, row)
-                                                                        
+
                 self.log("demographics field %s value = %s" % (long_field_name,
                                                                value))
                 return value
-            
-            
+
         raise Exception("Unknown field %s" % long_field_name)
-    
 
     def _get_field_num(self, key):
         if type(key) is tuple:
@@ -280,16 +264,14 @@ class SpreadsheetImporter(object):
             else:
                 raise FieldNumNotFound(key)
 
-
     def reset(self):
         self.stage = ""
         self.patient = None
         self.row = None
-            
 
     def run(self):
         self.stage = "SETUP"
-        
+
         self.log("Starting data import ...")
         self._load_datasheet()
         self.log("Loaded datasheet")
@@ -313,12 +295,12 @@ class SpreadsheetImporter(object):
         num_indexes = len(self.indexes)
         num_relatives = len(self.relatives)
         self.log("There are %s indexes and %s relatives to import" % (num_indexes,
-                                                                       num_relatives))
-        
+                                                                      num_relatives))
+
         self._create_indexes()
 
         self.stage = "RELATIVES"
-        
+
         self._create_relatives()
         self.reset()
         self.stage = "DUMPING IDS"
@@ -327,7 +309,7 @@ class SpreadsheetImporter(object):
         self.log("Finished dumping id map")
         self.stage = "COMPLETE"
         self.log("Data import finished")
-    
+
     def _get_column(self, field_num, row):
         return self.data_sheet.cell(row=row,
                                     column=int(field_num)).value
@@ -355,12 +337,10 @@ class SpreadsheetImporter(object):
             self.log("Unknown working group: %s" % working_group_name)
             working_group_model = None
 
-
         if working_group_model:
             patient.working_groups = [working_group_model]
             patient.save()
             self.log("set working group to %s" % working_group_model)
-            
 
     def _is_relative(self, row):
         value = self._get_column(
@@ -378,12 +358,11 @@ class SpreadsheetImporter(object):
             index_patient = self._import_patient(row)
             self.patient = index_patient
             self.log("Finished creating index patient")
-            
+
             external_id = self._get_external_id(row)
             self.stage = "IDMAP"
             self._update_id_map(external_id, index_patient.pk)
             self.log("ID MAP %s --> %s" % (external_id, index_patient.pk))
-            
 
     def _update_id_map(self, external_id, rdrf_id):
         if external_id in self.id_map:
@@ -391,9 +370,8 @@ class SpreadsheetImporter(object):
         else:
             self.id_map[external_id] = rdrf_id
 
-
     def _dump_id_map(self):
-        with open("id_map.csv","w") as f:
+        with open("id_map.csv", "w") as f:
             f.write("OLD_ID,RDRF_ID\n")
             for key in sorted(self.id_map.keys()):
                 line = "%s,%s\n" % (key, self.id_map[key])
@@ -401,7 +379,7 @@ class SpreadsheetImporter(object):
 
     def _create_relatives(self):
         self.stage = "CREATERELATIVES"
-        
+
         for row in self.relatives:
             self.row = row
             patient = self._create_minimal_patient(row)
@@ -420,12 +398,11 @@ class SpreadsheetImporter(object):
             else:
                 self.log("Could not link to my index as index was not found")
 
-
     def _get_index_patient(self, row):
         self.log("Getting relative's index patient ...")
         my_index_external_id = self._get_value(self.data_sheet,
-                                   row,
-                                   DataDictionary.MY_INDEX_COLUMN)
+                                               row,
+                                               DataDictionary.MY_INDEX_COLUMN)
 
         rdrf_index_pk = self.id_map.get(my_index_external_id, None)
         if rdrf_index_pk is None:
@@ -435,7 +412,8 @@ class SpreadsheetImporter(object):
             try:
                 return Patient.objects.get(pk=rdrf_index_pk)
             except Patient.DoesNotExist:
-                self.log("No matching index patient for patient id = %s" % rdrf_index_pk)
+                self.log("No matching index patient for patient id = %s" %
+                         rdrf_index_pk)
                 return None
 
     def _add_relative(self, index_patient, relative_patient_model):
@@ -459,15 +437,12 @@ class SpreadsheetImporter(object):
         self.log("Linked relative %s to index %s" % (relative_patient_model,
                                                      index_patient))
 
-        
-
     def _get_relationship_to_index(self):
         relationship = self._get_value(self.data_sheet,
                                        self.row,
                                        DataDictionary.RELATIONSHIP_COLUMN)
 
         return relationship
-
 
     def _get_field(self, row, field):
         if type(field) is type(basestring):
@@ -497,14 +472,14 @@ class SpreadsheetImporter(object):
             self.log("Will update %s -> %s" % (field_expression,
                                                value))
 
-
-        context_model = self.rdrf_context_manager.get_or_create_default_context(patient, new_patient=True)
+        context_model = self.rdrf_context_manager.get_or_create_default_context(
+            patient, new_patient=True)
 
         self.log("context for patient = %s" % context_model.pk)
         self.log("Updating demographic fields ...")
-        patient.update_field_expressions(self.registry_model, updates, context_model=context_model)
+        patient.update_field_expressions(
+            self.registry_model, updates, context_model=context_model)
         self.log("Finished updating demographic fields")
-
 
     def _import_pedigree_data(self, patient, row):
         self.patient = patient
@@ -515,20 +490,17 @@ class SpreadsheetImporter(object):
     def _get_context_for_patient(self, patient_model):
         if not self.registry_model.has_feature("contexts"):
             return patient_model.default_context
-        
+
         for context_model in patient_model.context_models:
             if context_model.context_form_group and context_model.context_form_group.context_type == "F":
                 return context_model
-            
-                                                      
 
-    def _get_converted_value(self,row, field_num,  converter=None):
+    def _get_converted_value(self, row, field_num,  converter=None):
         value = self._get_column(field_num, row)
         if converter:
             converter_func = self._get_converter_func(converter)
             value = converter_func(value)
         return value
-    
 
     def _create_minimal_patient(self, row):
         self.stage = "MINIMAL"
@@ -543,7 +515,7 @@ class SpreadsheetImporter(object):
         patient.given_names = given_names
         patient.date_of_birth = date_of_birth
         patient.sex = sex
-        patient.consent = True # to satisfy validation ...
+        patient.consent = True  # to satisfy validation ...
         patient.save()
         patient.rdrf_registry = [self.registry_model]
         patient.save()
@@ -578,7 +550,6 @@ class SpreadsheetImporter(object):
     def _import_clinical_data(self, patient, row):
         for context_model, form_model in self._get_forms_and_contexts(patient):
             self._import_clinical_form(form_model, patient, context_model, row)
-        
 
     def _get_forms_and_contexts(self, patient_model):
         # get forms in fixed groups
@@ -592,8 +563,8 @@ class SpreadsheetImporter(object):
                 except RDRFContext.DoesNotExist:
                     # should not happen as contexts for fixed groups created
                     # when patient craeted
-                    raise Exception("could not find context for patient %s cfg %s" % (patient_model, context_form_group))
-                    
+                    raise Exception("could not find context for patient %s cfg %s" % (
+                        patient_model, context_form_group))
 
                 except RDRFContext.MultipleObjectsReturned:
                     raise Exception("too many contexts for patient %s cfg %s" %
@@ -612,10 +583,9 @@ class SpreadsheetImporter(object):
         self._import_consent("Registry Consent", "Child consent")
         self._import_consent("Optional Consents", "Clinical trials")
         self._import_consent("Optional Consents", "Information")
-        
+
         self._import_consent("Registry Subset", "FCHL")
         self._import_consent("Registry Subset", "Hyper-Lp(a)")
-        
 
     def _import_consent(self, section_label, question_label):
         self.stage = "CONSENT/%s" % section_label
@@ -630,31 +600,32 @@ class SpreadsheetImporter(object):
 
         if answer is None:
             answer = "False"
-            
+
         if answer.lower() in ["true", "yes", "y"]:
             answer = True
         else:
             answer = False
-            
+
         self._import_consent_question(section_label, question_label, answer)
-        
+
     def _import_consent_question(self, section_label, question_label, answer):
         consent_section_model = self._get_consent_section(section_label)
         consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
                                                              question_label=question_label)
-        
+
         answer_field_expression = "Consents/%s/%s/answer" % (consent_section_model.code,
                                                              consent_question_model.code)
-            
+
         self._eval(answer_field_expression, answer)
-        
+
     def _get_consent_section(self, section_label):
         try:
             consent_section_model = ConsentSection.objects.get(registry=self.registry_model,
                                                                section_label=section_label)
             return consent_section_model
         except ConsentSection.DoesNotExist:
-            self.log("ConsentSection with label %s does not exist" % section_label)
+            self.log("ConsentSection with label %s does not exist" %
+                     section_label)
             return None
 
     def _eval(self, field_expression, value):
@@ -686,35 +657,36 @@ class SpreadsheetImporter(object):
                 # is 1 row per patient
                 for cde_model in section_model.cde_models:
                     if self._cde_included(form_model, section_model, cde_model):
-                        field_num = self._get_field_num((form_model, section_model, cde_model))
+                        field_num = self._get_field_num(
+                            (form_model, section_model, cde_model))
                         spreadsheet_value = self._get_value(self.data_sheet,
                                                             row,
                                                             field_num)
-                        
-                        rdrf_value = self._convert_cde_value(cde_model, spreadsheet_value)
+
+                        rdrf_value = self._convert_cde_value(
+                            cde_model, spreadsheet_value)
 
                         self.log("SECTION %s CDE %s: spreadsheet = %s converted = %s" % (section_model.display_name,
                                                                                          cde_model.name,
                                                                                          spreadsheet_value,
                                                                                          rdrf_value))
-                        
 
-                        field_expression = self._get_field_expression(form_model, section_model, cde_model)
-                        
+                        field_expression = self._get_field_expression(
+                            form_model, section_model, cde_model)
+
                         field_updates.append((field_expression, rdrf_value))
 
                     else:
                         self.log("Form %s Section %s CDE %s NOT INCLUDED IN SPREADSHEET" % (form_model.name,
                                                                                             section_model.display_name,
                                                                                             cde_model.name))
-                        
 
         if len(field_updates) == 0:
             self.log("No clinical field updates for form %s" % form_model.name)
         else:
             self.log("There are %s clinical field updates for form %s" % (len(field_updates),
                                                                           form_model.name))
-            
+
             patient_model.update_field_expressions(
                 self.registry_model,
                 field_updates,
@@ -722,27 +694,22 @@ class SpreadsheetImporter(object):
             )
 
         self.log("Finished clinical field updates for %s" % form_model.name)
-        
-
 
     def _get_external_id(self, row):
         return self._get_column(DataDictionary.EXTERNAL_ID_COLUMN, row)
 
     def _cde_included(self, form_model, section_model, cde_model):
-        name_tuple = (form_model.name, section_model.display_name, cde_model.name)
+        name_tuple = (form_model.name,
+                      section_model.display_name, cde_model.name)
         return name_tuple in self.field_map
 
     def _get_field_expression(self, form_model, section_model, cde_model):
         expression = "%s/%s/%s" % (form_model.name,
-                                    section_model.code,
-                                    cde_model.code)
-        
+                                   section_model.code,
+                                   cde_model.code)
+
         return expression
 
-
-        
-   
-        
 
 if __name__ == "__main__":
     registry_code = sys.argv[1]
