@@ -435,7 +435,7 @@ class SpreadsheetImporter(object):
             self.row = row
             patient = self._create_minimal_patient(row)
             self.patient = patient
-            self._import_patient(row)
+            self._import_patient(row, patient_to_update=patient)
             self.log("Finished import of relative patient")
             self.stage = "UPDATEIDMAP"
             external_id = self._get_external_id(row)
@@ -445,7 +445,7 @@ class SpreadsheetImporter(object):
             self.log("Index of %s is %s" % (patient, index_patient))
 
             if index_patient is not None:
-                self._add_relative(index_patient, patient)
+                self._link_relative(index_patient, patient)
             else:
                 self.log("Could not link to my index as index was not found")
 
@@ -467,9 +467,8 @@ class SpreadsheetImporter(object):
                          rdrf_index_pk)
                 return None
 
-    def _add_relative(self, index_patient, relative_patient_model):
+    def _link_relative(self, index_patient, relative_patient_model):
         self.stage = "ADDRELATIVE"
-        self.patient = relative_patient_model
         patient_relative_model = PatientRelative()
         patient_relative_model.family_name = relative_patient_model.family_name
         patient_relative_model.given_names = relative_patient_model.given_names
@@ -581,12 +580,16 @@ class SpreadsheetImporter(object):
 
         return patient
 
-    def _import_patient(self, row):
+    def _import_patient(self, row, patient_to_update=None):
         self.stage = "MINIMAL"
         self.row = row
         self.log("creating minimal patient ...")
-        patient = self._create_minimal_patient(row)
-        self.patient = patient
+        if patient_to_update is None:
+            patient = self._create_minimal_patient(row)
+            self.patient = patient
+        else:
+            patient = patient_to_update
+            
         self.log("Finished minimal patient creation")
         self.stage = "DEMOGRAPHICS"
         self.log("Starting demograpics import")
