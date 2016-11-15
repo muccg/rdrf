@@ -122,6 +122,19 @@ function _django_fixtures {
 }
 
 
+function _runserver() {
+    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
+
+    _django_collectstatic
+    _django_migrate
+    _django_fixtures
+
+    echo "running runserver ..."
+    exec django-admin.py ${RUNSERVER_OPTS}
+}
+
+
+
 trap exit SIGHUP SIGINT SIGTERM
 defaults
 env | grep -iv PASS | sort
@@ -160,15 +173,16 @@ fi
 if [ "$1" = 'runserver' ]; then
     echo "[Run] Starting runserver"
 
+    : ${RUNSERVER_OPTS="runserver 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
+    _runserver
+fi
+
+# runserver_plus entrypoint
+if [ "$1" = 'runserver_plus' ]; then
+    echo "[Run] Starting runserver_plus"
+
     : ${RUNSERVER_OPTS="runserver_plus 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}"}
-    echo "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
-
-    _django_collectstatic
-    _django_migrate
-    _django_fixtures
-
-    echo "running runserver ..."
-    exec django-admin.py ${RUNSERVER_OPTS}
+    _runserver
 fi
 
 # grdr entrypoint
