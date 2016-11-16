@@ -81,6 +81,16 @@ def import_registry(export_name):
     subprocess_logging(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
 
+def django_reloadrules():
+    logger.info("Reloading iprestrict rules")
+    subprocess_logging(["django-admin.py", "reloadrules"])
+
+
+def django_init_dev():
+    subprocess_logging(["django-admin.py", "init" , "DEV"])
+    django_reloadrules()
+
+
 def show_stats(export_name):
     """
     show some stats after import
@@ -103,12 +113,21 @@ def click(element):
     element.click()
 
 
+def debug_links():
+    for link in world.browser.find_elements_by_xpath('//a'):
+        logger.debug('link {0} {1}'.format(link.text, link.get_attribute("href")))
+
 # We started from the step definitions from lettuce_webdriver, but
 # transitioned to our own (for example looking up form controls by label, not id)
 # We still use utils from the lettuce_webdriver but importing them registers
 # their step definitons and sometimes they are picked up instead of ours.
 # Clearing all the lettuce_webdriver step definitions before we register our own.
 STEP_REGISTRY.clear()
+
+
+@step('development fixtures')
+def load_development_fixtures(step):
+    django_init_dev()
 
 
 @step('export "(.*)"')
@@ -211,6 +230,12 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 @step('And I click Save')
 def click_save_button(step):
     save_button = world.browser.find_element_by_id("submit-btn")
+    click(save_button)
+
+
+@step('And I save the form')
+def click_save_button(step):
+    save_button = world.browser.find_element_by_class_name("btn-primary")
     click(save_button)
 
 
@@ -430,3 +455,8 @@ def sidebar_click(step, sidebar_link_text):
 def click_cancel(step):
     link = world.browser.find_element_by_xpath('//a[@class="btn btn-danger" and contains(., "Cancel")]')
     click(link)
+
+
+@step('I reload iprestrict')
+def reload_iprestrict(step):
+    django_reloadrules()
