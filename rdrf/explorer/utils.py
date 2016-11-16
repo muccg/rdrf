@@ -51,10 +51,6 @@ class DatabaseUtils(object):
                 self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
 
-    # fixme: remove
-    def connection_status(self):
-        return True, None
-
     def run_sql(self):
         try:
             cursor = self.create_cursor()
