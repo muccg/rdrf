@@ -73,6 +73,13 @@ def replace_bad_value(pvg_code, s):
 
     return s
 
+class BMICalc(object):
+    def __init__(self, patient_model, context_model):
+        self.patient_model = patient_model
+        self.context_model = context_model
+
+
+
 
 DEMOGRAPHICS_TABLE = [
     # fieldnum(column for data), English, field_expression, converter func (if
@@ -148,6 +155,14 @@ class SpreadsheetImporter(object):
         self._load_datadictionary_sheet()
         self._build_field_map()
         self.countries = pycountry.countries
+        self.bmi_calcs = {}
+
+    def _update_bmis(self):
+        for bmi_calc in self.bmi_calcs:
+            bmi_calc.perform()
+            
+            
+            
         
 
     def log(self, msg):
