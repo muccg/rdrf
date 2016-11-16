@@ -31,6 +31,8 @@ import openpyxl as xl
 import os
 import sys
 
+EN_DASH = "–"  # This actually appears in one of the PVGs for FH (PVG-FH_GENETIC_VARIANT) - so we need to fix the spreadsheet values to use it
+HYPHEN = "-"
 
 class DataDictionary:
     FIELD_NUM_COLUMN = 1
@@ -59,6 +61,17 @@ class FieldType:
     DEMOGRAPHICS = 2
     PEDIGREE_FORM = 3
     CONSENT = 4
+
+
+def replace_bad_value(pvg_code, s):
+    if s is None:
+        return s
+
+    if pvg_code == "PVG-FH_GENETIC_VARIANT":
+        if HYPHEN in s:
+            return s.replace(HYPHEN, EN_DASH)
+
+    return s
 
 
 DEMOGRAPHICS_TABLE = [
@@ -699,6 +712,7 @@ class SpreadsheetImporter(object):
 
     def _convert_cde_value(self, cde_model, spreadsheet_value):
         if cde_model.pv_group:
+            spreadsheet_value = replace_bad_value(cde_model.pv_group.code, spreadsheet_value)
             for pv in cde_model.pv_group.permitted_value_set.all():
                 if spreadsheet_value == pv.value:
                     return pv.code
