@@ -240,6 +240,14 @@ CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
+
+# The maximum size in bytes that a request body may be before a
+# SuspiciousOperation (RequestDataTooBig) is raised.
+DATA_UPLOAD_MAX_MEMORY_SIZE = env.get("data_upload_max_memory_size", 2621440) or None
+# The maximum number of parameters that may be received via GET or
+# POST before a SuspiciousOperation (TooManyFields) is raised.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = env.get("data_upload_max_number_fields", 30000) or None
+
 # django-useraudit
 # The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
 # If the settings is not set or set to 0, the feature is disabled.
