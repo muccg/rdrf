@@ -5,7 +5,7 @@ import functools
 from rdrf.utils import get_cde_value
 from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.models import CommonDataElement
+from rdrf.models import CommonDataElement, Modjgo
 from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
 logger = logging.getLogger(__name__)
@@ -57,18 +57,13 @@ def default_time_window():
 
 
 class SpreadSheetReport:
-    def __init__(self,
-                 query_model,
-                 humaniser,
-                 testing=False,
-                 testing_mongo_client=None):
+    def __init__(self, query_model, humaniser):
         self.query_model = query_model
         self.humaniser = humaniser
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
         self.work_book = xl.Workbook()
-        self.testing = testing
         self.current_sheet = None
         self.current_row = 1
         self.current_col = 1
@@ -77,10 +72,6 @@ class SpreadSheetReport:
         self.cde_model_map = {}
         self.cache = Cache()
         self._universal_column_map = {}
-        if self.testing:
-            self.client = testing_mongo_client
-        else:
-            self.client = construct_mongo_client()
 
         self.gfe_func_map = {}
         self.parser = GeneralisedFieldExpressionParser(self.registry_model)
@@ -303,7 +294,6 @@ class SpreadSheetReport:
 
     def _get_patient_record(self, patient, collection="cdes"):
         wrapper = DynamicDataWrapper(patient)
-        wrapper.client = self.client
         return wrapper.load_dynamic_data(self.registry_model.code, collection, flattened=False)
 
     def _write_header_universal_columns(self, universal_columns):
@@ -367,20 +357,16 @@ class SpreadSheetReport:
             return "??ERROR??"
 
     def _get_snapshots(self, patient):
-        wrapper = DynamicDataWrapper(patient)
-        wrapper.client = self.client
-        history_collection = wrapper._get_collection(
-            self.registry_model.code, "history")
-        lower_bound, upper_bound = self._get_timestamp_bounds()
+        history = Modjgo.objects.collection(self.registry_model.code, "history")
+        snapshots = history.find(patient, record_type="snapshot")
 
-        patient_snapshots = history_collection.find({"django_id": patient.pk,
-                                                     "registry_code": self.registry_model.code,
-                                                     "django_model": "Patient",
-                                                     "record_type": "snapshot"})
-        return [s for s in patient_snapshots]
+        # # fixme: date filtering was never implemented, but it could
+        # # be added if the storage format of history timestamps is fixed.
+        # if self.time_window:
+        #     after, before = self.time_window
+        #     if after is not None:
+        #         snapshots = snapshots.filter(data__timestamp__gte=after.isoformat())
+        #     if before is not None:
+        #         snapshots = snapshots.filter(data__timestamp__lte=before.isoformat())
 
-    def _get_timestamp_bounds(self):
-        dt_lower, dt_upper = self.time_window
-        lower_bound = dt_lower
-        upper_bound = dt_upper
-        return (lower_bound, upper_bound)
+        return list(snapshots.data())
