@@ -482,13 +482,11 @@ class SpreadsheetImporter(object):
         for row in self.indexes:
             self.stage = "CREATING INDEXES"
             self.row = row
-            self.log("processing index row %s" % row)
             self.external_id = self._get_external_id(row)
             index_patient = self._import_patient(row)
             self.patient = index_patient
             self._update_id_map(self.external_id, index_patient.pk)
-            self.log("Finished creating index patient")
-            self.log("ID MAP %s --> %s" % (self.external_id, index_patient.pk))
+            self.log("Index created")
 
     def _update_id_map(self, external_id, rdrf_id):
         if rdrf_id in self.reverse_map:
@@ -510,8 +508,8 @@ class SpreadsheetImporter(object):
             patient = self._create_minimal_patient(row)
             self._update_id_map(self.external_id, patient.pk)
             self.patient = patient
+            self.log("Created relative")
             self._import_patient(row, patient_to_update=patient)
-            self.log("Finished import of relative patient")
             self.stage = "UPDATEIDMAP"
             self.stage = "LINKAGE"
             index_patient = self._get_index_patient(row)
@@ -594,17 +592,12 @@ class SpreadsheetImporter(object):
             patient, new_patient=True)
 
         self.log("context for patient = %s" % context_model.pk)
-        self.log("Updating demographic fields ...")
         patient.update_field_expressions(
             self.registry_model, updates, context_model=context_model)
 
-
         self.stage = "ADDRESS"
-        self.log("Processing Address ...")
         self._update_address(patient, row)
-        self.log("Finished Address")
         self.stage = "DEMOGRAPHICS"
-        self.log("Finished updating demographic fields")
 
     def _import_pedigree_data(self, patient, row):
         self.patient = patient
@@ -645,30 +638,24 @@ class SpreadsheetImporter(object):
         
         patient.rdrf_registry = [self.registry_model]
         patient.save()
-        self.log("set patient registry to %s" % self.registry_model)
 
         return patient
 
     def _import_patient(self, row, patient_to_update=None):
         self.stage = "MINIMAL"
         self.row = row
-        self.log("creating minimal patient ...")
         if patient_to_update is None:
             patient = self._create_minimal_patient(row)
             self.patient = patient
         else:
             patient = patient_to_update
             
-        self.log("Finished minimal patient creation")
         self.stage = "DEMOGRAPHICS"
-        self.log("Starting demograpics import")
         self._import_demographics_data(patient, row)
-        self.log("Finished demographics import")
         self._import_consents(patient, row)
 
         self.stage = "CLINICAL"
         self._import_clinical_data(patient, row)
-        self.log("Finished importing clinical data")
 
         return patient
 
@@ -714,7 +701,6 @@ class SpreadsheetImporter(object):
 
     def _import_consent(self, section_label, question_label):
         self.stage = "CONSENT/%s" % section_label
-        self.log("Importing %s" % question_label)
         field_num = CONSENT_MAP.get(question_label, None)
         if field_num is None:
             raise Exception("Unknown consent question: %s" % question_label)
@@ -772,7 +758,6 @@ class SpreadsheetImporter(object):
         self.stage = "CLINICAL"
         self.patient = patient_model
         self.row = row
-        self.log("Importing clinical form %s ..." % form_model.name)
         field_updates = []
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
@@ -788,9 +773,6 @@ class SpreadsheetImporter(object):
 
                         rdrf_value = self._convert_cde_value(
                             cde_model, spreadsheet_value)
-
-                        self.log("SECTION %s CDE %s" % (section_model.display_name,
-                                                        cde_model.name))
 
                         field_expression = self._get_field_expression(
                             form_model, section_model, cde_model)
