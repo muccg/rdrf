@@ -1174,6 +1174,9 @@ def delete_associated_patient_if_any(sender, instance, **kwargs):
         logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
         if not hasattr(instance, "skip_archiving"):
             logger.debug("no skip_archiving attribute so deleting the PatientRelative.relative_patient")
-            instance.relative_patient.delete()
+            try:
+                instance.relative_patient.delete()
+            except Exception as ex:
+                logger.error("Error deleting relative_patient post_delete of PatientRelative: %s" % ex)
         else:
             logger.debug("skip_archiving is set on PatientRelative so won't archive")

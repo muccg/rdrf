@@ -294,8 +294,6 @@ class SpreadsheetImporter(object):
                 else:
                     value = self._get_column(field_num, row)
 
-                self.log("demographics field %s value = %s" % (long_field_name,
-                                                               value))
                 return value
 
         raise Exception("Unknown field %s" % long_field_name)
@@ -437,10 +435,6 @@ class SpreadsheetImporter(object):
 
         self._create_relatives()
         self.reset()
-        self.stage = "DUMPING IDS"
-        self.log("About to dump id map ...")
-        self._dump_id_map()
-        self.log("Finished dumping id map")
         self.stage = "COMPLETE"
         self.log("Data import finished")
 
@@ -506,13 +500,6 @@ class SpreadsheetImporter(object):
             raise ImportError("Dupe ID?- %s" % external_id)
         else:
             self.id_map[external_id] = rdrf_id
-
-    def _dump_id_map(self):
-        with open("id_map.csv", "w") as f:
-            f.write("OLD_ID,RDRF_ID\n")
-            for key in sorted(self.id_map.keys()):
-                line = "%s,%s\n" % (key, self.id_map[key])
-                f.write(line)
 
     def _create_relatives(self):
         self.stage = "CREATERELATIVES"
@@ -604,9 +591,6 @@ class SpreadsheetImporter(object):
                 converter_func = self._get_converter_func(converter_name)
                 value = converter_func(value)
             updates.append((field_expression, value))
-
-            self.log("Will update %s -> %s" % (field_expression,
-                                               value))
 
         context_model = self.rdrf_context_manager.get_or_create_default_context(
             patient, new_patient=True)
@@ -816,10 +800,8 @@ class SpreadsheetImporter(object):
                         rdrf_value = self._convert_cde_value(
                             cde_model, spreadsheet_value)
 
-                        self.log("SECTION %s CDE %s: spreadsheet = %s converted = %s" % (section_model.display_name,
-                                                                                         cde_model.name,
-                                                                                         spreadsheet_value,
-                                                                                         rdrf_value))
+                        self.log("SECTION %s CDE %s" % (section_model.display_name,
+                                                        cde_model.name))
 
                         field_expression = self._get_field_expression(
                             form_model, section_model, cde_model)
