@@ -395,8 +395,8 @@ class SpreadsheetImporter(object):
             sys.exit(1)
 
     def delete_added_patients(self):
-        #MyModel.objects.filter(id__in=request.POST.getlist('delete_l‌​ist')).delete() a
         self.log("Deleting all added patients!")
+        # do twice to override the default "archiving"
         Patient.objects.filter(id__in=self.ids).delete()
         Patient.objects.filter(id__in=self.ids).delete()
         
@@ -515,15 +515,12 @@ class SpreadsheetImporter(object):
             self.stage = "UPDATEIDMAP"
             self.stage = "LINKAGE"
             index_patient = self._get_index_patient(row)
-            self.log("Index of %s is %s" % (patient, index_patient))
-
             if index_patient is not None:
                 self._link_relative(index_patient, patient)
             else:
                 self.log("Could not link to my index as index was not found")
 
     def _get_index_patient(self, row):
-        self.log("Getting relative's index patient ...")
         my_index_external_id = self._get_value(self.data_sheet,
                                                row,
                                                DataDictionary.MY_INDEX_COLUMN)
@@ -557,8 +554,9 @@ class SpreadsheetImporter(object):
         patient_relative_model.relative_patient = relative_patient_model
 
         patient_relative_model.save()
-        self.log("Linked relative %s to index %s" % (relative_patient_model,
-                                                     index_patient))
+        if relative_patient_model is not None and index_patient is not None:
+            self.log("Linked relative %s to index %s" % (relative_patient_model.pk,
+                                                         index_patient.pk))
 
     def _get_relationship_to_index(self):
         relationship = self._get_value(self.data_sheet,
@@ -612,7 +610,6 @@ class SpreadsheetImporter(object):
         self.patient = patient
         self.row = row
         self.stage = "PEDIGREE"
-        self.log("TODO!")
 
     def _get_context_for_patient(self, patient_model):
         if not self.registry_model.has_feature("contexts"):
@@ -667,14 +664,9 @@ class SpreadsheetImporter(object):
         self.log("Starting demograpics import")
         self._import_demographics_data(patient, row)
         self.log("Finished demographics import")
-        self.stage = "PEDIGREE"
-        self.log("Starting pedigree import ...")
-        self._import_pedigree_data(patient, row)
-        self.log("Finished pedigree import")
         self._import_consents(patient, row)
 
         self.stage = "CLINICAL"
-        self.log("About to import clinical data ...")
         self._import_clinical_data(patient, row)
         self.log("Finished importing clinical data")
 
@@ -766,9 +758,6 @@ class SpreadsheetImporter(object):
                                                field_expression,
                                                value=value)
 
-        self.log("%s -> %s" % (field_expression,
-                               value))
-
     def _convert_cde_value(self, cde_model, spreadsheet_value):
         if cde_model.pv_group:
             spreadsheet_value = replace_bad_value(cde_model.pv_group.code, spreadsheet_value)
@@ -848,9 +837,8 @@ class SpreadsheetImporter(object):
             bmi = w / (h * h)
             self._eval(bmi_field_expression, bmi)
         except Exception as ex:
-            self.log("Could not update bmi: %s (h=%s w=%s)" % (ex,
-                                                               height,
-                                                               weight))
+            self.log("Could not update bmi: %s" % ex)
+            
         self.stage = "CLINICAL"
 
     def _get_external_id(self, row):
