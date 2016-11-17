@@ -16,6 +16,7 @@ from rdrf.contexts_api import RDRFContextManager
 
 from rdrf.form_view import FormView
 from django.test import RequestFactory
+from django.db import transaction
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientRelative
@@ -46,6 +47,8 @@ class DataDictionary:
     EXTERNAL_ID_COLUMN = 1
     MY_INDEX_COLUMN = 113
     RELATIONSHIP_COLUMN = 114
+    HEIGHT_COLUMN = 87
+    WEIGHT_COLUMN = 88
 
 
 class ImporterError(Exception):
@@ -73,10 +76,6 @@ def replace_bad_value(pvg_code, s):
 
     return s
 
-class BMICalc(object):
-    def __init__(self, patient_model, context_model):
-        self.patient_model = patient_model
-        self.context_model = context_model
 
 
 
@@ -130,7 +129,12 @@ class SpreadsheetImporter(object):
     # also FH introduced form groups
     # we need to be aware of them
 
-    def __init__(self, registry_model, import_spreadsheet_filepath, datadictionary_sheetname, datasheet_name):
+    def __init__(self,
+                 registry_model,
+                 import_spreadsheet_filepath,
+                 datadictionary_sheetname,
+                 datasheet_name,
+                 mongo_db_name):
         # used for logging
         self.row = None
         self.patient = None
@@ -149,33 +153,50 @@ class SpreadsheetImporter(object):
         self.family_linkage_map = {}
         self.index_patient_map = {}
         self.field_map = {}
-        self.id_map = {}
+        self.id_map = {}   # external id -> rdrf id
+        self.reverse_map = {}  # rdrf id -> external id 
         self._load_workbook()
         self._load_datasheet()
         self._load_datadictionary_sheet()
         self._build_field_map()
         self.countries = pycountry.countries
-        self.bmi_calcs = {}
-
-    def _update_bmis(self):
-        for bmi_calc in self.bmi_calcs:
-            bmi_calc.perform()
-            
-            
-            
+        self.ids = []
+        self.mongo_db_name = mongo_db_name
+        self.use_transactions = False
         
 
+
+    def rollback_mongo(self):
+        from rdrf.mongo_client import construct_mongo_client
+        mongo_client = construct_mongo_client()
+        db = mongo_client[self.mongo_db_name]
+        cdes_collection = db["cdes"]
+        
+        for patient_id in self.ids:
+            query = {"django_id": patient_id,
+                     "django_model": "Patient"}
+            cdes_collection.remove(query)
+            self.log("Removed mongo data for id %s" % patient_id)
+
+        self.log("All added patient data from run rolled back")
+
     def log(self, msg):
-        if self.row:
-            print("%s STAGE %s ROW %s PATIENT %s: %s" % (self.log_prefix,
-                                                         self.stage,
-                                                         self.row,
-                                                         self.patient,
-                                                         msg))
+        if self.patient:
+            pid = self.patient.pk
+            ident = "%s/%s" % (self.external_id, pid)
         else:
-            print("%s> STAGE %s: %s" % (self.log_prefix,
-                                        self.stage,
-                                        msg))
+            ident = ""
+            
+        if self.row:
+            print("%s STAGE [%s] ROW [%s] PATIENT [%s]: %s" % (self.log_prefix,
+                                                               self.stage,
+                                                               self.row,
+                                                               ident,
+                                                               msg))
+        else:
+            print("%s STAGE [%s]: %s" % (self.log_prefix,
+                                         self.stage,
+                                         msg))
 
     def _load_workbook(self):
         if not os.path.exists(self.import_spreadsheet_filepath):
@@ -349,6 +370,40 @@ class SpreadsheetImporter(object):
         self.row = None
 
     def run(self):
+        try:
+            if self.use_transactions:
+                with transaction.atomic():
+                    self.process()
+                    self.reset()
+                    self.stage = "COMPLETE"
+                    self.log("Import completed successfully")
+            else:
+                self.process()
+                self.reset()
+                self.stage = "COMPLETE"
+                self.log("Import completed successfully")
+        
+        except Exception as ex:
+            self.reset()
+            self.stage = "ROLLBACK!"
+            self.log("Unhandled error - rollback will now occur: %s" % ex)
+            if not self.use_transactions:
+                self.delete_added_patients()
+                
+            try:
+                self.rollback_mongo()
+            except Exception as rex:
+                self.log("Could not rollback mongo properly: %s" % rex)
+            sys.exit(1)
+
+    def delete_added_patients(self):
+        #MyModel.objects.filter(id__in=request.POST.getlist('delete_l‌​ist')).delete() a
+        self.log("Deleting all added patients!")
+        Patient.objects.filter(id__in=self.ids).delete()
+        Patient.objects.filter(id__in=self.ids).delete()
+        
+            
+    def process(self):
         self.stage = "SETUP"
 
         self.log("Starting data import ...")
@@ -434,18 +489,21 @@ class SpreadsheetImporter(object):
             self.stage = "CREATING INDEXES"
             self.row = row
             self.log("processing index row %s" % row)
+            self.external_id = self._get_external_id(row)
             index_patient = self._import_patient(row)
             self.patient = index_patient
+            self._update_id_map(self.external_id, index_patient.pk)
             self.log("Finished creating index patient")
-
-            external_id = self._get_external_id(row)
-            self.stage = "IDMAP"
-            self._update_id_map(external_id, index_patient.pk)
-            self.log("ID MAP %s --> %s" % (external_id, index_patient.pk))
+            self.log("ID MAP %s --> %s" % (self.external_id, index_patient.pk))
 
     def _update_id_map(self, external_id, rdrf_id):
+        if rdrf_id in self.reverse_map:
+            raise ImportError("Dupe rdrf id: %s" % rdrf_id)
+        else:
+            self.reverse_map[rdrf_id] = external_id
+            
         if external_id in self.id_map:
-            raise ImportError("Dupe ID?")
+            raise ImportError("Dupe ID?- %s" % external_id)
         else:
             self.id_map[external_id] = rdrf_id
 
@@ -461,13 +519,13 @@ class SpreadsheetImporter(object):
 
         for row in self.relatives:
             self.row = row
+            self.external_id = self._get_external_id(row)
             patient = self._create_minimal_patient(row)
+            self._update_id_map(self.external_id, patient.pk)
             self.patient = patient
             self._import_patient(row, patient_to_update=patient)
             self.log("Finished import of relative patient")
             self.stage = "UPDATEIDMAP"
-            external_id = self._get_external_id(row)
-            self._update_id_map(external_id, patient.pk)
             self.stage = "LINKAGE"
             index_patient = self._get_index_patient(row)
             self.log("Index of %s is %s" % (patient, index_patient))
@@ -602,6 +660,8 @@ class SpreadsheetImporter(object):
         patient.sex = sex
         patient.consent = True  # to satisfy validation ...
         patient.save()
+        self.ids.append(patient.pk)
+        
         patient.rdrf_registry = [self.registry_model]
         patient.save()
         self.log("set patient registry to %s" % self.registry_model)
@@ -764,7 +824,13 @@ class SpreadsheetImporter(object):
                         field_expression = self._get_field_expression(
                             form_model, section_model, cde_model)
 
-                        field_updates.append((field_expression, rdrf_value))
+                        if "CDEBMI" in field_expression:
+                            # special case
+                            self._update_bmi(row,
+                                             field_expression)
+                            
+                        else:
+                            field_updates.append((field_expression, rdrf_value))
 
                     else:
                         self.log("Form %s Section %s CDE %s NOT INCLUDED IN SPREADSHEET" % (form_model.name,
@@ -785,6 +851,26 @@ class SpreadsheetImporter(object):
 
         self.log("Finished clinical field updates for %s" % form_model.name)
 
+    def _update_bmi(self, row, bmi_field_expression):
+        self.stage = "BMI"
+        height = self._get_value(self.data_sheet,
+                                 row,
+                                 DataDictionary.HEIGHT_COLUMN)
+        weight = self._get_value(self.data_sheet,
+                                 row,
+                                 DataDictionary.WEIGHT_COLUMN)
+
+        try:
+            h = float(height)
+            w = float(weight)
+            bmi = w / (h * h)
+            self._eval(bmi_field_expression, bmi)
+        except Exception as ex:
+            self.log("Could not update bmi: %s (h=%s w=%s)" % (ex,
+                                                               height,
+                                                               weight))
+        self.stage = "CLINICAL"
+
     def _get_external_id(self, row):
         return self._get_column(DataDictionary.EXTERNAL_ID_COLUMN, row)
 
@@ -802,13 +888,16 @@ class SpreadsheetImporter(object):
 
 
 if __name__ == "__main__":
+    #python fh_data_importer.py fh ./fh.xlsx fh_data_dictionary_v3_fhwa.xlsx Sheet1 > x
+
     registry_code = sys.argv[1]
     spreadsheet_file = sys.argv[2]
-    dictionary_sheet_name = sys.argv[3]
-    data_sheet_name = sys.argv[4]
+    mongo_db_name = sys.argv[3]
+    
     registry_model = Registry.objects.get(code=registry_code)
     spreadsheet_importer = SpreadsheetImporter(registry_model,
                                                spreadsheet_file,
-                                               dictionary_sheet_name,
-                                               data_sheet_name)
+                                               "fh_data_dictionary_v3_fhwa.xlsx",
+                                               "Sheet1",
+                                               mongo_db_name)
     spreadsheet_importer.run()
