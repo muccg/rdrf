@@ -222,7 +222,6 @@ class SpreadsheetImporter(object):
                           column=column).value
 
     def _build_field_map(self):
-        self.log("building field map ..")
         # map RDRF "fields" to fieldnums in the spreadsheet
         d = {}
         d["patient_id"] = DataDictionary.PATIENT_ID_FIELDNUM
@@ -406,7 +405,6 @@ class SpreadsheetImporter(object):
 
         self.log("Starting data import ...")
         self._load_datasheet()
-        self.log("Loaded datasheet")
         row = 2  # data starts here
 
         # first find which rows are index patients, which relatives
@@ -789,20 +787,12 @@ class SpreadsheetImporter(object):
                         self.log("Form %s Section %s CDE %s NOT INCLUDED IN SPREADSHEET" % (form_model.name,
                                                                                             section_model.display_name,
                                                                                             cde_model.name))
-
-        if len(field_updates) == 0:
-            self.log("No clinical field updates for form %s" % form_model.name)
-        else:
-            self.log("There are %s clinical field updates for form %s" % (len(field_updates),
-                                                                          form_model.name))
-
+        if len(field_updates) > 0:
             patient_model.update_field_expressions(
                 self.registry_model,
                 field_updates,
                 context_model
             )
-
-        self.log("Finished clinical field updates for %s" % form_model.name)
 
     def _update_bmi(self, row, bmi_field_expression):
         self.stage = "BMI"
