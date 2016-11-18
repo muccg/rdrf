@@ -9,6 +9,8 @@ from django.db import transaction
 from ccg_django_utils.conf import EnvConfig
 from ...models import Registry, Modjgo
 
+COLLECTIONS = [c for (c, _) in Modjgo.COLLECTIONS]
+
 logger = logging.getLogger(__name__)
 
 ############################################################################
@@ -29,7 +31,7 @@ class Command(BaseCommand):
                 logger.warning("Registry \"%s\" does not exist." % registry_code)
 
         rs = Registry.objects.filter(code__in=options["registry"] or all_codes)
-        mongo_django(rs, dry_run=options["dry_run"])
+        mongo_django(Modjgo, rs, dry_run=options["dry_run"])
 
 ############################################################################
 # Settings
@@ -74,14 +76,27 @@ def mongo_client():
 ############################################################################
 # The conversion script
 
-def mongo_django(registries, dry_run=False):
+def mongo_django(Modjgo, registries, dry_run=False):
     client = mongo_client()
     for registry in registries:
         collection = MONGO_DB_PREFIX + registry.code
         logger.info("Converting mongodb %s: %s" % (collection, registry.name))
         db = client[collection]
-        convert_registry(registry, db, dry_run=dry_run)
+        convert_registry(Modjgo, registry, db, dry_run=dry_run)
         logger.info("Finished %s" % collection)
+
+def undjango_mongo(Modjgo, registries, dry_run=False):
+    client = mongo_client()
+    dead_ids = []
+    for registry in registries:
+        collection = MONGO_DB_PREFIX + registry.code
+        logger.info("Reverting mongodb %s: %s" % (collection, registry.name))
+        db = client[collection]
+        revert_registry(Modjgo, registry, db, dead_ids, dry_run=dry_run)
+        logger.info("Finished %s" % collection)
+
+    if not dry_run:
+        Modjgo.objects.filter(id__in=dead_ids).delete()
 
 def clean_doc(doc):
     if isinstance(doc, dict):
@@ -98,7 +113,7 @@ def clean_doc(doc):
 class DryRun(Exception):
     pass
 
-def convert_registry(registry, db, dry_run=False):
+def convert_registry(Modjgo, registry, db, dry_run=False):
     def finish_convert(obj, collection, doc, key):
         try:
             with transaction.atomic(using="clinical"):
@@ -126,5 +141,24 @@ def convert_registry(registry, db, dry_run=False):
                        data=clean_doc(doc))
             finish_convert(m, collection, doc, "clinical_id")
 
-    for (c, _) in Modjgo.COLLECTIONS:
+    for c in COLLECTIONS:
         convert_collection(db[c])
+
+def revert_registry(Modjgo, registry, db, dead_ids, dry_run=False):
+    def revert_collection(collection):
+        record_query = {
+            "clinical_id": { "$exists": True },
+        }
+        count = 0
+        for doc in collection.find(record_query, { "clinical_id": 1 }):
+            dead_ids.append(doc["clinical_id"])
+            count += 1
+
+        logger.info("%sdb.%s.%s Updating %d documents" % ("(dry run) " if dry_run else "",
+                                                          db.name, collection.name, count))
+
+        if not dry_run:
+            collection.update(record_query, { "$unset": { "clinical_id": "" } })
+
+    for c in COLLECTIONS:
+        revert_collection(db[c])
