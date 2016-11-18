@@ -107,16 +107,13 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     raise Exception("could not find cde %s" % cde)
 
 
-@step('And I click Save')
-def click_save_button(step):
-    save_button = world.browser.find_element_by_id("submit-btn")
-    utils.click(save_button)
-
-
-@step('And I save the form')
-def click_save_button(step):
-    save_button = world.browser.find_element_by_class_name("btn-primary")
-    utils.click(save_button)
+@step('I click the "(.*)" button')
+def click_submit_button(step, value):
+    """click submit button with given value
+    This enables us to click on button, input or a elements that look like buttons.
+    """
+    submit_element = world.browser.find_element_by_xpath("//*[@id='submit-btn' and @value='{0}']".format(value))
+    utils.click(submit_element)
 
 
 @step('error message is "(.*)"')

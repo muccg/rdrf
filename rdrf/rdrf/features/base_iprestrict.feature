@@ -15,7 +15,7 @@ Feature: IPRestrict is enabled and working
     And I fill in "Url pattern" with ".*useraudit.*"
     And I select "localhost" from "Ip group"
     And I select "DENY" from "Action"
-    And I save the form
+    And I click the "Save" button
     Then I should see "added successfully"
     Given I reload iprestrict
     When I click "Settings"

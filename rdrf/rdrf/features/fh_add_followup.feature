@@ -17,7 +17,7 @@ Feature: Follow Up forms.
     When I click "SMITH, John" on  patientlisting
     And I press "Add" button in "Follow Ups" group in sidebar 
     And I enter value "02-08-2016" for form "Follow Up" section " " cde "Date of assessment"
-    And I click Save
+    And I click the "Save" button
     Then location is "Follow Up/2-8-2016"
 
   Scenario: Cancel Follow Up
@@ -34,11 +34,11 @@ Feature: Follow Up forms.
     When I click "SMITH, John" on  patientlisting
     And I press "Add" button in "Follow Ups" group in sidebar 
     And I enter value "01-08-2016" for form "Follow Up" section " " cde "Date of assessment"
-    And I click Save
+    And I click the "Save" button
     Then location is "Follow Up/1-8-2016"
     And I press "Add" button in "Follow Ups" group in sidebar 
     And I enter value "02-08-2016" for form "Follow Up" section " " cde "Date of assessment"
-    And I click Save
+    And I click the "Save" button
     Then location is "Follow Up/2-8-2016"
  
 
