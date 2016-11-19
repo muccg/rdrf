@@ -74,7 +74,7 @@ def restore_snapshot(snapshot_name):
     subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
-def import_registry(export_name):
+def django_import(export_name):
     logger.info("Importing registry: {0}".format(export_name))
     subprocess_logging(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
 
@@ -89,7 +89,7 @@ def load_export(export_name):
     if have_snapshot(export_name):
         restore_snapshot(snapshot_name)
     else:
-        import_registry(export_name)
+        django_import(export_name)
         save_snapshot(snapshot_name, export_name)
 
     reset_database_connection()
