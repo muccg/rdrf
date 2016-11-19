@@ -74,11 +74,6 @@ def restore_snapshot(snapshot_name):
     subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
-def django_import(export_name):
-    logger.info("Importing registry: {0}".format(export_name))
-    subprocess_logging(["django-admin.py", "import", "{0}/{1}".format(exported_data_path(), export_name)])
-
-
 def load_export(export_name):
     """
     To save time cache the stellar snapshots ( one per export file )
@@ -96,14 +91,29 @@ def load_export(export_name):
     show_stats(export_name)
 
 
+def django_import(export_name):
+    django_admin(["import", "{0}/{1}".           format(exported_data_path(), export_name)])
+
+
 def django_reloadrules():
-    logger.info("Reloading iprestrict rules")
-    subprocess_logging(["django-admin.py", "reloadrules"])
+    django_admin(["reloadrules"])
 
 
 def django_init_dev():
-    subprocess_logging(["django-admin.py", "init", "DEV"])
-    django_reloadrules()
+    django_admin(["init", "DEV"])
+
+
+def django_flush():
+    django_admin(["flush"])
+
+
+def django_migrate():
+    django_admin(["migrate"])
+
+
+def django_admin(args):
+    logger.info(args)
+    subprocess_logging(["django-admin.py"] + args)
 
 
 def show_stats(export_name):

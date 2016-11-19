@@ -21,6 +21,7 @@ STEP_REGISTRY.clear()
 @step('development fixtures')
 def load_development_fixtures(step):
     utils.django_init_dev()
+    utils.django_reloadrules()
 
 
 @step('export "(.*)"')
