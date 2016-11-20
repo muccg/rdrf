@@ -232,13 +232,6 @@ def goto_patient(step):
     click_link(step, world.patient)
 
 
-@step('I am on the "(.*)"')
-def i_am_on_the(step, page):
-    if page == "Patient List":
-        return
-    assert False, "Invalid page '%s'" % page
-
-
 @step('the page header should be "(.*)"')
 def the_page_header_should_be(step, header):
     header = world.browser.find_element_by_xpath('//h3[contains(., "%s")]' % header)
@@ -297,10 +290,6 @@ def the_progress_indicator_should_be(step, percentage):
 
 @step('I go to "(.*)"')
 def our_goto(step, relative_url):
-    """
-    NB. This allows tests to run in different contexts ( locally, staging.)
-    We delegate to the library supplied version of the step with the same pattern after fixing the path
-    """
     absolute_url = world.site_url + relative_url
     world.browser.get(absolute_url)
 
