@@ -20,11 +20,12 @@ def subprocess_logging(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if stdout:
-        logger.info(stdout)
+        logger.info(str(stdout))
     if stderr:
-        logger.error(stderr)
+        logger.error(str(stderr))
     if p.returncode != 0:
         logger.error("Return code {0}".format(p.returncode))
+    return (p.returncode, str(stdout), str(stderr))
 
 
 def drop_all_mongo():
@@ -41,27 +42,29 @@ def reset_database_connection():
     db.connection.close()
 
 
-def reset_snapshot_dict():
-    logger.info('')
-    world.snapshot_dict = {}
-
-
 def have_snapshot(export_name):
-    return (export_name in world.snapshot_dict)
+    code, out, err = subprocess_logging(["stellar", "list"])
+    return (out.find(export_name) != -1)
 
 
-def save_snapshot(snapshot_name, export_name):
-    logger.info("Saving snapshot: {0}".format(snapshot_name))
+def remove_snapshot(snapshot_name):
+    logger.info(snapshot_name)
     subprocess_logging(["stellar", "remove", snapshot_name])
+    subprocess_logging(["rm", "-f", snapshot_name + ".mongo"])
+
+
+def save_snapshot(snapshot_name):
+    logger.info(snapshot_name)
+    if have_snapshot(snapshot_name):
+        remove_snapshot(snapshot_name)
     subprocess_logging(["stellar", "snapshot", snapshot_name])
     subprocess_logging(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
-    world.snapshot_dict[export_name] = snapshot_name
 
 
 def save_minimal_snapshot():
     # delete everything so we can import clean later
     drop_all_mongo()
-    save_snapshot("minimal", "minimal")
+    save_snapshot("minimal")
 
 
 def restore_minimal_snapshot():
@@ -69,8 +72,9 @@ def restore_minimal_snapshot():
 
 
 def restore_snapshot(snapshot_name):
-    logger.info("Restoring snapshot: {0}".format(snapshot_name))
+    logger.info(snapshot_name)
     subprocess_logging(["stellar", "restore", snapshot_name])
+    drop_all_mongo()
     subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
 
 
@@ -79,13 +83,11 @@ def load_export(export_name):
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
     """
-    snapshot_name = "snapshot_%s" % export_name
-
     if have_snapshot(export_name):
-        restore_snapshot(snapshot_name)
+        restore_snapshot(export_name)
     else:
         django_import(export_name)
-        save_snapshot(snapshot_name, export_name)
+        save_snapshot(export_name)
 
     reset_database_connection()
     show_stats(export_name)
@@ -104,11 +106,11 @@ def django_init_dev():
 
 
 def django_flush():
-    django_admin(["flush"])
+    django_admin(["flush", "--noinput"])
 
 
 def django_migrate():
-    django_admin(["migrate"])
+    django_admin(["migrate", "--noinput"])
 
 
 def django_admin(args):

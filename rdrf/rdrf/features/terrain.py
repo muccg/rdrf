@@ -56,7 +56,6 @@ def before_all():
     if not os.path.exists(settings.WRITABLE_DIRECTORY):
         os.makedirs(settings.WRITABLE_DIRECTORY)
     set_site_url()
-    utils.reset_snapshot_dict()
     utils.save_minimal_snapshot()
 
 
