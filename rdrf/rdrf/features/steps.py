@@ -190,6 +190,14 @@ def fill_in_textfield(step, textfield_label, text):
     textfield.send_keys(text)
 
 
+@step('fill "(.*)" with "(.*)" in MultiSection "(.*)" index "(.*)"')
+def fill_in_textfield(step, label, keys, multi, index):
+    multisection = multi + '-' + index
+    label = world.browser.find_element_by_xpath('//label[contains(@for, "{0}") and contains(., "{1}")]'.format(multisection, label))
+    textfield = world.browser.find_element_by_xpath('//input[@id="%s"]' % label.get_attribute('for'))
+    textfield.send_keys(keys)
+
+
 @step('value of "(.*)" should be "(.*)"')
 def value_is(step, textfield_label, expected_value):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
