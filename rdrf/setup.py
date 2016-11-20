@@ -32,6 +32,8 @@ requirements=[
      "python-dateutil==2.5.3",
      "python-memcached==1.58",
      "pyyaml==3.12",
+     "rdflib==4.2.1",
+     "rdflib-sqlalchemy==0.3.5",
      "setuptools_scm==1.10.1",
      "six==1.10.0",
      "SQLAlchemy==1.0.15",

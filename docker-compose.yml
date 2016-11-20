@@ -9,6 +9,11 @@ db:
     file: docker-compose-common.yml
     service: db
 
+fdp_db:
+  extends:
+    file: docker-compose-common.yml
+    service: fdp_db
+
 cache:
   extends:
     file: docker-compose-common.yml
@@ -34,6 +39,7 @@ runserver:
     - datadev
   links:
     - db
+    - fdp_db
     - cache
     - mongo
   ports:
@@ -47,6 +53,7 @@ uwsgi:
     - datadev
   links:
     - db
+    - fdp_db
     - cache
     - mongo
     - runserver:web

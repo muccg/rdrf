@@ -23,6 +23,9 @@ function wait_for_services {
     if [[ "$WAIT_FOR_DB" ]] ; then
         dockerwait $DBSERVER $DBPORT
     fi
+    if [[ "$WAIT_FOR_FDP_DB" ]] ; then
+        dockerwait $FDP_DBSERVER $FDP_DBPORT
+    fi
     if [[ "$WAIT_FOR_CACHE" ]] ; then
         dockerwait $CACHESERVER $CACHEPORT
     fi
@@ -48,6 +51,12 @@ function defaults {
     : ${DBNAME:="${DBUSER}"}
     : ${DBPASS:="${DBUSER}"}
 
+    : ${FDP_DBSERVER:="fdp_db"}
+    : ${FDP_DBPORT:="5432"}
+    : ${FDP_DBUSER:="fdp"}
+    : ${FDP_DBNAME:="${DBUSER}"}
+    : ${FDP_DBPASS:="${DBUSER}"}
+
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
     : ${UWSGISERVER:="uwsgi"}
@@ -72,6 +81,7 @@ function defaults {
     : ${TEST_WAIT:="30"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
+    export FDP_DBSERVER FDP_DBPORT FDP_DBUSER FDP_DBNAME FDP_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT
 }
 

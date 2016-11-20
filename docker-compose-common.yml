@@ -46,6 +46,14 @@ db:
   ports:
     - "5432"
 
+fdp_db:
+  image: muccg/postgres-ssl:9.4
+  environment:
+    - POSTGRES_USER=fdp
+    - POSTGRES_PASSWORD=fdp
+  ports:
+    - "5432"
+
 cache:
   image: memcached:1.4
 
@@ -71,6 +79,7 @@ runserver:
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
+    - WAIT_FOR_FDP_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
@@ -81,6 +90,7 @@ uwsgi:
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_DB=1
+    - WAIT_FOR_FDP_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - WAIT_FOR_RUNSERVER=1
