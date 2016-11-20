@@ -62,7 +62,7 @@ urlpatterns = [
     url(r'', include('django.contrib.auth.urls')),
     url(r'', include('registry.urls', namespace="registry")),
 
-    url(r'^/?$', landing_view.LandingView.as_view(), name='landing'),
+    url(r'^$', landing_view.LandingView.as_view(), name='landing'),
     url(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     url(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
         name='import_registry'),

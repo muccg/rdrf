@@ -37,10 +37,10 @@ usage() {
     echo " ./develop.sh (baseimage|buildimage|devimage|releasetarball|prodimage)"
     echo " ./develop.sh (dev|dev_build|django_admin|check_migrations)"
     echo " ./develop.sh (prod|prod_build)"
-    echo " ./develop.sh (runtests|dev_lettuce|prod_lettuce)"
+    echo " ./develop.sh (runtests|dev_aloe|prod_aloe)"
     echo " ./develop.sh (start_test_stack|start_seleniumhub)"
     echo " ./develop.sh (pythonlint|jslint)"
-    echo " ./develop.sh (ci_docker_staging|docker_staging_lettuce)"
+    echo " ./develop.sh (ci_docker_staging|docker_staging_aloe)"
     echo " ./develop.sh (ci_docker_login)"
     echo ""
     echo "Example, start dev with no proxy and rebuild everything:"
@@ -411,13 +411,23 @@ run_unit_tests() {
 }
 
 
+_purge_dir() {
+    rm --recursive --force -v $@ || true
+    mkdir -p $@
+    chmod o+rwx $@ || true
+}
+
+
 _start_selenium() {
     info 'selenium stack up'
 
     # remove any previous build artifacts from top level selenium dir
-    rm --force -v data/selenium/dev/*  data/selenium/prod/* || true
-    mkdir -p data/selenium/dev data/selenium/prod
-    chmod o+rwx data/selenium/dev data/selenium/prod
+    _purge_dir data/selenium/dev
+    _purge_dir data/selenium/dev/scratch
+    _purge_dir data/selenium/dev/log
+    _purge_dir data/selenium/prod
+    _purge_dir data/selenium/prod/scratch
+    _purge_dir data/selenium/prod/log
 
     set -x
     docker-compose --project-name ${PROJECT_NAME} -f docker-compose-selenium.yml pull --ignore-pull-failures
@@ -441,9 +451,12 @@ start_seleniumhub() {
 }
 
 
-_start_lettucetests() {
+_start_aloetests() {
     set -x
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-lettuce.yml $@
+    # ensure previous data containers are removed
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml stop
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml rm --all -v --force
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-aloe.yml $@
     local rval=$?
     set +x
 
@@ -454,14 +467,14 @@ _start_lettucetests() {
 }
 
 
-dev_lettuce() {
-    info 'dev lettuce'
+dev_aloe() {
+    info 'dev aloe'
     _start_selenium --force-recreate -d
     _start_test_stack --force-recreate -d
 
     # Use run so we can get correct return codes from test run
     set +e
-    _start_lettucetests run --rm devlettuce
+    _start_aloetests run --rm devaloe aloe $@
     local rval=$?
     set -e
 
@@ -471,14 +484,14 @@ dev_lettuce() {
     exit $rval
 }
 
-prod_lettuce() {
-    info 'prod lettuce'
+prod_aloe() {
+    info 'prod aloe'
     _start_selenium --force-recreate -d
     _start_prod_stack --force-recreate -d
 
     # Use run so we can get correct return codes from test run
     set +e
-    _start_lettucetests run --rm prodlettuce
+    _start_aloetests run --rm prodaloe aloe $@
     local rval=$?
     set -e
 

@@ -11,9 +11,10 @@ seleniumhub:
 
 chrome:
   image: selenium/node-chrome-debug
+  shm_size: 256M
   environment:
-    - SCREEN_WIDTH=3520
-    - SCREEN_HEIGHT=1200
+    - SCREEN_WIDTH=1366
+    - SCREEN_HEIGHT=768
     - SCREEN_DEPTH=16
   ports:
     - 5901:5900
@@ -22,9 +23,10 @@ chrome:
 
 firefox:
   image: selenium/node-firefox-debug
+  shm_size: 256M
   environment:
-    - SCREEN_WIDTH=3520
-    - SCREEN_HEIGHT=1200
+    - SCREEN_WIDTH=1366
+    - SCREEN_HEIGHT=768
     - SCREEN_DEPTH=16
   ports:
     - 5900:5900

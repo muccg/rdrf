@@ -333,6 +333,7 @@ class FieldFactory(object):
 
                 return fields.CharField(
                     max_length=80,
+                    required=options.get("required", False),
                     help_text=self.cde.instructions,
                     widget=widget,
                     label=self.cde.name)

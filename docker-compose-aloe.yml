@@ -9,16 +9,16 @@ dataprodselenium:
     file: docker-compose-common.yml
     service: dataprodselenium
 
-# runs the lettuce tests against docker-compose-teststack.yml
-devlettuce:
+# runs the aloe tests against docker-compose-teststack.yml
+devaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
     - WAIT_FOR_MONGO=1
-    - TEST_WAIT=45
+    - TEST_WAIT=10
     - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:
@@ -29,10 +29,10 @@ devlettuce:
     - rdrf_dbtest_1:db
     - rdrf_mongotest_1:mongo
 
-# runs the lettuce tests against docker-compose-teststack.yml
-prodlettuce:
+# runs the aloe tests against docker-compose-teststack.yml
+prodaloe:
   image: muccg/rdrf-dev
-  command: lettuce
+  command: aloe
   environment:
     - DBUSER=rdrfapp
     - WAIT_FOR_UWSGI=1
@@ -41,7 +41,7 @@ prodlettuce:
     - TEST_APP_PORT=8443
     - TEST_APP_SCHEME=https
     - TEST_APP_PATH=/app/
-    - TEST_WAIT=45
+    - TEST_WAIT=10
     - TEST_BROWSER=chrome
     - DEBUG=0
   volumes_from:

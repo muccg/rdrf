@@ -2,7 +2,6 @@ from django.db import models
 import logging
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from positions.fields import PositionField
 from datetime import datetime
 import json
 from rdrf.notifications import Notifier, NotificationError
@@ -850,7 +849,7 @@ class RegistryForm(models.Model):
         default=False,
         help_text="If the form is a questionnaire, is it accessible only by logged in users?",
         verbose_name="Questionnaire Login Required")
-    position = PositionField(collection='registry')
+    position = models.IntegerField(default=-1)
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
@@ -870,7 +869,7 @@ class RegistryForm(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def open(self):
@@ -1703,7 +1702,7 @@ class ConsentSection(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        models.Model.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     def applicable_to(self, patient):
         if patient is None:
@@ -1873,7 +1872,7 @@ class EmailTemplate(models.Model):
 class EmailNotification(models.Model):
     description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry)
-    email_from = models.EmailField(default=settings.DEFAULT_FROM_EMAIL)
+    email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True)
     email_templates = models.ManyToManyField(EmailTemplate)

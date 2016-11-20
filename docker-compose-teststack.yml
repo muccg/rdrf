@@ -27,6 +27,7 @@ runservertest:
   command: runserver
   environment:
     - DEPLOYMENT=test
+    - ALLOWED_HOSTS=*
   links:
     - dbtest:db
     - cachetest:cache

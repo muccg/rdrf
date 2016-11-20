@@ -13,6 +13,18 @@ def temporary_table_name(query_model, user):
     return "report_%s_%s" % (query_model.id, user.pk)
 
 
+def pg_uri(db):
+    "PostgreSQL connection URI for a django database settings dict"
+    user = db.get("USER")
+    password = db.get("PASSWORD")
+    name = db.get("NAME", "")
+    host = db.get("HOST")
+    port = db.get("PORT")
+    userpass = "".join([user, ":" + password if password else "", "@"])
+    return "".join(["postgresql://", userpass if user else "",
+                    host, ":" + port if port else "", "/", name])
+
+
 class ColumnLabeller(object):
 
     def get_label(self, column_name):
@@ -99,20 +111,7 @@ class ReportingTableGenerator(object):
         self.warning_messages = []
 
     def _create_engine(self):
-        report_db_data = settings.DATABASES["default"]
-        db_user = report_db_data["USER"]
-        db_pass = report_db_data["PASSWORD"]
-        database = report_db_data["NAME"]
-        host = report_db_data["HOST"]
-        port = report_db_data["PORT"]
-        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
-                                                                      db_pass,
-                                                                      host,
-                                                                      port,
-                                                                      database)
-
-        logger.debug("connection_string = %s" % connection_string)
-        return create_engine(connection_string)
+        return create_engine(pg_uri(settings.DATABASES["default"]))
 
     @timed
     def create_table(self):
@@ -592,18 +591,7 @@ class ReportTable(object):
         return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
 
     def _create_engine(self):
-        report_db_data = settings.DATABASES["default"]
-        db_user = report_db_data["USER"]
-        db_pass = report_db_data["PASSWORD"]
-        database = report_db_data["NAME"]
-        host = report_db_data["HOST"]
-        port = report_db_data["PORT"]
-        connection_string = "postgresql://{0}:{1}@{2}:{3}/{4}".format(db_user,
-                                                                      db_pass,
-                                                                      host,
-                                                                      port,
-                                                                      database)
-        return create_engine(connection_string)
+        return create_engine(pg_uri(settings.DATABASES["default"]))
 
     def run_query(self, params=None):
         from sqlalchemy.sql import select

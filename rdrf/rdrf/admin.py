@@ -400,6 +400,10 @@ class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
 
+    def get_changeform_initial_data(self, request):
+        from django.conf import settings
+        return {'email_from': settings.DEFAULT_FROM_EMAIL}
+
 
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate

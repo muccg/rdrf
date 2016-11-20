@@ -1,15 +1,19 @@
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
-from django.views.generic.base import View
-from django.core.urlresolvers import reverse
-from django.core.exceptions import PermissionDenied
+from datetime import datetime
+from itertools import product
+import logging
+import re
+from tempfile import NamedTemporaryFile
+from bson.json_util import dumps
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
-from wsgiref.util import FileWrapper
+from django.views.generic.base import View
 
-from explorer import app_settings
+from . import app_settings
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils
@@ -17,13 +21,8 @@ from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from registry.groups.models import WorkingGroup
+from rdrf.spreadsheet_report import SpreadSheetReport
 from rdrf.reporting_table import ReportingTableGenerator
-
-import re
-from bson.json_util import dumps
-from datetime import datetime
-import logging
-from itertools import product
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.utils import mongo_key_from_models
 
@@ -190,20 +189,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def _spreadsheet(self, query_model):
         # longitudinal spreadsheet required by FKRP
-        from datetime import datetime
-        from rdrf.spreadsheet_report import SpreadSheetReport
         humaniser = Humaniser(query_model.registry)
         spreadsheet_report = SpreadSheetReport(query_model, humaniser)
-        start = datetime.now()
-        spreadsheet_report.run()
-        finish = datetime.now()
-        elapsed_time = finish - start
-        logger.debug("report took %s seconds" % elapsed_time)
-        output = open(spreadsheet_report.output_filename)
-        filename = "Longitudinal Report.xlsx"
-        response = HttpResponse(FileWrapper(output), content_type='application/excel')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-        return response
+        with NamedTemporaryFile(suffix=".xlsx") as output:
+            start = datetime.now()
+            spreadsheet_report.run(output.name)
+            logger.debug("report took %s seconds" % (datetime.now() - start))
+            response = FileResponse(open(output.name, "rb"), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
+            return response
 
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:

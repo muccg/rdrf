@@ -1,7 +1,6 @@
 import openpyxl as xl
 import logging
 import json
-import uuid
 import functools
 from rdrf.utils import get_cde_value
 from rdrf.utils import cached
@@ -58,8 +57,7 @@ def default_time_window():
     return (one_year_ago, today)
 
 
-class SpreadSheetReport(object):
-
+class SpreadSheetReport:
     def __init__(self,
                  query_model,
                  humaniser,
@@ -70,7 +68,6 @@ class SpreadSheetReport(object):
         self.registry_model = query_model.registry
         self.projection_list = json.loads(query_model.projection)
         self.longitudinal_column_map = self._build_longitudinal_column_map()
-        self.output_filename = self._generate_filename()
         self.work_book = xl.Workbook()
         self.testing = testing
         self.current_sheet = None
@@ -90,9 +87,9 @@ class SpreadSheetReport(object):
         self.parser = GeneralisedFieldExpressionParser(self.registry_model)
 
     # Public interface
-    def run(self):
+    def run(self, output_filename):
         self._generate()
-        self.work_book.save(self.output_filename)
+        self.work_book.save(output_filename)
 
     # Private
 
@@ -107,9 +104,6 @@ class SpreadSheetReport(object):
         patient_fields = set(
             [field.name for field in Patient._meta.get_fields()])
         return patient_fields
-
-    def _generate_filename(self):
-        return "/tmp/%s.xlsx" % uuid.uuid4()
 
     def _build_longitudinal_column_map(self):
         d = {}
