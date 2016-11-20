@@ -1,5 +1,6 @@
 import logging
 import os
+from urllib.parse import urljoin
 
 from aloe import step, world
 from aloe.registry import STEP_REGISTRY
@@ -290,8 +291,7 @@ def the_progress_indicator_should_be(step, percentage):
 
 @step('I go to "(.*)"')
 def our_goto(step, relative_url):
-    absolute_url = world.site_url + relative_url
-    world.browser.get(absolute_url)
+    world.browser.get(urljoin(world.site_url, relative_url))
 
 
 @step('go to the registry "(.*)"')
