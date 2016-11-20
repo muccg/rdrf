@@ -5,7 +5,7 @@ from aloe import step, world
 from aloe.registry import STEP_REGISTRY
 from aloe_webdriver.webdriver import contains_content
 
-from nose.tools import assert_true
+from nose.tools import assert_true, assert_equal
 
 from selenium.webdriver.common.alert import Alert
 
@@ -31,7 +31,7 @@ def load_export(step, export_name):
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):
-    assert_true(step, contains_content(world.browser, text))
+    assert_true(contains_content(world.browser, text))
 
 
 @step('click "(.*)"')
@@ -48,7 +48,7 @@ def should_see_link_to(step, link_text):
 @step('should NOT see a link to "(.*)"')
 def should_not_see_link_to(step, link_text):
     links = world.browser.find_elements_by_xpath('//a[contains(., "%s")]' % link_text)
-    assert_true(step, len(links) == 0)
+    assert_equal(len(links), 0)
 
 
 @step('press the "(.*)" button')
@@ -179,7 +179,7 @@ def option_should_be_selected(step, option, dropdown_label):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % dropdown_label)
     option = world.browser.find_element_by_xpath('//select[@id="%s"]/option[contains(., "%s")]' %
                                                  (label.get_attribute('for'), option))
-    assert_true(step, option.get_attribute('selected'))
+    assert_true(option.get_attribute('selected'))
 
 
 @step('fill in "(.*)" with "(.*)"')
@@ -193,7 +193,7 @@ def fill_in_textfield(step, textfield_label, text):
 def value_is(step, textfield_label, expected_value):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
     textfield = world.browser.find_element_by_xpath('//input[@id="%s"]' % label.get_attribute('for'))
-    assert_true(step, textfield.get_attribute('value') == expected_value)
+    assert_equal(textfield.get_attribute('value'), expected_value)
 
 
 @step('check "(.*)"')
@@ -208,7 +208,7 @@ def check_checkbox(step, checkbox_label):
 def checkbox_should_be_checked(step, checkbox_label):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % checkbox_label)
     checkbox = world.browser.find_element_by_xpath('//input[@id="%s"]' % label.get_attribute('for'))
-    assert_true(step, checkbox.is_selected())
+    assert_true(checkbox.is_selected())
 
 
 @step('a registry named "(.*)"')
@@ -288,7 +288,11 @@ def click_user_menu(step):
 @step('the progress indicator should be "(.*)"')
 def the_progress_indicator_should_be(step, percentage):
     progress_bar = world.browser.find_element_by_xpath('//div[@class="progress"]/div[@class="progress-bar"]')
-    assert_true(step, progress_bar.text.strip() == percentage)
+
+    logger.info(progress_bar.text.strip())
+    logger.info(percentage)
+
+    assert_equal(progress_bar.text.strip(), percentage)
 
 
 @step('I go to "(.*)"')
