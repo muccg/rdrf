@@ -13,7 +13,7 @@ Feature: IPRestrict is enabled and working
     Then I should see "Rules"
     And I click "Add"
     And I fill in "Url pattern" with ".*useraudit.*"
-    And I select "localhost" from "Ip group"
+    And I select "ALL" from "Ip group"
     And I select "DENY" from "Action"
     And I click the "Save" button
     Then I should see "added successfully"
