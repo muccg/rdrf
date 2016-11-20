@@ -64,6 +64,7 @@ def save_snapshot(snapshot_name):
 def save_minimal_snapshot():
     # delete everything so we can import clean later
     drop_all_mongo()
+    django_flush()
     save_snapshot("minimal")
 
 
