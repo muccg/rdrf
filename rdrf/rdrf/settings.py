@@ -75,15 +75,15 @@ DATABASES = {
     }
 }
 
-FDP_DATABASE_URI = '{dialect}+{driver}://{user}:{password}@{host}:{port}/{name}'.format(**{
-    k: env.get(k, v) for k, v in (
-        ('dialect', 'postgresql'),
-        ('driver', 'psycopg2'),
-        ('user', 'fdp'),
-        ('password', 'fdp'),
-        ('host', 'fdp_db'),
-        ('port', '5432'),
-        ('name', 'fdp'))})
+FDP_DATABASE_URI = '{dialect}+{driver}://{user}:{password}@{host}:{port}/{name}'.format(
+    dialect=env.get('fdp_dbdialect', 'postgresql'),
+    driver=env.get('fdp_dbdriver', 'psycopg2'),
+    user=env.get('fdp_dbuser', 'fdp'),
+    password=env.get('fdp_dbpassword', 'fdp'),
+    host=env.get('fdp_dbhost', 'fdp_db'),
+    port=env.get('fdp_dbport', '5432'),
+    name=env.get('fdp_dbname', 'fdp')
+)
 
 # Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
 # These settings ( and only )  are consumed by rdrf.mongo_client
