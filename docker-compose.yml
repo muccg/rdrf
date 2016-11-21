@@ -9,12 +9,6 @@ db:
     file: docker-compose-common.yml
     service: db
 
-clinical:
-  extends:
-    file: docker-compose-common.yml
-    service: db
-
-
 cache:
   extends:
     file: docker-compose-common.yml
@@ -40,11 +34,8 @@ runserver:
     - datadev
   links:
     - db
-    - clinical
     - cache
     - mongo
-  environment:
-    - WAIT_FOR_CLINICAL=1
   ports:
     - "8000:8000"
 
@@ -56,7 +47,6 @@ uwsgi:
     - datadev
   links:
     - db
-    - clinical
     - cache
     - mongo
     - runserver:web

@@ -70,8 +70,6 @@ runserver:
   image: muccg/rdrf-dev
   environment:
     - DBUSER=rdrfapp
-    - CLINICAL_DBNAME=rdrfapp
-    - CLINICAL_DBSERVER=clinical
     - WAIT_FOR_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
