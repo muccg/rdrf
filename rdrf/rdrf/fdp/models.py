@@ -15,6 +15,7 @@ import uuid
 from urllib.parse import urljoin
 
 from ..models import Registry
+from ..dynamic_data import DynamicDataWrapper
 from registry.patients import models as m
 
 
@@ -233,9 +234,19 @@ class Patient():
         g.bind('byod-leiden', LEIDEN)
 
 
+        # META INFORMATION to be stored somewhere
+        DIAGNOSIS_FIELD = 'MedicalInformation.MTMDiagnosis.MTMDiagnosis'
+        MTMDiagnosisPVG = {
+            'MTMDiagnosisMTM': URIRef('http://www.orpha.net/ORDO/Orphanet_456328'),
+            'MTMDiagnosisCNM': URIRef('http://www.orpha.net/ORDO/Orphanet_596'),
+        }
+
+
         # registry = get_object_or_404(Registry, code=self.registry_code)
         registry = Registry.objects.get(code=self.registry_code)
         for p in m.Patient.objects.get_by_registry(registry):
+            wrapper = DynamicDataWrapper(p)
+
             # TODO think about how to do this.
             # Requesting the patient URIs won't return anything
             # However, we don't want to include the real pk in the URI, we don't want
@@ -251,35 +262,50 @@ class Patient():
             #
             # Ask the DTL guys what they recommend for it, before putting in more work.
 
+            # TODO firstName and lastName will go away, keeping them only because we
+            # used them in the hackaton and they are simple properties to map
             g.add((patient, FOAF.firstName, Literal(p.given_names)))
             g.add((patient, FOAF.lastName, Literal(p.family_name)))
+
             if p.sex:
                 g.add((patient, DBPEDIA.gender,
                     URIRef('http://dbpedia.org/resource/%s' % ('Female' if p.sex == '2' else 'Male'))))
 
             HAS_DISEASE = LEIDEN['67e95ecc-9b69-11e6-9f33-a24fc0d9649c']
 
-            MYOTUBULAR = URIRef('http://www.orpha.net/ORDO/Orphanet_456328')
-            CENTRONUCLEAR = URIRef('http://www.orpha.net/ORDO/Orphanet_596')
-            # TODO get the CDE value for diagnosis and set it
-            g.add((patient, HAS_DISEASE, MYOTUBULAR if p.sex == '2' else CENTRONUCLEAR))
+            diagnosis_code = wrapper.get_cde_val(self.registry_code, *DIAGNOSIS_FIELD.split('.'))
+            if diagnosis_code is not None:
+                g.add((patient, HAS_DISEASE, MTMDiagnosisPVG.get(diagnosis_code)))
 
             # TODO get the steroid usage flag from dyamic data
+            # MTM doesn't have this data
             USES_SUBSTANCE = LEIDEN['67e9614c-9b69-11e6-9f33-a24fc0d9649c']
             STEROID = URIRef('http://purl.obolibrary.org/obo/CHEBI_353417')
-            g.add((patient, USES_SUBSTANCE, STEROID))
+            # For the demo all males will be steroid users
+            if p.sex == '1':
+                g.add((patient, USES_SUBSTANCE, STEROID))
 
-            phenotype = URIRef(patient_uri + 'phenotype/0')
+
+            # TODO loss of ability to walk age
+            # MTM doesn't have this data, but keeping it for future reference as it isn't a simple
+            # mapping case
+
+            HAS_PHENOTYPE = LEIDEN['59e1324d_567b_42e1_bc88_203004e660da']
             LOSS_OF_ABILITY_TO_WALK = OBO.HP_0006957
             HAS_QUALITY = OBO.RO_0000086
 
-            g.add((phenotype, RDF.type, LOSS_OF_ABILITY_TO_WALK))
-            g.add((phenotype, HAS_QUALITY, Literal('6', datatype=XSD.integer)))
+            # For the demo some patients lost their ability to walk between ages 1..8
+            if p.pk % 2 == 0:
+                phenotype = URIRef(patient_uri + 'phenotype/0')
 
-            HAS_PHENOTYPE = LEIDEN['59e1324d_567b_42e1_bc88_203004e660da']
-            g.add((patient, HAS_PHENOTYPE, phenotype))
+                g.add((phenotype, RDF.type, LOSS_OF_ABILITY_TO_WALK))
+                g.add((phenotype, HAS_QUALITY, Literal(p.pk % 8 + 1, datatype=XSD.integer)))
 
-            # TODO maybe add wheelchair usage, but it isn't complete anyways
+                g.add((patient, HAS_PHENOTYPE, phenotype))
+
+            # TODO left out wheelchair usage example
+            # Look at it in the hackaton files when doing the generic mapper to make sure we cover it
+            # However, the use case wasn't completely mapped in the hackaton anyways
         return g
 
 
