@@ -83,6 +83,7 @@ runserver:
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+    - FDP_ENDPOINTS_ENABLED=1
 
 uwsgi:
   image: muccg/rdrf-dev

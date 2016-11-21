@@ -75,6 +75,10 @@ DATABASES = {
     }
 }
 
+# Set to True if you want to enable Fair Data Point Endpoints for this RDRF installation
+# Endpoints for FDP root, Catalog, Dataset, Distribution, Patients etc. will be enabled
+FDP_ENDPOINTS_ENABLED = env.get('fdp_endpoints_enabled', False)
+
 FDP_DATABASE_URI = '{dialect}+{driver}://{user}:{password}@{host}:{port}/{name}'.format(
     dialect=env.get('fdp_dbdialect', 'postgresql'),
     driver=env.get('fdp_dbdriver', 'psycopg2'),

@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
@@ -52,7 +53,7 @@ urlpatterns = [
     url(r'^iprestrict', include('iprestrict.urls')),
     url(r'^useraudit', include('useraudit.urls')),
 
-    url(r'^fdp/', include('rdrf.fdp.urls')),
+    url(r'^fdp/', include('rdrf.fdp.urls') if settings.FDP_ENDPOINTS_ENABLED else handler404),
     url(r'^api/v1/', include('rdrf.api_urls', namespace='v1')),
     url(r'^constructors/(?P<form_name>\w+)/?$',
         form_view.ConstructorFormView.as_view(), name="constructors"),
