@@ -54,8 +54,8 @@ function defaults {
     : ${FDP_DBSERVER:="fdp_db"}
     : ${FDP_DBPORT:="5432"}
     : ${FDP_DBUSER:="fdp"}
-    : ${FDP_DBNAME:="${DBUSER}"}
-    : ${FDP_DBPASS:="${DBUSER}"}
+    : ${FDP_DBNAME:="${FDP_DBUSER}"}
+    : ${FDP_DBPASS:="${FDP_DBUSER}"}
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
