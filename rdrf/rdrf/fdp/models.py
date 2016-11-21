@@ -26,80 +26,6 @@ LDP = Namespace('http://www.w3.org/ns/ldp#')
 LANG = Namespace('http://id.loc.gov/vocabulary/iso639-1/')
 
 
-class GraphPersister():
-    def __init__(self, ident, store_impl='SQLAlchemy'):
-        self.ident = ident
-        self.store_impl = store_impl
-
-        self.store = plugin.get(self.store_impl, Store)(identifier=self.ident)
-
-        self.DBURI = settings.FDP_DATABASE_URI
-
-    def p_no_meta(self, triple):
-        s, p, o = triple
-        return not (p == DCTERMS.issued or p == DCTERMS.modified)
-
-    def _open(self):
-        g = Graph(self.store, identifier=self.ident)
-        g.open(self.DBURI, create=True)
-        return g
-
-    def _copy_graph(self, src, dest, pfilter=None):
-        for pref, ns in src.namespaces():
-            dest.bind(pref, ns)
-        to_copy = src if pfilter is None else filter(pfilter, src)
-        for t in to_copy:
-            dest.add(t)
-        return dest
-
-    def exists(self):
-        return self.load() is not None
-
-    def load(self):
-        g = Graph(self.store, identifier=self.ident)
-        try:
-            ret = g.open(self.DBURI, create=False)
-        except:
-            return None
-
-        if ret == CORRUPTED_STORE:
-            raise Exception('%s store %s is corrupted' % (self.store_impl, self.ident))
-
-        if ret != VALID_STORE:
-            return None
-
-        gc = self._copy_graph(g, Graph(identifier=self.ident))
-
-        return gc
-
-    def create(self, node, gin):
-        g = self._open()
-        self._copy_graph(gin, g, self.p_no_meta)
-
-        now = datetime.now()
-        # TODO move these into base or detect nodes
-        g.set((node, DCTERMS.issued, Literal(now, datatype=XSD.dateTime)))
-        g.set((node, DCTERMS.modified, Literal(now, datatype=XSD.dateTime)))
-
-        g.commit()
-
-    def delete(self):
-        g = self._open()
-        g.destroy(self.DBURI)
-
-    def overwrite(self, node, gin):
-        g = self._open()
-
-        for t in filter(self.p_no_meta, g):
-            g.remove(t)
-        self._copy_graph(gin, g, self.p_no_meta)
-
-        # TODO move these into base or detect nodes
-        g.set((node, DCTERMS.modified, Literal(datetime.now(), datatype=XSD.dateTime)))
-
-        g.commit()
-
-
 class Base():
     def __init__(self, uri, build_absolute_uri=None):
         self.uri = uri
@@ -279,8 +205,6 @@ class Patient():
         self.build_absolute_uri = self.build_uri if build_absolute_uri is None else build_absolute_uri
         self.registry_code = registry_code
 
-        # self.persister = GraphPersister(self.ident)
-
     @property
     def ident(self):
         if hasattr(self, 'registry_code'):
@@ -312,9 +236,20 @@ class Patient():
         # registry = get_object_or_404(Registry, code=self.registry_code)
         registry = Registry.objects.get(code=self.registry_code)
         for p in m.Patient.objects.get_by_registry(registry):
-            patient_uri = self.build_absolute_uri('%d/' % p.pk) # TODO
+            # TODO think about how to do this.
+            # Requesting the patient URIs won't return anything
+            # However, we don't want to include the real pk in the URI, we don't want
+            # to link to the real data
+            # We can keep it like this, or maybe make the patient a Literal('patient-' + UUID) instead
+            patient_uri = self.build_absolute_uri(str(uuid.uuid1()))
             patient = URIRef(patient_uri)
             g.add((patient, RDF.type, PATIENT_TYPE))
+
+
+            # TODO I could work more on making these mappings real, but we will have to do them
+            # in a more general way, for example with RML instead.
+            #
+            # Ask the DTL guys what they recommend for it, before putting in more work.
 
             g.add((patient, FOAF.firstName, Literal(p.given_names)))
             g.add((patient, FOAF.lastName, Literal(p.family_name)))
@@ -346,6 +281,81 @@ class Patient():
 
             # TODO maybe add wheelchair usage, but it isn't complete anyways
         return g
+
+
+class GraphPersister():
+    def __init__(self, ident, store_impl='SQLAlchemy'):
+        self.ident = ident
+        self.store_impl = store_impl
+
+        self.store = plugin.get(self.store_impl, Store)(identifier=self.ident)
+
+        self.DBURI = settings.FDP_DATABASE_URI
+
+    def p_no_meta(self, triple):
+        s, p, o = triple
+        return not (p == DCTERMS.issued or p == DCTERMS.modified)
+
+    def _open(self):
+        g = Graph(self.store, identifier=self.ident)
+        g.open(self.DBURI, create=True)
+        return g
+
+    def _copy_graph(self, src, dest, pfilter=None):
+        for pref, ns in src.namespaces():
+            dest.bind(pref, ns)
+        to_copy = src if pfilter is None else filter(pfilter, src)
+        for t in to_copy:
+            dest.add(t)
+        return dest
+
+    def exists(self):
+        return self.load() is not None
+
+    def load(self):
+        g = Graph(self.store, identifier=self.ident)
+        try:
+            ret = g.open(self.DBURI, create=False)
+        except:
+            return None
+
+        if ret == CORRUPTED_STORE:
+            raise Exception('%s store %s is corrupted' % (self.store_impl, self.ident))
+
+        if ret != VALID_STORE:
+            return None
+
+        gc = self._copy_graph(g, Graph(identifier=self.ident))
+
+        return gc
+
+    def create(self, node, gin):
+        g = self._open()
+        self._copy_graph(gin, g, self.p_no_meta)
+
+        now = datetime.now()
+        # TODO move these into base or detect nodes
+        g.set((node, DCTERMS.issued, Literal(now, datatype=XSD.dateTime)))
+        g.set((node, DCTERMS.modified, Literal(now, datatype=XSD.dateTime)))
+
+        g.commit()
+
+    def delete(self):
+        g = self._open()
+        g.destroy(self.DBURI)
+
+    def overwrite(self, node, gin):
+        g = self._open()
+
+        for t in filter(self.p_no_meta, g):
+            g.remove(t)
+        self._copy_graph(gin, g, self.p_no_meta)
+
+        # TODO move these into base or detect nodes
+        g.set((node, DCTERMS.modified, Literal(datetime.now(), datatype=XSD.dateTime)))
+
+        g.commit()
+
 
 
 def addAll(g, s, p, os):
