@@ -1,7 +1,6 @@
 import django
 django.setup()
 
-from django.db import transaction
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
@@ -16,7 +15,6 @@ from rdrf.contexts_api import RDRFContextManager
 
 from rdrf.form_view import FormView
 from django.test import RequestFactory
-from django.db import transaction
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientRelative
@@ -162,8 +160,6 @@ class SpreadsheetImporter(object):
         self.countries = pycountry.countries
         self.ids = []
         self.mongo_db_name = mongo_db_name
-        self.use_transactions = False
-        
 
 
     def rollback_mongo(self):
@@ -368,24 +364,17 @@ class SpreadsheetImporter(object):
 
     def run(self):
         try:
-            if self.use_transactions:
-                with transaction.atomic():
-                    self.process()
-                    self.reset()
-                    self.stage = "COMPLETE"
-                    self.log("Import completed successfully")
-            else:
-                self.process()
-                self.reset()
-                self.stage = "COMPLETE"
-                self.log("Import completed successfully")
+            
+            self.process()
+            self.reset()
+            self.stage = "COMPLETE"
+            self.log("Import completed successfully")
         
         except Exception as ex:
             self.reset()
             self.stage = "ROLLBACK!"
             self.log("Unhandled error - rollback will now occur: %s" % ex)
-            if not self.use_transactions:
-                self.delete_added_patients()
+            self.delete_added_patients()
                 
             try:
                 self.rollback_mongo()
@@ -810,7 +799,6 @@ class SpreadsheetImporter(object):
             self._eval(bmi_field_expression, bmi)
         except Exception as ex:
             self.log("Could not update bmi: %s" % ex)
-            
         self.stage = "CLINICAL"
 
     def _get_external_id(self, row):
@@ -830,8 +818,6 @@ class SpreadsheetImporter(object):
 
 
 if __name__ == "__main__":
-    #python fh_data_importer.py fh ./fh.xlsx fh_data_dictionary_v3_fhwa.xlsx Sheet1 > x
-
     registry_code = sys.argv[1]
     spreadsheet_file = sys.argv[2]
     mongo_db_name = sys.argv[3]
