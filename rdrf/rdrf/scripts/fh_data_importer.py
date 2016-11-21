@@ -131,8 +131,7 @@ class SpreadsheetImporter(object):
                  registry_model,
                  import_spreadsheet_filepath,
                  datadictionary_sheetname,
-                 datasheet_name,
-                 mongo_db_name):
+                 datasheet_name):
         # used for logging
         self.row = None
         self.patient = None
@@ -159,7 +158,14 @@ class SpreadsheetImporter(object):
         self._build_field_map()
         self.countries = pycountry.countries
         self.ids = []
-        self.mongo_db_name = mongo_db_name
+        self.mongo_db_name = self._get_mongo_db_name()
+
+
+    def _get_mongo_db_name(self):
+        from django.conf import settings
+        return settings.MONGO_DB_PREFIX + self.registry_model.code
+    
+        
 
 
     def rollback_mongo(self):
@@ -820,12 +826,10 @@ class SpreadsheetImporter(object):
 if __name__ == "__main__":
     registry_code = sys.argv[1]
     spreadsheet_file = sys.argv[2]
-    mongo_db_name = sys.argv[3]
     
     registry_model = Registry.objects.get(code=registry_code)
     spreadsheet_importer = SpreadsheetImporter(registry_model,
                                                spreadsheet_file,
                                                "fh_data_dictionary_v3_fhwa.xlsx",
-                                               "Sheet1",
-                                               mongo_db_name)
+                                               "Sheet1")
     spreadsheet_importer.run()
