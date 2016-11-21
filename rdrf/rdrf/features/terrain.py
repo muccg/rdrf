@@ -3,7 +3,7 @@ import logging
 from contextlib import contextmanager
 from aloe import before, after, around, world
 from selenium import webdriver
-from . import steps
+from . import steps, utils
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -41,11 +41,6 @@ def with_browser():
     delattr(world, "browser")
 
 
-def reset_snapshot_dict():
-    world.snapshot_dict = {}
-    logger.info("set snapshot_dict to %s" % world.snapshot_dict)
-
-
 def set_site_url():
     world.site_url = TEST_APP_URL
     logger.info("world.site_url = %s" % world.site_url)
@@ -60,14 +55,8 @@ def before_all():
     logger.info('')
     if not os.path.exists(settings.WRITABLE_DIRECTORY):
         os.makedirs(settings.WRITABLE_DIRECTORY)
-    reset_snapshot_dict()
     set_site_url()
-    steps.save_minimal_snapshot()
-
-
-# @after.all
-# def after_all(total):
-#    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
+    utils.save_minimal_snapshot()
 
 
 def delete_cookies():
@@ -87,7 +76,7 @@ def after_scenario(scenario, outline, test_steps):
     world.browser.get_screenshot_as_file(
         os.path.join(settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
-        steps.restore_minimal_snapshot()
+        utils.restore_minimal_snapshot()
 
 
 @after.each_step
