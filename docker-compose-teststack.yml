@@ -8,6 +8,11 @@ dbtest:
     file: docker-compose-common.yml
     service: db
 
+fdp_dbtest:
+  extends:
+    file: docker-compose-common.yml
+    service: fdp_db
+
 cachetest:
   extends:
     file: docker-compose-common.yml
@@ -30,6 +35,7 @@ runservertest:
     - ALLOWED_HOSTS=*
   links:
     - dbtest:db
+    - fdp_dbtest:fdp_db
     - cachetest:cache
     - mongotest:mongo
   ports:
