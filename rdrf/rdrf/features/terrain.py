@@ -72,6 +72,7 @@ def before_scenario(scenario, outline, steps):
 
 @after.each_example
 def after_scenario(scenario, outline, test_steps):
+    logger.info('')
     passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
         os.path.join(settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
