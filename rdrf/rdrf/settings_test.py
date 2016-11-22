@@ -16,6 +16,3 @@ GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
 
 MIGRATION_MODULES = {"iprestrict": None}
 IPRESTRICT_GEOIP_ENABLED = False
-
-# https://code.djangoproject.com/ticket/16713
-del DATABASES["clinical"]

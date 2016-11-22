@@ -16,6 +16,10 @@ def exported_data_path():
     return os.path.join(utils_path(), 'exported_data')
 
 
+def stellar_config_path():
+    return os.path.join(utils_path(), 'stellar')
+
+
 def subprocess_logging(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -43,28 +47,59 @@ def reset_database_connection():
 
 
 def have_snapshot(export_name):
-    code, out, err = subprocess_logging(["stellar", "list"])
+    code, out, err = stellar_multidb(["stellar", "list"])
     return (out.find(export_name) != -1)
+
+
+def stellar_multidb(args):
+    """ Use stellar across multiple databases
+    A hack that searches for stellar configs in multiple dirs to allow for snapshot/restore in a multidb setup
+    """
+    logger.info(args)
+    cwd = os.getcwd()
+    rval_code = 0
+    rval_out = ''
+    rval_err = ''
+
+    for work_dir in [some_dir[0] for some_dir in os.walk(stellar_config_path())]:
+        # ignore dirs that don't have a stellar config
+        if not os.path.isfile(os.path.join(work_dir, 'stellar.yaml')):
+            continue
+
+        # cd and invoke stellar
+        os.chdir(work_dir)
+        code, out, err = subprocess_logging(args)
+
+        # some calling methods want to parse the output so, lets preserve that
+        rval_out += out
+        rval_err += err
+        if rval_code == 0:
+            rval_code = code
+
+    os.chdir(cwd)
+
+    return (rval_code, rval_out, rval_err)
 
 
 def remove_snapshot(snapshot_name):
     logger.info(snapshot_name)
-    subprocess_logging(["stellar", "remove", snapshot_name])
-    subprocess_logging(["rm", "-f", snapshot_name + ".mongo"])
+    stellar_multidb(["stellar", "remove", snapshot_name])
 
 
 def save_snapshot(snapshot_name):
     logger.info(snapshot_name)
     if have_snapshot(snapshot_name):
         remove_snapshot(snapshot_name)
-    subprocess_logging(["stellar", "snapshot", snapshot_name])
-    subprocess_logging(["mongodump", "--host", "mongo", "--archive=" + snapshot_name + ".mongo"])
+    stellar_multidb(["stellar", "snapshot", snapshot_name])
 
 
 def save_minimal_snapshot():
     # delete everything so we can import clean later
     drop_all_mongo()
     django_flush()
+    django_flush(['--database', 'clinical'])
+    django_migrate()
+    django_migrate(['--database', 'clinical'])
     save_snapshot("minimal")
 
 
@@ -74,9 +109,7 @@ def restore_minimal_snapshot():
 
 def restore_snapshot(snapshot_name):
     logger.info(snapshot_name)
-    subprocess_logging(["stellar", "restore", snapshot_name])
-    drop_all_mongo()
-    subprocess_logging(["mongorestore", "--host", "mongo", "--drop", "--archive=" + snapshot_name + ".mongo"])
+    stellar_multidb(["stellar", "restore", snapshot_name])
 
 
 def load_export(export_name):
@@ -106,12 +139,12 @@ def django_init_dev():
     django_admin(["init", "DEV"])
 
 
-def django_flush():
-    django_admin(["flush", "--noinput"])
+def django_flush(args=[]):
+    django_admin(["flush", "--noinput"] + args)
 
 
-def django_migrate():
-    django_admin(["migrate", "--noinput"])
+def django_migrate(args=[]):
+    django_admin(["migrate", "--noinput"] + args)
 
 
 def django_admin(args):
