@@ -491,15 +491,12 @@ admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 
 admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
 
-def register_adjudication_admin():
-    admin.site.register(Notification, NotificationAdmin)
-    admin.site.register(Adjudication, AdjudicationAdmin)
-    admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
-    admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
-    admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
-    admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
-
-register_adjudication_admin()
+admin.site.register(Notification, NotificationAdmin)
+admin.site.register(Adjudication, AdjudicationAdmin)
+admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
+admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
+admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
+admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
 
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile
