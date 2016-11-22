@@ -70,6 +70,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
             'migrations',
             'fixtures',
             'features',
+            'schemas',
             'hooks',
             'templatetags',
             'management'):

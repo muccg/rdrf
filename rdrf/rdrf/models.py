@@ -1,22 +1,25 @@
-from django.db import models
-import logging
-from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 import datetime
 import json
 import jsonschema
-from rdrf.notifications import Notifier, NotificationError
-from .utils import get_full_link, check_calculation
-from .utils import format_date, parse_iso_date
-from .jsonb import DataField
-from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+import logging
+import os.path
+import yaml
+
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+
+from .notifications import Notifier, NotificationError
+from .utils import get_full_link, check_calculation
+from .utils import format_date, parse_iso_date
+from .jsonb import DataField
 
 logger = logging.getLogger(__name__)
 
@@ -2161,193 +2164,26 @@ class Modjgo(models.Model):
         if not Registry.objects.filter(code=self.registry_code).exists():
             raise ValidationError({ "registry_code": "Registry %s does not exist" % self.registry_code })
 
-    MODJGO_SCHEMA = {
-        "$schema": "http://json-schema.org/schema#",
-        "type": "object",
-        "properties": {
-            "cdes": {
-                "allOf": [
-                    { "$ref": "#/definitions/content_types" },
-                    { "$ref": "#/definitions/cde" },
-                ],
-            },
-            "history": {
-                "allOf": [
-                    { "$ref": "#/definitions/content_types" },
-                    { "$ref": "#/definitions/history" },
-                ],
-            },
-            "progress": {
-                "allOf": [
-                    { "$ref": "#/definitions/content_types" },
-                    { "$ref": "#/definitions/progress" },
-                ],
-            },
-            "registry_specific_patient_data": {
-                "allOf": [
-                    { "$ref": "#/definitions/content_types" },
-                    { "$ref": "#/definitions/cde" },
-                ],
-            },
-        },
-        "additionalProperties": False,
-        "minProperties": 1,
-        "maxProperties": 1,
-        "definitions": {
-            "cde": {
-                "title": "CDE values collection",
-                "type": "object",
-                "properties": {
-                    "forms": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "title": "Form name",
-                                    "type": "string",
-                                },
-                                "sections": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "allOf": [{
-                                            "properties": {
-                                                "code": {
-                                                    "title": "Section code",
-                                                    "type": "string"
-                                                },
-                                            },
-                                            "required": ["code"],
-                                        }, {
-                                            "oneOf": [{
-                                                "properties": {
-                                                    "allow_multiple": {
-                                                        "type": "boolean",
-                                                        "enum": [ True ],
-                                                    },
-                                                    "cdes": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "array",
-                                                            "items": { "$ref": "#/definitions/cde_val" },
-                                                        },
-                                                    },
-                                                },
-                                                "required": ["allow_multiple", "cdes"],
-                                            }, {
-                                                "properties": {
-                                                    "allow_multiple": {
-                                                        "type": "boolean",
-                                                        "enum": [ False ],
-                                                    },
-                                                    "cdes": {
-                                                        "type": "array",
-                                                        "items": { "$ref": "#/definitions/cde_val" },
-                                                    },
-                                                },
-                                                "required": ["cdes"],
-                                            }],
-                                        }],
-                                    },
-                                },
-                            },
-                            "required": ["name", "sections"],
-                        },
-                    },
-                    "timestamp": { "$ref": "#/definitions/timestamp_iso" },
-                    "questionnaire_context": {
-                        "type": "string",
-                        "enum": ["au", "nz"],
-                    },
-                    "context_id": {
-                        "type": "number",
-                    },
-                },
-                "patternProperties": {
-                    "^.*_timestamp$": { "$ref": "#/definitions/timestamp_iso" },
-                },
-                "required": ["forms", "timestamp"],
-            },
-            "history": {
-                "title": "History collection",
-                "type": "object",
-                "properties": {
-                    "record": { "$ref": "#/definitions/cde" },
-                    "record_type": {
-                        "type": "string",
-                        "enum": ["snapshot"],
-                    },
-                    "registry_code": { "type": "string" },
-                    "timestamp": {
-                        "title": "Timestamp for CDE history only",
-                        "type": "string",
-                        "pattern": r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(.\d+)?$",
-                    },
-                },
-                "required": ["record", "timestamp"],
-            },
-            "content_types": {
-                "title": "Django generic foreign key",
-                "django_id": { "type": "integer" },
-                "django_model": {
-                    "type": "string",
-                    "enum": [
-                        "Patient",
-                        "QuestionnaireResponse",
-                    ],
-                },
-                "required": ["django_id", "django_model"],
-            },
-            "cde_val": {
-                "type": "object",
-                "properties": {
-                    "code": { "type": "string" },
-                    "value": {},
-                },
-                "required": ["code", "value"],
-            },
-            "timestamp_iso": {
-                "type": "string",
-                "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?(Z[+-]\d{4})?",
-            },
-            "progress": {
-                "type": "object",
-                "patternProperties": {
-                    "^.*_group_current$": { "type": "boolean" },
-                    "^.*_group_has_data$": { "type": ["boolean", "null"] },
-                    "^.*_group_progress$": { "type": "integer" },
+    modjgo_schema = None
+    modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
 
-                    "^.*_form_current$": { "type": "boolean" },
-                    "^.*_form_has_data$": { "type": ["boolean", "null"] },
-                    "^.*_form_progress$": {
-                        "type": "object",
-                        "properties": {
-                            "percentage": { "type": "integer" },
-                            "required": { "type": "integer" },
-                            "filled": { "type": "integer" },
-                        },
-                        "required": ["percentage", "required", "filled"],
-                        "additionalProperties": False,
-                    },
+    def validate(cls, collection, data):
+        if not cls.modjgo_schema:
+            try:
+                with open(cls.modjgo_schema_file) as f:
+                    cls.modjgo_schema = yaml.load(f.read())
+            except:
+                logger.exception("Error reading %s" % cls.modjgo_schema_file)
 
-                    "^.*_form_cdes_status$": {
-                        "type": "object",
-                        "patternProperties": {
-                            ".*": { "type": "boolean" }
-                        },
-                    },
-                },
-            }
-        },
-    }
+        if cls.modjgo_schema:
+            jsonschema.validate({collection: data}, cls.modjgo_schema)
 
     lax_validation = True
 
     def _clean_data(self):
         logger.debug("Validating %s %s" % (self.collection, self.id or ""))
         try:
-            jsonschema.validate({ self.collection: self.data }, self.MODJGO_SCHEMA)
+            self.validate(self.collection, self.data)
         except jsonschema.ValidationError as e:
             if self.lax_validation:
                 logger.warning("Failed to validate: %s" % e)
