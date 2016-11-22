@@ -70,9 +70,9 @@ runserver:
   image: muccg/rdrf-dev
   environment:
     - DBUSER=rdrfapp
-    - CLINICAL_DBNAME=rdrfapp
-    - CLINICAL_DBSERVER=clinical
+    - CLINICAL_DBUSER=rdrfapp
     - WAIT_FOR_DB=1
+    - WAIT_FOR_CLINICAL_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
@@ -82,7 +82,9 @@ uwsgi:
   command: uwsgi_local
   environment:
     - DBUSER=rdrfapp
+    - CLINICAL_DBUSER=rdrfapp
     - WAIT_FOR_DB=1
+    - WAIT_FOR_CLINICAL_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - WAIT_FOR_RUNSERVER=1
