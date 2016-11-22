@@ -1,6 +1,7 @@
 from io import StringIO
 import os
 
+from django.core.checks import register, Tags, Error
 from django.core.management import call_command
 from django.db import connections
 
@@ -44,6 +45,15 @@ class RegistryRouter:
         return (db == "default" and self.same_db or
                 db == self.choose_db(app_label, model_name))
 
+@register(Tags.security, deploy=True)
+def check_db_split(app_configs, **kwargs):
+    if RegistryRouter.same_db:
+        return [
+            Error("Demographics and clinical info are stored in the same database.",
+                  hint="Use CLINICAL_DBxxxx environment variables.",
+                  id="rdrf.E001")
+        ]
+    return []
 
 def reset_sql_sequences(apps):
     """
