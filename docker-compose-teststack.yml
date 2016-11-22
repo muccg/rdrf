@@ -8,6 +8,11 @@ dbtest:
     file: docker-compose-common.yml
     service: db
 
+clinicaltest:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
 cachetest:
   extends:
     file: docker-compose-common.yml
@@ -30,6 +35,7 @@ runservertest:
     - ALLOWED_HOSTS=*
   links:
     - dbtest:db
+    - dbclinical:clinicaldb
     - cachetest:cache
     - mongotest:mongo
   ports:

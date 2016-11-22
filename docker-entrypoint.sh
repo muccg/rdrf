@@ -23,6 +23,9 @@ function wait_for_services {
     if [[ "$WAIT_FOR_DB" ]] ; then
         dockerwait $DBSERVER $DBPORT
     fi
+    if [[ "$WAIT_FOR_CLINICAL_DB" ]] ; then
+        dockerwait $CLINICAL_DBSERVER $CLINICAL_DBPORT
+    fi
     if [[ "$WAIT_FOR_CACHE" ]] ; then
         dockerwait $CACHESERVER $CACHEPORT
     fi
@@ -48,11 +51,11 @@ function defaults {
     : ${DBNAME:="${DBUSER}"}
     : ${DBPASS:="${DBUSER}"}
 
-    : ${CLINICAL_DBSERVER:="clinical"}
+    : ${CLINICAL_DBSERVER:="clinicaldb"}
     : ${CLINICAL_DBPORT:="5432"}
     : ${CLINICAL_DBUSER:="webapp"}
-    : ${CLINICAL_DBNAME:="${DBUSER}"}
-    : ${CLINICAL_DBPASS:="${DBUSER}"}
+    : ${CLINICAL_DBNAME:="${CLINICAL_DBUSER}"}
+    : ${CLINICAL_DBPASS:="${CLINICAL_DBUSER}"}
 
     : ${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}
 
@@ -78,7 +81,7 @@ function defaults {
     : ${TEST_SELENIUM_HUB:="http://hub:4444/wd/hub"}
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
-    export DBSERVER_CLINICAL DBPORT_CLINICAL DBUSER_CLINICAL DBNAME_CLINICAL DBPASS_CLINICAL
+    export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
 }
 
