@@ -849,7 +849,7 @@ class RegistryForm(models.Model):
         default=False,
         help_text="If the form is a questionnaire, is it accessible only by logged in users?",
         verbose_name="Questionnaire Login Required")
-    position = models.IntegerField(default=-1)
+    position = models.PositiveIntegerField(default=0)
     questionnaire_questions = models.TextField(
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
