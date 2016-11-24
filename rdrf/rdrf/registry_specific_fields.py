@@ -72,7 +72,10 @@ class RegistrySpecificFieldsHandler(object):
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
             return filestorage.store_file(
-                self.registry_model, file_cde_model, form_value)
+                self.registry_model.code,
+                file_cde_model.code, form_value,
+                form_name="reg_spec",
+                section_code="reg_spec")
         else:
             return form_value
 
