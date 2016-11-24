@@ -540,7 +540,8 @@ class DynamicDataWrapper(object):
         registry_data = record_query.data().first()
         if registry_data:
             for k in ['django_id', '_id', 'django_model']:
-                del registry_data[k]
+                if k in registry_data:
+                    del registry_data[k]
             data[registry_model.code] = registry_data
 
         for registry_code in data:
