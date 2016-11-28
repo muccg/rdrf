@@ -13,6 +13,7 @@ class DoctorSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Doctor
+        fields = '__all__'
 
 
 class NextOfKinRelationshipHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -60,6 +61,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'rdrf_registry': {'required': False, 'lookup_field': 'code'},
             'consent': {'required': True},
         }
+        fields = '__all__'
 
     def create(self, validated_data):
         new_patient = super(PatientSerializer, self).create(validated_data)
@@ -120,3 +122,4 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'registry': {'lookup_field': 'code'},
         }
+        fields = '__all__'
