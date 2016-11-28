@@ -460,6 +460,9 @@ class FormProgress(object):
     def save_for_patient(self, patient_model, context_model=None):
         self.reset()
         from rdrf.dynamic_data import DynamicDataWrapper
-        wrapper = DynamicDataWrapper(patient_model)
+        if context_model is None:
+            wrapper = DynamicDataWrapper(patient_model)
+        else:
+            wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_model.pk)
         dynamic_data = wrapper.load_dynamic_data(self.registry_model.code, "cdes", flattened=False)
         return self.save_progress(patient_model, dynamic_data, context_model)
