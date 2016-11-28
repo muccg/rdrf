@@ -99,7 +99,7 @@ def django_import(export_name):
 
 
 def django_reloadrules():
-    django_admin(["reloadrules"])
+    django_admin(["reload_rules"])
 
 
 def django_init_dev():
