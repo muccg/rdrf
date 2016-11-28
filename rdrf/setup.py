@@ -28,7 +28,7 @@ requirements=[
      "pyinotify==0.9.6",
      "pymongo==2.9.3",
      "pyodbc==3.0.7",
-     "pyparsing==2.1.9",
+     "pyparsing==2.1.10",
      "python-dateutil==2.5.3",
      "python-memcached==1.58",
      "pyyaml==3.12",
