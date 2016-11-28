@@ -25,7 +25,7 @@ def uncopy_collections(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0039_modjgo'),
+        ('rdrf', '0040_modjgo'),
     ]
 
     operations = [

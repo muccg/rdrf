@@ -25,7 +25,7 @@ def set_fks(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0036_auto_20161026_1853'),
+        ('rdrf', '0037_registryform_position'),
     ]
 
     operations = [

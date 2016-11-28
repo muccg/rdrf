@@ -9,7 +9,7 @@ import rdrf.jsonb
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0038_remove_dummy'),
+        ('rdrf', '0039_remove_dummy'),
     ]
 
     operations = [
