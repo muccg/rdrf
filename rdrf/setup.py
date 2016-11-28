@@ -34,7 +34,7 @@ requirements=[
      "pyyaml==3.12",
      "setuptools_scm==1.10.1",
      "six==1.10.0",
-     "SQLAlchemy==1.0.15",
+     "SQLAlchemy==1.0.16",
      "uwsgi==2.0.13.1",
 ]
 
