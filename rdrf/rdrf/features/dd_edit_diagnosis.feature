@@ -39,7 +39,7 @@ Feature: Edit diagnosis for a patient
     And I press the "Save" button
     Then I should see "Patient Abigail ABBOTT saved successfully"
     When I navigate away then back
-    Then the progress indicator should be "12%"
+    Then the progress indicator should be "10%"
     Then option "PP (Primary progressive)" from "Condition" should be selected
     And option "DD Affected Status 2" from "Affected Status" should be selected
     And option "Family" from "First Suspected By" should be selected
