@@ -142,9 +142,6 @@ publish_docker_image)
     publish_docker_image
     ;;
 runtests)
-    create_base_image
-    create_build_image
-    create_dev_image
     run_unit_tests
     ;;
 start_test_stack)
