@@ -31,12 +31,11 @@ class Path:
 class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
-        self.data = all_data
+        self.data = all_data.data  # unwrapped data
         self.patient_dict = patient_dict
         self.patient_id = self.patient_dict["pk"]
         self.diagnosis_dict = self._get_diagnosis()
         self.diagnosis_id = self.diagnosis_dict["pk"]
-        self.other_models = self._get_related_data()
 
     def _get_diagnosis(self):
         d = {}
@@ -67,10 +66,11 @@ class PatientRecord(object):
                                                                                     model))
 
     def get(self, field, model="patients.patient", path=None):
+        print("getting model %s field %s path %s" % (model, field, path))
         if model == "patients.patient":
-            return self.patient_dict[field]
+            return self.patient_dict["fields"][field]
         elif model == "dmd.diagnosis":
-            return self.diagnosis_dict[field]
+            return self.diagnosis_dict["fields"][field]
         else:
             if path == Path.THROUGH_DIAGNOSIS:
                 foreign_key_field = self._get_foreign_key("diagnosis", model)
@@ -83,7 +83,10 @@ class PatientRecord(object):
 
             for thing in self.data:
                 if thing["model"] == model:
+                    print("found a %s" % model)
+                    print("%s" % thing)
                     if my_id == thing["fields"][foreign_key_field]:
+                        print("found %s!" % my_id)
                         return thing["fields"][field]
 
 
@@ -157,7 +160,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.diagnosis"},
             "field_expression117": {"field": "wheelchair_usage_age",
                                     "model": "dmd.motorfunction"},
-            "field_expression115": {"field": "diagnosis",
+            "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDDiagnosis": {"field": "diagnosis",
                                     "model": "dmd.diagnosis"},
             "field_expression156": {"field": "content_type",
                                     "model": "auth.permission"},
@@ -506,6 +509,7 @@ class Data(object):
     def patients(self):
         for thing in self.data:
             if thing["model"] == "patients.patient":
+                print("Patient %s" % thing)
                 yield thing
 
 
@@ -514,18 +518,26 @@ def meta(stage, run_after=False):
     def decorator(func):
         func_name = func.__name__
 
-        def wrapper(*args, **kwargs):
+        def wrapper(self, *args, **kwargs):
             rdrf_id = self._get_rdrf_id()
             old_id = self._get_old_id()
             target = self._get_target()
-            log_prefix = "%s/%s %s(%s):" % (rdrf_id,
-                                            old_id,
-                                            stage,
-                                            target,
-                                            func_name)
+            print("func_name = %s" % func_name)
+            print("rdrf_id = %s" % rdrf_id)
+            print("old_id = %s" % old_id)
+            print("target = %s" % target)
+            log_prefix = "%s/%s %s %s %s " % (rdrf_id,
+                                              old_id,
+                                              stage,
+                                              target,
+                                              func_name)
+
+            print("log_prefix = %s" % log_prefix)
 
             try:
-                value = func(*args, **kwargs)
+                myargs = [self] + list(args)
+                print("running %s on %s" % (func_name, str(myargs)))
+                value = func(*myargs, **kwargs)
                 log_line = "%s: OK" % log_prefix
             except ImportError as ierr:
                 log_line = "%s: IMPORT ERROR! - %s" % (log_prefix,
@@ -565,7 +577,7 @@ class OldRegistryImporter(object):
 
     def _get_old_id(self):
         if self.record:
-            return self.record.get("patient_id", None)
+            return self.record.patient_id
 
     def _get_target(self):
         form_name = section_code = cde_code = "?"
@@ -579,9 +591,13 @@ class OldRegistryImporter(object):
         if self.cde_model:
             cde_code = self.cde_model.code
 
-        return "%s/%s/%s" % (form_name,
-                             section_code,
-                             cde_code)
+        t = "%s/%s/%s" % (form_name,
+                          section_code,
+                          cde_code)
+        if t == "?/?/?":
+            return "No target"
+        else:
+            return t
 
     def _load_json_data(self):
         with open(self.json_file) as jf:
@@ -594,7 +610,7 @@ class OldRegistryImporter(object):
 
     def _process_record(self):
         self.patient_model = self._create_patient()
-        for form_model in self.registry_model.form_models:
+        for form_model in self.registry_model.forms:
             self.form_model = form_model
             for section_model in form_model.section_models:
                 self.section_model = section_model
@@ -603,10 +619,14 @@ class OldRegistryImporter(object):
     @meta("DEMOGRAPHICS")
     def _create_patient(self):
         p = Patient()
-        p.family_name = self.retrieve("family_name")
-        p.given_names = self.retrieve("given_names")
-        p.sex = self.retrieve("sex")
+        p.family_name = self.record.get("family_name")
+        p.given_names = self.record.get("given_names")
+        p.sex = self.record.get("sex")
+        p.date_of_birth = self.record.get("date_of_birth")
+        p.consent = True
+        p.active = True
         p.save()
+        print("patient %s saved OK" % p)
         return p
 
     @meta("FAMILY_MEMBER", run_after=True)
@@ -681,5 +701,5 @@ if __name__ == "__main__":
         with transaction.atomic():
             importer.run()
     except Exception as err:
-        sys.stderr.write("Unhandled error! - rollback will occur: %s" % err)
+        sys.stderr.write("Unhandled error! - rollback will occur: %s\n" % err)
         sys.exit(1)
