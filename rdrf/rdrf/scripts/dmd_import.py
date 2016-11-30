@@ -1,3 +1,6 @@
+import django
+django.setup()
+
 import sys
 import json
 from django.db import transaction
