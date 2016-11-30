@@ -82,16 +82,8 @@
 						<ul class="dropdown-menu" role="menu">
 							{% if request.user.is_curator or request.user.is_superuser %}
 								{% for reg in request.user.get_registries.all %}
-									<li><a href="{% url 'consent_list' reg.code %}">{{reg.code|upper}} Consents</a></li>
+									<li><a href="{% url 'consent_list' reg.code %}">{{reg.name}} Consents</a></li>
 								{% endfor %}
-							{% endif %}
-	
-							{% if request.user.is_superuser %}
-	
-								{% for reg in request.user.get_registries_or_all %}
-										<li><a href="{% url 'permission_matrix' reg.code %}">{{reg.code|upper}} Permissions</a></li>
-								{% endfor %}
-	
 							{% endif %}
 	
 							{% for quick_link in request.user.quick_links %}
@@ -114,6 +106,9 @@
 									{% if quick_link.admin_link %}
 										<li><a href="{{quick_link.url}}">{{quick_link.text}}</a></li>
 									{% endif %}
+								{% endfor %}
+								{% for reg in request.user.get_registries_or_all %}
+									<li><a href="{% url 'permission_matrix' reg.code %}">{{reg.name}} Permissions</a></li>
 								{% endfor %}
 							</ul>
 						</li>

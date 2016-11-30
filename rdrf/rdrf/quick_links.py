@@ -21,7 +21,7 @@ class QuickLinks(object):
     PatientsListing = QuickLink("patientslisting", "Patient List")
     Reports = QuickLink("reports", "Reports")
     Explorer = QuickLink("explorer_main", "Explorer", True)
-    Users = QuickLink("admin:groups_customuser_changelist", 'Users')
+    Users = QuickLink("admin:groups_customuser_changelist", 'Users', True)
     QuestionnaireResponses = QuickLink(
         "admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = QuickLink("admin:patients_doctor_changelist", _("Doctors"))
@@ -29,7 +29,7 @@ class QuickLinks(object):
     Genes = QuickLink("admin:genetic_gene_changelist", _("Genes"))
     Laboratories = QuickLink("admin:genetic_laboratory_changelist", _("Laboratories"))
 
-    WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", _("Working Groups"))
+    WorkingGroups = QuickLink("admin:groups_workinggroup_changelist", _("Working Groups"), True)
 
     # Admin only
     Registries = QuickLink("admin:rdrf_registry_changelist", _("Registries"), True)
@@ -43,7 +43,7 @@ class QuickLinks(object):
     ConsentSections = QuickLink(
         "admin:rdrf_consentsection_changelist", _("Consent Sections"), True)
     ConsentValues = QuickLink(
-        "admin:patients_consentvalue_changelist", _("Consent Values"), False)
+        "admin:patients_consentvalue_changelist", _("Consent Values"), True)
     DemographicsFields = QuickLink(
         "admin:rdrf_demographicfields_changelist", _("Demographics Fields"), True)
     Importer = QuickLink("import_registry", _("Importer"), True)
@@ -51,8 +51,8 @@ class QuickLinks(object):
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"), True)
     CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
-    States = QuickLink("admin:patients_state_changelist", _("States"))
-    ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"))
+    States = QuickLink("admin:patients_state_changelist", _("States"), True)
+    ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"), True)
     EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
     EmailTemplate = QuickLink("admin:rdrf_emailtemplate_changelist", _("Email Templates"), True)
     EmailNotificationHistory = QuickLink(
