@@ -25,7 +25,7 @@ class Path:
     THROUGH_PATIENT = 2
 
 
-class OldPatientRecord(object):
+class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
         self.data = all_data
@@ -39,16 +39,20 @@ class OldPatientRecord(object):
         d = {}
         for thing in self.data:
             if thing["model"] == "dmd.diagnosis" and thing["fields"]["patient"] == self.patient_id:
+                d["pk"] = thing["pk"]
                 for field in thing["fields"].keys():
                     value = thing["fields"][field]
                     d[field] = value
         return d
 
     def _get_foreign_key(self, target, model):
-        exceptions = {}
 
-        if model in exceptions:
-            return exceptions[model]
+        # perhaps some models have weird names for the foreign key
+        exceptions = {"patient": {},
+                      "diagnosis": {}}
+
+        if model in exceptions[target]:
+            return exceptions[target][model]
 
         if target == "patient":
             return "patient"
@@ -484,7 +488,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "genetic.laboratory"}}
 
 
-class OldData(object):
+class Data(object):
 
     def __init__(self, json_file, registry_model):
         self.json_file = json_file
@@ -495,40 +499,11 @@ class OldData(object):
         with open(self.json_file) as f:
             return json.load(f)
 
-    def get_field_expression(self, field_expression):
-        mapping = DATA_MAP.get(field_expression, None)
-        if mapping is None:
-            raise NotImplementedError(field_expression)
-        model = mapping["model"]
-        field = mapping["field"]
-        c = None
-        if "converter" in mapping:
-            converter = "converter_%s" % converter
-            if hasattr(self, converter):
-                c = getattr(self, converter)
-                if not callable(c):
-                    raise NotImplementedError(
-                        "Converter is not callable: %s" % converter)
-
-        def retriever(pk):
-            if c is None:
-                return self.get(model, field, pk)
-            else:
-                return c(self.get(model, field, pk))
-
-        return retriever
-
     @property
     def patients(self):
         for thing in self.data:
             if thing["model"] == "patients.patient":
                 yield thing
-
-    def get(self, model, field, pk):
-        for thing in self.data:
-            if thing["model"] == model and thing["pk"] == pk:
-                if field in thing["fields"]:
-                    return thing["fields"][field]
 
 
 def meta(stage, run_after=False):
@@ -567,7 +542,7 @@ class OldRegistryImporter(object):
 
     def __init__(self, registry_model, json_file):
         self.json_file = json_file
-        self.data = OldData(self.json_file, registry_model)
+        self.data = Data(self.json_file, registry_model)
         self.registry_model = registry_model
         self.patient_model = None
         self.form_model = None
@@ -611,7 +586,7 @@ class OldRegistryImporter(object):
 
     def run(self):
         for patient_dict in self.data.patients:
-            self.record = patient_dict
+            self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
 
     def _process_record(self):
@@ -651,19 +626,35 @@ class OldRegistryImporter(object):
 
     @meta("CDE")
     def _process_cde(self):
-        old_value = self._get_old_value()
-        converted_value = self._convert_value(old_value)
-        if converted_value is not None:
-            self._save_cde(converted_value)
+        field_expression = self._get_current_field_expression()
+        info = DATA_MAP.get(field_expression, None)
+        if info:
+            model = info["model"]
+            field = info["field"]
+            # Most objects are related to patient via the diagnosis
+            path = info.get("path", Path.THROUGH_DIAGNOSIS)
+            converter = info.get("converter", None)
+            old_value = self.record.get(field, model,path)
+            if old_value is not None:
+                if converter is not None:
+                    converter_func = self._get_converter_func(converter)
+                    new_value = converter_func(old_value)
+                else:
+                    new_value = old_value
+                self._save_cde(new_value)
 
-    def _get_old_value(self):
-        current_field_expression = self._get_current_field_expression()
-        self.data.get_field_expression(
+        else:
+            raise Exception("Unknown field expression: %s" % field_expression)
+
+
+    def _get_converter_func(self, converter):
+       pass 
+
 
     @meta("SAVECDE")
     def _save_cde(self, value):
         field_expression=self._get_current_field_expression()
-        self._evalulate_field_expression(field_expression, value)
+        self._evaluate_field_expression(field_expression, value)
 
     def _get_current_field_expression(self):
         return "%s/%s/%s" % (self.form_model.name,
