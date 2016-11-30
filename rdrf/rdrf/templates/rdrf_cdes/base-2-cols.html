@@ -82,21 +82,21 @@
 						<ul class="dropdown-menu" role="menu">
 							{% if request.user.is_curator or request.user.is_superuser %}
 								{% for reg in request.user.get_registries.all %}
-									<li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>
+									<li><a href="{% url 'consent_list' reg.code %}">{{reg.code|upper}} Consents</a></li>
 								{% endfor %}
 							{% endif %}
 	
 							{% if request.user.is_superuser %}
 	
 								{% for reg in request.user.get_registries_or_all %}
-										<li><a href="{% url 'permission_matrix' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Permissions</a></li>
+										<li><a href="{% url 'permission_matrix' reg.code %}">{{reg.code|upper}} Permissions</a></li>
 								{% endfor %}
 	
 							{% endif %}
 	
 							{% for quick_link in request.user.quick_links %}
 								{% if not quick_link.admin_link %}
-									<li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
+									<li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
 								{% endif %}
 							{% endfor %}
 							{% block extra_menu %}
@@ -112,7 +112,7 @@
 							<ul class="dropdown-menu" role="menu">
 								{% for quick_link in request.user.quick_links %}
 									{% if quick_link.admin_link %}
-										<li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {{quick_link.text}}</a></li>
+										<li><a href="{{quick_link.url}}">{{quick_link.text}}</a></li>
 									{% endif %}
 								{% endfor %}
 							</ul>
