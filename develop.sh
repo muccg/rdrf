@@ -142,9 +142,6 @@ publish_docker_image)
     publish_docker_image
     ;;
 runtests)
-    create_base_image
-    create_build_image
-    create_dev_image
     run_unit_tests
     ;;
 start_test_stack)
@@ -161,18 +158,18 @@ ci_docker_login)
     ;;
 dev_aloe)
     shift
-    dev_aloe $@
+    dev_aloe aloe $@
     ;;
 aloe)
     shift
-    dev_aloe $@
+    dev_aloe aloe $@
     ;;
 reexport_test_zips)
     reexport_test_zips
     ;;
 prod_aloe)
     shift
-    prod_aloe $@
+    prod_aloe aloe $@
     ;;
 *)
     usage
