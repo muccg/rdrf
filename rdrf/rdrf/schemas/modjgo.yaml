@@ -1,0 +1,147 @@
+$schema: http://json-schema.org/schema#
+type: object
+properties:
+  cdes:
+    allOf:
+    - {$ref: '#/definitions/content_types'}
+    - {$ref: '#/definitions/cde'}
+  history:
+    allOf:
+    - {$ref: '#/definitions/content_types'}
+    - {$ref: '#/definitions/history'}
+  progress:
+    allOf:
+    - {$ref: '#/definitions/content_types'}
+    - {$ref: '#/definitions/progress'}
+  registry_specific_patient_data:
+    allOf:
+    - {$ref: '#/definitions/content_types'}
+    - {$ref: '#/definitions/cde'}
+additionalProperties: false
+maxProperties: 1
+minProperties: 1
+
+definitions:
+  cde:
+    title: CDE values collection
+    type: object
+    properties:
+      context_id:
+        type: integer
+      forms:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              title: Form name
+            sections:
+              type: array
+              items:
+                type: object
+                allOf:
+                - properties:
+                    code:
+                      type: string
+                      title: Section code
+                  required: [code]
+                - oneOf:
+                  # When allow_multiple is true, cdes is an array
+                  - properties:
+                      allow_multiple:
+                        enum: [true]
+                        type: boolean
+                      cdes:
+                        items:
+                          items: {$ref: '#/definitions/cde_val'}
+                          type: array
+                        type: array
+                    required: [allow_multiple, cdes]
+
+                  # When allow_multiple is false, cdes is an object
+                  - properties:
+                      allow_multiple:
+                        enum: [false]
+                        type: boolean
+                      cdes:
+                        items: {$ref: '#/definitions/cde_val'}
+                        type: array
+                    required: [cdes]
+          required: [name, sections]
+      questionnaire_context:
+        enum: [au, nz]
+        type: string
+      timestamp: {$ref: '#/definitions/timestamp_iso'}
+    patternProperties:
+      ^.*_timestamp$: {$ref: '#/definitions/timestamp_iso'}
+    required: [forms, timestamp]
+
+  cde_val:
+    type: object
+    properties:
+      code:
+        type: string
+      value: {}
+    required: [code, value]
+
+  content_types:
+    title: Django generic foreign key
+    django_id:
+      type: integer
+    django_model:
+      enum:
+        - Patient
+        - QuestionnaireResponse
+      type: string
+    required: [django_id, django_model]
+
+  history:
+    type: object
+    title: History collection
+    properties:
+      record: {$ref: '#/definitions/cde'}
+      record_type:
+        enum: [snapshot]
+        type: string
+      registry_code: {type: string}
+      timestamp:
+        pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(.\d+)?$'
+        title: Timestamp for CDE history only
+        type: string
+    required: [record, timestamp]
+
+  progress:
+    type: object
+    patternProperties:
+      ^.*_form_cdes_status$:
+        patternProperties:
+          .*:
+            type: boolean
+        type: object
+      ^.*_form_current$:
+        type: boolean
+      ^.*_form_has_data$:
+        type: [boolean, 'null']
+      ^.*_form_progress$:
+        additionalProperties: false
+        properties:
+          filled:
+            type: integer
+          percentage:
+            type: integer
+          required:
+            type: integer
+        required: [percentage, required, filled]
+        type: object
+      ^.*_group_current$:
+        type: boolean
+      ^.*_group_has_data$:
+        type: [boolean, 'null']
+      ^.*_group_progress$:
+        type: integer
+
+  timestamp_iso:
+    title: ISO 8601 date and time representation, with optional timezone
+    type: string
+    pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?(Z|[+-]\d{2,4})?'

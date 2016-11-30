@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from rdrf.mongo_client import construct_mongo_client
 from rdrf.models import Registry
 from rdrf.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType

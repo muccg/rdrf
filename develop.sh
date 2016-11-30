@@ -66,8 +66,8 @@ reexport_test_zips() {
   ZIPFILES=rdrf/rdrf/features/exported_data/*.zip
   for f in $ZIPFILES
   do
-      f2="/app/$f"
-      reexport_test_zip $f2
+      code=$(basename --suffix=.zip $f)
+      reexport_test_zip /app/$f $code
   done
 }
 
@@ -77,7 +77,7 @@ reexport_test_zip() {
 
     set -x
     set +e
-    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml run --rm runservertest /app/docker-entrypoint.sh /app/scripts/reexport_zip.sh $1
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose-teststack.yml run --rm runservertest /app/docker-entrypoint.sh /app/scripts/reexport_zip.sh "$@"
     local rval=$?
     set -e
     set +x
