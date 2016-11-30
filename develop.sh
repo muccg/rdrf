@@ -158,18 +158,18 @@ ci_docker_login)
     ;;
 dev_aloe)
     shift
-    dev_aloe $@
+    dev_aloe aloe $@
     ;;
 aloe)
     shift
-    dev_aloe $@
+    dev_aloe aloe $@
     ;;
 reexport_test_zips)
     reexport_test_zips
     ;;
 prod_aloe)
     shift
-    prod_aloe $@
+    prod_aloe aloe $@
     ;;
 *)
     usage
