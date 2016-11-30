@@ -19,6 +19,71 @@ class ImportError(Exception):
 class RollbackError(Exception):
     pass
 
+
+class Path:
+    THROUGH_DIAGNOSIS = 1
+    THROUGH_PATIENT = 2
+
+
+class OldPatientRecord(object):
+
+    def __init__(self, patient_dict, all_data):
+        self.data = all_data
+        self.patient_dict = patient_dict
+        self.patient_id = self.patient_dict["pk"]
+        self.diagnosis_dict = self._get_diagnosis()
+        self.diagnosis_id = self.diagnosis_dict["pk"]
+        self.other_models = self._get_related_data()
+
+    def _get_diagnosis(self):
+        d = {}
+        for thing in self.data:
+            if thing["model"] == "dmd.diagnosis" and thing["fields"]["patient"] == self.patient_id:
+                for field in thing["fields"].keys():
+                    value = thing["fields"][field]
+                    d[field] = value
+        return d
+
+    def _get_foreign_key(self, target, model):
+        exceptions = {}
+
+        if model in exceptions:
+            return exceptions[model]
+
+        if target == "patient":
+            return "patient"
+
+        if target == "diagnosis":
+            return "diagnosis"
+
+        raise Exception("Don't know how to find foreign key to %s from model %s" % (target,
+                                                                                    model))
+
+    def get(self, field, model="patients.patient", path=None):
+        if model == "patients.patient":
+            return self.patient_dict[field]
+        elif model == "dmd.diagnosis":
+            return self.diagnosis_dict[field]
+        else:
+            if path == Path.THROUGH_DIAGNOSIS:
+                foreign_key_field = self._get_foreign_key("diagnosis", model)
+                my_id = self.diagnosis_id
+            elif path == Path.THROUGH_PATIENT:
+                foreign_key_field = self._get_foreign_key("patient", model)
+                my_id = self.patient_id
+            else:
+                raise Exception("Bad path")
+
+            for thing in self.data:
+                if thing["model"] == model:
+                    if my_id == thing["fields"][foreign_key_field]:
+                        return thing["fields"][field]
+
+
+# The following was created from iterating through the json dump
+# The original json data consists of a list of dictionaries:
+# {pk: N, model: "app.classname", "fields": {"field1": value, "field2": ..}}
+
 DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "iprestrict.rule"},
             "field_expression8": {"field": "applied",
@@ -149,7 +214,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "patients.patient"},
             "field_expression52": {"field": "next_of_kin_home_phone",
                                    "model": "patients.patient"},
-            "field_expression53": {"field": "family_name",
+            "family_name": {"field": "family_name",
                                    "model": "patients.patient"},
             "field_expression43": {"field": "date_of_birth",
                                    "model": "patients.patient"},
@@ -430,12 +495,11 @@ class OldData(object):
         with open(self.json_file) as f:
             return json.load(f)
 
-
     def get_field_expression(self, field_expression):
         mapping = DATA_MAP.get(field_expression, None)
         if mapping is None:
             raise NotImplementedError(field_expression)
-        model =  mapping["model"]
+        model = mapping["model"]
         field = mapping["field"]
         c = None
         if "converter" in mapping:
@@ -443,16 +507,22 @@ class OldData(object):
             if hasattr(self, converter):
                 c = getattr(self, converter)
                 if not callable(c):
-                    raise NotImplementedError("Converter is not callable: %s" % converter)
-            
-        
+                    raise NotImplementedError(
+                        "Converter is not callable: %s" % converter)
+
         def retriever(pk):
             if c is None:
                 return self.get(model, field, pk)
             else:
                 return c(self.get(model, field, pk))
-            
-            
+
+        return retriever
+
+    @property
+    def patients(self):
+        for thing in self.data:
+            if thing["model"] == "patients.patient":
+                yield thing
 
     def get(self, model, field, pk):
         for thing in self.data:
@@ -535,22 +605,14 @@ class OldRegistryImporter(object):
                              section_code,
                              cde_code)
 
-    def process(self, old_records):
-        for record in old_records:
-            self.record = record
-            self._process_record()
-
-    def _get_records(self):
-        self.data = self._load_json_data()
-        self.log("keys = %s" % self.data.keys())
-
     def _load_json_data(self):
         with open(self.json_file) as jf:
             return json.load(jf)
 
     def run(self):
-        old_records = self._get_records()
-        self._process(old_records)
+        for patient_dict in self.data.patients:
+            self.record = patient_dict
+            self._process_record()
 
     def _process_record(self):
         self.patient_model = self._create_patient()
@@ -594,9 +656,13 @@ class OldRegistryImporter(object):
         if converted_value is not None:
             self._save_cde(converted_value)
 
+    def _get_old_value(self):
+        current_field_expression = self._get_current_field_expression()
+        self.data.get_field_expression(
+
     @meta("SAVECDE")
     def _save_cde(self, value):
-        field_expression = self._get_current_field_expression()
+        field_expression=self._get_current_field_expression()
         self._evalulate_field_expression(field_expression, value)
 
     def _get_current_field_expression(self):
@@ -611,11 +677,11 @@ class OldRegistryImporter(object):
 
 
 if __name__ == "__main__":
-    registry_code = sys.argv[1]
-    json_file = sys.argv[2]
+    registry_code=sys.argv[1]
+    json_file=sys.argv[2]
 
-    registry_model = Registry.objects.get(code=registry_code)
-    importer = OldRegistryImporter(registry_model, json_file)
+    registry_model=Registry.objects.get(code=registry_code)
+    importer=OldRegistryImporter(registry_model, json_file)
 
     try:
         with transaction.atomic():
