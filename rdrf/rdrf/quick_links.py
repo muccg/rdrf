@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.datastructures import OrderedSet as oset
+from operator import attrgetter
 
 
 class QuickLink(object):
@@ -11,6 +12,8 @@ class QuickLink(object):
         self.glyph_icon = glyph_icon
         self.admin_link = admin_link
 
+    def getText(item):
+        return item.text
 
 class QuickLinks(object):
 
@@ -67,6 +70,10 @@ class QuickLinks(object):
     IPRestrictRangeGroup = QuickLink("admin:iprestrict_rangebasedipgroup_changelist", _("IP Restrict Ranges"), True)
     IPRestrictGeoGroup = QuickLink("admin:iprestrict_locationbasedipgroup_changelist", _("IP Restrict Geolocations"), True)
     IPRestrictRule = QuickLink("admin:iprestrict_rule_changelist", _("IP Restrict Rules"), True)
+    
+    Sites = QuickLink("admin:sites_site_changelist", _("Sites"), True)
+
+    ParentGuardian = QuickLink("admin:patients_parentguardian_changelist", _("Parents/Guardians"), True)
 
     # Context Form Groups
     ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Context Form Groups", True)
@@ -81,7 +88,7 @@ class QuickLinks(object):
     AUDITING = oset([LoginLog, FailedLoginLog, LoginAttempts])
     USER_MANAGEMENT = oset([Users])
     GENETIC_BOOKKEEPING = oset([Genes, Laboratories])
-    REGISTRY_DESIGN = oset([Registries,
+    REGISTRY_DESIGN = [Registries,
                             RegistryForms,
                             Sections,
                             DataElements,
@@ -99,19 +106,21 @@ class QuickLinks(object):
                             ContextFormGroups,
                             EmailNotification,
                             EmailTemplate,
-                            EmailNotificationHistory])
+                            EmailNotificationHistory,
+                            Sites,
+                            ParentGuardian]
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 
-    WORKING_GROUP_STAFF = DATA_ENTRY
+    WORKING_GROUP_STAFF = sorted(DATA_ENTRY, key=attrgetter('text'))
 
-    WORKING_GROUP_CURATORS = DATA_ENTRY | REPORTING | USER_MANAGEMENT | QUESTIONNAIRE_HANDLING
+    WORKING_GROUP_CURATORS = sorted(DATA_ENTRY | REPORTING | USER_MANAGEMENT | QUESTIONNAIRE_HANDLING, key=attrgetter('text'))
 
-    GENETIC_STAFF = DATA_ENTRY
-    GENETIC_CURATORS = DATA_ENTRY | GENETIC_BOOKKEEPING
+    GENETIC_STAFF = sorted(DATA_ENTRY, key=attrgetter('text'))
+    GENETIC_CURATORS = sorted(DATA_ENTRY | GENETIC_BOOKKEEPING, key=attrgetter('text'))
 
-    CLINICIAN = DATA_ENTRY | QUESTIONNAIRE_HANDLING
+    CLINICIAN = sorted(DATA_ENTRY | QUESTIONNAIRE_HANDLING, key=attrgetter('text'))
 
     STATE_MANAGEMENT = oset([States])
 
-    ALL = IP_RESTRICT | DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | AUDITING | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT
+    ALL = sorted(IP_RESTRICT | DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | AUDITING | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT, key=attrgetter('text'))
