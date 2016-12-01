@@ -119,7 +119,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.diagnosis"},
             "field_expression178": {"field": "action_flag",
                                     "model": "admin.logentry"},
-            "field_expression113": {"field": "muscle_biopsy",
+            "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDMuscleBiopsy": {"field": "muscle_biopsy",
                                     "model": "dmd.diagnosis"},
             "field_expression116": {"field": "created",
                                     "model": "dmd.diagnosis"},
@@ -162,7 +162,14 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression117": {"field": "wheelchair_usage_age",
                                     "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDDiagnosis": {"field": "diagnosis",
-                                    "model": "dmd.diagnosis"},
+                                                                    "model": "dmd.diagnosis",
+                                                                    "converter": {
+                                                                        "BMD": "DMDBMD",
+                                                                        "Car": "DMDCar",
+                                                                        "DMD": "DMDDMD",
+                                                                        "IMD": "DMDIMD",
+                                                                        "Man": "DMDMan",
+                                                                        "Oth": "DMDOth"}},
             "field_expression156": {"field": "content_type",
                                     "model": "auth.permission"},
             "field_expression157": {"field": "name",
@@ -665,9 +672,11 @@ class OldRegistryImporter(object):
             old_value = self.record.get(field, model,path)
             if old_value is not None:
                 if converter is not None:
+                    print("converter will be used")
                     converter_func = self._get_converter_func(converter)
                     new_value = converter_func(old_value)
                 else:
+                    print("No converter - raw value will be used")
                     new_value = old_value
                 self._save_cde(new_value)
 
@@ -676,12 +685,31 @@ class OldRegistryImporter(object):
 
 
     def _get_converter_func(self, converter):
-       pass 
+        if type(converter) is dict:
+            return lambda key: converter.get(key, None)
+        else:
+            converter_func_name = "convert_%s" % converter
+            if hasattr(self, converter_func_name):
+                converter_func = getattr(self, converter_func_name)
+                if callable(converter_func):
+                    return converter_func
+                else:
+                    raise Exception("converter for %s is not callable" % converter_func_name)
+            else:
+                raise Exception("Unknown converter func %s" % converter_func_name)
+            
 
 
     @meta("SAVECDE")
     def _save_cde(self, value):
         field_expression=self._get_current_field_expression()
+        if self.cde_model.pv_group:
+            print("cde is a range - perform range check")
+            range_members = self.cde_model.get_range_members()
+            if not value in range_members:
+                raise Exception("Bad range member: %s not in %s" % (value, range_members))
+            
+            
         self._evaluate_field_expression(field_expression, value)
 
     def _get_current_field_expression(self):
