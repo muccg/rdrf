@@ -263,27 +263,6 @@ CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 # If the settings is not set or set to 0, the feature is disabled.
 LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
 
-# Testing settings
-if not PRODUCTION:
-    INSTALLED_APPS.extend(['django_nose'])
-
-# Used by unit tests
-TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
-
-# Used by lettuce tests
-# We don't want to run against the Test DB and we don't want a Transaction Test Case
-GHERKIN_TEST_RUNNER = 'rdrf.features.runner.GherkinNoDjangoTestDBTestRunner'
-GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
-
-SOUTH_TESTS_MIGRATE = True
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-erase',
-    '--cover-html',
-    '--cover-branches',
-    '--cover-package=rdrf',
-]
-
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
 ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])

@@ -134,6 +134,12 @@ function _runserver() {
 }
 
 
+function _aloe() {
+    export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}_test
+    shift
+    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 $@
+}
+
 
 trap exit SIGHUP SIGINT SIGTERM
 defaults
@@ -204,21 +210,15 @@ fi
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     echo "[Run] Starting tests"
+    export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}_test
     exec django-admin.py test --noinput -v 3 rdrf
 fi
 
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     echo "[Run] Starting aloe"
-
-    # stellar config needs to be in PWD at runtime for aloe tests
-    if [ ! -f ${PWD}/stellar.yaml ]; then
-        cp /app/stellar.yaml ${PWD}/stellar.yaml
-    fi
-    export DJANGO_SETTINGS_MODULE=rdrf.settings_test
-    shift
     cd /app/rdrf
-    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 $@
+    _aloe
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|uwsgi|uwsgi_fixtures]"
