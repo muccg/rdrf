@@ -33,6 +33,9 @@ class Path:
 class Conv:
     YNU = {True: "YesNoUnknownYes",
            False: "YesNoUnknownNo"}
+    YNPT = {"PT": "DMDPT",
+            "Y" : "DMDY",
+            "N" : "DMDN"}
     
 
 class PatientRecord(object):
@@ -267,7 +270,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.clinicaltrials"},
             "field_expression143": {"field": "diagnosis",
                                     "model": "dmd.clinicaltrials"},
-            "field_expression129": {"field": "lvef",
+            "ClinicalDiagnosis/DMDHeart/DMDlvef": {"field": "lvef",
                                     "model": "dmd.heart"},
             "ClinicalDiagnosis/DMDHeart/DMDHeartPrevious": {"field": "failure",
                                                             "model": "dmd.heart",
@@ -341,7 +344,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.respiratory"},
             "field_expression130": {"field": "diagnosis",
                                     "model": "dmd.heart"},
-            "field_expression131": {"field": "lvef_date",
+            "ClinicalDiagnosis/DMDHeart/DMDlvefDate": {"field": "lvef_date",
                                     "model": "dmd.heart"},
             "field_expression132": {"field": "status",
                                     "model": "dmd.heartmedication"},
@@ -349,8 +352,9 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.heartmedication"},
             "field_expression134": {"field": "drug",
                                     "model": "dmd.heartmedication"},
-            "field_expression135": {"field": "non_invasive_ventilation",
-                                    "model": "dmd.respiratory"},
+            "ClinicalDiagnosis/NMDRespiratory/NMDNonInvasive": {"field": "non_invasive_ventilation",
+                                                                "model": "dmd.respiratory",
+                                                                "converter": Conv.YNPT},
             "field_expression136": {"field": "fvc",
                                     "model": "dmd.respiratory"},
             "field_expression137": {"field": "diagnosis",
@@ -663,6 +667,8 @@ class OldRegistryImporter(object):
 
     @meta("MULTISECTION")
     def _process_multisection(self):
+        print("skipping multisection for now ...")
+        return
         for item_dict in self._get_items():
             self._append_multisection_item(item_dict)
 
