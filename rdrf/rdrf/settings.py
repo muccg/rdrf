@@ -472,3 +472,5 @@ EMAIL_NOTIFICATIONS = (
     (EMAIL_NOTE_OTHER_CLINICIAN, "Other Clinician"),
     (EMAIL_NOTE_NEW_PATIENT, "New Patient Registered")
 )
+
+PROJECT_TITLE = "Rare Disease Registry Framework"
