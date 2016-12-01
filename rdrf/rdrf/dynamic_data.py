@@ -616,23 +616,42 @@ class DynamicDataWrapper(object):
                                                               self.current_form_model,
                                                               existing_record, index_map)
 
-    def update_dynamic_data(self, registry_model, mongo_record):
-        logger.info("About to update %s in %s with new mongo_record %s" % (self.obj,
+    def update_dynamic_data(self, registry_model, cdes_record):
+        logger.info("About to update %s in %s with new cdes_record %s" % (self.obj,
                                                                            registry_model,
-                                                                           mongo_record))
-        # replace entire mongo record with supplied one
+                                                                           cdes_record))
+        # replace entire cdes record with supplied one
         # assumes structure correct ..
-        collection = self._get_collection(registry_model.code, "cdes")
-        if "_id" in mongo_record:
-            mongo_id = mongo_record["_id"]
-            logger.info("updating monfgo record for object id %s" % mongo_id)
-            logger.info("record to update = %s" % mongo_record)
-            collection.update({'_id': mongo_id}, {"$set": mongo_record}, upsert=False)
-            logger.info("updated ok")
+
+        from rdrf.models import Modjgo
+        from rdrf.models import RDRFContext
+
+        # assumes context_id in cdes_record
+        if "context_id" in cdes_record:
+            context_id = cdes_record["context_id"]
         else:
-            logger.info("no object id in record will insert")
-            collection.insert(mongo_record)
-            logger.info("inserted ok")
+            raise Exception("expected context_id in cdes_record")
+
+        try:
+            cdes_modjgo = Modjgo.objects.find(self.obj,
+                                          context_id,  
+                                          registry_code=registry_model.code,
+                                          collection="cdes").get()
+
+            cdes_modjgo.data.update(cdes_record)
+
+        except Modjgo.DoesNotExist:
+            cdes_modjgo = Modjgo.for_obj(self.obj,
+                                         registry_code=registry_model.code,
+                                         collection="cdes",
+                                         data=cdes_record)
+
+
+        from rdrf.jsonb import _convert_datetime_to_str
+        # Not sure why I have to do this explicitly
+        _convert_datetime_to_str(cdes_modjgo.data)
+        cdes_modjgo.save()
+        
 
     def delete_patient_record(self, registry_model, context_id):
         self.rdrf_context_id = context_id
