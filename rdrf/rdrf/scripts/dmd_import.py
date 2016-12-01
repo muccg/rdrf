@@ -29,6 +29,12 @@ class Path:
     THROUGH_PATIENT = 2
 
 
+
+class Conv:
+    YNU = {True: "YesNoUnknownYes",
+           False: "YesNoUnknownNo"}
+    
+
 class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
@@ -121,8 +127,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "admin.logentry"},
             "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDMuscleBiopsy": {"field": "muscle_biopsy",
                                                                        "model": "dmd.diagnosis",
-                                                                       "converter": {True: "YesNoUnknownYes",
-                                                                                     False: "YesNoUnknownNo"}},
+                                                                       "converter": Conv.YNU},
             "field_expression116": {"field": "created",
                                     "model": "dmd.diagnosis"},
             "field_expression110": {"field": "rank",
@@ -268,8 +273,9 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.heart"},
             "field_expression123": {"field": "diagnosis",
                                     "model": "dmd.steroids"},
-            "field_expression122": {"field": "current",
-                                    "model": "dmd.steroids"},
+            "ClinicalDiagnosis/DMDSteroids/DMDSteroidCurrent": {"field": "current",
+                                                                "model": "dmd.steroids",
+                                                                "converter": Conv.YNU},
             "ClinicalDiagnosis/DMDMotorFunction/NMDSit": {"field": "sit",
                                     "model": "dmd.motorfunction"},
             "field_expression120": {"field": "diagnosis",
@@ -278,9 +284,10 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "dmd.heart"},
             "field_expression126": {"field": "diagnosis",
                                     "model": "dmd.surgery"},
-            "field_expression125": {"field": "surgery",
-                                    "model": "dmd.surgery"},
-            "field_expression124": {"field": "previous",
+            "ClinicalDiagnosis/NMDSurgery/NMDSurgery": {"field": "surgery",
+                                                        "model": "dmd.surgery",
+                                                        "converter": Conv.YNU},
+            "ClinicalDiagnosis/DMDSteroids/DMDSteroidPrevious": {"field": "previous",
                                     "model": "dmd.steroids"},
             "field_expression147": {"field": "registry_patient",
                                     "model": "dmd.familymember"},
