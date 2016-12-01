@@ -120,7 +120,9 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression178": {"field": "action_flag",
                                     "model": "admin.logentry"},
             "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDMuscleBiopsy": {"field": "muscle_biopsy",
-                                    "model": "dmd.diagnosis"},
+                                                                       "model": "dmd.diagnosis",
+                                                                       "converter": {True: "YesNoUnknownYes",
+                                                                                     False: "YesNoUnknownNo"}},
             "field_expression116": {"field": "created",
                                     "model": "dmd.diagnosis"},
             "field_expression110": {"field": "rank",
@@ -462,7 +464,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "reversion.version"},
             "field_expression118": {"field": "wheelchair_use",
                                     "model": "dmd.motorfunction"},
-            "field_expression119": {"field": "walk",
+            "ClinicalDiagnosis/DMDMotorFunction/NMDWalk": {"field": "walk",
                                     "model": "dmd.motorfunction"},
             "field_expression151": {"field": "sex",
                                     "model": "dmd.familymember"},
@@ -530,29 +532,25 @@ def meta(stage, run_after=False):
             rdrf_id = self._get_rdrf_id()
             old_id = self._get_old_id()
             target = self._get_target()
-            print("func_name = %s" % func_name)
-            print("rdrf_id = %s" % rdrf_id)
-            print("old_id = %s" % old_id)
-            print("target = %s" % target)
             log_prefix = "%s/%s %s %s %s " % (rdrf_id,
                                               old_id,
                                               stage,
                                               target,
                                               func_name)
 
-            print("log_prefix = %s" % log_prefix)
 
             try:
                 myargs = [self] + list(args)
-                print("running %s on %s" % (func_name, str(myargs)))
                 value = func(*myargs, **kwargs)
                 log_line = "%s: OK" % log_prefix
+                print(log_line)
             except ImportError as ierr:
                 log_line = "%s: IMPORT ERROR! - %s" % (log_prefix,
                                                        ex)
 
                 value = None
                 error_message = "%s" % ierr
+                print(log_line)
                 raise RollbackError(error_message)
 
             self.log(log_line)
