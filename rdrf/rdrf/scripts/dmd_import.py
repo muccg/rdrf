@@ -10,6 +10,7 @@ from rdrf.models import Section
 from rdrf.models import CommonDataElement
 
 from registry.patients.models import Patient
+from rdrf.contexts_api import RDRFContextManager
 
 
 FAMILY_MEMBERS_CODE = "xxx"
@@ -70,7 +71,7 @@ class PatientRecord(object):
         if model == "patients.patient":
             return self.patient_dict["fields"][field]
         elif model == "dmd.diagnosis":
-            return self.diagnosis_dict["fields"][field]
+            return self.diagnosis_dict[field]
         else:
             if path == Path.THROUGH_DIAGNOSIS:
                 foreign_key_field = self._get_foreign_key("diagnosis", model)
@@ -566,6 +567,7 @@ class OldRegistryImporter(object):
         self.record = None
         self._log = sys.stdout
         self.after_ops = []
+        self.rdrf_context_manager = RDRFContextManager(registry_model)
 
     def log(self, msg):
         msg = msg + "\n"
@@ -627,6 +629,9 @@ class OldRegistryImporter(object):
         p.active = True
         p.save()
         print("patient %s saved OK" % p)
+        self.context_model = self.rdrf_context_manager.get_or_create_default_context(p, new_patient=True)
+        print("created default context %s" % self.context_model)
+        
         return p
 
     @meta("FAMILY_MEMBER", run_after=True)
