@@ -161,7 +161,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "genetic.variation"},
             "field_expression114": {"field": "patient",
                                     "model": "dmd.diagnosis"},
-            "field_expression117": {"field": "wheelchair_usage_age",
+            "ClinicalDiagnosis/DMDMotorFunction/NMDWheelchairAge": {"field": "wheelchair_usage_age",
                                     "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDDiagnosis": {"field": "diagnosis",
                                                                     "model": "dmd.diagnosis",
@@ -462,7 +462,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "reversion.version"},
             "field_expression99": {"field": "object_id_int",
                                    "model": "reversion.version"},
-            "field_expression118": {"field": "wheelchair_use",
+            "ClinicalDiagnosis/DMDMotorFunction/NMDWheelchairChoices": {"field": "wheelchair_use",
                                     "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDMotorFunction/NMDWalk": {"field": "walk",
                                     "model": "dmd.motorfunction"},
@@ -660,6 +660,7 @@ class OldRegistryImporter(object):
     @meta("CDE")
     def _process_cde(self):
         field_expression = self._get_current_field_expression()
+        print("cde datatype = %s" % self.cde_model.datatype)
         info = DATA_MAP.get(field_expression, None)
         if info:
             model = info["model"]
@@ -704,6 +705,7 @@ class OldRegistryImporter(object):
         if self.cde_model.pv_group:
             print("cde is a range - perform range check")
             range_members = self.cde_model.get_range_members()
+            print("range members = %s" % range_members)
             if not value in range_members:
                 raise Exception("Bad range member: %s not in %s" % (value, range_members))
             
