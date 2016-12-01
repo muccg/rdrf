@@ -188,7 +188,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "auth.permission"},
             "field_expression155": {"field": "name",
                                     "model": "auth.permission"},
-            "field_expression152": {"field": "notes",
+            "ClinicalDiagnosis/NMDNotes/NMDNotes": {"field": "notes",
                                     "model": "dmd.notes"},
             "field_expression153": {"field": "diagnosis",
                                     "model": "dmd.notes"},
@@ -338,7 +338,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "explorer.query"},
             "field_expression188": {"field": "user",
                                     "model": "reversion.revision"},
-            "field_expression138": {"field": "fvc_date",
+            "ClinicalDiagnosis/NMDRespiratory/NMDfvcDate": {"field": "fvc_date",
                                     "model": "dmd.respiratory"},
             "ClinicalDiagnosis/NMDRespiratory/NMDInvasiveVentilation": {"field": "invasive_ventilation",
                                                                         "model": "dmd.respiratory",
@@ -356,7 +356,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "ClinicalDiagnosis/NMDRespiratory/NMDNonInvasive": {"field": "non_invasive_ventilation",
                                                                 "model": "dmd.respiratory",
                                                                 "converter": Conv.YNPT},
-            "field_expression136": {"field": "fvc",
+            "ClinicalDiagnosis/NMDRespiratory/NMDfvc": {"field": "fvc",
                                     "model": "dmd.respiratory"},
             "field_expression137": {"field": "diagnosis",
                                     "model": "dmd.respiratory"},
@@ -648,6 +648,9 @@ class OldRegistryImporter(object):
         p.active = True
         p.save()
         print("patient %s saved OK" % p)
+        p.rdrf_registry = [self.registry_model]
+        p.save()
+        
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(p, new_patient=True)
         print("created default context %s" % self.context_model)
         
@@ -719,6 +722,9 @@ class OldRegistryImporter(object):
     def _save_cde(self, value):
         field_expression=self._get_current_field_expression()
         if self.cde_model.pv_group:
+            if value is None:
+                print("range value is None so skipping")
+                return
             print("cde is a range - perform range check")
             range_members = self.cde_model.get_range_members()
             print("range members = %s" % range_members)
