@@ -36,24 +36,24 @@ class QuickLinks(object):
 
     # Admin only
     Registries = QuickLink("admin:rdrf_registry_changelist", _("Registries"), True)
-    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", _("Registry Form"), True)
-    Sections = QuickLink("admin:rdrf_section_changelist", _("Sections"), True)
-    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", _("Data Elements"), True)
+    RegistryForms = QuickLink("admin:rdrf_registryform_changelist", _("Registry Forms"), True)
+    Sections = QuickLink("admin:rdrf_section_changelist", _("Registry Sections"), True)
+    DataElements = QuickLink("admin:rdrf_commondataelement_changelist", _("Registry Common Data Elements"), True)
     PermissibleValueGroups = QuickLink(
-        "admin:rdrf_cdepermittedvaluegroup_changelist", _("Permissible Value Groups"), True)
+        "admin:rdrf_cdepermittedvaluegroup_changelist", _("Registry Permissible Value Groups"), True)
     PermissibleValues = QuickLink(
-        "admin:rdrf_cdepermittedvalue_changelist", _("Permissible Values"), True)
+        "admin:rdrf_cdepermittedvalue_changelist", _("Registry Permissible Values"), True)
     ConsentSections = QuickLink(
-        "admin:rdrf_consentsection_changelist", _("Consent Sections"), True)
+        "admin:rdrf_consentsection_changelist", _("Registry Consent Sections"), True)
     ConsentValues = QuickLink(
-        "admin:patients_consentvalue_changelist", _("Consent Values"), True)
+        "admin:patients_consentvalue_changelist", _("Registry Consent Values"), True)
     DemographicsFields = QuickLink(
-        "admin:rdrf_demographicfields_changelist", _("Demographics Fields"), True)
+        "admin:rdrf_demographicfields_changelist", _("Registry Demographics Fields"), True)
     Importer = QuickLink("import_registry", _("Importer"), True)
     Groups = QuickLink("admin:auth_group_changelist", _("Groups"), True)
     NextOfKinRelationship = QuickLink(
         "admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"), True)
-    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("CDE Policy"), True)
+    CdePolicy = QuickLink("admin:rdrf_cdepolicy_changelist", _("Registry Common Data Elements Policy"), True)
     States = QuickLink("admin:patients_state_changelist", _("States"), True)
     ClinicianOther = QuickLink("admin:patients_clinicianother_changelist", _("Other Clinicians"), True)
     EmailNotification = QuickLink("admin:rdrf_emailnotification_changelist", _("Email Notifications"), True)
@@ -76,7 +76,7 @@ class QuickLinks(object):
     ParentGuardian = QuickLink("admin:patients_parentguardian_changelist", _("Parents/Guardians"), True)
 
     # Context Form Groups
-    ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Context Form Groups", True)
+    ContextFormGroups = QuickLink("admin:rdrf_contextformgroup_changelist", "Registry Context Form Groups", True)
 
     #FamilyLinkage = QuickLink("family_linkage", "Family Linkage")
     IP_RESTRICT = oset([IPRestrictRangeGroup, IPRestrictGeoGroup, IPRestrictRule])
@@ -97,18 +97,19 @@ class QuickLinks(object):
                             PermissibleValues,
                             ConsentSections,
                             ConsentValues,
-                            Groups,
+                            #Groups,
                             Importer,
                             Explorer,
                             DemographicsFields,
-                            NextOfKinRelationship,
+                            #NextOfKinRelationship,
                             RegistrationProfiles,
                             ContextFormGroups,
-                            EmailNotification,
-                            EmailTemplate,
-                            EmailNotificationHistory,
-                            Sites,
-                            ParentGuardian]
+                            #EmailNotification,
+                            #EmailTemplate,
+                            #EmailNotificationHistory,
+                            #Sites,
+                            #ParentGuardian
+                            ]
 
     QUESTIONNAIRE_HANDLING = oset([QuestionnaireResponses])
 
@@ -123,4 +124,16 @@ class QuickLinks(object):
 
     STATE_MANAGEMENT = oset([States])
 
-    ALL = sorted(IP_RESTRICT | DATA_ENTRY | DOCTORS | REPORTING | USER_MANAGEMENT | AUDITING | GENETIC_BOOKKEEPING | REGISTRY_DESIGN | WORKING_GROUPS | QUESTIONNAIRE_HANDLING | STATE_MANAGEMENT, key=attrgetter('text'))
+    ALL = sorted(
+        #IP_RESTRICT |
+        DATA_ENTRY |
+        DOCTORS |
+        REPORTING |
+        #USER_MANAGEMENT |
+        #AUDITING |
+        #GENETIC_BOOKKEEPING |
+        REGISTRY_DESIGN |
+        #WORKING_GROUPS |
+        QUESTIONNAIRE_HANDLING
+        #STATE_MANAGEMENT
+        , key=attrgetter('text'))
