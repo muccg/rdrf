@@ -46,7 +46,11 @@ class PatientRecord(object):
         self.patient_dict = patient_dict
         self.patient_id = self.patient_dict["pk"]
         self.diagnosis_dict = self._get_diagnosis()
-        self.diagnosis_id = self.diagnosis_dict["pk"]
+        if "pk" in self.diagnosis_dict:
+            self.diagnosis_id = self.diagnosis_dict["pk"]
+        else:
+            self.diagnosis_id = None
+            
         
 
     def _get_diagnosis(self):
@@ -760,4 +764,10 @@ if __name__ == "__main__":
     registry_model=Registry.objects.get(code=registry_code)
     importer=OldRegistryImporter(registry_model, json_file)
 
-    importer.run()
+
+    try:
+        with transaction.atomic():
+            importer.run()
+    except Exception as ex:
+        print("Error - rollback will occur: %s" % ex)
+        
