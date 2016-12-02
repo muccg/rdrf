@@ -633,11 +633,13 @@ class DynamicDataWrapper(object):
             raise Exception("expected context_id in cdes_record")
 
         try:
-            cdes_modjgo = Modjgo.objects.find(self.obj,
-                                          context_id,  
-                                          registry_code=registry_model.code,
-                                          collection="cdes").get()
-
+            cdes_modjgo = Modjgo.objects.get(registry_code=registry_model.code,
+                                             collection="cdes",
+                                             data__django_id=self.obj.pk,
+                                             data__django_model=self.obj.__class__.__name__,
+                                             data__context_id=context_id)
+            
+                                                
             cdes_modjgo.data.update(cdes_record)
 
         except Modjgo.DoesNotExist:
