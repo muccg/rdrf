@@ -10,6 +10,7 @@ from rdrf.models import Section
 from rdrf.models import CommonDataElement
 
 from registry.patients.models import Patient
+from registry.groups.models import WorkingGroup
 from rdrf.contexts_api import RDRFContextManager
 
 
@@ -46,6 +47,7 @@ class PatientRecord(object):
         self.patient_id = self.patient_dict["pk"]
         self.diagnosis_dict = self._get_diagnosis()
         self.diagnosis_id = self.diagnosis_dict["pk"]
+        
 
     def _get_diagnosis(self):
         d = {}
@@ -650,11 +652,17 @@ class OldRegistryImporter(object):
         print("patient %s saved OK" % p)
         p.rdrf_registry = [self.registry_model]
         p.save()
-        
+        print("assigned registry ok")
+        p.working_group = self._get_working_group()
+        p.save()
+        print("assigned to working group WA")
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(p, new_patient=True)
         print("created default context %s" % self.context_model)
         
         return p
+
+    def _get_working_group(self):
+        return WorkingGroup.objects.get(name="WA")
 
     @meta("FAMILY_MEMBER", run_after=True)
     def _create_family_member(self, patient_model, family_member_dict):
@@ -752,9 +760,4 @@ if __name__ == "__main__":
     registry_model=Registry.objects.get(code=registry_code)
     importer=OldRegistryImporter(registry_model, json_file)
 
-    try:
-        with transaction.atomic():
-            importer.run()
-    except Exception as err:
-        sys.stderr.write("Unhandled error! - rollback will occur: %s\n" % err)
-        sys.exit(1)
+    importer.run()
