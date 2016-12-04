@@ -25,7 +25,7 @@ node {
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
 
-    dockerstage('Dev aloe tests') {
+    dockerStage('Dev aloe tests') {
         sh './develop.sh dev_aloe'
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
@@ -40,7 +40,7 @@ node {
             }
         }
 
-        dockerstage('Prod aloe tests') {
+        dockerStage('Prod aloe tests') {
             sh './develop.sh prod_aloe'
             step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
             step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
@@ -68,7 +68,7 @@ node {
  */
 def dockerStage(String label,
                 List<String> artifacts=[],
-                List<String> junitxml=[],
+                List<String> testResults=[],
                 Closure body) {
 
     stage(label) {
@@ -82,6 +82,12 @@ def dockerStage(String label,
             currentBuild.result = 'FAILURE'
             throw e
         } finally {
+            for (artifact in artifacts) {
+                step([$class: 'ArtifactArchiver', artifacts: artifact, fingerprint: false, excludes: null])
+            }
+            for (testResult in testResults) {
+                step([$class: 'JUnitResultArchiver', testResults: testResult])
+            }
             sh('''
                 /env/bin/wrfy kill-all --force
                 /env/bin/wrfy scrub --force
