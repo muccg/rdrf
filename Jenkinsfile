@@ -25,10 +25,9 @@ node {
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
 
-    dockerStage('Dev aloe tests') {
+    def artifacts = ['**/data/selenium/dev/scratch/*.png', '**/data/selenium/dev/log/*.log']
+    dockerStage('Dev aloe tests', artifacts) {
         sh './develop.sh dev_aloe'
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
-        step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
     }
 
