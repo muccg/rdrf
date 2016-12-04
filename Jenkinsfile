@@ -26,9 +26,9 @@ node {
     }
 
     def artifacts = ['**/data/selenium/dev/scratch/*.png', '**/data/selenium/dev/log/*.log']
-    dockerStage('Dev aloe tests', artifacts) {
+    def testResults = ['**/data/selenium/dev/scratch/*.xml']
+    dockerStage('Dev aloe tests', artifacts, testResults) {
         sh './develop.sh dev_aloe'
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
