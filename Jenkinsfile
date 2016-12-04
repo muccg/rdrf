@@ -25,10 +25,8 @@ node {
         step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
 
-    stage('Dev aloe tests') {
-        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh './develop.sh dev_aloe'
-        }
+    dockerstage('Dev aloe tests') {
+        sh './develop.sh dev_aloe'
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/scratch/*.png', fingerprint: false, excludes: null])
         step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/dev/log/*.log', fingerprint: false, excludes: null])
         step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/dev/scratch/*.xml'])
@@ -42,13 +40,11 @@ node {
             }
         }
 
-        stage('Prod aloe tests') {
-            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-                sh './develop.sh prod_aloe'
-                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
-                step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
-                step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
-            }
+        dockerstage('Prod aloe tests') {
+            sh './develop.sh prod_aloe'
+            step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
+            step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
+            step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
         }
 
         stage('Publish docker image') {
@@ -62,4 +58,35 @@ node {
             }
         }
     }
+}
+
+/*
+ * dockerStage
+ *
+ * Custom stage that wraps the stage in timestamps and AnsiColorBuildWrapper
+ * Prior to exit wrfy is used to kill all running containers and cleanup.
+ */
+def dockerStage(String label,
+                List<String> artifacts=[],
+                List<String> junitxml=[],
+                Closure body) {
+
+    stage(label) {
+        try {
+            timestamps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName':    'XTerm']) {
+                    body.call()
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE'
+            throw e
+        } finally {
+            sh('''
+                /env/bin/wrfy kill-all --force
+                /env/bin/wrfy scrub --force
+            ''')
+        }
+    }
+
 }
