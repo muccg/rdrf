@@ -86,7 +86,12 @@ class PatientRecord(object):
         if model == "patients.patient":
             return self.patient_dict["fields"][field]
         elif model == "dmd.diagnosis":
-            return self.diagnosis_dict[field]
+            if self.diagnosis_dict:
+                print("dmd.diagnosis dict = %s" % self.diagnosis_dict)
+                return self.diagnosis_dict[field]
+            else:
+                print("No diagnosis for patient %s" % self.patient_dict)
+                return None 
         else:
             if path == Path.THROUGH_DIAGNOSIS:
                 foreign_key_field = self._get_foreign_key("diagnosis", model)
@@ -683,10 +688,25 @@ class OldRegistryImporter(object):
 
     @meta("MULTISECTION")
     def _process_multisection(self):
-        print("skipping multisection for now ...")
-        return
-        for item_dict in self._get_items():
-            self._append_multisection_item(item_dict)
+        print("processing multisection %s" % self.section_model.code)
+        old_model = self._get_old_multisection_model(self.section_model.code)
+        old_items = []
+        diagnosis_id = self.diagnosis_dict["pk"] if self.diagnosis_dict else None
+        new_multisection_data = []
+        for thing in self.data:
+            if thing["model"] == old_model:
+                if thing["pk"] == diagnosis_id:
+                    old_items.append(thing)
+
+        for item in old_items:
+            new_cde_dict = self._create_new_multisection_item(item)
+            new_multisection_data.append(new_multisection_data)
+            
+            
+            
+                    
+                
+        
 
     @meta("CDE")
     def _process_cde(self):
@@ -764,10 +784,5 @@ if __name__ == "__main__":
     registry_model=Registry.objects.get(code=registry_code)
     importer=OldRegistryImporter(registry_model, json_file)
 
-
-    try:
-        with transaction.atomic():
-            importer.run()
-    except Exception as ex:
-        print("Error - rollback will occur: %s" % ex)
+    importer.run()
         
