@@ -19,7 +19,7 @@ node {
     }
 
     def testResults = ['**/data/tests/*.xml']
-    dockerStage('Unit tests', [], testresults) {
+    dockerStage('Unit tests', [], testResults) {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
         }
