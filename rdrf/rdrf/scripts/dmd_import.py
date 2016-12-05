@@ -123,22 +123,26 @@ MULTISECTION_MAP = {
                                           "converter": Conv.DMDStatus,
                                           }}
 
-                           }
+                           },
 
     "DMDFamilyMember": {"model": "",
                         "field_map": {
 
                         }},
 
-    "mscode1": {"model": "",
-                "field_map": {
+    "NMDClinicalTrials": {"model": "",
+                          "field_map": {
 
                 }},
 
-    "mscode2": {"model": "",
-                "field_map": {
-
-                }}
+    "NMDOtherRegistries": {"model": "",
+                           "field_map": {
+                           }},
+    
+    "DMDVariations": {"model": "",
+                      "field_map": {
+                      }},
+    
 }
 
 
