@@ -37,6 +37,9 @@ class Conv:
     YNPT = {"PT": "DMDPT",
             "Y" : "DMDY",
             "N" : "DMDN"}
+    DMDStatus = {
+        
+    }
     
 
 class PatientRecord(object):
@@ -114,6 +117,33 @@ class PatientRecord(object):
 # The following was created from iterating through the json dump
 # The original json data consists of a list of dictionaries:
 # {pk: N, model: "app.classname", "fields": {"field1": value, "field2": ..}}
+
+
+MULTISECTION_MAP = {
+    "DMDHeartMedication": {"model": "dmd.heartmedication",
+                           "field_map": {
+                               "status": {"cde_code": "DMDStatus",
+                                          "converter" : Conv.DMDStatus,
+                               }}
+                               
+                           }
+
+    "DMDFamilyMember" : {"model": "",
+                        "field_map": {
+
+                        }},
+    
+    "mscode1": {"model": "",
+                "field_map": {
+
+                        }},
+    
+    "mscode2": {"model": "",
+                "field_map": {
+
+                        }}
+}
+
 
 DATA_MAP = {"field_expression111": {"field": "ip_group",
                                     "model": "iprestrict.rule"},
@@ -691,21 +721,73 @@ class OldRegistryImporter(object):
         print("processing multisection %s" % self.section_model.code)
         old_model = self._get_old_multisection_model(self.section_model.code)
         old_items = []
-        diagnosis_id = self.diagnosis_dict["pk"] if self.diagnosis_dict else None
-        new_multisection_data = []
-        for thing in self.data:
+        diagnosis_id = self.record.diagnosis_dict["pk"] if self.record.diagnosis_dict else None
+        new_multisection_dict = {"code": self.section_model.code,
+                                 "allow_multiple": True,
+                                 "cdes": [],
+        }
+        items = []   # a list of lists
+        
+        for thing in self.data.data:
             if thing["model"] == old_model:
                 if thing["pk"] == diagnosis_id:
                     old_items.append(thing)
 
-        for item in old_items:
-            new_cde_dict = self._create_new_multisection_item(item)
-            new_multisection_data.append(new_multisection_data)
+        for section_index, item in old_items:
+            item = self._create_new_multisection_item(item)
+            item["section_index"] = section_index  # correct?
+            items.append(item)
             
+        new_multisection_dict["cdes"] = items
+        self._save_new_multisection_data(new_multisection_dict)
+
+    def _get_old_multisection_model(self, section_code):
+        if section_code in MULTISECTION_MAP:
+            return MULTISECTION_MAP[section_code]
+        else:
+            raise Exception("unknown multisection: %s" % section_code)
+
+
+    def _create_new_multisection_item(self, old_item):
+        # return new item cde list
+        mm_map = MULTISECTION_MAP[self.section_model.code]
+        field_map = mm_map["field_map"]
+
+        new_item= []
+        
+        
+        for old_field in old_item["fields"].keys():
+            print("converting old field %s in model %s" % (old_field, old_item["model"]))
+            if old_field == "diagnosis":
+                continue
             
+            new_data = field_map[old_field]
+            new_cde_code = new_data["cde_code"]
+            converter = new_data["converter"]
+            converter_func = self._get_converter_func(converter)
             
-                    
-                
+            old_value = old_item["fields"][old_field]
+            if converter_func is not None:
+                value = converter_func(old_value)
+            else:
+                value = old_value
+
+
+            new_cde_dict = {"code": new_cde_code,
+                            "value": value}
+            
+
+            new_item.append(new_cde_dict)
+        return new_item
+
+    def _save_new_multisection_data(self, new_multisection_data):
+        patient_model = self.patient_model
+        form_model = self.form_model
+        section_model = self.section_model
+
+        # replace existing items
+        print("will replace multisection with %s" % new_multisection_data)
+        
         
 
     @meta("CDE")
