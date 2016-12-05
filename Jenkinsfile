@@ -18,15 +18,15 @@ node {
         }
     }
 
-    stage('Unit tests') {
+    def testResults = ['**/data/tests/*.xml']
+    dockerStage('Unit tests', [], testresults) {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             sh './develop.sh runtests'
         }
-        step([$class: 'JUnitResultArchiver', testResults: '**/data/tests/*.xml'])
     }
 
     def artifacts = ['**/data/selenium/dev/scratch/*.png', '**/data/selenium/dev/log/*.log']
-    def testResults = ['**/data/selenium/dev/scratch/*.xml']
+    testResults = ['**/data/selenium/dev/scratch/*.xml']
     dockerStage('Dev aloe tests', artifacts, testResults) {
         sh './develop.sh dev_aloe'
     }
@@ -39,11 +39,10 @@ node {
             }
         }
 
-        dockerStage('Prod aloe tests') {
+        artifacts = ['**/data/selenium/prod/scratch/*.png', '**/data/selenium/prod/log/*.log']
+        testResults = ['**/data/selenium/prod/scratch/*.xml']
+        dockerStage('Prod aloe tests', artifacts, testResults) {
             sh './develop.sh prod_aloe'
-            step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/scratch/*.png', fingerprint: false, excludes: null])
-            step([$class: 'ArtifactArchiver', artifacts: '**/data/selenium/prod/log/*.log', fingerprint: false, excludes: null])
-            step([$class: 'JUnitResultArchiver', testResults: '**/data/selenium/prod/scratch/*.xml'])
         }
 
         stage('Publish docker image') {
