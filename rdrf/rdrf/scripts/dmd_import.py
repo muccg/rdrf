@@ -30,17 +30,16 @@ class Path:
     THROUGH_PATIENT = 2
 
 
-
 class Conv:
     YNU = {True: "YesNoUnknownYes",
            False: "YesNoUnknownNo"}
     YNPT = {"PT": "DMDPT",
-            "Y" : "DMDY",
-            "N" : "DMDN"}
+            "Y": "DMDY",
+            "N": "DMDN"}
     DMDStatus = {
-        
+
     }
-    
+
 
 class PatientRecord(object):
 
@@ -53,8 +52,6 @@ class PatientRecord(object):
             self.diagnosis_id = self.diagnosis_dict["pk"]
         else:
             self.diagnosis_id = None
-            
-        
 
     def _get_diagnosis(self):
         d = {}
@@ -94,7 +91,7 @@ class PatientRecord(object):
                 return self.diagnosis_dict[field]
             else:
                 print("No diagnosis for patient %s" % self.patient_dict)
-                return None 
+                return None
         else:
             if path == Path.THROUGH_DIAGNOSIS:
                 foreign_key_field = self._get_foreign_key("diagnosis", model)
@@ -123,25 +120,25 @@ MULTISECTION_MAP = {
     "DMDHeartMedication": {"model": "dmd.heartmedication",
                            "field_map": {
                                "status": {"cde_code": "DMDStatus",
-                                          "converter" : Conv.DMDStatus,
-                               }}
-                               
+                                          "converter": Conv.DMDStatus,
+                                          }}
+
                            }
 
-    "DMDFamilyMember" : {"model": "",
+    "DMDFamilyMember": {"model": "",
                         "field_map": {
 
                         }},
-    
+
     "mscode1": {"model": "",
                 "field_map": {
 
-                        }},
-    
+                }},
+
     "mscode2": {"model": "",
                 "field_map": {
 
-                        }}
+                }}
 }
 
 
@@ -211,7 +208,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression114": {"field": "patient",
                                     "model": "dmd.diagnosis"},
             "ClinicalDiagnosis/DMDMotorFunction/NMDWheelchairAge": {"field": "wheelchair_usage_age",
-                                    "model": "dmd.motorfunction"},
+                                                                    "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDClinicalDiagnosis/DMDDiagnosis": {"field": "diagnosis",
                                                                     "model": "dmd.diagnosis",
                                                                     "converter": {
@@ -230,7 +227,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression155": {"field": "name",
                                     "model": "auth.permission"},
             "ClinicalDiagnosis/NMDNotes/NMDNotes": {"field": "notes",
-                                    "model": "dmd.notes"},
+                                                    "model": "dmd.notes"},
             "field_expression153": {"field": "diagnosis",
                                     "model": "dmd.notes"},
             "field_expression69": {"field": "exon_boundaries_known",
@@ -284,7 +281,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression52": {"field": "next_of_kin_home_phone",
                                    "model": "patients.patient"},
             "family_name": {"field": "family_name",
-                                   "model": "patients.patient"},
+                            "model": "patients.patient"},
             "field_expression43": {"field": "date_of_birth",
                                    "model": "patients.patient"},
             "field_expression42": {"field": "state",
@@ -312,7 +309,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression143": {"field": "diagnosis",
                                     "model": "dmd.clinicaltrials"},
             "ClinicalDiagnosis/DMDHeart/DMDlvef": {"field": "lvef",
-                                    "model": "dmd.heart"},
+                                                   "model": "dmd.heart"},
             "ClinicalDiagnosis/DMDHeart/DMDHeartPrevious": {"field": "failure",
                                                             "model": "dmd.heart",
                                                             "converter": Conv.YNU},
@@ -322,7 +319,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                                                 "model": "dmd.steroids",
                                                                 "converter": Conv.YNU},
             "ClinicalDiagnosis/DMDMotorFunction/NMDSit": {"field": "sit",
-                                    "model": "dmd.motorfunction"},
+                                                          "model": "dmd.motorfunction"},
             "field_expression120": {"field": "diagnosis",
                                     "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDHeart/DMDHeartCurrent": {"field": "current",
@@ -334,7 +331,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                                         "model": "dmd.surgery",
                                                         "converter": Conv.YNU},
             "ClinicalDiagnosis/DMDSteroids/DMDSteroidPrevious": {"field": "previous",
-                                    "model": "dmd.steroids"},
+                                                                 "model": "dmd.steroids"},
             "field_expression147": {"field": "registry_patient",
                                     "model": "dmd.familymember"},
             "field_expression146": {"field": "diagnosis",
@@ -380,14 +377,14 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression188": {"field": "user",
                                     "model": "reversion.revision"},
             "ClinicalDiagnosis/NMDRespiratory/NMDfvcDate": {"field": "fvc_date",
-                                    "model": "dmd.respiratory"},
+                                                            "model": "dmd.respiratory"},
             "ClinicalDiagnosis/NMDRespiratory/NMDInvasiveVentilation": {"field": "invasive_ventilation",
                                                                         "model": "dmd.respiratory",
                                                                         "converter": Conv.YNPT},
             "field_expression130": {"field": "diagnosis",
                                     "model": "dmd.heart"},
             "ClinicalDiagnosis/DMDHeart/DMDlvefDate": {"field": "lvef_date",
-                                    "model": "dmd.heart"},
+                                                       "model": "dmd.heart"},
             "field_expression132": {"field": "status",
                                     "model": "dmd.heartmedication"},
             "field_expression133": {"field": "diagnosis",
@@ -398,7 +395,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                                                 "model": "dmd.respiratory",
                                                                 "converter": Conv.YNPT},
             "ClinicalDiagnosis/NMDRespiratory/NMDfvc": {"field": "fvc",
-                                    "model": "dmd.respiratory"},
+                                                        "model": "dmd.respiratory"},
             "field_expression137": {"field": "diagnosis",
                                     "model": "dmd.respiratory"},
             "field_expression177": {"field": "name",
@@ -518,9 +515,9 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression99": {"field": "object_id_int",
                                    "model": "reversion.version"},
             "ClinicalDiagnosis/DMDMotorFunction/NMDWheelchairChoices": {"field": "wheelchair_use",
-                                    "model": "dmd.motorfunction"},
+                                                                        "model": "dmd.motorfunction"},
             "ClinicalDiagnosis/DMDMotorFunction/NMDWalk": {"field": "walk",
-                                    "model": "dmd.motorfunction"},
+                                                           "model": "dmd.motorfunction"},
             "field_expression151": {"field": "sex",
                                     "model": "dmd.familymember"},
             "field_expression162": {"field": "is_active",
@@ -592,7 +589,6 @@ def meta(stage, run_after=False):
                                               stage,
                                               target,
                                               func_name)
-
 
             try:
                 myargs = [self] + list(args)
@@ -695,9 +691,10 @@ class OldRegistryImporter(object):
         p.working_group = self._get_working_group()
         p.save()
         print("assigned to working group WA")
-        self.context_model = self.rdrf_context_manager.get_or_create_default_context(p, new_patient=True)
+        self.context_model = self.rdrf_context_manager.get_or_create_default_context(
+            p, new_patient=True)
         print("created default context %s" % self.context_model)
-        
+
         return p
 
     def _get_working_group(self):
@@ -721,13 +718,14 @@ class OldRegistryImporter(object):
         print("processing multisection %s" % self.section_model.code)
         old_model = self._get_old_multisection_model(self.section_model.code)
         old_items = []
-        diagnosis_id = self.record.diagnosis_dict["pk"] if self.record.diagnosis_dict else None
+        diagnosis_id = self.record.diagnosis_dict[
+            "pk"] if self.record.diagnosis_dict else None
         new_multisection_dict = {"code": self.section_model.code,
                                  "allow_multiple": True,
                                  "cdes": [],
-        }
+                                 }
         items = []   # a list of lists
-        
+
         for thing in self.data.data:
             if thing["model"] == old_model:
                 if thing["pk"] == diagnosis_id:
@@ -737,7 +735,7 @@ class OldRegistryImporter(object):
             item = self._create_new_multisection_item(item)
             item["section_index"] = section_index  # correct?
             items.append(item)
-            
+
         new_multisection_dict["cdes"] = items
         self._save_new_multisection_data(new_multisection_dict)
 
@@ -747,35 +745,32 @@ class OldRegistryImporter(object):
         else:
             raise Exception("unknown multisection: %s" % section_code)
 
-
     def _create_new_multisection_item(self, old_item):
         # return new item cde list
         mm_map = MULTISECTION_MAP[self.section_model.code]
         field_map = mm_map["field_map"]
 
-        new_item= []
-        
-        
+        new_item = []
+
         for old_field in old_item["fields"].keys():
-            print("converting old field %s in model %s" % (old_field, old_item["model"]))
+            print("converting old field %s in model %s" %
+                  (old_field, old_item["model"]))
             if old_field == "diagnosis":
                 continue
-            
+
             new_data = field_map[old_field]
             new_cde_code = new_data["cde_code"]
             converter = new_data["converter"]
             converter_func = self._get_converter_func(converter)
-            
+
             old_value = old_item["fields"][old_field]
             if converter_func is not None:
                 value = converter_func(old_value)
             else:
                 value = old_value
 
-
             new_cde_dict = {"code": new_cde_code,
                             "value": value}
-            
 
             new_item.append(new_cde_dict)
         return new_item
@@ -787,8 +782,6 @@ class OldRegistryImporter(object):
 
         # replace existing items
         print("will replace multisection with %s" % new_multisection_data)
-        
-        
 
     @meta("CDE")
     def _process_cde(self):
@@ -801,7 +794,7 @@ class OldRegistryImporter(object):
             # Most objects are related to patient via the diagnosis
             path = info.get("path", Path.THROUGH_DIAGNOSIS)
             converter = info.get("converter", None)
-            old_value = self.record.get(field, model,path)
+            old_value = self.record.get(field, model, path)
             if old_value is not None:
                 if converter is not None:
                     print("converter will be used")
@@ -815,7 +808,6 @@ class OldRegistryImporter(object):
         else:
             raise Exception("Unknown field expression: %s" % field_expression)
 
-
     def _get_converter_func(self, converter):
         if type(converter) is dict:
             return lambda key: converter.get(key, None)
@@ -826,15 +818,15 @@ class OldRegistryImporter(object):
                 if callable(converter_func):
                     return converter_func
                 else:
-                    raise Exception("converter for %s is not callable" % converter_func_name)
+                    raise Exception(
+                        "converter for %s is not callable" % converter_func_name)
             else:
-                raise Exception("Unknown converter func %s" % converter_func_name)
-            
-
+                raise Exception("Unknown converter func %s" %
+                                converter_func_name)
 
     @meta("SAVECDE")
     def _save_cde(self, value):
-        field_expression=self._get_current_field_expression()
+        field_expression = self._get_current_field_expression()
         if self.cde_model.pv_group:
             if value is None:
                 print("range value is None so skipping")
@@ -843,9 +835,9 @@ class OldRegistryImporter(object):
             range_members = self.cde_model.get_range_members()
             print("range members = %s" % range_members)
             if not value in range_members:
-                raise Exception("Bad range member: %s not in %s" % (value, range_members))
-            
-            
+                raise Exception("Bad range member: %s not in %s" %
+                                (value, range_members))
+
         self._evaluate_field_expression(field_expression, value)
 
     def _get_current_field_expression(self):
@@ -860,11 +852,10 @@ class OldRegistryImporter(object):
 
 
 if __name__ == "__main__":
-    registry_code=sys.argv[1]
-    json_file=sys.argv[2]
+    registry_code = sys.argv[1]
+    json_file = sys.argv[2]
 
-    registry_model=Registry.objects.get(code=registry_code)
-    importer=OldRegistryImporter(registry_model, json_file)
+    registry_model = Registry.objects.get(code=registry_code)
+    importer = OldRegistryImporter(registry_model, json_file)
 
     importer.run()
-        
