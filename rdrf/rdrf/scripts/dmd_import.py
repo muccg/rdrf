@@ -125,7 +125,7 @@ MULTISECTION_MAP = {
 
                            },
 
-    "DMDFamilyMember": {"model": "",
+    "DMDFamilyMember": {"model": "dmd.familymember",
                         "field_map": {
 
                         }},
@@ -724,10 +724,6 @@ class OldRegistryImporter(object):
         old_items = []
         diagnosis_id = self.record.diagnosis_dict[
             "pk"] if self.record.diagnosis_dict else None
-        new_multisection_dict = {"code": self.section_model.code,
-                                 "allow_multiple": True,
-                                 "cdes": [],
-                                 }
         items = []   # a list of lists
 
         for thing in self.data.data:
@@ -740,8 +736,7 @@ class OldRegistryImporter(object):
             item["section_index"] = section_index  # correct?
             items.append(item)
 
-        new_multisection_dict["cdes"] = items
-        self._save_new_multisection_data(new_multisection_dict)
+        self._save_new_multisection_data(items)
 
     def _get_old_multisection_model(self, section_code):
         if section_code in MULTISECTION_MAP:
@@ -785,7 +780,14 @@ class OldRegistryImporter(object):
         section_model = self.section_model
 
         # replace existing items
-        print("will replace multisection with %s" % new_multisection_data)
+        field_expression = "$op/%s/%s/items" % (form_model.name,
+                                                section_model.code,
+                                                cde_mode.code)
+
+        self._evaluate_field_expression(field_expression,
+                                        new_multisection_data)
+
+        
 
     @meta("CDE")
     def _process_cde(self):
