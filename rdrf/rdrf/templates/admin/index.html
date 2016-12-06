@@ -8,7 +8,7 @@
 {% block content %}
       {% if app_list|length > 1 %}
       <ul class="list-group">
-        {% for quick_link in request.user.quick_links %}
+        {% for quick_link in request.user.admin_page_links %}
             <li class="list-group-item"><a href="{{quick_link.url}}">{{quick_link.text}}</a></li>
         {% endfor %}
       </ul>

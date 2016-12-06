@@ -8,7 +8,8 @@ Feature: IPRestrict is enabled and working
 
   Scenario: Admin user blocks useraudit to localhost
     Given I am logged in as admin
-    When I click "Settings"
+    When I click the User Dropdown Menu
+    And I click "Admin Page"
     And I click "IP Restrict Rules"
     Then I should see "Rules"
     And I click "Add"

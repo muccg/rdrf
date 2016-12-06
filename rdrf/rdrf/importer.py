@@ -633,7 +633,6 @@ class Importer(object):
             logger.info("imported cfg %s" % cfg.name)
 
     def _create_form_permissions(self, registry):
-        from registry.groups.models import Group
         if "forms_allowed_groups" in self.data:
             d = self.data["forms_allowed_groups"]
             for form_name in d:
