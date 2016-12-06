@@ -8,6 +8,8 @@ from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
+from rdrf.generalised_field_expressions import MultiSectionItemsExpression
+
 
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
@@ -37,7 +39,8 @@ class Conv:
             "Y": "DMDY",
             "N": "DMDN"}
     DMDStatus = {
-
+        "Previous": "DMDStatusChoicesPrevious",
+        "Current": "DMDStatusChoicesCurrent",
     }
 
 
@@ -104,10 +107,7 @@ class PatientRecord(object):
 
             for thing in self.data:
                 if thing["model"] == model:
-                    print("found a %s" % model)
-                    print("%s" % thing)
                     if my_id == thing["fields"][foreign_key_field]:
-                        print("found %s!" % my_id)
                         return thing["fields"][field]
 
 
@@ -121,7 +121,10 @@ MULTISECTION_MAP = {
                            "field_map": {
                                "status": {"cde_code": "DMDStatus",
                                           "converter": Conv.DMDStatus,
-                                          }}
+                                          },
+                               "drug":  {"cde_code": "DMDDrug",
+                               }
+                           }
 
                            },
 
@@ -717,50 +720,71 @@ class OldRegistryImporter(object):
         else:
             self._process_multisection()
 
-    @meta("MULTISECTION")
+    #@meta("MULTISECTION")
     def _process_multisection(self):
         print("processing multisection %s" % self.section_model.code)
         old_model = self._get_old_multisection_model(self.section_model.code)
+        print("old_model = %s" % old_model)
         old_items = []
         diagnosis_id = self.record.diagnosis_dict[
             "pk"] if self.record.diagnosis_dict else None
+
+        print("old diagnosis id = %s" % diagnosis_id)
         items = []   # a list of lists
 
         for thing in self.data.data:
             if thing["model"] == old_model:
-                if thing["pk"] == diagnosis_id:
-                    old_items.append(thing)
+                if "diagnosis" in thing["fields"].keys():
+                    if thing["fields"]["diagnosis"] == diagnosis_id:
+                        old_items.append(thing)
 
-        for section_index, item in old_items:
+
+        l = len(old_items)
+        print("Found %s old items" % l)
+
+        for item in old_items:
             item = self._create_new_multisection_item(item)
-            item["section_index"] = section_index  # correct?
             items.append(item)
 
-        self._save_new_multisection_data(items)
+
+        if len(items) > 0:
+            print("about to save new multisection data: items = %s" % items)
+            self._save_new_multisection_data(items)
 
     def _get_old_multisection_model(self, section_code):
         if section_code in MULTISECTION_MAP:
-            return MULTISECTION_MAP[section_code]
+            return MULTISECTION_MAP[section_code]["model"]
         else:
             raise Exception("unknown multisection: %s" % section_code)
 
     def _create_new_multisection_item(self, old_item):
-        # return new item cde list
+        # return new item dict 
         mm_map = MULTISECTION_MAP[self.section_model.code]
         field_map = mm_map["field_map"]
 
-        new_item = []
+        if not field_map:
+            raise Exception("need field map for multisection %s" % self.section_model.code)
+        
+
+
+        # for some reason - the set_value method on the mutlisection items expr
+        # expects list of these ...
+        new_dict = {}
 
         for old_field in old_item["fields"].keys():
-            print("converting old field %s in model %s" %
-                  (old_field, old_item["model"]))
             if old_field == "diagnosis":
                 continue
 
+            print("converting old field %s in model %s" %
+                  (old_field, old_item["model"]))
+
             new_data = field_map[old_field]
             new_cde_code = new_data["cde_code"]
-            converter = new_data["converter"]
-            converter_func = self._get_converter_func(converter)
+            converter = new_data.get("converter", None)
+            if converter:
+                converter_func = self._get_converter_func(converter)
+            else:
+                converter_func = None
 
             old_value = old_item["fields"][old_field]
             if converter_func is not None:
@@ -768,26 +792,52 @@ class OldRegistryImporter(object):
             else:
                 value = old_value
 
-            new_cde_dict = {"code": new_cde_code,
-                            "value": value}
-
-            new_item.append(new_cde_dict)
-        return new_item
+            new_dict[new_cde_code] = value
+            
+        return new_dict
 
     def _save_new_multisection_data(self, new_multisection_data):
-        patient_model = self.patient_model
-        form_model = self.form_model
-        section_model = self.section_model
-
         # replace existing items
-        field_expression = "$op/%s/%s/items" % (form_model.name,
-                                                section_model.code,
-                                                cde_mode.code)
+        # parser wasn't returning the expression object correctly?
+        # creating by hand ..
+        # new_multisection_data is a list of dicts like:
+        # [ {"cdecodeA": value, "cdecodeB": value, ... }, {.. } ]
+        
+        
+        field_expression = "$op/%s/%s/items" % (self.form_model.name,
+                                                self.section_model.code)
 
-        self._evaluate_field_expression(field_expression,
-                                        new_multisection_data)
+
+        print("field_expression = %s" % field_expression)
+
+        fe = MultiSectionItemsExpression(self.registry_model,
+                                         self.form_model,
+                                         self.section_model)
+
+        print("first loading existing data ...")
+
+        dynamic_data = self.patient_model.get_dynamic_data(self.registry_model)
+
+        print("existing data = %s" % dynamic_data)
+
+
+        try:
+            _, dynamic_data = fe.set_value(self.patient_model,
+                                       dynamic_data,
+                                       new_multisection_data)
+        except Exception as  ex:
+            print("could not set multisection value: %s" % ex)
+            return
 
         
+
+        print("About to update dynamic data for multisection")
+        print("Dynamic data we are about to save: %s" % dynamic_data)
+
+        self.patient_model.update_dynamic_data(self.registry_model, dynamic_data)
+        print("updated data OK")
+
+
 
     @meta("CDE")
     def _process_cde(self):
