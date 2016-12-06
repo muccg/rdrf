@@ -43,17 +43,20 @@ class Conv:
     }
 
     DMDFamilyDiagnosis = {
-        "BMD": "DMDBMD",
-        "Car": "DMDCar",
-        "DMD": "DMDDMD",
-        "IMD": "DMDIMD",
-        "Man": "DMDMan",
-        "Oth": "DMDOth"
+        # argh
+        "BMD": "DMDFamilyBMD",
+        "Car": "DMDFamilyCar",
+        "DMD": "DMDFamilyDMD",
+        "IMD": "DMDFamilyIMD",
+        "Man": "DMDFamilyMan",
+        "Oth": "DMDFamilyOth"
     }
 
-    NMDRelationship = {
+    MeteorSexChoices = {
+        "M": 1,
+        "F": 2,
+        "I": 3
     }
-
 
 class PatientRecord(object):
 
@@ -140,18 +143,20 @@ MULTISECTION_MAP = {
                            },
 
     "DMDFamilyMember": {"model": "dmd.familymember",
+                        
                         "field_map": {
                             "registry_patient": {"cde_code": "NMDRegistryPatient",
                                                  "converter": "registry_patient"},
 
-                            "family_member_diagnosis": {"cde_cde": "DMDFamilyDiagnosis",
+                            "family_member_diagnosis": {"cde_code": "DMDFamilyDiagnosis",
                                                         "converter": Conv.DMDFamilyDiagnosis},
 
                             "relationship": {"cde_code": "NMDRelationship",
-                                             "converter": Conv.NMDRelationship}
+                                             },
 
-
-
+                            "sex": {"cde_code": "NMDSex",
+                                    "converter": Conv.MeteorSexChoices
+                                    }
                         }},
 
     "NMDClinicalTrials": {"model": "",
@@ -650,8 +655,9 @@ class OldRegistryImporter(object):
         self.cde_model = None
         self.record = None
         self._log = sys.stdout
-        self.after_ops = []
+        self.after_ops = [] # updates to fields to run after all patients in
         self.rdrf_context_manager = RDRFContextManager(registry_model)
+        self._id_map = {} # old to new patient ids
 
     def log(self, msg):
         msg = msg + "\n"
@@ -696,6 +702,8 @@ class OldRegistryImporter(object):
 
     def _process_record(self):
         self.patient_model = self._create_patient()
+        self._id_map[self.record.patient_id] = self.patient_model.pk
+        
         for form_model in self.registry_model.forms:
             self.form_model = form_model
             for section_model in form_model.section_models:
@@ -725,6 +733,9 @@ class OldRegistryImporter(object):
 
         return p
 
+    def convert_registry_patient(self, old_id):
+        return self._id_map.get(old_id)
+    
     def _get_working_group(self):
         return WorkingGroup.objects.get(name="WA")
 
