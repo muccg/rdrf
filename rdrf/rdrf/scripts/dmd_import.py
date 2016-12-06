@@ -15,7 +15,6 @@ from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 from rdrf.contexts_api import RDRFContextManager
 
-
 FAMILY_MEMBERS_CODE = "xxx"
 
 
@@ -41,6 +40,18 @@ class Conv:
     DMDStatus = {
         "Previous": "DMDStatusChoicesPrevious",
         "Current": "DMDStatusChoicesCurrent",
+    }
+
+    DMDFamilyDiagnosis = {
+        "BMD": "DMDBMD",
+        "Car": "DMDCar",
+        "DMD": "DMDDMD",
+        "IMD": "DMDIMD",
+        "Man": "DMDMan",
+        "Oth": "DMDOth"
+    }
+
+    NMDRelationship = {
     }
 
 
@@ -123,29 +134,39 @@ MULTISECTION_MAP = {
                                           "converter": Conv.DMDStatus,
                                           },
                                "drug":  {"cde_code": "DMDDrug",
-                               }
+                                         }
                            }
 
                            },
 
     "DMDFamilyMember": {"model": "dmd.familymember",
                         "field_map": {
+                            "registry_patient": {"cde_code": "NMDRegistryPatient",
+                                                 "converter": "registry_patient"},
+
+                            "family_member_diagnosis": {"cde_cde": "DMDFamilyDiagnosis",
+                                                        "converter": Conv.DMDFamilyDiagnosis},
+
+                            "relationship": {"cde_code": "NMDRelationship",
+                                             "converter": Conv.NMDRelationship}
+
+
 
                         }},
 
     "NMDClinicalTrials": {"model": "",
                           "field_map": {
 
-                }},
+                          }},
 
     "NMDOtherRegistries": {"model": "",
                            "field_map": {
                            }},
-    
+
     "DMDVariations": {"model": "",
                       "field_map": {
                       }},
-    
+
 }
 
 
@@ -738,14 +759,12 @@ class OldRegistryImporter(object):
                     if thing["fields"]["diagnosis"] == diagnosis_id:
                         old_items.append(thing)
 
-
         l = len(old_items)
         print("Found %s old items" % l)
 
         for item in old_items:
             item = self._create_new_multisection_item(item)
             items.append(item)
-
 
         if len(items) > 0:
             print("about to save new multisection data: items = %s" % items)
@@ -758,14 +777,13 @@ class OldRegistryImporter(object):
             raise Exception("unknown multisection: %s" % section_code)
 
     def _create_new_multisection_item(self, old_item):
-        # return new item dict 
+        # return new item dict
         mm_map = MULTISECTION_MAP[self.section_model.code]
         field_map = mm_map["field_map"]
 
         if not field_map:
-            raise Exception("need field map for multisection %s" % self.section_model.code)
-        
-
+            raise Exception("need field map for multisection %s" %
+                            self.section_model.code)
 
         # for some reason - the set_value method on the mutlisection items expr
         # expects list of these ...
@@ -793,7 +811,7 @@ class OldRegistryImporter(object):
                 value = old_value
 
             new_dict[new_cde_code] = value
-            
+
         return new_dict
 
     def _save_new_multisection_data(self, new_multisection_data):
@@ -802,11 +820,9 @@ class OldRegistryImporter(object):
         # creating by hand ..
         # new_multisection_data is a list of dicts like:
         # [ {"cdecodeA": value, "cdecodeB": value, ... }, {.. } ]
-        
-        
+
         field_expression = "$op/%s/%s/items" % (self.form_model.name,
                                                 self.section_model.code)
-
 
         print("field_expression = %s" % field_expression)
 
@@ -820,24 +836,20 @@ class OldRegistryImporter(object):
 
         print("existing data = %s" % dynamic_data)
 
-
         try:
             _, dynamic_data = fe.set_value(self.patient_model,
-                                       dynamic_data,
-                                       new_multisection_data)
-        except Exception as  ex:
+                                           dynamic_data,
+                                           new_multisection_data)
+        except Exception as ex:
             print("could not set multisection value: %s" % ex)
             return
-
-        
 
         print("About to update dynamic data for multisection")
         print("Dynamic data we are about to save: %s" % dynamic_data)
 
-        self.patient_model.update_dynamic_data(self.registry_model, dynamic_data)
+        self.patient_model.update_dynamic_data(
+            self.registry_model, dynamic_data)
         print("updated data OK")
-
-
 
     @meta("CDE")
     def _process_cde(self):
