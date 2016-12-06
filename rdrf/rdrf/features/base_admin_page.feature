@@ -60,7 +60,6 @@ Feature: Admin Page and Settings
     And I should see a link to "Explorer"
     And I should see a link to "Demographics Fields"
     And I should see a link to "Next of Kin Relationship"
-    And I should see a link to "Registration Profiles"
     And I should see a link to "Email Notifications"
     And I should see a link to "Email Templates"
     And I should see a link to "Email Notifications History"
