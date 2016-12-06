@@ -343,7 +343,7 @@ class QuickLinks(object):
         links = MenuConfig().settings
         return OrderedDict(sorted(links.items())).values()
 
-    def all_links(self):
+    def admin_page_links(self):
         # get links for the admin page
         links = MenuConfig().all
         return OrderedDict(sorted(links.items())).values()

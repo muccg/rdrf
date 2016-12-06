@@ -187,13 +187,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return links
 
     @property
-    def all_links(self):
+    def admin_page_links(self):
         links = []
 
         if self.is_superuser:
             from rdrf.quick_links import QuickLinks
             qlinks = QuickLinks(self.get_registries_or_all())
-            links = qlinks.all_links()
+            links = qlinks.admin_page_links()
 
         return links
 
