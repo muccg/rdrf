@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.urls.exceptions import NoReverseMatch
 
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -294,8 +295,12 @@ class QuickLinks(object):
             if feature and not registry.has_feature(feature):
                 continue
 
-            text = label + ' (' + registry.name + ')'
-            rval[text] = QuickLink(reverse(url, args=(registry.code,)), text)
+            try:
+                text = label + ' (' + registry.name + ')'
+                qlink = QuickLink(reverse(url, args=(registry.code,)), text)
+                rval[text] = qlink
+            except NoReverseMatch:
+                logging.exception('No reverse url for {0} with registry code {1}'.format(url, registry.code))
         return rval
 
     def _registration_links(self):
@@ -308,7 +313,7 @@ class QuickLinks(object):
 
     def _questionnaire_links(self):
         # enable questionnaire links if any registry uses questionnaires
-        links = self._per_registry_links('Questionnaires', 'questionnaires', 'questionnaires')
+        links = self._per_registry_links('Questionnaires', 'questionnaire', 'questionnaires')
 
         # special case: if we have questionnaires enabled, we enable questionnaire links
         if len(links) > 0:
