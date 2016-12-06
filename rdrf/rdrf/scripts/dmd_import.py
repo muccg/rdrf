@@ -159,9 +159,12 @@ MULTISECTION_MAP = {
                                     }
                         }},
 
-    "NMDClinicalTrials": {"model": "",
+    "NMDClinicalTrials": {"model": "dmd.clinicaltrials",
                           "field_map": {
-
+                              "drug_name": {"cde_code": "NMDDrugName"},
+                              "trial_sponsor": {"cde_code": "NMDTrialSponsor"},
+                              "trial_name": {"cde_code": "NMDTrialName"},
+                              "trial_phase": {"cde_code": "NMDTrialPhase"},
                           }},
 
     "NMDOtherRegistries": {"model": "",
