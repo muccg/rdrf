@@ -3,14 +3,14 @@
 # GROUPS.ALL is a sentinel used to trigger membership to all groups (typically for superuser)
 from collections import namedtuple
 GroupLookup = namedtuple('GroupLookup',
-                         ['PATIENTS',
-                          'PARENTS',
+                         ['PATIENT',
+                          'PARENT',
                           'CLINICAL',
                           'GENETIC_STAFF',
                           'GENETIC_CURATOR',
                           'WORKING_GROUP_STAFF',
                           'WORKING_GROUP_CURATOR',
-                          'ALL'])
+                          'SUPER_USER'])
 GROUPS = GroupLookup('patients',
                      'parents',
                      'clinical staff',
@@ -18,4 +18,4 @@ GROUPS = GroupLookup('patients',
                      'genetic curator',
                      'working group staff',
                      'working group curators',
-                     '__all__')
+                     '__super_user__')

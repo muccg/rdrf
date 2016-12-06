@@ -1,19 +1,13 @@
 import re
 
 from django.core import validators
-
-from django.contrib.auth.models import Group
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
-
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
 from django.db import models
-
 from django.dispatch import receiver
 
 from registration.signals import user_registered
-
 from rdrf.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -102,11 +96,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_patient(self):
-        return self.in_group(RDRF_GROUPS.PATIENTS)
+        return self.in_group(RDRF_GROUPS.PATIENT)
 
     @property
     def is_parent(self):
-        return self.in_group(RDRF_GROUPS.PARENTS)
+        return self.in_group(RDRF_GROUPS.PARENT)
 
     @property
     def is_clinician(self):
@@ -171,18 +165,35 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return False
 
     @property
-    def quick_links(self):
-        from rdrf.quick_links import QuickLinks, QUESTIONNAIRE_HANDLING, DOCTORS
+    def menu_links(self):
+        from rdrf.quick_links import QuickLinks
+        qlinks = QuickLinks(self.get_registries_or_all())
         if self.is_superuser:
-            links = QuickLinks().links([RDRF_GROUPS.ALL])
+            links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            links = QuickLinks().links([group.name for group in self.groups.all()])
+            links = qlinks.menu_links([group.name for group in self.groups.all()])
 
-        if not self.has_feature("questionnaires"):
-            links = links - QUESTIONNAIRE_HANDLING
+        return links
 
-        if self.has_feature("family_linkage"):
-            links = links | DOCTORS
+    @property
+    def settings_links(self):
+        links = []
+
+        if self.is_superuser:
+            from rdrf.quick_links import QuickLinks
+            qlinks = QuickLinks(self.get_registries_or_all())
+            links = qlinks.settings_links()
+
+        return links
+
+    @property
+    def all_links(self):
+        links = []
+
+        if self.is_superuser:
+            from rdrf.quick_links import QuickLinks
+            qlinks = QuickLinks(self.get_registries_or_all())
+            links = qlinks.all_links()
 
         return links
 

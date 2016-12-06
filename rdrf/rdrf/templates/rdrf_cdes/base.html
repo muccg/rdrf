@@ -85,16 +85,8 @@
                         <span class="glyphicon glyphicon-tasks"></span> {% trans "Menu" %}<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        {% if request.user.is_curator or request.user.is_superuser %}
-                            {% for reg in request.user.get_registries.all %}
-                                <li><a href="{% url 'consent_list' reg.code %}">{{reg.name}} Consents</a></li>
-                            {% endfor %}
-                        {% endif %}
-
-                        {% for quick_link in request.user.quick_links %}
-                            {% if not quick_link.admin_link %}
-                                <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
-                            {% endif %}
+                        {% for quick_link in request.user.menu_links %}
+                            <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                         {% endfor %}
 
                         {% block extra_menu %}
@@ -108,14 +100,9 @@
                             <span class="glyphicon glyphicon-wrench"></span> {% trans "Settings" %}<span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
-                            {% for quick_link in request.user.quick_links %}
-                                {% if quick_link.admin_link %}
-                                    <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
-                                {% endif %}
+                            {% for quick_link in request.user.settings_links %}
+                                <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                             {% endfor %}
-							{% for reg in request.user.get_registries_or_all %}
-								<li><a href="{% url 'permission_matrix' reg.code %}">{{reg.name}} Permissions</a></li>
-							{% endfor %}
                         </ul>
                     </li>
                 {% endif %}
