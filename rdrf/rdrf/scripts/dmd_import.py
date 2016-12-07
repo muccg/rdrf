@@ -989,6 +989,12 @@ class OldRegistryImporter(object):
         print("About to update dynamic data for multisection")
         print("Dynamic data we are about to save: %s" % dynamic_data)
 
+        if "context_id" not in dynamic_data:
+            print("context_id is not in dynamic data? Adding it")
+            dynamic_data["context_id"] = self.context_model.pk
+            
+            
+
         self.patient_model.update_dynamic_data(
             self.registry_model, dynamic_data)
         print("updated data OK")
