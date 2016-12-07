@@ -793,10 +793,17 @@ class OldRegistryImporter(object):
         p = Patient()
         p.family_name = self.record.get("family_name")
         p.given_names = self.record.get("given_names")
-        p.sex = self.record.get("sex")
+        p.sex = Conv.MeteorSexChoices.get(self.record.get("sex"), None)
         p.date_of_birth = self.record.get("date_of_birth")
-        p.consent = True
-        p.active = True
+        p.consent = self.record.get("consent")
+        p.active = self.record.get("active")
+        p.umrn = self.record.get("umrn")
+        p.home_phone = self.record.get("home_phone")
+        p.mobile_phone = self.record.get("mobile_phone")
+        p.work_phone = self.record.get("work_phone")
+        p.email = self.record.get("email")
+        p.inactive_reason = self.record.get("inactive_reason")
+        
         p.save()
         print("patient %s saved OK" % p)
         p.rdrf_registry = [self.registry_model]
