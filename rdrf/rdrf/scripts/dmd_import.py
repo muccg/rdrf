@@ -13,6 +13,7 @@ from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
+from registry.patients.models import State
 from registry.groups.models import WorkingGroup
 from rdrf.contexts_api import RDRFContextManager
 
@@ -824,13 +825,24 @@ class OldRegistryImporter(object):
         address = self.record.get("address")
         suburb = self.record.get("suburb")
         postcode = self.record.get("postcode")
+        state = self.record.get("state")
 
         address_model = PatientAddress()
         address_model.address = address
         address_model.suburb = suburb
         address_model.postcode = postcode
         address_model.patient = self.patient_model
+        state_model = self.convert_state(state)
+        if state_model is not None:
+            address_model.state = self.convert_state(state)
         address_model.save()
+
+    def convert_state(self, state):
+        try:
+            return State.objects.get(short_name=state)
+        except State.DoesNotExist:
+            return None
+        
         
 
     def convert_registry_patient(self, old_id):
