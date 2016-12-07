@@ -12,6 +12,7 @@ from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 
 
 from registry.patients.models import Patient
+from registry.patients.models import PatientAddress
 from registry.groups.models import WorkingGroup
 from rdrf.contexts_api import RDRFContextManager
 
@@ -780,6 +781,7 @@ class OldRegistryImporter(object):
 
     def _process_record(self):
         self.patient_model = self._create_patient()
+        self._assign_address()
         self._id_map[self.record.patient_id] = self.patient_model.pk
         
         for form_model in self.registry_model.forms:
@@ -817,6 +819,19 @@ class OldRegistryImporter(object):
         print("created default context %s" % self.context_model)
 
         return p
+
+    def _assign_address(self):
+        address = self.record.get("address")
+        suburb = self.record.get("suburb")
+        postcode = self.record.get("postcode")
+
+        address_model = PatientAddress()
+        address_model.address = address
+        address_model.suburb = suburb
+        address_model.postcode = postcode
+        address_model.patient = self.patient_model
+        address_model.save()
+        
 
     def convert_registry_patient(self, old_id):
         return self._id_map.get(old_id)
