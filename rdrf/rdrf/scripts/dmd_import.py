@@ -200,7 +200,7 @@ MULTISECTION_MAP = {
                       "path": Path.THROUGH_MOLECULAR_DATA,
                       "field_map": {
                           "gene": {"cde_code": "NMDGene",
-                               "converter" : None},
+                                   "converter" : "gene"},
                           "exon": {"cde_code": "CDE00033",
                                "converter" : None},
                           "dna_variation": {"cde_code": "DMDDNAVariation",
@@ -663,6 +663,7 @@ class Data(object):
                 yield thing
 
 
+
 def meta(stage, run_after=False):
     # consistent logging
     def decorator(func):
@@ -724,7 +725,17 @@ class OldRegistryImporter(object):
     def rdrf_id(self):
         if self.patient_model:
             return self.patient_model.pk
-        
+
+
+    @property
+    def moniker(self):
+        if self.patient_model:
+            s = "%s" % self.patient_model
+        else:
+            s = "???"
+        return "%s/%s %s" % (self.rdrf_id,
+                             self.old_id,
+                             s)
 
     def log(self, msg):
         msg = msg + "\n"
@@ -802,6 +813,16 @@ class OldRegistryImporter(object):
 
     def convert_registry_patient(self, old_id):
         return self._id_map.get(old_id)
+
+    def convert_gene(self, gene_id):
+        for thing in self.data.data:
+            if thing["pk"] == gene_id and thing["model"] == "genetic.gene":
+                symb =  thing["fields"]["symbol"]
+                print("symbol patient %s gene %s" % (self.moniker,
+                                                     symb))
+
+                return symb
+                                              
     
     def _get_working_group(self):
         return WorkingGroup.objects.get(name="WA")
