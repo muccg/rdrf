@@ -29,6 +29,12 @@ class RollbackError(Exception):
 class Path:
     THROUGH_DIAGNOSIS = 1
     THROUGH_PATIENT = 2
+    THROUGH_MOLECULAR_DATA = 3
+
+SKIP_FIELDS = ["dna_variation_validation_override",
+               "exon_validation_override",
+               "protein_variation_validation_override",
+               "rna_variation_validation_override"]
 
 
 class Conv:
@@ -41,7 +47,7 @@ class Conv:
         "Previous": "DMDStatusChoicesPrevious",
         "Current": "DMDStatusChoicesCurrent",
     }
-
+    
     DMDFamilyDiagnosis = {
         # argh
         "BMD": "DMDFamilyBMD",
@@ -58,6 +64,13 @@ class Conv:
         "I": 3
     }
 
+    NMDTechnique = {
+        "MLPA" : "MLPA",
+        "Genomic DNA sequencing": "Genomic DNA sequencing",
+        "Array": "Array",
+        "cDNA sequencing": "cDNA sequencing",
+        }
+
 class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
@@ -65,10 +78,21 @@ class PatientRecord(object):
         self.patient_dict = patient_dict
         self.patient_id = self.patient_dict["pk"]
         self.diagnosis_dict = self._get_diagnosis()
+        self.molecular_data_dict = self._get_molecular_data()
         if "pk" in self.diagnosis_dict:
             self.diagnosis_id = self.diagnosis_dict["pk"]
         else:
             self.diagnosis_id = None
+
+    def _get_molecular_data(self):
+        for thing in self.data:
+            if thing["model"] == "genetic.moleculardata":
+                if thing["pk"] == self.patient_id:
+                    print("found molecular data: %s" % thing)
+                    return thing
+
+        print("No molecular data for patient %s" % self.patient_id)
+                
 
     def _get_diagnosis(self):
         d = {}
@@ -172,8 +196,35 @@ MULTISECTION_MAP = {
                                "registry": {"cde_code": "NMDOtherRegistry"}
                            }},
 
-    "DMDVariations": {"model": "",
+    "DMDVariations": {"model": "genetic.variation",
+                      "path": Path.THROUGH_MOLECULAR_DATA,
                       "field_map": {
+                          "gene": {"cde_code": "NMDGene",
+                               "converter" : None},
+                          "exon": {"cde_code": "CDE00033",
+                               "converter" : None},
+                          "dna_variation": {"cde_code": "DMDDNAVariation",
+                               "converter" : None},
+                          "rna_variation": {"cde_code": "DMDRNAVariation",
+                               "converter" : None},
+                          "protein_variation": {"cde_code": "DMDProteinVariation",
+                               "converter" : None},
+                          "technique": {"cde_code": "NMDTechnique",
+                                        "converter" : Conv.NMDTechnique},
+                          "all_exons_in_male_relative": {"cde_code": "DMDExonTestMaleRelatives",
+                                                         "converter" : Conv.YNU},
+                          "exon_boundaries_known": {"cde_code": "DMDExonBoundaries",
+                                                    "converter" : Conv.YNU},
+                          "point_mutation_all_exons_sequenced": {"cde_code": "DMDExonSequenced",
+                                                                 "converter" : Conv.YNU},
+                          "deletion_all_exons_tested": {"cde_code": "DMDExonTestDeletion",
+                                                                 "converter" : Conv.YNU},
+                          "duplication_all_exons_tested": {"cde_code": "DMDExonTestDuplication",
+                                                                 "converter" : Conv.YNU},
+                          "": {"cde_code": "",
+                                                                 "converter" : Conv.YNU},
+
+                          
                       }},
 
 }
@@ -663,6 +714,18 @@ class OldRegistryImporter(object):
         self.rdrf_context_manager = RDRFContextManager(registry_model)
         self._id_map = {} # old to new patient ids
 
+
+    @property
+    def old_id(self):
+        if self.record:
+            return self.record.patient_id
+
+    @property
+    def rdrf_id(self):
+        if self.patient_model:
+            return self.patient_model.pk
+        
+
     def log(self, msg):
         msg = msg + "\n"
         self._log.write(msg)
@@ -756,29 +819,63 @@ class OldRegistryImporter(object):
         else:
             self._process_multisection()
 
+
+    def _get_multisection_related_model_info(self, multisection_code):
+        # return model , foreign key field
+        ms_map = MULTISECTION_MAP[multisection_code]
+        path = ms_map.get("path", Path.THROUGH_DIAGNOSIS)
+        if path == Path.THROUGH_DIAGNOSIS:
+            return "diagnosis", "diagnosis"
+        elif path == Path.THROUGH_PATIENT:
+            return "patient", "patient"
+        elif path == Path.THROUGH_MOLECULAR_DATA:
+            return "genetic.moleculardata", "molecular_data"
+        else:
+            return None, None
+
     #@meta("MULTISECTION")
     def _process_multisection(self):
         print("processing multisection %s" % self.section_model.code)
+        
         old_model = self._get_old_multisection_model(self.section_model.code)
         print("old_model = %s" % old_model)
         old_items = []
-        diagnosis_id = self.record.diagnosis_dict[
-            "pk"] if self.record.diagnosis_dict else None
 
-        print("old diagnosis id = %s" % diagnosis_id)
+        related_model, related_model_field = self._get_multisection_related_model_info(self.section_model.code) 
+
+        print("related model = %s related_model_field = %s" % (related_model,
+                                                               related_model_field))
+
+        if related_model == "diagnosis":
+            model_id = self.record.diagnosis_dict["pk"] if self.record.diagnosis_dict else None
+        elif related_model == "genetic.moleculardata":
+            if self.record.molecular_data_dict:
+                model_id = self.record.molecular_data_dict["pk"]
+            else:
+                model_id = None
+        elif related_model == "patient":
+            model_id = self.record.patient_id
+        else:
+            model_id = None
+            print("no related model_id for %s" % old_model)
+            
+                
+
         items = []   # a list of lists
 
         for thing in self.data.data:
             if thing["model"] == old_model:
-                if "diagnosis" in thing["fields"].keys():
-                    if thing["fields"]["diagnosis"] == diagnosis_id:
+                if related_model_field in thing["fields"].keys():
+                    if thing["fields"][related_model_field] == model_id:
                         old_items.append(thing)
 
         l = len(old_items)
-        print("Found %s old items" % l)
+        print("old items patient %s has %s %s" % (self.rdrf_id,
+                                                  l,
+                                                  old_model))
 
         for item in old_items:
-            item = self._create_new_multisection_item(item)
+            item = self._create_new_multisection_item(item, key_field=related_model_field)
             items.append(item)
 
         if len(items) > 0:
@@ -791,10 +888,15 @@ class OldRegistryImporter(object):
         else:
             raise Exception("unknown multisection: %s" % section_code)
 
-    def _create_new_multisection_item(self, old_item):
+    def _create_new_multisection_item(self, old_item, key_field="diagnosis"):
         # return new item dict
+        print("creating new multisection item for %s from %s" % (self.section_model.code,
+                                                                 old_item))
+        
         mm_map = MULTISECTION_MAP[self.section_model.code]
+
         field_map = mm_map["field_map"]
+        print("field_map = %s" % field_map)
 
         if not field_map:
             raise Exception("need field map for multisection %s" %
@@ -805,7 +907,11 @@ class OldRegistryImporter(object):
         new_dict = {}
 
         for old_field in old_item["fields"].keys():
-            if old_field == "diagnosis":
+            if old_field ==  key_field:
+                continue
+
+            if old_field in SKIP_FIELDS:
+                print("skipping %s" % old_field)
                 continue
 
             print("converting old field %s in model %s" %
