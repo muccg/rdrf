@@ -167,8 +167,9 @@ MULTISECTION_MAP = {
                               "trial_phase": {"cde_code": "NMDTrialPhase"},
                           }},
 
-    "NMDOtherRegistries": {"model": "",
+    "NMDOtherRegistries": {"model": "dmd.otherregistries",
                            "field_map": {
+                               "registry": {"cde_code": "NMDOtherRegistry"}
                            }},
 
     "DMDVariations": {"model": "",
