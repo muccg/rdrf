@@ -8,6 +8,9 @@ from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
 from rdrf.models import CommonDataElement
+from rdrf.models import ConsentSection
+from rdrf.models import ConsentQuestion
+
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 
 
@@ -48,7 +51,7 @@ class Conv:
         "Previous": "DMDStatusChoicesPrevious",
         "Current": "DMDStatusChoicesCurrent",
     }
-    
+
     DMDFamilyDiagnosis = {
         # argh
         "BMD": "DMDFamilyBMD",
@@ -66,11 +69,12 @@ class Conv:
     }
 
     NMDTechnique = {
-        "MLPA" : "MLPA",
+        "MLPA": "MLPA",
         "Genomic DNA sequencing": "Genomic DNA sequencing",
         "Array": "Array",
         "cDNA sequencing": "cDNA sequencing",
-        }
+    }
+
 
 class PatientRecord(object):
 
@@ -93,7 +97,6 @@ class PatientRecord(object):
                     return thing
 
         print("No molecular data for patient %s" % self.patient_id)
-                
 
     def _get_diagnosis(self):
         d = {}
@@ -168,7 +171,7 @@ MULTISECTION_MAP = {
                            },
 
     "DMDFamilyMember": {"model": "dmd.familymember",
-                        
+
                         "field_map": {
                             "registry_patient": {"cde_code": "NMDRegistryPatient",
                                                  "converter": "registry_patient"},
@@ -201,31 +204,31 @@ MULTISECTION_MAP = {
                       "path": Path.THROUGH_MOLECULAR_DATA,
                       "field_map": {
                           "gene": {"cde_code": "NMDGene",
-                                   "converter" : "gene"},
+                                   "converter": "gene"},
                           "exon": {"cde_code": "CDE00033",
-                               "converter" : None},
+                                   "converter": None},
                           "dna_variation": {"cde_code": "DMDDNAVariation",
-                               "converter" : None},
+                                            "converter": None},
                           "rna_variation": {"cde_code": "DMDRNAVariation",
-                               "converter" : None},
+                                            "converter": None},
                           "protein_variation": {"cde_code": "DMDProteinVariation",
-                               "converter" : None},
+                                                "converter": None},
                           "technique": {"cde_code": "NMDTechnique",
-                                        "converter" : Conv.NMDTechnique},
+                                        "converter": Conv.NMDTechnique},
                           "all_exons_in_male_relative": {"cde_code": "DMDExonTestMaleRelatives",
-                                                         "converter" : Conv.YNU},
+                                                         "converter": Conv.YNU},
                           "exon_boundaries_known": {"cde_code": "DMDExonBoundaries",
-                                                    "converter" : Conv.YNU},
+                                                    "converter": Conv.YNU},
                           "point_mutation_all_exons_sequenced": {"cde_code": "DMDExonSequenced",
-                                                                 "converter" : Conv.YNU},
+                                                                 "converter": Conv.YNU},
                           "deletion_all_exons_tested": {"cde_code": "DMDExonTestDeletion",
-                                                                 "converter" : Conv.YNU},
+                                                        "converter": Conv.YNU},
                           "duplication_all_exons_tested": {"cde_code": "DMDExonTestDuplication",
-                                                                 "converter" : Conv.YNU},
+                                                           "converter": Conv.YNU},
                           "": {"cde_code": "",
-                                                                 "converter" : Conv.YNU},
+                               "converter": Conv.YNU},
 
-                          
+
                       }},
 
 }
@@ -664,7 +667,6 @@ class Data(object):
                 yield thing
 
 
-
 def meta(stage, run_after=False):
     # consistent logging
     def decorator(func):
@@ -712,10 +714,9 @@ class OldRegistryImporter(object):
         self.cde_model = None
         self.record = None
         self._log = sys.stdout
-        self.after_ops = [] # updates to fields to run after all patients in
+        self.after_ops = []  # updates to fields to run after all patients in
         self.rdrf_context_manager = RDRFContextManager(registry_model)
-        self._id_map = {} # old to new patient ids
-
+        self._id_map = {}  # old to new patient ids
 
     @property
     def old_id(self):
@@ -726,7 +727,6 @@ class OldRegistryImporter(object):
     def rdrf_id(self):
         if self.patient_model:
             return self.patient_model.pk
-
 
     @property
     def moniker(self):
@@ -782,8 +782,11 @@ class OldRegistryImporter(object):
     def _process_record(self):
         self.patient_model = self._create_patient()
         self._assign_address()
-        self._id_map[self.record.patient_id] = self.patient_model.pk
+        self._set_consent()
         
+        
+        self._id_map[self.record.patient_id] = self.patient_model.pk
+
         for form_model in self.registry_model.forms:
             self.form_model = form_model
             for section_model in form_model.section_models:
@@ -805,7 +808,30 @@ class OldRegistryImporter(object):
         p.work_phone = self.record.get("work_phone")
         p.email = self.record.get("email")
         p.inactive_reason = self.record.get("inactive_reason")
+
+        # next of kin fields
+
+        self._set_field(p, "next_of_kin_family_name")
+        self._set_field(p, "next_of_kin_given_names")
+        self._set_field(p, "next_of_kin_email")
+        self._set_field(p, "next_of_kin_address")
+        self._set_field(p, "next_of_kin_home_phone")
+        self._set_field(p, "next_of_kin_mobile_phone")
+        self._set_field(p, "next_of_kin_parent_place_of_birth")
+        self._set_field(p, "next_of_kin_postcode")
+        self._set_field(p, "next_of_kin_relationship")
+
+
+        # old system assumes Au for nok
+        nok_state = self.record.get("next_of_kin_state")
+        if nok_state is not None:
+            p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
+            
+        p.next_of_kin_country = "AU"  
         
+        self._set_field(p, "next_of_kin_suburb")
+        self._set_field(p, "next_of_kin_work_phone")
+
         p.save()
         print("patient %s saved OK" % p)
         p.rdrf_registry = [self.registry_model]
@@ -824,28 +850,55 @@ class OldRegistryImporter(object):
 
         return p
 
+    def _set_field(self, patient_model, attr, conv=None):
+        value = self.record.get(attr)
+        if conv is None:
+            setattr(patient_model, attr, value)
+        else:
+            setattr(patient_model, attr, conv(value))
+
+
+    def _set_consent(self):
+        # this sets the visible consent
+        consent_value = self.record.get("consent")
+        
+        consent_section_model = ConsentSection.objects.get(code="dmdconsentsection1",
+                                                           registry=self.registry_model)
+
+        consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
+                                                             code="c1")
+        
+        
+        answer_field_expression = "Consents/%s/%s/answer" % (consent_section_model.code,
+                                                             consent_question_model.code)
+
+        self.patient_model.evaluate_field_expression(self.registry_model,
+                                               answer_field_expression,
+                                               value=consent_value)
+
+
+
     def _assign_address(self):
         address = self.record.get("address")
         suburb = self.record.get("suburb")
         postcode = self.record.get("postcode")
         state = self.record.get("state")
         country_code = self._get_country_code(state)
-        
 
         address_model = PatientAddress()
         address_model.address = address
         address_model.suburb = suburb
         address_model.postcode = postcode
         address_model.patient = self.patient_model
-        address_model.state  = country_code + "-" + state
+        address_model.state = country_code + "-" + state
         address_model.country = country_code
         address_model.save()
 
     def _get_country_code(self, state):
         if state == "NZN":
             return "NZ"
-        
-        return "AU" # ???
+
+        return "AU"  # ???
 
     def convert_registry_patient(self, old_id):
         return self._id_map.get(old_id)
@@ -853,13 +906,12 @@ class OldRegistryImporter(object):
     def convert_gene(self, gene_id):
         for thing in self.data.data:
             if thing["pk"] == gene_id and thing["model"] == "genetic.gene":
-                symb =  thing["fields"]["symbol"]
+                symb = thing["fields"]["symbol"]
                 print("symbol patient %s gene %s" % (self.moniker,
                                                      symb))
 
                 return symb
-                                              
-    
+
     def _get_working_group(self):
         wg_old_pk = self.record.get("working_group")
         for thing in self.data.data:
@@ -867,13 +919,13 @@ class OldRegistryImporter(object):
                 if thing["model"] == "groups.workinggroup":
                     working_group_name = thing["fields"]["name"]
                     working_group_model, created = WorkingGroup.objects.get_or_create(name=working_group_name,
-                                                                       registry=self.registry_model)
+                                                                                      registry=self.registry_model)
 
                     if created:
                         print("created working group %s" % working_group_name)
                         working_group_model.save()
                     return working_group_model
-                        
+
     @meta("FAMILY_MEMBER", run_after=True)
     def _create_family_member(self, patient_model, family_member_dict):
         existing_relative_patient_model = None
@@ -886,7 +938,6 @@ class OldRegistryImporter(object):
                 self._process_cde()
         else:
             self._process_multisection()
-
 
     def _get_multisection_related_model_info(self, multisection_code):
         # return model , foreign key field
@@ -904,18 +955,20 @@ class OldRegistryImporter(object):
     #@meta("MULTISECTION")
     def _process_multisection(self):
         print("processing multisection %s" % self.section_model.code)
-        
+
         old_model = self._get_old_multisection_model(self.section_model.code)
         print("old_model = %s" % old_model)
         old_items = []
 
-        related_model, related_model_field = self._get_multisection_related_model_info(self.section_model.code) 
+        related_model, related_model_field = self._get_multisection_related_model_info(
+            self.section_model.code)
 
         print("related model = %s related_model_field = %s" % (related_model,
                                                                related_model_field))
 
         if related_model == "diagnosis":
-            model_id = self.record.diagnosis_dict["pk"] if self.record.diagnosis_dict else None
+            model_id = self.record.diagnosis_dict[
+                "pk"] if self.record.diagnosis_dict else None
         elif related_model == "genetic.moleculardata":
             if self.record.molecular_data_dict:
                 model_id = self.record.molecular_data_dict["pk"]
@@ -926,8 +979,6 @@ class OldRegistryImporter(object):
         else:
             model_id = None
             print("no related model_id for %s" % old_model)
-            
-                
 
         items = []   # a list of lists
 
@@ -943,7 +994,8 @@ class OldRegistryImporter(object):
                                                   old_model))
 
         for item in old_items:
-            item = self._create_new_multisection_item(item, key_field=related_model_field)
+            item = self._create_new_multisection_item(
+                item, key_field=related_model_field)
             items.append(item)
 
         if len(items) > 0:
@@ -960,7 +1012,7 @@ class OldRegistryImporter(object):
         # return new item dict
         print("creating new multisection item for %s from %s" % (self.section_model.code,
                                                                  old_item))
-        
+
         mm_map = MULTISECTION_MAP[self.section_model.code]
 
         field_map = mm_map["field_map"]
@@ -975,7 +1027,7 @@ class OldRegistryImporter(object):
         new_dict = {}
 
         for old_field in old_item["fields"].keys():
-            if old_field ==  key_field:
+            if old_field == key_field:
                 continue
 
             if old_field in SKIP_FIELDS:
@@ -1039,8 +1091,6 @@ class OldRegistryImporter(object):
         if "context_id" not in dynamic_data:
             print("context_id is not in dynamic data? Adding it")
             dynamic_data["context_id"] = self.context_model.pk
-            
-            
 
         self.patient_model.update_dynamic_data(
             self.registry_model, dynamic_data)
@@ -1120,5 +1170,5 @@ if __name__ == "__main__":
 
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
-
     importer.run()
+    print("run completed")
