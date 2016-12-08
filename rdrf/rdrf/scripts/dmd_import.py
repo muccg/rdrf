@@ -16,6 +16,8 @@ from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
+from registry.patients.models import Doctor
+from registry.patients.models import PatientDoctor
 from registry.groups.models import WorkingGroup
 from rdrf.contexts_api import RDRFContextManager
 
@@ -717,6 +719,8 @@ class OldRegistryImporter(object):
         self.after_ops = []  # updates to fields to run after all patients in
         self.rdrf_context_manager = RDRFContextManager(registry_model)
         self._id_map = {}  # old to new patient ids
+        self._doctor_map = {}
+        
 
     @property
     def old_id(self):
@@ -775,6 +779,8 @@ class OldRegistryImporter(object):
             return json.load(jf)
 
     def run(self):
+        self._create_doctors()
+        
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
@@ -783,7 +789,7 @@ class OldRegistryImporter(object):
         self.patient_model = self._create_patient()
         self._assign_address()
         self._set_consent()
-        
+        self._assign_doctors()
         
         self._id_map[self.record.patient_id] = self.patient_model.pk
 
@@ -893,6 +899,65 @@ class OldRegistryImporter(object):
         address_model.state = country_code + "-" + state
         address_model.country = country_code
         address_model.save()
+
+    def _create_doctors(self):
+        # make a map as we go
+        for thing in self.data.data:
+            if thing["model"] == "patients.doctor":
+                print("found a doctor!")
+                flds = thing["fields"]
+                doc = Doctor()
+                doc.family_name = flds["family_name"]
+                doc.given_names = flds["given_names"]
+                doc.speciality = flds["speciality"]
+                doc.email = flds["email"]
+                doc.surgery_name = flds["surgery_name"]
+                doc.address = flds["address"]
+                doc.phone = flds["phone"]
+                doc.suburb = flds["suburb"]
+                doc.state = None #todo
+                doc.save()
+                print("created doctor %s" % doc)
+                self._doctor_map[thing["pk"]] = doc
+
+
+    def _assign_doctors(self):
+        # create them if they don't exist
+        my_doctors  = []
+        
+        for thing in self.data.data:
+            if thing["model"] == "patients.patientdoctor":
+                if thing["fields"]["patient"] == self.record.patient_id:
+                    my_doctors.append(thing)
+
+
+        for doctor_dict in my_doctors:
+            self._assign_doctor(doctor_dict)
+
+
+
+    def _assign_doctor(self, doctor_dict):
+        # doctors have already been created
+        doctor_old_pk = doctor_dict["fields"]["doctor"]
+        doctor_model = self._doctor_map.get(doctor_old_pk, None)
+
+        if doctor_model is not None:
+            patient_doctor = PatientDoctor()
+            patient_doctor.patient = self.patient_model
+            patient_doctor.doctor = doctor_model
+            patient_doctor.relationship = doctor_dict["fields"]["relationship"]
+            patient_doctor.save()
+            print("assigned doctor %s to %s" % (doctor_model,
+                                                self.patient_model))
+                                             
+                                             
+
+        else:
+            print("can't locate doctor with old pk %s" % doctor_old_pk) 
+        
+        
+                    
+        
 
     def _get_country_code(self, state):
         if state == "NZN":
@@ -1170,5 +1235,10 @@ if __name__ == "__main__":
 
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
-    importer.run()
-    print("run completed")
+    try:
+        with transaction.atomic():
+            importer.run()
+            print("run completed")
+    except Exception as ex:
+        print("run failed (rolled back): %s" % ex)
+        sys.exit(1)
