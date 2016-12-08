@@ -811,9 +811,13 @@ class OldRegistryImporter(object):
         p.rdrf_registry = [self.registry_model]
         p.save()
         print("assigned registry ok")
-        p.working_group = self._get_working_group()
-        p.save()
-        print("assigned to working group WA")
+        wg = self._get_working_group()
+
+        if wg is not None:
+            p.working_groups = [wg]
+            p.save()
+            print("assigned to working group %s" % wg)
+
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(
             p, new_patient=True)
         print("created default context %s" % self.context_model)
@@ -825,16 +829,23 @@ class OldRegistryImporter(object):
         suburb = self.record.get("suburb")
         postcode = self.record.get("postcode")
         state = self.record.get("state")
+        country_code = self._get_country_code(state)
+        
 
         address_model = PatientAddress()
         address_model.address = address
         address_model.suburb = suburb
         address_model.postcode = postcode
         address_model.patient = self.patient_model
-        address_model.state  = state
-        address_model.country = "AU"
+        address_model.state  = country_code + "-" + state
+        address_model.country = country_code
         address_model.save()
 
+    def _get_country_code(self, state):
+        if state == "NZN":
+            return "NZ"
+        
+        return "AU" # ???
 
     def convert_registry_patient(self, old_id):
         return self._id_map.get(old_id)
@@ -850,8 +861,19 @@ class OldRegistryImporter(object):
                                               
     
     def _get_working_group(self):
-        return WorkingGroup.objects.get(name="WA")
+        wg_old_pk = self.record.get("working_group")
+        for thing in self.data.data:
+            if thing["pk"] == wg_old_pk:
+                if thing["model"] == "groups.workinggroup":
+                    working_group_name = thing["fields"]["name"]
+                    working_group_model, created = WorkingGroup.objects.get_or_create(name=working_group_name,
+                                                                       registry=self.registry_model)
 
+                    if created:
+                        print("created working group %s" % working_group_name)
+                        working_group_model.save()
+                    return working_group_model
+                        
     @meta("FAMILY_MEMBER", run_after=True)
     def _create_family_member(self, patient_model, family_member_dict):
         existing_relative_patient_model = None
