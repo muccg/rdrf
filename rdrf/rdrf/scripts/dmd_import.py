@@ -19,6 +19,7 @@ from registry.patients.models import PatientAddress
 from registry.patients.models import Doctor
 from registry.patients.models import PatientDoctor
 from registry.groups.models import WorkingGroup
+from registry.genetic.models import Laboratory
 from rdrf.contexts_api import RDRFContextManager
 
 FAMILY_MEMBERS_CODE = "xxx"
@@ -795,6 +796,7 @@ class OldRegistryImporter(object):
 
     def run(self):
         self._create_doctors()
+        self._create_labs()
         
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
@@ -977,10 +979,18 @@ class OldRegistryImporter(object):
 
         else:
             print("can't locate doctor with old pk %s" % doctor_old_pk) 
-        
-        
-                    
-        
+
+    def _create_labs(self):
+        for thing in self.data.data:
+            if thing["model"] == "genetic.laboratory":
+                lab = Laboratory()
+                lab.name = thing["fields"]["name"]
+                lab.address = thing["fields"]["address"]
+                lab.contact_name = thing["fields"]["contact_name"]
+                lab.contact_phone = thing["fields"]["contact_phone"]
+                lab.contact_email = thing["fields"]["contact_email"]
+                lab.save()
+                print("created lab %s" % lab)
 
     def _get_country_code(self, state):
         if state == "NZN":
