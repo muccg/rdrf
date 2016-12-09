@@ -77,6 +77,21 @@ class Conv:
         "cDNA sequencing": "cDNA sequencing",
     }
 
+    TypeOfMedicalProfessional = {
+        "GP (Primary Care)" : 1,
+        "Specialist (Lipid)": 2,
+        "Primary Care": 3,
+        "Paediatric Neurologist": 4,
+        "Neurologist": 5,
+        "Geneticist": 6,
+        "Specialist - Other": 7,
+        "Cardiologist": 8,
+        "Nurse Practitioner": 9,
+        "Paediatrician": 10
+    }
+    
+
+
 
 class PatientRecord(object):
 
@@ -945,7 +960,15 @@ class OldRegistryImporter(object):
             patient_doctor = PatientDoctor()
             patient_doctor.patient = self.patient_model
             patient_doctor.doctor = doctor_model
-            patient_doctor.relationship = doctor_dict["fields"]["relationship"]
+            old_relationship = doctor_dict["fields"]["relationship"]
+            
+            relationship_num = Conv.TypeOfMedicalProfessional.get(old_relationship,
+                                                                 None)
+            if relationship_num is not None:
+                patient_doctor.relationship = relationship_num
+            else:
+                print("Unknown relationship: %s" % old_relationship)
+                
             patient_doctor.save()
             print("assigned doctor %s to %s" % (doctor_model,
                                                 self.patient_model))
@@ -1235,10 +1258,5 @@ if __name__ == "__main__":
 
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
-    try:
-        with transaction.atomic():
-            importer.run()
-            print("run completed")
-    except Exception as ex:
-        print("run failed (rolled back): %s" % ex)
-        sys.exit(1)
+    importer.run()
+    print("run completed")
