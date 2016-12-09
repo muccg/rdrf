@@ -19,6 +19,7 @@ from registry.patients.models import PatientAddress
 from registry.patients.models import Doctor
 from registry.patients.models import PatientDoctor
 from registry.groups.models import WorkingGroup
+from registry.groups.models import CustomUser
 from registry.genetic.models import Laboratory
 from rdrf.contexts_api import RDRFContextManager
 
@@ -797,10 +798,32 @@ class OldRegistryImporter(object):
     def run(self):
         self._create_doctors()
         self._create_labs()
+        self._create_users()
         
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
+
+    def _create_users(self):
+        for thing in self.data.data:
+            if thing["model"] == "auth.user":
+                username = thing["fields"]["username"]
+                if username == "admin":
+                    continue
+                user = CustomUser()
+                user.username = username
+                user.first_name = thing["fields"]["first_name"]
+                user.last_name = thing["fields"]["last_name"]
+                user.last_login = thing["fields"]["last_login"]
+                user.email = thing["fields"]["email"]
+                user.date_joined = thing["fields"]["date_joined"]
+                user.password = thing["fields"]["password"]
+                user.is_superuser = thing["fields"]["is_superuser"]
+                user.is_active = thing["fields"]["is_active"]
+                user.is_staff = True
+                user.save()
+                user.registry = [self.registry_model]
+                user.save()
 
     def _process_record(self):
         self.patient_model = self._create_patient()
