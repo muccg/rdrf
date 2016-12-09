@@ -20,6 +20,7 @@ from registry.patients.models import Doctor
 from registry.patients.models import PatientDoctor
 from registry.groups.models import WorkingGroup
 from registry.groups.models import CustomUser
+from django.contrib.auth.models import Group
 from registry.genetic.models import Laboratory
 from rdrf.contexts_api import RDRFContextManager
 
@@ -91,9 +92,6 @@ class Conv:
         "Nurse Practitioner": 9,
         "Paediatrician": 10
     }
-    
-
-
 
 class PatientRecord(object):
 
@@ -737,6 +735,8 @@ class OldRegistryImporter(object):
         self.rdrf_context_manager = RDRFContextManager(registry_model)
         self._id_map = {}  # old to new patient ids
         self._doctor_map = {}
+        self._group_map = {}
+        
         
 
     @property
@@ -796,6 +796,7 @@ class OldRegistryImporter(object):
             return json.load(jf)
 
     def run(self):
+        self._create_auth_groups()
         self._create_doctors()
         self._create_labs()
         self._create_users()
@@ -804,12 +805,25 @@ class OldRegistryImporter(object):
             self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
 
+
+    def _create_auth_groups(self):
+        for thing in self.data.data:
+            if thing["model"] == "auth.group":
+                name = thing["fields"]["name"]
+                group_model, created = Group.objects.get_or_create(name=name)
+                if created:
+                    # what about permissions ...
+                    group_model.save()
+                    self._group_map[thing["pk"]] = group_model
+
+
     def _create_users(self):
         for thing in self.data.data:
             if thing["model"] == "auth.user":
                 username = thing["fields"]["username"]
                 if username == "admin":
                     continue
+                
                 user = CustomUser()
                 user.username = username
                 user.first_name = thing["fields"]["first_name"]
@@ -824,6 +838,19 @@ class OldRegistryImporter(object):
                 user.save()
                 user.registry = [self.registry_model]
                 user.save()
+                self._assign_user_groups(user, thing["fields"]["groups"])
+
+
+    def _assign_user_groups(self, user_model, old_group_ids):
+        for old_group_id in old_group_ids:
+            group_model = self._group_map.get(old_group_id, None)
+            if group_model is not None:
+                user_model.groups.add(group_model)
+                user_model.save()
+            else:
+                print("Unknown group id %s" % old_group_id)
+                
+
 
     def _process_record(self):
         self.patient_model = self._create_patient()
