@@ -1804,6 +1804,21 @@ class OldRegistryImporter(object):
                                                      value=value)
 
 
+    def _import_email_templates(self):
+        for thing in self.data.data:
+            if thing["model"] == "configuration.emailtemplate":
+                self._import_email_template(thing)
+
+    def _import_email_template(self, email_template_dict):
+        body = email_template_dict["fields"]["body"]
+        event_trigger = email_template_dict["fields"]["target"]
+        description = email_template_dict["fields"]["description"]
+        groups = [self._group_map.get(k, None) for k in email_template_dict["fields"]["groups"]]
+        
+        
+
+
+
 if __name__ == "__main__":
     registry_code = sys.argv[1]
     json_file = sys.argv[2]
