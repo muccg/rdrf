@@ -29,6 +29,391 @@ from registry.genetic.models import Laboratory
 
 FAMILY_MEMBERS_CODE = "xxx"
 
+PERMISSIONS_ON_STAGING = """
+Clinical Staff: add_laboratory
+Clinical Staff: change_laboratory
+Clinical Staff: change_addresstype
+Clinical Staff: delete_addresstype
+Clinical Staff: add_nextofkinrelationship
+Clinical Staff: change_nextofkinrelationship
+Clinical Staff: delete_nextofkinrelationship
+Clinical Staff: add_patient
+Clinical Staff: can_see_data_modules
+Clinical Staff: can_see_diagnosis_currency
+Clinical Staff: can_see_diagnosis_progress
+Clinical Staff: can_see_dob
+Clinical Staff: can_see_full_name
+Clinical Staff: can_see_working_groups
+Clinical Staff: change_patient
+Clinical Staff: delete_patient
+Clinical Staff: add_patientaddress
+Clinical Staff: change_patientaddress
+Clinical Staff: delete_patientaddress
+Clinical Staff: add_patientconsent
+Clinical Staff: change_patientconsent
+Clinical Staff: delete_patientconsent
+Clinical Staff: add_patientrelative
+Clinical Staff: change_patientrelative
+Clinical Staff: delete_patientrelative
+Clinical Staff: add_state
+Clinical Staff: change_state
+Clinical Staff: delete_state
+Clinical Staff: change_questionnaireresponse
+Clinical Staff: delete_questionnaireresponse
+Genetic Curator: add_gene
+Genetic Curator: change_gene
+Genetic Curator: delete_gene
+Genetic Curator: add_laboratory
+Genetic Curator: change_laboratory
+Genetic Curator: delete_laboratory
+Genetic Curator: add_technique
+Genetic Curator: change_technique
+Genetic Curator: delete_technique
+Genetic Curator: add_addresstype
+Genetic Curator: change_addresstype
+Genetic Curator: delete_addresstype
+Genetic Curator: add_consentvalue
+Genetic Curator: change_consentvalue
+Genetic Curator: delete_consentvalue
+Genetic Curator: add_nextofkinrelationship
+Genetic Curator: change_nextofkinrelationship
+Genetic Curator: delete_nextofkinrelationship
+Genetic Curator: add_parentguardian
+Genetic Curator: change_parentguardian
+Genetic Curator: delete_parentguardian
+Genetic Curator: add_patient
+Genetic Curator: can_see_data_modules
+Genetic Curator: can_see_dob
+Genetic Curator: can_see_full_name
+Genetic Curator: can_see_genetic_data_map
+Genetic Curator: can_see_working_groups
+Genetic Curator: change_patient
+Genetic Curator: delete_patient
+Genetic Curator: add_patientaddress
+Genetic Curator: change_patientaddress
+Genetic Curator: delete_patientaddress
+Genetic Curator: add_patientconsent
+Genetic Curator: change_patientconsent
+Genetic Curator: delete_patientconsent
+Genetic Curator: add_patientdoctor
+Genetic Curator: change_patientdoctor
+Genetic Curator: delete_patientdoctor
+Genetic Curator: add_patientrelative
+Genetic Curator: change_patientrelative
+Genetic Curator: delete_patientrelative
+Genetic Curator: add_state
+Genetic Curator: change_state
+Genetic Curator: delete_state
+Working Group Staff: add_laboratory
+Working Group Staff: change_laboratory
+Working Group Staff: add_addresstype
+Working Group Staff: change_addresstype
+Working Group Staff: delete_addresstype
+Working Group Staff: add_consentvalue
+Working Group Staff: change_consentvalue
+Working Group Staff: delete_consentvalue
+Working Group Staff: add_nextofkinrelationship
+Working Group Staff: change_nextofkinrelationship
+Working Group Staff: delete_nextofkinrelationship
+Working Group Staff: add_parentguardian
+Working Group Staff: change_parentguardian
+Working Group Staff: delete_parentguardian
+Working Group Staff: add_patient
+Working Group Staff: can_see_data_modules
+Working Group Staff: can_see_diagnosis_currency
+Working Group Staff: can_see_diagnosis_progress
+Working Group Staff: can_see_dob
+Working Group Staff: can_see_full_name
+Working Group Staff: can_see_working_groups
+Working Group Staff: change_patient
+Working Group Staff: delete_patient
+Working Group Staff: add_patientaddress
+Working Group Staff: change_patientaddress
+Working Group Staff: delete_patientaddress
+Working Group Staff: add_patientconsent
+Working Group Staff: change_patientconsent
+Working Group Staff: delete_patientconsent
+Working Group Staff: add_patientrelative
+Working Group Staff: change_patientrelative
+Working Group Staff: delete_patientrelative
+Working Group Staff: add_state
+Working Group Staff: change_state
+Working Group Staff: delete_state
+Genetic Staff: add_gene
+Genetic Staff: change_gene
+Genetic Staff: add_laboratory
+Genetic Staff: change_laboratory
+Genetic Staff: add_technique
+Genetic Staff: change_technique
+Genetic Staff: add_addresstype
+Genetic Staff: change_addresstype
+Genetic Staff: delete_addresstype
+Genetic Staff: add_nextofkinrelationship
+Genetic Staff: change_nextofkinrelationship
+Genetic Staff: delete_nextofkinrelationship
+Genetic Staff: add_patient
+Genetic Staff: can_see_data_modules
+Genetic Staff: can_see_dob
+Genetic Staff: can_see_full_name
+Genetic Staff: can_see_genetic_data_map
+Genetic Staff: can_see_working_groups
+Genetic Staff: change_patient
+Genetic Staff: delete_patient
+Genetic Staff: add_patientaddress
+Genetic Staff: change_patientaddress
+Genetic Staff: delete_patientaddress
+Genetic Staff: add_patientconsent
+Genetic Staff: change_patientconsent
+Genetic Staff: delete_patientconsent
+Genetic Staff: add_patientrelative
+Genetic Staff: change_patientrelative
+Genetic Staff: delete_patientrelative
+Genetic Staff: add_state
+Genetic Staff: change_state
+Genetic Staff: delete_state
+Working Group Curators: add_gene
+Working Group Curators: change_gene
+Working Group Curators: delete_gene
+Working Group Curators: add_laboratory
+Working Group Curators: change_laboratory
+Working Group Curators: delete_laboratory
+Working Group Curators: add_technique
+Working Group Curators: change_technique
+Working Group Curators: delete_technique
+Working Group Curators: add_addresstype
+Working Group Curators: change_addresstype
+Working Group Curators: delete_addresstype
+Working Group Curators: add_doctor
+Working Group Curators: change_doctor
+Working Group Curators: delete_doctor
+Working Group Curators: add_nextofkinrelationship
+Working Group Curators: change_nextofkinrelationship
+Working Group Curators: delete_nextofkinrelationship
+Working Group Curators: add_patient
+Working Group Curators: can_see_data_modules
+Working Group Curators: can_see_dob
+Working Group Curators: can_see_full_name
+Working Group Curators: can_see_working_groups
+Working Group Curators: change_patient
+Working Group Curators: delete_patient
+Working Group Curators: add_patientaddress
+Working Group Curators: change_patientaddress
+Working Group Curators: delete_patientaddress
+Working Group Curators: add_patientconsent
+Working Group Curators: change_patientconsent
+Working Group Curators: delete_patientconsent
+Working Group Curators: add_patientdoctor
+Working Group Curators: change_patientdoctor
+Working Group Curators: delete_patientdoctor
+Working Group Curators: add_patientrelative
+Working Group Curators: change_patientrelative
+Working Group Curators: delete_patientrelative
+Working Group Curators: add_state
+Working Group Curators: change_state
+Working Group Curators: delete_state
+Working Group Curators: change_questionnaireresponse
+Working Group Curators: delete_questionnaireresponse
+AdminOnly: add_logentry
+AdminOnly: change_logentry
+AdminOnly: delete_logentry
+AdminOnly: add_group
+AdminOnly: change_group
+AdminOnly: delete_group
+AdminOnly: add_permission
+AdminOnly: change_permission
+AdminOnly: delete_permission
+AdminOnly: add_contenttype
+AdminOnly: change_contenttype
+AdminOnly: delete_contenttype
+AdminOnly: add_query
+AdminOnly: change_query
+AdminOnly: delete_query
+AdminOnly: add_gene
+AdminOnly: change_gene
+AdminOnly: delete_gene
+AdminOnly: add_laboratory
+AdminOnly: change_laboratory
+AdminOnly: delete_laboratory
+AdminOnly: add_technique
+AdminOnly: change_technique
+AdminOnly: delete_technique
+AdminOnly: add_customuser
+AdminOnly: change_customuser
+AdminOnly: delete_customuser
+AdminOnly: add_workinggroup
+AdminOnly: change_workinggroup
+AdminOnly: delete_workinggroup
+AdminOnly: add_ipgroup
+AdminOnly: change_ipgroup
+AdminOnly: delete_ipgroup
+AdminOnly: add_iprange
+AdminOnly: change_iprange
+AdminOnly: delete_iprange
+AdminOnly: add_reloadrulesrequest
+AdminOnly: change_reloadrulesrequest
+AdminOnly: delete_reloadrulesrequest
+AdminOnly: add_rule
+AdminOnly: change_rule
+AdminOnly: delete_rule
+AdminOnly: add_addresstype
+AdminOnly: change_addresstype
+AdminOnly: delete_addresstype
+AdminOnly: add_clinicianother
+AdminOnly: change_clinicianother
+AdminOnly: delete_clinicianother
+AdminOnly: add_consentvalue
+AdminOnly: change_consentvalue
+AdminOnly: delete_consentvalue
+AdminOnly: add_doctor
+AdminOnly: change_doctor
+AdminOnly: delete_doctor
+AdminOnly: add_nextofkinrelationship
+AdminOnly: change_nextofkinrelationship
+AdminOnly: delete_nextofkinrelationship
+AdminOnly: add_parentguardian
+AdminOnly: change_parentguardian
+AdminOnly: delete_parentguardian
+AdminOnly: add_patient
+AdminOnly: can_see_data_modules
+AdminOnly: can_see_diagnosis_currency
+AdminOnly: can_see_diagnosis_progress
+AdminOnly: can_see_dob
+AdminOnly: can_see_full_name
+AdminOnly: can_see_genetic_data_map
+AdminOnly: can_see_working_groups
+AdminOnly: change_patient
+AdminOnly: delete_patient
+AdminOnly: add_patientaddress
+AdminOnly: change_patientaddress
+AdminOnly: delete_patientaddress
+AdminOnly: add_patientconsent
+AdminOnly: change_patientconsent
+AdminOnly: delete_patientconsent
+AdminOnly: add_patientdoctor
+AdminOnly: change_patientdoctor
+AdminOnly: delete_patientdoctor
+AdminOnly: add_patientrelative
+AdminOnly: change_patientrelative
+AdminOnly: delete_patientrelative
+AdminOnly: add_state
+AdminOnly: change_state
+AdminOnly: delete_state
+AdminOnly: add_adjudication
+AdminOnly: change_adjudication
+AdminOnly: delete_adjudication
+AdminOnly: add_adjudicationdecision
+AdminOnly: change_adjudicationdecision
+AdminOnly: delete_adjudicationdecision
+AdminOnly: add_adjudicationdefinition
+AdminOnly: change_adjudicationdefinition
+AdminOnly: delete_adjudicationdefinition
+AdminOnly: add_adjudicationrequest
+AdminOnly: change_adjudicationrequest
+AdminOnly: delete_adjudicationrequest
+AdminOnly: add_adjudicationresponse
+AdminOnly: change_adjudicationresponse
+AdminOnly: delete_adjudicationresponse
+AdminOnly: add_cdepermittedvalue
+AdminOnly: change_cdepermittedvalue
+AdminOnly: delete_cdepermittedvalue
+AdminOnly: add_cdepermittedvaluegroup
+AdminOnly: change_cdepermittedvaluegroup
+AdminOnly: delete_cdepermittedvaluegroup
+AdminOnly: add_cdepolicy
+AdminOnly: change_cdepolicy
+AdminOnly: delete_cdepolicy
+AdminOnly: add_commondataelement
+AdminOnly: change_commondataelement
+AdminOnly: delete_commondataelement
+AdminOnly: add_consentquestion
+AdminOnly: change_consentquestion
+AdminOnly: delete_consentquestion
+AdminOnly: add_consentsection
+AdminOnly: change_consentsection
+AdminOnly: delete_consentsection
+AdminOnly: add_demographicfields
+AdminOnly: change_demographicfields
+AdminOnly: delete_demographicfields
+AdminOnly: add_emailnotification
+AdminOnly: change_emailnotification
+AdminOnly: delete_emailnotification
+AdminOnly: add_emailnotificationhistory
+AdminOnly: change_emailnotificationhistory
+AdminOnly: delete_emailnotificationhistory
+AdminOnly: add_emailtemplate
+AdminOnly: change_emailtemplate
+AdminOnly: delete_emailtemplate
+AdminOnly: add_mongomigrationdummymodel
+AdminOnly: change_mongomigrationdummymodel
+AdminOnly: delete_mongomigrationdummymodel
+AdminOnly: add_notification
+AdminOnly: change_notification
+AdminOnly: delete_notification
+AdminOnly: add_questionnaireresponse
+AdminOnly: change_questionnaireresponse
+AdminOnly: delete_questionnaireresponse
+AdminOnly: add_rdrfcontext
+AdminOnly: change_rdrfcontext
+AdminOnly: delete_rdrfcontext
+AdminOnly: add_registry
+AdminOnly: change_registry
+AdminOnly: delete_registry
+AdminOnly: add_registryform
+AdminOnly: change_registryform
+AdminOnly: delete_registryform
+AdminOnly: form_39_is_readonly
+AdminOnly: form_40_is_readonly
+AdminOnly: form_44_is_readonly
+AdminOnly: form_45_is_readonly
+AdminOnly: form_46_is_readonly
+AdminOnly: form_61_is_readonly
+AdminOnly: form_70_is_readonly
+AdminOnly: form_81_is_readonly
+AdminOnly: form_82_is_readonly
+AdminOnly: form_83_is_readonly
+AdminOnly: form_84_is_readonly
+AdminOnly: form_85_is_readonly
+AdminOnly: form_86_is_readonly
+AdminOnly: form_87_is_readonly
+AdminOnly: form_88_is_readonly
+AdminOnly: add_section
+AdminOnly: change_section
+AdminOnly: delete_section
+AdminOnly: add_wizard
+AdminOnly: change_wizard
+AdminOnly: delete_wizard
+AdminOnly: add_registrationprofile
+AdminOnly: change_registrationprofile
+AdminOnly: delete_registrationprofile
+AdminOnly: add_session
+AdminOnly: change_session
+AdminOnly: delete_session
+AdminOnly: add_site
+AdminOnly: change_site
+AdminOnly: delete_site
+AdminOnly: add_migrationhistory
+AdminOnly: change_migrationhistory
+AdminOnly: delete_migrationhistory
+AdminOnly: add_failedloginlog
+AdminOnly: change_failedloginlog
+AdminOnly: delete_failedloginlog
+AdminOnly: add_loginattempt
+AdminOnly: change_loginattempt
+AdminOnly: delete_loginattempt
+AdminOnly: add_loginlog
+AdminOnly: change_loginlog
+AdminOnly: delete_loginlog
+AdminOnly: add_failedloginlog
+AdminOnly: change_failedloginlog
+AdminOnly: delete_failedloginlog
+AdminOnly: add_loginlog
+AdminOnly: change_loginlog
+AdminOnly: delete_loginlog
+AdminOnly: add_query
+AdminOnly: change_query
+AdminOnly: delete_query
+"""
+
 
 class ImportError(Exception):
     pass
@@ -741,8 +1126,35 @@ class OldRegistryImporter(object):
         self._group_map = {}
         self._user_map = {}
         self._working_group_map = {}
-        
-        
+
+    def _add_parsed_permissions(self):
+        p = {}
+        for line in PERMISSIONS_ON_STAGING.splitlines():
+            try:
+                group_name, codename = [s.strip() for s in line.split(":")]
+            except Exception as ex:
+                print("could not parse line [%s] of permissions: %s" % (line, ex))
+                continue
+            
+            if group_name in p:
+                p[group_name].append(codename)
+            else:
+                p[group_name] = [codename]
+        for group_name, codenames in p.items():
+            try:
+                group_model = Group.objects.get(name=group_name)
+                for codename in codenames:
+                    try:
+                        permission_model = Permission.objects.get(codename=codename)
+                        group_model.permissions.add(permission_model)
+                        group_model.save()
+                        print("Added permission %s to group %s" % (permission_model,
+                                                                   group_model))
+                        
+                    except Permission.DoesNotExist:
+                        print("permission %s not exist" % codename)
+            except Group.DoesNotExist:
+                print("group %s does not exist" % group_name)
 
     @property
     def old_id(self):
@@ -811,7 +1223,8 @@ class OldRegistryImporter(object):
             self._process_record()
 
         self._assign_user_working_groups()
-        self._assign_permissions_to_groups()
+        #self._assign_permissions_to_groups()
+        self._add_parsed_permissions()
         
 
 
