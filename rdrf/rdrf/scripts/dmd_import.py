@@ -736,6 +736,8 @@ class OldRegistryImporter(object):
         self._id_map = {}  # old to new patient ids
         self._doctor_map = {}
         self._group_map = {}
+        self._user_map = {}
+        self._working_group_map = {}
         
         
 
@@ -805,6 +807,9 @@ class OldRegistryImporter(object):
             self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
 
+        self._assign_user_working_groups()
+        
+
 
     def _create_auth_groups(self):
         for thing in self.data.data:
@@ -836,9 +841,44 @@ class OldRegistryImporter(object):
                 user.is_active = thing["fields"]["is_active"]
                 user.is_staff = True
                 user.save()
+                self._user_map[user.pk] = thing["pk"]
                 user.registry = [self.registry_model]
                 user.save()
+                
                 self._assign_user_groups(user, thing["fields"]["groups"])
+                #self._assign_user_working_groups(user, thing["pk"])
+
+    def _assign_user_working_groups(self):
+        # working group info is stored in the parent class "groups.user" ...
+        # this is one one with auth.user, hence pks match
+        # we've mapped all working groups as we iterated through
+        # all patients
+        for user_model in CustomUser.objects.all():
+            if user_model.username == "admin":
+                continue
+            custom_user_old_id = self._user_map[user_model.pk]
+            
+            for thing in self.data.data:
+                if thing["pk"] == custom_user_old_id:
+                    if thing["model"] == "groups.user":
+                        for old_working_group_id in thing["fields"]["working_groups"]:
+                            working_group_model = self._working_group_map.get(old_working_group_id, None)
+                            if working_group_model is not None:
+                                user_model.working_groups.add(working_group_model)
+                                user_model.save()
+                                print("Assigned user %s to working group %s" % (user_model,
+                                                                                working_group_model))
+                            else:
+                                print("missing working group with old id %s" % old_working_group_id)
+
+
+                        # title is stored on this object too
+                        user_model.title = thing["fields"]["title"]
+                        user_model.save()
+                        print("user %s title = %s" % (user_model,
+                                                      user_model.title))
+                            
+                        
 
 
     def _assign_user_groups(self, user_model, old_group_ids):
@@ -847,6 +887,9 @@ class OldRegistryImporter(object):
             if group_model is not None:
                 user_model.groups.add(group_model)
                 user_model.save()
+                print("Added user %s to group %s" % (user_model,
+                                                     group_model))
+                
             else:
                 print("Unknown group id %s" % old_group_id)
                 
@@ -1072,6 +1115,10 @@ class OldRegistryImporter(object):
                     if created:
                         print("created working group %s" % working_group_name)
                         working_group_model.save()
+
+                    if thing["pk"] not in self._working_group_map:
+                        self._working_group_map[thing["pk"]] = working_group_model
+                                                
                     return working_group_model
 
     @meta("FAMILY_MEMBER", run_after=True)
