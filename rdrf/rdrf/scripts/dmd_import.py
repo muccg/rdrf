@@ -1,9 +1,12 @@
 import django
 django.setup()
-
 import sys
 import json
+
 from django.db import transaction
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission
+
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import Section
@@ -12,17 +15,17 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
-
+from rdrf.contexts_api import RDRFContextManager
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
 from registry.patients.models import Doctor
 from registry.patients.models import PatientDoctor
+
 from registry.groups.models import WorkingGroup
 from registry.groups.models import CustomUser
-from django.contrib.auth.models import Group
+
 from registry.genetic.models import Laboratory
-from rdrf.contexts_api import RDRFContextManager
 
 FAMILY_MEMBERS_CODE = "xxx"
 
@@ -808,6 +811,7 @@ class OldRegistryImporter(object):
             self._process_record()
 
         self._assign_user_working_groups()
+        self._assign_permissions_to_groups()
         
 
 
@@ -847,6 +851,34 @@ class OldRegistryImporter(object):
                 
                 self._assign_user_groups(user, thing["fields"]["groups"])
                 #self._assign_user_working_groups(user, thing["pk"])
+
+
+    def _assign_permissions_to_groups(self):
+        permission_map = {}
+        
+        for thing in self.data.data:
+            if thing["model"] == "auth.permission":
+                permission_map[thing["pk"]] = thing["fields"]["codename"]
+
+        for thing in self.data.data:
+            if thing["model"] == "auth.group":
+                group_model = self._group_map.get(thing["pk"], None)
+                if group_model is not None:
+                    for old_perm_id in thing["fields"]["permissions"]:
+                        codename = permission_map.get(old_perm_id, None)
+                        if codename is not None:
+                            try:
+                                permission_model = Permission.objects.get(codename=codename)
+                                group_model.permissions.add(permission_model)
+                                group_model.save()
+                                print("Added %s permission to group %s" % (codename,
+                                                                           group_model))
+                            except Permission.DoesNotExist:
+                                print("permission %s does not exist" % codename)
+    
+
+            
+                
 
     def _assign_user_working_groups(self):
         # working group info is stored in the parent class "groups.user" ...
