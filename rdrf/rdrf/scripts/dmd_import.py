@@ -1847,11 +1847,16 @@ class OldRegistryImporter(object):
             email_notification.email_templates = [email_template]
             email_notification.save()
 
+
 if __name__ == "__main__":
     registry_code = sys.argv[1]
     json_file = sys.argv[2]
 
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
-    importer.run()
-    print("run completed")
+    try:
+        with transaction.atomic():
+            importer.run()
+            print("run completed")
+    except Exception as ex:
+        print("run failed - rolled back: %s" % ex)
