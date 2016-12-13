@@ -15,6 +15,7 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import EmailTemplate
 from rdrf.models import EmailNotification
+from rdrf.models import Modjgo
 
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
@@ -418,6 +419,22 @@ AdminOnly: delete_query
 """
 
 
+def delete_existing_models():
+    def kill(klass):
+        klass.objects.all().delete()
+        klass.objects.all().delete()
+
+    def delusers():
+        for u in CustomUser.objects.all():
+            if u.username != "admin":
+                u.delete()
+    classes = [Patient, Laboratory, PatientAddress,
+               PatientDoctor, Doctor, Modjgo, Group, WorkingGroup]
+    for k in classes:
+        kill(k)
+    delusers()
+
+
 class ImportError(Exception):
     pass
 
@@ -484,6 +501,7 @@ class Conv:
         "Paediatrician": 10
     }
 
+    
 class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
@@ -501,10 +519,7 @@ class PatientRecord(object):
         for thing in self.data:
             if thing["model"] == "genetic.moleculardata":
                 if thing["pk"] == self.patient_id:
-                    print("found molecular data: %s" % thing)
                     return thing
-
-        print("No molecular data for patient %s" % self.patient_id)
 
     def _get_diagnosis(self):
         d = {}
@@ -535,15 +550,12 @@ class PatientRecord(object):
                                                                                     model))
 
     def get(self, field, model="patients.patient", path=None):
-        print("getting model %s field %s path %s" % (model, field, path))
         if model == "patients.patient":
             return self.patient_dict["fields"][field]
         elif model == "dmd.diagnosis":
             if self.diagnosis_dict:
-                print("dmd.diagnosis dict = %s" % self.diagnosis_dict)
                 return self.diagnosis_dict[field]
             else:
-                print("No diagnosis for patient %s" % self.patient_dict)
                 return None
         else:
             if path == Path.THROUGH_DIAGNOSIS:
@@ -1071,7 +1083,6 @@ class Data(object):
     def patients(self):
         for thing in self.data:
             if thing["model"] == "patients.patient":
-                print("Patient %s" % thing)
                 yield thing
 
 
@@ -1081,30 +1092,25 @@ def meta(stage, run_after=False):
         func_name = func.__name__
 
         def wrapper(self, *args, **kwargs):
-            rdrf_id = self._get_rdrf_id()
-            old_id = self._get_old_id()
             target = self._get_target()
-            log_prefix = "%s/%s %s %s %s " % (rdrf_id,
-                                              old_id,
-                                              stage,
-                                              target,
-                                              func_name)
+            log_prefix = "%s %s %s" % (stage,
+                                       target,
+                                       func_name)
 
             try:
                 myargs = [self] + list(args)
                 value = func(*myargs, **kwargs)
                 log_line = "%s: OK" % log_prefix
-                print(log_line)
+                self.log(log_line)
             except ImportError as ierr:
                 log_line = "%s: IMPORT ERROR! - %s" % (log_prefix,
                                                        ex)
 
                 value = None
                 error_message = "%s" % ierr
-                print(log_line)
+                self.log(log_line)
                 raise RollbackError(error_message)
 
-            self.log(log_line)
             return value
         return wrapper
     return decorator
@@ -1136,7 +1142,8 @@ class OldRegistryImporter(object):
             try:
                 group_name, codename = [s.strip() for s in line.split(":")]
             except Exception as ex:
-                print("could not parse line [%s] of permissions: %s" % (line, ex))
+                self.log("could not parse line [%s] of permissions: %s" % (line,
+                                                                           ex))
                 continue
             
             if group_name in p:
@@ -1151,13 +1158,13 @@ class OldRegistryImporter(object):
                         permission_model = Permission.objects.get(codename=codename)
                         group_model.permissions.add(permission_model)
                         group_model.save()
-                        print("Added permission %s to group %s" % (permission_model,
-                                                                   group_model))
+                        self.log("Added permission %s to group %s" % (permission_model,
+                                                                      group_model))
                         
                     except Permission.DoesNotExist:
-                        print("permission %s not exist" % codename)
+                        self.log("permission %s not exist" % codename)
             except Group.DoesNotExist:
-                print("group %s does not exist" % group_name)
+                self.log("group %s does not exist" % group_name)
 
     @property
     def old_id(self):
@@ -1172,16 +1179,19 @@ class OldRegistryImporter(object):
     @property
     def moniker(self):
         if self.patient_model:
-            s = "%s" % self.patient_model
+            s = "PATIENT"
         else:
-            s = "???"
+            s = ""
+            
         return "%s/%s %s" % (self.rdrf_id,
                              self.old_id,
                              s)
 
     def log(self, msg):
-        msg = msg + "\n"
-        self._log.write(msg)
+        line = "IMPORTER [%s]> %s\n" % (self.moniker,
+                                        msg)
+        
+        self._log.write(line)
 
     def _get_rdrf_id(self):
         if self.patient_model:
@@ -1288,10 +1298,10 @@ class OldRegistryImporter(object):
                                 permission_model = Permission.objects.get(codename=codename)
                                 group_model.permissions.add(permission_model)
                                 group_model.save()
-                                print("Added %s permission to group %s" % (codename,
-                                                                           group_model))
+                                self.log("Added %s permission to group %s" % (codename,
+                                                                              group_model))
                             except Permission.DoesNotExist:
-                                print("permission %s does not exist" % codename)
+                                self.log("permission %s does not exist" % codename)
     
 
             
@@ -1315,19 +1325,15 @@ class OldRegistryImporter(object):
                             if working_group_model is not None:
                                 user_model.working_groups.add(working_group_model)
                                 user_model.save()
-                                print("Assigned user %s to working group %s" % (user_model,
-                                                                                working_group_model))
+                                self.log("Assigned user %s to working group %s" % (user_model,
+                                                                                   working_group_model))
                             else:
-                                print("missing working group with old id %s" % old_working_group_id)
+                                self.log("missing working group with old id %s" % old_working_group_id)
 
 
                         # title is stored on this object too
                         user_model.title = thing["fields"]["title"]
                         user_model.save()
-                        print("user %s title = %s" % (user_model,
-                                                      user_model.title))
-                            
-                        
 
 
     def _assign_user_groups(self, user_model, old_group_ids):
@@ -1336,11 +1342,11 @@ class OldRegistryImporter(object):
             if group_model is not None:
                 user_model.groups.add(group_model)
                 user_model.save()
-                print("Added user %s to group %s" % (user_model,
-                                                     group_model))
+                self.log("Added user %s to group %s" % (user_model,
+                                                        group_model))
                 
             else:
-                print("Unknown group id %s" % old_group_id)
+                self.log("Unknown group id %s" % old_group_id)
                 
 
 
@@ -1398,20 +1404,18 @@ class OldRegistryImporter(object):
         self._set_field(p, "next_of_kin_work_phone")
 
         p.save()
-        print("patient %s saved OK" % p)
         p.rdrf_registry = [self.registry_model]
         p.save()
-        print("assigned registry ok")
         wg = self._get_working_group()
 
         if wg is not None:
             p.working_groups = [wg]
             p.save()
-            print("assigned to working group %s" % wg)
+            self.log("assigned to working group %s" % wg)
 
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(
             p, new_patient=True)
-        print("created default context %s" % self.context_model)
+        self.log("created default context %s" % self.context_model)
 
         return p
 
@@ -1463,7 +1467,6 @@ class OldRegistryImporter(object):
         # make a map as we go
         for thing in self.data.data:
             if thing["model"] == "patients.doctor":
-                print("found a doctor!")
                 flds = thing["fields"]
                 doc = Doctor()
                 doc.family_name = flds["family_name"]
@@ -1476,7 +1479,6 @@ class OldRegistryImporter(object):
                 doc.suburb = flds["suburb"]
                 doc.state = None #todo
                 doc.save()
-                print("created doctor %s" % doc)
                 self._doctor_map[thing["pk"]] = doc
 
 
@@ -1511,16 +1513,12 @@ class OldRegistryImporter(object):
             if relationship_num is not None:
                 patient_doctor.relationship = relationship_num
             else:
-                print("Unknown relationship: %s" % old_relationship)
+                self.log("Unknown relationship: %s" % old_relationship)
                 
             patient_doctor.save()
-            print("assigned doctor %s to %s" % (doctor_model,
-                                                self.patient_model))
-                                             
-                                             
-
+            self.log("assigned doctor %s " % doctor_model.pk)
         else:
-            print("can't locate doctor with old pk %s" % doctor_old_pk) 
+            self.log("can't locate doctor with old pk %s" % doctor_old_pk) 
 
     def _create_labs(self):
         for thing in self.data.data:
@@ -1532,7 +1530,7 @@ class OldRegistryImporter(object):
                 lab.contact_phone = thing["fields"]["contact_phone"]
                 lab.contact_email = thing["fields"]["contact_email"]
                 lab.save()
-                print("created lab %s" % lab)
+                self.log("created lab %s" % lab)
 
     def _get_country_code(self, state):
         if state == "NZN":
@@ -1547,9 +1545,6 @@ class OldRegistryImporter(object):
         for thing in self.data.data:
             if thing["pk"] == gene_id and thing["model"] == "genetic.gene":
                 symb = thing["fields"]["symbol"]
-                print("symbol patient %s gene %s" % (self.moniker,
-                                                     symb))
-
                 return symb
 
     def _get_working_group(self):
@@ -1562,7 +1557,7 @@ class OldRegistryImporter(object):
                                                                                       registry=self.registry_model)
 
                     if created:
-                        print("created working group %s" % working_group_name)
+                        self.log("created working group %s" % working_group_name)
                         working_group_model.save()
 
                     if thing["pk"] not in self._working_group_map:
@@ -1596,19 +1591,14 @@ class OldRegistryImporter(object):
         else:
             return None, None
 
-    #@meta("MULTISECTION")
+    @meta("MULTISECTION")
     def _process_multisection(self):
-        print("processing multisection %s" % self.section_model.code)
-
+        self.log("processing multisection %s" % self.section_model.code)
         old_model = self._get_old_multisection_model(self.section_model.code)
-        print("old_model = %s" % old_model)
         old_items = []
 
         related_model, related_model_field = self._get_multisection_related_model_info(
             self.section_model.code)
-
-        print("related model = %s related_model_field = %s" % (related_model,
-                                                               related_model_field))
 
         if related_model == "diagnosis":
             model_id = self.record.diagnosis_dict[
@@ -1622,7 +1612,7 @@ class OldRegistryImporter(object):
             model_id = self.record.patient_id
         else:
             model_id = None
-            print("no related model_id for %s" % old_model)
+            self.log("no related model_id for %s" % old_model)
 
         items = []   # a list of lists
 
@@ -1633,17 +1623,15 @@ class OldRegistryImporter(object):
                         old_items.append(thing)
 
         l = len(old_items)
-        print("old items patient %s has %s %s" % (self.rdrf_id,
-                                                  l,
-                                                  old_model))
-
+        self.log("Number of old %s = %s" % (old_model,
+                                            l))
+        
         for item in old_items:
             item = self._create_new_multisection_item(
                 item, key_field=related_model_field)
             items.append(item)
 
         if len(items) > 0:
-            print("about to save new multisection data: items = %s" % items)
             self._save_new_multisection_data(items)
 
     def _get_old_multisection_model(self, section_code):
@@ -1653,14 +1641,9 @@ class OldRegistryImporter(object):
             raise Exception("unknown multisection: %s" % section_code)
 
     def _create_new_multisection_item(self, old_item, key_field="diagnosis"):
-        # return new item dict
-        print("creating new multisection item for %s from %s" % (self.section_model.code,
-                                                                 old_item))
-
         mm_map = MULTISECTION_MAP[self.section_model.code]
 
         field_map = mm_map["field_map"]
-        print("field_map = %s" % field_map)
 
         if not field_map:
             raise Exception("need field map for multisection %s" %
@@ -1675,11 +1658,10 @@ class OldRegistryImporter(object):
                 continue
 
             if old_field in SKIP_FIELDS:
-                print("skipping %s" % old_field)
                 continue
 
-            print("converting old field %s in model %s" %
-                  (old_field, old_item["model"]))
+            self.log("converting old field %s in model %s" % (old_field,
+                                                              old_item["model"]))
 
             new_data = field_map[old_field]
             new_cde_code = new_data["cde_code"]
@@ -1709,41 +1691,34 @@ class OldRegistryImporter(object):
         field_expression = "$op/%s/%s/items" % (self.form_model.name,
                                                 self.section_model.code)
 
-        print("field_expression = %s" % field_expression)
+        self.log("saving field_expression = %s" % field_expression)
 
         fe = MultiSectionItemsExpression(self.registry_model,
                                          self.form_model,
                                          self.section_model)
 
-        print("first loading existing data ...")
-
         dynamic_data = self.patient_model.get_dynamic_data(self.registry_model)
-
-        print("existing data = %s" % dynamic_data)
 
         try:
             _, dynamic_data = fe.set_value(self.patient_model,
                                            dynamic_data,
                                            new_multisection_data)
         except Exception as ex:
-            print("could not set multisection value: %s" % ex)
+            self.log("could not set multisection items for %s: %s" % (field_expression,
+                                                                      ex))
             return
 
-        print("About to update dynamic data for multisection")
-        print("Dynamic data we are about to save: %s" % dynamic_data)
-
         if "context_id" not in dynamic_data:
-            print("context_id is not in dynamic data? Adding it")
             dynamic_data["context_id"] = self.context_model.pk
 
         self.patient_model.update_dynamic_data(
             self.registry_model, dynamic_data)
-        print("updated data OK")
+        self.log("updated multisection %s OK" % field_expression)
 
     @meta("CDE")
     def _process_cde(self):
         field_expression = self._get_current_field_expression()
-        print("cde datatype = %s" % self.cde_model.datatype)
+        self.log("process cde %s" % field_expression)
         info = DATA_MAP.get(field_expression, None)
         if info:
             model = info["model"]
@@ -1754,13 +1729,16 @@ class OldRegistryImporter(object):
             old_value = self.record.get(field, model, path)
             if old_value is not None:
                 if converter is not None:
-                    print("converter will be used")
+                    self.log("converter will be used")
                     converter_func = self._get_converter_func(converter)
                     new_value = converter_func(old_value)
                 else:
-                    print("No converter - raw value will be used")
+                    self.log("No converter - raw value will be used")
                     new_value = old_value
                 self._save_cde(new_value)
+                self.log("%s [%s] --> [%s] OK" % (field_expression,
+                                                  old_value,
+                                                  new_value))
 
         else:
             raise Exception("Unknown field expression: %s" % field_expression)
@@ -1786,11 +1764,9 @@ class OldRegistryImporter(object):
         field_expression = self._get_current_field_expression()
         if self.cde_model.pv_group:
             if value is None:
-                print("range value is None so skipping")
+                self.log("range value is None so skipping")
                 return
-            print("cde is a range - perform range check")
             range_members = self.cde_model.get_range_members()
-            print("range members = %s" % range_members)
             if not value in range_members:
                 raise Exception("Bad range member: %s not in %s" %
                                 (value, range_members))
@@ -1851,12 +1827,12 @@ class OldRegistryImporter(object):
 if __name__ == "__main__":
     registry_code = sys.argv[1]
     json_file = sys.argv[2]
-
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
     try:
         with transaction.atomic():
+            delete_existing_models()
             importer.run()
-            print("run completed")
+            importer.log("run completed")
     except Exception as ex:
-        print("run failed - rolled back: %s" % ex)
+        importer.log("run failed - rolled back: %s" % ex)
