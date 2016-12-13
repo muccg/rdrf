@@ -9,14 +9,14 @@ services:
         http_proxy:
     image: muccg/rdrf-base
 
-  build:
+  builder:
     build:
       context: ./
-      dockerfile: Dockerfile-build
+      dockerfile: Dockerfile-builder
       args:
         ARG_GIT_TAG: ${GIT_TAG}
         http_proxy:
-    image: muccg/rdrf-build
+    image: muccg/rdrf-builder
     command: releasetarball
     network_mode: host
     environment:
@@ -25,7 +25,7 @@ services:
         PIP_TRUSTED_HOST:
         NO_PROXY:
     volumes:
-      - ./build:/data
+      - ./builder:/data
 
   dev:
     build:
@@ -34,6 +34,7 @@ services:
       args:
         ARG_PIP_INDEX_URL: ${PIP_INDEX_URL}
         ARG_PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST}
+        http_proxy:
     image: muccg/rdrf-dev
     volumes:
       - .:/app
