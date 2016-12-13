@@ -13,6 +13,9 @@ from rdrf.models import Section
 from rdrf.models import CommonDataElement
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
+from rdrf.models import EmailTemplate
+from rdrf.models import EmailNotification
+
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 from rdrf.contexts_api import RDRFContextManager
@@ -1217,6 +1220,7 @@ class OldRegistryImporter(object):
         self._create_doctors()
         self._create_labs()
         self._create_users()
+        self._create_email_templates()
         
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
@@ -1804,20 +1808,44 @@ class OldRegistryImporter(object):
                                                      value=value)
 
 
-    def _import_email_templates(self):
+    def _create_email_templates(self):
         for thing in self.data.data:
             if thing["model"] == "configuration.emailtemplate":
-                self._import_email_template(thing)
+                self._create_email_template(thing)
 
-    def _import_email_template(self, email_template_dict):
+    def _create_email_template(self, email_template_dict):
         body = email_template_dict["fields"]["body"]
         event_trigger = email_template_dict["fields"]["target"]
         description = email_template_dict["fields"]["description"]
-        groups = [self._group_map.get(k, None) for k in email_template_dict["fields"]["groups"]]
+        groups = filter(lambda x : x is not None,
+                        [self._group_map.get(k, None) for k
+                         in email_template_dict["fields"]["groups"]])
         
-        
+        email_template = EmailTemplate()
+        email_template.language = "en"
+        email_template.description = email_template_dict["fields"]["name"]
 
+        old_body = email_template_dict["fields"]["body"]
 
+        lines = old_body.splitlines()
+        new_subject_line = lines[0]
+        new_body = "\n".join(lines[1:])
+
+        email_template.subject = new_subject_line
+        email_template.body = new_body
+        email_template.save()
+
+        # create a notification for each group
+
+        for group_model in groups:
+            email_notification = EmailNotification()
+            email_notification.description = "new-patient"
+            email_notification.registry = self.registry_model
+            email_notification.recipient = "{{user.email}}"
+            email_notification.group_recipient = group_model
+            email_notification.save()
+            email_notification.email_templates = [email_template]
+            email_notification.save()
 
 if __name__ == "__main__":
     registry_code = sys.argv[1]
