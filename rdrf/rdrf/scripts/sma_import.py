@@ -779,6 +779,17 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                                         "model": "sma.feedingfunction",
                                                         "converter": Conv.YNU,
                                                         },
+            # Range field
+            "ClinicalDiagnoses/NMDRespiratory/NMDNonInvasive": {"field": "non_invasive_ventilation",
+                                                        "model": "sma.respiratory",
+                                                        "converter": {
+                                                            # the values here in the sma yaml were reused from DMD
+                                                            # should probably be changed
+                                                            "Y": "DMDY",
+                                                            "PT": "DMDPT",
+                                                            "N": "DMDN",
+                                                            },
+                                                        },
 
 
             ###########################################################
