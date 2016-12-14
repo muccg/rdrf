@@ -27,7 +27,7 @@ node {
     artifacts = ['**/data/selenium/dev/scratch/*.png', '**/data/selenium/dev/log/*.log']
     testResults = ['**/data/selenium/dev/scratch/*.xml']
     dockerStage('Dev aloe tests', artifacts, testResults) {
-        sh('./develop.sh aloe devaloe')
+        sh('./develop.sh aloe teststack')
     }
 
     if (deployable_branches.contains(env.BRANCH_NAME)) {
@@ -42,7 +42,7 @@ node {
         artifacts = ['**/data/selenium/prod/scratch/*.png', '**/data/selenium/prod/log/*.log']
         testResults = ['**/data/selenium/prod/scratch/*.xml']
         dockerStage('Prod aloe tests', artifacts, testResults) {
-            sh('./develop.sh aloe prodaloe')
+            sh('./develop.sh aloe prod')
         }
 
         dockerStage('Publish docker image') {
