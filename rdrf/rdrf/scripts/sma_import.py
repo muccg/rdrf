@@ -470,6 +470,12 @@ class Conv:
         "Oth", "SMAOth",
         "Unk", "SMAUnk",
     }
+    SMAFamilyDiagnosis = {
+        "SMA", "SMAFamilySMA",
+        "Oth", "SMAFamilyOth",
+        "Unk", "SMAFamilyUnk",
+        "Non", "SMAFamilyNon",
+    }
 
     MeteorSexChoices = {
         "M": 1,
@@ -575,25 +581,15 @@ class PatientRecord(object):
 
 
 MULTISECTION_MAP = {
-    "DMDHeartMedication": {"model": "dmd.heartmedication",
-                           "field_map": {
-                               "status": {"cde_code": "DMDStatus",
-                                          "converter": Conv.DMDStatus,
-                                          },
-                               "drug":  {"cde_code": "DMDDrug",
-                                         }
-                           }
 
-                           },
-
-    "DMDFamilyMember": {"model": "dmd.familymember",
+    "SMAFamilyMember": {"model": "sma.familymember",
 
                         "field_map": {
                             "registry_patient": {"cde_code": "NMDRegistryPatient",
                                                  "converter": "registry_patient"},
 
-                            "family_member_diagnosis": {"cde_code": "DMDFamilyDiagnosis",
-                                                        "converter": Conv.DMDFamilyDiagnosis},
+                            "family_member_diagnosis": {"cde_code": "SMAFamilyDiagnosis",
+                                                        "converter": Conv.SMAFamilyDiagnosis},
 
                             "relationship": {"cde_code": "NMDRelationship",
                                              },
