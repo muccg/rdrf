@@ -10,7 +10,7 @@ dataprodselenium:
     service: dataprodselenium
 
 # runs the aloe tests against docker-compose-teststack.yml
-devaloe:
+teststack:
   image: muccg/rdrf-dev
   command: aloe
   environment:
@@ -32,8 +32,8 @@ devaloe:
     - rdrf_dbclinicaltest_1:clinicaldb
     - rdrf_mongotest_1:mongo
 
-# runs the aloe tests against docker-compose-teststack.yml
-prodaloe:
+# runs the aloe tests against docker-compose-prod.yml
+prod:
   image: muccg/rdrf-dev
   command: aloe
   environment:
