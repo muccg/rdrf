@@ -51,7 +51,7 @@ node {
                               passwordVariable: 'DOCKER_PASSWORD']]) {
                 sh("""
                     docker login -u "${env.DOCKER_USERNAME}" --password="${env.DOCKER_PASSWORD}"
-                    ./develop.sh push prod'
+                    ./develop.sh push prod
                 """)
             }
         }
