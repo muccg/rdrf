@@ -574,12 +574,6 @@ class PatientRecord(object):
                     if my_id == thing["fields"][foreign_key_field]:
                         return thing["fields"][field]
 
-
-# The following was created from iterating through the json dump
-# The original json data consists of a list of dictionaries:
-# {pk: N, model: "app.classname", "fields": {"field1": value, "field2": ..}}
-
-
 MULTISECTION_MAP = {
 
     "SMAFamilyMember": {"model": "sma.familymember",
@@ -599,7 +593,7 @@ MULTISECTION_MAP = {
                                     }
                         }},
 
-    "NMDClinicalTrials": {"model": "dmd.clinicaltrials",
+    "NMDClinicalTrials": {"model": "sma.clinicaltrials",
                           "field_map": {
                               "drug_name": {"cde_code": "NMDDrugName"},
                               "trial_sponsor": {"cde_code": "NMDTrialSponsor"},
