@@ -801,6 +801,10 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                                             "N": "DMDN",
                                                             },
                                                         },
+            # Integer field
+            "ClinicalDiagnoses/NMDRespiratory/NMDfvc": {"field": "fvc",
+                                                           "model": "sma.respiratory",
+                                                           },
 
 
 
