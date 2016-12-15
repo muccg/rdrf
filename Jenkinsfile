@@ -2,7 +2,7 @@
 
 node {
     env.DOCKER_USE_HUB = 1
-    def deployable_branches = ["master", "next_release"]
+    def deployable_branches = ["master", "next_release", "v2.0.0"]
     def testResults = []
     def artifacts = []
 
