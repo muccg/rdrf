@@ -429,9 +429,14 @@ def delete_existing_models():
             if u.username != "admin":
                 u.delete()
     classes = [Patient, Laboratory, PatientAddress,
+               EmailNotification, EmailTemplate,
                PatientDoctor, Doctor, Modjgo, Group, WorkingGroup]
     for k in classes:
+        print("deleting all %s" % k)
+        print("There are %s %s .." % (k.objects.all().count(), k))
         kill(k)
+        print("After deletion there are %s %s .." % (k.objects.all().count(), k))
+
     delusers()
 
 
@@ -889,7 +894,6 @@ class OldRegistryImporter(object):
         self._create_doctors()
         self._create_labs()
         self._create_users()
-        self._create_email_templates()
         
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
@@ -898,6 +902,8 @@ class OldRegistryImporter(object):
         self._assign_user_working_groups()
         #self._assign_permissions_to_groups()
         self._add_parsed_permissions()
+        # avoid triggering any notifications
+        self._create_email_templates()
         
 
 
