@@ -608,7 +608,7 @@ MULTISECTION_MAP = {
                                "registry": {"cde_code": "NMDOtherRegistry"}
                            }},
 
-    "SMAMolecular": {"model": "geneic.variation",
+    "SMAMolecular": {"model": "genetic.variationsma",
                       "path": Path.THROUGH_MOLECULAR_DATA,
                       "field_map": {
                           "gene": {"cde_code": "NMDGene",
