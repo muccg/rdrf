@@ -1012,7 +1012,7 @@ class OldRegistryImporter(object):
     def _process_record(self):
         self.patient_model = self._create_patient()
         self._assign_address()
-        #self._set_consent()
+        self._set_consent()
         self._assign_doctors()
         
         self._id_map[self.record.patient_id] = self.patient_model.pk
@@ -1090,7 +1090,7 @@ class OldRegistryImporter(object):
         # this sets the visible consent
         consent_value = self.record.get("consent")
         
-        consent_section_model = ConsentSection.objects.get(code="smaconsentsection1",
+        consent_section_model = ConsentSection.objects.get(code="smaconsent1",
                                                            registry=self.registry_model)
 
         consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
