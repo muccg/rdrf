@@ -442,7 +442,6 @@ class ImportError(Exception):
 class RollbackError(Exception):
     pass
 
-
 class Path:
     THROUGH_DIAGNOSIS = 1
     THROUGH_PATIENT = 2
@@ -457,13 +456,11 @@ SKIP_FIELDS = ["dna_variation_validation_override",
 class Conv:
     YNU = {True: "YesNoUnknownYes",
            False: "YesNoUnknownNo"}
+
+    # NB DMD! This is in the yaml ...
     YNPT = {"PT": "DMDPT",
             "Y": "DMDY",
             "N": "DMDN"}
-    DMDStatus = {
-        "Previous": "DMDStatusChoicesPrevious",
-        "Current": "DMDStatusChoicesCurrent",
-    }
 
     SMADiagnosis = {
         "SMA", "SMASMA",
@@ -503,6 +500,11 @@ class Conv:
         "Paediatrician": 10
     }
 
+    SMN1 = {'Homozygous': 'SMAHomozygous',
+            'Heterozygous':'SMAHeterozygous',
+            'No': 'SMANo'}
+    
+
     
 class PatientRecord(object):
 
@@ -526,7 +528,7 @@ class PatientRecord(object):
     def _get_diagnosis(self):
         d = {}
         for thing in self.data:
-            if thing["model"] == "dmd.diagnosis" and thing["fields"]["patient"] == self.patient_id:
+            if thing["model"] == "sma.diagnosis" and thing["fields"]["patient"] == self.patient_id:
                 d["pk"] = thing["pk"]
                 for field in thing["fields"].keys():
                     value = thing["fields"][field]
@@ -554,7 +556,7 @@ class PatientRecord(object):
     def get(self, field, model="patients.patient", path=None):
         if model == "patients.patient":
             return self.patient_dict["fields"][field]
-        elif model == "dmd.diagnosis":
+        elif model == "sma.diagnosis":
             if self.diagnosis_dict:
                 return self.diagnosis_dict[field]
             else:
@@ -606,34 +608,21 @@ MULTISECTION_MAP = {
                                "registry": {"cde_code": "NMDOtherRegistry"}
                            }},
 
-    "DMDVariations": {"model": "genetic.variation",
+    "SMAMolecular": {"model": "geneic.variation",
                       "path": Path.THROUGH_MOLECULAR_DATA,
                       "field_map": {
                           "gene": {"cde_code": "NMDGene",
                                    "converter": "gene"},
-                          "exon": {"cde_code": "CDE00033",
-                                   "converter": None},
-                          "dna_variation": {"cde_code": "DMDDNAVariation",
-                                            "converter": None},
-                          "rna_variation": {"cde_code": "DMDRNAVariation",
-                                            "converter": None},
-                          "protein_variation": {"cde_code": "DMDProteinVariation",
-                                                "converter": None},
+
                           "technique": {"cde_code": "NMDTechnique",
                                         "converter": Conv.NMDTechnique},
-                          "all_exons_in_male_relative": {"cde_code": "DMDExonTestMaleRelatives",
-                                                         "converter": Conv.YNU},
-                          "exon_boundaries_known": {"cde_code": "DMDExonBoundaries",
-                                                    "converter": Conv.YNU},
-                          "point_mutation_all_exons_sequenced": {"cde_code": "DMDExonSequenced",
-                                                                 "converter": Conv.YNU},
-                          "deletion_all_exons_tested": {"cde_code": "DMDExonTestDeletion",
-                                                        "converter": Conv.YNU},
-                          "duplication_all_exons_tested": {"cde_code": "DMDExonTestDuplication",
-                                                           "converter": Conv.YNU},
-                          "": {"cde_code": "",
-                               "converter": Conv.YNU},
 
+                          "exon_7_smn1_deletion": { "cde_code": "SMAExon7Deletion",
+                                                    "converter": Conv.SMN1},
+
+                          "exon_7_sequencing": {"cde_code" : "SMAExon7Sequencing"},
+
+                          "dna_variation": {"cde_code": "SMADNAVariation"},
 
                       }},
 
@@ -1101,7 +1090,7 @@ class OldRegistryImporter(object):
         # this sets the visible consent
         consent_value = self.record.get("consent")
         
-        consent_section_model = ConsentSection.objects.get(code="dmdconsentsection1",
+        consent_section_model = ConsentSection.objects.get(code="smaconsentsection1",
                                                            registry=self.registry_model)
 
         consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
