@@ -463,15 +463,15 @@ class Conv:
             "N": "DMDN"}
 
     SMADiagnosis = {
-        "SMA", "SMASMA",
-        "Oth", "SMAOth",
-        "Unk", "SMAUnk",
+        "SMA": "SMASMA",
+        "Oth": "SMAOth",
+        "Unk": "SMAUnk",
     }
     SMAFamilyDiagnosis = {
-        "SMA", "SMAFamilySMA",
-        "Oth", "SMAFamilyOth",
-        "Unk", "SMAFamilyUnk",
-        "Non", "SMAFamilyNon",
+        "SMA": "SMAFamilySMA",
+        "Oth": "SMAFamilyOth",
+        "Unk": "SMAFamilyUnk",
+        "Non": "SMAFamilyNon",
     }
 
     MeteorSexChoices = {
@@ -1012,7 +1012,7 @@ class OldRegistryImporter(object):
     def _process_record(self):
         self.patient_model = self._create_patient()
         self._assign_address()
-        self._set_consent()
+        #self._set_consent()
         self._assign_doctors()
         
         self._id_map[self.record.patient_id] = self.patient_model.pk
