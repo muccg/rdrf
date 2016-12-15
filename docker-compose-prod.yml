@@ -9,6 +9,11 @@ dbprod:
     file: docker-compose-common.yml
     service: db
 
+dbclinicalprod:
+  extends:
+    file: docker-compose-common.yml
+    service: db
+
 cacheprod:
   extends:
     file: docker-compose-common.yml
@@ -31,7 +36,9 @@ uwsgiprod:
   command: uwsgi_local
   environment:
     - DBUSER=rdrfapp
+    - CLINICAL_DBUSER=rdrfapp
     - WAIT_FOR_DB=1
+    - WAIT_FOR_CLINICAL_DB=1
     - WAIT_FOR_CACHE=1
     - WAIT_FOR_MONGO=1
     - DEPLOYMENT=test
@@ -40,7 +47,8 @@ uwsgiprod:
     - dataprod
   links:
     - dbprod:db
+    - dbclinicalprod:clinicaldb
     - cacheprod:cache
     - mongoprod:mongo
   ports:
-    - "8433:8433"
+    - "9000:9000"
