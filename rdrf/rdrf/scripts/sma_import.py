@@ -31,6 +31,9 @@ from registry.groups.models import CustomUser
 
 from registry.genetic.models import Laboratory
 
+from registry.groups import GROUPS as RDRF_GROUPS
+
+
 FAMILY_MEMBERS_CODE = "xxx"
 
 PERMISSIONS_ON_STAGING = """
@@ -508,6 +511,15 @@ class Conv:
     SMN1 = {'Homozygous': 'SMAHomozygous',
             'Heterozygous':'SMAHeterozygous',
             'No': 'SMANo'}
+
+    GROUPS = {
+        "Clinical Staff": RDRF_GROUPS.CLINICAL,
+        "Genetic Curators" : RDRF_GROUPS.GENETIC_CURATOR,
+        "Genetic Staff":     RDRF_GROUPS.GENETIC_STAFF,
+        "Working Group Curators": RDRF_GROUPS.WORKING_GROUP_CURATOR,
+        "Working Group Staff (Patient Registration)": RDRF_GROUPS.WORKING_GROUP_STAFF,
+        
+        }
     
 
     
@@ -890,7 +902,7 @@ class OldRegistryImporter(object):
             return json.load(jf)
 
     def run(self):
-        self._create_auth_groups()
+        self._map_auth_groups()
         self._create_doctors()
         self._create_labs()
         self._create_users()
@@ -907,15 +919,22 @@ class OldRegistryImporter(object):
         
 
 
-    def _create_auth_groups(self):
+    def _map_auth_groups(self):
         for thing in self.data.data:
             if thing["model"] == "auth.group":
                 name = thing["fields"]["name"]
-                group_model, created = Group.objects.get_or_create(name=name)
-                if created:
-                    # what about permissions ...
-                    group_model.save()
-                    self._group_map[thing["pk"]] = group_model
+                rdrf_group_name = Conv.GROUPS.get(name, None)
+                if rdrf_group_name is None:
+                    self.log("Bad group name: %s" % name)
+                    raise Exception("Bad group: %s" % name)
+                
+
+                try:
+                    group_model= Group.objects.get(name__iexact=rdrf_group_name)
+                except Group.DoesNotExist:
+                    raise Exception("Group model %s does not exist?" % rdrf_group_name)
+                
+                self._group_map[thing["pk"]] = group_model
 
 
     def _create_users(self):
@@ -940,9 +959,7 @@ class OldRegistryImporter(object):
                 self._user_map[user.pk] = thing["pk"]
                 user.registry = [self.registry_model]
                 user.save()
-                
                 self._assign_user_groups(user, thing["fields"]["groups"])
-                #self._assign_user_working_groups(user, thing["pk"])
 
 
     def _assign_permissions_to_groups(self):
@@ -980,7 +997,11 @@ class OldRegistryImporter(object):
         for user_model in CustomUser.objects.all():
             if user_model.username == "admin":
                 continue
-            custom_user_old_id = self._user_map[user_model.pk]
+            custom_user_old_id = self._user_map.get(user_model.pk, None)
+            if custom_user_old_id is None:
+                # This means we have a user the old syst
+                self.log("skipping user %s which isn't present in json" % user_model)
+                continue
             
             for thing in self.data.data:
                 if thing["pk"] == custom_user_old_id:
@@ -1496,8 +1517,8 @@ if __name__ == "__main__":
     importer = OldRegistryImporter(registry_model, json_file)
     try:
         with transaction.atomic():
-            delete_existing_models()
             importer.run()
-            importer.log("run completed")
+            print("RUN COMPLETED")
     except Exception as ex:
-        importer.log("run failed - rolled back: %s" % ex)
+        print("Error in run - rolled back: %s" % ex)
+    importer.log("run completed")
