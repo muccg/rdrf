@@ -30,6 +30,7 @@ from registry.groups.models import WorkingGroup
 from registry.groups.models import CustomUser
 
 from registry.genetic.models import Laboratory
+from registry.groups import GROUPS as RDRF_GROUPS
 
 FAMILY_MEMBERS_CODE = "xxx"
 
@@ -501,6 +502,17 @@ class Conv:
         "Nurse Practitioner": 9,
         "Paediatrician": 10
     }
+
+    GROUPS = {
+        "Clinical Staff": RDRF_GROUPS.CLINICAL,
+        "Genetic Curators" : RDRF_GROUPS.GENETIC_CURATOR,
+        "Genetic Staff":     RDRF_GROUPS.GENETIC_STAFF,
+        "Working Group Curators": RDRF_GROUPS.WORKING_GROUP_CURATOR,
+        "Working Group Staff (Patient Registration)": RDRF_GROUPS.WORKING_GROUP_STAFF,
+    }
+    
+
+
 
     
 class PatientRecord(object):
@@ -1227,7 +1239,7 @@ class OldRegistryImporter(object):
             return json.load(jf)
 
     def run(self):
-        self._create_auth_groups()
+        self._map_auth_groups()
         self._create_doctors()
         self._create_labs()
         self._create_users()
@@ -1243,15 +1255,19 @@ class OldRegistryImporter(object):
         
 
 
-    def _create_auth_groups(self):
+    def _map_auth_groups(self):
         for thing in self.data.data:
             if thing["model"] == "auth.group":
                 name = thing["fields"]["name"]
-                group_model, created = Group.objects.get_or_create(name=name)
-                if created:
-                    # what about permissions ...
-                    group_model.save()
-                    self._group_map[thing["pk"]] = group_model
+                rdrf_group_name = Conv.GROUPS.get(name, None)
+                if rdrf_group_name is None:
+                    raise Exception("Bad group name: %s" % name)
+                try:
+                    group_model = Group.objects.get(name__iexact=rdrf_group_name)
+                except Group.DoesNotExist:
+                    raise Exception("Group model %s does not exust?" % rdrf_group_name)
+                
+                self._group_map[thing["pk"]] = group_model
 
 
     def _create_users(self):
@@ -1832,7 +1848,6 @@ if __name__ == "__main__":
     importer = OldRegistryImporter(registry_model, json_file)
     try:
         with transaction.atomic():
-            delete_existing_models()
             importer.run()
             importer.log("run completed")
     except Exception as ex:
