@@ -1332,7 +1332,9 @@ class OldRegistryImporter(object):
         for user_model in CustomUser.objects.all():
             if user_model.username == "admin":
                 continue
-            custom_user_old_id = self._user_map[user_model.pk]
+            custom_user_old_id = self._user_map.get(user_model.pk, None)
+            if custom_user_old_id is None:
+                continue
             
             for thing in self.data.data:
                 if thing["pk"] == custom_user_old_id:
