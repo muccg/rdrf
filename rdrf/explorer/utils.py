@@ -495,7 +495,10 @@ class DatabaseUtils(object):
             return None
 
     def _dictfetchall(self, cursor):
-        "Returns all rows from a cursor as a dict"
+        """
+        Returns all rows from a cursor as a list of dicts
+        https://stackoverflow.com/questions/10888844/using-dict-cursor-in-django
+        """
         desc = cursor.description
         return [
             dict(zip([col[0] for col in desc], row))

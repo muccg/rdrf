@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, FileResponse, HttpResponseRedirect
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
@@ -279,7 +279,7 @@ class SqlQueryView(View):
         else:
             results = database_utils.run_sql().result
 
-        return JsonResponse(results)
+        return JsonResponse(results, safe=False)
 
 
 def _get_default_params(request, form):
