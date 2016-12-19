@@ -157,24 +157,23 @@
                         data: {
                             'sql_query': $('#sql_query').val(),
                             'registry': $('#id_registry').val(),
-	                    'mongo_search_type': $('#id_mongo_search_type').val()
+							'mongo_search_type': $('#id_mongo_search_type').val()
                         },
                         headers: {
                             'X-CSRFToken': $.cookie('{{ csrf_token_name }}')
                         },
                         success: function(data) {
-                            response = jQuery.parseJSON(data);
+                            response = data;
                             if ("error_msg" in response) {
                                 $('#query-result-count').empty();
                                 $("#query-error").show('blind');
                                 $("#query-error").html(response['error_msg']);
 	                         
                              } else if ("success_msg" in response)  {
-	                        $('#query-result-count').empty();
-	                        $('#query-result-count').html(response['success_msg']);
-	                    }
-	    
-	                    else {
+								$('#query-result-count').empty();
+		                        $('#query-result-count').html(response['success_msg']);
+							}
+							else {
                                 $('#query-result-count').empty();
                                 $('#query-result-count').html("Valid query | <strong>" + response.length + "</strong> record(s) found");
                             }
