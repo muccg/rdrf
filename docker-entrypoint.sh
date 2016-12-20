@@ -108,13 +108,13 @@ function _django_collectstatic {
 function _django_iprestrict_permissive_fixtures {
     echo "loading iprestrict permissive fixture"
     django-admin.py init iprestrict_permissive
-    django-admin.py reloadrules
+    django-admin.py reload_rules
 }
 
 function _django_dev_fixtures {
     echo "loading DEV fixture"
     django-admin.py init DEV
-    django-admin.py reloadrules
+    django-admin.py reload_rules
 }
 
 function _rdrf_import_grdr {
