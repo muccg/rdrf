@@ -51,7 +51,7 @@ class FieldFactory(object):
         "string": django.forms.CharField,
         "alphanumeric": (django.forms.RegexField, {"regex": r'^[a-zA-Z0-9]*$'}),
         "integer": django.forms.IntegerField,
-        "date": (django.forms.DateField, {"help_text": "DD-MM-YYYY", "input_formats": ['%d-%m-%Y']}),
+        "date": (fields.IsoDateField, {"help_text": "DD-MM-YYYY", "input_formats": ["%d-%m-%Y"]}),
         "boolean": django.forms.BooleanField,
         "float": django.forms.FloatField,
         "email": django.forms.EmailField,

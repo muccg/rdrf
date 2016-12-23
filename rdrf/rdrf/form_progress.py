@@ -1,8 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
-from rdrf.utils import de_camelcase
-from rdrf.mongo_client import construct_mongo_client
-from rdrf.utils import mongo_db_name
+from .utils import de_camelcase, parse_iso_datetime
+from .models import Modjgo
 
 import math
 import logging
@@ -73,10 +72,7 @@ class FormProgress(object):
                 self.reset()
 
     def _get_progress_collection(self):
-        db_name = mongo_db_name(self.registry_model.code)
-        mongo_client = construct_mongo_client()
-        db = mongo_client[db_name]
-        return db["progress"]
+        return Modjgo.objects.collection(self.registry_model.code, "progress")
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
@@ -161,8 +157,8 @@ class FormProgress(object):
             return False
 
         if form_timestamp_key in dynamic_data:
-            form_timeastamp_value = dynamic_data[form_timestamp_key]
-            if form_timeastamp_value >= one_year_ago:
+            timestamp = parse_iso_datetime(dynamic_data[form_timestamp_key])
+            if timestamp >= one_year_ago:
                 return True
 
         return False
@@ -314,20 +310,10 @@ class FormProgress(object):
         self.progress_data = result
 
     def _get_query(self, patient_model, context_model):
-        query = {"django_id": patient_model.pk, "django_model": patient_model.__class__.__name__}
-        if context_model:
-            context_id = context_model.id
-            query["context_id"] = context_id
-
-        return query
+        return self.progress_collection.find(patient_model, context_id=context_model.id if context_model else None)
 
     def _load(self, patient_model, context_model=None):
-        query = self._get_query(patient_model, context_model)
-        logger.debug("loading progress data for patient: query = %s" % query)
-        
-        self.loaded_data = self.progress_collection.find_one(query)
-        if self.loaded_data is None:
-            self.loaded_data = {}
+        self.loaded_data = self._get_query(patient_model, context_model).data().first() or {}
         return self.loaded_data
 
     def _get_metric(self, metric, patient_model, context_model=None):
@@ -444,16 +430,14 @@ class FormProgress(object):
         if not dynamic_data:
             return self.progress_data
         self._calculate(dynamic_data)
-        query = self._get_query(patient_model, context_model)
-        record = self.progress_collection.find_one(query)
-        if record:
-            mongo_id = record['_id']
-            self.progress_collection.update({'_id': mongo_id}, {"$set": self.progress_data}, upsert=False)
-        else:
-            record = query
-            record.update(self.progress_data)
-            self.progress_collection.insert(record)
-
+        record = self._get_query(patient_model, context_model).first()
+        if not record:
+            ctx = dict(context_id=context_model.id if context_model else None)
+            record = Modjgo.for_obj(patient_model, collection="progress",
+                                    registry_code=self.registry_model.code,
+                                    data=ctx)
+        record.data.update(self.progress_data)
+        record.save()
         return self.progress_data
 
     # a convenience method

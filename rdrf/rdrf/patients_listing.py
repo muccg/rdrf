@@ -52,7 +52,7 @@ class PatientsListingView(View):
 
         self.user = request.user
         if self.user and self.user.is_anonymous():
-            login_url = "%s?next=/router/" % reverse("login")
+            login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
             return redirect(login_url)
 
         self.do_security_checks()
@@ -470,7 +470,7 @@ class ColumnContextMenu(Column):
     def configure(self, registry, user, order):
         super(ColumnContextMenu, self).configure(registry, user, order)
         self.registry_has_context_form_groups = registry.has_groups if registry else False
-        
+
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))

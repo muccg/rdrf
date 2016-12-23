@@ -3,17 +3,17 @@ from itertools import product
 import logging
 import re
 from tempfile import NamedTemporaryFile
-from bson.json_util import dumps
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, FileResponse, HttpResponseRedirect
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 
-from . import app_settings
+from . import __version__
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils
@@ -23,6 +23,7 @@ from rdrf.models import Section
 from registry.groups.models import WorkingGroup
 from rdrf.spreadsheet_report import SpreadSheetReport
 from rdrf.reporting_table import ReportingTableGenerator
+
 from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.utils import mongo_key_from_models
 
@@ -278,27 +279,16 @@ class SqlQueryView(View):
         else:
             results = database_utils.run_sql().result
 
-        response = HttpResponse(dumps(results, default=json_serial))
-        return response
-
-
-def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-    serial = obj.isoformat()
-    return serial
+        return JsonResponse(results, safe=False)
 
 
 def _get_default_params(request, form):
-    database_utils = DatabaseUtils()
-    status, error = database_utils.connection_status()
-
     return {
-        'version': app_settings.APP_VERSION,
-        'host': app_settings.VIEWER_MONGO_HOST,
-        'status': status,
-        'error_msg': error,
+        'version': __version__,
+        'status': True,
+        'error_msg': None,
         'form': form,
-        'csrf_token_name': app_settings.CSRF_NAME
+        'csrf_token_name': settings.CSRF_COOKIE_NAME,
     }
 
 

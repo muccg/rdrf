@@ -1,38 +1,36 @@
 from functools import wraps
-from django.http import HttpResponseRedirect
+import logging
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
-
-import logging
+from django.shortcuts import get_object_or_404
 
 from .models import Registry
 
 logger = logging.getLogger(__name__)
 
-
-def patient_has_access(function):
+def patient_questionnaire_access(function):
+    def is_patient(user):
+        try:
+            patient_group = Group.objects.get(name__icontains="patients")
+        except (Group.DoesNotExist, Group.MultipleObjectsReturned):
+            logger.error("Patients group must be configured")
+            raise
+        return user.groups.filter(id=patient_group.id).exists()
 
     @wraps(function)
     def _wrapped_view(*args, **kwargs):
         user = args[0].user
         registry_code = kwargs['registry_code']
-        registry = Registry.objects.get(code=registry_code)
+        registry = get_object_or_404(Registry, code=registry_code)
 
         if not registry.questionnaire:
-            return function(*args, **kwargs)
+            return HttpResponseNotFound("Registry does not have a questionnaire")
 
-        if not registry.questionnaire.login_required:
-            return function(*args, **kwargs)
-
-        if not user.is_authenticated():
+        # fixme: check logic
+        if (registry.questionnaire.login_required and
+            (not user.is_authenticated() or not is_patient(user))):
             return HttpResponseRedirect(reverse("patient_page", args={registry_code}))
-
-        try:
-            patient_group = Group.objects.get(name__icontains="patients")
-            if patient_group not in user.groups.all():
-                return HttpResponseRedirect(reverse("patient_page", args={registry_code}))
-        except Group.DoesNotExist:
-            logger.error("Group Patient not found")
 
         return function(*args, **kwargs)
 

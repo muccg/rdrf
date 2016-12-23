@@ -15,8 +15,10 @@ teststack:
   command: aloe
   environment:
     - DBUSER=rdrfapp
+    - CLINICAL_DBUSER=rdrfapp
     - WAIT_FOR_RUNSERVER=1
     - WAIT_FOR_DB=1
+    - WAIT_FOR_CLINICAL_DB=1
     - WAIT_FOR_MONGO=1
     - TEST_WAIT=10
     - TEST_BROWSER=chrome
@@ -27,6 +29,7 @@ teststack:
     - rdrf_runservertest_1:web
     - rdrf_seleniumhub_1:hub
     - rdrf_dbtest_1:db
+    - rdrf_dbclinicaltest_1:clinicaldb
     - rdrf_mongotest_1:mongo
 
 # runs the aloe tests against docker-compose-prod.yml
@@ -35,8 +38,10 @@ prod:
   command: aloe
   environment:
     - DBUSER=rdrfapp
+    - CLINICAL_DBUSER=rdrfapp
     - WAIT_FOR_UWSGI=1
     - WAIT_FOR_DB=1
+    - WAIT_FOR_CLINICAL_DB=1
     - WAIT_FOR_MONGO=1
     - TEST_APP_PORT=8443
     - TEST_APP_SCHEME=https

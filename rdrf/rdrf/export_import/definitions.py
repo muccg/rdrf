@@ -5,20 +5,20 @@ from registry.genetic import models as genemodels
 from registry.patients import models as patientmodels
 from registry.groups import models as groupmodels
 from rdrf import models
-from . import model_exporters, datagroup_exporters, mongo_collection_exporters
+from . import model_exporters, datagroup_exporters
 
 
-class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagroups', 'models', 'collections'])):
+class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagroups', 'models'])):
 
-    def __new__(cls, name, dirname, datagroups=(), models=(), collections=()):
-        return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models, collections)
+    def __new__(cls, name, dirname, datagroups=(), models=()):
+        return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models)
 
     @property
     def model_classes(self):
         return [apps.get_model(n) for n in self.models]
 
 
-Catalogue = namedtuple('Catalogue', ['datagroups', 'models', 'mongo_collections'])
+Catalogue = namedtuple('Catalogue', ['datagroups', 'models'])
 ExportDefinition = namedtuple('ExportDefinition', ['type', 'exporters_catalogue', 'datagroups'])
 ExportType = namedtuple('ExportType', ['code', 'name', 'includes'])
 
@@ -26,7 +26,7 @@ ExportType = namedtuple('ExportType', ['code', 'name', 'includes'])
 _MAIN_CATALOGUE = Catalogue(
     datagroup_exporters.catalogue,
     model_exporters.catalogue,
-    mongo_collection_exporters.catalogue)
+)
 
 _CDE_GROUP = GroupDefinition(
     name='CDEs',
@@ -140,7 +140,7 @@ REGISTRY_DEF_EXPORT_DEFINITION = ExportDefinition(
     exporters_catalogue=Catalogue(
         datagroup_exporters.catalogue,
         model_exporters.registry_catalogue,
-        mongo_collection_exporters.catalogue),
+    ),
     datagroups=(
         _REFDATA_GROUP,
         _CDE_GROUP,
@@ -153,7 +153,7 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
     exporters_catalogue=Catalogue(
         datagroup_exporters.catalogue,
         model_exporters.registry_catalogue,
-        mongo_collection_exporters.catalogue),
+    ),
     datagroups=(
         _REFDATA_GROUP,
         _CDE_GROUP,
@@ -187,18 +187,13 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'rdrf.Notification',
                         'rdrf.EmailNotification',
                         'rdrf.EmailNotificationHistory',
-                        'rdrf.CDEFile',
                     )),
                 GroupDefinition(
-                    name='MongoDB Data',
-                    dirname='mongodb_data',
-                    collections=(
-                        'cdes',
-                        'history',
-                        'progress',
-                        # Used by FH only currently. Could use an FH specific export
-                        # definition, but this will do for now.
-                        'registry_specific_patient_data',
+                    name='Clinical Data',
+                    dirname='clinical_data',
+                    models=(
+                        'rdrf.CDEFile',
+                        'rdrf.Modjgo',
                     )),
             )
         ),

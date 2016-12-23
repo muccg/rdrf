@@ -1,28 +1,40 @@
 # -*- encoding: utf-8 -*-
-from django.test import TestCase, RequestFactory
-from rdrf.exporter import Exporter, ExportType
-from rdrf.importer import Importer, ImportState
-from rdrf.models import Section
-from rdrf.models import Registry
-from rdrf.models import CDEPermittedValueGroup
-from rdrf.models import CDEPermittedValue
-from rdrf.models import CommonDataElement
-from rdrf.models import RegistryForm
-from rdrf.form_view import FormView
-from registry.patients.models import Patient
-from registry.groups.models import WorkingGroup
-from registry.groups.models import CustomUser
-from registry.patients.models import State, PatientAddress, AddressType
-from datetime import datetime
-from django.forms.models import model_to_dict
-import yaml
-from django.contrib.auth import get_user_model
-from rdrf.utils import de_camelcase, check_calculation
-from rdrf.mongo_client import construct_mongo_client
-
-
-from django.conf import settings
+import logging
 import os
+import yaml
+from datetime import datetime
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.forms.models import model_to_dict
+from django.test import TestCase, RequestFactory
+
+from .exporter import Exporter, ExportType
+from .importer import Importer, ImportState
+from .models import Registry, RegistryForm, Section
+from .models import CDEPermittedValueGroup, CDEPermittedValue
+from .models import CommonDataElement
+from .models import Modjgo
+from .form_view import FormView
+from registry.patients.models import Patient
+from registry.patients.models import State, PatientAddress, AddressType
+from registry.groups.models import WorkingGroup, CustomUser
+from .utils import de_camelcase, check_calculation
+
+logger = logging.getLogger(__name__)
+
+def mock_messages():
+    """
+    This switches off messaging, which requires request middleware
+    which doesn't exist in RequestFactory requests.
+    """
+    def mock_add_message(request, level, msg, *args, **kwargs):
+        logger.info("Django %s Message: %s" % (level, msg))
+    def mock_error(request, msg, *args, **kwargs):
+        logger.info("Django Error Message: %s" % msg)
+    messages.add_message = mock_add_message
+    messages.error = mock_error
+mock_messages()
 
 
 class SectionFiller(object):
@@ -55,7 +67,7 @@ class FormFiller(object):
 
 
 class RDRFTestCase(TestCase):
-    fixtures = ['testing_auth.json', 'testing_users.json', 'testing_rdrf.json']
+    fixtures = ['testing_auth', 'testing_users', 'testing_rdrf']
 
 
 class TestFormPermissions(RDRFTestCase):
@@ -206,7 +218,6 @@ class FormTestCase(RDRFTestCase):
 
     def setUp(self):
         super(FormTestCase, self).setUp()
-        self._reset_mongo()
         self.registry = Registry.objects.get(code='fh')
         self.user = CustomUser.objects.get(username="curator")
         self.user.registry = [self.registry]
@@ -230,16 +241,6 @@ class FormTestCase(RDRFTestCase):
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
-
-    def _reset_mongo(self):
-        self.client = construct_mongo_client()
-        # delete any testing databases
-        for db in self.client.database_names():
-            if db.startswith("testing_"):
-                print("deleting %s" % db)
-                self.client.drop_database(db)
-
-        print("Testing Mongo Reset OK")
 
     def create_patient(self):
         from rdrf.contexts_api import RDRFContextManager
@@ -331,20 +332,11 @@ class FormTestCase(RDRFTestCase):
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
-        # This switches off messaging , which requires request middleware which
-        # doesn't exist in RequestFactory requests
-        view.testing = True
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
 
-        mongo_query = {"django_id": self.patient.pk,
-                       "django_model": self.patient.__class__.__name__,
-                       "context_id": self.patient.default_context(self.registry).pk}
-
-        mongo_db = self.client["testing_" + self.registry.code]
-
-        collection_name = "cdes"
-        collection = mongo_db[collection_name]
-        mongo_record = collection.find_one(mongo_query)
+        collection = Modjgo.objects.collection(self.registry.code, "cdes")
+        context_id = self.patient.default_context(self.registry).id
+        mongo_record = collection.find(self.patient, context_id).data().first()
 
         print("*** MONGO RECORD = %s ***" % mongo_record)
 
@@ -377,63 +369,19 @@ class FormTestCase(RDRFTestCase):
 class LongitudinalTestCase(FormTestCase):
 
     def test_simple_form(self):
-        mongo_db = self.client["testing_" + self.registry.code]
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
-        collection = mongo_db["history"]
-        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
-        assert len(snapshots) > 0, "History should be filled in on save"
+        qs = Modjgo.objects.collection(self.registry.code, "history")
+        snapshots = qs.find(self.patient, record_type="snapshot").data()
+        self.assertGreater(len(snapshots), 0,
+                           "History should be filled in on save")
         for snapshot in snapshots:
-            assert "record" in snapshot, "Each snapshot should have a record field"
-            assert "timestamp" in snapshot, "Each snapshot should have a timestamp field"
-            assert "forms" in snapshot["record"], "Each  snapshot should record dict contain a forms field"
-
-    def xxx_longitudinal_spreadsheet_report(self):
-
-        self._reset_mongo()
-
-        def simulate_edit(name, age, height, weight):
-            ff = FormFiller(self.simple_form)
-            ff.sectionA.CDEName = name
-            ff.sectionA.CDEAge = age
-            ff.sectionB.CDEHeight = height
-            ff.sectionB.CDEWeight = weight
-            form_data = ff.data
-            request = self._create_request(self.simple_form, form_data)
-            view = FormView()
-            view.request = request
-            # This switches off messaging , which requires request middleware which
-            # doesn't exist in RequestFactory requests
-            view.testing = True
-            view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
-
-        # this should create some snapshots
-        simulate_edit("Fred", 23, 172.5, 85.0)
-        simulate_edit("Fred", 24, 172.5, 87.0)
-        simulate_edit("Fred", 25, 172.5, 88.0)
-        simulate_edit("Fred", 26, 172.5, 95.0)
-
-        mongo_db = self.client["testing_" + self.registry.code]
-        collection = mongo_db["history"]
-        snapshots = [s for s in collection.find({"django_id": self.patient.pk, "record_type": "snapshot"})]
-        assert len(snapshots) > 1, "History should be filled in on save"
-        assert len(snapshots) == 4, "Wrong number of snapshots: expected 4 actual %s" % len(snapshots)
-
-        from rdrf.spreadsheet_report import SpreadSheetReport
-
-        class FakeModel(object):
-
-            def __init__(self, name, code=""):
-                self.name = name
-                self.code = code
-
-
-class FormProgressTest(FormTestCase):
-
-    def test_progress_calcs(self):
-        mongo_db = self.client["testing_" + self.registry.code]
-        super(FormProgressTest, self).test_simple_form()
-        collection = mongo_db["progress"]
+            self.assertIn("record", snapshot,
+                          "Each snapshot should have a record field")
+            self.assertIn("timestamp", snapshot,
+                          "Each snapshot should have a timestamp field")
+            self.assertIn("forms", snapshot["record"],
+                          "Each  snapshot should record dict contain a forms field")
 
 
 class DeCamelcaseTestCase(TestCase):

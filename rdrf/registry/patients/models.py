@@ -444,6 +444,7 @@ class Patient(models.Model):
             # ensure we have sane data frame
             mongo_data = {"django_id": self.pk,
                           "django_model": "Patient",
+                          "timestamp":  datetime.datetime.now(),
                           "context_id": context_model.pk,
                           "forms": []}
 

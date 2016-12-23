@@ -1,19 +1,25 @@
-from django.db import models
-import logging
-from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
-from datetime import datetime
+import datetime
 import json
-from rdrf.notifications import Notifier, NotificationError
-from rdrf.utils import has_feature, get_full_link, check_calculation
-from rdrf.utils import format_date
-from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+import jsonschema
+import logging
+import os.path
+import yaml
+
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
+from django.forms.models import model_to_dict
+
+from .notifications import Notifier, NotificationError
+from .utils import get_full_link, check_calculation
+from .utils import format_date, parse_iso_date
+from .jsonb import DataField
 
 logger = logging.getLogger(__name__)
 
@@ -237,9 +243,6 @@ class Registry(models.Model):
         return len(self.genetic_progress_cde_triples) > 0
 
     def get_adjudications(self):
-        if not has_feature("adjudication"):
-            return []
-
         class ActionDropDownItem(object):
 
             def __init__(self):
@@ -761,6 +764,11 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
+        elif self.datatype.lower() == "date":
+            try:
+                return parse_iso_date(stored_value)
+            except ValueError:
+                return ""
 
         if stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
@@ -1005,7 +1013,7 @@ class QuestionnaireResponse(models.Model):
     @property
     def date_of_birth(self):
         dob = self._get_patient_field("CDEPatientDateOfBirth")
-        return dob.date()
+        return parse_iso_date(dob)
 
     def _get_patient_field(self, patient_field):
         from .dynamic_data import DynamicDataWrapper
@@ -1977,8 +1985,7 @@ class ContextFormGroup(models.Model):
         if self.naming_scheme == "M":
             return "Modules"
         elif self.naming_scheme == "D":
-            from datetime import datetime
-            d = datetime.now()
+            d = datetime.datetime.now()
             s = d.strftime("%d-%b-%Y")
             return "%s/%s" % (self.name, s)
         elif self.naming_scheme == "N":
@@ -2008,7 +2015,7 @@ class ContextFormGroup(models.Model):
             # This does not actually do type conversion for dates -
             # it just looks up range display codes.
             display_value = cde_model.get_display_value(cde_value)
-            if isinstance(display_value, datetime):
+            if isinstance(display_value, datetime.date):
                 display_value = format_date(display_value)
             return display_value
         except KeyError:
@@ -2089,65 +2096,106 @@ class ContextFormGroupItem(models.Model):
     registry_form = models.ForeignKey(RegistryForm)
 
 
-class MongoMigrationDummyModel(models.Model):
+class ModjgoQuerySet(models.QuerySet):
+    def collection(self, registry_code, collection):
+        qs = self.filter(registry_code=registry_code, collection=collection)
+        return qs.order_by("pk")
+
+    def find(self, obj=None, context_id=None, **query):
+        q = {}
+        if obj is not None:
+            q["data__django_model"] = obj.__class__.__name__
+            q["data__django_id"] = obj.id
+        if context_id is not None:
+            q["data__context_id"] = context_id
+        for attr, value in query.items():
+            q["data__" + attr] = value
+        return self.filter(**q)
+
+    def data(self):
+        return self.values_list("data", flat=True)
+
+
+class Modjgo(models.Model):
     """
-    This model should never be instantiated.
-    It exists so that when a version of RDRF is created that alters the mongo
-    structure, the version can be entered as a pair in VERSIONS below
-    which will trigger a migration to be created in South.
-    This gives us a hook to write mongo transforming code that will act on the data
-
-    *ONLY* UPDATE THE VERSIONS TUPLE IF A MONGO TRANSFORMATION IS NECESSARY!
-
-    This hack works because Django picks up alterations to the allowed choices for the field
-    and creates an auto migration.
-
-    To use :
-
-    Precondition: You've made changes to RDRF which alters in some way the mongo structure
-
-    1. Add the new RDRF version V and a short description D to the VERSIONS tuple:
-
-    e.g  VERSIONS =(("1.4", "blah"),
-                    ("2.5","forms now nested"),
-                    ("4.9", "changing the structure of the progress dictionary"))
-
-    2. After editing the VERSIONS tuple, docker exec a shell inside rdrf web
-    docker exec -it rdrf_web_1 /bin/bash
-
-    run: django_admin makemmigrations rdrf
-
-    this will generate the auto migration as below:
-
-    operations = [
-        migrations.AlterField(
-            model_name='mongomigrationdummymodel',
-            name='version',
-            field=models.CharField(max_length=80, choices=[(b'initial', b'initial'), (b'testing', b'testing')]),
-        ),]
-
-
-    3. Add a migrations.RunPython(forward_func, backward_func) migration to the operations list ( implementing the mongo
-    manipulations via python functions forward_func and backward_func
-
-
-    I intended to write a module to make it easy to create the forward_func and backward_funcs
-
-
+    MongoDB collections in Django.
     """
-    # Add to this VERSIONS tuple ONLY IF a mongo migration is required
-    VERSIONS = (("initial", "initial"),
-                ("testing", "testing"),
-                ("1.0.17", "populate context_id on all patient records"))
-    version = models.CharField(max_length=80, choices=VERSIONS)
+    COLLECTIONS = (
+        ("cdes", "cdes"),
+        ("history", "history"),
+        ("progress", "progress"),
+        ("registry_specific_patient_data", "registry_specific_patient_data"),
+    )
+
+    registry_code = models.CharField(max_length=10, db_index=True)
+    collection = models.CharField(max_length=50, db_index=True, choices=COLLECTIONS)
+    data = DataField()
+
+    objects = ModjgoQuerySet.as_manager()
+
+    @classmethod
+    def for_obj(cls, obj, **kwargs):
+        self = cls(**kwargs)
+        self.data["django_model"] = obj.__class__.__name__
+        self.data["django_id"] = obj.id
+        return self
+
+    def __str__(self):
+        return json.dumps(model_to_dict(self), indent=2)
+
+    def cde_val(self, form_name, section_code, cde_code):
+        forms = self.data.get("forms", [])
+        form_map = {f.get("name"): f for f in forms}
+        sections = form_map.get(form_name, {}).get("sections", [])
+        section_map = {s.get("code"): s for s in sections}
+        cdes = section_map.get(section_code, {}).get("cdes", [])
+        cde_map = {c.get("code"): c for c in cdes}
+        return cde_map.get(cde_code, {}).get("value")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        self._clean_registry_code()
+        self._clean_data()
+
+    def _clean_registry_code(self):
+        if not Registry.objects.filter(code=self.registry_code).exists():
+            raise ValidationError({ "registry_code": "Registry %s does not exist" % self.registry_code })
+
+    modjgo_schema = None
+    modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
+
+    def validate(cls, collection, data):
+        if not cls.modjgo_schema:
+            try:
+                with open(cls.modjgo_schema_file) as f:
+                    cls.modjgo_schema = yaml.load(f.read())
+            except:
+                logger.exception("Error reading %s" % cls.modjgo_schema_file)
+
+        if cls.modjgo_schema:
+            jsonschema.validate({collection: data}, cls.modjgo_schema)
+
+    lax_validation = True
+
+    def _clean_data(self):
+        logger.debug("Validating %s %s" % (self.collection, self.id or ""))
+        try:
+            self.validate(self.collection, self.data)
+        except jsonschema.ValidationError as e:
+            if self.lax_validation:
+                logger.warning("Failed to validate: %s" % e)
+            else:
+                raise ValidationError({ "data": e })
 
 
 def file_upload_to(instance, filename):
     return "/".join(filter(bool, [
-        instance.registry.code,
-        instance.section.code if instance.section else "_",
-        instance.cde.code if instance.cde else "",
-        filename]))
+        instance.registry_code,
+        instance.section_code or "_",
+        instance.cde_code, filename]))
 
 
 class CDEFile(models.Model):
@@ -2160,10 +2208,10 @@ class CDEFile(models.Model):
 
     See filestorage.py for usage of this model.
     """
-    registry = models.ForeignKey(Registry)
-    form = models.ForeignKey(RegistryForm, null=True, blank=True)
-    section = models.ForeignKey(Section, null=True, blank=True)
-    cde = models.ForeignKey(CommonDataElement)
+    registry_code = models.CharField(max_length=10)
+    form_name = models.CharField(max_length=10, blank=True)
+    section_code = models.CharField(max_length=100, blank=True)
+    cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
 
