@@ -312,6 +312,15 @@ def go_to_registry(step, name):
     logger.debug("found link text to click")
 
 
+@step('go to page "(.*)"')
+def go_to_page(setp, page_ref):
+    if page_ref.startswith("/"):
+        page_ref = page_ref[1:]
+    url = world.site_url + page_ref
+    logger.debug("going to go to page url %s" % url)
+    world.browser.get(url)
+
+
 @step('navigate away then back')
 def refresh_page(step):
     current_url = world.browser.current_url
