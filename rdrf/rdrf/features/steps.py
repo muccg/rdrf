@@ -347,3 +347,17 @@ def click_cancel(step):
 @step('I reload iprestrict')
 def reload_iprestrict(step):
     utils.django_reloadrules()
+
+
+@step('enter value "(.*)" for "(.*)"')
+def enter_value_for_named_element(step, value, name):
+    # try to find place holders, labels etc
+    for element_type in ['placeholder']:
+        xpath_expression = '//input[@placeholder="{0}"]'.format(name)
+        input_element = world.browser.find_element_by_xpath(xpath_expression)
+        if input_element:
+            input_element.send_keys(value)
+            return
+    raise Exception("can't find element '%s'" % name)
+                
+    
