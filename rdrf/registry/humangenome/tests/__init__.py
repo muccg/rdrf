@@ -9,3 +9,7 @@ suite = TestSuite()
 suite.addTest(defaultTestLoader.loadTestsFromModule(test_exon))
 suite.addTest(defaultTestLoader.loadTestsFromModule(test_protein))
 suite.addTest(defaultTestLoader.loadTestsFromModule(test_sequence))
+
+
+if __name__ == "__main__":
+    unittest.TextTestRunner(verbosity=2).run(suite)

@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from django.core.exceptions import ValidationError
+from useraudit.password_expiry import is_password_expired
 
 import logging
 
@@ -27,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = RDRFUserCreationForm
 
-    list_display = ('username', 'email', 'get_working_groups', 'get_registries')
+    list_display = ('username', 'email', 'get_working_groups', 'get_registries', 'is_active_expired')
 
     def get_form(self, request, obj=None, **kwargs):
         user = get_user_model().objects.get(username=request.user)
@@ -118,6 +121,16 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
+    def is_active_expired(self, obj):
+        if is_password_expired(obj):
+            return format_html(
+                '{}<a href="{}">Password Expired</a> (<a href="{}../password/">Change</a>)',
+                "" if obj.is_active else "Inactive, ",
+                reverse('password_reset'),
+                reverse('%s:groups_customuser_change' % self.admin_site.name,
+                        args=(obj.pk,)))
+        return "Yes" if obj.is_active else "No"
+    is_active_expired.short_description = "Is active"
 
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(WorkingGroup, WorkingGroupAdmin)

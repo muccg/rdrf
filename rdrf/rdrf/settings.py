@@ -1,7 +1,5 @@
 # Django settings for rdrf project.
 import os
-import ssl
-
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig
@@ -75,29 +73,18 @@ DATABASES = {
     }
 }
 
+# Clinical database (defaults to main db if not specified).
+DATABASES["clinical"] = {
+    "ENGINE": env.get_db_engine("clinical_dbtype", "pgsql"),
+    "NAME": env.get("clinical_dbname", DATABASES["default"]["NAME"]),
+    "USER": env.get("clinical_dbuser", DATABASES["default"]["USER"]),
+    "PASSWORD": env.get("clinical_dbpass", DATABASES["default"]["PASSWORD"]),
+    "HOST": env.get("clinical_dbserver", DATABASES["default"]["HOST"]),
+    "PORT": env.get("clinical_dbport", DATABASES["default"]["PORT"]),
+}
 
-# Mongo Settings - see http://api.mongodb.org/python/2.8.1/api/pymongo/mongo_client.html for usage
-# These settings ( and only )  are consumed by rdrf.mongo_client
+DATABASE_ROUTERS = ["rdrf.db.RegistryRouter"]
 
-MONGOSERVER = env.get("mongoserver", "localhost")
-MONGOPORT = env.get("mongoport", 27017)
-MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
-
-MONGO_CLIENT_MAX_POOL_SIZE = env.get("mongo_max_pool_size", 100)
-MONGO_CLIENT_TZ_AWARE = env.get("mongo_client_tz_aware", False)
-MONGO_CLIENT_CONNECT = env.get("mongo_client_connect", True)
-
-MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", "") or None
-MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 20000)
-MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
-MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
-MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
-
-MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
-MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
-MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
-MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
-MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 
 TEMPLATES = [
     {
@@ -194,11 +181,6 @@ ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
 }
 
-# list of features  '*' means all , '' means none and ['x','y'] means site
-# supports features x and y
-FEATURES = env.get("features", "*")
-
-
 # default emailsn
 ADMINS = [
     ('alerts', env.get("alert_email", "root@localhost"))
@@ -257,6 +239,14 @@ CSRF_COOKIE_AGE = env.get("csrf_cookie_age", 31449600)
 CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure")
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
+
+
+# The maximum size in bytes that a request body may be before a
+# SuspiciousOperation (RequestDataTooBig) is raised.
+DATA_UPLOAD_MAX_MEMORY_SIZE = env.get("data_upload_max_memory_size", 2621440) or None
+# The maximum number of parameters that may be received via GET or
+# POST before a SuspiciousOperation (TooManyFields) is raised.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = env.get("data_upload_max_number_fields", 30000) or None
 
 # django-useraudit
 # The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
@@ -386,7 +376,7 @@ LOGGING = {
             'level': 'CRITICAL',
             'propagate': True,
         },
-        'rdrf.rdrf.management.commands': {
+        'rdrf.management.commands': {
             'handlers': ['shell'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,

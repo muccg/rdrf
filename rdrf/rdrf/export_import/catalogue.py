@@ -1,6 +1,6 @@
 from collections import defaultdict
-from .exporters import DataGroupExporter, ModelExporter, MongoCollectionExporter
-from .importers import DataGroupImporter, ModelImporter, MongoCollectionImporter
+from .exporters import DataGroupExporter, ModelExporter
+from .importers import DataGroupImporter, ModelImporter
 
 
 class Catalogue(object):
@@ -24,10 +24,6 @@ class ModelExporterCatalogue(Catalogue):
     factory = ModelExporter
 
 
-class MongoCollectionExporterCatalogue(Catalogue):
-    factory = MongoCollectionExporter
-
-
 class DataGroupExporterCatalogue(Catalogue):
     factory = DataGroupExporter
 
@@ -38,7 +34,3 @@ class DataGroupImporterCatalogue(Catalogue):
 
 class ModelImporterCatalogue(Catalogue):
     factory = ModelImporter
-
-
-class MongoCollectionImporterCatalogue(Catalogue):
-    factory = MongoCollectionImporter

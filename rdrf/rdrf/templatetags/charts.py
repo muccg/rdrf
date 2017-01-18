@@ -1,5 +1,4 @@
 import json
-import bson
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -56,16 +55,7 @@ register.tag('bar_chart', create_chart_node)
 register.tag('pie_chart', create_chart_node)
 
 
-class MongoJSONEncoder(DjangoJSONEncoder):
-
-    def default(self, o):
-        if isinstance(o, bson.ObjectId):
-            return str(o)
-        else:
-            return super(MongoJSONEncoder, self).default(o)
-
-
 def json_filter(value):
-    return json.dumps(value, indent=2, cls=MongoJSONEncoder)
+    return json.dumps(value, indent=2, cls=DjangoJSONEncoder)
 
 register.filter('json', json_filter)

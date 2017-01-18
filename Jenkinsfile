@@ -2,7 +2,7 @@
 
 node {
     env.DOCKER_USE_HUB = 1
-    def deployable_branches = ["master", "next_release"]
+    def deployable_branches = ["master", "next_release", "v2.0.0"]
     def testResults = []
     def artifacts = []
 
@@ -14,7 +14,9 @@ node {
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
         sh('''
-            ./develop.sh build base builder dev
+            ./develop.sh build base
+            ./develop.sh build builder
+            ./develop.sh build dev
             ./develop.sh check-migrations
         ''')
     }

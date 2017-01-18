@@ -42,16 +42,16 @@ Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, 
 For developers
 --------------
 
-We do our Python 2 development using Docker_ containers and docker-compose_.
+We do our Python 3 development using Docker_ containers and docker-compose_.
 You will have to set up Docker and docker-compose on your development machine.
 
-All the development tasks can be done by using the ``develop.sh`` shell script in this directory.
+All the development tasks can be done by using docker-compose, a helper shell script (``develop.sh``) is also provided in this directory.
 Please run it without any arguments for help on its usage.
 
 A typical usage is::
 
-    ./develop.sh dev_build
-    ./develop.sh dev
+    ./develop.sh build base builder dev
+    ./develop.sh up
 
 This will start up all the docker containers needed for dev. 
 You can access the RDRF application on http://localhost:8000
