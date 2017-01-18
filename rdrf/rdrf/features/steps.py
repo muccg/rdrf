@@ -312,6 +312,15 @@ def go_to_registry(step, name):
     logger.debug("found link text to click")
 
 
+@step('go to page "(.*)"')
+def go_to_page(setp, page_ref):
+    if page_ref.startswith("/"):
+        page_ref = page_ref[1:]
+    url = world.site_url + page_ref
+    logger.debug("going to go to page url %s" % url)
+    world.browser.get(url)
+
+
 @step('navigate away then back')
 def refresh_page(step):
     current_url = world.browser.current_url
@@ -338,3 +347,17 @@ def click_cancel(step):
 @step('I reload iprestrict')
 def reload_iprestrict(step):
     utils.django_reloadrules()
+
+
+@step('enter value "(.*)" for "(.*)"')
+def enter_value_for_named_element(step, value, name):
+    # try to find place holders, labels etc
+    for element_type in ['placeholder']:
+        xpath_expression = '//input[@placeholder="{0}"]'.format(name)
+        input_element = world.browser.find_element_by_xpath(xpath_expression)
+        if input_element:
+            input_element.send_keys(value)
+            return
+    raise Exception("can't find element '%s'" % name)
+                
+    
