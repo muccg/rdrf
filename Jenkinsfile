@@ -14,7 +14,9 @@ node {
         echo "Branch is: ${env.BRANCH_NAME}"
         echo "Build is: ${env.BUILD_NUMBER}"
         sh('''
-            ./develop.sh build base builder dev
+            ./develop.sh build base
+            ./develop.sh build builder
+            ./develop.sh build dev
             ./develop.sh check-migrations
         ''')
     }
