@@ -293,9 +293,12 @@ class FormView(View):
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
+            context["show_archive_button"] = request.user.can_archive
+            logger.debug("User can archive = %s" % request.user.can_archive)
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
+            context["show_archive_button"] = False
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -534,6 +537,7 @@ class FormView(View):
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
+            "show_archive_button": request.user.can_archive if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
         }

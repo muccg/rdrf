@@ -177,6 +177,12 @@
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
+
+		{% if show_archive_button %}
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Delete" %}
+		</a>
+		{% endif %}
 	</div>
 {% endblock %}	
 

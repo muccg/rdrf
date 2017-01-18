@@ -82,6 +82,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return any([registry.shows(datum) for registry in self.registry.all()])
 
     @property
+    def can_archive(self):
+        value = False
+        if self.is_superuser:
+            value =  True
+        
+        for group in self.groups:
+            if group.has_perm("rdrf.registry.patients.can_archive"):
+                value = True
+                break
+
+        logger.info("can_archive = %s" % value)
+        return value
+
+    @property
     def notices(self):
         from rdrf.models import Notification
         return Notification.objects.filter(
