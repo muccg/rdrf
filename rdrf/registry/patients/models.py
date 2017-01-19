@@ -97,6 +97,22 @@ class PatientManager(models.Manager):
             rdrf_registry__isnull=False)
 
 
+    # what's returned when an ordinary query like Patient.objects.all() is used
+    def get_queryset(self):
+        # do NOT include inactive ( soft-deleted/archived) patients
+        return super(PatientManager, self).get_queryset().filter(active=True)
+
+
+    def really_all(self):
+        # shows archived ( soft-deleted/archived ) patients also
+        return super(PatientManager, self).get_queryset().all()
+
+    def inactive(self):
+        return self.really_all().filter(active=False)
+        
+    
+
+
 class Patient(models.Model):
 
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
