@@ -83,15 +83,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def can_archive(self):
+        """
+        can user soft delete patients
+        """
         value = False
-        if self.is_superuser:
-            value =  True
-        
-        for group in self.groups:
-            if group.has_perm("rdrf.registry.patients.can_archive"):
-                value = True
-                break
 
+        if not self.is_active:
+            value = False
+        elif self.is_superuser:
+            value =  True
+        else:
+            value = self.has_perm("patients.delete_patient")
+        
         logger.info("can_archive = %s" % value)
         return value
 

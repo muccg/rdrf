@@ -230,7 +230,6 @@ class Patient(models.Model):
             ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
             ("can_see_genetic_data_map", "Can see Genetic Module column"),
             ("can_see_data_modules", "Can see Data Modules column"),
-            ("can_archive", "Can archive (make inactive)"),
         )
 
     @property

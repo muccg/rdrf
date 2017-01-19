@@ -583,6 +583,7 @@ class PatientEditView(View):
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": [],
+            "show_archive_button": request.user.can_archive,
             "consent": consent_status_for_patient(registry_code, patient)
         }
         if request.GET.get('just_created', False):
@@ -752,6 +753,7 @@ class PatientEditView(View):
         context["patient_id"] = patient.id
         context["location"] = _("Demographics")
         context["form_links"] = []
+        context["show_archive_button"] = request.user.can_archive
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
         if request.user.is_parent:
