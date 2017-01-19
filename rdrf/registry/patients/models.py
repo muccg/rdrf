@@ -681,15 +681,16 @@ class Patient(models.Model):
     def delete(self, *args, **kwargs):
         """
         If a user deletes a patient it's active flag will be true, so we should set it to false.
-        If a superuser deletes a patient it's active flag is false, so we should delete the object.
+        If a superuser deletes a patent it's active flag is false, so we should delete the object.
         """
         if self.active:
             logger.debug("Archiving patient record.")
             self.active = False
             self.save()
-        else:
-            logger.debug("Deleting patient record.")
-            super(Patient, self).delete(*args, **kwargs)
+
+    def _hard_delete(self, *args, **kwargs):
+        # real delete!
+        super(Patient, self).delete(*args, **kwargs)
 
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
