@@ -516,13 +516,36 @@ class ClinicianOtherAdmin(admin.ModelAdmin):
     list_display = ('clinician_name', 'clinician_hospital', 'clinician_address')
 
 
+def unarchive_patient_action(modeladmin, request, archive_patients_selected):
+    for archived_patient in archive_patients_selected:
+        archived_patient.active = True
+        archived_patient.save()
+
+
+unarchive_patient_action.short_description = "Unarchive archived patient"
+
+class ArchivedPatientAdmin(admin.ModelAdmin):
+    list_display = ('id', 'display_name', 'date_of_birth')
+    actions = [unarchive_patient_action]
+    model = Patient
+
+    def get_queryset(self, request):
+        if not request.user.is_superuser:
+            return []
+
+        return Patient.objects.inactive()
+
+
+
 admin.site.register(Doctor, DoctorAdmin)
-admin.site.register(Patient, PatientAdmin)
+#admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
+admin.site.register(Patient, ArchivedPatientAdmin)
+
 
 admin.site.disable_action('delete_selected')
