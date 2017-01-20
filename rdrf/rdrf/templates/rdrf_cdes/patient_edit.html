@@ -213,15 +213,15 @@
 	</div>
 	<script>
 	  function deletePatient() {
-	  var url = "{{ archive_patient_url }}";
-	  if (url != "") {
+	      var url = "{{ archive_patient_url }}";
+	       if (url != "") {
 	      $.ajax({ 
                    type: "DELETE",
                    url: url,
                    success: function(data){        
 	             window.location.replace("/patientslisting");
                    }
-          });
+              });
 	  }
 	  }
 	</script>
