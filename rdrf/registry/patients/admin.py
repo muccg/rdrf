@@ -517,17 +517,23 @@ class ClinicianOtherAdmin(admin.ModelAdmin):
 
 
 def unarchive_patient_action(modeladmin, request, archive_patients_selected):
-    for archived_patient in archive_patients_selected:
-        archived_patient.active = True
-        archived_patient.save()
-
+    if request.user.is_superuser:
+        for archived_patient in archive_patients_selected:
+            archived_patient.active = True
+            archived_patient.save()
 
 unarchive_patient_action.short_description = "Unarchive archived patient"
 
+def hard_delete_patient_action(modeladmin, request, archive_patients_selected):
+    if request.user.is_superuser:
+        for archived_patient in archive_patients_selected:
+            archived_patient._hard_delete()
+        
+hard_delete_patient_action.short_description = "Hard delete archived patient"
+
 class ArchivedPatientAdmin(admin.ModelAdmin):
     list_display = ('id', 'display_name', 'date_of_birth')
-    actions = [unarchive_patient_action]
-    model = Patient
+    actions = [unarchive_patient_action, hard_delete_patient_action]
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -545,7 +551,7 @@ admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
-admin.site.register(Patient, ArchivedPatientAdmin)
 
+admin.site.register(Patient, ArchivedPatientAdmin)
 
 admin.site.disable_action('delete_selected')
