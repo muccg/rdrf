@@ -590,6 +590,7 @@ class PatientEditView(View):
         if request.GET.get('just_created', False):
             context["message"] = "Patient added successfully"
 
+        context["not_linked"] = not self._is_linked(registry_model, patient)
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient,
@@ -754,6 +755,7 @@ class PatientEditView(View):
         context["patient_id"] = patient.id
         context["location"] = _("Demographics")
         context["form_links"] = []
+        context["not_linked"] = not self._is_linked(registry_model, patient)
         context["show_archive_button"] = request.user.can_archive
         context["archive_patient_url"] =  self._get_archive_patient_url(registry_model, patient) if request.user.can_archive else "",
         context["consent"] = consent_status_for_patient(registry_code, patient)
@@ -762,6 +764,23 @@ class PatientEditView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
+
+
+    def _is_linked(self, registry_model, patient_model):
+        # used to alter the way delete 
+        # is this patient linked to others?  
+        if not registry_model.has_feature("family_linkage"):
+            return False
+
+        if not patient_model.is_index:
+            return False
+
+        for patient_relative in patient_model.relatives.all():
+            if patient_relative.relative_patient:
+                return True
+
+        return False
+
 
     # def _get_index_context(self, registry_model, patient_model):
     #    #todo this probabably doesn't apply anymore in fhcontexts branch
