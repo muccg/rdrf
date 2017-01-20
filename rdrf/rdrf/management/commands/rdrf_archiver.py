@@ -1,9 +1,11 @@
-from django.core.management.base import BaseCommand
+import sys
+from django.core.management.base import BaseCommand, CommandError
 from rdrf.models import Registry
 from registry.patients.models import Patient
 
 class Command(BaseCommand):
-    help = 'Operate with archived (soft-deleted) patients'
+    help = 'Operate with archived (soft-deleted) patients.'
+                    
 
     def add_arguments(self, parser):
         parser.add_argument('-r', action='store', dest='registry_code', help='registry code')
@@ -11,7 +13,7 @@ class Command(BaseCommand):
                             action='store',
                             choices=['list', 'delete', 'unarchive', 'archive'],
                             default="list",
-                            help='cmd')
+                            help='Specifiy an action to perform: list, delete , unarchive or archive')
         parser.add_argument("-id", "--patient-id", action="store", dest="patient_id", default=None, help="Patient ID")
         parser.add_argument("-f", "--force", action="store_true", dest="forced", default=False, help="Perform actions without confirmation")
         
@@ -30,7 +32,7 @@ class Command(BaseCommand):
                 try:
                     registry_model = Registry.objects.get(code=registry_code)
                 except Registry.DoesNotExist:
-                    raise
+                    raise CommandError("Registry with code %s does not exist" % registry_code)
                     
                 query = Patient.objects.inactive().filter(rdrf_registry__in=[registry_model])
             else:
@@ -41,13 +43,12 @@ class Command(BaseCommand):
 
         elif cmd in  ['delete', 'archive', 'unarchive']:
             if patient_id is None:
-                raise Exception("Must provide id of patient to %s" % cmd)
+                raise CommandError("Must provide id of patient to %s" % cmd)
             else:
                 try:
                     patient_model = Patient.objects.really_all().get(pk=patient_id)
                 except Patient.DoesNotExist:
-                    raise
-
+                    raise CommandError("Patient with id %s does not exist!" % patient_id)
                 
                 proceed = False
                 if not forced:
@@ -74,6 +75,10 @@ class Command(BaseCommand):
                         patient_model.active = True
                         patient_model.save()
                         print("%s UNARCHIVED" % name)
+
+        else:
+            raise CommandError("Unknown cmd %s" % cmd)
+                        
                     
                     
                         
