@@ -745,6 +745,17 @@ class CommonDataElement(models.Model):
         else:
             return None
 
+    def get_value(self, stored_value):
+        if stored_value == "NaN":
+            # the DataTable was not escaping this value and interpreting it as NaN
+            return None
+        elif self.datatype.lower() == "date":
+            try:
+                return parse_iso_date(stored_value)
+            except ValueError:
+                return None
+        return stored_value
+
     def get_display_value(self, stored_value):
         if stored_value is None:
             return ""
@@ -1949,6 +1960,8 @@ class ContextFormGroup(models.Model):
                       ("N", "Automatic - Number"),
                       ("M", "Manual - Free Text"),
                       ("C", "CDE - Nominate CDE to use")]
+    ORDERING_TYPES = [("C", "Creation Time"),
+                      ("N", "Name")]
 
     registry = models.ForeignKey(Registry, related_name="context_form_groups")
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
@@ -1956,6 +1969,7 @@ class ContextFormGroup(models.Model):
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
     is_default = models.BooleanField(default=False)
     naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)
+    ordering = models.CharField(max_length=1, default="C", choices=ORDERING_TYPES)
 
     @property
     def forms(self):
@@ -1981,6 +1995,14 @@ class ContextFormGroup(models.Model):
     def supports_direct_linking(self):
         return len(self.form_models) == 1
 
+    @property
+    def is_ordered_by_name(self):
+        return self.ordering == "N"
+
+    @property
+    def is_ordered_by_creation(self):
+        return self.ordering == "C"
+
     def get_default_name(self, patient_model):
         if self.naming_scheme == "M":
             return "Modules"
@@ -2002,6 +2024,21 @@ class ContextFormGroup(models.Model):
         else:
             return "Modules"
 
+    def get_value_from_cde(self, patient_model, context_model):
+        form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
+        try:
+            cde_value = patient_model.get_form_value(self.registry.code,
+                                                     form_name,
+                                                     section_code,
+                                                     cde_code,
+                                                     context_id=context_model.pk)
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            return cde_model.get_value(cde_value)
+        except KeyError:
+            # value not filled out yet
+            return None
+
     def get_name_from_cde(self, patient_model, context_model):
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
@@ -2021,6 +2058,15 @@ class ContextFormGroup(models.Model):
         except KeyError:
             # value not filled out yet
             return "NOT SET"
+
+    def get_ordering_value(self, patient_model, context_model):
+        if self.is_ordered_by_name:
+            if self.naming_scheme == "C":
+                return self.get_value_from_cde(patient_model, context_model)
+            return context_model.display_name
+
+        if self.is_ordered_by_creation:
+            return context_model.created_at
 
     @property
     def naming_info(self):
