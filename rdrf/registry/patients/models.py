@@ -571,12 +571,23 @@ class Patient(models.Model):
             logger.debug("no PatientRelative to sync")
             return
         logger.debug("Patient %s updating PatientRelative %s" % (self, pr))
+        
         pr.given_names = self.given_names
         pr.family_name = self.family_name
         pr.date_of_birth = self.date_of_birth
         pr.sex = self.sex
         pr.living_status = self.living_status
+
+        # sever the link if we've deactivated
+        if not self.active:
+            logger.debug("%s is inactive so unlinking PR %s from me" % (self,
+                                                                        pr))
+            
+            pr.relative_patient = None
+            
         pr.save()
+        logger.debug("PR rp = %s" % pr.relative_patient)
+        
         logger.debug("synced PatientRelative OK")
 
     def set_consent(self, consent_model, answer=True, commit=True):
@@ -687,6 +698,8 @@ class Patient(models.Model):
             logger.debug("Archiving patient record.")
             self.active = False
             self.save()
+            self.sync_patient_relative()
+
 
     def _hard_delete(self, *args, **kwargs):
         # real delete!
