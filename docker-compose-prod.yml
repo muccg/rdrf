@@ -32,7 +32,7 @@ nginxprod:
     - uwsgiprod:uwsgi
 
 uwsgiprod:
-  image: muccg/rdrf:${GIT_TAG}
+  image: muccg/rdrf:${BUILD_VERSION}
   command: uwsgi_local
   environment:
     - DBUSER=rdrfapp
