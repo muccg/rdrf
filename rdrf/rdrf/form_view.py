@@ -294,7 +294,9 @@ class FormView(View):
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
             context["show_archive_button"] = request.user.can_archive
-            logger.debug("User can archive = %s" % request.user.can_archive)
+            context["not_linked"] = not patient_model.is_linked
+            context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
+
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
@@ -534,9 +536,11 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
+            "not_linked": patient.is_linked,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
+            "archive_patient_url": patient.get_archive_url(registry) if request.user.can_archive else "",
             "show_archive_button": request.user.can_archive if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
@@ -698,6 +702,7 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_ids': ids,
+            "not_linked": patient_model.is_linked,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,

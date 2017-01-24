@@ -584,13 +584,14 @@ class PatientEditView(View):
             "registry_code": registry_code,
             "form_links": [],
             "show_archive_button": request.user.can_archive,
-            "archive_patient_url": self._get_archive_patient_url(registry_model, patient) if request.user.can_archive else "",
+            "archive_patient_url": patient.get_archive_url(registry_model) if request.user.can_archive else "",
             "consent": consent_status_for_patient(registry_code, patient)
         }
         if request.GET.get('just_created', False):
             context["message"] = "Patient added successfully"
 
-        context["not_linked"] = not self._is_linked(registry_model, patient)
+        context["not_linked"] = not patient.is_linked
+        
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient,
@@ -755,9 +756,9 @@ class PatientEditView(View):
         context["patient_id"] = patient.id
         context["location"] = _("Demographics")
         context["form_links"] = []
-        context["not_linked"] = not self._is_linked(registry_model, patient)
+        context["not_linked"] = not patient.is_linked
         context["show_archive_button"] = request.user.can_archive
-        context["archive_patient_url"] =  self._get_archive_patient_url(registry_model, patient) if request.user.can_archive else "",
+        context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else "",
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
         if request.user.is_parent:
@@ -811,12 +812,6 @@ class PatientEditView(View):
                             patient_relative_model.create_patient_from_myself(
                                 registry_model,
                                 patient_model.working_groups.all())
-
-    def _get_archive_patient_url(self, registry_model, patient_model):
-        patient_detail_link = reverse('v1:patient-detail', args=(registry_model.code,patient_model.pk))
-        logger.debug("archive link = %s" % patient_detail_link)
-        return patient_detail_link
-    
 
     def _get_patient_and_forms_sections(self,
                                         patient_id,
