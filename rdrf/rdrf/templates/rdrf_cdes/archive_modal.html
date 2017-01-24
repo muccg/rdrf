@@ -1,0 +1,52 @@
+{% load i18n %}
+{% csrf_token %}
+{% if show_archive_button %}
+	<!-- Modal for deleting patient -->
+	<div class="modal fade" id="archive_modal" tabindex="-1" role="dialog" aria-labelledby="archive_button_modal_label">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="archive_button_modal_label">{% trans "Delete Patient" %}</h4>
+	      </div>
+	      <div class="modal-body">
+		{% if not_linked %}
+		  {% trans 'Are you sure you want to delete this patient?' %}
+		{% else %}
+		  {% trans 'This patient is linked to patient relatives and cannot be deleted - first make a relative of this patient the index of the family and try again.' %}
+		{% endif %}
+	      </div>
+	      <div class="modal-footer">
+		{% if not_linked %}
+		<button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'No' %}</button>
+		<button type="button" data-dismiss="modal" onclick="deletePatient();" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
+		{% else %}
+		<button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+		{% endif %}
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	{% if not_linked %}
+	<script>
+	  function deletePatient() {
+	      var url = "{{ archive_patient_url }}";
+	      if (url != "") {
+
+	          $.ajaxSetup({beforeSend: function (xhr) {
+                    var csrfToken = '{{ csrf_token }}';
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+              }});
+
+	      $.ajax({ 
+                   type: "DELETE",
+                   url: url,
+                   success: function(data){        
+	             window.location.replace("/patientslisting");
+          },
+	  error: function() {
+            alert("An error occurred deleting patient");
+          }});}}
+	</script>
+	{% endif %}
+	{% endif %}
