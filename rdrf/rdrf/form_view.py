@@ -536,7 +536,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
-            "not_linked": patient.is_linked,
+            "not_linked": not patient.is_linked,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
