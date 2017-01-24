@@ -134,24 +134,51 @@
 
     {% if location %}
       <div class="banner">
+	<!-- base 2 cols banner -->
         <div class="container">
-          <div class="col-md-8 col-sm-8 col-xs-8">
-              <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe }}{% endblock %}</h3></p>
-              {% if patient_link %}
+	  <div class="row">
+	   <!-- name row -->
+	    <div class="col-md-6 col-sm-6 col-xs-6">
+              <h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe }}{% endblock %}</h3>
+             		
+	    </div>
+
+	    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+	      <h3>
+		
+	       {% if patient_link %}
                 {{ patient_link | safe}}
               {% elif patient %}
                 <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
               {% endif %}
-		{% if show_archive_button %}
-		   <a class="btn btn-danger btn-xs "data-toggle="modal" data-target="#archive_modal">
-                     <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove </a>
-		{% endif %}
-          </div>
-          <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
+		</h3>
+	      
+	    </div>
+ 
+	  </div>
+
+	  <div class="row">
+	    <!-- command button row -->
+           <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+	       {% if show_archive_button %}
+	        <div class="btn-group" role="group" aria-label="...">
+	                <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
+				<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Delete " %}
+			</a>
+	       </div>       
+	       {% endif %}
+
+           </div>
+
+	   <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
             {% block formbtns %}
             {% endblock %}
           </div>
-        </div>
+
+
+	  </div>
+	  
+         </div>
       </div>
     {% endif %}
 
