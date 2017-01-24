@@ -32,6 +32,7 @@ class Links:
     QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                        "Questionnaire Responses")
     Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), "Doctors")
+    ArchivedPatients = QuickLink(reverse("admin:patients_archivedpatient_changelist"), "Archived Patients")
     Genes = QuickLink(reverse("admin:genetic_gene_changelist"), "Genes")
     Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), "Laboratories")
     Explorer = QuickLink(reverse("explorer_main"), "Explorer")
@@ -100,6 +101,7 @@ class Links:
             Importer.text: Importer,
             DemographicsFields.text: DemographicsFields,
             NextOfKinRelationship.text: NextOfKinRelationship,
+            ArchivedPatients.text: ArchivedPatients,
             }
     EXPLORER = {
             Explorer.text: Explorer,

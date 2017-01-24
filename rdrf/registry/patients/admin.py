@@ -532,8 +532,9 @@ def hard_delete_patient_action(modeladmin, request, archive_patients_selected):
 hard_delete_patient_action.short_description = "Hard delete archived patient"
 
 class ArchivedPatientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'display_name', 'date_of_birth')
+    list_display = ('id', 'display_name', 'date_of_birth', 'membership')
     actions = [unarchive_patient_action, hard_delete_patient_action]
+    list_display_links = None
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -541,17 +542,41 @@ class ArchivedPatientAdmin(admin.ModelAdmin):
 
         return Patient.objects.inactive()
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def __init__(self, *args, **kwargs):
+        super(ArchivedPatientAdmin, self).__init__(*args, **kwargs)
+
+    def membership(self, patient_model):
+        s = ""
+        for r in patient_model.rdrf_registry.all().order_by('name'):
+            s = s + r.name + "("
+            for wg in patient_model.working_groups.filter(registry=r).order_by('name'):
+                s = s + wg.name + " "
+            s = s + ") "
+        return s
+
+# Use Proxy Model for Archived Patient as we can only register one model class once and the name
+# comes from the model
+
+def create_proxy_class(base_model, new_name):
+    # Adapted from http://stackoverflow.com/questions/2223375/multiple-modeladmins-views-for-same-model-in-django-admin 
+    class  Meta:
+        proxy = True
+        app_label = base_model._meta.app_label
+    attrs = {'__module__': '', 'Meta': Meta}
+    proxy_class = type(new_name, (base_model,), attrs)
+    return proxy_class
 
 
 admin.site.register(Doctor, DoctorAdmin)
-#admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
-
-admin.site.register(Patient, ArchivedPatientAdmin)
+admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
 
 admin.site.disable_action('delete_selected')
