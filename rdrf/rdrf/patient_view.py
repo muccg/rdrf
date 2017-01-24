@@ -758,7 +758,7 @@ class PatientEditView(View):
         context["form_links"] = []
         context["not_linked"] = not patient.is_linked
         context["show_archive_button"] = request.user.can_archive
-        context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else "",
+        context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
         if request.user.is_parent:
