@@ -282,6 +282,25 @@ class Patient(models.Model):
         return any([r.has_feature(feature) for r in self.rdrf_registry.all()])
 
     @property
+    def is_linked(self):
+        """
+        Am I linked to other relative patients ( only applicable to patients in
+        registries that allow creation of patient relatives
+        """
+        if not self.is_index:
+            return False
+
+        for patient_relative in self.relatives.all():
+            if patient_relative.relative_patient:
+                return True
+
+        return False
+
+    def get_archive_url(self, registry_model):
+        patient_detail_link = reverse('v1:patient-detail', args=(registry_model.code, self.pk))
+        return patient_detail_link
+
+    @property
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
