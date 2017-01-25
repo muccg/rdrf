@@ -1,34 +1,37 @@
-seleniumhub:
-  image: selenium/hub
-  environment:
-    - GRID_TIMEOUT=120000
-  log_driver: json-file
-  log_opt:
-    max-size: "10m"
-    max-file: "5"
-  ports:
-    - "4444"
+version: '2'
+services:
 
-chrome:
-  image: selenium/node-chrome-debug
-  shm_size: 256M
-  environment:
-    - SCREEN_WIDTH=1366
-    - SCREEN_HEIGHT=768
-    - SCREEN_DEPTH=16
-  ports:
-    - 5901:5900
-  links:
-  - seleniumhub:hub
+  seleniumhub:
+    image: selenium/hub
+    environment:
+      - GRID_TIMEOUT=120000
+    log_driver: json-file
+    log_opt:
+      max-size: "10m"
+      max-file: "5"
+    ports:
+      - "4444"
 
-firefox:
-  image: selenium/node-firefox-debug
-  shm_size: 256M
-  environment:
-    - SCREEN_WIDTH=1366
-    - SCREEN_HEIGHT=768
-    - SCREEN_DEPTH=16
-  ports:
-    - 5900:5900
-  links:
-  - seleniumhub:hub
+  chrome:
+    image: selenium/node-chrome-debug
+    shm_size: 256M
+    environment:
+      - SCREEN_WIDTH=1366
+      - SCREEN_HEIGHT=768
+      - SCREEN_DEPTH=16
+    ports:
+      - 5901:5900
+    links:
+    - seleniumhub:hub
+
+  firefox:
+    image: selenium/node-firefox-debug
+    shm_size: 256M
+    environment:
+      - SCREEN_WIDTH=1366
+      - SCREEN_HEIGHT=768
+      - SCREEN_DEPTH=16
+    ports:
+      - 5900:5900
+    links:
+    - seleniumhub:hub
