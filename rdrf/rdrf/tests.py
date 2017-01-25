@@ -337,6 +337,22 @@ class FormTestCase(RDRFTestCase):
 
         with self.assertRaises(Patient.DoesNotExist):
             dummy = Patient.objects.really_all().get(id=my_id)
+
+
+        # test can archive prop on CustomUser
+        # by default genetic user can't delete as they don't have patient delete permission
+
+        genetic_user = CustomUser.objects.get(username='genetic')
+        self.assertFalse(genetic_user.can_archive)
+
+        # admin can by default
+        admin_user = CustomUser.objects.get(username='admin')
+        self.assertTrue(admin_user.can_archive)
+
+        # clinical can't either
+        clinical_user = CustomUser.objects.get(username='clinical')
+        self.assertFalse(clinical_user.can_archive)
+
         
         
         
