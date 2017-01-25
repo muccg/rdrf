@@ -8,6 +8,9 @@ ENV BUILD_VERSION $ARG_BUILD_VERSION
 
 RUN env | sort
 
+RUN mkdir -p /data \
+    && /bin/chown ccg-user:ccg-user /data
+
 ADD build/${PROJECT_NAME}-${BUILD_VERSION}.tar.gz /
 
 EXPOSE 9100 9101
