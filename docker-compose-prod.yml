@@ -40,8 +40,8 @@ services:
       - WAIT_FOR_MONGO=1
       - DEPLOYMENT=test
       - ALLOWED_HOSTS=*
-    volumes_from:
-      - dataprod
+    volumes:
+        - uwsgi-prod-data:/data
     links:
       - dbprod:db
       - dbclinicalprod:clinicaldb
@@ -49,3 +49,6 @@ services:
       - mongoprod:mongo
     ports:
       - "9000:9000"
+
+volumes:
+  uwsgi-prod-data:
