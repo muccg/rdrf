@@ -18,8 +18,13 @@ services:
       - SCREEN_HEIGHT=768
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    depends_on:
+      - hub
     ports:
       - 5901:5900
+    links:
+      - hub
 
   firefox:
     image: selenium/node-firefox-debug
@@ -29,5 +34,10 @@ services:
       - SCREEN_HEIGHT=768
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    depends_on:
+      - hub
     ports:
       - 5900:5900
+    links:
+      - hub
