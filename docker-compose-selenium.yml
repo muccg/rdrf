@@ -5,10 +5,6 @@ services:
     image: selenium/hub
     environment:
       - GRID_TIMEOUT=120000
-    log_driver: json-file
-    log_opt:
-      max-size: "10m"
-      max-file: "5"
     ports:
       - "4444"
 
