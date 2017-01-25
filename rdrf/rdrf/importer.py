@@ -617,6 +617,8 @@ class Importer(object):
             cfg.is_default = cfg_dict["is_default"]
             if "naming_cde_to_use" in cfg_dict:
                 cfg.naming_cde_to_use = cfg_dict["naming_cde_to_use"]
+            if "ordering" in cfg_dict:
+                cfg.ordering = cfg_dict["ordering"]
 
             cfg.save()
 
