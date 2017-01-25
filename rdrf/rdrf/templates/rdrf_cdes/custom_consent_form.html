@@ -111,6 +111,7 @@
 {% endblock %}	
 
 {% block content %}
+        {% include 'rdrf_cdes/archive_modal.html' %}
 
 	{% if patient|has_feature:"consent_lock" %}
 		{% if consent %}
