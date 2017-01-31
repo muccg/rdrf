@@ -850,21 +850,17 @@ class Patient(models.Model):
 
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
-
         form_model = context_form_group.form_models[0]
 
-        links = []
+        matches_context_form_group = lambda cm: cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
 
-        for context_model in sorted(self.context_models, key=lambda c: c.created_at, reverse=True):
-            if context_model.context_form_group and context_model.context_form_group.pk == context_form_group.pk:
-                link_text = context_model.context_form_group.get_name_from_cde(self, context_model)
-                link_url = reverse('registry_form', args=(context_model.registry.code,
-                                                          form_model.id,
-                                                          self.pk,
-                                                          context_model.id))
-                links.append((link_url, link_text))
+        context_models = sorted([cm for cm in self.context_models if matches_context_form_group(cm)],
+                                key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
 
-        return links
+        link_text = lambda cm: cm.context_form_group.get_name_from_cde(self, cm)
+        link_url = lambda cm: reverse('registry_form', args=(cm.registry.code, form_model.id, self.pk, cm.id))
+
+        return [(link_url(cm), link_text(cm)) for cm in context_models]
 
     def default_context(self, registry_model):
         # return None if doesn't make sense

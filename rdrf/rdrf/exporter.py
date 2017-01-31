@@ -496,6 +496,7 @@ class Exporter(object):
             cfg_dict["forms"] = []
             for form in cfg.forms:
                 cfg_dict["forms"].append(form.name)
+            cfg_dict["ordering"] = cfg.ordering
             data.append(cfg_dict)
         return data
 
