@@ -412,3 +412,32 @@ def wrap_uploaded_files(registry_code, post_files_data):
             return value
 
     return { key: wrap(key, value) for key, value in list(post_files_data.items()) }
+
+
+class Message():
+    def __init__(self, text, tags=None):
+        self.text = text
+        self.tags = tags
+
+    @staticmethod
+    def success(text):
+        return Message(text, tags='success')
+
+    @staticmethod
+    def info(text):
+        return Message(text, tags='info')
+
+    @staticmethod
+    def warning(text):
+        return Message(text, tags='warning')
+
+    @staticmethod
+    def danger(text):
+        return Message(text, tags='danger')
+
+    @staticmethod
+    def error(text):
+        return Message(text, tags='danger')
+
+    def __repr__(self):
+        return self.text
