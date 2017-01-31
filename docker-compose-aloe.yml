@@ -1,59 +1,61 @@
-#
-datadevselenium:
-  extends:
-    file: docker-compose-common.yml
-    service: datadevselenium
+version: '2'
+services:
 
-dataprodselenium:
-  extends:
-    file: docker-compose-common.yml
-    service: dataprodselenium
+  datadevselenium:
+    extends:
+      file: docker-compose-common.yml
+      service: datadevselenium
 
-# runs the aloe tests against docker-compose-teststack.yml
-teststack:
-  image: muccg/rdrf-dev
-  command: aloe
-  environment:
-    - DBUSER=rdrfapp
-    - CLINICAL_DBUSER=rdrfapp
-    - WAIT_FOR_RUNSERVER=1
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CLINICAL_DB=1
-    - WAIT_FOR_MONGO=1
-    - TEST_WAIT=10
-    - TEST_BROWSER=chrome
-    - DEBUG=0
-  volumes_from:
-    - datadevselenium
-  external_links:
-    - rdrf_runservertest_1:web
-    - rdrf_seleniumhub_1:hub
-    - rdrf_dbtest_1:db
-    - rdrf_dbclinicaltest_1:clinicaldb
-    - rdrf_mongotest_1:mongo
+  dataprodselenium:
+    extends:
+      file: docker-compose-common.yml
+      service: dataprodselenium
 
-# runs the aloe tests against docker-compose-prod.yml
-prod:
-  image: muccg/rdrf-dev
-  command: aloe
-  environment:
-    - DBUSER=rdrfapp
-    - CLINICAL_DBUSER=rdrfapp
-    - WAIT_FOR_UWSGI=1
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CLINICAL_DB=1
-    - WAIT_FOR_MONGO=1
-    - TEST_APP_PORT=8443
-    - TEST_APP_SCHEME=https
-    - TEST_APP_PATH=/app/
-    - TEST_WAIT=10
-    - TEST_BROWSER=chrome
-    - DEBUG=0
-  volumes_from:
-    - dataprodselenium
-  external_links:
-    - rdrf_uwsgiprod_1:uwsgi
-    - rdrf_seleniumhub_1:hub
-    - rdrf_dbprod_1:db
-    - rdrf_dbclinicalprod_1:clinicaldb
-    - rdrf_mongoprod_1:mongo
+  # runs the aloe tests against docker-compose-teststack.yml
+  teststack:
+    image: muccg/rdrf-dev
+    command: aloe
+    environment:
+      - DBUSER=rdrfapp
+      - CLINICAL_DBUSER=rdrfapp
+      - WAIT_FOR_RUNSERVER=1
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_MONGO=1
+      - TEST_WAIT=10
+      - TEST_BROWSER=chrome
+      - DEBUG=0
+    volumes_from:
+      - datadevselenium
+    external_links:
+      - rdrf_runservertest_1:web
+      - rdrf_hub_1:hub
+      - rdrf_dbtest_1:db
+      - rdrf_dbclinicaltest_1:clinicaldb
+      - rdrf_mongotest_1:mongo
+
+  # runs the aloe tests against docker-compose-prod.yml
+  prod:
+    image: muccg/rdrf-dev
+    command: aloe
+    environment:
+      - DBUSER=rdrfapp
+      - CLINICAL_DBUSER=rdrfapp
+      - WAIT_FOR_UWSGI=1
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_MONGO=1
+      - TEST_APP_PORT=8443
+      - TEST_APP_SCHEME=https
+      - TEST_APP_PATH=/app/
+      - TEST_WAIT=10
+      - TEST_BROWSER=chrome
+      - DEBUG=0
+    volumes_from:
+      - dataprodselenium
+    external_links:
+      - rdrf_uwsgiprod_1:uwsgi
+      - rdrf_hub_1:hub
+      - rdrf_dbprod_1:db
+      - rdrf_dbclinicalprod_1:clinicaldb
+      - rdrf_mongoprod_1:mongo

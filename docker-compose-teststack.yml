@@ -1,42 +1,45 @@
-datatest:
-  extends:
-    file: docker-compose-common.yml
-    service: datatest
+version: '2'
+services:
 
-dbtest:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  datatest:
+    extends:
+      file: docker-compose-common.yml
+      service: datatest
 
-dbclinicaltest:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  dbtest:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-cachetest:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  dbclinicaltest:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-mongotest:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  cachetest:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
 
-runservertest:
-  extends:
-    file: docker-compose-common.yml
-    service: runserver
-  volumes_from:
-    - datatest
-  command: runserver
-  environment:
-    - DEPLOYMENT=test
-    - ALLOWED_HOSTS=*
-  links:
-    - dbtest:db
-    - dbclinicaltest:clinicaldb
-    - cachetest:cache
-    - mongotest:mongo
-  ports:
-    - "18000:8000"
+  mongotest:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
+
+  runservertest:
+    extends:
+      file: docker-compose-common.yml
+      service: runserver
+    volumes_from:
+      - datatest
+    command: runserver
+    environment:
+      - DEPLOYMENT=test
+      - ALLOWED_HOSTS=*
+    links:
+      - dbtest:db
+      - dbclinicaltest:clinicaldb
+      - cachetest:cache
+      - mongotest:mongo
+    ports:
+      - "18000:8000"

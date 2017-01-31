@@ -24,6 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY docker-entrypoint-build.sh /app/docker-entrypoint-build.sh
 
+RUN mkdir -p /data \
+    && /bin/chown ccg-user:ccg-user /data
+
 VOLUME ["/data"]
 
 ENV HOME /data
