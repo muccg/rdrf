@@ -357,7 +357,7 @@ class Importer(object):
 
             # Assign value group - pv_group will be empty string is not a range
 
-            if cde_map["pv_group"]:
+            if cde_map.get("pv_group"):
                 try:
                     pvg = CDEPermittedValueGroup.objects.get(code=cde_map["pv_group"])
                     if not created:
@@ -380,12 +380,11 @@ class Importer(object):
             logger.info("importing generic section map %s" % section_map)
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
-            s.display_name = section_map["display_name"]
-            s.elements = ",".join(section_map["elements"])
-            s.allow_multiple = section_map["allow_multiple"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
-            s.extra = section_map["extra"]
+            s.display_name = section_map.get("display_name", s.display_name)
+            s.elements = ",".join(section_map.get("elements") or [])
+            s.allow_multiple = section_map.get("allow_multiple", s.allow_multiple)
+            s.questionnaire_help = section_map.get("questionnaire_help", s.questionnaire_help)
+            s.extra = section_map.get("extra", s.extra)
             s.save()
             logger.info("saved generic section %s" % s.code)
 
@@ -393,12 +392,11 @@ class Importer(object):
         if section_map:
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
-            s.display_name = section_map["display_name"]
-            s.elements = ",".join(section_map["elements"])
-            s.allow_multiple = section_map["allow_multiple"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
-            s.extra = section_map["extra"]
+            s.display_name = section_map.get("display_name", s.display_name)
+            s.elements = ",".join(section_map.get("elements") or [])
+            s.allow_multiple = section_map.get("allow_multiple", s.allow_multiple)
+            s.questionnaire_help = section_map.get("questionnaire_help", s.questionnaire_help)
+            s.extra = section_map.get("extra", s.extra)
             s.save()
             logger.info("saved patient data section  %s" % s.code)
             return s
@@ -408,12 +406,11 @@ class Importer(object):
     def _create_section_model(self, section_map):
         s, created = Section.objects.get_or_create(code=section_map["code"])
         s.code = section_map["code"]
-        s.display_name = section_map["display_name"]
-        s.elements = ",".join(section_map["elements"])
-        s.allow_multiple = section_map["allow_multiple"]
-        s.extra = section_map["extra"]
-        if "questionnaire_help" in section_map:
-            s.questionnaire_help = section_map["questionnaire_help"]
+        s.display_name = section_map.get("display_name", s.display_name)
+        s.elements = ",".join(section_map.get("elements") or [])
+        s.allow_multiple = section_map.get("allow_multiple", s.allow_multiple)
+        s.extra = section_map.get("extra", s.extra)
+        s.questionnaire_help = section_map.get("questionnaire_help", s.questionnaire_help)
         s.save()
         logger.info("imported section %s OK" % s.code)
 
@@ -499,7 +496,7 @@ class Importer(object):
                 f.header = ""
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
-            f.is_questionnaire = frm_map["is_questionnaire"]
+            f.is_questionnaire = frm_map.get("is_questionnaire", f.is_questionnaire)
             if "questionnaire_questions" in frm_map:
                 f.questionnaire_questions = frm_map["questionnaire_questions"]
 
@@ -513,14 +510,12 @@ class Importer(object):
             for section_map in frm_map["sections"]:
                 s, created = Section.objects.get_or_create(code=section_map["code"])
                 s.code = section_map["code"]
-                s.display_name = section_map["display_name"]
-                if "questionnaire_display_name" in section_map:
-                    s.questionnaire_display_name = section_map["questionnaire_display_name"]
-                s.elements = ",".join(section_map["elements"])
-                s.allow_multiple = section_map["allow_multiple"]
-                s.extra = section_map["extra"]
-                if "questionnaire_help" in section_map:
-                    s.questionnaire_help = section_map["questionnaire_help"]
+                s.display_name = section_map.get("display_name", s.display_name)
+                s.questionnaire_display_name = section_map.get("questionnaire_display_name", s.questionnaire_display_name)
+                s.elements = ",".join(section_map.get("elements") or [])
+                s.allow_multiple = section_map.get("allow_multiple", s.allow_multiple)
+                s.extra = section_map.get("extra", s.extra)
+                s.questionnaire_help = section_map.get("questionnaire_help", s.questionnaire_help)
                 s.save()
                 logger.info("imported section %s OK" % s.code)
 
@@ -593,7 +588,7 @@ class Importer(object):
             default = None
             l = []
             for d in data["context_form_groups"]:
-                if d["is_default"]:
+                if d.get("is_default"):
                     default = d
                 else:
                     l.append(d)
@@ -746,8 +741,8 @@ class Importer(object):
 
             demo_field, created = DemographicFields.objects.get_or_create(
                 registry=registry_obj, group=group_obj, field=d["field"])
-            demo_field.hidden = d["hidden"]
-            demo_field.readonly = d["readonly"]
+            demo_field.hidden = d.get("hidden", demo_field.hidden)
+            demo_field.readonly = d.get("readonly", demo_field.readonly)
             demo_field.save()
 
     def _create_complete_form_fields(self, registry_model, data):
@@ -764,15 +759,15 @@ class Importer(object):
                 registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
                 query.access_group.add(Group.objects.get(id=ag))
-            query.description = d["description"]
-            query.mongo_search_type = d["mongo_search_type"]
-            query.sql_query = d["sql_query"]
-            query.collection = d["collection"]
-            query.criteria = d["criteria"]
-            query.projection = d["projection"]
-            query.aggregation = d["aggregation"]
-            query.created_by = d["created_by"]
-            query.created_at = d["created_at"]
+            query.description = d.get("description", query.description)
+            query.mongo_search_type = d.get("mongo_search_type", query.mongo_search_type)
+            query.sql_query = d.get("sql_query", query.sql_query)
+            query.collection = d.get("collection", query.collection)
+            query.criteria = d.get("criteria", query.criteria)
+            query.projection = d.get("projection", query.projection)
+            query.aggregation = d.get("aggregation", query.aggregation)
+            query.created_by = d.get("created_by", query.created_by)
+            query.created_at = d.get("created_at", query.created_at)
             query.save()
 
     def _create_cde_policies(self, registry_model):
