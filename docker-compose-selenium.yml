@@ -23,7 +23,7 @@ services:
       - hub
     ports:
       - 5901:5900
-    links:
+    depends_on:
       - hub
 
   firefox:
@@ -39,5 +39,5 @@ services:
       - hub
     ports:
       - 5900:5900
-    links:
+    depends_on:
       - hub

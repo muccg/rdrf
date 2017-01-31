@@ -36,7 +36,7 @@ services:
     environment:
       - DEPLOYMENT=test
       - ALLOWED_HOSTS=*
-    links:
+    depends_on:
       - dbtest:db
       - dbclinicaltest:clinicaldb
       - cachetest:cache

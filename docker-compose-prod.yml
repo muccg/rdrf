@@ -25,7 +25,7 @@ services:
     extends:
       file: docker-compose-common.yml
       service: nginx
-    links:
+    depends_on:
       - uwsgiprod:uwsgi
 
   uwsgiprod:
@@ -42,7 +42,7 @@ services:
       - ALLOWED_HOSTS=*
     volumes:
         - uwsgi-prod-data:/data
-    links:
+    depends_on:
       - dbprod:db
       - dbclinicalprod:clinicaldb
       - cacheprod:cache
