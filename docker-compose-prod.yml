@@ -1,54 +1,54 @@
-# data only container pattern
-dataprod:
-  image: debian:jessie
-  volumes:
-    - ./data/prod:/data
+version: '2'
+services:
 
-dbprod:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  dbprod:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-dbclinicalprod:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  dbclinicalprod:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-cacheprod:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  cacheprod:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
 
-mongoprod:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  mongoprod:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
 
-nginxprod:
-  extends:
-    file: docker-compose-common.yml
-    service: nginx
-  links:
-    - uwsgiprod:uwsgi
+  nginxprod:
+    extends:
+      file: docker-compose-common.yml
+      service: nginx
+    links:
+      - uwsgiprod:uwsgi
 
-uwsgiprod:
-  image: muccg/rdrf:${GIT_TAG}
-  command: uwsgi_local
-  environment:
-    - DBUSER=rdrfapp
-    - CLINICAL_DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CLINICAL_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - DEPLOYMENT=test
-    - ALLOWED_HOSTS=*
-  volumes_from:
-    - dataprod
-  links:
-    - dbprod:db
-    - dbclinicalprod:clinicaldb
-    - cacheprod:cache
-    - mongoprod:mongo
-  ports:
-    - "9000:9000"
+  uwsgiprod:
+    image: muccg/rdrf:${BUILD_VERSION}
+    command: uwsgi_local
+    environment:
+      - DBUSER=rdrfapp
+      - CLINICAL_DBUSER=rdrfapp
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_CACHE=1
+      - WAIT_FOR_MONGO=1
+      - DEPLOYMENT=test
+      - ALLOWED_HOSTS=*
+    volumes:
+        - uwsgi-prod-data:/data
+    links:
+      - dbprod:db
+      - dbclinicalprod:clinicaldb
+      - cacheprod:cache
+      - mongoprod:mongo
+    ports:
+      - "9000:9000"
+
+volumes:
+  uwsgi-prod-data:

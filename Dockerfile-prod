@@ -2,13 +2,16 @@
 FROM muccg/rdrf-base
 MAINTAINER https://github.com/muccg/rdrf/
 
-ARG ARG_GIT_TAG
+ARG ARG_BUILD_VERSION
 
-ENV GIT_TAG $ARG_GIT_TAG
+ENV BUILD_VERSION $ARG_BUILD_VERSION
 
 RUN env | sort
 
-ADD build/${PROJECT_NAME}-${GIT_TAG}.tar.gz /
+RUN mkdir -p /data \
+    && /bin/chown ccg-user:ccg-user /data
+
+ADD build/${PROJECT_NAME}-${BUILD_VERSION}.tar.gz /
 
 EXPOSE 9100 9101
 VOLUME ["/data"]

@@ -14,13 +14,13 @@ services:
       context: ./
       dockerfile: Dockerfile-builder
       args:
-        ARG_GIT_TAG: ${GIT_TAG}
         http_proxy:
     image: muccg/rdrf-builder
     command: releasetarball
     network_mode: host
     environment:
-        GIT_TAG:
+        BUILD_VERSION:
+        GIT_BRANCH:
         PIP_INDEX_URL:
         PIP_TRUSTED_HOST:
         NO_PROXY:
@@ -44,8 +44,8 @@ services:
       context: ./
       dockerfile: Dockerfile-prod
       args:
-        ARG_GIT_TAG: ${GIT_TAG}
-    image: muccg/rdrf:${GIT_TAG}
+        ARG_BUILD_VERSION: ${BUILD_VERSION}
+    image: muccg/rdrf:${BUILD_VERSION}
 
   lint:
     image: muccg/linter

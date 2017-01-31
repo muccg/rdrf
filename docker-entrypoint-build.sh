@@ -10,7 +10,7 @@ env | grep -iv PASS | sort
 # prepare a tarball of build
 if [ "$1" = 'releasetarball' ]; then
     info "[Run] Preparing a release tarball"
-    info "GIT_TAG ${GIT_TAG}"
+    info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
 
     set -e
@@ -19,8 +19,8 @@ if [ "$1" = 'releasetarball' ]; then
     # clone and install the app
     set -x
     cd /app
-    git clone --depth=1 --branch="${GIT_TAG}" "${PROJECT_SOURCE}" .
-    git ls-remote "${PROJECT_SOURCE}" "${GIT_TAG}" > .version
+    git clone --depth=1 --branch="${GIT_BRANCH}" "${PROJECT_SOURCE}" .
+    git rev-parse HEAD > .version
     cat .version
     pip install -e "${PROJECT_NAME}"
     set +x
@@ -31,7 +31,7 @@ if [ "$1" = 'releasetarball' ]; then
                /app/uwsgi
                /app/scripts
                /app/${PROJECT_NAME}"
-    TARBALL="/data/${PROJECT_NAME}-${GIT_TAG}.tar"
+    TARBALL="/data/${PROJECT_NAME}-${BUILD_VERSION}.tar"
     # shellcheck disable=SC2037
     TAR_OPTS="--exclude-vcs
               --verify
