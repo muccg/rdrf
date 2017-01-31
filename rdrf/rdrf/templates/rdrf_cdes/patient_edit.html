@@ -162,7 +162,6 @@
 {% endblock %}
 
 {% block formbtns %}
-	<br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
 			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
@@ -177,10 +176,15 @@
 				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
-	</div>
+
+		</div>
 {% endblock %}	
 
 {% block content %}
+   
+                {% include 'rdrf_cdes/archive_modal.html' %}
+   	
+	
 	<a class="previous-form" href="{{ previous_form_link }}">
 		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 	</a>

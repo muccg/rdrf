@@ -293,9 +293,14 @@ class FormView(View):
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
+            context["show_archive_button"] = request.user.can_archive
+            context["not_linked"] = not patient_model.is_linked
+            context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
+
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
+            context["show_archive_button"] = False
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -531,9 +536,12 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
+            "not_linked": not patient.is_linked,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
+            "archive_patient_url": patient.get_archive_url(registry) if request.user.can_archive else "",
+            "show_archive_button": request.user.can_archive if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
         }
@@ -694,6 +702,7 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_ids': ids,
+            "not_linked": patient_model.is_linked,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,
@@ -1939,6 +1948,9 @@ class CustomConsentFormView(View):
             "location": "Consents",
             "forms": form_sections,
             "context_id": context_id,
+            "show_archive_button": request.user.can_archive,
+            "not_linked": not patient_model.is_linked,
+            "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
             "form_name": "fixme",  # required for form_print link
             "patient": patient_model,
             "patient_id": patient_model.id,
@@ -2096,6 +2108,9 @@ class CustomConsentFormView(View):
             'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_id": context_id,
             "registry_code": registry_code,
+            "show_archive_button": request.user.can_archive,
+            "not_linked": not patient_model.is_linked,
+            "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "context_launcher": context_launcher.html,

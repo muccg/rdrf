@@ -310,6 +310,54 @@ class FormTestCase(RDRFTestCase):
     def _create_form_key(self, form, section, cde_code):
         return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
 
+    def test_patient_archiving(self):
+        from registry.patients.models import Patient
+        
+        patient_model = self.create_patient()
+        self.assertTrue(patient_model.active)
+        
+        my_id = patient_model.pk
+
+        patient_model.delete()
+        self.assertEqual(patient_model.active, False)
+
+        # should not be findable
+        with self.assertRaises(Patient.DoesNotExist):
+            dummy = Patient.objects.get(id=my_id)
+
+        # test really_all object manager method on Patients
+        self.assertEqual(my_id, Patient.objects.really_all().get(id=my_id).id)
+
+        # test hard delete
+
+        patient_model._hard_delete()
+
+        with self.assertRaises(Patient.DoesNotExist):
+            dummy = Patient.objects.get(id=my_id)
+
+        with self.assertRaises(Patient.DoesNotExist):
+            dummy = Patient.objects.really_all().get(id=my_id)
+
+
+        # test can archive prop on CustomUser
+        # by default genetic user can't delete as they don't have patient delete permission
+
+        genetic_user = CustomUser.objects.get(username='genetic')
+        self.assertFalse(genetic_user.can_archive)
+
+        # admin can by default
+        admin_user = CustomUser.objects.get(username='admin')
+        self.assertTrue(admin_user.can_archive)
+
+        # clinical can't either
+        clinical_user = CustomUser.objects.get(username='clinical')
+        self.assertFalse(clinical_user.can_archive)
+
+        
+        
+        
+        
+
     def test_simple_form(self):
 
         def form_value(form_name, section_code, cde_code, mongo_record):

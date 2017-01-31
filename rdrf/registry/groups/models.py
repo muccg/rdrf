@@ -82,6 +82,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return any([registry.shows(datum) for registry in self.registry.all()])
 
     @property
+    def can_archive(self):
+        """
+        can user soft delete patients
+        """
+        value = False
+
+        if self.is_superuser:
+            value =  True
+            logger.debug("user is super user so can archive")
+        else:
+            logger.debug("user is NOT superuser")
+            value = self.has_perm("patients.delete_patient")
+            logger.debug("%s delete patient perm = %s" % (self, value))
+        
+        return value
+
+    @property
     def notices(self):
         from rdrf.models import Notification
         return Notification.objects.filter(
