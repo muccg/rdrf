@@ -1,17 +1,9 @@
 from io import StringIO
 import os
 
-from django.core.checks import register, Tags, Error
 from django.core.management import call_command
-from django.db import connections
 
 class RegistryRouter:
-    # Whether clinical db is configured at all.
-    one_db = "clinical" not in connections
-    # Whether clinical db is configured to be the same as main db.
-    same_db = (one_db or
-               connections["default"].get_connection_params() ==
-               connections["clinical"].get_connection_params())
 
     clinical_models = (
         ("rdrf", "clinical"),
@@ -33,7 +25,7 @@ class RegistryRouter:
 
     def choose_db(self, app_label, model_name):
         clinical = self.is_clinical(app_label, model_name)
-        return "clinical" if clinical and not self.one_db else "default"
+        return "clinical" if clinical else "default"
 
     def db_for_read(self, model, **hints):
         return self.choose_db_model(model)
@@ -42,18 +34,8 @@ class RegistryRouter:
         return self.choose_db_model(model)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        return (db == "default" and self.same_db or
-                db == self.choose_db(app_label, model_name))
+        return (db == self.choose_db(app_label, model_name))
 
-@register(Tags.security, deploy=True)
-def check_db_split(app_configs, **kwargs):
-    if RegistryRouter.same_db:
-        return [
-            Error("Demographics and clinical info are stored in the same database.",
-                  hint="Use CLINICAL_DBxxxx environment variables.",
-                  id="rdrf.E001")
-        ]
-    return []
 
 def reset_sql_sequences(apps):
     """
