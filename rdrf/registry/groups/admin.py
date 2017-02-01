@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from useraudit.password_expiry import is_password_expired
+from useraudit.models import UserDeactivation
 
 import logging
 
@@ -30,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = RDRFUserCreationForm
 
-    list_display = ('username', 'email', 'get_working_groups', 'get_registries', 'is_active_expired')
+    list_display = ('username', 'email', 'get_working_groups', 'get_registries', 'status')
 
     def get_form(self, request, obj=None, **kwargs):
         user = get_user_model().objects.get(username=request.user)
@@ -121,16 +121,18 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
-    def is_active_expired(self, obj):
-        if is_password_expired(obj):
-            return format_html(
-                '{}<a href="{}">Password Expired</a> (<a href="{}../password/">Change</a>)',
-                "" if obj.is_active else "Inactive, ",
-                reverse('password_reset'),
-                reverse('%s:groups_customuser_change' % self.admin_site.name,
-                        args=(obj.pk,)))
-        return "Yes" if obj.is_active else "No"
-    is_active_expired.short_description = "Is active"
+    def status(self, user):
+        if user.is_active:
+            return 'Active'
+        choices = dict(UserDeactivation.DEACTIVATION_REASON_CHOICES)
+        last_deactivation = UserDeactivation.objects.filter(username=user.username).order_by('-timestamp').first()
+        if last_deactivation is None or last_deactivation.reason not in choices:
+            return 'Inactive'
+
+        reason = choices[last_deactivation.reason]
+
+        return 'Inactive (%s)' % reason
+
 
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(WorkingGroup, WorkingGroupAdmin)
