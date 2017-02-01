@@ -4,8 +4,10 @@ import ssl
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from bson import ObjectId
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from ccg_django_utils.conf import EnvConfig
 from ...models import Registry, Modjgo
 
@@ -33,45 +35,22 @@ class Command(BaseCommand):
         rs = Registry.objects.filter(code__in=options["registry"] or all_codes)
         mongo_django(Modjgo, rs, dry_run=options["dry_run"])
 
-############################################################################
-# Settings
-
-env = EnvConfig()
-
-MONGOSERVER = env.get("mongoserver", "localhost")
-MONGOPORT = env.get("mongoport", 27017)
-MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
-
-MONGO_CLIENT_MAX_POOL_SIZE = env.get("mongo_max_pool_size", 100)
-MONGO_CLIENT_TZ_AWARE = env.get("mongo_client_tz_aware", False)
-MONGO_CLIENT_CONNECT = env.get("mongo_client_connect", True)
-
-MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", "") or None
-MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 20000)
-MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
-MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
-MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
-
-MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
-MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
-MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
-MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
-MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
 
 def mongo_client():
-    return MongoClient(MONGOSERVER, MONGOPORT,
-                       MONGO_CLIENT_MAX_POOL_SIZE,
-                       dict, MONGO_CLIENT_TZ_AWARE,
-                       ssl=MONGO_CLIENT_SSL,
-                       ssl_keyfile=MONGO_CLIENT_SSL_KEYFILE,
-                       ssl_certfile=MONGO_CLIENT_SSL_CERTFILE,
-                       ssl_cert_reqs=MONGO_CLIENT_SSL_CERT_REQS,
-                       ssl_ca_certs=MONGO_CLIENT_SSL_CA_CERTS,
-                       socketTimeoutMS=MONGO_CLIENT_SOCKET_TIMEOUT_MS,
-                       connectTimeoutMS=MONGO_CLIENT_CONNECT_TIMEOUT_MS,
-                       waitQueueTimeoutMS=MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS,
-                       waitQueueMultiple=MONGO_CLIENT_WAIT_QUEUE_MULTIPLE,
-                       socketKeepAlive=MONGO_CLIENT_SOCKET_KEEP_ALIVE)
+    from django.conf import settings
+    return MongoClient(settings.MONGOSERVER, settings.MONGOPORT,
+                       settings.MONGO_CLIENT_MAX_POOL_SIZE,
+                       dict, settings.MONGO_CLIENT_TZ_AWARE,
+                       ssl=settings.MONGO_CLIENT_SSL,
+                       ssl_keyfile=settings.MONGO_CLIENT_SSL_KEYFILE,
+                       ssl_certfile=settings.MONGO_CLIENT_SSL_CERTFILE,
+                       ssl_cert_reqs=settings.MONGO_CLIENT_SSL_CERT_REQS,
+                       ssl_ca_certs=settings.MONGO_CLIENT_SSL_CA_CERTS,
+                       socketTimeoutMS=settings.MONGO_CLIENT_SOCKET_TIMEOUT_MS,
+                       connectTimeoutMS=settings.MONGO_CLIENT_CONNECT_TIMEOUT_MS,
+                       waitQueueTimeoutMS=settings.MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS,
+                       waitQueueMultiple=settings.MONGO_CLIENT_WAIT_QUEUE_MULTIPLE,
+                       socketKeepAlive=settings.MONGO_CLIENT_SOCKET_KEEP_ALIVE)
 
 ############################################################################
 # The conversion script
