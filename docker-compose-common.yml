@@ -31,21 +31,19 @@ services:
     command: development
     ports:
       - "8080"
-    #links:
-    #  - db:db
     environment:
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_NAME=rdrfapp
-      - DB_USERNAME=rdrfapp
-      - DB_PASSWORD=rdrfapp
+      - DB_NAME=webapp
+      - DB_USERNAME=webapp
+      - DB_PASSWORD=webapp
       - WAIT_FOR_DB=1
 
   db:
     image: muccg/postgres-ssl:9.4
     environment:
-      - POSTGRES_USER=rdrfapp
-      - POSTGRES_PASSWORD=rdrfapp
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
     ports:
       - "5432"
 
@@ -72,8 +70,6 @@ services:
   runserver:
     image: muccg/rdrf-dev
     environment:
-      - DBUSER=rdrfapp
-      - CLINICAL_DBUSER=rdrfapp
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_CACHE=1
@@ -84,8 +80,6 @@ services:
     image: muccg/rdrf-dev
     command: uwsgi_local
     environment:
-      - DBUSER=rdrfapp
-      - CLINICAL_DBUSER=rdrfapp
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_CACHE=1

@@ -2,6 +2,8 @@ import logging
 import os
 import subprocess
 
+from django.conf import settings
+
 from aloe import world
 
 
@@ -36,7 +38,7 @@ def drop_all_mongo():
     logger.info("Dropping all mongo databases")
     cmd = "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"
     try:
-        subprocess_logging(["mongo", "--host", "mongo", "--eval", cmd])
+        subprocess_logging(["mongo", "--host", settings.MONGOSERVER, "--eval", cmd])
     except subprocess.CalledProcessError:
         logger.exception("Dropping mongo databases failed")
 

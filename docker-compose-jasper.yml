@@ -10,8 +10,8 @@ services:
     extends:
       file: docker-compose-common.yml
       service: jasper
-    links:
-      - db:db
+    depends_on:
+      - db
 
   db:
     extends:
@@ -32,7 +32,7 @@ services:
     extends:
       file: docker-compose-common.yml
       service: nginx
-    links:
+    depends_on:
       - uwsgi
 
   runserver:
@@ -41,7 +41,7 @@ services:
       service: runserver
     volumes_from:
       - datadev
-    links:
+    depends_on:
       - db
       - cache
       - mongo
@@ -54,9 +54,9 @@ services:
       service: uwsgi
     volumes_from:
       - datadev
-    links:
+    depends_on:
       - db
       - cache
       - mongo
-      - runserver:web
+      - runserver
       - jasper

@@ -17,7 +17,6 @@ services:
       file: docker-compose-common.yml
       service: db
 
-
   cache:
     extends:
       file: docker-compose-common.yml
@@ -32,22 +31,28 @@ services:
     extends:
       file: docker-compose-common.yml
       service: nginx
-    links:
+    depends_on:
       - uwsgi
 
   runserver:
     extends:
       file: docker-compose-common.yml
       service: runserver
+    environment:
+      - DJANGO_FIXTURES=dev
     volumes_from:
       - datadev
-    links:
+    ports:
+      - "8000:8000"
+    depends_on:
       - db
       - clinicaldb
       - cache
       - mongo
-    ports:
-      - "8000:8000"
+    networks:
+      default:
+        aliases:
+          - web
 
   uwsgi:
     extends:
@@ -55,9 +60,8 @@ services:
       service: uwsgi
     volumes_from:
       - datadev
-    links:
+    depends_on:
       - db
       - clinicaldb
       - cache
       - mongo
-      - runserver:web

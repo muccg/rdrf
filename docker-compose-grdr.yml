@@ -26,7 +26,7 @@ services:
     extends:
       file: docker-compose-common.yml
       service: nginx
-    links:
+    depends_on:
       - uwsgi
 
   runserver:
@@ -36,7 +36,7 @@ services:
     command: grdr
     volumes_from:
       - datadev
-    links:
+    depends_on:
       - db
       - cache
       - mongo
@@ -49,8 +49,8 @@ services:
       service: uwsgi
     volumes_from:
       - datadev
-    links:
+    depends_on:
       - db
       - cache
       - mongo
-      - runserver:web
+      - runserver

@@ -34,12 +34,16 @@ services:
       - datatest
     command: runserver
     environment:
-      - DEPLOYMENT=test
+      - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
-    links:
-      - dbtest:db
-      - dbclinicaltest:clinicaldb
-      - cachetest:cache
-      - mongotest:mongo
+      - CACHESERVER=cachetest
+      - DBSERVER=dbtest
+      - CLINICAL_DBSERVER=dbclinicaltest
+      - MONGOSERVER=mongotest
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - cachetest
+      - mongotest
     ports:
       - "18000:8000"

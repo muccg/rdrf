@@ -61,7 +61,7 @@ function defaults {
 
     : ${UWSGISERVER:="uwsgi"}
     : ${UWSGIPORT:="9000"}
-    : ${RUNSERVER:="web"}
+    : ${RUNSERVER:="runserver"}
     : ${RUNSERVERPORT:="8000"}
     : ${CACHESERVER:="cache"}
     : ${CACHEPORT:="11211"}
@@ -71,8 +71,8 @@ function defaults {
 
     # variables to control where tests will look for the app (aloe via selenium hub)
     : ${TEST_APP_SCHEME:="http"}
-    : ${TEST_APP_HOST:=${DOCKER_ROUTE}}
-    : ${TEST_APP_PORT:="18000"}
+    : ${TEST_APP_HOST:="runservertest"}
+    : ${TEST_APP_PORT:="8000"}
     : ${TEST_APP_PATH:="/"}
     : ${TEST_APP_URL:="${TEST_APP_SCHEME}://${TEST_APP_HOST}:${TEST_APP_PORT}${TEST_APP_PATH}"}
     #: ${TEST_BROWSER:="chrome"}
@@ -80,9 +80,12 @@ function defaults {
     : ${TEST_WAIT:="30"}
     : ${TEST_SELENIUM_HUB:="http://hub:4444/wd/hub"}
 
+    : ${DJANGO_FIXTURES="none"}
+
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
+    export DJANGO_FIXTURES
 }
 
 
@@ -105,8 +108,8 @@ function _django_collectstatic {
     django-admin.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE} 2>&1 | tee ${LOG_DIRECTORY}/uwsgi-collectstatic.log
 }
 
-function _django_iprestrict_permissive_fixtures {
-    echo "loading iprestrict permissive fixture"
+function _django_test_fixtures {
+    echo "loading test (iprestrict permissive) fixture"
     django-admin.py init iprestrict_permissive
     django-admin.py reload_rules
 }
@@ -123,11 +126,11 @@ function _rdrf_import_grdr {
 }
 
 function _django_fixtures {
-    if [ "${DEPLOYMENT}" = 'test' ]; then
-        _django_iprestrict_permissive_fixtures
+    if [ "${DJANGO_FIXTURES}" = 'test' ]; then
+        _django_test_fixtures
     fi
 
-    if [ "${DEPLOYMENT}" = 'dev' ]; then
+    if [ "${DJANGO_FIXTURES}" = 'dev' ]; then
         _django_dev_fixtures
     fi
 }
@@ -148,7 +151,7 @@ function _runserver() {
 function _aloe() {
     export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}_test
     shift
-    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 $@
+    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 "$@"
 }
 
 
@@ -228,8 +231,8 @@ fi
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     echo "[Run] Starting aloe"
-    cd /app/rdrf
-    _aloe
+    cd /app/rdrf || exit
+    _aloe "$@"
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|uwsgi|uwsgi_fixtures]"
