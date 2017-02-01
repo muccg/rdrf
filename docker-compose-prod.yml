@@ -54,12 +54,18 @@ services:
     image: muccg/rdrf:${BUILD_VERSION}
     command: uwsgi_local
     environment:
+      - DEBUG=0
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_CACHE=1
       - WAIT_FOR_MONGO=1
       - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=localhost nginxtest
+      - CACHESERVER=cacheprod
+      - DBSERVER=dbprod
+      - CLINICAL_DBSERVER=dbclinicalprod
+      - MONGOSERVER=mongoprod
     volumes:
         - uwsgi-prod-data:/data
     depends_on:
@@ -73,6 +79,7 @@ services:
       default:
         aliases:
           - uwsgitest
+          - uwsgi
 
 volumes:
   uwsgi-prod-data:

@@ -41,7 +41,7 @@ services:
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_MONGO=1
       - TEST_APP_HOST=nginxtest
-      - TEST_APP_PORT=8443
+      - TEST_APP_PORT=443
       - TEST_APP_SCHEME=https
       - TEST_APP_PATH=/app/
       - TEST_WAIT=10
