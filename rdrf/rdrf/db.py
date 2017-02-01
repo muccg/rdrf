@@ -2,6 +2,7 @@ from io import StringIO
 import os
 
 from django.core.management import call_command
+from django.db import connections
 
 class RegistryRouter:
 
@@ -60,8 +61,7 @@ def _execute_reset_sql_sequences(commands):
             is_clinical = any(t in command for t in clinical_tables)
             return (not command.startswith("SELECT") or
                     (database == "default" and not is_clinical) or
-                    (database == "clinical" and is_clinical) or
-                    (database == "default" and "clinical" not in connections))
+                    (database == "clinical" and is_clinical))
         return _for_db
 
     for database in ["default", "clinical"]:
