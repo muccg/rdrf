@@ -130,7 +130,7 @@ def load_export(export_name):
 
 
 def django_import(export_name):
-    django_admin(["import", "{0}/{1}".           format(exported_data_path(), export_name)])
+    django_admin(["import", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
 
 
 def django_reloadrules():
@@ -149,9 +149,12 @@ def django_migrate(args=[]):
     django_admin(["migrate", "--noinput"] + args)
 
 
-def django_admin(args):
+def django_admin(args, fail_on_error=False):
     logger.info(args)
-    subprocess_logging(["django-admin.py"] + args)
+    return_code, _, _ = subprocess_logging(["django-admin.py"] + args)
+
+    if fail_on_error and return_code != 0:
+        raise Exception("'%s' command failed with error code %d" % (' '.join(["django-admin.py"] + args), return_code))
 
 
 def show_stats(export_name):
