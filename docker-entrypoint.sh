@@ -151,7 +151,7 @@ function _runserver() {
 function _aloe() {
     export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}_test
     shift
-    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 $@
+    exec django-admin.py harvest --with-xunit --xunit-file=${WRITABLE_DIRECTORY}/tests.xml --verbosity=3 "$@"
 }
 
 
@@ -231,8 +231,8 @@ fi
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     echo "[Run] Starting aloe"
-    cd /app/rdrf
-    _aloe
+    cd /app/rdrf || exit
+    _aloe "$@"
 fi
 
 echo "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|uwsgi|uwsgi_fixtures]"
