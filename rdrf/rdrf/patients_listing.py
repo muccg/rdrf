@@ -12,11 +12,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
+from django.utils.safestring import mark_safe
+from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
 from rdrf.models import Registry
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormsButton
 from registry.patients.models import Patient
+from .utils import Message
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,7 +55,7 @@ class PatientsListingView(View):
 
         self.user = request.user
         if self.user and self.user.is_anonymous():
-            login_url = "%s?next=/router/" % reverse("login")
+            login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
             return redirect(login_url)
 
         self.do_security_checks()
@@ -72,13 +75,31 @@ class PatientsListingView(View):
         return template
 
     def build_context(self):
+        messages = self.maybe_add_messages()
+
         return {
             "registries": self.registries,
             "location": "Patient Listing",
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
-            "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())]
+            "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
+            "messages": messages,
         }
+
+    def maybe_add_messages(self):
+        messages = [
+            self._password_about_to_expire_msg(),
+        ]
+
+        return [m for m in messages if m]
+
+    def _password_about_to_expire_msg(self):
+        if should_warn_about_password_expiry(self.user):
+            days_left = days_to_password_expiry(self.user)
+            return Message.warning(mark_safe(
+                'Your password will expiry in %d days.'
+                'Please use <a href="%s" class="alert-link">Password Reset</a> to change it.' %
+                (days_left, reverse('password_reset'))))
 
     def get_columns(self):
         return [
@@ -470,7 +491,7 @@ class ColumnContextMenu(Column):
     def configure(self, registry, user, order):
         super(ColumnContextMenu, self).configure(registry, user, order)
         self.registry_has_context_form_groups = registry.has_groups if registry else False
-        
+
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))

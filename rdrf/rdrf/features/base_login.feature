@@ -4,10 +4,10 @@ Feature: Login support
   In order to control access to the registry data
 
   Background:
-    Given export "dd.zip"
+    Given development fixtures
     Given a user named "admin"
-    And a registry named "Demyelinating Diseases Registry"
-    When I go to the registry "Demyelinating Diseases Registry"
+    And a registry named "Sample Registry"
+    When I go to the registry "Sample Registry"
 
   Scenario: Login successful
     When I log in as "admin" with "admin" password

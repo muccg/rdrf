@@ -1,42 +1,55 @@
-datatest:
-  extends:
-    file: docker-compose-common.yml
-    service: datatest
+version: '2'
+services:
 
-dbtest:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  datatest:
+    extends:
+      file: docker-compose-common.yml
+      service: datatest
 
-fdp_dbtest:
-  extends:
-    file: docker-compose-common.yml
-    service: fdp_db
+  dbtest:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-cachetest:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  dbclinicaltest:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-mongotest:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  dbfdptest:
+    extends:
+      file: docker-compose-common.yml
+      service: dbfdp
 
-runservertest:
-  extends:
-    file: docker-compose-common.yml
-    service: runserver
-  volumes_from:
-    - datatest
-  command: runserver
-  environment:
-    - DEPLOYMENT=test
-    - ALLOWED_HOSTS=*
-  links:
-    - dbtest:db
-    - fdp_dbtest:fdp_db
-    - cachetest:cache
-    - mongotest:mongo
-  ports:
-    - "18000:8000"
+  cachetest:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
+
+  mongotest:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
+
+  runservertest:
+    extends:
+      file: docker-compose-common.yml
+      service: runserver
+    volumes_from:
+      - datatest
+    command: runserver
+    environment:
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      - CACHESERVER=cachetest
+      - DBSERVER=dbtest
+      - CLINICAL_DBSERVER=dbclinicaltest
+      - MONGOSERVER=mongotest
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbfdptest
+      - cachetest
+      - mongotest
+    ports:
+      - "18000:8000"

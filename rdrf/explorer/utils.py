@@ -1,19 +1,16 @@
+from collections import OrderedDict
 import json
 import ast
 
-from pymongo.errors import ConnectionFailure
-
 from django.db import ProgrammingError
 from django.db import connection
-from collections import OrderedDict
 
-from .models import Query
-
-from rdrf.utils import mongo_db_name_reg_id
 from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
-from rdrf.mongo_client import construct_mongo_client
-from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+from rdrf.models import Registry, RegistryForm, Section
+from rdrf.models import CommonDataElement, Modjgo
+
+from .models import Query
 from .forms import QueryForm
 
 import logging
@@ -54,14 +51,6 @@ class DatabaseUtils(object):
                 self.projection = self._string_to_json(self.form_object.projection)
                 self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
-
-    def connection_status(self):
-        try:
-            client = self._get_mongo_client()
-            client.close()
-            return True, None
-        except ConnectionFailure as e:
-            return False, e
 
     def run_sql(self):
         try:
@@ -146,7 +135,7 @@ class DatabaseUtils(object):
         try:
             return reporting_table_generator.run_explorer_query(self)
         except Exception as ex:
-            logger.error("Error running explorer query: %s" % ex)
+            logger.exception("Error running explorer query: %s")
             raise
 
     @timed
@@ -154,11 +143,9 @@ class DatabaseUtils(object):
         logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
         self.col_map = col_map
-        self.mongo_client = self._get_mongo_client()
-        logger.debug("created mongo client")
-        self.database = self.mongo_client[mongo_db_name_reg_id(self.registry_id)]
-        collection = self.database[self.collection]
-        history_collection = self.database["history"]
+
+        collection = Modjgo.objects.collection(self.registry_model.code, self.collection)
+        history = Modjgo.objects.collection(self.registry_model.code, "history")
 
         logger.debug("retrieving mongo models for projection once off")
         if self.projection:
@@ -216,7 +203,7 @@ class DatabaseUtils(object):
                             yield combined_dict
 
                 for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
-                        sql_columns_dict, history_collection, max_items):
+                        sql_columns_dict, history, max_items):
                     if mongo_columns_dict is None:
                         yield None
 
@@ -328,13 +315,13 @@ class DatabaseUtils(object):
 
             yield form_model, section_model, cde_model
 
-    def run_mongo_one_row(self, sql_column_data, mongo_collection, max_items):
-        django_model = "Patient"
-        django_id = sql_column_data["id"]  # convention?
-        mongo_query = {"django_model": django_model,
-                       "django_id": django_id}
+    def run_mongo_one_row(self, sql_column_data, collection, max_items):
+        mongo_query = {
+            "django_model": "Patient",
+            "django_id": sql_column_data["id"],  # convention?
+        }
 
-        records = mongo_collection.find(mongo_query)
+        records = collection.find(**mongo_query).data()
         num_records = records.count()
         if num_records == 0:
             yield None
@@ -390,14 +377,12 @@ class DatabaseUtils(object):
                 result[column_name] = value
         return result
 
-    def run_mongo_one_row_longitudinal(self, sql_column_data, history_collection, max_items):
-        django_id = sql_column_data["id"]
-        mongo_query = {"django_id": django_id,
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items):
+        mongo_query = {"django_id": sql_column_data["id"],
                        "django_model": "Patient",
                        "record_type": "snapshot"}
-
-        for snapshot_document in history_collection.find(mongo_query):
-            yield self._get_result_map(snapshot_document, is_snapshot=True, max_items=max_items)
+        for snapshot in history.find(**mongo_query).data():
+            yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items)
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
@@ -438,9 +423,9 @@ class DatabaseUtils(object):
         return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
-        client = self._get_mongo_client()
         projection = {}
         criteria = {}
+        raise NotImplementedError("fixme")
         database = client[mongo_db_name_reg_id(self.registry_id)]
         collection = database[self.collection]
 
@@ -510,15 +495,15 @@ class DatabaseUtils(object):
             return None
 
     def _dictfetchall(self, cursor):
-        "Returns all rows from a cursor as a dict"
+        """
+        Returns all rows from a cursor as a list of dicts
+        https://stackoverflow.com/questions/10888844/using-dict-cursor-in-django
+        """
         desc = cursor.description
         return [
             dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
-
-    def _get_mongo_client(self):
-        return construct_mongo_client()
 
 
 class ParseQuery(object):

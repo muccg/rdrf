@@ -1,0 +1,6 @@
+logging: 30
+migrate_from_0_3_2: false
+project_name: rdrf
+stellar_url: postgresql://webapp:webapp@dbtest/stellar_data
+tracked_databases: [webapp]
+url: postgresql://webapp:webapp@dbtest/template1

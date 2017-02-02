@@ -198,8 +198,10 @@ class PatientForm(forms.ModelForm):
         self.fields["clinician"].queryset = CustomUser.objects.filter(
             id__in=clinicians_filtered)
 
-        self.fields["rdrf_registry"].queryset = Registry.objects.filter(
-            id__in=[self.registry_model.id])
+        registries = Registry.objects.all()
+        if self.registry_model:
+            registries = registries.filter(id=self.registry_model.id)
+        self.fields["rdrf_registry"].queryset = registries
 
         if hasattr(self, 'user'):
             user = self.user

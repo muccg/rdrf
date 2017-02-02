@@ -1,46 +1,85 @@
-# data only container pattern
-dataprod:
-  image: debian:jessie
-  volumes:
-    - ./data/prod:/data
+version: '2'
+services:
 
-dbprod:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  # note: the host aliases are to alow the prod stack to be used as a test stack
 
-cacheprod:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  dbprod:
+    extends:
+      file: docker-compose-common.yml
+      service: db
+    networks:
+      default:
+        aliases:
+          - dbtest
 
-mongoprod:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  dbclinicalprod:
+    extends:
+      file: docker-compose-common.yml
+      service: db
+    networks:
+      default:
+        aliases:
+          - dbclinicaltest
 
-nginxprod:
-  extends:
-    file: docker-compose-common.yml
-    service: nginx
-  links:
-    - uwsgiprod:uwsgi
+  cacheprod:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
+    networks:
+      default:
+        aliases:
+          - cachetest
 
-uwsgiprod:
-  image: muccg/rdrf:${GIT_TAG}
-  command: uwsgi_local
-  environment:
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - DEPLOYMENT=test
-    - ALLOWED_HOSTS=*
-  volumes_from:
-    - dataprod
-  links:
-    - dbprod:db
-    - cacheprod:cache
-    - mongoprod:mongo
-  ports:
-    - "8433:8433"
+  mongoprod:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
+    networks:
+      default:
+        aliases:
+          - mongotest
+
+  nginxprod:
+    extends:
+      file: docker-compose-common.yml
+      service: nginx
+    depends_on:
+      - uwsgiprod
+    networks:
+      default:
+        aliases:
+          - nginxtest
+
+  uwsgiprod:
+    image: muccg/rdrf:${BUILD_VERSION}
+    command: uwsgi_local
+    environment:
+      - DEBUG=0
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_CACHE=1
+      - WAIT_FOR_MONGO=1
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=localhost nginxtest
+      - CACHESERVER=cacheprod
+      - DBSERVER=dbprod
+      - CLINICAL_DBSERVER=dbclinicalprod
+      - MONGOSERVER=mongoprod
+    volumes:
+        - uwsgi-prod-data:/data
+    depends_on:
+      - dbprod
+      - dbclinicalprod
+      - cacheprod
+      - mongoprod
+    ports:
+      - "9000:9000"
+    networks:
+      default:
+        aliases:
+          - uwsgitest
+          - uwsgi
+
+volumes:
+  uwsgi-prod-data:

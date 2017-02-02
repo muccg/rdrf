@@ -617,6 +617,8 @@ class Importer(object):
             cfg.is_default = cfg_dict["is_default"]
             if "naming_cde_to_use" in cfg_dict:
                 cfg.naming_cde_to_use = cfg_dict["naming_cde_to_use"]
+            if "ordering" in cfg_dict:
+                cfg.ordering = cfg_dict["ordering"]
 
             cfg.save()
 
@@ -633,7 +635,6 @@ class Importer(object):
             logger.info("imported cfg %s" % cfg.name)
 
     def _create_form_permissions(self, registry):
-        from registry.groups.models import Group
         if "forms_allowed_groups" in self.data:
             d = self.data["forms_allowed_groups"]
             for form_name in d:

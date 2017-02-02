@@ -17,6 +17,7 @@ class DoctorSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Doctor
+        fields = '__all__'
 
 
 class NextOfKinRelationshipHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -201,6 +202,7 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'registry': {'lookup_field': 'code'},
         }
+        fields = '__all__'
 
 
 class CountryAdapter(object):

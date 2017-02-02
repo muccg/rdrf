@@ -3,14 +3,14 @@ import logging
 from contextlib import contextmanager
 from aloe import before, after, around, world
 from selenium import webdriver
-from . import steps
+from . import steps, utils
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 TEST_BROWSER = os.environ.get('TEST_BROWSER')
-TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB')
-TEST_WAIT = int(os.environ.get('TEST_WAIT'))
+TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB') or 'http://localhost:4444/wd/hub'
+TEST_WAIT = int(os.environ.get('TEST_WAIT') or '10')
 TEST_APP_URL = os.environ.get('TEST_APP_URL')
 TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
 
@@ -41,11 +41,6 @@ def with_browser():
     delattr(world, "browser")
 
 
-def reset_snapshot_dict():
-    world.snapshot_dict = {}
-    logger.info("set snapshot_dict to %s" % world.snapshot_dict)
-
-
 def set_site_url():
     world.site_url = TEST_APP_URL
     logger.info("world.site_url = %s" % world.site_url)
@@ -60,14 +55,8 @@ def before_all():
     logger.info('')
     if not os.path.exists(settings.WRITABLE_DIRECTORY):
         os.makedirs(settings.WRITABLE_DIRECTORY)
-    reset_snapshot_dict()
     set_site_url()
-    steps.save_minimal_snapshot()
-
-
-# @after.all
-# def after_all(total):
-#    logger.info('Scenarios: {0} Passed: {1}'.format(total.scenarios_ran, total.scenarios_passed))
+    utils.save_minimal_snapshot()
 
 
 def delete_cookies():
@@ -83,11 +72,12 @@ def before_scenario(scenario, outline, steps):
 
 @after.each_example
 def after_scenario(scenario, outline, test_steps):
+    logger.info('')
     passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
     world.browser.get_screenshot_as_file(
         os.path.join(settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
-        steps.restore_minimal_snapshot()
+        utils.restore_minimal_snapshot()
 
 
 @after.each_step

@@ -1,20 +1,15 @@
 import re
 
 from django.core import validators
-
-from django.contrib.auth.models import Group
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
-
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
 from django.db import models
-
 from django.dispatch import receiver
 
 from registration.signals import user_registered
-
 from rdrf.models import Registry
+from registry.groups import GROUPS as RDRF_GROUPS
 
 import logging
 
@@ -87,6 +82,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return any([registry.shows(datum) for registry in self.registry.all()])
 
     @property
+    def can_archive(self):
+        """
+        can user soft delete patients
+        """
+        value = False
+
+        if self.is_superuser:
+            value =  True
+            logger.debug("user is super user so can archive")
+        else:
+            logger.debug("user is NOT superuser")
+            value = self.has_perm("patients.delete_patient")
+            logger.debug("%s delete patient perm = %s" % (self, value))
+        
+        return value
+
+    @property
     def notices(self):
         from rdrf.models import Notification
         return Notification.objects.filter(
@@ -101,31 +113,31 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_patient(self):
-        return self.in_group("patients")
+        return self.in_group(RDRF_GROUPS.PATIENT)
 
     @property
     def is_parent(self):
-        return self.in_group("parents")
+        return self.in_group(RDRF_GROUPS.PARENT)
 
     @property
     def is_clinician(self):
-        return self.in_group("clinical")
+        return self.in_group(RDRF_GROUPS.CLINICAL)
 
     @property
     def is_genetic_staff(self):
-        return self.in_group("genetic staff")
+        return self.in_group(RDRF_GROUPS.GENETIC_STAFF)
 
     @property
     def is_genetic_curator(self):
-        return self.in_group("genetic curator")
+        return self.in_group(RDRF_GROUPS.GENETIC_CURATOR)
 
     @property
     def is_working_group_staff(self):
-        return self.in_group("working group staff")
+        return self.in_group(RDRF_GROUPS.WORKING_GROUP_STAFF)
 
     @property
     def is_curator(self):
-        return self.in_group("working group curator")
+        return self.in_group(RDRF_GROUPS.WORKING_GROUP_CURATOR)
 
     def get_groups(self):
         return self.groups.all()
@@ -170,30 +182,35 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return False
 
     @property
-    def quick_links(self):
+    def menu_links(self):
         from rdrf.quick_links import QuickLinks
+        qlinks = QuickLinks(self.get_registries_or_all())
         if self.is_superuser:
-            links = QuickLinks.ALL
-        elif self.is_curator:
-            links = QuickLinks.WORKING_GROUP_CURATORS
-        elif self.is_clinician:
-            links = QuickLinks.CLINICIAN
-        elif self.is_patient:
-            return []
-        elif self.is_genetic_curator:
-            links = QuickLinks.GENETIC_CURATORS
-        elif self.is_genetic_staff:
-            return QuickLinks.GENETIC_STAFF
-        elif self.is_working_group_staff:
-            links = QuickLinks.WORKING_GROUP_STAFF
+            links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            links = []
+            links = qlinks.menu_links([group.name for group in self.groups.all()])
 
-        if not self.has_feature("questionnaires"):
-            links = links - QuickLinks.QUESTIONNAIRE_HANDLING
+        return links
 
-        if self.has_feature("family_linkage"):
-            links = links | QuickLinks.DOCTORS
+    @property
+    def settings_links(self):
+        links = []
+
+        if self.is_superuser:
+            from rdrf.quick_links import QuickLinks
+            qlinks = QuickLinks(self.get_registries_or_all())
+            links = qlinks.settings_links()
+
+        return links
+
+    @property
+    def admin_page_links(self):
+        links = []
+
+        if self.is_superuser:
+            from rdrf.quick_links import QuickLinks
+            qlinks = QuickLinks(self.get_registries_or_all())
+            links = qlinks.admin_page_links()
 
         return links
 

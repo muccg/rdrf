@@ -1,53 +1,56 @@
-# data only container pattern
-datadev:
-  extends:
-    file: docker-compose-common.yml
-    service: datadev
+version: '2'
+services:
 
-db:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  # data only container pattern
+  datadev:
+    extends:
+      file: docker-compose-common.yml
+      service: datadev
 
-cache:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  db:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-mongo:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  cache:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
 
-nginx:
-  extends:
-    file: docker-compose-common.yml
-    service: nginx
-  links:
-    - uwsgi
+  mongo:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
 
-runserver:
-  extends:
-    file: docker-compose-common.yml
-    service: runserver
-  command: grdr
-  volumes_from:
-    - datadev
-  links:
-    - db
-    - cache
-    - mongo
-  ports:
-    - "8000:8000"
+  nginx:
+    extends:
+      file: docker-compose-common.yml
+      service: nginx
+    depends_on:
+      - uwsgi
 
-uwsgi:
-  extends:
-    file: docker-compose-common.yml
-    service: uwsgi
-  volumes_from:
-    - datadev
-  links:
-    - db
-    - cache
-    - mongo
-    - runserver:web
+  runserver:
+    extends:
+      file: docker-compose-common.yml
+      service: runserver
+    command: grdr
+    volumes_from:
+      - datadev
+    depends_on:
+      - db
+      - cache
+      - mongo
+    ports:
+      - "8000:8000"
+
+  uwsgi:
+    extends:
+      file: docker-compose-common.yml
+      service: uwsgi
+    volumes_from:
+      - datadev
+    depends_on:
+      - db
+      - cache
+      - mongo
+      - runserver

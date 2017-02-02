@@ -21,9 +21,9 @@ from .questionnaires import PatientCreator
 from .file_upload import wrap_gridfs_data_for_form
 from .file_upload import wrap_file_cdes
 from . import filestorage
-from .utils import de_camelcase
-from rdrf.utils import location_name, is_multisection, mongo_db_name, make_index_map
-from rdrf.mongo_client import construct_mongo_client
+from .utils import de_camelcase, location_name, is_multisection, make_index_map
+from .utils import parse_iso_date
+from .patient_decorators import patient_questionnaire_access
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.models import RDRFContext
 
@@ -147,7 +147,6 @@ class FormView(View):
 
     def __init__(self, *args, **kwargs):
         # when set to True in integration testing, switches off unsupported messaging middleware
-        self.testing = False
         self.template = None
         self.registry = None
         self.dynamic_data = {}
@@ -170,8 +169,6 @@ class FormView(View):
                           model_class=Patient, id=None):
         obj = model_class.objects.get(pk=id)
         dyn_obj = DynamicDataWrapper(obj, rdrf_context_id=rdrf_context_id)
-        if self.testing:
-            dyn_obj.testing = True
         dynamic_data = dyn_obj.load_dynamic_data(registry_code, "cdes")
         return dynamic_data
 
@@ -296,9 +293,14 @@ class FormView(View):
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
+            context["show_archive_button"] = request.user.can_archive
+            context["not_linked"] = not patient_model.is_linked
+            context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
+
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
+            context["show_archive_button"] = False
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -368,8 +370,6 @@ class FormView(View):
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
-        if self.testing:
-            dyn_patient.testing = True
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
@@ -536,9 +536,12 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
+            "not_linked": not patient.is_linked,
             "previous_form_link": wizard.previous_link,
             "context_id": context_id,
             "show_print_button": True if not self.CREATE_MODE else False,
+            "archive_patient_url": patient.get_archive_url(registry) if request.user.can_archive else "",
+            "show_archive_button": request.user.can_archive if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
         }
@@ -563,16 +566,14 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            if not self.testing:
-                messages.add_message(
-                    request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+            messages.add_message(
+                request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
         else:
-            if not self.testing:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    'Patient %s not saved due to validation errors' %
-                    patient_name)
+            messages.add_message(
+                request,
+                messages.ERROR,
+                'Patient %s not saved due to validation errors' %
+                patient_name)
 
         return render(request, self._get_template(), context)
 
@@ -701,6 +702,7 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_ids': ids,
+            "not_linked": patient_model.is_linked,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,
@@ -857,9 +859,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
 
-    from .patient_decorators import patient_has_access
-
-    @method_decorator(patient_has_access)
+    @method_decorator(patient_questionnaire_access)
     def get(self, request, registry_code, questionnaire_context="au"):
         try:
             if questionnaire_context is not None:
@@ -934,7 +934,7 @@ class QuestionnaireView(FormView):
 
         return consent_form_wrappers
 
-    @method_decorator(patient_has_access)
+    @method_decorator(patient_questionnaire_access)
     def post(self, request, registry_code, **kwargs):
         error_count = 0
         registry = self._get_registry(registry_code)
@@ -1030,8 +1030,6 @@ class QuestionnaireView(FormView):
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
 
-            if self.testing:
-                questionnaire_response_wrapper.testing = True
             for section in sections:
                 data_map[section]['questionnaire_context'] = self.questionnaire_context
                 if is_multisection(section):
@@ -1111,7 +1109,7 @@ class QuestionnaireView(FormView):
                                 else:
                                     return "No"
                             elif cde_model.datatype == 'date':
-                                return self.value.strftime("%d-%m-%Y")
+                                return parse_iso_date(self.value).strftime("%d-%m-%Y")
                             return str(self.value)
 
                     def _get_cde_model(self):
@@ -1221,179 +1219,24 @@ class QuestionnaireHandlingView(View):
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.questionnaires import Questionnaire
-        context = {}
+        context = csrf(request)
         template_name = "rdrf_cdes/questionnaire_handling.html"
-        context["registry_model"] = Registry.objects.get(code=registry_code)
+        context["registry_model"] = get_object_or_404(Registry, code=registry_code)
         context["form_model"] = context["registry_model"].questionnaire
-        context["qr_model"] = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
+        context["qr_model"] = get_object_or_404(QuestionnaireResponse, id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
                                                  context["qr_model"])
 
-        context.update(csrf(request))
-
         return render(request, template_name, context)
-
-    def post(self, request, registry_code, questionnaire_response_id):
-        registry_model = Registry.objects.get(code=registry_code)
-        existing_patient_id = request.POST.get("existing_patient_id", None)
-        qr_model = QuestionnaireResponse.objects.get(id=questionnaire_response_id)
-        form_data = request.POST.get("form_data")
-
-        if existing_patient_id is None:
-            self._create_patient(registry_model,
-                                 qr_model,
-                                 form_data)
-        else:
-            patient_model = Patient.objects.get(pk=existing_patient_id)
-            self._update_existing_patient(patient_model,
-                                          registry_model,
-                                          qr_model,
-                                          form_data)
-
-    def _create_patient(self, registry_model, qr_model, form_data):
-        pass
-
-    def _update_existing_patient(self,
-                                 patient_model,
-                                 registry_model,
-                                 qr_model,
-                                 form_data):
-        pass
-
-
-class QuestionnaireResponseView(FormView):
-    """
-    DEAD!
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(QuestionnaireResponseView, self).__init__(*args, **kwargs)
-        self.template = 'rdrf_cdes/approval.html'
-
-    def _get_patient_name(self):
-        return "Questionnaire Response for %s" % self.registry.name
-
-    @method_decorator(login_required)
-    def get(self, request, registry_code, questionnaire_response_id):
-        from rdrf.questionnaires import Questionnaire
-        self.patient_id = questionnaire_response_id
-        self.registry = self._get_registry(registry_code)
-        self.dynamic_data = self._get_dynamic_data(
-            id=questionnaire_response_id,
-            registry_code=registry_code,
-            model_class=QuestionnaireResponse)
-
-        questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
-
-        self.registry_form = self.registry.questionnaire
-        context = self._build_context(questionnaire_context=self._get_questionnaire_context())
-        self._fix_centre_dropdown(context)
-        self._fix_state_and_country_dropdowns(context)
-
-        custom_consent_helper = CustomConsentHelper(self.registry)
-        custom_consent_helper.load_dynamic_data(self.dynamic_data)
-        custom_consent_helper.create_custom_consent_wrappers()
-
-        context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
-        context["custom_consent_errors"] = {}
-        context['working_groups'] = self._get_working_groups(request.user)
-        context["on_approval"] = 'yes'
-        context["show_print_button"] = False
-
-        context["questionnaire"] = Questionnaire(self.registry,
-                                                 questionnaire_response_model)
-
-        return self._render_context(request, context)
-
-    def _get_questionnaire_context(self):
-        """
-        hack to correctly display the Centres dropdown ( which depends on working group for DM1.)
-        questionnaire_context is au for all registries but might be nz for dm1
-        """
-        for k in self.dynamic_data:
-            if "questionnaire_context" in k:
-                return self.dynamic_data[k]
-
-        logger.debug("questionnaire_context not in dynamic data")
-        return 'au'
-
-    def _fix_centre_dropdown(self, context):
-        for field_key, field_object in context['forms']['PatientData'].fields.items():
-            if 'CDEPatientCentre' in field_key:
-                if hasattr(field_object.widget, "_widget_context"):
-                    field_object.widget._widget_context[
-                        'questionnaire_context'] = self._get_questionnaire_context()
-
-            if 'CDEPatientNextOfKinState' in field_key:
-                if hasattr(field_object.widget, "_widget_context"):
-                    field_object.widget._widget_context[
-                        'questionnaire_context'] = self._get_questionnaire_context()
-
-    def _fix_state_and_country_dropdowns(self, context):
-        from django.forms.widgets import TextInput
-        for key, field_object in context["forms"]['PatientData'].fields.items():
-            if "CDEPatientNextOfKinState" in key:
-                field_object.widget = TextInput()
-
-        for address_form in context["forms"]["PatientDataAddressSection"].forms:
-            for key, field_object in address_form.fields.items():
-                if "State" in key:
-                    field_object.widget = TextInput()
-
-    def _get_working_groups(self, auth_user):
-        class WorkingGroupOption:
-
-            def __init__(self, working_group_model):
-                self.code = working_group_model.pk
-                self.desc = working_group_model.name
-
-        user = get_user_model().objects.get(username=auth_user)
-
-        return [WorkingGroupOption(wg) for wg in user.working_groups.all()]
-
-    @login_required_method
-    def post(self, request, registry_code, questionnaire_response_id):
-        self.registry = Registry.objects.get(code=registry_code)
-        qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
-        if 'reject' in request.POST:
-            # delete from Mongo first todo !
-            qr.delete()
-            logger.debug("deleted rejected questionnaire response %s" %
-                         questionnaire_response_id)
-            messages.error(request, _("Questionnaire rejected"))
-        else:
-            logger.debug(
-                "attempting to create patient from questionnaire response %s" %
-                questionnaire_response_id)
-            patient_creator = PatientCreator(self.registry, request.user)
-            questionnaire_data = self._get_dynamic_data(
-                id=questionnaire_response_id,
-                registry_code=registry_code,
-                model_class=QuestionnaireResponse)
-            logger.debug("questionnaire data = %s" % questionnaire_data)
-
-            try:
-                patient_creator.create_patient(request.POST, qr, questionnaire_data)
-                messages.info(request, "Patient Created OK")
-            except PatientCreatorError as perr:
-                messages.error(request, "Patient Failed to be created: %s" % perr)
-
-        context = {}
-        context.update(csrf(request))
-        return HttpResponseRedirect(reverse("admin:rdrf_questionnaireresponse_changelist"))
 
 
 class FileUploadView(View):
 
     @login_required_method
     def get(self, request, registry_code, file_id):
-        import gridfs
-        client = construct_mongo_client()
-        db = client[mongo_db_name(registry_code)]
-        fs = gridfs.GridFS(db, collection=registry_code + ".files")
-        data, filename = filestorage.get_file(file_id, fs)
+        data, filename = filestorage.get_file(file_id)
         if data is not None:
             response = FileResponse(data, content_type='application/octet-stream')
             response['Content-disposition'] = "filename=%s" % filename
@@ -2105,6 +1948,9 @@ class CustomConsentFormView(View):
             "location": "Consents",
             "forms": form_sections,
             "context_id": context_id,
+            "show_archive_button": request.user.can_archive,
+            "not_linked": not patient_model.is_linked,
+            "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
             "form_name": "fixme",  # required for form_print link
             "patient": patient_model,
             "patient_id": patient_model.id,
@@ -2262,6 +2108,9 @@ class CustomConsentFormView(View):
             'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_id": context_id,
             "registry_code": registry_code,
+            "show_archive_button": request.user.can_archive,
+            "not_linked": not patient_model.is_linked,
+            "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "context_launcher": context_launcher.html,

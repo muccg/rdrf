@@ -6,9 +6,7 @@ Feature: Navigate through forms for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    # And registry "Demyelinating Diseases Registry" has "Diagnosis" module
     And a patient named "ABBOTT, Abigail"
-    # And patient "ABBOT, Abigail" has no consents given
 
   Scenario: Curator navigates to patient consents using the menu
     When I am logged in as curator

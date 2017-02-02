@@ -93,7 +93,6 @@
 {% endblock %}
 
 {% block formbtns %}
-	<br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
 			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
@@ -112,6 +111,7 @@
 {% endblock %}	
 
 {% block content %}
+        {% include 'rdrf_cdes/archive_modal.html' %}
 
 	{% if patient|has_feature:"consent_lock" %}
 		{% if consent %}

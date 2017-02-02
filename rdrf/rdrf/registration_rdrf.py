@@ -8,16 +8,16 @@ class RdrfRegistrationView(RegistrationView):
 
     def get(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
-        form_class = self.get_form_class(request)
+        form_class = self.get_form_class()
         form = self.get_form(form_class)
         return self.render_to_response(self.get_context_data(form=form))
 
     def post(self, request, *args, **kwargs):
-        form_class = self.get_form_class(request)
+        form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
-            return self.form_valid(request, form)
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 

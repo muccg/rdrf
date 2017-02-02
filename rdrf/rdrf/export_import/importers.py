@@ -1,12 +1,9 @@
-from bson.json_util import loads
 from functools import wraps
 import logging
 import os
 from django.core import serializers
 from django.apps import apps
 
-from rdrf.mongo_client import construct_mongo_client
-from rdrf.utils import mongo_db_name
 from .utils import file_checksum, maybe_indent
 from .exceptions import ImportError
 
@@ -46,11 +43,6 @@ class DataGroupImporter(object):
             importer = self.catalogue.models.get(get_meta_value(model_meta, 'model_name'))()
             importer.do_import(model_meta, workdir, **options)
 
-    def import_collections(self, collections_meta, workdir, **options):
-        for collection_meta in collections_meta:
-            importer = self.catalogue.mongo_collections.get(get_meta_value(collection_meta, 'collection_name'))()
-            importer.do_import(collection_meta, workdir, **options)
-
     def do_import(self, datagroup_meta, parent_workdir, registry_code=None, logger=None, simulate=False, force=False):
         if logger is not None:
             self.logger = logger
@@ -71,7 +63,6 @@ class DataGroupImporter(object):
 
         self.import_datagroups(datagroup_meta.get('data_groups', []), workdir, **options)
         self.import_models(datagroup_meta.get('models', []), workdir, **options)
-        self.import_collections(datagroup_meta.get('collections', []), workdir, **options)
 
 
 class ModelImporter(object):
@@ -126,47 +117,6 @@ class ModelImporter(object):
                 actual_object_count += 1
             self.check_object_count(model_name, object_count, actual_object_count)
             self.child_logger.debug('Imported %d models', actual_object_count)
-
-
-class MongoCollectionImporter(object):
-
-    @allow_if_forced
-    def check_no_data_in_collection(self, collection):
-        if collection.count() > 0:
-            raise ImportError("Refusing to import over existing data for collection '%s'." % collection.name)
-
-    def do_import(
-            self,
-            collection_meta,
-            workdir,
-            registry_code=None,
-            logger=None,
-            simulate=False,
-            force=False,
-            **kwargs):
-        self.logger = logger
-        self.child_logger = maybe_indent(self.logger)
-        self.force = force
-
-        collection_name = get_meta_value(collection_meta, 'collection_name')
-        file_name = os.path.join(workdir, get_meta_value(collection_meta, 'file_name'))
-
-        self.logger.debug("Importing collection '%s'", collection_name)
-
-        client = construct_mongo_client()
-        db = client[mongo_db_name(registry_code)]
-        if collection_name not in db.collection_names():
-            self.logger.warning("Collection '%s' doesn't exist for registry '%s'."
-                                % (collection_name, registry_code))
-        collection = db[collection_name]
-
-        self.check_no_data_in_collection(collection)
-
-        with open(file_name) as f:
-            docs = loads(f.read())
-            if not simulate:
-                collection.insert(docs)
-            self.child_logger.debug('Inserted %d documents', len(docs))
 
 
 def get_meta_value(meta, key, path=None):

@@ -1,11 +1,8 @@
-from bson.json_util import dumps, loads
 from collections import defaultdict, OrderedDict
 import os
 from django.core import serializers
 from django.apps import apps
 
-from rdrf.utils import mongo_db_name
-from rdrf.mongo_client import construct_mongo_client
 from .utils import DelegateMixin
 from .utils import app_schema_version
 from .utils import file_checksum
@@ -21,7 +18,6 @@ class DataGroupExporter(DelegateMixin):
         self.exporters_catalogue = exporters_catalogue
         self.model_exporters = exporters_catalogue.models
         self.datagroup_exporters = exporters_catalogue.datagroups
-        self.mongo_collection_exporters = exporters_catalogue.mongo_collections
         self.logger = logger
         self.exporter_context = {}
 
@@ -57,12 +53,6 @@ class DataGroupExporter(DelegateMixin):
             if exporter.export(**child_context):
                 self.meta['models'].append(exporter.get_meta_info())
 
-        if len(self.collections) > 0:
-            self.logger.debug("Exporting %d collections" % len(self.collections))
-        for collection in self.collections:
-            exporter = self.mongo_collection_exporters.get(collection)(collection, child_logger)
-            if exporter.export(**child_context):
-                self.meta['collections'].append(exporter.get_meta_info())
         return True
 
     def get_meta_info(self, top_level=False):
@@ -82,7 +72,7 @@ class DataGroupExporter(DelegateMixin):
             ('app_versions', app_versions),
             ('data_groups', self.meta['data_groups']),
             ('models', self.meta['models']),
-            ('collections', self.meta['collections']),)))
+        )))
 
     def collect_all_models(self, dfn):
         """Collects all the model names exported by these data groups recursively."""
@@ -137,47 +127,6 @@ class ModelExporter(object):
         return self.meta_collector.collect()
 
 
-class MongoCollectionExporter(object):
-
-    def __init__(self, collection_name, logger):
-        self.logger = logger
-        self.meta_collector = CollectionMetaInfo(self, maybe_indent(logger))
-        self.client = construct_mongo_client()
-        self.collection_name = collection_name
-        self.filename = collection_name
-        self.exporter_context = {}
-        if '.' not in self.filename:
-            self.filename += '.bson'
-        self.export_finished = False
-
-    @property
-    def full_filename(self):
-        return os.path.join(self.workdir, self.filename)
-
-    def export(self, **kwargs):
-        self.exporter_context = kwargs
-        self.workdir = self.exporter_context['workdir']
-        registry_code = self.exporter_context['registry_code']
-        db = self.client[mongo_db_name(registry_code)]
-        if self.collection_name not in db.collection_names():
-            self.logger.info("Collection '%s' doesn't exist for registry '%s'. Ignoring it."
-                             % (self.collection_name, registry_code))
-            return False
-        collection = db[self.collection_name]
-
-        self.logger.debug("Exporting Mongo collection '%s' to '%s'", self.collection_name, self.full_filename)
-
-        with open(self.full_filename, 'w') as out:
-            out.write(dumps(list(collection.find()), indent=2))
-        self.export_finished = True
-        return True
-
-    def get_meta_info(self):
-        if not self.export_finished:
-            raise ValueError('Invalid state: Collection %s needs to be exported first' % self.collection_name)
-        return self.meta_collector.collect()
-
-
 class BaseMetaInfo(DelegateMixin):
 
     def __init__(self, exporter, logger):
@@ -211,20 +160,6 @@ class ModelMetaInfo(BaseMetaInfo):
 
         with open(self.full_filename) as data:
             count = count_generator_items(serializers.deserialize(self.format, data))
-            self.logger.debug('exported %d object(s)', count)
-            return count
-
-
-class CollectionMetaInfo(BaseMetaInfo):
-
-    def collect(self):
-        d = {'collection_name': self.collection_name}
-        d.update(BaseMetaInfo.collect(self))
-        return d
-
-    def count_objects_in_file(self):
-        with open(self.full_filename) as data:
-            count = len(loads(data.read()))
             self.logger.debug('exported %d object(s)', count)
             return count
 

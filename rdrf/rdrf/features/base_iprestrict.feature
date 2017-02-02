@@ -8,14 +8,15 @@ Feature: IPRestrict is enabled and working
 
   Scenario: Admin user blocks useraudit to localhost
     Given I am logged in as admin
-    When I click "Settings"
+    When I click the User Dropdown Menu
+    And I click "Admin Page"
     And I click "IP Restrict Rules"
     Then I should see "Rules"
     And I click "Add"
     And I fill in "Url pattern" with ".*useraudit.*"
-    And I select "localhost" from "Ip group"
+    And I select "ALL" from "Ip group"
     And I select "DENY" from "Action"
-    And I save the form
+    And I click the "Save" button
     Then I should see "added successfully"
     Given I reload iprestrict
     When I click "Settings"

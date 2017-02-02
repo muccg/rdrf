@@ -4,21 +4,19 @@ import json
 import logging
 import os
 import shutil
-from io import StringIO
 import tempfile
 from zipfile import ZipFile
 
-from django.core.management import call_command
-from django.db import transaction, connection
+from django.db import transaction
 
 from rdrf.models import Registry
-from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue, MongoCollectionImporterCatalogue
+from rdrf.db import reset_sql_sequences
+from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue
 from .exceptions import ImportError
 from .importers import get_meta_value, allow_if_forced
 from . import definitions
 from .utils import DelegateMixin, IndentedLogger, app_schema_version
 from functools import reduce
-
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +39,7 @@ class ZipFileImporter(object):
             catalogue = definitions.Catalogue(
                 DataGroupImporterCatalogue(),
                 ModelImporterCatalogue(),
-                MongoCollectionImporterCatalogue())
+            )
         self.catalogue = catalogue
         self.zipfile = zipfile
         self.workdir = None
@@ -149,16 +147,8 @@ class BaseImporter(DelegateMixin):
 
     def reset_sql_sequences(self):
         meta = self.maybe_filter_meta(get_meta_value(self.meta, 'data_groups'))
-        apps = set(reduce(lambda d, x: d + list(x.get('app_versions', {}).keys()), meta, []))
-
-        os.environ['DJANGO_COLORS'] = 'nocolor'
-        commands = StringIO()
-
-        for app in apps:
-            call_command('sqlsequencereset', app, stdout=commands)
-
-        cursor = connection.cursor()
-        cursor.execute(commands.getvalue())
+        apps = sorted(reduce(lambda d, x: d.union(x.get('app_versions', {}).keys()), meta, set()))
+        reset_sql_sequences(apps)
 
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
@@ -211,19 +201,8 @@ class RegistryImporter(BaseImporter):
         self.registry_code = get_meta_value(self.meta, 'registry.code')
         self.checks.check_registry_does_not_exist()
 
-        # TODO We should probably do all of this in a transaction as below.
-        # However, this would work only for the RDBMS and Mongo data changes
-        # won't be rolled back. Therefore we could end up with some Mongo data
-        # being inserted, but the relational data being rolled back.
-        # Given that we can't avoid ending up with inconsistent data, I'm
-        # leaving this off for now.
-        #
-        # with transaction.atomic():
-        #    self.import_datagroups(self.registry_code, get_meta_value(self.meta, 'data_groups'))
-
-        # TODO implement fake transactions by keeping a record of mongo documents inserted
-        # and deleting them all on exception
-        self.import_datagroups(get_meta_value(self.meta, 'data_groups'))
+        with transaction.atomic():
+            self.import_datagroups(get_meta_value(self.meta, 'data_groups'))
 
     def output_import_info(self):
         logger = BaseImporter.output_import_info(self)

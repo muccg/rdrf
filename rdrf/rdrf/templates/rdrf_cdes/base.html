@@ -4,6 +4,8 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
+{% load project_title %}
+{% load project_title_link %}
 {%  block htmltype %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -53,7 +55,7 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">{% trans "Rare Disease Registry Framework" %}</a>
+          <a class="navbar-brand" href="{% project_title_link %}">{% project_title %}</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -83,25 +85,10 @@
                         <span class="glyphicon glyphicon-tasks"></span> {% trans "Menu" %}<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        {% if request.user.is_curator or request.user.is_superuser %}
-                            {% for reg in request.user.get_registries.all %}
-                                <li><a href="{% url 'consent_list' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Consents</a></li>
-                            {% endfor %}
-                        {% endif %}
-
-                        {% if request.user.is_superuser %}
-
-                            {% for reg in request.user.get_registries_or_all %}
-                                    <li><a href="{% url 'permission_matrix' reg.code %}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {{reg.code|upper}} Permissions</a></li>
-                            {% endfor %}
-
-                        {% endif %}
-
-                        {% for quick_link in request.user.quick_links %}
-                            {% if not quick_link.admin_link %}
-                                <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
-                            {% endif %}
+                        {% for quick_link in request.user.menu_links %}
+                            <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                         {% endfor %}
+
                         {% block extra_menu %}
                         {% endblock %}
                     </ul>
@@ -113,10 +100,8 @@
                             <span class="glyphicon glyphicon-wrench"></span> {% trans "Settings" %}<span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
-                            {% for quick_link in request.user.quick_links %}
-                                {% if quick_link.admin_link %}
-                                    <li><a href="{{quick_link.url}}"><span class="glyphicon {{quick_link.glyph_icon}}"></span> {% trans quick_link.text %}</a></li>
-                                {% endif %}
+                            {% for quick_link in request.user.settings_links %}
+                                <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                             {% endfor %}
                         </ul>
                     </li>

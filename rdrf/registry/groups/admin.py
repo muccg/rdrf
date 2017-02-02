@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from django.core.exceptions import ValidationError
+from useraudit.models import UserDeactivation
 
 import logging
 
@@ -27,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = RDRFUserCreationForm
 
-    list_display = ('username', 'email', 'get_working_groups', 'get_registries')
+    list_display = ('username', 'email', 'get_working_groups', 'get_registries', 'status')
 
     def get_form(self, request, obj=None, **kwargs):
         user = get_user_model().objects.get(username=request.user)
@@ -117,6 +120,18 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ()
+
+    def status(self, user):
+        if user.is_active:
+            return 'Active'
+        choices = dict(UserDeactivation.DEACTIVATION_REASON_CHOICES)
+        last_deactivation = UserDeactivation.objects.filter(username=user.username).order_by('-timestamp').first()
+        if last_deactivation is None or last_deactivation.reason not in choices:
+            return 'Inactive'
+
+        reason = choices[last_deactivation.reason]
+
+        return 'Inactive (%s)' % reason
 
 
 admin.site.register(get_user_model(), CustomUserAdmin)

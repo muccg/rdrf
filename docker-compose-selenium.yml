@@ -1,34 +1,43 @@
-seleniumhub:
-  image: selenium/hub
-  environment:
-    - GRID_TIMEOUT=120000
-  log_driver: json-file
-  log_opt:
-    max-size: "10m"
-    max-file: "5"
-  ports:
-    - "4444"
+version: '2'
+services:
 
-chrome:
-  image: selenium/node-chrome-debug
-  shm_size: 256M
-  environment:
-    - SCREEN_WIDTH=1366
-    - SCREEN_HEIGHT=768
-    - SCREEN_DEPTH=16
-  ports:
-    - 5901:5900
-  links:
-  - seleniumhub:hub
+  # https://stackoverflow.com/questions/36087173/containers-are-not-linked-with-docker-compose-version-2
 
-firefox:
-  image: selenium/node-firefox-debug
-  shm_size: 256M
-  environment:
-    - SCREEN_WIDTH=1366
-    - SCREEN_HEIGHT=768
-    - SCREEN_DEPTH=16
-  ports:
-    - 5900:5900
-  links:
-  - seleniumhub:hub
+  hub:
+    image: selenium/hub
+    environment:
+      - GRID_TIMEOUT=120000
+    ports:
+      - "4444"
+
+  chrome:
+    image: selenium/node-chrome-debug
+    shm_size: 256M
+    environment:
+      - SCREEN_WIDTH=1366
+      - SCREEN_HEIGHT=768
+      - SCREEN_DEPTH=16
+      - HUB_PORT_4444_TCP_ADDR=hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    depends_on:
+      - hub
+    ports:
+      - 5901:5900
+    depends_on:
+      - hub
+
+  firefox:
+    image: selenium/node-firefox-debug
+    shm_size: 256M
+    environment:
+      - SCREEN_WIDTH=1366
+      - SCREEN_HEIGHT=768
+      - SCREEN_DEPTH=16
+      - HUB_PORT_4444_TCP_ADDR=hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    depends_on:
+      - hub
+    ports:
+      - 5900:5900
+    depends_on:
+      - hub

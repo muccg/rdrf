@@ -1,59 +1,74 @@
-# data only container pattern
-datadev:
-  extends:
-    file: docker-compose-common.yml
-    service: datadev
+version: '2'
+services:
 
-db:
-  extends:
-    file: docker-compose-common.yml
-    service: db
+  # data only container pattern
+  datadev:
+    extends:
+      file: docker-compose-common.yml
+      service: datadev
 
-fdp_db:
-  extends:
-    file: docker-compose-common.yml
-    service: fdp_db
+  db:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-cache:
-  extends:
-    file: docker-compose-common.yml
-    service: cache
+  clinicaldb:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
-mongo:
-  extends:
-    file: docker-compose-common.yml
-    service: mongo
+  fdpdb:
+    extends:
+      file: docker-compose-common.yml
+      service: dbfdp
 
-nginx:
-  extends:
-    file: docker-compose-common.yml
-    service: nginx
-  links:
-    - uwsgi
+  cache:
+    extends:
+      file: docker-compose-common.yml
+      service: cache
 
-runserver:
-  extends:
-    file: docker-compose-common.yml
-    service: runserver
-  volumes_from:
-    - datadev
-  links:
-    - db
-    - fdp_db
-    - cache
-    - mongo
-  ports:
-    - "8000:8000"
+  mongo:
+    extends:
+      file: docker-compose-common.yml
+      service: mongo
 
-uwsgi:
-  extends:
-    file: docker-compose-common.yml
-    service: uwsgi
-  volumes_from:
-    - datadev
-  links:
-    - db
-    - fdp_db
-    - cache
-    - mongo
-    - runserver:web
+  nginx:
+    extends:
+      file: docker-compose-common.yml
+      service: nginx
+    depends_on:
+      - uwsgi
+
+  runserver:
+    extends:
+      file: docker-compose-common.yml
+      service: runserver
+    environment:
+      - DJANGO_FIXTURES=dev
+    volumes_from:
+      - datadev
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - clinicaldb
+      - fdpdb
+      - cache
+      - mongo
+    networks:
+      default:
+        aliases:
+          - web
+
+  uwsgi:
+    extends:
+      file: docker-compose-common.yml
+      service: uwsgi
+    volumes_from:
+      - datadev
+    depends_on:
+      - db
+      - clinicaldb
+      - fdpdb
+      - cache
+      - mongo

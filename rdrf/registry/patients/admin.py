@@ -15,7 +15,6 @@ from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
-from rdrf.utils import has_feature
 from registry.patients.models import ConsentValue
 
 logger = logging.getLogger(__name__)
@@ -89,10 +88,7 @@ class PatientAdmin(admin.ModelAdmin):
                PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list',
-                    'date_of_birth', 'demographic_btn']
-
-    if has_feature('adjudication'):
-        list_display.append('adjudications_btn')
+                    'date_of_birth', 'demographic_btn', 'adjudications_btn']
 
     list_filter = [RegistryFilter]
 
@@ -520,13 +516,68 @@ class ClinicianOtherAdmin(admin.ModelAdmin):
     list_display = ('clinician_name', 'clinician_hospital', 'clinician_address')
 
 
+def unarchive_patient_action(modeladmin, request, archive_patients_selected):
+    if request.user.is_superuser:
+        for archived_patient in archive_patients_selected:
+            archived_patient.active = True
+            archived_patient.save()
+
+unarchive_patient_action.short_description = "Unarchive archived patient"
+
+def hard_delete_patient_action(modeladmin, request, archive_patients_selected):
+    if request.user.is_superuser:
+        for archived_patient in archive_patients_selected:
+            archived_patient._hard_delete()
+        
+hard_delete_patient_action.short_description = "Hard delete archived patient"
+
+class ArchivedPatientAdmin(admin.ModelAdmin):
+    list_display = ('id', 'display_name', 'date_of_birth', 'membership')
+    actions = [unarchive_patient_action, hard_delete_patient_action]
+    list_display_links = None
+
+    def get_queryset(self, request):
+        if not request.user.is_superuser:
+            return []
+
+        return Patient.objects.inactive()
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def __init__(self, *args, **kwargs):
+        super(ArchivedPatientAdmin, self).__init__(*args, **kwargs)
+
+    def membership(self, patient_model):
+        s = ""
+        for r in patient_model.rdrf_registry.all().order_by('name'):
+            s = s + r.name + "("
+            for wg in patient_model.working_groups.filter(registry=r).order_by('name'):
+                s = s + wg.name + " "
+            s = s + ") "
+        return s
+
+# Use Proxy Model for Archived Patient as we can only register one model class once and the name
+# comes from the model
+
+def create_proxy_class(base_model, new_name):
+    # Adapted from http://stackoverflow.com/questions/2223375/multiple-modeladmins-views-for-same-model-in-django-admin 
+    class  Meta:
+        proxy = True
+        app_label = base_model._meta.app_label
+    attrs = {'__module__': '', 'Meta': Meta}
+    proxy_class = type(new_name, (base_model,), attrs)
+    return proxy_class
+
+
 admin.site.register(Doctor, DoctorAdmin)
-admin.site.register(Patient, PatientAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
+admin.site.register(Patient, PatientAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
+admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
 
 admin.site.disable_action('delete_selected')

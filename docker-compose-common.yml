@@ -1,103 +1,103 @@
-# data only container pattern
-datadev:
-  image: debian:jessie
-  volumes:
-    - .:/app
-    - ./data/dev:/data
+version: '2'
+services:
 
-datatest:
-  image: debian:jessie
-  volumes:
-    - .:/app
-    - ./data/tests:/data
+  # data only container pattern
+  datadev:
+    image: debian:jessie
+    volumes:
+      - .:/app
+      - ./data/dev:/data
 
-dataprodselenium:
-  image: debian:jessie
-  volumes:
-    - .:/app
-    - ./data/selenium/prod:/data
+  datatest:
+    image: debian:jessie
+    volumes:
+      - .:/app
+      - ./data/tests:/data
 
-datadevselenium:
-  image: debian:jessie
-  volumes:
-    - .:/app
-    - ./data/selenium/dev:/data
+  dataprodselenium:
+    image: debian:jessie
+    volumes:
+      - .:/app
+      - ./data/selenium/prod:/data
 
-jasper:
-  image: muccg/jasper-reports-server:6.1.1
-  command: development
-  ports:
-    - "8080"
-  #links:
-  #  - db:db
-  environment:
-    - DB_HOST=db
-    - DB_PORT=5432
-    - DB_NAME=rdrfapp
-    - DB_USERNAME=rdrfapp
-    - DB_PASSWORD=rdrfapp
-    - WAIT_FOR_DB=1
+  datadevselenium:
+    image: debian:jessie
+    volumes:
+      - .:/app
+      - ./data/selenium/dev:/data
 
-db:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=rdrfapp
-    - POSTGRES_PASSWORD=rdrfapp
-  ports:
-    - "5432"
+  jasper:
+    image: muccg/jasper-reports-server:6.1.1
+    command: development
+    ports:
+      - "8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=webapp
+      - DB_USERNAME=webapp
+      - DB_PASSWORD=webapp
+      - WAIT_FOR_DB=1
 
-fdp_db:
-  image: muccg/postgres-ssl:9.4
-  environment:
-    - POSTGRES_USER=fdp
-    - POSTGRES_PASSWORD=fdp
-  ports:
-    - "5432"
+  db:
+    image: muccg/postgres-ssl:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
 
-cache:
-  image: memcached:1.4
+  dbfdp:
+    image: muccg/postgres-ssl:9.4
+    environment:
+      - POSTGRES_USER=fdp
+      - POSTGRES_PASSWORD=fdp
+    ports:
+      - "5432"
 
-mongo:
-  image: mongo:3.0
-  command: mongod --smallfiles
+  cache:
+    image: memcached:1.4
 
-triplestore:
-  image: muccg/allegro:4.14.1
-  ports:
-    - "10035"
+  mongo:
+    image: mongo:3.0
+    command: mongod --smallfiles
 
-nginx:
-  image: muccg/nginx-uwsgi:1.10
-  ports:
-    - "8443:443"
-    - "8080:80"
-  volumes:
-    - ./data/nginx:/data
+  triplestore:
+    image: muccg/allegro:4.14.1
+    ports:
+      - "10035"
 
-runserver:
-  image: muccg/rdrf-dev
-  environment:
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_FDP_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-    - FDP_ENDPOINTS_ENABLED=1
+  nginx:
+    image: muccg/nginx-uwsgi:1.10
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ./data/nginx:/data
 
-uwsgi:
-  image: muccg/rdrf-dev
-  command: uwsgi_local
-  environment:
-    - DBUSER=rdrfapp
-    - WAIT_FOR_DB=1
-    - WAIT_FOR_FDP_DB=1
-    - WAIT_FOR_CACHE=1
-    - WAIT_FOR_MONGO=1
-    - WAIT_FOR_RUNSERVER=1
-    # note: important to wait for runserver in dev as both will attempt to syncdb etc
-  ports:
-    - "9000:9000"
-    - "9001:9001"
-    - "9100:9100"
-    - "9101:9101"
+  runserver:
+    image: muccg/rdrf-dev
+    environment:
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_FDP_DB=1
+      - WAIT_FOR_CACHE=1
+      - WAIT_FOR_MONGO=1
+      - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+
+  uwsgi:
+    image: muccg/rdrf-dev
+    command: uwsgi_local
+    environment:
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_FDP_DB=1
+      - WAIT_FOR_CACHE=1
+      - WAIT_FOR_MONGO=1
+      - WAIT_FOR_RUNSERVER=1
+      # note: important to wait for runserver in dev as both will attempt to syncdb etc
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+      - "9100:9100"
+      - "9101:9101"

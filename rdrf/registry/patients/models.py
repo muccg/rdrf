@@ -97,6 +97,22 @@ class PatientManager(models.Manager):
             rdrf_registry__isnull=False)
 
 
+    # what's returned when an ordinary query like Patient.objects.all() is used
+    def get_queryset(self):
+        # do NOT include inactive ( soft-deleted/archived) patients
+        return super(PatientManager, self).get_queryset().filter(active=True)
+
+
+    def really_all(self):
+        # shows archived ( soft-deleted/archived ) patients also
+        return super(PatientManager, self).get_queryset().all()
+
+    def inactive(self):
+        return self.really_all().filter(active=False)
+        
+    
+
+
 class Patient(models.Model):
 
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
@@ -264,6 +280,25 @@ class Patient(models.Model):
 
     def has_feature(self, feature):
         return any([r.has_feature(feature) for r in self.rdrf_registry.all()])
+
+    @property
+    def is_linked(self):
+        """
+        Am I linked to other relative patients ( only applicable to patients in
+        registries that allow creation of patient relatives
+        """
+        if not self.is_index:
+            return False
+
+        for patient_relative in self.relatives.all():
+            if patient_relative.relative_patient:
+                return True
+
+        return False
+
+    def get_archive_url(self, registry_model):
+        patient_detail_link = reverse('v1:patient-detail', args=(registry_model.code, self.pk))
+        return patient_detail_link
 
     @property
     def working_groups_display(self):
@@ -444,6 +479,7 @@ class Patient(models.Model):
             # ensure we have sane data frame
             mongo_data = {"django_id": self.pk,
                           "django_model": "Patient",
+                          "timestamp":  datetime.datetime.now(),
                           "context_id": context_model.pk,
                           "forms": []}
 
@@ -554,12 +590,23 @@ class Patient(models.Model):
             logger.debug("no PatientRelative to sync")
             return
         logger.debug("Patient %s updating PatientRelative %s" % (self, pr))
+        
         pr.given_names = self.given_names
         pr.family_name = self.family_name
         pr.date_of_birth = self.date_of_birth
         pr.sex = self.sex
         pr.living_status = self.living_status
+
+        # sever the link if we've deactivated
+        if not self.active:
+            logger.debug("%s is inactive so unlinking PR %s from me" % (self,
+                                                                        pr))
+            
+            pr.relative_patient = None
+            
         pr.save()
+        logger.debug("PR rp = %s" % pr.relative_patient)
+        
         logger.debug("synced PatientRelative OK")
 
     def set_consent(self, consent_model, answer=True, commit=True):
@@ -664,15 +711,18 @@ class Patient(models.Model):
     def delete(self, *args, **kwargs):
         """
         If a user deletes a patient it's active flag will be true, so we should set it to false.
-        If a superuser deletes a patient it's active flag is false, so we should delete the object.
+        If a superuser deletes a patent it's active flag is false, so we should delete the object.
         """
         if self.active:
             logger.debug("Archiving patient record.")
             self.active = False
             self.save()
-        else:
-            logger.debug("Deleting patient record.")
-            super(Patient, self).delete(*args, **kwargs)
+            self.sync_patient_relative()
+
+
+    def _hard_delete(self, *args, **kwargs):
+        # real delete!
+        super(Patient, self).delete(*args, **kwargs)
 
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
@@ -800,21 +850,17 @@ class Patient(models.Model):
 
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
-
         form_model = context_form_group.form_models[0]
 
-        links = []
+        matches_context_form_group = lambda cm: cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
 
-        for context_model in sorted(self.context_models, key=lambda c: c.created_at, reverse=True):
-            if context_model.context_form_group and context_model.context_form_group.pk == context_form_group.pk:
-                link_text = context_model.context_form_group.get_name_from_cde(self, context_model)
-                link_url = reverse('registry_form', args=(context_model.registry.code,
-                                                          form_model.id,
-                                                          self.pk,
-                                                          context_model.id))
-                links.append((link_url, link_text))
+        context_models = sorted([cm for cm in self.context_models if matches_context_form_group(cm)],
+                                key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
 
-        return links
+        link_text = lambda cm: cm.context_form_group.get_name_from_cde(self, cm)
+        link_url = lambda cm: reverse('registry_form', args=(cm.registry.code, form_model.id, self.pk, cm.id))
+
+        return [(link_url(cm), link_text(cm)) for cm in context_models]
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
