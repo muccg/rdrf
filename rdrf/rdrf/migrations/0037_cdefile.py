@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='cdefile',
             name='form_name',
-            field=models.CharField(blank=True, max_length=10),
+            field=models.CharField(blank=True, max_length=80),
         ),
         migrations.AddField(
             model_name='cdefile',

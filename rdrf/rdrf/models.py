@@ -2255,7 +2255,7 @@ class CDEFile(models.Model):
     See filestorage.py for usage of this model.
     """
     registry_code = models.CharField(max_length=10)
-    form_name = models.CharField(max_length=10, blank=True)
+    form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
