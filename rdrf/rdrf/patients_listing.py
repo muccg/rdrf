@@ -497,6 +497,8 @@ class ColumnContextMenu(Column):
             self.free_forms = list(filter(user.can_view, registry.free_forms))
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
+        if supports_contexts:
+            return "N/A"
         return "".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
