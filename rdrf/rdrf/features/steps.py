@@ -27,6 +27,7 @@ def load_development_fixtures(step):
 @step('export "(.*)"')
 def load_export(step, export_name):
     utils.load_export(export_name)
+    utils.reset_password_change_date()
 
 
 @step('should see "([^"]+)"$')
@@ -359,5 +360,5 @@ def enter_value_for_named_element(step, value, name):
             input_element.send_keys(value)
             return
     raise Exception("can't find element '%s'" % name)
-                
-    
+
+

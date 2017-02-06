@@ -22,6 +22,13 @@ def stellar_config_path():
     return os.path.join(utils_path(), 'stellar')
 
 
+def reset_password_change_date():
+    logger.info('')
+    from registry.groups.models import CustomUser
+    from django.utils import timezone
+    CustomUser.objects.update(password_change_date=timezone.now())
+
+
 def subprocess_logging(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
