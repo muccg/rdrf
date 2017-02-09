@@ -1023,8 +1023,16 @@ class QuestionnaireResponse(models.Model):
 
     @property
     def date_of_birth(self):
-        dob = self._get_patient_field("CDEPatientDateOfBirth")
-        return parse_iso_date(dob)
+        dob_string = self._get_patient_field("CDEPatientDateOfBirth")
+        if not dob_string:
+            return ""
+        
+        if "T" in dob_string:
+            # time was being included from questionnaire for some data: e.g. '1918-08-01T00:00:00'
+            t_index = dob_string.index("T")
+            dob_string = dob_string[:t_index]
+            
+        return parse_iso_date(dob_string)
 
     def _get_patient_field(self, patient_field):
         from .dynamic_data import DynamicDataWrapper
