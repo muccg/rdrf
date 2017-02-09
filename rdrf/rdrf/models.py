@@ -18,7 +18,8 @@ from django.forms.models import model_to_dict
 
 from .notifications import Notifier, NotificationError
 from .utils import get_full_link, check_calculation
-from .utils import format_date, parse_iso_date
+from .utils import format_date, parse_iso_date, parse_iso_datetime
+
 from .jsonb import DataField
 
 logger = logging.getLogger(__name__)
@@ -1023,8 +1024,15 @@ class QuestionnaireResponse(models.Model):
 
     @property
     def date_of_birth(self):
-        dob = self._get_patient_field("CDEPatientDateOfBirth")
-        return parse_iso_date(dob)
+        # time was being included from questionnaire for some data: e.g. '1918-08-01T00:00:00'
+        dob_string = self._get_patient_field("CDEPatientDateOfBirth")
+        if not dob_string:
+            return ""
+
+        try:
+            return parse_iso_datetime(dob_string).date()
+        except ValueError:
+            return ""
 
     def _get_patient_field(self, patient_field):
         from .dynamic_data import DynamicDataWrapper

@@ -96,10 +96,11 @@ class PatientsListingView(View):
     def _password_about_to_expire_msg(self):
         if should_warn_about_password_expiry(self.user):
             days_left = days_to_password_expiry(self.user)
-            return Message.warning(mark_safe(
-                'Your password will expiry in %d days.'
-                'Please use <a href="%s" class="alert-link">Password Reset</a> to change it.' %
-                (days_left, reverse('password_reset'))))
+            if days_left is not None:
+                return Message.warning(mark_safe(
+                    'Your password will expire in %d days.'
+                    'Please use <a href="%s" class="alert-link">Password Reset</a> to change it.' %
+                    (days_left, reverse('password_reset'))))
 
     def get_columns(self):
         return [

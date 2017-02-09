@@ -702,7 +702,7 @@ class FormView(View):
             'forms': form_section,
             'display_names': display_names,
             'section_ids': ids,
-            "not_linked": patient_model.is_linked,
+            "not_linked": patient_model.is_linked if patient_model else True,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             'section_field_ids_map': section_field_ids_map,
