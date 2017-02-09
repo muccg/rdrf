@@ -58,7 +58,7 @@ def mongo_client():
 def mongo_django(Modjgo, registries, dry_run=False):
     client = mongo_client()
     for registry in registries:
-        collection = MONGO_DB_PREFIX + registry.code
+        collection = settings.MONGO_DB_PREFIX + registry.code
         logger.info("Converting mongodb %s: %s" % (collection, registry.name))
         db = client[collection]
         convert_registry(Modjgo, registry, db, dry_run=dry_run)
@@ -68,7 +68,7 @@ def undjango_mongo(Modjgo, registries, dry_run=False):
     client = mongo_client()
     dead_ids = []
     for registry in registries:
-        collection = MONGO_DB_PREFIX + registry.code
+        collection = settings.MONGO_DB_PREFIX + registry.code
         logger.info("Reverting mongodb %s: %s" % (collection, registry.name))
         db = client[collection]
         revert_registry(Modjgo, registry, db, dead_ids, dry_run=dry_run)
