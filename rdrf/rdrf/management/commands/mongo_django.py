@@ -7,6 +7,7 @@ from bson import ObjectId
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.conf import settings
 
 from ccg_django_utils.conf import EnvConfig
 from ...models import Registry, Modjgo
@@ -37,7 +38,6 @@ class Command(BaseCommand):
 
 
 def mongo_client():
-    from django.conf import settings
     return MongoClient(settings.MONGOSERVER, settings.MONGOPORT,
                        settings.MONGO_CLIENT_MAX_POOL_SIZE,
                        dict, settings.MONGO_CLIENT_TZ_AWARE,
