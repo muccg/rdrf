@@ -42,7 +42,7 @@ KEY_MAP = {
     "PatientConsentPartOfRegistry": ("consent", None),
     "PatientConsentClinicalTrials": ("consent_clinical_trials", None),
     "PatientConsentSentInfo": ("consent_sent_information", None),
-    "CDEPatientDateOfBirth": ("date_of_birth", None),
+    "CDEPatientDateOfBirth": ("date_of_birth", Func("get_patient_date_of_birth")),
     "CDEPatientCentre": ("working_groups", Func("get_working_group")),
     "CDEPatientMobilePhone": ("mobile_phone", None),
     "CDEPatientHomePhone": ("home_phone", None),
@@ -340,6 +340,8 @@ class QuestionnaireReverseMapper(object):
                 converter = get_working_group
             elif function_name == "set_next_of_kin_relationship":
                 converter = set_next_of_kin_relationship
+            elif function_name == "get_patient_date_of_birth":
+                converter = self._get_date_of_birth
             return value[0], converter
         else:
             logger.debug("KEY_MAP[%s] value = %s" % (cde_code, value))
@@ -347,6 +349,14 @@ class QuestionnaireReverseMapper(object):
 
     def _get_demographic_data(self):
         return self._get_field_data(dynamic=False)
+
+    def _get_date_of_birth(self, questionnaire_value):
+        from rdrf.utils import parse_iso_datetime
+        try:
+            # the time field was causing a problem
+            return parse_iso_datetime(questionnaire_value).date()
+        except ValueError:
+            raise ValueError("Invalid date of birth: %s" % questionnaire_value)
 
     def _get_dynamic_data(self):
         return self._get_field_data()
