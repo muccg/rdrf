@@ -752,7 +752,7 @@ class CommonDataElement(models.Model):
             return None
         elif self.datatype.lower() == "date":
             try:
-                return parse_iso_date(stored_value)
+                return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return None
         return stored_value
@@ -778,7 +778,7 @@ class CommonDataElement(models.Model):
                                                               ex))
         elif self.datatype.lower() == "date":
             try:
-                return parse_iso_date(stored_value)
+                return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return ""
 
