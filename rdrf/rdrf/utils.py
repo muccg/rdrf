@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_bytes
+from copy import deepcopy
 
 import datetime
 import dateutil.parser
@@ -441,3 +442,124 @@ class Message():
 
     def __repr__(self):
         return self.text
+
+
+
+class TimeStripper(object):
+    """
+    This class exists to fix an error we introduced in the migration
+    moving from Mongo to pure Django models with JSON fields ( "Modjgo" 0objects.)
+    CDE date values were converted  into iso strings including a time T substring.
+    This was done recursively for the cdes and history collections 
+    We provide forwards and backward methods to be used in a migration to fix this
+    I have used a class so we can unit test more easily.
+    """
+    
+    def __init__(self, dataset):
+        self.dataset = dataset # queryset live , lists of data records for testing
+        self.backup_data = {}
+        # following fields used for testing
+        self.test_mode = False
+        self.converted_date_cdes = []
+        self.date_cde_codes = []
+        
+
+    def forward(self, apps, schema_editor):
+        print("in forward")
+        for thing in self.dataset:
+            print("updating %s" % thing)
+            self.update(thing)
+
+    def munge_timestamp(self, datestring):
+        if "T" in datestring:
+            t_index = datestring.index("T")
+            return datestring[:t_index]
+        else:
+            return datestring
+
+    def is_date_cde(self, cde_dict):
+        code = cde_dict["code"]
+        if self.test_mode:
+            return code in self.date_cde_codes
+        else:
+            # not test mode
+            from rdrf.models import CommonDataElement
+            try:
+                cde_model = CommonDataElement.objects.get(code=code)
+                value = cde_model.datatype == "date"
+                if value:
+                    print("CDE %s is a date CDE - value will be checked and updated" % cde_model.code)
+                    return value
+
+            except CommonDataElement.DoesNotExist:
+                print("Missing CDE Model! Data has code %s which does not exist on the site" % code)
+
+    def update_cde(self, cde):
+        old_datestring = cde["value"]
+        new_datestring = self.munge_timestamp(old_datestring)
+        if new_datestring != old_datestring:
+            cde["value"] = new_datestring
+            if self.test_mode:
+                self.converted_date_cdes.append(cde["value"])
+                print("converted %s --> %s" % (old_datestring,
+                                               new_datestring))
+                
+            return True
+
+    def update(self, m):
+        updated = False
+        if m.data:
+            print("data exists")
+            data_copy = deepcopy(m.data)
+            if "forms" in m.data:
+                print("data has a forms key")
+                for form in m.data["forms"]:
+                    if "sections" in form:
+                        print("sections in form_dict")
+                        for section in form["sections"]:
+                            if not section["allow_multiple"]:
+                                if "cdes" in section:
+                                    print("cdes in section")
+                                    for cde in section["cdes"]:
+                                            if self.is_date_cde(cde):
+                                                updated = self.update_cde(cde)
+                                                
+                            else:
+                                print("checking multisection")
+                                items = section["cdes"]
+                                for item in items:
+                                    for cde in item:
+                                        if self.is_date_cde(cde):
+                                            print("cde %s is a date - checking" % cde["code"])
+                                            if self.update_cde(cde):
+                                                updated = True
+                                                print("set updated to True")
+                                        else:
+                                            print("cde %s is not a date" % cde["code"])
+                                            
+                                                
+            # avoid updating if we don't need to
+            if updated:
+                print("record has been updated - adding m.pk of %s to backup_data" % m.pk)
+                
+                self.backup_data[m.pk] = data_copy
+                try:
+                    m.save()
+                except Exception as ex:
+                    print("Error saving Modjgo object %s after updating: %s" % (m.pk,
+                                                                                ex))
+                    raise   # rollback
+
+
+                    
+    def backward(self, apps, schema_editor):
+        for m in self.dataset:
+            if m.pk in self.backup_data:
+                print("Rolling back: Restoring data for Modjgo object %s" % (m.pk))
+                m.data = self.backup_data[m.pk]
+                try:
+                    m.save()
+                except Exception as ex:
+                      print("could not restore Modjgo %s: %s" % (m.pk,
+                                                                 ex))
+

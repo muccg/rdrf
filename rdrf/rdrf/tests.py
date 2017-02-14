@@ -19,7 +19,8 @@ from .form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
 from registry.groups.models import WorkingGroup, CustomUser
-from .utils import de_camelcase, check_calculation
+from .utils import de_camelcase, check_calculation, TimeStripper
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
@@ -485,3 +486,183 @@ class JavascriptCheckTestCase(TestCase):
     def test_nonascii(self):
         err = check_calculation("context.result = '💩';")
         self.assertEqual(err, "")
+
+
+
+class FakeModjgo(object):
+            def __init__(self, pk, data):
+                self.pk = pk
+                self.data = data
+            def save(self):
+                print("Fake Modjgo save called")
+
+
+class TimeStripperTestCase(TestCase):
+    def setUp(self):
+        super(TimeStripperTestCase, self).setUp()
+
+        
+        self.data_with_date_cdes = {'django_model': 'Patient',
+                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+                                    'context_id': 4,
+                                    'django_id': 3,
+                                    'forms': [{'name': 'ClinicalData',
+                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
+                                                                      {'value': '1972-06-15T00:00:00.00', 'code': 'DateOfAssessment'},
+                                                                      {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
+                                                            {'code': 'SEC0007', 'allow_multiple': False,
+                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
+                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+
+        self.copy_of_initial_data = deepcopy(self.data_with_date_cdes)
+        
+        
+        self.data_without_date_cdes =  {'django_model': 'Patient',
+                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+                                    'context_id': 40,
+                                    'django_id': 300,
+                                    'forms': [{'name': 'ClinicalData',
+                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
+                                                            {'code': 'SEC0007', 'allow_multiple': False,
+                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
+                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+
+        
+
+        self.m1 = FakeModjgo(1, self.data_with_date_cdes)
+        self.m2 = FakeModjgo(2, self.data_without_date_cdes)
+
+        self.ts = TimeStripper([self.m1, self.m2])
+        self.ts.test_mode = True
+        self.ts.date_cde_codes = ['DateOfAssessment', 'FHconsentDate']
+        
+        self.dummy_apps = None
+        self.dummy_schema_editor = None
+
+    def test_timestripper_forwards(self):
+        a = deepcopy(self.data_with_date_cdes)
+
+        expected_date_of_assessment = "1972-06-15"
+        expected_fh_consent_date = "2015-01-05"
+        expected = [expected_date_of_assessment, expected_fh_consent_date]
+        ClinicalData_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
+        fh_index_before  = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+        
+        
+        self.ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        ClinicalData_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
+        fh_index_after  = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+
+
+        self.assertTrue(self.ts.converted_date_cdes == expected,
+                        "Expected %s Actual %s" % (expected, self.ts.converted_date_cdes))
+
+        self.assertTrue(self.ts.backup_data[1] == a, "backup of record pre-op not same")
+        self.assertTrue(2 not in self.ts.backup_data, "Expected non-modified record not to be in backup")
+
+        value1 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][1]["value"]
+        self.assertTrue(value1 == expected_date_of_assessment, "DateOfAssessment value not modified by TimeStripper")
+        value2 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][2]["value"]
+        self.assertTrue(value2 == expected_fh_consent_date, "FHConsentdate value not modified by TimeStripper")
+
+        self.assertTrue(ClinicalData_timestamp_after == ClinicalData_timestamp_before, "Timestamps which are not date cdes should not be affected by TimeStripper")
+        self.assertTrue(fh_index_before == fh_index_after, "Non date cdes should not be affected by TimeStripper")
+
+
+    def test_timestripper_backwards(self):
+        self.ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        self.ts.backward(self.dummy_apps, self.dummy_schema_editor)
+
+        rolled_back_data = self.ts.dataset[0].data
+
+        self.assertTrue(self.copy_of_initial_data == rolled_back_data, "Rollback failed: before = %s after = %s" % (self.copy_of_initial_data,
+                                                                                                                            self.data_with_date_cdes))
+
+
+    def test_update_of_multisections(self):
+        # multisection with 2 items , one cde Surgery , another SurgeryDate
+        cde_dict1 = {"code": "Surgery", "value": "Appendix Removed"}
+        cde_dict2 = {"code": "SurgeryDate", "value": "2017-02-14T00:00:00"}
+        cde_dict3 = {"code": "Surgery", "value": "Stomach Ulcer"}
+        cde_dict4 = {"code": "SurgeryDate", "value": "2018-03-26T00:00:00"}
+        # assume last item ok
+        cde_dict5 = {"code": "Surgery", "value": "Heart Surgery"}
+        cde_dict6 = {"code": "SurgeryDate", "value": "2011-11-05"}
+        
+        item1 = [cde_dict1, cde_dict2]
+        item2 = [cde_dict3, cde_dict4]
+        item3 = [cde_dict5, cde_dict6]
+
+        multisection = {"allow_multiple": True,
+                        "cdes" : [item1, item2, item3]}
+        
+        
+        data_with_multisections = {"forms": [ {"form": "testing",
+                                               "sections": [multisection]}]}
+        
+        copy_before_op = deepcopy(data_with_multisections)
+        m = FakeModjgo(23, data_with_multisections)
+
+        ts = TimeStripper([m])
+        ts.test_mode = True
+        ts.date_cde_codes = ['SurgeryDate']
+
+        ts.forward(self.dummy_apps, self.dummy_schema_editor)
+
+        self.assertTrue(ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
+                        "Multisection timestrip failed: actual = %s" % ts.converted_date_cdes)
+
+
+        expected_value1 = "2017-02-14"
+        actual_value1 = m.data["forms"][0]["sections"][0]["cdes"][0][1]["value"]
+        self.assertEqual(expected_value1, actual_value1,
+                         "Update of multisection failed for first item: actual = %s" % actual_value1)
+
+        expected_value2 = "2018-03-26"
+        actual_value2 = m.data["forms"][0]["sections"][0]["cdes"][1][1]["value"]
+        self.assertEqual(expected_value2, actual_value2,
+                         "Update of multisection failed for second item: actual = %s" % actual_value2)
+        
+        expected_value3 = "2011-11-05" #n shouldn't have changed
+        actual_value3 = m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
+        self.assertEqual(expected_value2, actual_value2,
+                         "Update of multisection failed for third item: actual = %s" % actual_value3)
+
+
+
+        ts.backward(self.dummy_apps, self.dummy_schema_editor)
+        rolled_back_data = ts.backup_data[23]
+        
+        
+        
+        self.assertTrue(rolled_back_data == copy_before_op,
+                        "Rollback didn't work for multisection data: before = %s after = %s" % (copy_before_op,
+                                                                                                rolled_back_data))
+
+        self.assertTrue(m.data == copy_before_op, "Modjgo  data not set by rollback")
+        
+        
+        
+        
+
+        
+        
+
+
+        
+        
+        
+        
+
+        
+        
+        
+                                                                                    
+        
+        
+
+    
+        
+                
