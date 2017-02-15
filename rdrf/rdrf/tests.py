@@ -642,6 +642,394 @@ class TimeStripperTestCase(TestCase):
                                                                                                 rolled_back_data))
 
         self.assertTrue(m.data == copy_before_op, "Modjgo  data not set by rollback")
+
+
+    def test_history_munging(self):
+        from rdrf.utils import HistoryTimeStripper
+        history_modjgo_data = { "django_id": 1,
+                 "record": {
+                "django_id": 1,
+                      "timestamp": "2017-02-13T12:28:49.355839",
+                      "forms": [
+                        {
+                          "sections": [
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "fh_is_index",
+                                  "code": "CDEIndexOrRelative"
+                                },
+                                {
+                                  "value": "2017-02-15",
+                                  "code": "DateOfAssessment"
+                                },
+                                {
+                                  "value": "2017-02-14T00:00:00.000",
+                                  "code": "FHconsentDate"
+                                }
+                              ],
+                              "code": "fhDateSection"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "",
+                                  "code": "CDE00024"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "CDEfhDutchLipidClinicNetwork"
+                                }
+                              ],
+                              "code": "SEC0007"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "fh2_y",
+                                  "code": "CDE00004"
+                                },
+                                {
+                                  "value": "fh2_n",
+                                  "code": "FHFamHistTendonXanthoma"
+                                },
+                                {
+                                  "value": "fh2_n",
+                                  "code": "FHFamHistArcusCornealis"
+                                },
+                                {
+                                  "value": "fh2_y",
+                                  "code": "CDE00003"
+                                },
+                                {
+                                  "value": "y_childunder18",
+                                  "code": "FHFamilyHistoryChild"
+                                }
+                              ],
+                              "code": "SEC0002"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "",
+                                  "code": "FHSupravalvularDisease"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHAgeAtMI"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHAgeAtCV"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHPremNonCoronary"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHAorticValveDisease"
+                                },
+                                {
+                                  "value": "fh2_n",
+                                  "code": "FHPersHistCerebralVD"
+                                },
+                                {
+                                  "value": "fhpremcvd_unknown",
+                                  "code": "CDE00011"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHCoronaryRevasc"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHMyocardialInfarction"
+                                }
+                              ],
+                              "code": "SEC0004"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "u_",
+                                  "code": "CDE00002"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHXanthelasma"
+                                },
+                                {
+                                  "value": "y",
+                                  "code": "CDE00001"
+                                }
+                              ],
+                              "code": "SEC0001"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "",
+                                  "code": "PlasmaLipidTreatment"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDE00019"
+                                },
+                                {
+                                  "value": "NaN",
+                                  "code": "LDLCholesterolAdjTreatment"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDE00013"
+                                }
+                              ],
+                              "code": "FHLDLforFHScore"
+                            },
+                            {
+                              "allow_multiple": True,
+                              "cdes": [
+                                [
+                                  {
+                                    "value": None,
+                                    "code": "CDE00014"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHLipidProfileUntreatedDate"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHAlbum"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "CDE00012"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHCK"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHA1"
+                                  },
+                                  {
+                                    "value": "",
+                                    "code": "PlasmaLipidTreatmentNone"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHAST"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "CDE00015"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHApoB"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHALT"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHLLDLconc"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHCreatinine"
+                                  },
+                                  {
+                                    "value": "",
+                                    "code": "FHCompliance"
+                                  },
+                                  {
+                                    "value": "",
+                                    "code": "CDEfhOtherIntolerantDrug"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "CDE00016"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHCRP"
+                                  }
+                                ]
+                              ],
+                              "code": "SEC0005"
+                            },
+                            {
+                              "allow_multiple": False,
+                              "cdes": [
+                                {
+                                  "value": "NaN",
+                                  "code": "CDEBMI"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHHypertriglycerd"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "HbA1c"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHHypothyroidism"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDE00009"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHHeartRate"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDE00010"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHWaistCirc"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHObesity"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDE00008"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDEWeight"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHPackYears"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "CDEHeight"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "CDE00007"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHAlcohol"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "CDE00005"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "CDE00006"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHCVDOther"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHeGFR"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "ChronicKidneyDisease"
+                                },
+                                {
+                                  "value": "",
+                                  "code": "FHHepaticSteatosis"
+                                },
+                                {
+                                  "value": None,
+                                  "code": "FHTSH"
+                                }
+                              ],
+                              "code": "SEC0003"
+                            },
+                            {
+                              "allow_multiple": True,
+                              "cdes": [
+                                [
+                                  {
+                                    "value": "",
+                                    "code": "FHTrialStatus"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHTrialSTartDate"
+                                  },
+                                  {
+                                    "value": "",
+                                    "code": "FHClinicalTrialName"
+                                  },
+                                  {
+                                    "value": None,
+                                    "code": "FHTrialLength"
+                                  }
+                                ]
+                              ],
+                              "code": "FHClinicalTrials"
+                            }
+                          ],
+                          "name": "ClinicalData"
+                        }
+                      ],
+                      "context_id": 1,
+                      "ClinicalData_timestamp": "2017-02-13T12:28:49.355839",
+                      "django_model": "Patient"
+                    },
+                    "record_type": "snapshot",
+                    "timestamp": "2017-02-13 12:28:49.665333",
+                    "registry_code": "fh",
+                    "context_id": 1,
+                    "django_model": "Patient"
+                  }
+
+        expected_dates = ['2017-02-14']
+        history_record = FakeModjgo(73, history_modjgo_data)
+        ts = HistoryTimeStripper([history_record])
+        ts.test_mode = True
+        ts.date_cde_codes = ['FHconsentDate']
+        ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        
+
+        
+        self.assertTrue(ts.converted_date_cdes == expected_dates,
+                        "Expected: %s, Actual: %s" % (expected_dates,
+                                                      ts.converted_date_cdes))
+
+        
+
+
+
+    
+        
+
+        
+        
+        
+        
+        
+        
+        
+    
         
         
         
