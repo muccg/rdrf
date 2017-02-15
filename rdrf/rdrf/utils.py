@@ -448,16 +448,13 @@ class Message():
 class TimeStripper(object):
     """
     This class exists to fix an error we introduced in the migration
-    moving from Mongo to pure Django models with JSON fields ( "Modjgo" 0objects.)
+    moving from Mongo to pure Django models with JSON fields ( "Modjgo" objects.)
     CDE date values were converted  into iso strings including a time T substring.
     This was done recursively for the cdes and history collections 
-    We provide forwards and backward methods to be used in a migration to fix this
-    I have used a class so we can unit test more easily.
     """
     
     def __init__(self, dataset):
         self.dataset = dataset # queryset live , lists of data records for testing
-        self.backup_data = {}
         # following fields used for testing
         self.test_mode = False
         self.converted_date_cdes = []
@@ -544,7 +541,6 @@ class TimeStripper(object):
             data_copy = deepcopy(m.data)
             updated = self.munge_data(m.data)
             if updated:
-                self.backup_data[m.pk] = data_copy
                 try:
                     m.save()
                     print("%s saved OK" % ident)
@@ -576,30 +572,9 @@ class TimeStripper(object):
                                             
         return updated > 0
                     
-    def backward(self):
-        for m in self.dataset:
-            if m.pk in self.backup_data:
-                print("Rolling back: Restoring data for Modjgo object %s" % (m.pk))
-                m.data = self.backup_data[m.pk]
-                try:
-                    m.save()
-                except Exception as ex:
-                      print("could not restore Modjgo %s: %s" % (m.pk,
-                                                                 ex))
-
-
 
 class HistoryTimeStripper(TimeStripper):
     def munge_data(self, data):
         # History embeds the full forms dictionary in the record key
-        return super(HistoryTimeStripper, self).munge_data(data["record"])
-        
-            
-            
-            
-        
-        
-        
-        
-        
+        return super().munge_data(data["record"])
 
