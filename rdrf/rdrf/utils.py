@@ -464,7 +464,7 @@ class TimeStripper(object):
         self.date_cde_codes = []
         
 
-    def forward(self, apps, schema_editor):
+    def forward(self):
         print("in forward")
         for thing in self.dataset:
             print("updating %s" % thing)
@@ -560,7 +560,7 @@ class TimeStripper(object):
                                         
         return updated
                     
-    def backward(self, apps, schema_editor):
+    def backward(self):
         for m in self.dataset:
             if m.pk in self.backup_data:
                 print("Rolling back: Restoring data for Modjgo object %s" % (m.pk))

@@ -538,8 +538,6 @@ class TimeStripperTestCase(TestCase):
         self.ts.test_mode = True
         self.ts.date_cde_codes = ['DateOfAssessment', 'FHconsentDate']
         
-        self.dummy_apps = None
-        self.dummy_schema_editor = None
 
     def test_timestripper_forwards(self):
         a = deepcopy(self.data_with_date_cdes)
@@ -551,7 +549,7 @@ class TimeStripperTestCase(TestCase):
         fh_index_before  = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
         
         
-        self.ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        self.ts.forward()
         ClinicalData_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
         fh_index_after  = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
 
@@ -572,8 +570,8 @@ class TimeStripperTestCase(TestCase):
 
 
     def test_timestripper_backwards(self):
-        self.ts.forward(self.dummy_apps, self.dummy_schema_editor)
-        self.ts.backward(self.dummy_apps, self.dummy_schema_editor)
+        self.ts.forward()
+        self.ts.backward()
 
         rolled_back_data = self.ts.dataset[0].data
 
