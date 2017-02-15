@@ -25,7 +25,7 @@ def fix_cdes_modjgos():
 
 def fix_history_cdes_modjgos():
     history_queryset = Modjgo.objects.filter(collection='history')
-    history_ts = HistoryTimeStripper(cdes_queryset)
+    history_ts = HistoryTimeStripper(history_queryset)
 
     try:
         with transaction.atomic():

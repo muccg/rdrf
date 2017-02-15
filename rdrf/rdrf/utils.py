@@ -462,15 +462,42 @@ class TimeStripper(object):
         self.test_mode = False
         self.converted_date_cdes = []
         self.date_cde_codes = []
+        self.num_updates = 0 # actual conversions performed
         
 
     def forward(self):
-        print("in forward")
         for thing in self.dataset:
-            print("updating %s" % thing)
+            print("Checking Modjgo object pk %s" % thing.pk)
+            
             self.update(thing)
+        print("Finished: Updated %s Modjgo objects" % self.num_updates)
+
+    def get_id(self, m):
+        pk = m.pk
+        
+        if m.data:
+            if "django_id" in m.data:
+                django_id = m.data["django_id"]
+            else:
+                django_id = None
+
+            if "django_model" in m.data:
+                django_model = m.data["django_model"]
+            else:
+                django_model = None
+            return "Modjgo pk %s Django Model %s Django id %s" % (pk,
+                                                                  django_id,
+                                                                  django_model)
+        else:
+            return "Modjgo pk %s" % pk
+        
+
+            
 
     def munge_timestamp(self, datestring):
+        if datestring is None:
+            return datestring
+        
         if "T" in datestring:
             t_index = datestring.index("T")
             return datestring[:t_index]
@@ -488,77 +515,66 @@ class TimeStripper(object):
                 cde_model = CommonDataElement.objects.get(code=code)
                 value = cde_model.datatype == "date"
                 if value:
-                    print("CDE %s is a date CDE - value will be checked and updated" % cde_model.code)
                     return value
 
             except CommonDataElement.DoesNotExist:
                 print("Missing CDE Model! Data has code %s which does not exist on the site" % code)
 
     def update_cde(self, cde):
+        code = cde.get("code", None)
+        if not code:
+            print("No code in cde dict?? - not updating")
+            return
         old_datestring = cde["value"]
         new_datestring = self.munge_timestamp(old_datestring)
         if new_datestring != old_datestring:
             cde["value"] = new_datestring
             if self.test_mode:
                 self.converted_date_cdes.append(cde["value"])
-                print("converted %s --> %s" % (old_datestring,
-                                               new_datestring))
-                
+                print("Date CDE %s %s --> %s" % (code,
+                                                 old_datestring,
+                                                 new_datestring))
+
             return True
 
     def update(self, m):
         updated = False
+        ident = self.get_id(m)
         if m.data:
-            print("data exists")
             data_copy = deepcopy(m.data)
             updated = self.munge_data(m.data)
             if updated:
-                print("record has been updated - adding m.pk of %s to backup_data" % m.pk)
                 self.backup_data[m.pk] = data_copy
                 try:
                     m.save()
+                    print("%s saved OK" % ident)
+                    self.num_updates += 1
                 except Exception as ex:
                     print("Error saving Modjgo object %s after updating: %s" % (m.pk,
                                                                                 ex))
                     raise   # rollback
-            else:
-                print("not updated")
                     
-        else:
-            print("m has no data")
-            
-
-
     def munge_data(self, data):
-        updated = False
+        updated = 0
         if "forms" in data:
-            print("data has a forms key")
             for form in data["forms"]:
                 if "sections" in form:
-                    print("sections in form_dict")
                     for section in form["sections"]:
                         if not section["allow_multiple"]:
                             if "cdes" in section:
-                                print("cdes in section")
                                 for cde in section["cdes"]:
                                     if self.is_date_cde(cde):
-                                        updated = self.update_cde(cde)
+                                        if self.update_cde(cde):
+                                            updated += 1
                         else:
-                            print("checking multisection")
                             items = section["cdes"]
                             for item in items:
                                 for cde in item:
                                     if self.is_date_cde(cde):
-                                        print("cde %s is a date - checking" % cde["code"])
                                         if self.update_cde(cde):
-                                            updated = True
-                                            print("set updated to True")
-                                        else:
-                                            print("cde %s is not a date" % cde["code"])
-        else:
-            print("forms not in data")
-                                        
-        return updated
+                                            updated += 1
+                                            
+        return updated > 0
                     
     def backward(self):
         for m in self.dataset:

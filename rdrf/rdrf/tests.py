@@ -607,7 +607,7 @@ class TimeStripperTestCase(TestCase):
         ts.test_mode = True
         ts.date_cde_codes = ['SurgeryDate']
 
-        ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        ts.forward()
 
         self.assertTrue(ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
                         "Multisection timestrip failed: actual = %s" % ts.converted_date_cdes)
@@ -630,7 +630,7 @@ class TimeStripperTestCase(TestCase):
 
 
 
-        ts.backward(self.dummy_apps, self.dummy_schema_editor)
+        ts.backward()
         rolled_back_data = ts.backup_data[23]
         
         
@@ -1005,7 +1005,7 @@ class TimeStripperTestCase(TestCase):
         ts = HistoryTimeStripper([history_record])
         ts.test_mode = True
         ts.date_cde_codes = ['FHconsentDate']
-        ts.forward(self.dummy_apps, self.dummy_schema_editor)
+        ts.forward()
         
 
         
