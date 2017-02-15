@@ -486,8 +486,8 @@ class TimeStripper(object):
             else:
                 django_model = None
             return "Modjgo pk %s Django Model %s Django id %s" % (pk,
-                                                                  django_id,
-                                                                  django_model)
+                                                                  django_model,
+                                                                  django_id)
         else:
             return "Modjgo pk %s" % pk
         
@@ -550,7 +550,7 @@ class TimeStripper(object):
                     print("%s saved OK" % ident)
                     self.num_updates += 1
                 except Exception as ex:
-                    print("Error saving Modjgo object %s after updating: %s" % (m.pk,
+                    print("Error saving Modjgo object %s after updating: %s" % (ident,
                                                                                 ex))
                     raise   # rollback
                     
