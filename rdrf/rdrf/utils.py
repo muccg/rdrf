@@ -528,9 +528,9 @@ class TimeStripper(object):
             cde["value"] = new_datestring
             if self.test_mode:
                 self.converted_date_cdes.append(cde["value"])
-                print("Date CDE %s %s --> %s" % (code,
-                                                 old_datestring,
-                                                 new_datestring))
+            print("Date CDE %s %s --> %s" % (code,
+                                             old_datestring,
+                                             new_datestring))
 
             return True
 
