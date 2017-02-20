@@ -227,6 +227,9 @@ class PatientsListingView(View):
 
         column_name = "columns[%s][data]" % sort_column_index
         sort_field = request.POST.get(column_name, None)
+        logger.debug("sort_field = %s sort_direction = %s" % (sort_field,
+                                                              sort_direction))
+        
 
         return sort_field, sort_direction
 
@@ -259,11 +262,10 @@ class PatientsListingView(View):
                     if col.field == self.sort_field and col.sort_key and not col.sort_fields]
 
         if key_func:
-            # we have to retrieve all rows - otehrwise , queryset has already been
+            # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
             return sorted(qs, key=key_func[0], reverse=(self.sort_direction == "desc"))
         else:
-            logger.debug("key_func is none - not sorting")
             return qs
 
     def get_rows_in_page(self):
@@ -358,7 +360,25 @@ class PatientsListingView(View):
             sort_fields = chain(*[map(dir, col.sort_fields)
                                   for col in self.columns
                                   if col.field == self.sort_field])
+
+            # the sort fields created here may apply to related models which is a problem
+            # for e.g. sorting by working group
+
+            # translate any orderings on related models here to orderings on the patient mode
+            # itself
+
+            sort_fields = [self._find_ordering_on_patient(sort_field) for sort_field in sort_fields]
+            
             self.patients = self.patients.order_by(*sort_fields)
+
+    def _find_ordering_on_patient(self, sort_field):
+        prefix = "-" if "-" in sort_field else ""
+    
+        if sort_field in ["working_groups_display", "-working_groups_display"]:
+            return prefix + "working_groups__name"
+        else:
+            return sort_field
+            
 
     def get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
         return {
@@ -455,6 +475,7 @@ class ColumnNonContexts(Column):
 
 class ColumnWorkingGroups(Column):
     field = "working_groups_display"
+    sort_fields = ["working_groups_display"]
 
 class ColumnDiagnosisProgress(ColumnNonContexts):
     field = "diagnosis_progress"
