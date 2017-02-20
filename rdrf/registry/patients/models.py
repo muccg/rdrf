@@ -251,9 +251,9 @@ class Patient(models.Model):
     @property
     def display_name(self):
         if self.active:
-            return "%s, %s" % (self.family_name, self.given_names)
+            return "%s %s" % (self.family_name, self.given_names)
         else:
-            return "%s, %s (Archived)" % (self.family_name, self.given_names)
+            return "%s %s (Archived)" % (self.family_name, self.given_names)
 
     @property
     def age(self):
