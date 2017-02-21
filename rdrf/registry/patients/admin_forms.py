@@ -312,6 +312,16 @@ class PatientForm(forms.ModelForm):
         help_text="DD-MM-YYYY",
         input_formats=['%d-%m-%Y'])
 
+    date_of_migration = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'class': 'datepicker'},
+            format='%d-%m-%Y'),
+        help_text="DD-MM-YYYY",
+        required=False,
+        input_formats=['%d-%m-%Y'])
+    
+
     class Meta:
         model = Patient
         widgets = {

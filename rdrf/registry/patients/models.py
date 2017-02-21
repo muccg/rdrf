@@ -179,6 +179,8 @@ class Patient(models.Model):
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Place of birth")
+
+    date_of_migration = models.DateField(blank=True, null=True)
     country_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Country of birth")
     ethnic_origin = models.CharField(
