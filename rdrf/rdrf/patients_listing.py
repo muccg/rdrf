@@ -455,7 +455,7 @@ class ColumnNonContexts(Column):
         return self.cell_non_contexts(patient, form_progress, context_manager)
 
     def fmt(self, val):
-        return "N/A" if val is None else self.fmt_non_contexts(val)
+        return self.icon(None)  if val is None else self.fmt_non_contexts(val)
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
