@@ -264,7 +264,17 @@ class PatientsListingView(View):
         if key_func:
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
-            return sorted(qs, key=key_func[0], reverse=(self.sort_direction == "desc"))
+            logger.debug("key = %s" % key_func[0])
+
+            def key_func_wrapper(thing):
+                value = key_func[0](thing)
+                if value is None:
+                    return ""
+                else:
+                    return value
+               
+            
+            return sorted(qs, key=key_func_wrapper, reverse=(self.sort_direction == "desc"))
         else:
             return qs
 
@@ -387,7 +397,17 @@ class Column(object):
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
-        return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
+
+        def sort_func(patient):
+            value = self.cell(patient, supports_contexts, form_progress, context_manager)
+            if value is None:
+                return ""
+            else:
+                return value
+
+        return sort_func
+    
+        #return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
 
     def cell(self, patient, supports_contexts=False,
              form_progress=None, context_manager=None):
@@ -451,7 +471,15 @@ class ColumnNonContexts(Column):
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
-        return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
+
+        def sk(patient):
+           value = self.cell(patient, supports_contexts, form_progress, context_manager)
+           if value is None:
+               return ""
+           else:
+               return value
+
+        return sk
 
     def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
         pass
