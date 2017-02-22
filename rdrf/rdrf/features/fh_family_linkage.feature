@@ -8,7 +8,7 @@ Feature: FH Family Linkage Page
 
   Scenario: User can visit Family Linkage Page
     When I am logged in as curator
-    When I click "SMITH, John" on patientlisting
+    When I click "SMITH John" on patientlisting
     When I click "Family Linkage" in sidebar
     Then location is "Family Linkage"
     

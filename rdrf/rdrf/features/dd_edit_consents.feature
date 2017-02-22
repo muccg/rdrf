@@ -6,11 +6,11 @@ Feature: Edit consents for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    And a patient named "ABBOTT, Abigail"
+    And a patient named "ABBOTT Abigail"
 
   Scenario: Curator navigates to patient consents and edits them
     When I am logged in as curator
-    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
 
     And I check "Consent given to store data only while individual is living"

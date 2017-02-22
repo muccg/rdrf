@@ -6,23 +6,23 @@ Feature: Navigate through forms for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    And a patient named "ABBOTT, Abigail"
+    And a patient named "ABBOTT Abigail"
 
   Scenario: Curator navigates to patient consents using the menu
     When I am logged in as curator
-    And I click "ABBOTT, Abigail" on patientlisting
+    And I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
     Then location is "Consents"
 
   Scenario: Curator navigates to patient diagnosis using the menu
     When I am logged in as curator
-    And I click "ABBOTT, Abigail" on patientlisting
+    And I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then location is "Diagnosis"
 
   Scenario: Curator navigates to patient demographics using the menu
     When I am logged in as curator
-    And I click "ABBOTT, Abigail" on patientlisting
+    And I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
     When I click "Demographics" in sidebar
     Then location is "Demographics"
