@@ -361,24 +361,7 @@ class PatientsListingView(View):
                                   for col in self.columns
                                   if col.field == self.sort_field])
 
-            # the sort fields created here may apply to related models which is a problem
-            # for e.g. sorting by working group
-
-            # translate any orderings on related models here to orderings on the patient mode
-            # itself
-
-            sort_fields = [self._find_ordering_on_patient(sort_field) for sort_field in sort_fields]
-            
             self.patients = self.patients.order_by(*sort_fields)
-
-    def _find_ordering_on_patient(self, sort_field):
-        prefix = "-" if "-" in sort_field else ""
-    
-        if sort_field in ["working_groups_display", "-working_groups_display"]:
-            return prefix + "working_groups__name"
-        else:
-            return sort_field
-            
 
     def get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
         return {
@@ -408,6 +391,15 @@ class Column(object):
 
     def cell(self, patient, supports_contexts=False,
              form_progress=None, context_manager=None):
+        if "__" in self.field:
+            patient_field, related_object_field = self.field.split("__")
+            related_object = getattr(patient, patient_field)
+                
+            if related_object.__class__.__name__== 'ManyRelatedManager':
+                related_object = related_object.first()
+                
+            related_value  = getattr(related_object, related_object_field)
+            return related_value
         return getattr(patient, self.field)
 
     def fmt(self, val):
@@ -474,8 +466,8 @@ class ColumnNonContexts(Column):
         return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
 class ColumnWorkingGroups(Column):
-    field = "working_groups_display"
-    sort_fields = ["working_groups_display"]
+    field = "working_groups__name"
+    sort_fields = ["working_groups__name"]
 
 class ColumnDiagnosisProgress(ColumnNonContexts):
     field = "diagnosis_progress"
