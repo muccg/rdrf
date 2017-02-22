@@ -2132,8 +2132,6 @@ class CustomConsentFormView(View):
             logger.debug("******************** end of consent save *********************")
             context["message"] = "Patient %s %s saved successfully" % (patient_model.given_names,
                                                                        patient_model.family_name)
-            #return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
-
         else:
             logger.debug("******************** forms invalid :( *********************")
             context["message"] = "Some forms invalid"
