@@ -137,7 +137,7 @@ def load_export(export_name):
 
 
 def django_import(export_name):
-    django_admin(["import", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
+    django_admin(["import", "-v", "3", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
 
 
 def django_reloadrules():
