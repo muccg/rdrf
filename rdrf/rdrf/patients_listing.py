@@ -20,6 +20,8 @@ from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormsButton
 from registry.patients.models import Patient
 from .utils import Message
+from rdrf.utils import MinType
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -264,16 +266,13 @@ class PatientsListingView(View):
         if key_func:
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
-            logger.debug("key = %s" % key_func[0])
-
             def key_func_wrapper(thing):
                 value = key_func[0](thing)
                 if value is None:
-                    return ""
+                    return self.bottom
                 else:
                     return value
-               
-            
+
             return sorted(qs, key=key_func_wrapper, reverse=(self.sort_direction == "desc"))
         else:
             return qs
@@ -384,6 +383,7 @@ class PatientsListingView(View):
 class Column(object):
     field = "id"
     sort_fields = ["id"]
+    bottom = MinType()
 
     def __init__(self, label, perm):
         self.label = label
@@ -395,13 +395,17 @@ class Column(object):
         self.order = order
         self.user_can_see = user.has_perm(self.perm)
 
+    def get_sort_value_for_none(self):
+        return self.bottom
+        
+
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
 
         def sort_func(patient):
             value = self.cell(patient, supports_contexts, form_progress, context_manager)
             if value is None:
-                return ""
+                return self.bottom
             else:
                 return value
 
@@ -475,7 +479,7 @@ class ColumnNonContexts(Column):
         def sk(patient):
            value = self.cell(patient, supports_contexts, form_progress, context_manager)
            if value is None:
-               return ""
+               return self.bottom
            else:
                return value
 
