@@ -20,6 +20,8 @@ from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormsButton
 from registry.patients.models import Patient
 from .utils import Message
+from rdrf.utils import MinType
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -227,6 +229,9 @@ class PatientsListingView(View):
 
         column_name = "columns[%s][data]" % sort_column_index
         sort_field = request.POST.get(column_name, None)
+        logger.debug("sort_field = %s sort_direction = %s" % (sort_field,
+                                                              sort_direction))
+        
 
         return sort_field, sort_direction
 
@@ -259,11 +264,17 @@ class PatientsListingView(View):
                     if col.field == self.sort_field and col.sort_key and not col.sort_fields]
 
         if key_func:
-            # we have to retrieve all rows - otehrwise , queryset has already been
+            # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
-            return sorted(qs, key=key_func[0], reverse=(self.sort_direction == "desc"))
+            def key_func_wrapper(thing):
+                value = key_func[0](thing)
+                if value is None:
+                    return self.bottom
+                else:
+                    return value
+
+            return sorted(qs, key=key_func_wrapper, reverse=(self.sort_direction == "desc"))
         else:
-            logger.debug("key_func is none - not sorting")
             return qs
 
     def get_rows_in_page(self):
@@ -358,6 +369,7 @@ class PatientsListingView(View):
             sort_fields = chain(*[map(dir, col.sort_fields)
                                   for col in self.columns
                                   if col.field == self.sort_field])
+
             self.patients = self.patients.order_by(*sort_fields)
 
     def get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
@@ -371,6 +383,7 @@ class PatientsListingView(View):
 class Column(object):
     field = "id"
     sort_fields = ["id"]
+    bottom = MinType()
 
     def __init__(self, label, perm):
         self.label = label
@@ -382,12 +395,35 @@ class Column(object):
         self.order = order
         self.user_can_see = user.has_perm(self.perm)
 
+    def get_sort_value_for_none(self):
+        return self.bottom
+        
+
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
-        return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
+
+        def sort_func(patient):
+            value = self.cell(patient, supports_contexts, form_progress, context_manager)
+            if value is None:
+                return self.bottom
+            else:
+                return value
+
+        return sort_func
+    
+        #return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
 
     def cell(self, patient, supports_contexts=False,
              form_progress=None, context_manager=None):
+        if "__" in self.field:
+            patient_field, related_object_field = self.field.split("__")
+            related_object = getattr(patient, patient_field)
+                
+            if related_object.__class__.__name__== 'ManyRelatedManager':
+                related_object = related_object.first()
+                
+            related_value  = getattr(related_object, related_object_field)
+            return related_value
         return getattr(patient, self.field)
 
     def fmt(self, val):
@@ -435,11 +471,19 @@ class ColumnNonContexts(Column):
         return self.cell_non_contexts(patient, form_progress, context_manager)
 
     def fmt(self, val):
-        return "N/A" if val is None else self.fmt_non_contexts(val)
+        return self.icon(None)  if val is None else self.fmt_non_contexts(val)
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
-        return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
+
+        def sk(patient):
+           value = self.cell(patient, supports_contexts, form_progress, context_manager)
+           if value is None:
+               return self.bottom
+           else:
+               return value
+
+        return sk
 
     def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
         pass
@@ -454,7 +498,8 @@ class ColumnNonContexts(Column):
         return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
 class ColumnWorkingGroups(Column):
-    field = "working_groups_display"
+    field = "working_groups__name"
+    sort_fields = ["working_groups__name"]
 
 class ColumnDiagnosisProgress(ColumnNonContexts):
     field = "diagnosis_progress"

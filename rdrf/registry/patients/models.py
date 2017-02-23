@@ -179,6 +179,8 @@ class Patient(models.Model):
     date_of_birth = models.DateField()
     place_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Place of birth")
+
+    date_of_migration = models.DateField(blank=True, null=True)
     country_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Country of birth")
     ethnic_origin = models.CharField(
@@ -200,7 +202,7 @@ class Patient(models.Model):
         on_delete=models.SET_NULL)
     next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
     next_of_kin_suburb = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name="Suburb/Town/City")
+        max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
     next_of_kin_state = models.CharField(
         max_length=20, verbose_name="State/Province/Territory", blank=True, null=True)
     next_of_kin_postcode = models.IntegerField(verbose_name="Postcode", blank=True, null=True)
@@ -251,9 +253,9 @@ class Patient(models.Model):
     @property
     def display_name(self):
         if self.active:
-            return "%s, %s" % (self.family_name, self.given_names)
+            return "%s %s" % (self.family_name, self.given_names)
         else:
-            return "%s, %s (Archived)" % (self.family_name, self.given_names)
+            return "%s %s (Archived)" % (self.family_name, self.given_names)
 
     @property
     def age(self):

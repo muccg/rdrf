@@ -5,17 +5,17 @@ Feature: Edit diagnosis for a patient
   Background:
     Given export "dd.zip"
     Given a registry named "Demyelinating Diseases Registry"
-    And a patient named "ABBOTT, Abigail"
+    And a patient named "ABBOTT Abigail"
 
   Scenario: Curator navigates to diagnosis
     When I am logged in as curator
-    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
 
   Scenario: Curator edits diagnosis
     When I am logged in as curator
-    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
     And I select "PP (Primary progressive)" from "Condition"
@@ -28,7 +28,7 @@ Feature: Edit diagnosis for a patient
 
   Scenario: Curator edits diagnosis, leave and returns
     When I am logged in as curator
-    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
     And I select "PP (Primary progressive)" from "Condition"
@@ -49,7 +49,7 @@ Feature: Edit diagnosis for a patient
 
   Scenario: Curator edits multisection
     When I am logged in as curator
-    When I click "ABBOTT, Abigail" on patientlisting
+    When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
     And I fill "Date" with "1-2-1991" in MultiSection "MedicalHistoryRecord" index "0"
