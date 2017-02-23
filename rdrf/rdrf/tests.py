@@ -938,8 +938,7 @@ class TimeStripperTestCase(TestCase):
                             {
                               "allow_multiple": True,
                               "cdes": [
-                                [
-                                  {
+                                [                                  {
                                     "value": "",
                                     "code": "FHTrialStatus"
                                   },
@@ -987,3 +986,23 @@ class TimeStripperTestCase(TestCase):
                         "Expected: %s, Actual: %s" % (expected_dates,
                                                       ts.converted_date_cdes))
 
+
+
+
+
+class MinTypeTest(TestCase):
+    def test_string(self):
+        from rdrf.utils import MinType
+        bottom = MinType()
+        l = ["a","B",bottom]
+        g = sorted(l)
+        self.assertTrue(g[0] is bottom)
+
+    def test_ints(self):
+        from rdrf.utils import MinType
+        bottom = MinType()
+        l = [10,1,-7,bottom]
+        g = sorted(l)
+        self.assertTrue(g[0] is bottom)
+        
+        
