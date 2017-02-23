@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_bytes
+from functools import total_ordering
 from copy import deepcopy
 
 import datetime
@@ -577,4 +578,17 @@ class HistoryTimeStripper(TimeStripper):
     def munge_data(self, data):
         # History embeds the full forms dictionary in the record key
         return super().munge_data(data["record"])
+
+
+
+# Python 3.5 doesn't raises run time error when lists which contain None values are sorted
+# see stackover flow http://stackoverflow.com/questions/12971631/sorting-list-by-an-attribute-that-can-be-none
+@total_ordering
+class MinType(object):
+    def __le__(self, other):
+        return True
+
+    def __eq__(self, other):
+        return (self is other)
+
 
