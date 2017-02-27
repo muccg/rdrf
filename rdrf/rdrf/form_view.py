@@ -132,7 +132,7 @@ class SectionInfo(object):
         self.data = data
         self.index_map = index_map
 
-    def save_to_mongo(self):
+    def save(self):
         if not self.is_multiple:
             self.patient_wrapper.save_dynamic_data(self.registry_code, self.collection_name, self.data)
         else:
@@ -470,7 +470,7 @@ class FormView(View):
         # Save one snapshot after all sections have being persisted
         if all_sections_valid:
             for section_info in sections_to_save:
-                section_info.save_to_mongo()
+                section_info.save()
 
             progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
 
