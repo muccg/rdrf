@@ -511,10 +511,7 @@ class DynamicDataWrapper(object):
         
         record_query = self._get_record(registry_code, "history", filter_by_context=False)
         record_query = record_query.find(record_type="snapshot")
-        data = []
-        for i, snapshot in enumerate(record_query.data()):
-            data.append(fmt(snapshot, i))
-            
+        data = [fmt(snapshot,i) for i,snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
