@@ -25,6 +25,5 @@ Feature: Sanity test history widget.
     When I enter value "baz" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foobarbaz"
-    
-    When I click the history icon for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
-    Then the history popup table shows "foo,foobar,foobarbaz"
+    And History for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)" shows "foo,foobar,foobarbaz"
+

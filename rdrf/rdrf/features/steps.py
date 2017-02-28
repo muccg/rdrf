@@ -204,6 +204,18 @@ def value_is(step, textfield_label, expected_value):
     textfield = world.browser.find_element_by_xpath('//input[@id="%s"]' % label.get_attribute('for'))
     assert_equal(textfield.get_attribute('value'), expected_value)
 
+@step('form value of section "(.*)" cde "(.*)" should be "(.*)"')
+def value_is(step, section, cde, expected_value):
+    form_block = world.browser.find_element_by_id("main-form")
+    section_div_heading = form_block.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    input_element = input_div.find_element_by_xpath(".//input")
+    assert_equal(input_element.get_attribute('value'), expected_value)
+
 
 @step('check "(.*)"')
 def check_checkbox(step, checkbox_label):
@@ -360,5 +372,37 @@ def enter_value_for_named_element(step, value, name):
             input_element.send_keys(value)
             return
     raise Exception("can't find element '%s'" % name)
+
+
+@step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
+def check_history_popup(step, form, section, cde, history_values_csv):
+    history_values = history_values_csv.split(",")
+    form_block = world.browser.find_element_by_id("main-form")
+    section_div_heading = form_block.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    input_element = input_div.find_element_by_xpath(".//input")
+    # get the clock icon thingo and click it
+
+    history_widget = label_element.find_element_by_xpath(".//previous-sibling::a[contains(., 'history')]")
+    
+    utils.click(history_widget)
+    world.browser.switch_to_alert()
+
+    def find_cell(historical_value):
+        element = world.browser.find_element_by_xpath('//td[@data-value="%s"]' % historical_value)
+        if element is None:
+            raise Exception("Can't locate history value '%s'" % historical_value) 
+        
+
+    for historical_value in history_values:
+        table_cell = find_cell(historical_value)
+        
+    
+    
+
 
 
