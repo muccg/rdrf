@@ -46,6 +46,10 @@ class FileUpload(object):
                 logger.info("Couldn't make URL for file record %s" %
                             str(self.gridfs_dict))
 
+
+        logger.debug("FileUpload url property returning empty string?? kwargs = %s" % kwargs)
+        logger.debug("FileUpload gridfs_dict = %s" % self.gridfs_dict)
+
         return ""
 
     def __str__(self):
@@ -177,15 +181,20 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         # a multisection is just a list of section dicts indexed by
         # section_index
         if not should_wrap(section_index, key, value):
+            logger.debug("will NOT wrap %s" % key)
             return value
 
         if is_filestorage_dict(value):
+            logger.debug("will wrap file storage value %s" % value)
+
             return wrap_filestorage_dict(key, value)
 
         if is_upload_file(value):
+            logger.debug("will wrap upload file %s" % value)
             return wrap_upload(key, value)
 
         if is_existing_in_mongo(section_index, key, value):
+            logger.debug("will wrap existing key %s value %s" % (key, value))
             mongo_value = get_mongo_value(section_index, key)
             return wrap_filestorage_dict(key, mongo_value)
 
