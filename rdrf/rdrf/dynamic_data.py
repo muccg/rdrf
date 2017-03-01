@@ -474,21 +474,33 @@ class DynamicDataWrapper(object):
         else:
             return nested_data
 
-    def get_cde_val(self, registry_code, form_name, section_code, cde_code):
-        data = self._get_record(registry_code, "cdes")
-        return data.cde_val(form_name, section_code, cde_code)
+    def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes"):
+        modjgo_queryset = self._get_record(registry_code, collection)
+        if modjgo_queryset:
+            # NB data is a Modjgo queryset
+            modjgo_object = modjgo_queryset.first()
+            return modjgo_object.cde_val(form_name, section_code, cde_code)
+        else:
+            return None
 
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
-        def fmt(snapshot):
+        from rdrf.utils import get_cde_value
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm.objects.get(registry=registry_model,
+                                              name=form_name)
+        section_model = Section.objects.get(code=section_code)
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        
+        def fmt(snapshot, snapshot_number):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
-                "value": self._find_cde_val(snapshot["record"], registry_code,
-                                            form_name, section_code,
-                                            cde_code),
-                "id": str(snapshot["_id"]),
+                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "id": str(snapshot_number),
             }
 
         def collapse_same(snapshots):
+            # This should be changed to use sets I think
             prev = {"": None}  # nonlocal works in python3
 
             def is_different(snap):
@@ -496,9 +508,10 @@ class DynamicDataWrapper(object):
                 prev[""] = snap
                 return diff
             return list(filter(is_different, snapshots))
+        
         record_query = self._get_record(registry_code, "history", filter_by_context=False)
         record_query = record_query.find(record_type="snapshot")
-        data = map(fmt, record_query.data())
+        data = [fmt(snapshot,i) for i,snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
