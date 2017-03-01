@@ -376,6 +376,11 @@ def enter_value_for_named_element(step, value, name):
 
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
+    from selenium.webdriver.common.action_chains import ActionChains
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.support.ui import WebDriverWait
+    
     history_values = history_values_csv.split(",")
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
@@ -385,12 +390,22 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     label_element = section_div.find_element_by_xpath(label_expression)
     input_div = label_element.find_element_by_xpath(".//following-sibling::div")
     input_element = input_div.find_element_by_xpath(".//input")
-    # get the clock icon thingo and click it
+    history_widget = label_element.find_elements_by_xpath(".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
 
-    history_widget = label_element.find_element_by_xpath(".//previous-sibling::a[contains(., 'history')]")
+    # scroll down to the correct input element
+    loc = input_element.location_once_scrolled_into_view
+    y = loc["y"]
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+
+    # this causes the history component to become visible/clickable
+    mover = ActionChains(world.browser)
+    mover.move_to_element(input_element).perform()
+
+    history_widget.click()
     
-    utils.click(history_widget)
-    world.browser.switch_to_alert()
+    modal = WebDriverWait(world.browser, 60).until(
+        EC.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
+    )
 
     def find_cell(historical_value):
         element = world.browser.find_element_by_xpath('//td[@data-value="%s"]' % historical_value)
