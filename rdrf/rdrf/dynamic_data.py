@@ -598,7 +598,7 @@ class DynamicDataWrapper(object):
         elif is_uploaded_file(value):
             # A file was uploaded.
             # Store file and convert value into a file wrapper
-            to_delete = current_value
+            to_delete = False
             value = filestorage.store_file_by_key(registry_code, None, key, value)
         else:
             to_delete = None
