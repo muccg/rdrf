@@ -15,7 +15,7 @@ def get_id(value):
     return None
 
 
-def delete_file_wrapper(fs, file_ref):
+def delete_file_wrapper(file_ref):
     django_file_id = file_ref.get("django_file_id")
     logger.debug("existing file ids: django = %s" % django_file_id)
 

@@ -586,7 +586,8 @@ class DynamicDataWrapper(object):
             # Django uses a "clear" checkbox value of False to indicate file should be removed
             # we need to delete the file but not here
             logger.debug("User cleared %s - file will be deleted" % key)
-            to_delete = current_value
+            to_delete = True
+            file_ref = current_value
             value = None
         elif value is None:
             # No file upload means keep the current value
@@ -603,7 +604,7 @@ class DynamicDataWrapper(object):
             to_delete = None
 
         if to_delete:
-            filestorage.delete_file_wrapper(to_delete)
+            filestorage.delete_file_wrapper(file_ref)
 
         return value
 
