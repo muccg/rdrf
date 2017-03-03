@@ -120,17 +120,37 @@ class CustomConsentHelper(object):
 
 class SectionInfo(object):
     """
-    Info to store a section.
-    Used so we save everything after all sections have validated.
+    Info to store a section ( and create section forms)
+
+    Used so we save everything _after_ all sections have validated.
+    Also the file upload links weren't being created post save for the POST response
+    because the forms had already been instantiated and "wrapped" too early.
+    
     """
 
-    def __init__(self, patient_wrapper, is_multiple, registry_code, collection_name, data, index_map=None):
+    def __init__(self,
+                 section_code,
+                 patient_wrapper,
+                 is_multiple,
+                 registry_code,
+                 collection_name,
+                 data,
+                 index_map=None,
+                 form_set_class=None,
+                 form_class=None,
+                 prefix=None):
+        self.section_code = section_code
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
         self.registry_code = registry_code
         self.collection_name = collection_name
         self.data = data
         self.index_map = index_map
+        # if this section is not a multisection this form class is used to create the form
+        self.form_class = form_class
+        # otherwise we create a formset using these
+        self.form_set_class = form_set_class
+        self.prefix = prefix
 
     def save(self):
         if not self.is_multiple:
@@ -141,6 +161,25 @@ class SectionInfo(object):
                                                    self.data,
                                                    multisection=True,
                                                    index_map=self.index_map)
+
+    def recreate_form_instance(self):
+        # called when all sections on a form are valid
+        # We do this to create a form instance which has correct links to uploaded files
+        current_data = self.patient_wrapper.load_dynamic_data(self.registry_code, "cdes")
+        if self.is_multiple:
+            dynamic_data = self.data[self.section_code] # the cleaned data from the form submission
+        else:
+            dynamic_data = self.data
+                    
+        wrapped_data = wrap_file_cdes(self.registry_code, dynamic_data, current_data, multisection=self.is_multiple)
+
+        if self.is_multiple:
+            form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
+        else:
+            form_instance = self.form_class(dynamic_data, initial=wrapped_data)
+
+        return form_instance
+
 
 
 class FormView(View):
@@ -409,7 +448,8 @@ class FormView(View):
                     logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
                     # save all sections ONLY is all valid!
-                    sections_to_save.append(SectionInfo(dyn_patient, False, registry_code, "cdes", dynamic_data))
+                    section_info = SectionInfo(s, dyn_patient, False, registry_code, "cdes", dynamic_data,form_class=form_class)
+                    sections_to_save.append(section_info)
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
@@ -450,8 +490,17 @@ class FormView(View):
                         del dynamic_data[i]
 
                     section_dict = {s: dynamic_data}
-                    sections_to_save.append(SectionInfo(dyn_patient, True, registry_code,
-                                                        "cdes", section_dict, index_map))
+                    section_info = SectionInfo(s,
+                                               dyn_patient,
+                                               True,
+                                               registry_code,
+                                               "cdes",
+                                               section_dict,
+                                               index_map,
+                                               form_set_class=form_set_class,
+                                               prefix=prefix)
+
+                    sections_to_save.append(section_info)
 
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
 
@@ -467,13 +516,19 @@ class FormView(View):
                         all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
-        # Save one snapshot after all sections have being persisted
         if all_sections_valid:
+            # Only save to the db iff all sections are valid
+            # If all sections are valid, each section form instance  needs to be re-created here as other wise the links
+            # to any upload files won't work
+            # If any are invalid, nothing needs to be done as the forms have already been created from the form
+            # submission data
             for section_info in sections_to_save:
                 section_info.save()
+                form_instance = section_info.recreate_form_instance()                  
+                form_section[section_info.section_code] = form_instance 
 
             progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
-
+            # Save one snapshot after all sections have being persisted
             dyn_patient.save_snapshot(registry_code, "cdes")
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
