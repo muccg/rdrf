@@ -17,6 +17,62 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
+def scroll_to_cde(section, cde, attr_dict={},multisection=False):
+    """
+    navigate to a given section and cde, scrolling to make the field visible
+    return the input element
+    """
+    if multisection:
+        # retrieve the first "real" matching cde in the mutlisection
+        # we need to avoid the dummy "__prefix__" empty form
+        index = 1 # there's an empty section template first
+    else:
+        index = 0  # there's only 1 
+        
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+
+    section_div = section_div_heading.find_element_by_xpath("..")
+    
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    if attr_dict:
+        attr = list(attr_dict.keys())[0]
+        value = attr_dict[attr]
+        extra_xpath= '[@%s="%s"]'% (attr, value)
+    else:
+        extra_xpath = ""
+        
+    input_element = None
+    
+    input_elements = input_div.find_elements_by_xpath(".//input%s" % extra_xpath)
+    print("found %s input elements satisfying critera" % len(input_elements))
+
+    if len(input_elements) >= 0:
+        input_element = input_elements[0]
+            
+    if not input_element:
+        raise Exception("could not locate element to scroll to")
+    loc = input_element.location_once_scrolled_into_view
+    input_id = input_element.get_attribute("id")
+    if "__prefix__" in input_id:
+        # hack to avoid this error
+        input_id = input_id.replace("__prefix__","0")
+        input_element = world.browser.find_element_by_id(input_id)
+        if not input_element:
+            raise Exception("could not locate input with id %s" % input_id)
+        
+        loc = input_element.location_once_scrolled_into_view
+        
+    
+    y = loc["y"]
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+    print("scrolled to section %s cde %s (id=%s) y = %s" % (section,
+                                                            cde,
+                                                            input_id,
+                                                            y))
+    return input_element
 
 @step('development fixtures')
 def load_development_fixtures(step):
@@ -373,6 +429,60 @@ def enter_value_for_named_element(step, value, name):
             return
     raise Exception("can't find element '%s'" % name)
 
+
+@step('click radio button value "(.*)" for section "(.*)" cde "(.*)"')
+def click_radio_button(step, value, section, cde):
+    # NB. this is actually just clicking the first radio at the moment
+    # and ignores the value
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    # must be getting first ??
+    input_element  = input_div.find_element_by_xpath(".//input")
+    input_element.click()
+
+@step('upload file "(.*)" for section "(.*)" cde "(.*)"')
+def upload_file(step, upload_filename, section, cde):
+    input_element = scroll_to_element(step, section, cde)
+    input_element.send_keys(upload_filename)
+
+@step('upload file "(.*)" for multisection "(.*)" cde "(.*)"')
+def upload_file_multisection(step, upload_filename, section, cde):
+    input_element = scroll_to_cde(section, cde, attr_dict={"type": "file"}, multisection=True)
+    
+    if not input_element:
+        raise Exception("Could locate file cde: %s %s" % (section, cde))
+    element_id = input_element.get_attribute("id")
+    print("sending upload file %s to input element with id = %s" % (upload_filename,
+                                                                    element_id))
+    
+    input_element.send_keys(upload_filename)
+    print("uploaded file: %s" % upload_filename)
+
+@step('scroll to section "(.*)" cde "(.*)"')
+def scroll_to_element(step, section, cde):
+    input_element = scroll_to_cde(section, cde)
+    if not input_element:
+        raise Exception("could not scroll to section %s cde %s" % (section,
+                                                                   cde))
+    return input_element
+
+
+@step('should be able to download "(.*)"')
+def should_be_able_to_download(step, download_name):
+    import re
+    link_pattern = re.compile(".*\/uploads\/\d+$")
+    download_link_element = world.browser.find_element_by_link_text(download_name)
+    if not download_link_element:
+        raise Exception("Could not locate download link %s" % download_name)
+
+    download_link_href = download_link_element.get_attribute("href")
+    if not link_pattern.match(download_link_href):
+        raise Exception("%s does not look like a download link: href= %s" %
+                        download_link_href)
 
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
