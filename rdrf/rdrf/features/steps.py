@@ -17,17 +17,38 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
+def moniker(element):
+    def get_att(el, x):
+        try:
+            return el.get_attribute(x)
+        except:
+            return ""
+        
+    el_id = get_att(element,"id")
+    el_name = get_att(element,"name")
+    el_class = get_att(element,"class")
+
+    return "element id=%s name=%s class=%s" % (el_id,
+                                               el_name,
+                                               el_class)
+
+def scroll_to_y(y):
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+
+def scroll_to(element):
+     loc = element.location_once_scrolled_into_view
+     y = loc["y"]
+     scroll_to_y(y)
+     print("scrolled to %s at (0,Y) = %s" % (moniker(element), y))
+     return y
+ 
+
 def scroll_to_cde(section, cde, attr_dict={},multisection=False):
     """
     navigate to a given section and cde, scrolling to make the field visible
     return the input element
     """
-    if multisection:
-        # retrieve the first "real" matching cde in the mutlisection
-        # we need to avoid the dummy "__prefix__" empty form
-        index = 1 # there's an empty section template first
-    else:
-        index = 0  # there's only 1 
+    extra_xpath = ""
         
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
@@ -41,8 +62,6 @@ def scroll_to_cde(section, cde, attr_dict={},multisection=False):
         attr = list(attr_dict.keys())[0]
         value = attr_dict[attr]
         extra_xpath= '[@%s="%s"]'% (attr, value)
-    else:
-        extra_xpath = ""
         
     input_element = None
     
@@ -525,9 +544,40 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
     for historical_value in history_values:
         table_cell = find_cell(historical_value)
-        
-    
-    
 
 
+@step('check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"')
+def clear_file_upload(step, section, cde, download_name):
+    # NB. the nots here! We avoid dummy empty forms and the hidden history
+    import time
+    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_element = world.browser.find_element_by_xpath(section_xpath)
+    mark_for_deletion_label = section_element.find_element_by_xpath(".//label[contains(., 'Mark for deletion')]")
+    cde_label = section_element.find_element_by_xpath(".//label[contains(., '%s')]" % cde)
+    download_link_element = world.browser.find_element_by_link_text(download_name)
+    clear_checkbox = download_link_element.find_element_by_xpath(".//following-sibling::input[@type='checkbox']")
+    checkbox_id = clear_checkbox.get_attribute("id")
+    y = int(scroll_to(clear_checkbox))
+    attempts = 1
+    succeeded = False
+
+    # ugh
+    while attempts <= 10:
+        try:
+            clear_checkbox.click()
+            print("clicked the clear checkbox OK")
+            succeeded = True
+            break
+        except:
+            print("clear checkbox could not be clicked on attempt %s" % attempts)
+            time.sleep(2)
+            attempts += 1
+        y = y + 10
+        scroll_to_y(y)
+        print("scrolled to y = %s" % y)
+
+
+    if not succeeded:
+        raise Exception("Could not click the file clear checkbox")
+    
 
