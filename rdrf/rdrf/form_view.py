@@ -18,7 +18,7 @@ from .dynamic_forms import create_form_class_for_section
 from .dynamic_data import DynamicDataWrapper
 from django.http import Http404
 from .questionnaires import PatientCreator
-from .file_upload import wrap_gridfs_data_for_form
+from .file_upload import wrap_fs_data_for_form
 from .file_upload import wrap_file_cdes
 from . import filestorage
 from .utils import de_camelcase, location_name, is_multisection, make_index_map
@@ -709,7 +709,7 @@ class FormView(View):
 
             if not section_model.allow_multiple:
                 # return a normal form
-                initial_data = wrap_gridfs_data_for_form(self.registry, self.dynamic_data)
+                initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
 
             else:
@@ -728,7 +728,7 @@ class FormView(View):
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
-                        initial_data = wrap_gridfs_data_for_form(
+                        initial_data = wrap_fs_data_for_form(
                             self.registry, self.dynamic_data[s])
                     except KeyError as ke:
                         logger.error(
