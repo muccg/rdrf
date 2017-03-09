@@ -17,6 +17,81 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
+def moniker(element):
+    def get_att(el, x):
+        try:
+            return el.get_attribute(x)
+        except:
+            return ""
+        
+    el_id = get_att(element,"id")
+    el_name = get_att(element,"name")
+    el_class = get_att(element,"class")
+
+    return "element id=%s name=%s class=%s" % (el_id,
+                                               el_name,
+                                               el_class)
+
+def scroll_to_y(y):
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+
+def scroll_to(element):
+     loc = element.location_once_scrolled_into_view
+     y = loc["y"]
+     scroll_to_y(y)
+     print("scrolled to %s at (0,Y) = %s" % (moniker(element), y))
+     return y
+ 
+
+def scroll_to_cde(section, cde, attr_dict={},multisection=False):
+    """
+    navigate to a given section and cde, scrolling to make the field visible
+    return the input element
+    """
+    extra_xpath = ""
+        
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+
+    section_div = section_div_heading.find_element_by_xpath("..")
+    
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    if attr_dict:
+        attr = list(attr_dict.keys())[0]
+        value = attr_dict[attr]
+        extra_xpath= '[@%s="%s"]'% (attr, value)
+        
+    input_element = None
+    
+    input_elements = input_div.find_elements_by_xpath(".//input%s" % extra_xpath)
+    print("found %s input elements satisfying critera" % len(input_elements))
+
+    if len(input_elements) >= 0:
+        input_element = input_elements[0]
+            
+    if not input_element:
+        raise Exception("could not locate element to scroll to")
+    loc = input_element.location_once_scrolled_into_view
+    input_id = input_element.get_attribute("id")
+    if "__prefix__" in input_id:
+        # hack to avoid this error
+        input_id = input_id.replace("__prefix__","0")
+        input_element = world.browser.find_element_by_id(input_id)
+        if not input_element:
+            raise Exception("could not locate input with id %s" % input_id)
+        
+        loc = input_element.location_once_scrolled_into_view
+        
+    
+    y = loc["y"]
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+    print("scrolled to section %s cde %s (id=%s) y = %s" % (section,
+                                                            cde,
+                                                            input_id,
+                                                            y))
+    return input_element
 
 @step('development fixtures')
 def load_development_fixtures(step):
@@ -374,6 +449,60 @@ def enter_value_for_named_element(step, value, name):
     raise Exception("can't find element '%s'" % name)
 
 
+@step('click radio button value "(.*)" for section "(.*)" cde "(.*)"')
+def click_radio_button(step, value, section, cde):
+    # NB. this is actually just clicking the first radio at the moment
+    # and ignores the value
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    # must be getting first ??
+    input_element  = input_div.find_element_by_xpath(".//input")
+    input_element.click()
+
+@step('upload file "(.*)" for section "(.*)" cde "(.*)"')
+def upload_file(step, upload_filename, section, cde):
+    input_element = scroll_to_element(step, section, cde)
+    input_element.send_keys(upload_filename)
+
+@step('upload file "(.*)" for multisection "(.*)" cde "(.*)"')
+def upload_file_multisection(step, upload_filename, section, cde):
+    input_element = scroll_to_cde(section, cde, attr_dict={"type": "file"}, multisection=True)
+    
+    if not input_element:
+        raise Exception("Could locate file cde: %s %s" % (section, cde))
+    element_id = input_element.get_attribute("id")
+    print("sending upload file %s to input element with id = %s" % (upload_filename,
+                                                                    element_id))
+    
+    input_element.send_keys(upload_filename)
+    print("uploaded file: %s" % upload_filename)
+
+@step('scroll to section "(.*)" cde "(.*)"')
+def scroll_to_element(step, section, cde):
+    input_element = scroll_to_cde(section, cde)
+    if not input_element:
+        raise Exception("could not scroll to section %s cde %s" % (section,
+                                                                   cde))
+    return input_element
+
+
+@step('should be able to download "(.*)"')
+def should_be_able_to_download(step, download_name):
+    import re
+    link_pattern = re.compile(".*\/uploads\/\d+$")
+    download_link_element = world.browser.find_element_by_link_text(download_name)
+    if not download_link_element:
+        raise Exception("Could not locate download link %s" % download_name)
+
+    download_link_href = download_link_element.get_attribute("href")
+    if not link_pattern.match(download_link_href):
+        raise Exception("%s does not look like a download link: href= %s" %
+                        download_link_href)
+
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
     from selenium.webdriver.common.action_chains import ActionChains
@@ -415,9 +544,40 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
     for historical_value in history_values:
         table_cell = find_cell(historical_value)
-        
-    
-    
 
 
+@step('check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"')
+def clear_file_upload(step, section, cde, download_name):
+    # NB. the nots here! We avoid dummy empty forms and the hidden history
+    import time
+    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_element = world.browser.find_element_by_xpath(section_xpath)
+    mark_for_deletion_label = section_element.find_element_by_xpath(".//label[contains(., 'Mark for deletion')]")
+    cde_label = section_element.find_element_by_xpath(".//label[contains(., '%s')]" % cde)
+    download_link_element = world.browser.find_element_by_link_text(download_name)
+    clear_checkbox = download_link_element.find_element_by_xpath(".//following-sibling::input[@type='checkbox']")
+    checkbox_id = clear_checkbox.get_attribute("id")
+    y = int(scroll_to(clear_checkbox))
+    attempts = 1
+    succeeded = False
+
+    # ugh
+    while attempts <= 10:
+        try:
+            clear_checkbox.click()
+            print("clicked the clear checkbox OK")
+            succeeded = True
+            break
+        except:
+            print("clear checkbox could not be clicked on attempt %s" % attempts)
+            time.sleep(2)
+            attempts += 1
+        y = y + 10
+        scroll_to_y(y)
+        print("scrolled to y = %s" % y)
+
+
+    if not succeeded:
+        raise Exception("Could not click the file clear checkbox")
+    
 

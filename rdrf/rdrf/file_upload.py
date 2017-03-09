@@ -23,20 +23,20 @@ class FileUpload(object):
     :return:
     """
 
-    def __init__(self, registry, cde_code, gridfs_dict):
+    def __init__(self, registry, cde_code, fs_dict):
         if isinstance(registry, str):
             from rdrf.models import Registry
             self.registry = Registry.objects.get(code=registry)
         else:
             self.registry = registry
         self.cde_code = cde_code
-        self.gridfs_dict = gridfs_dict
+        self.fs_dict = fs_dict
 
     @property
     def url(self):
         kwargs = {
             "registry_code": self.registry.code,
-            "file_id": self.gridfs_dict.get("django_file_id"),
+            "file_id": self.fs_dict.get("django_file_id"),
         }
 
         if kwargs["file_id"]:
@@ -44,7 +44,11 @@ class FileUpload(object):
                 return reverse("file_upload", kwargs=kwargs)
             except NoReverseMatch:
                 logger.info("Couldn't make URL for file record %s" %
-                            str(self.gridfs_dict))
+                            str(self.fs_dict))
+
+
+        logger.debug("FileUpload url property returning empty string?? kwargs = %s" % kwargs)
+        logger.debug("FileUpload fs_dict = %s" % self.fs_dict)
 
         return ""
 
@@ -53,20 +57,20 @@ class FileUpload(object):
         This is to satisfy Django's ClearableFileInputWidget which
         uses django's force_text function
         """
-        return self.gridfs_dict['file_name']
+        return self.fs_dict['file_name']
 
     @property
     def mongo_data(self):
-        return self.gridfs_dict
+        return self.fs_dict
 
 
-def wrap_gridfs_data_for_form(registry, data):
+def wrap_fs_data_for_form(registry, data):
     """
     :param data: Dynamic data loaded from Mongo
-    gridfs data is stored like this:
-    'cdecodeforfile': { "gridfs_file_id' : 82327 , file_name: 'some name' }
+    fs data is stored like this:
+    'cdecodeforfile': { "django_file_id' : 82327 , file_name: 'some name' }
 
-    :return: --  Munges the passed in dictionary and wraps any gridfs references with
+    :return: --  Munges the passed in dictionary and wraps any fs references with
     wrappers which display a download link to the file
     """
     def wrap(value, key):
@@ -177,15 +181,20 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         # a multisection is just a list of section dicts indexed by
         # section_index
         if not should_wrap(section_index, key, value):
+            logger.debug("will NOT wrap %s" % key)
             return value
 
         if is_filestorage_dict(value):
+            logger.debug("will wrap file storage value %s" % value)
+
             return wrap_filestorage_dict(key, value)
 
         if is_upload_file(value):
+            logger.debug("will wrap upload file %s" % value)
             return wrap_upload(key, value)
 
         if is_existing_in_mongo(section_index, key, value):
+            logger.debug("will wrap existing key %s value %s" % (key, value))
             mongo_value = get_mongo_value(section_index, key)
             return wrap_filestorage_dict(key, mongo_value)
 
