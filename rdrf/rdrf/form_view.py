@@ -156,6 +156,10 @@ class SectionInfo(object):
         if not self.is_multiple:
             self.patient_wrapper.save_dynamic_data(self.registry_code, self.collection_name, self.data)
         else:
+            logger.debug("section info saving multisection for section %s" % self.section_code)
+            logger.debug("data to save = %s index map = %s" % (self.data,
+                                                               self.index_map))
+            
             self.patient_wrapper.save_dynamic_data(self.registry_code,
                                                    self.collection_name,
                                                    self.data,
@@ -165,13 +169,19 @@ class SectionInfo(object):
     def recreate_form_instance(self):
         # called when all sections on a form are valid
         # We do this to create a form instance which has correct links to uploaded files
+        logger.debug("recreating form instance for section %s" % self.section_code)
+
         current_data = self.patient_wrapper.load_dynamic_data(self.registry_code, "cdes")
         if self.is_multiple:
             dynamic_data = self.data[self.section_code] # the cleaned data from the form submission
         else:
             dynamic_data = self.data
+
+        logger.debug("current data loaded by sectioninfo: %s" % dynamic_data)
+        
                     
         wrapped_data = wrap_file_cdes(self.registry_code, dynamic_data, current_data, multisection=self.is_multiple)
+        logger.debug("wrapped data in section info:" % wrapped_data)
 
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
@@ -481,13 +491,25 @@ class FormView(View):
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
-                    dynamic_data = formset.cleaned_data  # a list of values
+
                     logger.debug("multisection formset is valid")
+                    dynamic_data = formset.cleaned_data  # a list of values
+                    logger.debug("formset data = %s" % dynamic_data)
                     to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
                     index_map = make_index_map(to_remove, len(dynamic_data))
+                    logger.debug("to_remove = %s" % to_remove)
+                    logger.debug("index_map = %s" % index_map)
 
                     for i in reversed(to_remove):
+                        logger.debug("DELETEing %s" % i)
+                        clobbered = dynamic_data[i]
+                        logger.debug("This is the item that gets clobbered for i = %s : %s" % (i, clobbered))
+                        
                         del dynamic_data[i]
+
+                    logger.debug("data after deletion = %s" % dynamic_data)
+                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    logger.debug("current_data = %s" % current_data)
 
                     section_dict = {s: dynamic_data}
                     section_info = SectionInfo(s,
@@ -502,9 +524,22 @@ class FormView(View):
 
                     sections_to_save.append(section_info)
 
-                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
 
-                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True)
+                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True, index_map=index_map)
+                    logger.debug("form_data on the form for section %s  = %s" % (s, form_data)) 
+                    try:
+                        for x in form_data:
+                            for k in x:
+                                try:
+                                    logger.debug("form data %s = %s" % (k, x))
+                                    if type(x) is dict:
+                                        for k2 in x:
+                                            logger.debug("%s = %s" % (k2, x[k2]))
+                                            
+                                except Exception as ex:
+                                    logger.debug("err: %s" % ex)
+                    except Exception as ex2:
+                        logger.debug("err2: %s" % ex2)
 
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 

@@ -110,8 +110,12 @@ def update_multisection_file_cdes(registry_code,
         for key, value in section_item_dict.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
+                actual_index = index_map[item_index]
+                
                 existing_value = get_mongo_value(registry_code, existing_nested_data, key,
-                                                 multisection_index=item_index)
+                                                 multisection_index=actual_index)
+
+                # antecedent here will never return true and the definition is not correct
                 if is_multiple_file_cde(cde_code):
                     new_val = DynamicDataWrapper.handle_file_uploads(registry_code, key, value, existing_value)
                 else:
@@ -582,6 +586,10 @@ class DynamicDataWrapper(object):
 
     @staticmethod
     def handle_file_upload(registry_code, key, value, current_value):
+        logger.debug("handle_file_upload: key = %s value = %s current_value = %s" % (key,
+                                                                                     value,
+                                                                                     current_value))
+        
         to_delete = False
         ret_value = value
         if value is False and current_value:
