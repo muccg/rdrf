@@ -59,10 +59,6 @@ class FileUpload(object):
         """
         return self.fs_dict['file_name']
 
-    def __unicode__(self):
-        return self.fs_dict['file_name']
-        
-
     @property
     def mongo_data(self):
         return self.fs_dict
