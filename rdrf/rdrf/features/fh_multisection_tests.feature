@@ -32,8 +32,8 @@ Feature: User operates on multisection items.
     #And I enter value "3.0" for form "Imaging" section "Carotid Ultrasonography" cde "Result (left)"
     And I enter value "3.0" for form "Imaging" section "Carotid Ultrasonography" cde "Result (right)" in item 2
     And I enter value "item 2" for form "Imaging" section "Carotid Ultrasonography" cde "Result" in item 2
-    When I upload file "/app/rdrf/rdrf/features/fh_multisection_tests.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 2
+    When I upload2 file "/app/rdrf/rdrf/features/fh_multisection_tests.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 2
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I should be able to download "fh_multisection_tests.feature"
-    #And I should be able to download "fh_file_upload.feature"
+    And I should be able to download "fh_file_upload.feature"

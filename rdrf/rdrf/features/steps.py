@@ -45,26 +45,41 @@ def scroll_to(element):
 
 def scroll_to_multisection_cde(section, cde, item=1):
     # item 1 means the 1st block of cdes in the multisection
+    print("Attempting to scroll to section %s cde %s item %s" % (section,
+                                                                 cde,
+                                                                 item))
+    
     formset_string = "-%s-" % (int(item) - 1)
+    print("formset_string = %s" % formset_string)
     if item == 1:
         # the first (default) item is not created by js from the empty form template
         contains_clause = " not(contains(,, '__prefix__')) "
     else:
         # subsequent items are ...
         contains_clause = " contains(., '__prefix__') "
+
+    print("contains clause = %s" % contains_clause)
+    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
+    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     
-    for section_div_heading in world.browser.find_elements_by_xpath(".//div[@class='panel-heading'][contains(., '%s') " + 
-                                                                    " and %s]" % (section,
-                                                                                  contains_clause)):
-        
-        section_div = section_div_heading.find_element_by_xpath("..")
-        label_expression = ".//label[contains(., '%s')]" % cde
-        label_element = section_div.find_element_by_xpath(label_expression)
+    label_expression = ".//label[contains(., '%s')]" % cde
+    
+    for label_element in default_panel.find_elements_by_xpath(label_expression):
+        print("found a label element for cde %s" % cde)
         input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-        input_element = input_div.find_element_by_xpath(".//input[@id=*'%s']" % formset_string)
+        try:
+            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s')]" % formset_string)
+        except:
+            input_element = None
+            
         if not input_element:
+            print("The input element is not in the correct formset - continuing to search...")
             continue
-        scroll_to_element(input_element)
+        else:
+            print("found input element for cde %s in item %s" % (cde, item))
+            
+        scroll_to(input_element)
+        print("found input element: id = %s" % input_element.get_attribute("id"))
         return input_element
 
     raise Exception("Could not locate multsection %s cde %s item %s" % (section,
@@ -550,7 +565,7 @@ def upload_file(step, upload_filename, section, cde):
     input_element = scroll_to_element(step, section, cde)
     input_element.send_keys(upload_filename)
 
-@step('upload file "(.*)" for section "(.*)" cde "(.*)" in item (\d+)')
+@step('upload2 file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
     input_element = scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
