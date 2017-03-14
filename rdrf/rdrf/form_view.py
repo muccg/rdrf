@@ -156,10 +156,6 @@ class SectionInfo(object):
         if not self.is_multiple:
             self.patient_wrapper.save_dynamic_data(self.registry_code, self.collection_name, self.data)
         else:
-            logger.debug("section info saving multisection for section %s" % self.section_code)
-            logger.debug("data to save = %s index map = %s" % (self.data,
-                                                               self.index_map))
-            
             self.patient_wrapper.save_dynamic_data(self.registry_code,
                                                    self.collection_name,
                                                    self.data,
@@ -169,19 +165,13 @@ class SectionInfo(object):
     def recreate_form_instance(self):
         # called when all sections on a form are valid
         # We do this to create a form instance which has correct links to uploaded files
-        logger.debug("recreating form instance for section %s" % self.section_code)
-
         current_data = self.patient_wrapper.load_dynamic_data(self.registry_code, "cdes")
         if self.is_multiple:
             dynamic_data = self.data[self.section_code] # the cleaned data from the form submission
         else:
             dynamic_data = self.data
-
-        logger.debug("current data loaded by sectioninfo: %s" % dynamic_data)
-        
                     
         wrapped_data = wrap_file_cdes(self.registry_code, dynamic_data, current_data, multisection=self.is_multiple)
-        logger.debug("wrapped data in section info:" % wrapped_data)
 
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
@@ -189,8 +179,6 @@ class SectionInfo(object):
             form_instance = self.form_class(dynamic_data, initial=wrapped_data)
 
         return form_instance
-
-
 
 class FormView(View):
 
@@ -236,9 +224,6 @@ class FormView(View):
 
             if self.rdrf_context is None:
                 raise RDRFContextSwitchError
-            else:
-                logger.debug("switched context for patient %s to context %s" % (patient_model,
-                                                                                self.rdrf_context.id))
 
         except RDRFContextError as ex:
             logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
@@ -319,8 +304,6 @@ class FormView(View):
 
         if not self.CREATE_MODE:
             rdrf_context_id = self.rdrf_context.pk
-            logger.debug("********** RDRF CONTEXT ID SET TO %s" % rdrf_context_id)
-
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
@@ -453,18 +436,14 @@ class FormView(View):
 
             if not section_model.allow_multiple:
                 form = form_class(request.POST, files=request.FILES)
-                logger.debug("validating form for section %s" % section_model)
                 if form.is_valid():
-                    logger.debug("form is valid")
                     dynamic_data = form.cleaned_data
-                    # save all sections ONLY is all valid!
                     section_info = SectionInfo(s, dyn_patient, False, registry_code, "cdes", dynamic_data,form_class=form_class)
                     sections_to_save.append(section_info)
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
-                    logger.debug("form is invalid")
                     all_sections_valid = False
                     for e in form.errors:
                         error_count += 1
@@ -476,7 +455,6 @@ class FormView(View):
                     form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
 
             else:
-                logger.debug("handling POST of multisection %s" % section_model)
                 if section_model.extra:
                     extra = section_model.extra
                 else:
@@ -491,26 +469,14 @@ class FormView(View):
                 assert formset.prefix == prefix
 
                 if formset.is_valid():
-
-                    logger.debug("multisection formset is valid")
                     dynamic_data = formset.cleaned_data  # a list of values
-                    logger.debug("formset data = %s" % dynamic_data)
                     to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
                     index_map = make_index_map(to_remove, len(dynamic_data))
-                    logger.debug("to_remove = %s" % to_remove)
-                    logger.debug("index_map = %s" % index_map)
 
                     for i in reversed(to_remove):
-                        logger.debug("DELETEing %s" % i)
-                        clobbered = dynamic_data[i]
-                        logger.debug("This is the item that gets clobbered for i = %s : %s" % (i, clobbered))
-                        
                         del dynamic_data[i]
 
-                    logger.debug("data after deletion = %s" % dynamic_data)
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    logger.debug("current_data = %s" % current_data)
-
                     section_dict = {s: dynamic_data}
                     section_info = SectionInfo(s,
                                                dyn_patient,
@@ -523,29 +489,11 @@ class FormView(View):
                                                prefix=prefix)
 
                     sections_to_save.append(section_info)
-
-
                     form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True, index_map=index_map)
-                    logger.debug("form_data on the form for section %s  = %s" % (s, form_data)) 
-                    try:
-                        for x in form_data:
-                            for k in x:
-                                try:
-                                    logger.debug("form data %s = %s" % (k, x))
-                                    if type(x) is dict:
-                                        for k2 in x:
-                                            logger.debug("%s = %s" % (k2, x[k2]))
-                                            
-                                except Exception as ex:
-                                    logger.debug("err: %s" % ex)
-                    except Exception as ex2:
-                        logger.debug("err2: %s" % ex2)
-
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 
                 else:
                     all_sections_valid = False
-                    logger.debug("multisection formset is invalid")
                     for e in formset.errors:
                         error_count += 1
                         all_errors.append(e)
@@ -578,16 +526,10 @@ class FormView(View):
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
-        else:
-            for e in all_errors:
-                logger.debug("validation Error: %s" % e)
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
-
-        logger.debug("rdrf context = %s" % self.rdrf_context)
-
         wizard = NavigationWizard(self.user,
                                   registry,
                                   patient,
@@ -924,7 +866,6 @@ class ConsentFormWrapper(object):
         messages = []
         for field in self.form.errors:
             for message in self.form.errors[field]:
-                logger.debug("consent error for %s: %s" % (self.label, message))
                 messages.append(_("Consent Section Invalid"))
 
         return messages
@@ -997,7 +938,6 @@ class QuestionnaireView(FormView):
             prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
 
         file_path = os.path.join(settings.TEMPLATES[0]["DIRS"][0], 'rdrf_cdes', prelude_file)
-        logger.debug("file path = %s" % file_path)
         if os.path.exists(file_path):
             return os.path.join('rdrf_cdes', prelude_file)
         else:
@@ -1038,8 +978,6 @@ class QuestionnaireView(FormView):
 
         error_count += custom_consent_helper.error_count
 
-        logger.debug("Error count after checking custom consents = %s" % error_count)
-
         self.questionnaire_context = self._get_questionnaire_context(request)
 
         questionnaire_form = registry.questionnaire
@@ -1058,7 +996,6 @@ class QuestionnaireView(FormView):
         section_field_ids_map = {}
 
         for section in sections:
-            logger.debug("processing section %s" % section)
             section_model = Section.objects.get(code=section)
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
@@ -1073,13 +1010,10 @@ class QuestionnaireView(FormView):
                 form = form_class(request.POST, request.FILES)
                 form_section[section] = form
                 if form.is_valid():
-                    logger.debug("section %s is valid" % section_model.display_name)
                     dynamic_data = form.cleaned_data
                     data_map[section] = dynamic_data
                 else:
-                    logger.debug("section %s is NOT valid" % section_model.display_name)
                     for e in form.errors:
-                        logger.debug("Error in %s: %s" % (section_model.display_name, e))
                         error_count += 1
             else:
                 if section_model.extra:
@@ -1097,20 +1031,15 @@ class QuestionnaireView(FormView):
                 formset = form_set_class(request.POST, prefix=prefix)
 
                 if formset.is_valid():
-                    logger.debug("section %s is valid" % section_model.display_name)
                     dynamic_data = formset.cleaned_data  # a list of values
                     section_dict = {}
                     section_dict[section] = dynamic_data
                     data_map[section] = section_dict
                 else:
-                    logger.debug("section %s is NOT valid" % section_model.display_name)
                     for e in formset.errors:
-                        logger.debug("Error in %s: %s" % (section_model.display_name, e))
                         error_count += 1
 
         if error_count == 0:
-            logger.debug("All forms are valid")
-
             questionnaire_response = QuestionnaireResponse()
             questionnaire_response.registry = registry
             questionnaire_response.save()
@@ -1155,7 +1084,6 @@ class QuestionnaireView(FormView):
                             field_key = consent_question_model.field_key
                             try:
                                 value = custom_consent_data[field_key]
-                                logger.debug("%s = %s" % (field_key, value))
                                 if value == "on":
                                     question_wrapper.answer = "Yes"
                             except KeyError:
@@ -1265,8 +1193,6 @@ class QuestionnaireView(FormView):
 
             return render(request, 'rdrf_cdes/completed_questionnaire_thankyou.html', context)
         else:
-            logger.debug("Error count non-zero!:  %s" % error_count)
-
             context = {
                 'custom_consent_wrappers': custom_consent_helper.custom_consent_wrappers,
                 'custom_consent_errors': custom_consent_helper.custom_consent_errors,
@@ -1992,7 +1918,6 @@ class AdjudicationResultsView(View):
         actions = []
         for adjudication_cde_model in definition.action_cde_models:
             for k in post_data:
-                logger.debug(k)
                 if adjudication_cde_model.code in k:
                     value = post_data[k]
                     actions.append((adjudication_cde_model.code, value))
@@ -2013,7 +1938,6 @@ class CustomConsentFormView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
-        logger.debug("******************** loading consent form *********************")
         patient_model = Patient.objects.get(pk=patient_id)
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
@@ -2054,9 +1978,6 @@ class CustomConsentFormView(View):
             "show_print_button": True,
         }
 
-        logger.debug("context = %s" % context)
-
-        logger.debug("******************** rendering get *********************")
         return render(request, "rdrf_cdes/custom_consent_form.html", context)
 
     def _get_initial_consent_data(self, patient_model):
@@ -2067,8 +1988,6 @@ class CustomConsentFormView(View):
         data = patient_model.consent_questions_data
         for consent_field_key in data:
             initial_data[consent_field_key] = data[consent_field_key]
-            logger.debug("set initial consent data for %s to %s" %
-                         (consent_field_key, data[consent_field_key]))
         return initial_data
 
     def _get_form_sections(self, registry_model, patient_model):
@@ -2127,7 +2046,6 @@ class CustomConsentFormView(View):
                                                   patient_model.pk])
 
     def post(self, request, registry_code, patient_id, context_id=None):
-        logger.debug("******************** post of consents *********************")
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, context_id])
             login_url = reverse('login')
@@ -2150,8 +2068,6 @@ class CustomConsentFormView(View):
         patient_consent_file_formset = inlineformset_factory(Patient, PatientConsent,
                                                              form=PatientConsentFileForm,
                                                              fields="__all__")
-
-        logger.debug("patient consent file formset = %s" % patient_consent_file_formset)
 
         patient_consent_file_forms = patient_consent_file_formset(request.POST,
                                                                   request.FILES,
@@ -2211,19 +2127,12 @@ class CustomConsentFormView(View):
         }
 
         if all(valid_forms):
-            logger.debug("******************** forms valid :)  *********************")
-            logger.debug("******************** saving any consent files *********************")
             things = patient_consent_file_forms.save()
             patient_consent_file_forms.initial = things
-            logger.debug("***** ||| things = %s" % things)
-            logger.debug("******************** end of consent file save *********************")
-            logger.debug("******************** saving custom consent form *********************")
             custom_consent_form.save()
-            logger.debug("******************** end of consent save *********************")
             context["message"] = "Patient %s %s saved successfully" % (patient_model.given_names,
                                                                        patient_model.family_name)
         else:
-            logger.debug("******************** forms invalid :( *********************")
             context["message"] = "Some forms invalid"
             context["error_messages"] = error_messages
             context["errors"] = True
