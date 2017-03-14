@@ -720,6 +720,9 @@ def add_multisection_item(step, section):
   add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
   add_link = div.find_element_by_xpath(add_link_xpath)
   add_link.click()
+  # sometimes the next cde send keys was going to the wrong item
+  wait_n_seconds(step, 5)
+  
 
 
 @step('I wait (\d+) seconds')
