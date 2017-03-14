@@ -37,3 +37,9 @@ Feature: User operates on multisection items.
     Then I should see "Patient John SMITH saved successfully"
     And I should be able to download "fh_multisection_tests.feature"
     And I should be able to download "fh_file_upload.feature"
+   
+    # delete the first item of the multisection
+    When I mark multisection "Carotid Ultrasonography" item 1 for deletion
+    And I click the "Save" button
+    And I should not be able to download "fh_file_upload.feature"
+    And I should be able to download "fh_multisection_tests.feature"

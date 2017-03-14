@@ -605,6 +605,22 @@ def should_be_able_to_download(step, download_name):
         raise Exception("%s does not look like a download link: href= %s" %
                         download_link_href)
 
+@step('should not be able to download "(.*)"')
+def should_not_be_able_download(step, download_name):
+    can_download = False
+    try:
+        should_be_able_to_download(step, download_name)
+        can_download = True
+    except:
+        pass
+
+    if can_download:
+        raise Exception("should NOT be able to download %s" % download_name)
+    else:
+        print("%s is not downloadable as expected" % download_name)
+        
+
+
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
     from selenium.webdriver.common.action_chains import ActionChains
@@ -711,6 +727,30 @@ def wait_n_seconds(step, seconds):
     import time
     n = int(seconds)
     time.sleep(n)
+
+
+@step('I mark multisection "(.*)" item (\d+) for deletion')
+def mark_item_for_deletion(step, multisection, item):
+    formset_string = "-%s-" % (int(item) - 1)
+    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
+    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    # now locate the delete checkbox for the item
+    checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
+    delete_checkbox = default_panel.find_element_by_xpath(checkbox_xpath)
+    
+    if delete_checkbox:
+        print("found delete_checkbox for multisection %s item %s" % (multisection,
+                                                                     item))
+    else:
+        raise Exception("Could not found delete checkbox for multisection %s item %s" % (multisection,
+                                                                                         item))
+
+    scroll_to(delete_checkbox)
+    delete_checkbox.click()
+    
+
+
+
   
 
     
