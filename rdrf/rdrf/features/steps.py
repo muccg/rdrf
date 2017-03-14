@@ -41,6 +41,40 @@ def scroll_to(element):
      scroll_to_y(y)
      print("scrolled to %s at (0,Y) = %s" % (moniker(element), y))
      return y
+
+
+def scroll_to_multisection_cde(section, cde, item=1):
+    # item 1 means the 1st block of cdes in the multisection
+    formset_string = "-%s-" % (int(item) - 1)
+    if item == 1:
+        # the first (default) item is not created by js from the empty form template
+        contains_clause = " not(contains(,, '__prefix__')) "
+    else:
+        # subsequent items are ...
+        contains_clause = " contains(., '__prefix__') "
+    
+    for section_div_heading in world.browser.find_elements_by_xpath(".//div[@class='panel-heading'][contains(., '%s') " + 
+                                                                    " and %s]" % (section,
+                                                                                  contains_clause)):
+        
+        section_div = section_div_heading.find_element_by_xpath("..")
+        label_expression = ".//label[contains(., '%s')]" % cde
+        label_element = section_div.find_element_by_xpath(label_expression)
+        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        input_element = input_div.find_element_by_xpath(".//input[@id=*'%s']" % formset_string)
+        if not input_element:
+            continue
+        scroll_to_element(input_element)
+        return input_element
+
+    raise Exception("Could not locate multsection %s cde %s item %s" % (section,
+                                                                        cde,
+                                                                        item))
+
+
+        
+        
+    
  
 
 def scroll_to_cde(section, cde, attr_dict={},multisection=False, item=None):
@@ -518,7 +552,7 @@ def upload_file(step, upload_filename, section, cde):
 
 @step('upload file "(.*)" for section "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
-    input_element = scroll_to_cde(section, cde, item=item)
+    input_element = scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
     
 @step('upload file "(.*)" for multisection "(.*)" cde "(.*)"')
