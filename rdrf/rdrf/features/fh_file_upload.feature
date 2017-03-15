@@ -22,7 +22,7 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     
-    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Laboratory Data" cde "Laboratory Report"
+    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     Then I should be able to download "fh_file_upload.feature"
@@ -38,12 +38,12 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     
-    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Laboratory Data" cde "Laboratory Report"
+    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     Then I should be able to download "fh_file_upload.feature"
     
-    When I upload file "/app/rdrf/rdrf/features/fh_family_linkage.feature" for multisection "Laboratory Data" cde "Laboratory Report"
+    When I upload file "/app/rdrf/rdrf/features/fh_family_linkage.feature" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     Then I should be able to download "fh_family_linkage.feature"

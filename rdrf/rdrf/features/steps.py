@@ -17,81 +17,6 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
-def moniker(element):
-    def get_att(el, x):
-        try:
-            return el.get_attribute(x)
-        except:
-            return ""
-        
-    el_id = get_att(element,"id")
-    el_name = get_att(element,"name")
-    el_class = get_att(element,"class")
-
-    return "element id=%s name=%s class=%s" % (el_id,
-                                               el_name,
-                                               el_class)
-
-def scroll_to_y(y):
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
-
-def scroll_to(element):
-     loc = element.location_once_scrolled_into_view
-     y = loc["y"]
-     scroll_to_y(y)
-     print("scrolled to %s at (0,Y) = %s" % (moniker(element), y))
-     return y
- 
-
-def scroll_to_cde(section, cde, attr_dict={},multisection=False):
-    """
-    navigate to a given section and cde, scrolling to make the field visible
-    return the input element
-    """
-    extra_xpath = ""
-        
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
-
-    section_div = section_div_heading.find_element_by_xpath("..")
-    
-    label_expression = ".//label[contains(., '%s')]" % cde
-    label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-    if attr_dict:
-        attr = list(attr_dict.keys())[0]
-        value = attr_dict[attr]
-        extra_xpath= '[@%s="%s"]'% (attr, value)
-        
-    input_element = None
-    
-    input_elements = input_div.find_elements_by_xpath(".//input%s" % extra_xpath)
-    print("found %s input elements satisfying critera" % len(input_elements))
-
-    if len(input_elements) >= 0:
-        input_element = input_elements[0]
-            
-    if not input_element:
-        raise Exception("could not locate element to scroll to")
-    loc = input_element.location_once_scrolled_into_view
-    input_id = input_element.get_attribute("id")
-    if "__prefix__" in input_id:
-        # hack to avoid this error
-        input_id = input_id.replace("__prefix__","0")
-        input_element = world.browser.find_element_by_id(input_id)
-        if not input_element:
-            raise Exception("could not locate input with id %s" % input_id)
-        
-        loc = input_element.location_once_scrolled_into_view
-        
-    
-    y = loc["y"]
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
-    print("scrolled to section %s cde %s (id=%s) y = %s" % (section,
-                                                            cde,
-                                                            input_id,
-                                                            y))
-    return input_element
 
 @step('development fixtures')
 def load_development_fixtures(step):
@@ -183,6 +108,41 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     raise Exception("could not find cde %s" % cde)
 
+@step('I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)')
+def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
+    formset_number = int(item) - 1
+    formset_string = "-%s-" % formset_number
+
+    def correct_item(input_element):
+        input_id = input_element.get_attribute("id")
+        return formset_string in input_id
+    
+    
+    location_is(step, form)  # sanity check
+
+    form_block = world.browser.find_element_by_id("main-form")
+    section_div_heading = form_block.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+
+    label_expression = ".//label[contains(., '%s')]" % cde
+
+    for label_element in section_div.find_elements_by_xpath(label_expression):
+        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        try:
+            input_element = input_div.find_element_by_xpath(".//input")
+            if not correct_item(input_element):
+                continue
+            input_element.send_keys(cde_value)
+            input_id = input_element.get_attribute("id")
+            print("input id %s sent keys '%s'" % (input_id,
+                                                  cde_value))
+            
+            return
+        except:
+            pass
+
+    raise Exception("could not find cde %s" % cde)
 
 @step('I click the "(.*)" button')
 def click_submit_button(step, value):
@@ -191,7 +151,6 @@ def click_submit_button(step, value):
     """
     submit_element = world.browser.find_element_by_xpath("//*[@id='submit-btn' and @value='{0}']".format(value))
     utils.click(submit_element)
-
 
 @step('error message is "(.*)"')
 def error_message_is(step, error_message):
@@ -463,27 +422,20 @@ def click_radio_button(step, value, section, cde):
     input_element  = input_div.find_element_by_xpath(".//input")
     input_element.click()
 
+@step('upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
+def upload_file(step, upload_filename, section, cde, item):
+    input_element = utils.scroll_to_multisection_cde(section, cde, item)
+    input_element.send_keys(upload_filename)
+
 @step('upload file "(.*)" for section "(.*)" cde "(.*)"')
 def upload_file(step, upload_filename, section, cde):
-    input_element = scroll_to_element(step, section, cde)
+    input_element = utils.scroll_to_element(step, section, cde)
     input_element.send_keys(upload_filename)
 
-@step('upload file "(.*)" for multisection "(.*)" cde "(.*)"')
-def upload_file_multisection(step, upload_filename, section, cde):
-    input_element = scroll_to_cde(section, cde, attr_dict={"type": "file"}, multisection=True)
     
-    if not input_element:
-        raise Exception("Could locate file cde: %s %s" % (section, cde))
-    element_id = input_element.get_attribute("id")
-    print("sending upload file %s to input element with id = %s" % (upload_filename,
-                                                                    element_id))
-    
-    input_element.send_keys(upload_filename)
-    print("uploaded file: %s" % upload_filename)
-
 @step('scroll to section "(.*)" cde "(.*)"')
 def scroll_to_element(step, section, cde):
-    input_element = scroll_to_cde(section, cde)
+    input_element = utils.scroll_to_cde(section, cde)
     if not input_element:
         raise Exception("could not scroll to section %s cde %s" % (section,
                                                                    cde))
@@ -503,6 +455,22 @@ def should_be_able_to_download(step, download_name):
         raise Exception("%s does not look like a download link: href= %s" %
                         download_link_href)
 
+@step('should not be able to download "(.*)"')
+def should_not_be_able_download(step, download_name):
+    can_download = False
+    try:
+        should_be_able_to_download(step, download_name)
+        can_download = True
+    except:
+        pass
+
+    if can_download:
+        raise Exception("should NOT be able to download %s" % download_name)
+    else:
+        print("%s is not downloadable as expected" % download_name)
+        
+
+
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
     from selenium.webdriver.common.action_chains import ActionChains
@@ -521,10 +489,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     input_element = input_div.find_element_by_xpath(".//input")
     history_widget = label_element.find_elements_by_xpath(".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
 
-    # scroll down to the correct input element
-    loc = input_element.location_once_scrolled_into_view
-    y = loc["y"]
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+    utils.scroll_to(input_element)
 
     # this causes the history component to become visible/clickable
     mover = ActionChains(world.browser)
@@ -557,7 +522,7 @@ def clear_file_upload(step, section, cde, download_name):
     download_link_element = world.browser.find_element_by_link_text(download_name)
     clear_checkbox = download_link_element.find_element_by_xpath(".//following-sibling::input[@type='checkbox']")
     checkbox_id = clear_checkbox.get_attribute("id")
-    y = int(scroll_to(clear_checkbox))
+    y = int(utils.scroll_to(clear_checkbox))
     attempts = 1
     succeeded = False
 
@@ -573,7 +538,7 @@ def clear_file_upload(step, section, cde, download_name):
             time.sleep(2)
             attempts += 1
         y = y + 10
-        scroll_to_y(y)
+        utils.scroll_to_y(y)
         print("scrolled to y = %s" % y)
 
 
@@ -581,3 +546,73 @@ def clear_file_upload(step, section, cde, download_name):
         raise Exception("Could not click the file clear checkbox")
     
 
+@step('when I scroll to section "(.*)"')
+def scroll_to_section(step, section):
+    from selenium.webdriver.common.action_chains import ActionChains
+    mover = ActionChains(world.browser)
+    print("scrolling to section %s" % section)
+    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_element = world.browser.find_element_by_xpath(section_xpath)
+    if not section_element:
+        raise Exception("could not find section %s" % section)
+    y = utils.scroll_to(section_element)
+    mover.move_to_element(section_element)
+    print("scrolled to section %s y = %s" % (section, y))
+
+
+@step('I click the add button for multisection "(.*)"')
+def add_multisection_item(step, section):
+  xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+  div = world.browser.find_element_by_xpath(xpath)
+  add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
+  add_link = div.find_element_by_xpath(add_link_xpath)
+  add_link.click()
+  # sometimes the next cde send keys was going to the wrong item
+  wait_n_seconds(step, 5)
+  
+
+
+@step('I wait (\d+) seconds')
+def wait_n_seconds(step, seconds):
+    import time
+    n = int(seconds)
+    time.sleep(n)
+
+
+@step('I mark multisection "(.*)" item (\d+) for deletion')
+def mark_item_for_deletion(step, multisection, item):
+    formset_string = "-%s-" % (int(item) - 1)
+    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
+    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    # now locate the delete checkbox for the item
+    checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
+    delete_checkbox = default_panel.find_element_by_xpath(checkbox_xpath)
+    
+    if delete_checkbox:
+        print("found delete_checkbox for multisection %s item %s" % (multisection,
+                                                                     item))
+    else:
+        raise Exception("Could not found delete checkbox for multisection %s item %s" % (multisection,
+                                                                                         item))
+
+    utils.click(delete_checkbox)
+
+@step('the value of multisection "(.*)" cde "(.*)" item (\d+) is "(.*)"')
+def check_multisection_value(step, multisection, cde, item, expected_value):
+    """
+    Check the value of an entered field in a multisection
+    """
+    input_element = utils.scroll_to_multisection_cde(multisection, cde, item)
+    actual_value = input_element.get_attribute("value")
+    error_msg = "Multisection %s cde %s item %s expected value %s - actual value %s" % (multisection,
+                                                                                  cde,
+                                                                                  item,
+                                                                                  expected_value,
+                                                                                  actual_value)
+    
+    assert(actual_value == expected_value, error_msg)
+
+
+  
+
+    

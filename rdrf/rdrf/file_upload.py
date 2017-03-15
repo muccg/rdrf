@@ -88,7 +88,7 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
+def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,index_map={}):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful
@@ -99,7 +99,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
     # File CDEs are stored as dictionaries in Mongo : {"django_file_id": <fileid> , "name": <filename>}.
     # The filestorage module handles the actual file content and retrieval.
 
-    # If no file has been uploaded mongo will contain the value None.
+    # If no file has been uploaded modjgo data will contain the value None.
 
     # In the gui , the widget for a file cde shows a download link and a clear checkbox.
     # The download link is created by a wrapper class: "FileUpload".
@@ -145,18 +145,39 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
                 return False
 
     def should_wrap(section_index, key, value):
+        logger.debug("in should_wrap: section_index %s key = %s value = %s" % (section_index,
+                                                                               key,
+                                                                               value))
+        
         try:
             cde_code = get_code(key)
+            logger.debug("cde_code = %s" % cde_code)
         except:
             # not a delimited mongo key
+            logger.debug("key %s is not delimited so returning False" % key)
             return False
 
         if is_file_cde(cde_code):
+            logger.debug("cde_code %s is a file cde" % cde_code)
             u = is_upload_file(value)
+            if u:
+                logger.debug("cde %s is an upload file u = %s" % (cde_code, u))
+    
             fs = is_filestorage_dict(value)
+            if fs:
+                logger.debug("value %s is a filestorage dict fs = %s" % (value, fs))
             im = is_existing_in_mongo(section_index, key, value)
-            return u or fs or im
+            if im:
+                logger.debug("value exists in db im = %s" %   im)
 
+                
+            sw = u or fs or im
+            logger.debug("should_wrap returns %s" % sw)
+            return sw
+        
+
+        
+        logger.debug("cde_code %s is not a file CDE so returning False" % cde_code)
         return False
 
     def wrap_upload(key, value):
@@ -166,6 +187,9 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         return FileUpload(registry_code, key, value)
 
     def get_mongo_value(section_index, key):
+        logger.debug("get_mongo_value for section_index %s key %s" % (section_index,
+                                                                      key))
+        
         if section_index is None:
             value = mongo_data[key]
         else:
@@ -173,6 +197,10 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
             section_dicts = mongo_data[section_code]
             correct_section_dict = section_dicts[section_index]
             value = correct_section_dict[key]
+            logger.debug("section code %s correct_section_dict = %s value = %s" % (section_code,
+                                                                                   correct_section_dict,
+                                                                                   value))
+            
 
         return value
 
@@ -180,6 +208,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         # NB we need section index in case we're looking inside a multisection
         # a multisection is just a list of section dicts indexed by
         # section_index
+        logger.debug("in wrap section_index %s key %s value %s" % (section_index, key, value))
         if not should_wrap(section_index, key, value):
             logger.debug("will NOT wrap %s" % key)
             return value
@@ -202,7 +231,34 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False):
         return {key: wrap(section_index, key, value) for key, value in section_dict.items()}
 
     def wrap_multisection(multisection_list):
-        return [wrap_section(section_index, section_dict) for section_index, section_dict in enumerate(multisection_list)]
+        def iterate_over_non_deleted_items(multisection_list):
+            # _if_ we have deleted items in the GUI, the passed in index_map
+            # holds a map of new index --> original source index
+            # so len(index_map.keys()) is the current number of items in the multisection
+            # e.g.
+            #  original items were A,B,C
+            #  and we deleted item 2 (index 1) to produce A,C
+            # index map would be {0: 0 ,
+            #                     1: 2}
+            # meaning that the first item hasn't changed but the 2nd item was originally 3rd
+             
+            # If C had a value of None for the file cde  this means we need to retrieve
+            # the django  file id from the DB ,
+            # but because we have deleted the second item and thus changed the index from 2 to 1
+            # it would be an error to wrap the value of db item with index 1 - rather we need to
+            # retieve the item using the old index  (2) ( which is preserved in the index_map dictionary
+            # and we should extract _that_ to wrap for the form
+            for new_index, item in enumerate(multisection_list):
+                if index_map:
+                    logger.debug("index_map non empty so retrieving old index")
+                    index = index_map[new_index]
+                else:
+                    logger.debug("index map is empty so using new index")
+                    index = new_index
+
+                yield index, item
+            
+        return [wrap_section(section_index, section_dict) for section_index, section_dict in iterate_over_non_deleted_items(multisection_list)]
 
     if multisection:
         return wrap_multisection(section_data)
