@@ -603,6 +603,21 @@ def mark_item_for_deletion(step, multisection, item):
 
     utils.click(delete_checkbox)
 
+@step('the value of multisection "(.*)" cde "(.*)" item (\d+) is "(.*)"')
+def check_multisection_value(step, multisection, cde, item, expected_value):
+    """
+    Check the value of an entered field in a multisection
+    """
+    input_element = utils.scroll_to_multisection_cde(multisection, cde, item)
+    actual_value = input_element.get_attribute("value")
+    error_msg = "Multisection %s cde %s item %s expected value %s - actual value %s" % (multisection,
+                                                                                  cde,
+                                                                                  item,
+                                                                                  expected_value,
+                                                                                  actual_value)
+    
+    assert(actual_value == expected_value, error_msg)
+
 
   
 

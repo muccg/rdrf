@@ -37,3 +37,7 @@ Feature: User operates on multisection items.
     And I click the "Save" button
     Then I should not be able to download "fh_file_upload.feature"
     And I should be able to download "fh_multisection_tests.feature"
+    
+    # check some values - we deleted the 1st item so what remains is the original 2nd item
+    And the value of multisection "Carotid Ultrasonography" cde "Date" item 1 is "02-01-2017"
+    And the value of multisection "Carotid Ultrasonography" cde "Result" item 1 is "item 2"
