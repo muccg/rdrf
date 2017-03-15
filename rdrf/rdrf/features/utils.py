@@ -204,16 +204,10 @@ def scroll_to_multisection_cde(section, cde, item=1):
     # item 1 means the 1st block of cdes in the multisection
     print("Attempting to scroll to section %s cde %s item %s" % (section,
                                                                  cde,
+
                                                                  item))
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
-    if item == 1:
-        # the first (default) item is not created by js from the empty form template
-        contains_clause = " not(contains(,, '__prefix__')) "
-    else:
-        # subsequent items are ...
-        contains_clause = " contains(., '__prefix__') "
-
     xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
     default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -221,17 +215,14 @@ def scroll_to_multisection_cde(section, cde, item=1):
     for label_element in default_panel.find_elements_by_xpath(label_expression):
         print("found a label element for cde %s" % cde)
         input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        # NB. We avoid matching against the clear checkbox for an uploaded file cde
         try:
-            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s')]" % formset_string)
+            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" % formset_string)
+            scroll_to(input_element)
+            print("found input element: id = %s" % input_element.get_attribute("id"))
+            return input_element
         except:
-            input_element = None
-            
-        if not input_element:
             continue
-            
-        scroll_to(input_element)
-        print("found input element: id = %s" % input_element.get_attribute("id"))
-        return input_element
 
     raise Exception("Could not locate multsection %s cde %s item %s" % (section,
                                                                         cde,

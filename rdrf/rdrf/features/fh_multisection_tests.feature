@@ -16,7 +16,7 @@ Feature: User operates on multisection items.
     And I enter value "01-01-2017" for form "Imaging" multisection "Carotid Ultrasonography" cde "Date" in item 1  
     And I enter value "4.0" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result (right)" in item 1
     And I enter value "item 1" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result" in item 1
-    When I upload2 file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 1
+    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I should be able to download "fh_file_upload.feature"
@@ -26,7 +26,7 @@ Feature: User operates on multisection items.
     And I enter value "02-01-2017" for form "Imaging" multisection "Carotid Ultrasonography" cde "Date" in item 2
     And I enter value "3.0" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result (right)" in item 2
     And I enter value "item 2" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result" in item 2
-    When I upload2 file "/app/rdrf/rdrf/features/fh_multisection_tests.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 2
+    When I upload file "/app/rdrf/rdrf/features/fh_multisection_tests.feature" for multisection "Carotid Ultrasonography" cde "Report" in item 2
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I should be able to download "fh_multisection_tests.feature"

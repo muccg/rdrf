@@ -422,7 +422,7 @@ def click_radio_button(step, value, section, cde):
     input_element  = input_div.find_element_by_xpath(".//input")
     input_element.click()
 
-@step('upload2 file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
+@step('upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
     input_element = utils.scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
@@ -489,13 +489,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     input_element = input_div.find_element_by_xpath(".//input")
     history_widget = label_element.find_elements_by_xpath(".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
 
-    # scroll down to the correct input element
-    loc = input_element.location_once_scrolled_into_view
-    y = loc["y"]
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
-
     utils.scroll_to(input_element)
-    
 
     # this causes the history component to become visible/clickable
     mover = ActionChains(world.browser)
