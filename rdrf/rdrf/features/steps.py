@@ -17,141 +17,6 @@ logger = logging.getLogger(__name__)
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
-def moniker(element):
-    def get_att(el, x):
-        try:
-            return el.get_attribute(x)
-        except:
-            return ""
-        
-    el_id = get_att(element,"id")
-    el_name = get_att(element,"name")
-    el_class = get_att(element,"class")
-
-    return "element id=%s name=%s class=%s" % (el_id,
-                                               el_name,
-                                               el_class)
-
-def scroll_to_y(y):
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
-
-def scroll_to(element):
-     loc = element.location_once_scrolled_into_view
-     y = loc["y"]
-     scroll_to_y(y)
-     print("scrolled to %s at (0,Y) = %s" % (moniker(element), y))
-     return y
-
-
-def scroll_to_multisection_cde(section, cde, item=1):
-    # item 1 means the 1st block of cdes in the multisection
-    print("Attempting to scroll to section %s cde %s item %s" % (section,
-                                                                 cde,
-                                                                 item))
-    
-    formset_string = "-%s-" % (int(item) - 1)
-    print("formset_string = %s" % formset_string)
-    if item == 1:
-        # the first (default) item is not created by js from the empty form template
-        contains_clause = " not(contains(,, '__prefix__')) "
-    else:
-        # subsequent items are ...
-        contains_clause = " contains(., '__prefix__') "
-
-    print("contains clause = %s" % contains_clause)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
-    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
-    
-    label_expression = ".//label[contains(., '%s')]" % cde
-    
-    for label_element in default_panel.find_elements_by_xpath(label_expression):
-        print("found a label element for cde %s" % cde)
-        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-        try:
-            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s')]" % formset_string)
-        except:
-            input_element = None
-            
-        if not input_element:
-            print("The input element is not in the correct formset - continuing to search...")
-            continue
-        else:
-            print("found input element for cde %s in item %s" % (cde, item))
-            
-        scroll_to(input_element)
-        print("found input element: id = %s" % input_element.get_attribute("id"))
-        return input_element
-
-    raise Exception("Could not locate multsection %s cde %s item %s" % (section,
-                                                                        cde,
-                                                                        item))
-
-
-        
-        
-    
- 
-
-def scroll_to_cde(section, cde, attr_dict={},multisection=False, item=None):
-    """
-    navigate to a given section and cde, scrolling to make the field visible
-    return the input element
-    """
-    extra_xpath = ""
-        
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
-
-    section_div = section_div_heading.find_element_by_xpath("..")
-    
-    label_expression = ".//label[contains(., '%s')]" % cde
-    label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-    if attr_dict:
-        attr = list(attr_dict.keys())[0]
-        value = attr_dict[attr]
-        extra_xpath= '[@%s="%s"]'% (attr, value)
-        
-    input_element = None
-    
-    input_elements = input_div.find_elements_by_xpath(".//input%s" % extra_xpath)
-
-    print("found %s input elements satisfying critera" % len(input_elements))
-
-    if len(input_elements) >= 0:
-        if not item:
-            input_element = input_elements[0]
-        else:
-            formset_string = "-%s-" % (int(item) - 1)
-            for ie in input_elements:
-                input_id = ie.get_attribute("id")
-                if formset_string in input_id:
-                    input_element = ie
-                    break
-            raise Exception("Could not locate section %s input %s item %s" % (section, cde, item))
-            
-            
-    if not input_element:
-        raise Exception("could not locate element to scroll to")
-    loc = input_element.location_once_scrolled_into_view
-    input_id = input_element.get_attribute("id")
-    if "__prefix__" in input_id:
-        # hack to avoid this error
-        input_id = input_id.replace("__prefix__","0")
-        input_element = world.browser.find_element_by_id(input_id)
-        if not input_element:
-            raise Exception("could not locate input with id %s" % input_id)
-        
-        loc = input_element.location_once_scrolled_into_view
-        
-    
-    y = loc["y"]
-    world.browser.execute_script("window.scrollTo(0, %s)" % y)
-    print("scrolled to section %s cde %s (id=%s) y = %s" % (section,
-                                                            cde,
-                                                            input_id,
-                                                            y))
-    return input_element
 
 @step('development fixtures')
 def load_development_fixtures(step):
@@ -243,7 +108,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     raise Exception("could not find cde %s" % cde)
 
-@step('I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)" in item (\d+)')
+@step('I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)')
 def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     formset_number = int(item) - 1
     formset_string = "-%s-" % formset_number
@@ -279,8 +144,6 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
 
     raise Exception("could not find cde %s" % cde)
 
-
-
 @step('I click the "(.*)" button')
 def click_submit_button(step, value):
     """click submit button with given value
@@ -288,7 +151,6 @@ def click_submit_button(step, value):
     """
     submit_element = world.browser.find_element_by_xpath("//*[@id='submit-btn' and @value='{0}']".format(value))
     utils.click(submit_element)
-
 
 @step('error message is "(.*)"')
 def error_message_is(step, error_message):
@@ -560,32 +422,20 @@ def click_radio_button(step, value, section, cde):
     input_element  = input_div.find_element_by_xpath(".//input")
     input_element.click()
 
-@step('upload file "(.*)" for section "(.*)" cde "(.*)"')
-def upload_file(step, upload_filename, section, cde):
-    input_element = scroll_to_element(step, section, cde)
-    input_element.send_keys(upload_filename)
-
 @step('upload2 file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
-    input_element = scroll_to_multisection_cde(section, cde, item)
+    input_element = utils.scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
-    
-@step('upload file "(.*)" for multisection "(.*)" cde "(.*)"')
-def upload_file_multisection(step, upload_filename, section, cde):
-    input_element = scroll_to_cde(section, cde, attr_dict={"type": "file"}, multisection=True)
-    
-    if not input_element:
-        raise Exception("Could locate file cde: %s %s" % (section, cde))
-    element_id = input_element.get_attribute("id")
-    print("sending upload file %s to input element with id = %s" % (upload_filename,
-                                                                    element_id))
-    
-    input_element.send_keys(upload_filename)
-    print("uploaded file: %s" % upload_filename)
 
+@step('upload file "(.*)" for section "(.*)" cde "(.*)"')
+def upload_file(step, upload_filename, section, cde):
+    input_element = utils.scroll_to_element(step, section, cde)
+    input_element.send_keys(upload_filename)
+
+    
 @step('scroll to section "(.*)" cde "(.*)"')
 def scroll_to_element(step, section, cde):
-    input_element = scroll_to_cde(section, cde)
+    input_element = utils.scroll_to_cde(section, cde)
     if not input_element:
         raise Exception("could not scroll to section %s cde %s" % (section,
                                                                    cde))
@@ -644,6 +494,9 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     y = loc["y"]
     world.browser.execute_script("window.scrollTo(0, %s)" % y)
 
+    utils.scroll_to(input_element)
+    
+
     # this causes the history component to become visible/clickable
     mover = ActionChains(world.browser)
     mover.move_to_element(input_element).perform()
@@ -675,7 +528,7 @@ def clear_file_upload(step, section, cde, download_name):
     download_link_element = world.browser.find_element_by_link_text(download_name)
     clear_checkbox = download_link_element.find_element_by_xpath(".//following-sibling::input[@type='checkbox']")
     checkbox_id = clear_checkbox.get_attribute("id")
-    y = int(scroll_to(clear_checkbox))
+    y = int(utils.scroll_to(clear_checkbox))
     attempts = 1
     succeeded = False
 
@@ -691,7 +544,7 @@ def clear_file_upload(step, section, cde, download_name):
             time.sleep(2)
             attempts += 1
         y = y + 10
-        scroll_to_y(y)
+        utils.scroll_to_y(y)
         print("scrolled to y = %s" % y)
 
 
@@ -708,7 +561,7 @@ def scroll_to_section(step, section):
     section_element = world.browser.find_element_by_xpath(section_xpath)
     if not section_element:
         raise Exception("could not find section %s" % section)
-    y = scroll_to(section_element)
+    y = utils.scroll_to(section_element)
     mover.move_to_element(section_element)
     print("scrolled to section %s y = %s" % (section, y))
 
@@ -748,10 +601,7 @@ def mark_item_for_deletion(step, multisection, item):
         raise Exception("Could not found delete checkbox for multisection %s item %s" % (multisection,
                                                                                          item))
 
-    scroll_to(delete_checkbox)
-    delete_checkbox.click()
-    
-
+    utils.click(delete_checkbox)
 
 
   
