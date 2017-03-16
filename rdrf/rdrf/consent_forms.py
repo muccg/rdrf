@@ -46,7 +46,6 @@ class BaseConsentForm(forms.BaseForm):
             questions)
 
     def _get_consent_field_models(self, consent_field):
-        logger.debug("getting consent field models for %s" % consent_field)
         _, reg_pk, sec_pk, q_pk = consent_field.split("_")
         registry_model = Registry.objects.get(pk=reg_pk)
         consent_section_model = ConsentSection.objects.get(pk=sec_pk)
@@ -85,44 +84,34 @@ class BaseConsentForm(forms.BaseForm):
         cleaneddata = self.cleaned_data
 
         for k in cleaneddata:
-            logger.debug("cleaned field %s = %s" % (k, cleaneddata[k]))
-
-        for k in cleaneddata:
             if k.startswith("customconsent_"):
                 self.custom_consents[k] = cleaneddata[k]
 
         for k in self.custom_consents:
             del cleaneddata[k]
-            logger.debug("removed custom consent %s" % k)
 
         self._validate_custom_consents()
 
         return super(BaseConsentForm, self).clean()
 
     def _validate_custom_consents(self):
-        logger.debug("custom consents = %s" % self.custom_consents)
         data = {}
         for field_key in self.custom_consents:
-            logger.debug("field key = %s" % field_key)
             parts = field_key.split("_")
             reg_pk = int(parts[1])
             registry_model = Registry.objects.get(id=reg_pk)
-            logger.debug("reg = %s" % registry_model)
             if registry_model not in data:
                 data[registry_model] = {}
 
             consent_section_pk = int(parts[2])
             consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
-            logger.debug("section model = %s" % consent_section_model)
 
             if consent_section_model not in data[registry_model]:
                 data[registry_model][consent_section_model] = {}
 
             consent_question_pk = int(parts[3])
             consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
-            logger.debug("consent question = %s" % consent_question_model)
             answer = self.custom_consents[field_key]
-            logger.debug("answer = %s" % answer)
 
             data[registry_model][consent_section_model][consent_question_model.code] = answer
 
@@ -136,9 +125,6 @@ class BaseConsentForm(forms.BaseForm):
                     error_message = "Consent Section '%s %s' is not valid" % (
                         registry_model.code.upper(), consent_section_model.section_label)
                     validation_errors.append(error_message)
-                else:
-                    logger.debug("Consent section %s is valid!" %
-                                 consent_section_model.section_label)
 
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
@@ -160,13 +146,10 @@ class CustomConsentFormGenerator(object):
     def _create_custom_consent_fields(self):
         fields = OrderedDict()
         for consent_section_model in self.registry_model.consent_sections.all():
-            logger.debug("consent section model = %s" % consent_section_model)
             if consent_section_model.applicable_to(self.patient_model):
                 for consent_question_model in consent_section_model.questions.all().order_by("position"):
                     consent_field = consent_question_model.create_field()
                     field_key = consent_question_model.field_key
                     fields[field_key] = consent_field
-                    logger.debug("added consent field %s = %s" % (field_key, consent_field))
 
-        logger.debug("custom consent fields = %s" % fields)
         return fields
