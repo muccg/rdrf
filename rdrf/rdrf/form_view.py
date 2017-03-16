@@ -2107,36 +2107,35 @@ class CustomConsentFormView(View):
         except ParentGuardian.DoesNotExist:
             parent = None
 
-        context = {
-            "location": "Consents",
-            "patient": patient_model,
-            "patient_id": patient_model.id,
-            'patient_link': PatientLocator(registry_model, patient_model).link,
-            "context_id": context_id,
-            "registry_code": registry_code,
-            "show_archive_button": request.user.can_archive,
-            "not_linked": not patient_model.is_linked,
-            "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
-            "next_form_link": wizard.next_link,
-            "previous_form_link": wizard.previous_link,
-            "context_launcher": context_launcher.html,
-            "forms": form_sections,
-            "error_messages": [],
-            "parent": parent,
-            "consent": consent_status_for_patient(registry_code, patient_model)
-        }
-
         if all(valid_forms):
             things = patient_consent_file_forms.save()
             patient_consent_file_forms.initial = things
             custom_consent_form.save()
-            context["message"] = "Patient %s %s saved successfully" % (patient_model.given_names,
-                                                                       patient_model.family_name)
-            messages.success(self.request, context["message"])
+            messages.success(self.request, "Patient %s %s saved successfully" % (patient_model.given_names,
+                                                                                 patient_model.family_name))
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
+            context = {
+                "location": "Consents",
+                "patient": patient_model,
+                "patient_id": patient_model.id,
+                'patient_link': PatientLocator(registry_model, patient_model).link,
+                "context_id": context_id,
+                "registry_code": registry_code,
+                "show_archive_button": request.user.can_archive,
+                "not_linked": not patient_model.is_linked,
+                "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
+                "next_form_link": wizard.next_link,
+                "previous_form_link": wizard.previous_link,
+                "context_launcher": context_launcher.html,
+                "forms": form_sections,
+                "error_messages": [],
+                "parent": parent,
+                "consent": consent_status_for_patient(registry_code, patient_model)
+            }
+
             context["message"] = "Some forms invalid"
             context["error_messages"] = error_messages
             context["errors"] = True
 
-        return render(request, "rdrf_cdes/custom_consent_form.html", context)
+            return render(request, "rdrf_cdes/custom_consent_form.html", context)
