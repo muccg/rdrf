@@ -2102,19 +2102,19 @@ class CustomConsentFormView(View):
             else:
                 valid_forms.append(True)
 
-        try:
-            parent = ParentGuardian.objects.get(user=request.user)
-        except ParentGuardian.DoesNotExist:
-            parent = None
-
+       
         if all(valid_forms):
-            things = patient_consent_file_forms.save()
-            patient_consent_file_forms.initial = things
+            patient_consent_file_forms.save()
             custom_consent_form.save()
             messages.success(self.request, "Patient %s %s saved successfully" % (patient_model.given_names,
                                                                                  patient_model.family_name))
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
+            try:
+                parent = ParentGuardian.objects.get(user=request.user)
+            except ParentGuardian.DoesNotExist:
+                parent = None
+
             context = {
                 "location": "Consents",
                 "patient": patient_model,
