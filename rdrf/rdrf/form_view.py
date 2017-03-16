@@ -2132,6 +2132,8 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             context["message"] = "Patient %s %s saved successfully" % (patient_model.given_names,
                                                                        patient_model.family_name)
+            messages.success(self.request, context["message"])
+            return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
             context["message"] = "Some forms invalid"
             context["error_messages"] = error_messages
