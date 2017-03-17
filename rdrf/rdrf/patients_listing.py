@@ -421,8 +421,11 @@ class Column(object):
                 
             if related_object.__class__.__name__== 'ManyRelatedManager':
                 related_object = related_object.first()
-                
-            related_value  = getattr(related_object, related_object_field)
+
+            if related_object is not None:
+                related_value  = getattr(related_object, related_object_field)
+            else:
+                related_value = None
             return related_value
         return getattr(patient, self.field)
 
