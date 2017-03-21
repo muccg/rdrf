@@ -28,7 +28,7 @@ from registry.genetic.models import Gene
 from registry.genetic.models import Laboratory
 
 from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.file_upload import wrap_gridfs_data_for_form
+from rdrf.file_upload import wrap_fs_data_for_form
 
 import pycountry
 
@@ -280,8 +280,8 @@ class BaseMultiSectionHandler(object):
     def _save_multisection_to_mongo(self, rdrf_patient, converted_sections):
         self.importer.msg("saving list of section items to mongo %s" % converted_sections)
         registry_code = self.importer.registry.code
-        gridfs_wrapped_sections = wrap_gridfs_data_for_form(target_registry_code, converted_sections)
-        multisection_data = {self.SECTION_MODEL.code: gridfs_wrapped_sections}
+        fs_wrapped_sections = wrap_fs_data_for_form(target_registry_code, converted_sections)
+        multisection_data = {self.SECTION_MODEL.code: fs_wrapped_sections}
         ddw = DynamicDataWrapper(rdrf_patient)
         ddw.save_dynamic_data(registry_code, "cdes", multisection_data)
         self.importer.mongo_patient_ids.add(rdrf_patient.pk)

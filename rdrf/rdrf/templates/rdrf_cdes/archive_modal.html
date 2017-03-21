@@ -42,7 +42,7 @@
                    type: "DELETE",
                    url: url,
                    success: function(data){        
-	             window.location.replace("/patientslisting");
+	             window.location.replace("{% url 'patientslisting' %}");
           },
 	  error: function() {
             alert("An error occurred deleting patient");

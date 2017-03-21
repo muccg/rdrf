@@ -64,7 +64,7 @@ class RegistrySpecificFieldsHandler(object):
         else:
             return True
 
-    def _delete_existing_file_in_gridfs(self, file_cde_model):
+    def _delete_existing_file_in_fs(self, file_cde_model):
         existing_data = self.get_registry_specific_data()
         file_upload_wrapper = existing_data[self.registry_model.code][file_cde_model.code]
         filestorage.delete_file_wrapper(file_upload_wrapper)

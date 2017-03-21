@@ -7,6 +7,8 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_bytes
+from functools import total_ordering
+from copy import deepcopy
 
 import datetime
 import dateutil.parser
@@ -450,6 +452,152 @@ class Message():
 
     def __repr__(self):
         return self.text
+
+
+class TimeStripper(object):
+    """
+    This class exists to fix an error we introduced in the migration
+    moving from Mongo to pure Django models with JSON fields ( "Modjgo" objects.)
+    CDE date values were converted  into iso strings including a time T substring.
+    This was done recursively for the cdes and history collections
+    """
+
+    def __init__(self, dataset):
+        self.dataset = dataset # queryset live , lists of data records for testing
+        # following fields used for testing
+        self.test_mode = False
+        self.converted_date_cdes = []
+        self.date_cde_codes = []
+        self.num_updates = 0 # actual conversions performed
+
+
+    def forward(self):
+        for thing in self.dataset:
+            print("Checking Modjgo object pk %s" % thing.pk)
+
+            self.update(thing)
+        print("Finished: Updated %s Modjgo objects" % self.num_updates)
+
+    def get_id(self, m):
+        pk = m.pk
+
+        if m.data:
+            if "django_id" in m.data:
+                django_id = m.data["django_id"]
+            else:
+                django_id = None
+
+            if "django_model" in m.data:
+                django_model = m.data["django_model"]
+            else:
+                django_model = None
+            return "Modjgo pk %s Django Model %s Django id %s" % (pk,
+                                                                  django_model,
+                                                                  django_id)
+        else:
+            return "Modjgo pk %s" % pk
+
+
+
+
+    def munge_timestamp(self, datestring):
+        if datestring is None:
+            return datestring
+
+        if "T" in datestring:
+            t_index = datestring.index("T")
+            return datestring[:t_index]
+        else:
+            return datestring
+
+    def is_date_cde(self, cde_dict):
+        code = cde_dict["code"]
+        if self.test_mode:
+            return code in self.date_cde_codes
+        else:
+            # not test mode
+            from rdrf.models import CommonDataElement
+            try:
+                cde_model = CommonDataElement.objects.get(code=code)
+                value = cde_model.datatype == "date"
+                if value:
+                    return value
+
+            except CommonDataElement.DoesNotExist:
+                print("Missing CDE Model! Data has code %s which does not exist on the site" % code)
+
+    def update_cde(self, cde):
+        code = cde.get("code", None)
+        if not code:
+            print("No code in cde dict?? - not updating")
+            return
+        old_datestring = cde["value"]
+        new_datestring = self.munge_timestamp(old_datestring)
+        if new_datestring != old_datestring:
+            cde["value"] = new_datestring
+            if self.test_mode:
+                self.converted_date_cdes.append(cde["value"])
+            print("Date CDE %s %s --> %s" % (code,
+                                             old_datestring,
+                                             new_datestring))
+
+            return True
+
+    def update(self, m):
+        updated = False
+        ident = self.get_id(m)
+        if m.data:
+            data_copy = deepcopy(m.data)
+            updated = self.munge_data(m.data)
+            if updated:
+                try:
+                    m.save()
+                    print("%s saved OK" % ident)
+                    self.num_updates += 1
+                except Exception as ex:
+                    print("Error saving Modjgo object %s after updating: %s" % (ident,
+                                                                                ex))
+                    raise   # rollback
+
+    def munge_data(self, data):
+        updated = 0
+        if "forms" in data:
+            for form in data["forms"]:
+                if "sections" in form:
+                    for section in form["sections"]:
+                        if not section["allow_multiple"]:
+                            if "cdes" in section:
+                                for cde in section["cdes"]:
+                                    if self.is_date_cde(cde):
+                                        if self.update_cde(cde):
+                                            updated += 1
+                        else:
+                            items = section["cdes"]
+                            for item in items:
+                                for cde in item:
+                                    if self.is_date_cde(cde):
+                                        if self.update_cde(cde):
+                                            updated += 1
+
+        return updated > 0
+
+
+class HistoryTimeStripper(TimeStripper):
+    def munge_data(self, data):
+        # History embeds the full forms dictionary in the record key
+        return super().munge_data(data["record"])
+
+
+
+# Python 3.5 doesn't raises run time error when lists which contain None values are sorted
+# see stackover flow http://stackoverflow.com/questions/12971631/sorting-list-by-an-attribute-that-can-be-none
+@total_ordering
+class MinType(object):
+    def __le__(self, other):
+        return True
+
+    def __eq__(self, other):
+        return (self is other)
 
 
 # TODO review - needed this quickly

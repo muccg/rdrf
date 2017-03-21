@@ -18,7 +18,8 @@ from django.forms.models import model_to_dict
 
 from .notifications import Notifier, NotificationError
 from .utils import get_full_link, check_calculation
-from .utils import format_date, parse_iso_date
+from .utils import format_date, parse_iso_date, parse_iso_datetime
+
 from .jsonb import DataField
 
 logger = logging.getLogger(__name__)
@@ -751,7 +752,7 @@ class CommonDataElement(models.Model):
             return None
         elif self.datatype.lower() == "date":
             try:
-                return parse_iso_date(stored_value)
+                return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return None
         return stored_value
@@ -777,7 +778,7 @@ class CommonDataElement(models.Model):
                                                               ex))
         elif self.datatype.lower() == "date":
             try:
-                return parse_iso_date(stored_value)
+                return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return ""
 
@@ -1021,8 +1022,15 @@ class QuestionnaireResponse(models.Model):
 
     @property
     def date_of_birth(self):
-        dob = self._get_patient_field("CDEPatientDateOfBirth")
-        return parse_iso_date(dob)
+        # time was being included from questionnaire for some data: e.g. '1918-08-01T00:00:00'
+        dob_string = self._get_patient_field("CDEPatientDateOfBirth")
+        if not dob_string:
+            return ""
+
+        try:
+            return parse_iso_datetime(dob_string).date()
+        except ValueError:
+            return ""
 
     def _get_patient_field(self, patient_field):
         from .dynamic_data import DynamicDataWrapper
@@ -2253,7 +2261,7 @@ class CDEFile(models.Model):
     See filestorage.py for usage of this model.
     """
     registry_code = models.CharField(max_length=10)
-    form_name = models.CharField(max_length=10, blank=True)
+    form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)

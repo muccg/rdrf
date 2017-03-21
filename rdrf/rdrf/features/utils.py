@@ -22,6 +22,13 @@ def stellar_config_path():
     return os.path.join(utils_path(), 'stellar')
 
 
+def reset_password_change_date():
+    logger.info('')
+    from registry.groups.models import CustomUser
+    from django.utils import timezone
+    CustomUser.objects.update(password_change_date=timezone.now())
+
+
 def subprocess_logging(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -130,7 +137,7 @@ def load_export(export_name):
 
 
 def django_import(export_name):
-    django_admin(["import", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
+    django_admin(["import","{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
 
 
 def django_reloadrules():
@@ -182,3 +189,83 @@ def click(element):
 def debug_links():
     for link in world.browser.find_elements_by_xpath('//a'):
         logger.debug('link {0} {1}'.format(link.text, link.get_attribute("href")))
+
+def scroll_to_y(y):
+    world.browser.execute_script("window.scrollTo(0, %s)" % y)
+
+def scroll_to(element):
+     loc = element.location_once_scrolled_into_view
+     y = loc["y"]
+     scroll_to_y(y)
+     return y
+
+
+def scroll_to_multisection_cde(section, cde, item=1):
+    # item 1 means the 1st block of cdes in the multisection
+    print("Attempting to scroll to section %s cde %s item %s" % (section,
+                                                                 cde,
+
+                                                                 item))
+    formset_string = "-%s-" % (int(item) - 1)
+    print("formset_string = %s" % formset_string)
+    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
+    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    label_expression = ".//label[contains(., '%s')]" % cde
+    
+    for label_element in default_panel.find_elements_by_xpath(label_expression):
+        print("found a label element for cde %s" % cde)
+        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        # NB. We avoid matching against the clear checkbox for an uploaded file cde
+        try:
+            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" % formset_string)
+            scroll_to(input_element)
+            print("found input element: id = %s" % input_element.get_attribute("id"))
+            return input_element
+        except:
+            continue
+
+    raise Exception("Could not locate multsection %s cde %s item %s" % (section,
+                                                                        cde,
+                                                                        item))
+
+def scroll_to_cde(section, cde):
+    """
+    navigate to a given section and cde, scrolling to make the field visible
+    return the input element
+    """
+    input_element = None
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+
+    section_div = section_div_heading.find_element_by_xpath("..")
+    
+    label_expression = ".//label[contains(., '%s')]" % cde
+    label_element = section_div.find_element_by_xpath(label_expression)
+    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    input_elements = input_div.find_elements_by_xpath(".//input")
+
+    if len(input_elements) >= 0:
+        if not item:
+            input_element = input_elements[0]
+        else:
+            formset_string = "-%s-" % (int(item) - 1)
+            for ie in input_elements:
+                input_id = ie.get_attribute("id")
+                if formset_string in input_id:
+                    input_element = ie
+                    break
+            raise Exception("Could not locate section %s input %s item %s" % (section, cde, item))
+            
+    if not input_element:
+        raise Exception("could not locate element to scroll to")
+    input_id = input_element.get_attribute("id")
+    if "__prefix__" in input_id:
+        # hack to avoid this error
+        input_id = input_id.replace("__prefix__","0")
+        input_element = world.browser.find_element_by_id(input_id)
+        if not input_element:
+            raise Exception("could not locate input with id %s" % input_id)
+
+    scroll_to(input_element)
+    return input_element
+

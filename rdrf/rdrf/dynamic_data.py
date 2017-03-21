@@ -5,7 +5,7 @@ import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from . import filestorage
-from .file_upload import FileUpload, wrap_gridfs_data_for_form
+from .file_upload import FileUpload, wrap_fs_data_for_form
 from .models import Registry, Modjgo
 from .utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
@@ -100,7 +100,7 @@ def update_multisection_file_cdes(registry_code,
                                   form_model, existing_nested_data, index_map):
 
     logger.debug("****************** START UPDATE MULTISECTION FILE CDES ****************************")
-    logger.debug("updating any gridfs files in multisection %s" % multisection_code)
+    logger.debug("updating any fs files in multisection %s" % multisection_code)
 
     updates = []
 
@@ -110,8 +110,12 @@ def update_multisection_file_cdes(registry_code,
         for key, value in section_item_dict.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
+                actual_index = index_map[item_index]
+                
                 existing_value = get_mongo_value(registry_code, existing_nested_data, key,
-                                                 multisection_index=item_index)
+                                                 multisection_index=actual_index)
+
+                # antecedent here will never return true and the definition is not correct
                 if is_multiple_file_cde(cde_code):
                     new_val = DynamicDataWrapper.handle_file_uploads(registry_code, key, value, existing_value)
                 else:
@@ -254,8 +258,8 @@ class FormDataParser(object):
                 logger.debug("existing cde dict = %s" % cde_dict)
                 if self._is_file(value):
                     logger.debug("nested data - file value = %s" % value)
-                    # should check here is we're updating a file in gridfs - the old file needs to be deleted
-                    value = self._get_gridfs_value(value)
+                    # should check here is we're updating a file in fs - the old file needs to be deleted
+                    value = self._get_fs_value(value)
                     logger.debug("value is now: %s" % value)
 
                 cde_dict["value"] = value
@@ -270,7 +274,7 @@ class FormDataParser(object):
     def _is_file(self, value):
         return isinstance(value, InMemoryUploadedFile)
 
-    def _get_gridfs_value(self, inmemory_uploaded_file):
+    def _get_fs_value(self, inmemory_uploaded_file):
         return None
 
     def _parse_timestamps(self):
@@ -332,7 +336,7 @@ class FormDataParser(object):
 
     def _parse_value(self, value):
         if isinstance(value, FileUpload):
-            logger.debug("FileUpload wrapper - returning the gridfs dict!")
+            logger.debug("FileUpload wrapper - returning the fs dict!")
             return value.mongo_data
         elif isinstance(value, InMemoryUploadedFile):
             logger.debug("InMemoryUploadedFile returning None")
@@ -485,21 +489,33 @@ class DynamicDataWrapper(object):
         else:
             return nested_data
 
-    def get_cde_val(self, registry_code, form_name, section_code, cde_code):
-        data = self._get_record(registry_code, "cdes")
-        return data.cde_val(form_name, section_code, cde_code)
+    def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes"):
+        modjgo_queryset = self._get_record(registry_code, collection)
+        if modjgo_queryset:
+            # NB data is a Modjgo queryset
+            modjgo_object = modjgo_queryset.first()
+            return modjgo_object.cde_val(form_name, section_code, cde_code)
+        else:
+            return None
 
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
-        def fmt(snapshot):
+        from rdrf.utils import get_cde_value
+        from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+        registry_model = Registry.objects.get(code=registry_code)
+        form_model = RegistryForm.objects.get(registry=registry_model,
+                                              name=form_name)
+        section_model = Section.objects.get(code=section_code)
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        
+        def fmt(snapshot, snapshot_number):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
-                "value": self._find_cde_val(snapshot["record"], registry_code,
-                                            form_name, section_code,
-                                            cde_code),
-                "id": str(snapshot["_id"]),
+                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "id": str(snapshot_number),
             }
 
         def collapse_same(snapshots):
+            # This should be changed to use sets I think
             prev = {"": None}  # nonlocal works in python3
 
             def is_different(snap):
@@ -507,9 +523,10 @@ class DynamicDataWrapper(object):
                 prev[""] = snap
                 return diff
             return list(filter(is_different, snapshots))
+        
         record_query = self._get_record(registry_code, "history", filter_by_context=False)
         record_query = record_query.find(record_type="snapshot")
-        data = map(fmt, record_query.data())
+        data = [fmt(snapshot,i) for i,snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
 
     def load_contexts(self, registry_model):
@@ -556,7 +573,7 @@ class DynamicDataWrapper(object):
             data[registry_model.code] = registry_data
 
         for registry_code in data:
-            wrap_gridfs_data_for_form(registry_model, data[registry_code])
+            wrap_fs_data_for_form(registry_model, data[registry_code])
         logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
@@ -580,30 +597,35 @@ class DynamicDataWrapper(object):
 
     @staticmethod
     def handle_file_upload(registry_code, key, value, current_value):
+        logger.debug("handle_file_upload: key = %s value = %s current_value = %s" % (key,
+                                                                                     value,
+                                                                                     current_value))
+        
+        to_delete = False
+        ret_value = value
         if value is False and current_value:
             # Django uses a "clear" checkbox value of False to indicate file should be removed
             # we need to delete the file but not here
             logger.debug("User cleared %s - file will be deleted" % key)
-            to_delete = current_value
-            value = None
+            to_delete = True
+            file_ref = current_value
+            ret_value = None
         elif value is None:
             # No file upload means keep the current value
             logger.debug(
                 "User did not change file %s - existing_record will not be updated" % key)
             to_delete = None
-            value = current_value
+            ret_value = current_value
         elif is_uploaded_file(value):
             # A file was uploaded.
             # Store file and convert value into a file wrapper
-            to_delete = current_value
-            value = filestorage.store_file_by_key(registry_code, None, key, value)
-        else:
-            to_delete = None
+            to_delete = False
+            ret_value = filestorage.store_file_by_key(registry_code, None, key, value)
 
         if to_delete:
-            filestorage.delete_file_wrapper(to_delete)
+            filestorage.delete_file_wrapper(file_ref)
 
-        return value
+        return ret_value
 
     @classmethod
     def handle_file_uploads(cls, registry_code, key, value, current_value):
@@ -611,7 +633,7 @@ class DynamicDataWrapper(object):
                    val, cur in zip_longest(value, current_value or [])]
         return list(filter(bool, updated))
 
-    def _update_files_in_gridfs(self, existing_record, registry, new_data, index_map):
+    def _update_files_in_fs(self, existing_record, registry, new_data, index_map):
         for key, value in new_data.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
@@ -737,7 +759,7 @@ class DynamicDataWrapper(object):
             record = self._make_record(registry, collection_name)
             record.data["forms"] = []
 
-        self._update_files_in_gridfs(record.data, registry, form_data, index_map)
+        self._update_files_in_fs(record.data, registry, form_data, index_map)
 
         nested_data = parse_form_data(Registry.objects.get(code=registry),
                                       self.current_form_model,
