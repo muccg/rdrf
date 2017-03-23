@@ -2134,7 +2134,7 @@ class CustomConsentFormView(View):
                 "consent": consent_status_for_patient(registry_code, patient_model)
             }
 
-            context["message"] = "Some forms invalid"
+            context["message"] = "Consent section not complete"
             context["error_messages"] = error_messages
             context["errors"] = True
 
