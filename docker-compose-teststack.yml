@@ -43,6 +43,7 @@ services:
       - ALLOWED_HOSTS=*
       - CACHESERVER=cachetest
       - DBSERVER=dbtest
+      - FDP_DBSERVER=dbfdptest
       - CLINICAL_DBSERVER=dbclinicaltest
       - MONGOSERVER=mongotest
     depends_on:
