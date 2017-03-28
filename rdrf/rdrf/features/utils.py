@@ -68,6 +68,18 @@ def save_minimal_snapshot():
     save_snapshot("minimal")
 
 
+def update_user_timestamps():
+    from registry.groups.models import CustomUser
+    from datetime import datetime
+    logger.info("Setting login and password change dates")
+    all_users = CustomUser.objects.all()
+    for user in all_users:
+        user.password_change_date = datetime.now()
+        user.last_login = datetime.now()
+        logger.info("Setting login and password change dates for {0}".format(user.username))
+        user.save()
+
+
 def restore_minimal_snapshot():
     restore_snapshot("minimal")
 
@@ -92,6 +104,7 @@ def load_export(export_name):
 
     reset_database_connection()
     show_stats(export_name)
+    update_user_timestamps()
 
 
 def django_import(export_name):
