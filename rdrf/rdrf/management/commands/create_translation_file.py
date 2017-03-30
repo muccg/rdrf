@@ -123,6 +123,7 @@ class Command(BaseCommand):
 
     def _get_strings_for_translation(self):
         yield from self._yield_form_strings()
+        yield from self._yield_consent_strings()
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -167,7 +168,13 @@ class Command(BaseCommand):
         for cde_dict in self.data["cdes"]:
             if cde_dict["code"] == cde_code:
                 return cde_dict
-        
+
+
+    def _yield_consent_strings(self):
+        for consent_section_dict in self.data["consent_sections"]:
+            for question_dict in consent_section_dict["questions"]:
+                yield None, question_dict["question_label"]
+                yield None, question_dict["instructions"]
 
     def _yield_pvg_strings(self, cde_dict):
         # we need to emit display values of drop down lists
