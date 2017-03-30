@@ -21,6 +21,13 @@ class Command(BaseCommand):
                             default=None,
                             help='Registry Code')
 
+        parser.add_argument('--system_po_file',
+                            action='store',
+                            dest='system_po_file',
+                            default=None,
+                            help='System po file')
+
+
 
     def _usage(self):
         print("django-admin create_translation_file registry_code=fh")
@@ -29,17 +36,23 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+        self.testing = True
+        
         file_name = options.get("yaml_file", None)
         registry_code = options.get("registry_code", None)
+        system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
-        self.current_path = None
-        
         self.number = re.compile("^\d+$")
         
         if file_name is not None and registry_code is not None:
             self._usage()
             sys.exit(1)
-            
+
+        if system_po_file:
+            # splurp in existing messages in the system file so we don't dupe
+            # when we cat this file to it
+            self._load_system_messages(system_po_file)
+        
         if registry_code:
             registry_model = Registry.objects.get(code=registry_code)
             self._emit_strings_from_registry(registry_model)
@@ -47,18 +60,16 @@ class Command(BaseCommand):
             self._emit_strings_from_yaml(file_name)
 
         print("# Total of %s message strings" % len(self.msgids))
-        
 
-    def _add_path(self, name):
-        if self.current_path is None:
-            self.current_path = name
-        else:
-            self.current_path = "%s/%s" % (self.current_path,
-                                           name)
-
-    def _clear_path(self):
-        self.current_path = None
-        
+    def _load_system_messages(self, system_po_file):
+        message_pattern = re.compile('^msgid "(.*)"$')
+        with open(system_po_file) as spo:
+            for line in spo.readlines():
+                line = line.strip()
+                m = message_pattern.match(line)
+                if m:
+                    msgid = m.groups(1)[0]
+                    self.msgids.add(msgid)
 
     def _emit_strings_from_yaml(self, file_name):
         with open(file_name) as f:
@@ -90,8 +101,24 @@ class Command(BaseCommand):
             return
         if comment:
             print("# %s" % comment)
+
+        if "\n" in message_string:
+            # probably wrong but compiler fails
+            # if there are multilined messages
+            message_string = message_string.replace('\n',' ')
+
+        # again we need to escape somwhow
+        if '"' in message_string:
+            message_string = message_string.replace('"',"")
+
         print('msgid "%s"' % message_string) 
-        print('msgstr "translation goes here"')
+        if self.testing:
+            # reverse string
+            msgstr = message_string[::-1]
+        else:
+            msgstr = "Translation goes here"
+            
+        print('msgstr "%s"' % msgstr)
         print()
 
     def _get_strings_for_translation(self):
@@ -105,11 +132,10 @@ class Command(BaseCommand):
             name = form_dict["name"]
             name_with_spaces = de_camelcase(name)
             
-            comment = self.current_path
+            comment = None
             yield comment, name_with_spaces
 
             yield from self._yield_section_strings(form_dict)
-            self._clear_path()
             
 
     def _yield_section_strings(self, form_dict):
@@ -117,11 +143,7 @@ class Command(BaseCommand):
         for section_dict in form_dict["sections"]:
             comment = None
             display_name = section_dict["display_name"]
-            
-            
-
             yield comment, display_name
-
             yield from self._yield_cde_strings(section_dict)
 
     def _yield_cde_strings(self, section_dict):
@@ -134,7 +156,7 @@ class Command(BaseCommand):
             
             instruction_text = cde_dict["instructions"]
 
-            comment = self.current_path
+            comment = None
 
             yield comment, cde_label
             yield comment, instruction_text
@@ -162,10 +184,6 @@ class Command(BaseCommand):
                 
                 comment = None
                 yield comment, display_value
-
-
-    
-
 
     def _get_pvg_dict(self, pvg_code):
         for pvg_dict in self.data["pvgs"]:
