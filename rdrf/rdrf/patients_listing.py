@@ -21,6 +21,7 @@ from rdrf.components import FormsButton
 from registry.patients.models import Patient
 from .utils import Message
 from rdrf.utils import MinType
+from django.utils.translation import ugettext as _
 
 
 import logging
@@ -81,7 +82,7 @@ class PatientsListingView(View):
 
         return {
             "registries": self.registries,
-            "location": "Patient Listing",
+            "location": _("Patient Listing"),
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
             "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
@@ -154,7 +155,6 @@ class PatientsListingView(View):
     ########################   POST #################################
     def post(self, request):
         # see http://datatables.net/manual/server-side
-        logger.debug("********* RECEIVED POST *********")
         self.set_parameters(request)
         self.set_csrf(request)
         rows = self.get_results(request)

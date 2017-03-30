@@ -11,6 +11,8 @@
 {% load get_information_link %}
 {% load get_information_text %}
 {% load i18n %}
+{% load translate %}
+
 
 {% block extrastyle %}
     {{block.super}}
@@ -123,7 +125,7 @@
             
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return "You have unsaved changes!";
+                    return "{% trans "You have unsaved changes!" %}";
                 } else {
                     e=null;
                 }
@@ -168,7 +170,7 @@
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 
 		{% if show_print_button %}
