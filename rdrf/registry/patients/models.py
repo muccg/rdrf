@@ -965,11 +965,11 @@ class AddressType(models.Model):
 
 class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
-    address_type = models.ForeignKey(AddressType, default=1)
+    address_type = models.ForeignKey(AddressType, default=1, verbose_name=_("Address type"))
     address = models.TextField()
     suburb = models.CharField(max_length=100, verbose_name=_("Suburb/Town"))
     country = models.CharField(max_length=100, verbose_name=_("Country"))
-    state = models.CharField(max_length=50, verbose_name=_("State/Province/Territory"))
+    state = models.CharField(max_length=50, verbose_name=_("State"))
     postcode = models.CharField(max_length=50, verbose_name=_("Postcode"))
 
     class Meta:
