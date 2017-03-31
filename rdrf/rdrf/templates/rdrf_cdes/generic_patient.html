@@ -10,6 +10,7 @@
 {% load is_formset_obj %}
 {% load get_information_link %}
 {% load i18n %}
+{% load translate %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -137,7 +138,7 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Demographics</h3></p>
+            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans "Demographics" %}</h3></p>
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
         </div>
     </div>
@@ -156,14 +157,14 @@
                 {% if registry|has_feature:"family_linkage" %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <strong>Family Linkage</strong>
+                            <strong>{% trans "Family Linkage" %}</strong>
                         </div>
                         <div class="panel-body">
                             {% if patient.my_index %}
-                                This patient is a relative of index <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                                {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}})</a>
                             {% else %}
                                 {% if patient.is_index %}
-                                    This patient is an index
+                                    {% trans 'This patient is an index' %}
                                 {% endif %}
                             {% endif %}
                         </div>
@@ -177,7 +178,7 @@
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
-                        Please correct errors below:<br>
+                        {% trans 'Please correct errors below' %}:<br>
                         {% for error_message in error_messages %}
                         {{ error_message }}<br>
                         {% endfor %}
@@ -191,7 +192,7 @@
                             <div class="form-group">
                                 <div class="col-sm-9 col-sm-offset-3">
                                     <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
                             </div>
@@ -204,7 +205,7 @@
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                {{ element.label }}
+                                                {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -227,7 +228,7 @@
                                 <div class="panel-heading">
                                     <strong>{{name}}</strong>
                                     <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
                                 </div>
                                 <div class="panel-body">
@@ -352,11 +353,11 @@
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
                 </a>
                 <a class="btn btn-info btn-block" href="{{ next_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next
+                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> {% trans 'Next' %}
                 </a>
 
                 <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous
+                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> {% trans 'Previous' %}
                 </a>
             </div>
         </div>
