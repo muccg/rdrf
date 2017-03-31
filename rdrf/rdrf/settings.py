@@ -470,3 +470,8 @@ EMAIL_NOTIFICATIONS = (
 
 PROJECT_TITLE = "Rare Disease Registry Framework"
 PROJECT_TITLE_LINK = "patientslisting"
+
+
+LOCALE_PATHS = [
+    '/app/rdrf/rdrf/locale',
+]
