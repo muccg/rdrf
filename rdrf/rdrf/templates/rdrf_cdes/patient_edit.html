@@ -261,7 +261,7 @@
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                {{ element.label}}
+                                                {{ element.label|translate}}
                                                 {% if  element.field.required %}
                                                     <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -269,7 +269,7 @@
                                             <div class="col-sm-9">
                                                 {{ element|safe }}
                                                 <small class="text-muted">
-                                                    {{ element.help_text }}
+                                                    {{ element.help_text|translate }}
                                                 </small>
                                                 {% if element.errors %}
                                                     <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -307,7 +307,7 @@
                                                                     {% if element.label == "Delete" %}
                                                                         {% trans 'Mark for deletion' %}
                                                                     {% else %}
-                                                                        {{ element.label }}
+                                                                        {{ element.label|translate}}
                                                                         {% if  element.field.required %}
                                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                         {% endif %}
@@ -374,7 +374,7 @@
                                             {% endif %}
                                                 {% if link %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
-                                                        {{ element.label }}
+                                                        {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
