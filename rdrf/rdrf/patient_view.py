@@ -85,7 +85,6 @@ class PatientFormMixin(PatientMixin):
 
     def _set_registry_model(self, registry_code):
         self.registry_model = Registry.objects.get(code=registry_code)
-        logger.debug("set registry model to %s" % self.registry_model)
 
     def get_success_url(self):
         """
@@ -108,22 +107,17 @@ class PatientFormMixin(PatientMixin):
 
     def _set_user(self, request):
         self.user = request.user
-        logger.debug("set user to %s" % self.user)
 
     def _create_registry_specific_patient_form_class(self, user, form_class, registry_model):
-        logger.debug("creating registry specific patient form ...")
         additional_fields = OrderedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
         if not field_pairs:
-            logger.debug("no registry specific fields - returning original form class")
             return form_class
 
         for cde, field_object in field_pairs:
             additional_fields[cde.code] = field_object
-            logger.debug("adding new field %s" % cde.name)
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
-        logger.debug("returning new form class")
         return new_form_class
 
     def _get_registry_specific_section_fields(self, user, registry_model):
@@ -148,19 +142,10 @@ class PatientFormMixin(PatientMixin):
         :param kwargs: The kwargs supplied to render to response
         :return:
         """
-        if self.request.method == "GET":
-            logger.debug("get_context_data called by GET")
-        else:
-            logger.debug("get_context_data called by POST")
-
-        logger.debug("in get_context_data ..")
-        logger.debug("supplied kwargs = %s" % kwargs)
         patient_id = self._get_patient_id()
-
         patient_address_formset = kwargs.get("patient_address_formset", None)
         patient_doctor_formset = kwargs.get("patient_doctor_formset", None)
         patient_relative_formset = kwargs.get("patient_relative_formset", None)
-        #patient_consent_file_formset = kwargs.get("patient_consent_file_formset", None)
 
         patient, forms_sections = self._get_patient_and_forms_sections(patient_id,
                                                                        self.registry_model.code,
@@ -185,7 +170,6 @@ class PatientFormMixin(PatientMixin):
         else:
             kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
-        logger.debug("updated kwargs = %s" % kwargs)
         kwargs["location"] = _("Demographics")
         if self.request.user.is_parent:
             kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
@@ -248,9 +232,9 @@ class PatientFormMixin(PatientMixin):
                 instance=patient, prefix="patient_address")
 
         personal_header = _('Patients Personal Details')
+        # shouldn't be hardcoding behaviour here plus the html formatting originally here was not being passed as text
         if registry_code == "fkrp":
-            personal_header += "<br><br><i>" + \
-                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.") + "</i>"
+            personal_header +=  " " + _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
 
         personal_details_fields = (personal_header, [
             "family_name",
@@ -294,24 +278,7 @@ class PatientFormMixin(PatientMixin):
 
         patient_address_section = (_("Patient Address"), None)
 
-        # patient_consent_file_formset = inlineformset_factory(
-        #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
-        # patient_consent_file_form = patient_consent_file_formset(
-        #     instance=patient, prefix="patient_consent_file")
-        #
-        # patient_section_consent = patient_form.get_all_consent_section_info(
-        #     patient, registry_code)
-        # patient_section_consent_file = (_("Upload Consent File"), None)
-
         form_sections = [
-            # (
-            #     patient_form,
-            #     patient_section_consent
-            # ),
-            # (
-            #     patient_consent_file_form,
-            #     (patient_section_consent_file,)
-            # ),
             (
                 patient_form,
                 (rdrf_registry,)
@@ -383,7 +350,6 @@ class PatientFormMixin(PatientMixin):
         # NB This means we must be mixed in with a View ( which we are)
         kwargs["user"] = self.request.user
         kwargs["registry_model"] = self.registry_model
-        logger.debug("get form kwargs = %s" % kwargs)
         return kwargs
 
     def form_valid(self, form):
@@ -398,22 +364,16 @@ class PatientFormMixin(PatientMixin):
 
         registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
-        # if self.patient_consent_file_formset:
-        #     self.patient_consent_file_formset.instance = self.object
-        #     self.patient_consent_file_formset.save()
-
         # save addresses
         if self.address_formset:
             self.address_formset.instance = self.object
             addresses = self.address_formset.save()
-            logger.debug("saved addresses %s OK" % addresses)
 
         # save doctors
         if self.registry_model.get_metadata_item("patient_form_doctors"):
             if self.doctor_formset:
                 self.doctor_formset.instance = self.object
                 doctors = self.doctor_formset.save()
-                logger.debug("saved doctors %s OK" % doctors)
 
         # patient relatives
         if self.patient_relative_formset:
@@ -423,50 +383,29 @@ class PatientFormMixin(PatientMixin):
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
                 patient_relative_model.sync_relative_patient()
-                logger.debug("saved patient relative model %s OK - owning patient is %s" %
-                             (patient_relative_model, patient_relative_model.patient))
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
                 for form in self.patient_relative_formset:
                     if form.tag == tag:  # must be a better way to do this ...
-                        logger.debug("patient tag = %s" % form.tag)
                         if form.create_patient_flag:
-                            logger.debug("creating patient from relative %s" %
-                                         patient_relative_model)
-
                             patient_relative_model.create_patient_from_myself(
                                 self.registry_model,
                                 self.object.working_groups.all())
-                        else:
-                            logger.debug("create_patient_flag is False ...")
-                    else:
-                        logger.debug("form tag different")
-
-        #patient_model = self.object
-        # if hasattr(patient_model, 'add_registry_closures'):
-        #     registry_ids = [reg.id for reg in patient_model.rdrf_registry.all()]
-        #     self._run_consent_closures(patient_model, registry_ids)
-        # else:
-        #     logger.debug("self.object has no closures")
 
         return HttpResponseRedirect(self.get_success_url())
 
     def _run_consent_closures(self, patient_model, registry_ids):
-        logger.debug("reg ids = %s" % registry_ids)
         if hasattr(patient_model, "add_registry_closures"):
             for closure in patient_model.add_registry_closures:
                 closure(patient_model, registry_ids)
             delattr(patient_model, 'add_registry_closures')
-        else:
-            logger.debug("patient model does not have closure list")
 
     def form_invalid(self, patient_form,
                      patient_address_formset,
                      patient_doctor_formset,
                      patient_relative_formset,
                      errors):
-        logger.debug("errors = %s" % errors)
         has_errors = len(errors) > 0
         return self.render_to_response(
             self.get_context_data(
@@ -522,7 +461,6 @@ class AddPatientView(PatientFormMixin, CreateView):
 
     def post(self, request, registry_code):
         self.request = request
-        logger.debug("starting POST of Add Patient")
         self._set_user(request)
         self._set_registry_model(registry_code)
         forms = []
@@ -533,12 +471,6 @@ class AddPatientView(PatientFormMixin, CreateView):
         self.address_formset = self._get_address_formset(request)
         forms.append(self.address_formset)
 
-        # patient_consent_file_formset = inlineformset_factory(
-        #     Patient, PatientConsent, form=PatientConsentFileForm, fields="__all__")
-        # self.patient_consent_file_formset = patient_consent_file_formset(
-        #     request.POST, request.FILES, prefix="patient_consent_file")
-        # forms.append(self.patient_consent_file_formset)
-
         if self._has_doctors_form():
             self.doctor_formset = self._get_doctor_formset(request)
             forms.append(self.doctor_formset)
@@ -548,12 +480,9 @@ class AddPatientView(PatientFormMixin, CreateView):
             forms.append(self.patient_relative_formset)
 
         if all([form.is_valid() for form in forms]):
-            logger.debug("all forms valid ... ")
             return self.form_valid(patient_form)
         else:
-            logger.debug("some forms are invalid ...")
             errors = get_error_messages(forms)
-            logger.debug(errors)
 
             return self.form_invalid(patient_form=patient_form,
                                      patient_address_formset=self.address_formset,
@@ -589,7 +518,7 @@ class PatientEditView(View):
             "consent": consent_status_for_patient(registry_code, patient)
         }
         if request.GET.get('just_created', False):
-            context["message"] = "Patient added successfully"
+            context["message"] = _("Patient added successfully")
 
         context["not_linked"] = not patient.is_linked
         
@@ -614,14 +543,10 @@ class PatientEditView(View):
         patient_relatives_forms = None
         actions = []
 
-        logger.debug("Edit patient pk before save %s" % patient.pk)
-
         if patient.user:
-            logger.debug("patient user before save = %s" % patient.user)
             patient_user = patient.user
         else:
             patient_user = None
-            logger.debug("patient user before save is None")
 
         registry_model = Registry.objects.get(code=registry_code)
 
@@ -632,7 +557,6 @@ class PatientEditView(View):
                                                                                    PatientForm,
                                                                                    registry_model,
                                                                                    patient)
-
         else:
             patient_form_class = PatientForm
 
@@ -667,7 +591,6 @@ class PatientEditView(View):
 
         for form in forms:
             if not form.is_valid():
-
                 valid_forms.append(False)
                 if isinstance(form.errors, list):
                     for error_dict in form.errors:
@@ -688,7 +611,6 @@ class PatientEditView(View):
             valid_forms.append(doctors_to_save.is_valid())
 
         if all(valid_forms):
-            logger.debug("All forms are valid")
             if registry_model.get_metadata_item("patient_form_doctors"):
                 doctors_to_save.save()
             address_to_save.save()
@@ -696,10 +618,6 @@ class PatientEditView(View):
 
             patient_instance.sync_patient_relative()
 
-            logger.debug("patient pk after valid forms save = %s" % patient_instance.pk)
-
-            # For some reason for FKRP , the patient.user was being clobbered
-            logger.debug("patient.user after all valid forms saved = %s" % patient.user)
             if patient_user and not patient_instance.user:
                 patient_instance.user = patient_user
                 patient_instance.save()
@@ -717,13 +635,11 @@ class PatientEditView(View):
                 "forms": form_sections,
                 "patient": patient,
                 "context_launcher": context_launcher.html,
-                "message": "Patient's details saved successfully",
+                "message": _("Patient's details saved successfully"),
                 "error_messages": [],
             }
         else:
-            logger.debug("Not all forms are valid")
             error_messages = get_error_messages(forms)
-            logger.debug("error messages = %s" % error_messages)
             if not registry_model.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
             patient, form_sections = self._get_patient_and_forms_sections(patient_id,
@@ -769,7 +685,6 @@ class PatientEditView(View):
 
 
     def _is_linked(self, registry_model, patient_model):
-        # used to alter the way delete 
         # is this patient linked to others?  
         if not registry_model.has_feature("family_linkage"):
             return False
@@ -782,12 +697,6 @@ class PatientEditView(View):
                 return True
 
         return False
-
-
-    # def _get_index_context(self, registry_model, patient_model):
-    #    #todo this probabably doesn't apply anymore in fhcontexts branch
-    #    if registry_model.has_feature("family_linkage") and not patient_model.is_index and patient_model.active:
-    #        return patient_model.my_index.default_context(registry_model)
 
     def create_patient_relatives(self, patient_relative_formset, patient_model, registry_model):
         if patient_relative_formset:
@@ -807,9 +716,6 @@ class PatientEditView(View):
                 for form in patient_relative_formset:
                     if form.tag == tag:  # must be a better way to do this ...
                         if form.create_patient_flag:
-                            logger.debug("creating patient from relative %s" %
-                                         patient_relative_model)
-
                             patient_relative_model.create_patient_from_myself(
                                 registry_model,
                                 patient_model.working_groups.all())
@@ -899,24 +805,7 @@ class PatientEditView(View):
 
         patient_address_section = (_("Patient Address"), None)
 
-        # patient_consent_file_formset = inlineformset_factory(
-        #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
-        # patient_consent_file_form = patient_consent_file_formset(
-        #     instance=patient, prefix="patient_consent_file")
-        #
-        # patient_section_consent = patient_form.get_all_consent_section_info(
-        #     patient, registry_code)
-        # patient_section_consent_file = (_("Upload Consent File"), None)
-
         form_sections = [
-            # (
-            #     patient_form,
-            #     patient_section_consent
-            # ),
-            # (
-            #     patient_consent_file_form,
-            #     (patient_section_consent_file,)
-            # ),
             (
                 patient_form,
                 (rdrf_registry,)
@@ -990,9 +879,7 @@ class PatientEditView(View):
 
     def _get_registry_specific_fields(self, user, registry_model):
         """
-        :param user:
-        :param registry_model:
-        :return: list of cde_model, field_object pairs
+        return: list of cde_model, field_object pairs
         """
         if user.is_superuser:
             return registry_model.patient_fields
@@ -1008,7 +895,6 @@ class PatientEditView(View):
         for cde, field_object in field_pairs:
             try:
                 cde_policy = CdePolicy.objects.get(registry=registry_model, cde=cde)
-                logger.debug("found a cde policy: %s" % cde_policy)
             except CdePolicy.DoesNotExist:
                 cde_policy = None
 
@@ -1017,7 +903,6 @@ class PatientEditView(View):
             else:
 
                 if user.is_superuser or cde_policy.is_allowed(user.groups.all(), patient):
-                    # this is bad - registry specific fields in demographics are a bad idea
                     if patient.is_index:
                         additional_fields[cde.code] = field_object
 
