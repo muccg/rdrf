@@ -18,6 +18,7 @@ from rdrf.hooking import run_hooks
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
+from django.utils.translation import ugettext as _
 
 
 import logging
@@ -43,15 +44,15 @@ class Doctor(models.Model):
 
     # TODO: Is it possible for one doctor to work with multiple working groups?
     title = models.CharField(max_length=4, blank=True, null=True)
-    family_name = models.CharField(max_length=100, db_index=True, verbose_name="Family/Last name")
-    given_names = models.CharField(max_length=100, db_index=True, verbose_name="Given/First names")
+    family_name = models.CharField(max_length=100, db_index=True, verbose_name=_("Family/Last name"))
+    given_names = models.CharField(max_length=100, db_index=True, verbose_name=_("Given/First names"))
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town/City")
+    suburb = models.CharField(max_length=50, verbose_name=_("Suburb/Town/City"))
     postcode = models.CharField(max_length=20, blank=True, null=True)
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
+    state = models.ForeignKey(State, verbose_name=_("State/Province/Territory"), blank=True, null=True,
                               on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -66,10 +67,10 @@ class Doctor(models.Model):
 
 
 class NextOfKinRelationship(models.Model):
-    relationship = models.CharField(max_length=100, verbose_name="Relationship")
+    relationship = models.CharField(max_length=100, verbose_name=_("Relationship"))
 
     class Meta:
-        verbose_name = 'Next of Kin Relationship'
+        verbose_name = _('Next of Kin Relationship')
 
     def __str__(self):
         return self.relationship
@@ -115,35 +116,35 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
 
-    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
+    SEX_CHOICES = (("1", _("Male")), ("2", _("Female")), ("3", _("Indeterminate")))
 
     ETHNIC_ORIGIN = (
-        ("New Zealand European", "New Zealand European"),
-        ("Australian", "Australian"),
-        ("Other Caucasian/European", "Other Caucasian/European"),
-        ("Aboriginal", "Aboriginal"),
-        ("Person from the Torres Strait Islands", "Person from the Torres Strait Islands"),
-        ("Maori", "Maori"),
-        ("NZ European / Maori", "NZ European / Maori"),
-        ("Samoan", "Samoan"),
-        ("Cook Islands Maori", "Cook Islands Maori"),
-        ("Tongan", "Tongan"),
-        ("Niuean", "Niuean"),
-        ("Tokelauan", "Tokelauan"),
-        ("Fijian", "Fijian"),
-        ("Other Pacific Peoples", "Other Pacific Peoples"),
-        ("Southeast Asian", "Southeast Asian"),
-        ("Chinese", "Chinese"),
-        ("Indian", "Indian"),
-        ("Other Asian", "Other Asian"),
-        ("Middle Eastern", "Middle Eastern"),
-        ("Latin American", "Latin American"),
-        ("Black African/African American", "Black African/African American"),
-        ("Other Ethnicity", "Other Ethnicity"),
-        ("Decline to Answer", "Decline to Answer"),
+        ("New Zealand European", _("New Zealand European")),
+        ("Australian", _("Australian")),
+        ("Other Caucasian/European", _("Other Caucasian/European")),
+        ("Aboriginal", _("Aboriginal")),
+        ("Person from the Torres Strait Islands", _("Person from the Torres Strait Islands")),
+        ("Maori", _("Maori")),
+        ("NZ European / Maori", _("NZ European / Maori")),
+        ("Samoan", _("Samoan")),
+        ("Cook Islands Maori", _("Cook Islands Maori")),
+        ("Tongan", _("Tongan")),
+        ("Niuean", _("Niuean")),
+        ("Tokelauan", _("Tokelauan")),
+        ("Fijian", _("Fijian")),
+        ("Other Pacific Peoples", _("Other Pacific Peoples")),
+        ("Southeast Asian", _("Southeast Asian")),
+        ("Chinese", _("Chinese")),
+        ("Indian", _("Indian")),
+        ("Other Asian", _("Other Asian")),
+        ("Middle Eastern", _("Middle Eastern")),
+        ("Latin American", _("Latin American")),
+        ("Black African/African American", _("Black African/African American")),
+        ("Other Ethnicity", _("Other Ethnicity")),
+        ("Decline to Answer", _("Decline to Answer")),
     )
 
-    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
+    LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(Registry, related_name='patients')
@@ -152,17 +153,17 @@ class Patient(models.Model):
     consent = models.BooleanField(
         null=False,
         blank=False,
-        help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.",
-        verbose_name="consent given")
+        help_text=_("The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them."),
+        verbose_name=_("consent given"))
     consent_clinical_trials = models.BooleanField(
         null=False,
         blank=False,
-        help_text="Consent given to be contacted about clinical trials or other studies related to their condition.",
+        help_text=_("Consent given to be contacted about clinical trials or other studies related to their condition."),
         default=False)
     consent_sent_information = models.BooleanField(
         null=False,
         blank=False,
-        help_text="Consent given to be sent information on their condition",
+        help_text=_("Consent given to be sent information on their condition"),
         verbose_name="consent to be sent information given",
         default=False)
     consent_provided_by_parent_guardian = models.BooleanField(
