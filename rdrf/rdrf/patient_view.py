@@ -270,7 +270,7 @@ class PatientFormMixin(PatientMixin):
             "living_status",
         ])
 
-        next_of_kin = ("Next of Kin", [
+        next_of_kin = (_("Next of Kin"), [
             "next_of_kin_family_name",
             "next_of_kin_given_names",
             "next_of_kin_relationship",
@@ -286,13 +286,13 @@ class PatientFormMixin(PatientMixin):
             "next_of_kin_parent_place_of_birth"
         ])
 
-        rdrf_registry = ("Registry", [
+        rdrf_registry = (_("Registry"), [
             "rdrf_registry",
             "working_groups",
             "clinician"
         ])
 
-        patient_address_section = ("Patient Address", None)
+        patient_address_section = (_("Patient Address"), None)
 
         # patient_consent_file_formset = inlineformset_factory(
         #     Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")

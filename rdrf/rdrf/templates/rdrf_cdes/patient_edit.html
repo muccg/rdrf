@@ -150,7 +150,7 @@
         <span class="glyphicon glyphicon-list"></span> {% trans "Actions" %}<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
                     {% for action in actions %}
-                        <li><a href="{{action.link}}"><span class="glyphicon glyphicon-minus"></span> {{action.title}}</a></li>
+                        <li><a href="{{action.link}}"><span class="glyphicon glyphicon-minus"></span> {{action.title|translate}}</a></li>
                     {% endfor %}
         </ul>
     </li>
@@ -217,7 +217,7 @@
                         </div>
                         <div class="panel-body">
                             {% if patient.my_index %}
-                                {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} (DOB {{patient.my_index.date_of_birth}})</a>
+                                {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}})</a>
                             {% else %}
                                 {% if patient.is_index %}
                                     {% trans 'This patient is an index' %}
@@ -261,7 +261,7 @@
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                {{ element.label }}
+                                                {{ element.label|translate}}
                                                 {% if  element.field.required %}
                                                     <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -282,7 +282,7 @@
                         {% for name, section in sections %}
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    <strong>{{name}}</strong>
+                                    <strong>{{name|translate}}</strong>
                                     <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
                                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
