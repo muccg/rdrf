@@ -11,6 +11,7 @@ from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect,
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
+from django.utils.translation import ugettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -18,22 +19,22 @@ logger = logging.getLogger(__name__)
 class PatientDoctorForm(forms.ModelForm):
     OPTIONS = (
         (None, "---"),
-        (1, "GP (Primary Care)"),
-        (2, "Specialist (Lipid)"),
-        (3, "Primary Care"),
-        (4, "Paediatric Neurologist"),
-        (5, "Neurologist"),
-        (6, "Geneticist"),
-        (7, "Specialist - Other"),
-        (8, "Cardiologist"),
-        (9, "Nurse Practitioner"),
-        (10, "Paediatrician"),
+        (1, _("GP (Primary Care)")),
+        (2, _("Specialist (Lipid)")),
+        (3, _("Primary Care")),
+        (4, _("Paediatric Neurologist")),
+        (5, _("Neurologist")),
+        (6, _("Geneticist")),
+        (7, _("Specialist - Other")),
+        (8, _("Cardiologist")),
+        (9, _("Nurse Practitioner")),
+        (10, _("Paediatrician")),
     )
 
     # Sorting of options
     OPTIONS = tuple(sorted(OPTIONS, key=lambda item: item[1]))
 
-    relationship = forms.ChoiceField(label="Type of Medical Professional", choices=OPTIONS)
+    relationship = forms.ChoiceField(label=_("Type of Medical Professional"), choices=OPTIONS)
 
     class Meta:
         fields = "__all__"
@@ -62,12 +63,10 @@ class PatientRelativeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
-        #self.fields['date_of_birth'].input_formats = ['%d-%m-%Y']
         self.create_patient_flag = False
         self.tag = None    # used to locate this form
 
     def _clean_fields(self):
-        logger.debug("in PatientRelatives clean fields")
         self._errors = ErrorDict()
         num_errors = 0
         if not self.is_bound:  # Stop further processing.
@@ -79,10 +78,8 @@ class PatientRelativeForm(forms.ModelForm):
             try:
                 value = field.widget.value_from_datadict(
                     self.data, self.files, self.add_prefix(name))
-                logger.debug("field %s = %s" % (name, value))
                 if name == "relative_patient":
                     if value == "on":
-                        logger.debug("on set for create patient - setting to None")
                         self.cleaned_data[name] = None
                         self.create_patient_flag = True
                     else:
@@ -91,9 +88,7 @@ class PatientRelativeForm(forms.ModelForm):
                 elif name == 'date_of_birth':
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
-                        logger.debug("cleaned patient relative date of birth = %s" % value)
                     except Exception as ex:
-                        logger.debug("Exception cleaning date of birth: %s" % ex)
                         raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
@@ -101,18 +96,13 @@ class PatientRelativeForm(forms.ModelForm):
                 else:
                     self.cleaned_data[name] = value
 
-                logger.debug("cleaned %s = %s" % (name, self.cleaned_data[name]))
-
             except ValidationError as e:
                 num_errors += 1
-                logger.debug("Patient Relative Validation Error name = %s field = %s error = %s" % (name, field, e))
                 self._errors[name] = self.error_class(e.messages)
                 if name in self.cleaned_data:
                     del self.cleaned_data[name]
 
-        logger.debug("PR clean fields final error count = %s" % num_errors)
         self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
-        logger.debug("after clean fields errors = %s" % self._errors)
 
     def _set_date_of_birth(self, dob):
         # todo figure  out why the correct input format is not being respected -
@@ -282,25 +272,19 @@ class PatientForm(forms.ModelForm):
         data = patient_model.consent_questions_data
         for consent_field_key in data:
             initial_data[consent_field_key] = data[consent_field_key]
-            logger.debug("set initial data for %s to %s" %
-                         (consent_field_key, data[consent_field_key]))
 
     def _is_adding_patient(self, kwargs):
         return 'instance' in kwargs and kwargs['instance'] is None
 
     def _setup_add_form(self):
-        logger.debug("in setup add form ...")
         if hasattr(self, "user"):
             user = self.user
         else:
             user = None
-        logger.debug("user is %s" % user)
-        logger.debug("form.registry_model = %s" % self.registry_model)
+
         if not user.is_superuser:
             initial_working_groups = user.working_groups.filter(registry=self.registry_model)
             self.fields['working_groups'].queryset = initial_working_groups
-            logger.debug("restricted working groups choices to %s" %
-                         [wg.pk for wg in initial_working_groups])
         else:
             self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
@@ -335,12 +319,8 @@ class PatientForm(forms.ModelForm):
     # Does not need a unique constraint on the DB
 
     def clean(self):
-        logger.debug("in PatientForm clean ...")
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
-
-        for k in cleaneddata:
-            logger.debug("cleaned field %s = %s" % (k, cleaneddata[k]))
 
         for k in cleaneddata:
             if k.startswith("customconsent_"):
@@ -348,7 +328,6 @@ class PatientForm(forms.ModelForm):
 
         for k in self.custom_consents:
             del cleaneddata[k]
-            logger.debug("removed custom consent %s" % k)
 
         if "working_groups" not in cleaneddata:
             raise forms.ValidationError("Patient must be assigned to a working group")
@@ -362,30 +341,23 @@ class PatientForm(forms.ModelForm):
         return super(PatientForm, self).clean()
 
     def _validate_custom_consents(self):
-        logger.debug("custom consents = %s" % self.custom_consents)
         data = {}
         for field_key in self.custom_consents:
-            logger.debug("field key = %s" % field_key)
             parts = field_key.split("_")
             reg_pk = int(parts[1])
             registry_model = Registry.objects.get(id=reg_pk)
-            logger.debug("reg = %s" % registry_model)
             if registry_model not in data:
                 data[registry_model] = {}
 
             consent_section_pk = int(parts[2])
             consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
-            logger.debug("section model = %s" % consent_section_model)
 
             if consent_section_model not in data[registry_model]:
                 data[registry_model][consent_section_model] = {}
 
             consent_question_pk = int(parts[3])
             consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
-            logger.debug("consent question = %s" % consent_question_model)
             answer = self.custom_consents[field_key]
-            logger.debug("answer = %s" % answer)
-
             data[registry_model][consent_section_model][consent_question_model.code] = answer
 
         validation_errors = []
@@ -398,9 +370,6 @@ class PatientForm(forms.ModelForm):
                     error_message = "Consent Section '%s %s' is not valid" % (
                         registry_model.code.upper(), consent_section_model.section_label)
                     validation_errors.append(error_message)
-                else:
-                    logger.debug("Consent section %s is valid!" %
-                                 consent_section_model.section_label)
 
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
@@ -408,16 +377,11 @@ class PatientForm(forms.ModelForm):
     def save(self, commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
-        logger.debug("patient instance = %s" % patient_model)
         try:
             patient_registries = [r for r in patient_model.rdrf_registry.all()]
         except ValueError:
             # If patient just created line above was erroring
             patient_registries = []
-        logger.debug("patient registries = %s" % patient_registries)
-
-        logger.debug("persisting custom consents from form")
-        logger.debug("There are %s custom consents" % len(list(self.custom_consents.keys())))
 
         if "user" in self.cleaned_data:
             patient_model.user = self.cleaned_data["user"]
@@ -431,41 +395,24 @@ class PatientForm(forms.ModelForm):
         patient_model.clinician = self.cleaned_data["clinician"]
 
         for consent_field in self.custom_consents:
-            logger.debug("saving consent field %s ( value to save = %s)" %
-                         (consent_field, self.custom_consents[consent_field]))
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
                 consent_field)
 
             if registry_model in patient_registries:
-                logger.debug("saving consents for %s %s" %
-                             (registry_model, consent_section_model))
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(patient_model):
-                    logger.debug("%s is applicable to %s" %
-                                 (consent_section_model, patient_model))
                     cv = patient_model.set_consent(
                         consent_question_model, self.custom_consents[consent_field], commit)
-                    logger.debug("set consent value ok : cv = %s" % cv)
-                else:
-                    logger.debug("%s is not applicable to model %s" %
-                                 (consent_section_model, patient_model))
-
-            else:
-                logger.debug("patient not in %s ?? no consents added here" % registry_model)
-
             if not patient_registries:
-                logger.debug("No registries yet - Adding patient consent closure")
                 closure = self._make_consent_closure(
                     registry_model,
                     consent_section_model,
                     consent_question_model,
                     consent_field)
                 if hasattr(patient_model, 'add_registry_closures'):
-                    logger.debug("appending to closure list")
                     patient_model.add_registry_closures.append(closure)
                 else:
-                    logger.debug("settng new closure list")
                     setattr(patient_model, 'add_registry_closures', [closure])
 
         return patient_model
@@ -477,17 +424,10 @@ class PatientForm(forms.ModelForm):
             consent_question_model,
             consent_field):
         def closure(patient_model, registry_ids):
-            logger.debug("running consent closure")
             if registry_model.id in registry_ids:
                 if consent_section_model.applicable_to(patient_model):
-                    logger.debug("%s is applicable to %s" %
-                                 (consent_section_model, patient_model))
                     cv = patient_model.set_consent(
                         consent_question_model, self.custom_consents[consent_field])
-                    logger.debug("set consent value ok : cv = %s" % cv)
-                else:
-                    logger.debug("%s is not applicable to model %s" %
-                                 (consent_section_model, patient_model))
             else:
                 pass
         return closure
