@@ -147,7 +147,7 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry, related_name='patients')
+    rdrf_registry = models.ManyToManyField(Registry, related_name='patients', verbose_name=_("Rdrf Registry"))
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name=_("Centre"))
     consent = models.BooleanField(
@@ -227,7 +227,7 @@ class Patient(models.Model):
         null=True,
         verbose_name=_("Reason"),
         help_text=_("Please provide reason for deactivating the patient"))
-    clinician = models.ForeignKey(CustomUser, blank=True, null=True)
+    clinician = models.ForeignKey(CustomUser, blank=True, null=True, verbose_name=_("Clinician"))
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -235,7 +235,7 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
-    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive')
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive', verbose_name=_("Living status"))
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
