@@ -96,16 +96,25 @@ class Command(BaseCommand):
         else:
             self.msgids.add(message_string)
             
-
         if self.number.match(message_string):
             return
+
         if comment:
             print("# %s" % comment)
 
         if "\n" in message_string:
             # probably wrong but compiler fails
             # if there are multilined messages
-            message_string = message_string.replace('\n',' ')
+            #message_string = message_string.replace('\n',' ')
+            lines = message_string.split("\n")
+            first_line = lines[0]
+            lines = lines[1:]
+            
+            print('msgid "%s"' % first_line.replace('"',""))
+            for line in lines:
+                print('"%s"' % line.replace('"', ""))
+            print('msgstr "translation goes here"')
+            return
 
         # again we need to escape somwhow
         if '"' in message_string:
@@ -205,12 +214,3 @@ class Command(BaseCommand):
         else:
             # assume a model
             return getattr(thing, field)
-        
-                
-            
-            
-            
-            
-            
-            
-            
