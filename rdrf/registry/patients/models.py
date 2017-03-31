@@ -171,30 +171,30 @@ class Patient(models.Model):
         blank=False,
         help_text=_("Parent/Guardian consent provided on behalf of the patient."),
         default=False)
-    family_name = models.CharField(max_length=100, db_index=True)
-    given_names = models.CharField(max_length=100, db_index=True)
+    family_name = models.CharField(max_length=100, db_index=True, verbose_name=_("Family Name"))
+    given_names = models.CharField(max_length=100, db_index=True, verbose_name=_("Given Names"))
     maiden_name = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Maiden name (if applicable)"))
     umrn = models.CharField(
         max_length=50, null=True, blank=True, db_index=True, verbose_name=_("Hospital/Clinic ID"))
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(verbose_name=_("Date of birth"))
     place_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Place of birth"))
 
-    date_of_migration = models.DateField(blank=True, null=True)
+    date_of_migration = models.DateField(blank=True, null=True, verbose_name=_("Date of migration"))
     country_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Country of birth"))
     ethnic_origin = models.CharField(
-        choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
-    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    home_phone = models.CharField(max_length=30, blank=True, null=True)
-    mobile_phone = models.CharField(max_length=30, blank=True, null=True)
-    work_phone = models.CharField(max_length=30, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+        choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True, verbose_name=_('Ethnic origin'))
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, verbose_name=_("Sex"))
+    home_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
+    mobile_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Mobile phone"))
+    work_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Work phone"))
+    email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
     next_of_kin_family_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("family name"))
+        max_length=100, blank=True, null=True, verbose_name=_("Family name"))
     next_of_kin_given_names = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_("given names"))
+        max_length=100, blank=True, null=True, verbose_name=_("Given names"))
     next_of_kin_relationship = models.ForeignKey(
         NextOfKinRelationship,
         verbose_name=_("Relationship"),
@@ -208,12 +208,12 @@ class Patient(models.Model):
         max_length=20, verbose_name=_("State/Province/Territory"), blank=True, null=True)
     next_of_kin_postcode = models.IntegerField(verbose_name=_("Postcode"), blank=True, null=True)
     next_of_kin_home_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name=_("home phone"))
+        max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
     next_of_kin_mobile_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name=_("mobile phone"))
+        max_length=30, blank=True, null=True, verbose_name=_("Mobile phone"))
     next_of_kin_work_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name=_("work phone"))
-    next_of_kin_email = models.EmailField(blank=True, null=True, verbose_name=_("email"))
+        max_length=30, blank=True, null=True, verbose_name=_("Work phone"))
+    next_of_kin_email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
     next_of_kin_parent_place_of_birth = models.CharField(
         max_length=100, verbose_name=_("Place of birth of parents"), blank=True, null=True)
     next_of_kin_country = models.CharField(
@@ -967,13 +967,13 @@ class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
     address_type = models.ForeignKey(AddressType, default=1)
     address = models.TextField()
-    suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
-    country = models.CharField(max_length=100)
-    state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
-    postcode = models.CharField(max_length=50)
+    suburb = models.CharField(max_length=100, verbose_name=_("Suburb/Town"))
+    country = models.CharField(max_length=100, verbose_name=_("Country"))
+    state = models.CharField(max_length=50, verbose_name=_("State/Province/Territory"))
+    postcode = models.CharField(max_length=50, verbose_name=_("Postcode"))
 
     class Meta:
-        verbose_name_plural = "Patient Addresses"
+        verbose_name_plural = _("Patient Addresses")
 
     def __str__(self):
         return ""
