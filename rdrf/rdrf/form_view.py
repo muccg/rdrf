@@ -1448,9 +1448,7 @@ class AdjudicationInitiationView(View):
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
             return StandardView.render_error(
-                request,
-                _("Patient with id %s not found!") %
-                patient_id)
+                request, _("Patient not found!"))
 
         context = adj_def.create_adjudication_inititiation_form_context(patient)
         context.update(csrf(request))
@@ -1462,17 +1460,14 @@ class AdjudicationInitiationView(View):
             adj_def = AdjudicationDefinition.objects.get(pk=def_id)
         except AdjudicationDefinition.DoesNotExist:
             return StandardView.render_error(
-                request,
-                _("Adjudication Definition %s not found") %
-                def_id)
+                request, _("Adjudication Definition not found"))
 
         try:
             patient = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
             return StandardView.render_error(
                 request,
-                _("Patient with id %s not found!") %
-                patient_id)
+                _("Patient not found!"))
 
         from rdrf.models import AdjudicationState
         adjudication_state = adj_def.get_state(patient)
@@ -1487,8 +1482,7 @@ class AdjudicationInitiationView(View):
         elif adjudication_state != AdjudicationState.NOT_CREATED:
             return StandardView.render_error(
                 request,
-                _("Unknown adjudication state '%s' - contact admin") %
-                adjudication_state)
+                _("Unknown adjudication state - contact admin"))
         else:
             # no requests have been adjudication requests created for this patient
             sent_ok, errors = self._create_adjudication_requests(
@@ -1543,11 +1537,11 @@ class AdjudicationInitiationView(View):
             try:
                 target_user = CustomUser.objects.get(username=target_username)
             except CustomUser.DoesNotExist as ex:
-                errors.append(_("Could not find user for %s: %s") % (target_username, ex))
+                errors.append(_("Could not find user"))
                 continue
 
             if not target_user:
-                errors.append(_("Could not find user for %s") % target_username)
+                errors.append(_("Could not find user"))
                 continue
             else:
                 try:
@@ -1563,7 +1557,7 @@ class AdjudicationInitiationView(View):
             try:
                 target_working_group = WorkingGroup.objects.get(name=target_working_group_name)
             except WorkingGroup.DoesNotExist:
-                errors.append(_("There is no working group called %s") % target_working_group_name)
+                errors.append(_("Unknown working group"))
                 continue
 
             for target_user in target_working_group.users:
@@ -1625,15 +1619,14 @@ class AdjudicationRequestView(View):
                 try:
                     adj_req.handle_response(request)
                 except AdjudicationError as aerr:
-                    return StandardView.render_error(request, _("Adjudication Error: %s") % aerr)
+                    return StandardView.render_error(request, _("Adjudication Error")) 
 
                 return StandardView.render_information(
                     request,
                     _("Adjudication Response submitted successfully!"))
 
             except AdjudicationRequest.DoesNotExist:
-                msg = _("Cannot submit adjudication - adjudication request with id %s not found") %  \
-                    adjudication_request_id
+                msg = _("Cannot submit adjudication - adjudication request not found for id")
                 return StandardView.render_error(request, msg)
 
 
@@ -1667,8 +1660,7 @@ class AdjudicationResultsView(View):
         except CustomUser.DoesNotExist:
             return StandardView.render_error(
                 request,
-                _("Could not find requesting user for this adjudication '%s'") %
-                requesting_user_id)
+                _("Could not find requesting user for this adjudication")) 
 
         try:
             adjudication = Adjudication.objects.get(
@@ -1684,7 +1676,7 @@ class AdjudicationResultsView(View):
         stats, adj_responses = self._get_stats_and_responses(
             patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
-            msg = _("No one has responded to the adjudication request yet!- stats are %s") % stats
+            msg = _("No one has responded to the adjudication request yet!- stats are %(stats)") % {"stats":stats}
             return StandardView.render_information(request, msg)
 
         class StatsField(object):
@@ -1906,13 +1898,13 @@ class AdjudicationResultsView(View):
             if result.ok:
                 return StandardView.render_information(
                     request,
-                    _("Your adjudication decision has been sent to %s") %
-                    adjudication.requesting_username)
+                    _("Your adjudication decision has been sent to %(username)") %
+                    {"username": adjudication.requesting_username})
             else:
                 return StandardView.render_error(
                     request,
-                    _("Your adjudication decision was not communicated: %s") %
-                    result.error_message)
+                    _("Your adjudication decision was not communicated: %(error_message)") %
+                    {"error_message": result.error_message})
 
     def _get_actions_data(self, definition, post_data):
         actions = []
