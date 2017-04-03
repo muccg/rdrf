@@ -134,6 +134,7 @@ class Command(BaseCommand):
         yield from self._yield_form_strings()
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
+        yield from self._yield_misc_strings()
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -227,6 +228,7 @@ class Command(BaseCommand):
         msgid = "Permissions (%s)" % registry_name
         yield None, msgid
 
-
-    def _yield_patient_listing_strings(self):
-        yield None, "Patient List"
+    def _yield_misc_strings(self):
+        # Couldn't  get these strings to extract for some reason
+        yield None, "Next of kin country"
+        yield None, "Next of kin state"
