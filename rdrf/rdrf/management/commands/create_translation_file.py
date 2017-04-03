@@ -133,6 +133,7 @@ class Command(BaseCommand):
     def _get_strings_for_translation(self):
         yield from self._yield_form_strings()
         yield from self._yield_consent_strings()
+        yield from self._yield_menu_items()
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -214,3 +215,14 @@ class Command(BaseCommand):
         else:
             # assume a model
             return getattr(thing, field)
+
+    def _yield_menu_items(self):
+        # consent
+        registry_name = self.data["name"]
+        
+        msgid = "Consents (%s)" % registry_name
+        yield None, msgid
+
+        # permission matrix
+        msgid = "Permissions (%s)" % registry_name
+        yield None, msgid
