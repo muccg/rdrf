@@ -1676,7 +1676,7 @@ class AdjudicationResultsView(View):
         stats, adj_responses = self._get_stats_and_responses(
             patient_id, requesting_user.username, adj_def)
         if len(adj_responses) == 0:
-            msg = _("No one has responded to the adjudication request yet!- stats are %(stats)") % {"stats":stats}
+            msg = _("No one has responded to the adjudication request yet!- stats are %(stats)s") % {"stats":stats}
             return StandardView.render_information(request, msg)
 
         class StatsField(object):
@@ -1897,12 +1897,12 @@ class AdjudicationResultsView(View):
             if result.ok:
                 return StandardView.render_information(
                     request,
-                    _("Your adjudication decision has been sent to %(username)") %
+                    _("Your adjudication decision has been sent to %(username)s") %
                     {"username": adjudication.requesting_username})
             else:
                 return StandardView.render_error(
                     request,
-                    _("Your adjudication decision was not communicated: %(error_message)") %
+                    _("Your adjudication decision was not communicated: %(error_message)s") %
                     {"error_message": result.error_message})
 
     def _get_actions_data(self, definition, post_data):

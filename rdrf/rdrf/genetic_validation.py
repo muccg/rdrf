@@ -56,17 +56,17 @@ class GeneticValidator(object):
         try:
             return ExonVariation(value)
         except ExonVariation.Error as e:
-            raise GeneticValidationError(_("Exon validation error: %(error)") % {"error": e})
+            raise GeneticValidationError(_("Exon validation error: %(error)s") % {"error": e})
 
     def validate_protein(self, value):
         try:
             return ProteinVariation(value)
         except ProteinVariation.Error as e:
-            raise GeneticValidationError(_("Protein validation error: %(error)") % {"error":e})
+            raise GeneticValidationError(_("Protein validation error: %(error)s") % {"error":e})
 
     def validate_sequence(self, value):
         logger.debug("validate_sequence(%s)" % value)
         try:
             return SequenceVariation(value)
         except SequenceVariation.Error as e:
-            raise GeneticValidationError(_("Sequence validation error: %(error)") % {"error":e})
+            raise GeneticValidationError(_("Sequence validation error: %(error)s") % {"error":e})
