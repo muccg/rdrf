@@ -107,13 +107,13 @@ class PatientsListingView(View):
 
     def get_columns(self):
         return [
-            ColumnFullName("Patient", "patients.can_see_full_name"),
-            ColumnDateOfBirth("Date of Birth", "patients.can_see_dob"),
-            ColumnWorkingGroups("Working Groups", "patients.can_see_working_groups"),
-            ColumnDiagnosisProgress("Diagnosis Entry Progress", "patients.can_see_diagnosis_progress"),
-            ColumnDiagnosisCurrency("Updated < 365 days", "patients.can_see_diagnosis_currency"),
-            ColumnGeneticDataMap("Genetic Data", "patients.can_see_genetic_data_map"),
-            ColumnContextMenu("Modules", "patients.can_see_data_modules"),
+            ColumnFullName(_("Patient"), "patients.can_see_full_name"),
+            ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
+            ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
+            ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
+            ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
+            ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
+            ColumnContextMenu(_("Modules"), "patients.can_see_data_modules"),
         ]
 
     def get_configure_columns(self):
