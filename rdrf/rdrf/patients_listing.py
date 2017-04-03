@@ -579,7 +579,7 @@ class ColumnContextMenu(Column):
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="forms_button_%s">%s</ul>
             </div>
-        """ % (button.id, button.button_caption, button.id, button.html)
+        """ % (button.id, _(button.button_caption), button.id, button.html)
 
     def sort_key(self, *args, **kwargs):
         return None
