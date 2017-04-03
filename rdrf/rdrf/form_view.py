@@ -1876,8 +1876,7 @@ class AdjudicationResultsView(View):
         elif adjudication_state != AdjudicationState.UNADJUDICATED:
             return StandardView.render_error(
                 request,
-                _("Unknown adjudication state: %s") %
-                adjudication_state)
+                _("Unknown adjudication state"))
         else:
             adj_dec = AdjudicationDecision(definition=adj_def, patient=patient_id)
             action_code_value_pairs = self._get_actions_data(adj_def, request.POST)
