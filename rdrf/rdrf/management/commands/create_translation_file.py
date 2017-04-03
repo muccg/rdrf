@@ -226,3 +226,7 @@ class Command(BaseCommand):
         # permission matrix
         msgid = "Permissions (%s)" % registry_name
         yield None, msgid
+
+
+    def _yield_patient_listing_strings(self):
+        yield None, "Patient List"

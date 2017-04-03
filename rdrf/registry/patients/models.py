@@ -239,7 +239,7 @@ class Patient(models.Model):
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
-        verbose_name_plural = "Patient List"
+        verbose_name_plural = _("Patient List")
 
         permissions = (
             ("can_see_full_name", _("Can see Full Name column")),
