@@ -160,7 +160,7 @@
   <p>
       <select id="registry_options">
           {% for reg in registries %}
-              <option id="{{ reg.code }}">{{ reg.name }}</option>
+              <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
           {% endfor %}
       </select>
       <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
