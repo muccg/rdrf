@@ -1,9 +1,10 @@
 <!DOCTYPE HTML>
 {% load static from staticfiles %}
+{% load i18n %}
     
 <html>
     <head>
-        <title>RDRF Reporting Tool</title>
+        <title>{% trans "RDRF Reporting Tool" %}</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -31,18 +32,18 @@
         
         <nav class="navbar navbar-inverse" role="navigation">
             <div class="container">
-                <p class="navbar-brand" href="explorer">RDRF Reporting Tool <sup>{{version}}</sup></p>
+                <p class="navbar-brand" href="explorer">{% trans "RDRF Reporting Tool" %} <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
-                    <li><a href="{% url 'explorer_main' %}">List</a></li>
+                    <li><a href="{% url 'explorer_main' %}">{% trans "List" %}</a></li>
                     {% if request.user.is_superuser %}
-                        <li><a href="{% url 'explorer_new' %}">New</a></li>
+                        <li><a href="{% url 'explorer_new' %}">{% trans "New" %}</a></li>
                     {% endif %}
                 </ul>
 
                 {% if status %}
-                    <p class="navbar-text pull-right"><b><font color="green">Connected</font></p>
+                    <p class="navbar-text pull-right"><b><font color="green">{trans "Connected" %}</font></p>
                 {% else %}
-                    <p class="navbar-text pull-right"><b><font color="red">Not connected</font></b></p>
+                    <p class="navbar-text pull-right"><b><font color="red">{% trans "Not connected" %}</font></b></p>
                 {% endif%}
             </div>
         </nav>
@@ -66,7 +67,7 @@
 
         <div id="footer">
             <div class="container">
-                <h6 class="text-muted">Project developed at <a href="http://ccg.murdoch.edu.au" target="_blank">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>
+                <h6 class="text-muted">{% trans "Project developed at" %} <a href="http://ccg.murdoch.edu.au" target="_blank">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>
             </div>
         </div>
         
@@ -104,7 +105,7 @@
 	                      }
 //                            var response = jQuery.parseJSON(data);
 //                            if ($.isEmptyObject(response)) {
-//                                $("#response_error").text("No results");
+//                                $("#response_error").text("{% trans 'No results' %}");
 //                                $("#response_error").fadeIn().delay(3000).fadeOut();
 //                                return;
 //                            }
