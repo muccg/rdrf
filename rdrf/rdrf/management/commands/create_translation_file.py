@@ -134,7 +134,9 @@ class Command(BaseCommand):
         yield from self._yield_form_strings()
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
+        yield from self._yield_permission_strings()
         yield from self._yield_misc_strings()
+
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -232,3 +234,16 @@ class Command(BaseCommand):
         # Couldn't  get these strings to extract for some reason
         yield None, "Next of kin country"
         yield None, "Next of kin state"
+
+    def _yield_permission_strings(self):
+        from django.contrib.auth.models import Permission
+
+        # These aren't in the yamml but depend on the configured auth groups
+        for column_heading in ["Permission", "Clinical Staff", "Genetic Staff","Parents","Patients","Working Group Curators"]:
+            yield None, column_heading
+
+
+        for permission_object in Permission.objects.all():
+            yield None, permission_object.name
+            
+            
