@@ -185,6 +185,7 @@ class Command(BaseCommand):
 
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
+            yield None, consent_section_dict["section_label"]
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
@@ -223,17 +224,18 @@ class Command(BaseCommand):
         # consent
         registry_name = self.data["name"]
         
-        msgid = "Consents (%s)" % registry_name
+        msgid = "Consents (%s)s" % registry_name
         yield None, msgid
 
         # permission matrix
-        msgid = "Permissions (%s)" % registry_name
+        msgid = "Permissions (%s)s" % registry_name
         yield None, msgid
 
     def _yield_misc_strings(self):
         # Couldn't  get these strings to extract for some reason
         yield None, "Next of kin country"
         yield None, "Next of kin state"
+        yield None, "Permission Matrix for %(registry)s"
 
     def _yield_permission_strings(self):
         from django.contrib.auth.models import Permission

@@ -71,7 +71,7 @@
             
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return "You have unsaved changes!";
+                    return {% trans '"You have unsaved changes!"' %};
                 } else {
                     e=null;
                 }
@@ -262,7 +262,7 @@
                     {% else %}
                         {% for name, section in sections %}
                             <div class="panel panel-default">
-                                <div class="panel-heading"><strong>{{name}}</strong>
+                                <div class="panel-heading"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text=section|get_information_text|translate %}
                                 {% with doc="docs/"|add:link %}
@@ -270,7 +270,7 @@
                                     {% if info_text %}
                                         <br>
                                         <hr>
-                                        {{ info_text|safe|translate }}
+                                        {{ info_text|translate|safe }}
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}

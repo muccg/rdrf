@@ -7,6 +7,7 @@ from django.views.generic.base import View
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.utils.translation import ugettext as _
 
 from registry.patients.models import ConsentValue
 from registry.patients.models import Patient, ParentGuardian
@@ -97,7 +98,7 @@ class ConsentDetails(View):
                 consent_value = ConsentValue.objects.get(consent_question=consent_question, patient__id=patient_id)
                 answer = consent_value.answer
                 values.append({
-                    "question": consent_question.question_label,
+                    "question": _(consent_question.question_label),
                     "answer": answer,
                     "patient_id": patient_id,
                     "section_id": section_id,
@@ -106,7 +107,7 @@ class ConsentDetails(View):
                 })
             except ConsentValue.DoesNotExist:
                 values.append({
-                    "question": consent_question.question_label,
+                    "question": _(consent_question.question_label),
                     "answer": False,
                     "patient_id": patient_id,
                     "section_id": section_id

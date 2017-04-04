@@ -1,5 +1,7 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static from staticfiles %}
+{% load i18n %}
+{% load translate %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -49,29 +51,29 @@
     <br>
     
     <blockquote>
-        <b>Patient Consents</b> - {{registry}}
+        <b>{% trans "Patient Consents" %}</b> - {{registry}}
     </blockquote>
 
     <p class="pull-right">
         <a class="btn btn-success" href="{% url 'print_consent_list' registry_code %}" target="_blank">
-            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
         </a>
     </p>
     
     <table class="table table-striped table-hover" id="list_of_patients">
         <thead>
             <tr>
-                <th class="col-md-5">Patient - Consent Type</th>
-                <th class="col-md-3" style="text-align: center;">First Save</th>
-                <th class="col-md-3" style="text-align: center;">Last Update</th>
-                <th class="col-md-1" style="text-align: center;">Status</th>
+                <th class="col-md-5">{% trans "Patient - Consent Type" %}</th>
+                <th class="col-md-3" style="text-align: center;">{% trans "First Save" %}</th>
+                <th class="col-md-3" style="text-align: center;">{% trans "Last Update" %}</th>
+                <th class="col-md-1" style="text-align: center;">{% trans "Status" %}</th>
             </tr>
         </thead>
         <tbody>
         {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
-                <tr onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label}}')">
-                    <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
+                <tr onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label|translate}}')">
+                    <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label|translate}}</td>
                     <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"d F Y"}}</td>
                     <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"d F Y"}}</td>
                     <td class="col-md-1" style="text-align: center;">
@@ -98,7 +100,7 @@
                 <div class="modal-body" id="consent-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" data-dismiss="modal">{% trans "Close" %}</button>
                 </div>
             </div>
         </div>

@@ -1990,24 +1990,13 @@ class CustomConsentFormView(View):
 
         consent_sections = custom_consent_form.get_consent_sections()
 
-        patient_section_consent_file = ("Upload consent file (if requested)", None)
-
-        # form_sections = [
-        #     (
-        #         custom_consent_form,
-        #         consent_sections,
-        #     ),
-        #     (
-        #         patient_consent_file_form,
-        #         (patient_section_consent_file,)
-        #     )]
+        patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
         return self._section_structure(custom_consent_form,
                                        consent_sections,
                                        patient_consent_file_forms,
                                        patient_section_consent_file)
 
-        # return form_sections
 
     def _get_consent_file_formset(self, patient_model):
         patient_consent_file_formset = inlineformset_factory(
@@ -2064,7 +2053,7 @@ class CustomConsentFormView(View):
                                                                   request.FILES,
                                                                   instance=patient_model,
                                                                   prefix="patient_consent_file")
-        patient_section_consent_file = ("Upload consent file (if requested)", None)
+        patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
         custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
