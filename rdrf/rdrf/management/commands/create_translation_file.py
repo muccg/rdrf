@@ -131,12 +131,16 @@ class Command(BaseCommand):
         print()
 
     def _get_strings_for_translation(self):
+        yield from self._yield_registry_level_strings()
         yield from self._yield_form_strings()
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
         yield from self._yield_permission_strings()
         yield from self._yield_misc_strings()
 
+    def _yield_registry_level_strings(self):
+        # registry name
+        yield None, self.data["name"]
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -148,6 +152,10 @@ class Command(BaseCommand):
             
             comment = None
             yield comment, name_with_spaces
+
+            # the header is html ...
+            header = form_dict["header"]
+            
 
             yield from self._yield_section_strings(form_dict)
             
