@@ -155,6 +155,7 @@ class Command(BaseCommand):
 
             # the header is html ...
             header = form_dict["header"]
+            yield "Preserve the HTML tags please!", header
             
 
             yield from self._yield_section_strings(form_dict)
@@ -194,6 +195,8 @@ class Command(BaseCommand):
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
+            information_text = consent_section_dict["information_text"]
+            yield "Preserve the HTML tags please!", information_text
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
