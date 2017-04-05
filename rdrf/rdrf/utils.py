@@ -594,6 +594,7 @@ class MinType(object):
 def process_embedded_html(html, translate=True):
 
     from html.parser import HTMLParser
+    from django.utils.translation import ugettext as _
 
     class Parser(HTMLParser):
         def __init__(self, *args, **kwargs):
@@ -605,8 +606,12 @@ def process_embedded_html(html, translate=True):
 
         def handle_starttag(self, tag, atts):
             prefix = "<%s " % tag
-            rest = " ".join(['"%s="%s"' % (pair[0], pair[1]) for pair in atts])
-            html = prefix + rest
+            if atts:
+                rest = " ".join(['"%s="%s"' % (pair[0], pair[1]) for pair in atts])
+            else:
+                rest = ""
+                
+            html = prefix + rest + ">"
             self.all_strings.append(html)
 
         def handle_endtag(self, tag):
