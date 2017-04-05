@@ -591,4 +591,57 @@ class MinType(object):
     def __eq__(self, other):
         return (self is other)
 
+def process_embedded_html(html, translate=True):
+
+    from html.parser import HTMLParser
+
+    class Parser(HTMLParser):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.texts = []
+            self.all_strings = []
+            self.translate = translate
+            
+
+        def handle_starttag(self, tag, atts):
+            prefix = "<%s " % tag
+            rest = " ".join(['"%s="%s"' % (pair[0], pair[1]) for pair in atts])
+            html = prefix + rest
+            self.all_strings.append(html)
+
+        def handle_endtag(self, tag):
+            html = "</%s>" % tag
+            self.all_strings.append(html)
+            
+        def handle_data(self, data):
+            if self.translate:
+                translated = _(data)
+                self.texts.append(translated)
+                self.all_strings.append(translated)
+            else:
+                self.texts.append(data)
+                self.all_strings.append(data)
+
+
+        def get_html(self):
+            return "".join(self.all_strings)
+
+
+    parser = Parser()
+    parser.feed(html)
+    if translate:
+        # this finds the corresponding text in the translation file
+        # and reconstructs the HTML
+        return parser.get_html()
+    else:
+        # this just returns a list of extracted text strings
+        # Used in the create_translation_file management command
+        return parser.texts
+    
+    
+        
+
+            
+    
+
 

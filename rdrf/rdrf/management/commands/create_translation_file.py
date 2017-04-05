@@ -3,6 +3,7 @@ import yaml
 import sys
 import re
 from rdrf.utils import de_camelcase
+from rdrf.utils import process_embedded_html
 from rdrf.models import Registry
 
 
@@ -196,7 +197,8 @@ class Command(BaseCommand):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
             information_text = consent_section_dict["information_text"]
-            yield "Preserve the HTML tags please!", information_text
+            yield from self._yield_text_from_html(information_text)
+            
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
@@ -251,12 +253,17 @@ class Command(BaseCommand):
     def _yield_permission_strings(self):
         from django.contrib.auth.models import Permission
 
-        # These aren't in the yamml but depend on the configured auth groups
+        # These aren't in the yaml but depend on the configured auth groups
         for column_heading in ["Permission", "Clinical Staff", "Genetic Staff","Parents","Patients","Working Group Curators"]:
             yield None, column_heading
 
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
+
+    def _yield_text_from_html(self, html):
+        for text in process_embedded_html(html, translate=False):
+            if text:
+                yield None, text
             
-            
+
