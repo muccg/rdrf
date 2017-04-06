@@ -92,6 +92,11 @@ class Command(BaseCommand):
         if not message_string:
             return
 
+
+        # multiple blank lines
+        if not message_string.strip():
+            return
+
         if message_string in self.msgids:
             return
         else:
@@ -142,6 +147,12 @@ class Command(BaseCommand):
     def _yield_registry_level_strings(self):
         # registry name
         yield None, self.data["name"]
+        splash_screen_html = self.data["splash_screen"]
+        comment = "From splash screen"
+        for text in process_embedded_html(splash_screen_html, translate=False):
+            yield comment, text
+            
+            
 
     def _yield_form_strings(self):
         if self.data is None:

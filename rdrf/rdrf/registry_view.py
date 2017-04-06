@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 
 from registry.patients.models import ParentGuardian
 from .models import Registry
+from rdrf.utils import process_embedded_html
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class RegistryView(View):
             return render(request, 'rdrf_cdes/splash.html', {'body': _('Oops, wrong registry code...')})
 
         context = {
-            'body': registry.splash_screen,
+            'body': process_embedded_html(registry.splash_screen, translate=True),
             'registry_code': registry_code
         }
 
