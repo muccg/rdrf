@@ -607,7 +607,7 @@ def process_embedded_html(html, translate=True):
         def handle_starttag(self, tag, atts):
             prefix = "<%s " % tag
             if atts:
-                rest = " ".join(['"%s="%s"' % (pair[0], pair[1]) for pair in atts])
+                rest = " ".join(['%s="%s"' % (pair[0], pair[1]) for pair in atts])
             else:
                 rest = ""
                 
