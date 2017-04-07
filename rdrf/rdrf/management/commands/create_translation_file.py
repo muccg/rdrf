@@ -166,10 +166,8 @@ class Command(BaseCommand):
             yield comment, name_with_spaces
 
             # the header is html ...
-            header = form_dict["header"]
-            yield "Preserve the HTML tags please!", header
-            
-
+            header_html = form_dict["header"]
+            yield from self._yield_text_from_html(header_html)
             yield from self._yield_section_strings(form_dict)
             
 
@@ -260,6 +258,7 @@ class Command(BaseCommand):
         yield None, "Next of kin country"
         yield None, "Next of kin state"
         yield None, "Permission Matrix for %(registry)s"
+        yield None, "Welcome"
 
     def _yield_permission_strings(self):
         from django.contrib.auth.models import Permission
