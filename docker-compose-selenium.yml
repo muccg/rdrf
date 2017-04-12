@@ -1,17 +1,15 @@
 version: '2'
 services:
 
-  # https://stackoverflow.com/questions/36087173/containers-are-not-linked-with-docker-compose-version-2
-
   hub:
-    image: selenium/hub
+    image: selenium/hub:3.2
     environment:
       - GRID_TIMEOUT=120000
     ports:
       - "4444"
 
   chrome:
-    image: selenium/node-chrome-debug
+    image: selenium/node-chrome-debug:3.2
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366
@@ -19,15 +17,13 @@ services:
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444
-    depends_on:
-      - hub
     ports:
       - 5901:5900
     depends_on:
       - hub
 
   firefox:
-    image: selenium/node-firefox-debug
+    image: selenium/node-firefox-debug:3.2
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366
@@ -35,8 +31,6 @@ services:
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444
-    depends_on:
-      - hub
     ports:
       - 5900:5900
     depends_on:

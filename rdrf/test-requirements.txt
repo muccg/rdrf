@@ -6,7 +6,7 @@ aloe
 aloe_webdriver
 aloe_django
 pyvirtualdisplay
-selenium
+selenium==3.3.1
 unittest-xml-reporting
 requests
 stellar
