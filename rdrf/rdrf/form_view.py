@@ -29,6 +29,7 @@ from rdrf.models import RDRFContext
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import consent_status_for_patient
+from rdrf.utils import process_embedded_html
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 
@@ -321,7 +322,7 @@ class FormView(View):
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
-        context["header"] = self.registry_form.header
+        context["header"] = process_embedded_html(self.registry_form.header, translate=True)
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
