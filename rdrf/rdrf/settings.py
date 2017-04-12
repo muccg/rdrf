@@ -472,4 +472,4 @@ PROJECT_TITLE = "Rare Disease Registry Framework"
 PROJECT_TITLE_LINK = "patientslisting"
 
 
-LOCALE_PATHS = env.getlist("locale_paths", ['/app/rdrf/rdrf/locale'])
+LOCALE_PATHS = env.getlist("locale_paths", ['/data/translations/locale'])
