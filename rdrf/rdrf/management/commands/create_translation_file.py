@@ -31,19 +31,18 @@ class Command(BaseCommand):
 
 
     def _usage(self):
-        print("django-admin create_translation_file registry_code=fh")
+        print("django-admin create_translation_file --registry_code=fh")
         print("OR")
-        print("django-admin create_translation_file yaml_file=/data/fh.yaml")
+        print("django-admin create_translation_file --yaml_file=/data/fh.yaml")
 
 
     def handle(self, *args, **options):
-        self.testing = True
-        
         file_name = options.get("yaml_file", None)
         registry_code = options.get("registry_code", None)
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
         self.number = re.compile("^\d+$")
+        self.translation_no = 1
         
         if file_name is not None and registry_code is not None:
             self._usage()
@@ -92,7 +91,6 @@ class Command(BaseCommand):
         if not message_string:
             return
 
-
         # multiple blank lines
         if not message_string.strip():
             return
@@ -127,12 +125,8 @@ class Command(BaseCommand):
             message_string = message_string.replace('"',"")
 
         print('msgid "%s"' % message_string) 
-        if self.testing:
-            # reverse string
-            msgstr = message_string[::-1]
-        else:
-            msgstr = "Translation goes here"
-            
+        msgstr = "TRANSLATION %s" % self.translation_no
+        self.translation_no += 1
         print('msgstr "%s"' % msgstr)
         print()
 
