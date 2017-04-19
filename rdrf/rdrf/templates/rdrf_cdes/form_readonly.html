@@ -200,10 +200,29 @@
 <!-- /#sidebar-wrapper -->
 {% endblock %}
 
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+			{% if show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+			</a>
+		{% endif %}
+	</div>
+{% endblock %}	
 
-{% block content %}
+
+
+{% block content %}<br>
     <div class="alert alert-danger">This form is readonly</div>
     {{ block.super }}
+    	<a class="previous-form" href="{{ previous_form_link }}">
+		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+	</a>
+
+	<a class="next-form" href="{{ next_form_link }}">
+		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+	</a>
+
     <br>
     <div class="row">
     <div class="col-md-10">
@@ -358,14 +377,7 @@
             {% endfor %}
         </div>
 
-        <div class="col-md-2">
-            <div data-spy="affix" style="width: 150px;">
-                <a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
-                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
-                </a>
-            </div>
-        </div>
-
+       
     </form>
 
  </div>
