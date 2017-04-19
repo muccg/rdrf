@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-2-cols.html" %}
 {% load get_display_name %}
 {% load get_section_id %}
 {% load is_formset %}
@@ -193,6 +193,13 @@
         </ul>
     </li>
 {% endblock %}
+
+{% block sidebar %}
+<!-- Sidebar -->
+	{{ context_launcher | safe }}
+<!-- /#sidebar-wrapper -->
+{% endblock %}
+
 
 {% block content %}
     <div class="alert alert-danger">This form is readonly</div>
