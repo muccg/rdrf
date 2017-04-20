@@ -4,14 +4,23 @@ django.setup()
 import sys
 from operator import itemgetter
 from rdrf.models import Registry
+from rdrf.models import CommonDataElement
+from rdrf.models import CDEPermittedValue
+
+
+
 from registry.patients.models import Patient
 
+class MissingCodeError(Exception):
+    pass
+
+
 class Codes:
-    FORM = ""
-    MULTISECTION = "hh"
-    GENEVARIANT = "aa"
-    DESCRIPTION = "bb"
-    PATHOGENICITY = "aaa"
+    FORM = "GeneticData"
+    MULTISECTION = "FHMutationDetails"
+    GENEVARIANT = "FHMutation"
+    DESCRIPTION = "FHMutationDescription"
+    PATHOGENICITY = "Pathogenicity"
 
 class PatientData:
     def __init__(self, patient_id, items):
@@ -42,28 +51,55 @@ class Reader:
         items = []
         for row in sorted(rows,key=itemgetter('SectionIndex')):
             cde_dicts = []
-            cde_dicts.append(self._make_cde_dict(code=Codes.GENEVARIANT,
-                                                 value=row["GeneVariant"]))
+            cde_dicts.append(self._make_cde_dict(Codes.GENEVARIANT,
+                                                 row["GeneVariant"]))
 
-            cde_dicts.append(self._make_cde_dict(code=Codes.DESCRIPTION,
-                                                 value=row["Description"]))
+            cde_dicts.append(self._make_cde_dict(Codes.DESCRIPTION,
+                                                 row["Description"]))
 
-            cde_dicts.append(self._make_cde_dict(code=Codes.PATHOGENICITY,
-                                                 value=row["Pathogenicity"]))
+            cde_dicts.append(self._make_cde_dict(Codes.PATHOGENICITY,
+                                                 row["Pathogenicity"]))
 
             items.append(cde_dicts)
 
         return items
 
-    def _make_cde_dict(self, code, value):
+    def _make_cde_dict(self, code, display_value):
+        cde_model = CommonDataElement.objects.get(code=code)
+        if cde_model.pv_group:
+            # need to get the value code from  the display value provided
+            try:
+                value = self._get_pv_code(cde_model.pv_group,
+                                          display_value)
+            except MissingCodeError:
+                error("Missing code for pvg %s display_value '%s'" % (cde_model.pv_group.code,
+                                                                      display_value))
+                value = None
+                
+        else:
+            value = display_value
+
+            
+            
         return {"code": code,
                 "value": value}
+
+    def _get_pv_code(self, pv_group, display_value):
+        for pv in CDEPermittedValue.objects.filter(
+                pv_group=pv_group).order_by('position'):
+            if pv.value == display_value:
+                return pv.code
+
+        raise MissingCodeError()
+
+        
+
     
     def __iter__(self):
         for data in self.patient_data:
             yield data
            
-def buildid_map(mapfile):
+def build_idmap(mapfile):
     idmap = {}
     with open(mapfile) as mf:
         for line in mf.readlines():
@@ -82,11 +118,11 @@ def existing_data(patient_model):
     
     
 idmap_file = sys.argv[1]
-spreadsheet_file = sys.argv[2]
+csv_file = sys.argv[2]
 
 fh_registry = Registry.objects.get(code="fh")
 
-reader = SpreadSheetReader(spreadsheet_file)
+reader = Reader(csv_file)
 reader.read()
 
 idmap = build_idmap(idmap_file)
@@ -99,6 +135,7 @@ for patient_data in reader:
     rdrf_id = idmap.get(patient_data.old_id, None)
     if rdrf_id is None:
         error("Patient %s does not exist in mapping file" % patient_data.old_id)
+        continue
     else:
         try:
             patient_model = Patient.objects.get(pk=rdrf_id)
@@ -107,6 +144,9 @@ for patient_data in reader:
                                                    rdrf_id))
                 continue
 
+            info("Updating patient %s/%s .." % (patient_data.old_id,
+                                                rdrf_id))
+            
             patient_model.evaluate_field_expression(fh_registry,
                                                     field_expression,
                                                     value=patient_data.items)
