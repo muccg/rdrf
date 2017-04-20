@@ -7,8 +7,6 @@ from rdrf.models import Registry
 from rdrf.models import CommonDataElement
 from rdrf.models import CDEPermittedValue
 
-
-
 from registry.patients.models import Patient
 
 class MissingCodeError(Exception):
@@ -51,14 +49,17 @@ class Reader:
         items = []
         for row in sorted(rows,key=itemgetter('SectionIndex')):
             cde_dicts = []
-            cde_dicts.append(self._make_cde_dict(Codes.GENEVARIANT,
-                                                 row["GeneVariant"]))
+            if row["GeneVariant"]:
+                cde_dicts.append(self._make_cde_dict(Codes.GENEVARIANT,
+                                                     row["GeneVariant"]))
 
-            cde_dicts.append(self._make_cde_dict(Codes.DESCRIPTION,
-                                                 row["Description"]))
+            if row["Description"]:
+                cde_dicts.append(self._make_cde_dict(Codes.DESCRIPTION,
+                                                     row["Description"]))
 
-            cde_dicts.append(self._make_cde_dict(Codes.PATHOGENICITY,
-                                                 row["Pathogenicity"]))
+            if row["Pathogenicity"]:
+                cde_dicts.append(self._make_cde_dict(Codes.PATHOGENICITY,
+                                                     row["Pathogenicity"]))
 
             items.append(cde_dicts)
 
