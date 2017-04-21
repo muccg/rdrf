@@ -129,13 +129,13 @@ reader.read()
 idmap = build_idmap(idmap_file)
 
 # we're updating just one multisection
-field_expression = "$op/%s/%s/items" % (Codes.FORM,
+field_expression = "$ms/%s/%s/items" % (Codes.FORM,
                                         Codes.MULTISECTION)
 
 for patient_data in reader:
     rdrf_id = idmap.get(patient_data.old_id, None)
     if rdrf_id is None:
-        error("Patient %s does not exist in mapping file" % patient_data.old_id)
+        #error("Patient %s does not exist in mapping file" % patient_data.old_id)
         continue
     else:
         try:
@@ -147,6 +147,8 @@ for patient_data in reader:
 
             info("Updating patient %s/%s .." % (patient_data.old_id,
                                                 rdrf_id))
+
+            info("items = %s" % patient_data.items)
             
             patient_model.evaluate_field_expression(fh_registry,
                                                     field_expression,
