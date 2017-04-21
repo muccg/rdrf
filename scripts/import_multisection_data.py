@@ -140,6 +140,8 @@ for patient_data in reader:
     else:
         try:
             patient_model = Patient.objects.get(pk=rdrf_id)
+            info("Found patient %s" % patient_model)
+            
             if existing_data(patient_model):
                 error("Existing data for %s/%s" % (patient_data.old_id,
                                                    rdrf_id))
@@ -149,13 +151,17 @@ for patient_data in reader:
                                                 rdrf_id))
 
             info("items = %s" % patient_data.items)
+
+
+            try:
+                patient_model.evaluate_field_expression(fh_registry,
+                                                        field_expression,
+                                                        value=patient_data.items)
+                
+                info("Updated patient %s/%s OK" % (patient_data.old_id, rdrf_id))
+            except Exception as ex:
+                error("Updated failed: %s" % ex)
             
-            patient_model.evaluate_field_expression(fh_registry,
-                                                    field_expression,
-                                                    value=patient_data.items)
-            
-            info("Updated patient %s/%s" % (patient_data.old_id,
-                                            rdrf_id))
             
         except Patient.DoesNotExist:
             error("No patient with id %s" % rdrf_id)
