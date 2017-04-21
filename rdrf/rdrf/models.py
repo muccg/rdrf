@@ -1889,7 +1889,7 @@ class DemographicFields(models.Model):
 
 
 class EmailTemplate(models.Model):
-    language = models.CharField(max_length=2, choices=settings.LANGUAGES)
+    language = models.CharField(max_length=2, choices=settings.ALL_LANGUAGES)
     description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()

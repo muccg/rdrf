@@ -37,6 +37,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from .admin_forms import RegistryFormAdminForm
+from .admin_forms import EmailTemplateAdminForm
 from .admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
@@ -406,6 +407,7 @@ class EmailNotificationAdmin(admin.ModelAdmin):
 
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
+    form = EmailTemplateAdminForm
     list_display = ("language", "description")
 
 

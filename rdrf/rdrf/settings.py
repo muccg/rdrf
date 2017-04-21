@@ -53,8 +53,15 @@ TIME_ZONE = env.get("time_zone", 'Australia/Perth')
 LANGUAGE_CODE = env.get("language_code", 'en')
 USE_I18N = env.get("use_i18n", True)
 
+# This must be a superset of LANGUAGES
+ALL_LANGUAGES = (("en", "English"),
+                 ("ar", "Arabic"),
+                 ("de", "German"))
+
+
 # EnvConfig can't handle structure of tuple of tuples so we pass in a flat association list
 # E.g. ["en","English","ar","Arabic"]
+# This must be a subset of ALL_LANGUAGES
 LANGUAGES_ASSOC_LIST = env.getlist("languages",["en","English","ar","Arabic","de","German"])
 LANGUAGES = tuple(zip(LANGUAGES_ASSOC_LIST[0::2],LANGUAGES_ASSOC_LIST[1::2]))
 
