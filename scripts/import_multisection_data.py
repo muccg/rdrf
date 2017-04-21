@@ -3,6 +3,7 @@ django.setup()
 
 import sys
 from operator import itemgetter
+from django.db import transaction
 from rdrf.models import Registry
 from rdrf.models import CommonDataElement
 from rdrf.models import CDEPermittedValue
@@ -135,36 +136,29 @@ field_expression = "$ms/%s/%s/items" % (Codes.FORM,
 for patient_data in reader:
     rdrf_id = idmap.get(patient_data.old_id, None)
     if rdrf_id is None:
-        #error("Patient %s does not exist in mapping file" % patient_data.old_id)
+        error("Patient %s does not exist in mapping file" % patient_data.old_id)
         continue
     else:
         try:
             patient_model = Patient.objects.get(pk=rdrf_id)
+            moniker = "%s\%s" % (patient_data.old_id,
+                                 rdrf_id)
+            
             info("Found patient %s" % patient_model)
             
-            if existing_data(patient_model):
-                error("Existing data for %s/%s" % (patient_data.old_id,
-                                                   rdrf_id))
-                continue
 
-            info("Updating patient %s/%s .." % (patient_data.old_id,
-                                                rdrf_id))
-
-            info("items = %s" % patient_data.items)
-
+            info("Updating patient %s .." % moniker)
 
             try:
-                patient_model.evaluate_field_expression(fh_registry,
-                                                        field_expression,
-                                                        value=patient_data.items)
+                with transaction.atomic():
+                    patient_model.evaluate_field_expression(fh_registry,
+                                                            field_expression,
+                                                            value=patient_data.items)
                 
-                info("Updated patient %s/%s OK" % (patient_data.old_id, rdrf_id))
+                    info("Updated patient %s OK" % moniker)
             except Exception as ex:
-                error("Updated failed: %s" % ex)
-            
-            
+                    error("Updated failed for %s ( no change to this patient): %s" % (moniker,
+                                                                                      ex))
+                    
         except Patient.DoesNotExist:
-            error("No patient with id %s" % rdrf_id)
-        
-            
-
+            error("No patient with id %s - skipping" % rdrf_id)
