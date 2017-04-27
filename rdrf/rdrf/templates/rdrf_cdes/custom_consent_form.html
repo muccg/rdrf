@@ -10,6 +10,8 @@
 {% load is_formset_obj %}
 {% load get_information_link %}
 {% load get_information_text %}
+{% load i18n %}
+{% load translate %}
 
 {% block extrastyle %}
     {{block.super}}
@@ -69,7 +71,7 @@
             
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return "You have unsaved changes!";
+                    return {% trans '"You have unsaved changes!"' %};
                 } else {
                     e=null;
                 }
@@ -95,16 +97,16 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 
 		{% if False and show_print_button %}
 			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id  %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans 'Print' %}
 			</a>
 		{% endif %}
 	</div>
@@ -148,7 +150,7 @@
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
-		      Please make sure you have agreed to all of the mandatory consent statements, by ticking the box next to each statement
+		      {% trans 'Please make sure you have agreed to all of the mandatory consent statements, by ticking the box next to each statement' %}
                     </div>
                 {% endif %}
 
@@ -159,7 +161,7 @@
                             <div class="form-group">
                                 <div class="col-sm-9 col-sm-offset-3">
                                     <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
                             </div>
@@ -172,7 +174,7 @@
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                {{ element.label }}
+                                                {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -180,7 +182,7 @@
                                             <div class="col-sm-9">
                                                 {{ element|safe }}
                                                 <small class="text-muted">
-                                                    {{ element.help_text }}
+                                                    {{ element.help_text|translate }}
                                                 </small>
                                                 {% if element.errors %}
                                                     <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -193,9 +195,9 @@
                         {% for name, section in sections %}
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    <strong>{{name}}</strong>
+                                    <strong>{{name|translate}}</strong>
                                     <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
                                 </div>
                                 <div class="panel-body">
@@ -216,9 +218,9 @@
                                                                 {% endif %}
                                                                 <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
                                                                     {% if element.label == "Delete" %}
-                                                                        Mark for deletion
+                                                                        {% trans 'Mark for deletion' %}
                                                                     {% else %}
-                                                                        {{ element.label }}
+                                                                        {{ element.label|translate }}
                                                                         {% if  element.field.required %}
                                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                         {% endif %}
@@ -238,7 +240,7 @@
 
                                                                     {% endif %}
                                                                     <small class="text-muted">
-                                                                        {{ element.help_text }}
+                                                                        {{ element.help_text|translate }}
                                                                     </small>
                                                                     {% if element.errors %}
                                                                         <span class="label label-danger">{{ element.errors.as_text }}</span>
@@ -260,15 +262,15 @@
                     {% else %}
                         {% for name, section in sections %}
                             <div class="panel panel-default">
-                                <div class="panel-heading"><strong>{{name}}</strong>
+                                <div class="panel-heading"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text=section|get_information_text %}
                                 {% with doc="docs/"|add:link %}
-                                    {% if link %}<br><a href="{% static doc %}">Download or print a copy of this information to keep</a>{% endif %}
+                                    {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
                                     {% if info_text %}
                                         <br>
                                         <hr>
-                                        {{ info_text|safe }}
+                                        {{ info_text|translate|safe }}
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}
@@ -284,7 +286,7 @@
                                             {% endif %}
                                                 {% if link %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
-                                                        {{ element.label }}
+                                                        {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
@@ -292,10 +294,10 @@
                                                     <div class="col-sm-1">
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
-                                                        {{ element.label }}
+                                                        {{ element.label|translate }}
 							<br>
                                                     <small class="text-muted">
-                                                        {{ element.help_text }}
+                                                        {{ element.help_text|translate }}
                                                     </small>
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>

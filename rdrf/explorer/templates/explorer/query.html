@@ -1,4 +1,5 @@
 {% extends "explorer/base.html" %}
+{% load i18n %}
 {% block content %}
 <script>
     $(document).ready(function () {
@@ -178,13 +179,13 @@
         <input type="hidden" name="collection" id="collection" value="cdes">
         <input type="hidden" value="{{request.user}}" id="created_by" name="created_by">
     
-        <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">Hide description</button>
-        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+        <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">{% trans "Hide description" %}</button>
+        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">{% trans "Hide form" %}</button>
 
         <div class="pull-right">
-            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">Validate</button>
-            <button type="submit" class="btn btn-primary btn-sm">Save</button>
-            <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">Run</button>
+            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">{% trans "Validate" %}</button>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+            <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">{% trans "Run" %}</button>
         </div>
 
         <div id="query-description">
@@ -204,7 +205,7 @@
             <div class="row">
                 <div class="col-md-12">    
                     <div class="form-group">
-                        <label for="registry">Registry</label>
+                        <label for="registry">{% trans "Registry" %}</label>
                             {{form.registry}}
                     </div>
                 </div>
@@ -213,7 +214,7 @@
             <div class="row">
                 <div class="col-md-12">    
                     <div class="form-group">
-                        <label for="registry">Access</label>
+                        <label for="registry">{% trans "Access" %}</label>
                             {{form.access_group}}
                     </div>
                 </div>
@@ -222,7 +223,7 @@
             <div id="search_type" class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="mongo_search_type">Report Type</label>
+                        <label for="mongo_search_type">{% trans "Report Type" %}</label>
                             {{form.mongo_search_type}}
                     </div>
                 </div>
@@ -237,7 +238,7 @@
                 </div>
                 <div class="col-md-12">
                     <div>
-                        <textarea placeholder="Patient SQL query" class="form-control" rows="15" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
+                        <textarea placeholder="{% trans 'Patient SQL query' %}" class="form-control" rows="15" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
                         <div class="pull-left" id="query-result-count" style="color: green;">
                         </div>
                     </div>    
@@ -257,7 +258,7 @@
 	     <div id="max_items" class="row">
 	       <div class="col-md-12">
                     <div class="form-group">
-                        <label for="max_items">Maximum number of items in multisection to return</label>
+                        <label for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
                             {{form.max_items}}
                     </div>
                 </div>
@@ -276,19 +277,18 @@
 
             <p></p>
 
-            <label for="mongo_field_selection">Clinical Fields Selection</label>
+            <label for="mongo_field_selection">{% trans "Clinical Fields Selection" %}</label>
 
             <div class="row" id="mongo_field_selection">
                 <table class ="table table-striped" id="mongo-fields">
                     <thead>
-                    <th>Form</th>
-                    <th>Section</th>
-                    <th>Field</th>
-                    <th>Include in Report</th>
-		    <th>Longitudinal</th>
+                    <th>{% trans "Form" %}</th>
+                    <th>{% trans "Section" %}</th>
+                    <th>{% trans "Field" %}</th>
+                    <th>{% trans "Include in Report" %}</th>
+		    <th>{% trans "Longitudinal" %}</th>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
 

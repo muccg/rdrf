@@ -1,6 +1,8 @@
 {% extends "rdrf_cdes/base_contexts.html" %}
 {% load static from staticfiles %}
 {% load has_feature %}
+{% load i18n %}
+{% load translate %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -149,7 +151,7 @@
         <br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="add_patient" class="btn btn-success">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Patient
+			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
 		</button>
 	</div>
 {% endblock %}
@@ -158,10 +160,10 @@
   <p>
       <select id="registry_options">
           {% for reg in registries %}
-              <option id="{{ reg.code }}">{{ reg.name }}</option>
+              <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
           {% endfor %}
       </select>
-      <span id="loading_text"><i>Loading...</i></span>
+      <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
   </p>
 
   <table id="patients_table" class="table table-striped table-hover">
@@ -169,12 +171,12 @@
       <thead>
           <tr>
               {% for column in columns %}
-                  <th>{{ column.label|safe }}</th>
+                  <th>{{ column.label|translate|safe}}</th>
               {% endfor %}
           </tr>
       </thead>
       {% else %}
-          <caption class="alert alert-danger">You don't have permissions to view patient data</caption>
+          <caption class="alert alert-danger">{% trans "You don't have permissions to view patient data" %}</caption>
       {% endif %}
   </table>
 

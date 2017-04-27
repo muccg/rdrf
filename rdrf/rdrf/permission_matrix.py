@@ -71,7 +71,7 @@ class MatrixWrapper(object):
 
     def __init__(self, registry_model):
         self.matrix = PermissionMatrix(registry_model)
-        self.name = "Permission Matrix for %s" % registry_model.name
+        self.name = _("Permission Matrix for %(registry)s") % {"registry": registry_model.name}
 
 
 class PermissionMatrixView(View):
@@ -81,7 +81,7 @@ class PermissionMatrixView(View):
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            return Http404("Registry with code %s does not exist" % registry_code)
+            return Http404(_("Registry with code %(registry_code)s does not exist") % {"registry_code": registry_code})
 
         return render(request, "rdrf_cdes/permission_matrix.html", {
             "location": "Permissions",

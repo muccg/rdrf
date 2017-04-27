@@ -309,9 +309,8 @@ class FieldFactory(object):
             options['choices'] = choices
             options['initial'] = self.UNSET_CHOICE
             if self._has_other_please_specify():
-                # TODO make this more robust
                 other_please_specify_index = [
-                    "specify" in pair[1].lower() for pair in choices].index(True)
+                    "other" in pair[0].lower() for pair in choices].index(True)
                 other_please_specify_value = choices[other_please_specify_index][0]
                 if self.cde.widget_name:
                     try:

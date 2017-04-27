@@ -1,13 +1,14 @@
 {% extends "explorer/base.html" %}
+{% load i18n %}
 
 {% block content %}
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-md-3">Query</th>
-                <th class="col-md-3">Download</th>
-                <th class="col-md-3">View</th>
-                <th class="col-md-3">Delete</th>
+                <th class="col-md-3">{% trans "Query" %}</th>
+                <th class="col-md-3">{% trans "Download" %}</th>
+                <th class="col-md-3">{% trans "View" %}</th>
+                <th class="col-md-3">{% trans "Delete" %}</th>
             </tr>
         </thead>
         <tbody>

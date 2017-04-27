@@ -21,6 +21,7 @@ from rdrf.components import FormsButton
 from registry.patients.models import Patient
 from .utils import Message
 from rdrf.utils import MinType
+from django.utils.translation import ugettext as _
 
 
 import logging
@@ -81,7 +82,7 @@ class PatientsListingView(View):
 
         return {
             "registries": self.registries,
-            "location": "Patient Listing",
+            "location": _("Patient Listing"),
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
             "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
@@ -106,13 +107,13 @@ class PatientsListingView(View):
 
     def get_columns(self):
         return [
-            ColumnFullName("Patient", "patients.can_see_full_name"),
-            ColumnDateOfBirth("Date of Birth", "patients.can_see_dob"),
-            ColumnWorkingGroups("Working Groups", "patients.can_see_working_groups"),
-            ColumnDiagnosisProgress("Diagnosis Entry Progress", "patients.can_see_diagnosis_progress"),
-            ColumnDiagnosisCurrency("Updated < 365 days", "patients.can_see_diagnosis_currency"),
-            ColumnGeneticDataMap("Genetic Data", "patients.can_see_genetic_data_map"),
-            ColumnContextMenu("Modules", "patients.can_see_data_modules"),
+            ColumnFullName(_("Patient"), "patients.can_see_full_name"),
+            ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
+            ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
+            ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
+            ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
+            ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
+            ColumnContextMenu(_("Modules"), "patients.can_see_data_modules"),
         ]
 
     def get_configure_columns(self):
@@ -154,7 +155,6 @@ class PatientsListingView(View):
     ########################   POST #################################
     def post(self, request):
         # see http://datatables.net/manual/server-side
-        logger.debug("********* RECEIVED POST *********")
         self.set_parameters(request)
         self.set_csrf(request)
         rows = self.get_results(request)
@@ -579,7 +579,7 @@ class ColumnContextMenu(Column):
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="forms_button_%s">%s</ul>
             </div>
-        """ % (button.id, button.button_caption, button.id, button.html)
+        """ % (button.id, _(button.button_caption), button.id, button.html)
 
     def sort_key(self, *args, **kwargs):
         return None

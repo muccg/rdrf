@@ -6,6 +6,7 @@
 {% load i18n %}
 {% load project_title %}
 {% load project_title_link %}
+{% load translate %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
@@ -51,7 +52,7 @@
         <div class="row">
           <div class="col-md-12">
             <div class="navbar-header">
-              <a class="navbar-brand" href="{% project_title_link %}">{% project_title %}</a>
+              <a class="navbar-brand" href="{% project_title_link %}">{% trans "Rare Disease Registry Framework" %}</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -78,7 +79,7 @@
 
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                            <span class="glyphicon glyphicon-tasks"></span> Menu<span class="caret"></span>
+                            <span class="glyphicon glyphicon-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
                             {% for quick_link in request.user.menu_links %}
@@ -92,11 +93,11 @@
                     {% if request.user.is_superuser %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                                <span class="glyphicon glyphicon-wrench"></span> Settings<span class="caret"></span>
+                                <span class="glyphicon glyphicon-wrench"></span> {% trans 'Settings' %}<span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" role="menu">
                                 {% for quick_link in request.user.settings_links %}
-                                    <li><a href="{{quick_link.url}}">{{quick_link.text}}</a></li>
+                                    <li><a href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
                                 {% endfor %}
                             </ul>
                         </li>
@@ -111,19 +112,19 @@
                         {% endif %}
                       <ul class="dropdown-menu" role="menu">
                         {% if request.user.is_superuser %}
-                            <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span> Admin Page</a></li>
+                            <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span> {% trans 'Admin Page' %}</a></li>
                             <li class="divider"></li>
                         {% endif %}
                         {% if request.user.is_parent and registry_code %}
-                            <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span> Account</a></li>
+                            <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span> {% trans 'Account' %}</a></li>
                         {% endif %}
-                        <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> Password Reset</a></li>
-                        <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                        <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> {% trans 'Password Reset' %}</a></li>
+                        <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-out"></span> {% trans 'Logout' %}</a></li>
                       </ul>
                     </li>
                 {% else %}
-                    <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> Log in</a></li>
-                    <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-refresh"></span> Password Reset</a></li>
+                    <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> {% trans 'Log in' %}</a></li>
+                    <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-refresh"></span> {% trans 'Password Reset' %}</a></li>
                 {% endif %}
               </ul>
             </div><!-- /.navbar-collapse -->

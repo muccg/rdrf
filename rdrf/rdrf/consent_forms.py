@@ -3,6 +3,7 @@ from django import forms
 from rdrf.models import Registry
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
+from django.utils.translation import ugettext as _
 
 import logging
 
@@ -42,7 +43,7 @@ class BaseConsentForm(forms.BaseForm):
         return (
             "%s %s" %
             (self.registry_model.code.upper(),
-             consent_section_model.section_label),
+             _(consent_section_model.section_label)),
             questions)
 
     def _get_consent_field_models(self, consent_field):

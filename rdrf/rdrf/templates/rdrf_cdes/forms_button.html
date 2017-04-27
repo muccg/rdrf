@@ -1,4 +1,5 @@
 {% load static %}
+{% load translate %}
 
 {% for form in forms %}
 	<li>
@@ -11,6 +12,6 @@
           {% if form.has_progress %}
 		  <b>{{form.progress_percentage}}%</b>
           {% endif %}
-		  {{form.title}}</a>
+		  {{form.title|translate}}</a>
 	</li>
 {% endfor %}

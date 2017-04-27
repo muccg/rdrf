@@ -6,6 +6,7 @@
 {% load i18n %}
 {% load project_title %}
 {% load project_title_link %}
+{% load translate %}
 {%  block htmltype %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -55,7 +56,7 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="{% project_title_link %}">{% project_title %}</a>
+          <a class="navbar-brand" href="{% project_title_link %}">{% trans "Rare Disease Registry Framework" %}</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -146,7 +147,7 @@
             {% if location %}
                 <div class="row">
                     <div class="col-md-12">
-                        <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|safe }}</h3></p>
+                        <p><h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|translate|safe }}</h3></p>
 			{{ patient_link | safe}}
                     </div>
                 </div>
