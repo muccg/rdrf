@@ -1255,7 +1255,7 @@ class FileUploadView(View):
         data, filename = filestorage.get_file(file_id)
         if data is not None:
             response = FileResponse(data, content_type='application/octet-stream')
-            response['Content-disposition'] = "filename=%s" % filename
+            response['Content-disposition'] = 'filename="%s"' % filename
         else:
             response = HttpResponseNotFound()
         return response
