@@ -110,6 +110,9 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages"
             ],
             "debug": DEBUG,
+            "loaders": [
+                'rdrf.custom_loaders.translation.Loader'
+                ]
         },
     },
 ]
