@@ -322,7 +322,10 @@ class FormView(View):
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
-        context["header"] = process_embedded_html(self.registry_form.header, translate=True)
+        #context["header"] = process_embedded_html(self.registry_form.header, translate=True)
+        context["header_expression"] = "rdrf://%s/%s/header" % (self.registry_form.registry.code,
+                                                                self.registry_form.name)
+        
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True

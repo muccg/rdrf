@@ -642,6 +642,78 @@ def process_embedded_html(html, translate=True):
         # this just returns a list of extracted text strings
         # Used in the create_translation_file management command
         return parser.texts
+
+
+def get_registry_definition_value(self, field_path):
+    # find a value in a registry definition
+    # e.g.
+    # cde field:
+    
+    # <reg code>/<form name>/<section code>/<cde code>/<cde field>
+    # section field:
+    # <reg code>/<form name>/<section code>/<section field>
+    # form field:
+    # <reg code>/<form name>/<form field>
+    # registry field
+    # <reg code>/<registry field>
+
+    try:
+        parts = field_path.split("/")
+        num_parts = len(parts)
+        if num_parts not in [2,3,4,5]:
+            raise ValueError("wrong number of parts: %s" % num_parts)
+
+        registry_code = parts[0]
+        registry_model = Registry.objects.get(code=registry_code)
+
+        if num_parts == 2:
+            # Registry field
+            registry_field = parts[1]
+            return getattr(registry_model, registry_field)
+        elif num_parts == 3:
+            form_name = parts[1]
+            form_model = RegistryForm.objects.get(name=form_name,
+                                                  registry=registry_model)
+
+            form_field = parts[2]
+            return getattr(form_model, form_field)
+        elif num_parts == 4:
+            form_name = parts[1]
+            form_model = RegistryForm.objects.get(name=form_name,
+                                                  registry=registry_model)
+
+            section_code = parts[2]
+            section_model = [ section_model for section_model in form_model.section_models if section_model.code == section_code][0]
+            section_field = parts[3]
+            return getattr(section_model, section_field)
+        else:
+            form_name = parts[1]
+            form_model = RegistryForm.objects.get(name=form_name,
+                                                  registry=registry_model)
+
+            section_code = parts[2]
+            section_model = [ section_model for section_model in form_model.section_models if section_model.code == section_code][0]
+            cde_code = parts[3]
+            cde_field = parts[4]
+            cde_model = [cde_model for cde_model in section_model.cde_models if cde_model.code == cde_code][0]
+            return getattr(cde_model, cde_field)
+
+    except ValueError as verr:
+        raise ValueError("Bad path for %s: %s" % (field_path,
+                                                  verr.message))
+    
+
+    except IndexError as ierr:
+        raise ValueError("Bad path for %s: %s" % (field_path,ierr.message))
+    
+            
+            
+
+
+    
+    
+    
+    
     
     
         

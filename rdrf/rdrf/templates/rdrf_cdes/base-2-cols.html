@@ -216,7 +216,7 @@
                 {% if header %}
                     <div class="panel panel-info">
                         <div class="panel-body">
-                            {{ header|safe }}
+			  {% include header_expression %}
                         </div>
                     </div>
                 {% endif %}

@@ -97,7 +97,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(WEBAPP_ROOT, 'rdrf', 'templates')],
-        "APP_DIRS": True,
+        "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
@@ -111,7 +111,9 @@ TEMPLATES = [
             ],
             "debug": DEBUG,
             "loaders": [
-                'rdrf.custom_loaders.translation.Loader'
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+                'rdrf.template_loaders.translation.Loader'
                 ]
         },
     },
