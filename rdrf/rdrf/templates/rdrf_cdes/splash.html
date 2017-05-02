@@ -1,8 +1,12 @@
 {% extends "rdrf_cdes/base.html" %}
-
-
 {% block content %}
-    {% autoescape off %}
-        {{ body }}
-    {% endautoescape %}
+{% autoescape off %}
+{% if state == 'admin' %}
+    {{ body }}
+{% elif state == "missing" %}
+    {{ body }}
+{% else %}
+    {% include body_expression %}
+{% endif %}
+{% endautoescape %}
 {% endblock %}
