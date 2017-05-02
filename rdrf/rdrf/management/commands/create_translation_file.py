@@ -89,22 +89,13 @@ class Command(BaseCommand):
             information_text_html = consent_section_dict["information_text"]
             htmls.append(information_text_html)
 
-        def add_test_string(f, msg):
-            s = "{%" +  " trans " + "'%s'" % msg + " %}" + "\n"
-            f.write(s)
-
         with TemporaryDirectory() as tmp_dir:
             os.chdir(tmp_dir)
             with open("tmp.rdrfdummyext","w") as f:
                 f.write("\n".join(htmls))
-                for i in range(1000):
-                    add_test_string(f, "This is a test string number %s" % i)
-                    
             # This extracts strings from matching files in the current directory and merges them with
             # the existing _system_ po files ( under locals .. LC_MESSAGES )
             call_command('makemessages', verbosity=99, extensions=['rdrfdummyext'])
-        
-
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
