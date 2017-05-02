@@ -29,7 +29,6 @@ from rdrf.models import RDRFContext
 
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import consent_status_for_patient
-from rdrf.utils import process_embedded_html
 
 from rdrf.contexts_api import RDRFContextManager, RDRFContextError
 

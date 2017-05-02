@@ -9,7 +9,7 @@
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
-{% load get_information_text %}
+{% load get_info_text_expression %}
 {% load i18n %}
 {% load translate %}
 
@@ -352,13 +352,13 @@
                             <div class="panel panel-default">
                                 <div class="panel-heading"><strong>{{name}}</strong>
                                 {% with link=section|get_information_link %}
-                                {% with info_text=section|get_information_text %}
+                                {% with info_text_expression=section|get_info_text_expression %}
                                 {% with doc="docs/"|add:link %}
                                     {% if link %}<br><a href="{% static doc %}">{% trans "Information Sheet - Please Read" %}!</a>{% endif %}
-                                    {% if info_text %}
+                                    {% if info_text_expression %}
                                         <br>
                                         <hr>
-                                        {{ info_text|translate|safe }}
+                                        {% include info_text_expression %}
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}

@@ -3,7 +3,6 @@ import yaml
 import sys
 import re
 from rdrf.utils import de_camelcase
-from rdrf.utils import process_embedded_html
 from rdrf.models import Registry
 
 
@@ -141,12 +140,9 @@ class Command(BaseCommand):
     def _yield_registry_level_strings(self):
         # registry name
         yield None, self.data["name"]
+        #todo process splashscreen
         splash_screen_html = self.data["splash_screen"]
-        comment = "From splash screen"
-        for text in process_embedded_html(splash_screen_html, translate=False):
-            yield comment, text
-            
-            
+        yield None, None
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -161,7 +157,8 @@ class Command(BaseCommand):
 
             # the header is html ...
             header_html = form_dict["header"]
-            yield from self._yield_text_from_html(header_html)
+            # todo extract strings from header
+            yield None, None
             yield from self._yield_section_strings(form_dict)
             
 
@@ -200,8 +197,7 @@ class Command(BaseCommand):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
             information_text = consent_section_dict["information_text"]
-            yield from self._yield_text_from_html(information_text)
-            
+            #todo extract strings from information_text
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
@@ -264,10 +260,4 @@ class Command(BaseCommand):
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
-
-    def _yield_text_from_html(self, html):
-        for text in process_embedded_html(html, translate=False):
-            if text:
-                yield None, text
-            
 

@@ -591,64 +591,28 @@ class MinType(object):
     def __eq__(self, other):
         return (self is other)
 
-def process_embedded_html(html, translate=True):
-
-    from html.parser import HTMLParser
-    from django.utils.translation import ugettext as _
-
-    class Parser(HTMLParser):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.texts = []
-            self.all_strings = []
-            self.translate = translate
-            
-
-        def handle_starttag(self, tag, atts):
-            prefix = "<%s " % tag
-            if atts:
-                rest = " ".join(['%s="%s"' % (pair[0], pair[1]) for pair in atts])
-            else:
-                rest = ""
-                
-            html = prefix + rest + ">"
-            self.all_strings.append(html)
-
-        def handle_endtag(self, tag):
-            html = "</%s>" % tag
-            self.all_strings.append(html)
-            
-        def handle_data(self, data):
-            if self.translate:
-                translated = _(data)
-                self.texts.append(translated)
-                self.all_strings.append(translated)
-            else:
-                self.texts.append(data)
-                self.all_strings.append(data)
-
-
-        def get_html(self):
-            return "".join(self.all_strings)
-
-
-    parser = Parser()
-    parser.feed(html)
-    if translate:
-        # this finds the corresponding text in the translation file
-        # and reconstructs the HTML
-        return parser.get_html()
-    else:
-        # this just returns a list of extracted text strings
-        # Used in the create_translation_file management command
-        return parser.texts
-
-
+def get_field_from_model(model_path):
+    # model_path looks like:  model/ConsentSection/23/information_text
+    # model must be in rdrf.models
+    from django.apps import apps
+    try:
+        parts = model_path.split("/")
+        model_name = parts[1]
+        pk = int(parts[2])
+        field = parts[3]
+        model_class = apps.get_model('rdrf', model_name)
+        model_instance = model_class.objects.get(pk=pk)
+        value =  getattr(model_instance, field)
+        return value
+    except Exception as ex:
+        logger.error("Error retrieving value from model_path %s: %s" % (model_path,
+                                                                        ex))
+        return
+        
 def get_registry_definition_value(field_path):
     # find a value in a registry definition
     # e.g.
     # cde field:
-    
     # <reg code>/<form name>/<section code>/<cde code>/<cde field>
     # section field:
     # <reg code>/<form name>/<section code>/<section field>
@@ -656,12 +620,21 @@ def get_registry_definition_value(field_path):
     # <reg code>/<form name>/<form field>
     # registry field
     # <reg code>/<registry field>
+    # for consents , I have  introduced a more general notion:
+    # model/<ModelName>/<pk>/<fieldname> - delegated to get_field_from_model above
+    # this means model is a special name ..
+    
     from rdrf.models import Registry
     from rdrf.models import RegistryForm
     from rdrf.models import Section
     from rdrf.models import CommonDataElement
 
+    logger.debug("get_registry_definition_value = %s" % field_path)
+
     try:
+        if field_path.startswith("model/"):
+            return get_field_from_model(field_path)
+        
         parts = field_path.split("/")
         num_parts = len(parts)
         if num_parts not in [2,3,4,5]:

@@ -8,7 +8,6 @@ from django.utils.translation import ugettext as _
 
 from registry.patients.models import ParentGuardian
 from .models import Registry
-from rdrf.utils import process_embedded_html
 
 logger = logging.getLogger(__name__)
 
