@@ -1,10 +1,12 @@
-from django.core.management.base import BaseCommand
 import yaml
 import sys
+import os.path
 import re
 from rdrf.utils import de_camelcase
 from rdrf.models import Registry
-
+from tempfile import TemporaryDirectory
+from django.core.management import BaseCommand
+from django.core.management import call_command
 
 class Command(BaseCommand):
     help = 'Creates a translation po file for a given registry'
@@ -26,16 +28,20 @@ class Command(BaseCommand):
                             dest='system_po_file',
                             default=None,
                             help='System po file')
-
-
+        parser.add_argument('--extract_html_strings', action='store_true', help='extract message strings from embedded html in yaml file')
 
     def _usage(self):
         print("django-admin create_translation_file --registry_code=fh")
         print("OR")
         print("django-admin create_translation_file --yaml_file=/data/fh.yaml")
+        print("OR")
+        print("django-admin create_translation_file --yaml_file=/data/fh.yaml --extract_html_strings")
+        
 
 
     def handle(self, *args, **options):
+        extract_html_strings = options.get("extract_html_strings", False)
+        
         file_name = options.get("yaml_file", None)
         registry_code = options.get("registry_code", None)
         system_po_file = options.get("system_po_file", None)
@@ -54,11 +60,51 @@ class Command(BaseCommand):
         
         if registry_code:
             registry_model = Registry.objects.get(code=registry_code)
-            self._emit_strings_from_registry(registry_model)
+            raise NotImplementedError("this functionality does not exist yet")
         else:
-            self._emit_strings_from_yaml(file_name)
+            if not extract_html_strings:
+                self._emit_strings_from_yaml(file_name)
+                print("# Total of %s message strings" % len(self.msgids))
+            else:
+                self._extract_html_strings(file_name)
 
-        print("# Total of %s message strings" % len(self.msgids))
+    def _extract_html_strings(self, yaml_file):
+        # This dumps the embedded html templates from the yaml into a temporary folder and
+        # and then runs makemessages over it to extract the strings into the 
+        # into the "system" po file
+        self._load_yaml_file(yaml_file)
+        htmls = []
+
+        # splash screen
+        splash_screen_html = self.data["splash_screen"]
+        htmls.append(splash_screen_html)
+
+        # form headers
+        for form_dict in self.data["forms"]:
+            form_header_html = form_dict["header"]
+            htmls.append(form_header_html)
+
+        # consent sections
+        for consent_section_dict in self.data["consent_sections"]:
+            information_text_html = consent_section_dict["information_text"]
+            htmls.append(information_text_html)
+
+        def add_test_string(f, msg):
+            s = "{%" +  " trans " + "'%s'" % msg + " %}" + "\n"
+            f.write(s)
+
+        with TemporaryDirectory() as tmp_dir:
+            os.chdir(tmp_dir)
+            with open("tmp.rdrfdummyext","w") as f:
+                f.write("\n".join(htmls))
+                for i in range(1000):
+                    add_test_string(f, "This is a test string number %s" % i)
+                    
+            # This extracts strings from matching files in the current directory and merges them with
+            # the existing _system_ po files ( under locals .. LC_MESSAGES )
+            call_command('makemessages', verbosity=99, extensions=['rdrfdummyext'])
+        
+
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
@@ -70,7 +116,8 @@ class Command(BaseCommand):
                     msgid = m.groups(1)[0]
                     self.msgids.add(msgid)
 
-    def _emit_strings_from_yaml(self, file_name):
+
+    def _load_yaml_file(self, file_name):
         with open(file_name) as f:
             try:
                 self.data = yaml.load(f)
@@ -79,6 +126,10 @@ class Command(BaseCommand):
                                                            ex))
 
                 sys.exit(1)
+        
+
+    def _emit_strings_from_yaml(self, file_name):
+        self._load_yaml_file(file_name)
 
         for (comment, msgid) in self._get_strings_for_translation():
             self._print(comment, msgid)
