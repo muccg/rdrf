@@ -644,7 +644,7 @@ def process_embedded_html(html, translate=True):
         return parser.texts
 
 
-def get_registry_definition_value(self, field_path):
+def get_registry_definition_value(field_path):
     # find a value in a registry definition
     # e.g.
     # cde field:
@@ -656,6 +656,10 @@ def get_registry_definition_value(self, field_path):
     # <reg code>/<form name>/<form field>
     # registry field
     # <reg code>/<registry field>
+    from rdrf.models import Registry
+    from rdrf.models import RegistryForm
+    from rdrf.models import Section
+    from rdrf.models import CommonDataElement
 
     try:
         parts = field_path.split("/")

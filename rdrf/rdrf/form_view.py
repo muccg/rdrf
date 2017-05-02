@@ -322,7 +322,8 @@ class FormView(View):
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
-        #context["header"] = process_embedded_html(self.registry_form.header, translate=True)
+        # we provide a "path" to the header field which contains an embedded Django template
+        context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://%s/%s/header" % (self.registry_form.registry.code,
                                                                 self.registry_form.name)
         

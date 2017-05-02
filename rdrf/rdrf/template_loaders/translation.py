@@ -3,10 +3,6 @@ from django.template import Template
 from django.template import Origin
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
-from rdrf.models import Registry
-from rdrf.models import RegistryForm
-from rdrf.models import Section
-from rdrf.models import CommonDataElement
 from rdrf.utils import get_registry_definition_value
 
 logger = logging.getLogger(__name__)
@@ -18,13 +14,15 @@ class Loader(BaseLoader):
     models.
     """
     PREFIX = "rdrf://"
+    PRELUDE = "{% load i18n %}"
     
     def get_contents(self, origin):
         name = origin.name
         if not name.startswith(self.PREFIX):
-            logger.debug("template %s does not start with %s" % self.PREFIX)
+            logger.debug("template %s does not start with %s" % (name,
+                                                                 self.PREFIX))
             
-            raise TemplateDoesNotExist()
+            raise TemplateDoesNotExist("test")
         
         return self._get_template_html(name)
 
@@ -42,7 +40,7 @@ class Loader(BaseLoader):
             logger.debug("template field path = %s" % field_path)
             html =  get_registry_definition_value(field_path)
             logger.debug("retrieved field ok")
-            return html
+            return self.PRELUDE + "\n" + html
         except ValueError as ve:
             raise TemplateDoesNotExist("Bad template name %s: %s" % (template_name,
                                                                      verr.message))
