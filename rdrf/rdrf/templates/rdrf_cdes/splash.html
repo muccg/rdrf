@@ -6,7 +6,7 @@
 {% elif state == "missing" %}
     {{ body }}
 {% else %}
-    {% include body_expression %}
+    {% include splash_screen_template %}
 {% endif %}
 {% endautoescape %}
 {% endblock %}

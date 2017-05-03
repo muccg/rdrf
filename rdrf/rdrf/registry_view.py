@@ -24,7 +24,7 @@ class RegistryView(View):
             return render(request, 'rdrf_cdes/splash.html', {'body': _('Oops, wrong registry code...'), "state": "missing"})
 
         context = {
-            'body_expression': "rdrf://model/Registry/%s/splash_screen" % registry_model.pk,
+            'splash_screen_template': "rdrf://model/Registry/%s/splash_screen" % registry_model.pk,
             'registry_code': registry_code,
             'state': "ok",
         }
