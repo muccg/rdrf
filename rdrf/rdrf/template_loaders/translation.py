@@ -41,6 +41,6 @@ class Loader(BaseLoader):
             html =  get_registry_definition_value(field_path)
             logger.debug("retrieved field ok")
             return self.PRELUDE + "\n" + html
-        except ValueError as ve:
+        except ValueError as verr:
             raise TemplateDoesNotExist("Bad template name %s: %s" % (template_name,
                                                                      verr.message))

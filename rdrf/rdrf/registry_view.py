@@ -17,14 +17,14 @@ class RegistryView(View):
     def get(self, request, registry_code):
         try:
             if registry_code != "admin":
-                registry = Registry.objects.get(code=registry_code)
+                registry_model = Registry.objects.get(code=registry_code)
             else:
                 return render(request, 'rdrf_cdes/splash.html', {'body_expression': ' ',"state": "admin"})
         except ObjectDoesNotExist:
             return render(request, 'rdrf_cdes/splash.html', {'body': _('Oops, wrong registry code...'), "state": "missing"})
 
         context = {
-            'body_expression': "rdrf://%s/splash_screen" % registry_code,
+            'body_expression': "rdrf://model/Registry/%s/splash_screen" % registry_model.pk,
             'registry_code': registry_code,
             'state': "ok",
         }

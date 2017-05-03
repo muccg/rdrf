@@ -323,8 +323,7 @@ class FormView(View):
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
-        context["header_expression"] = "rdrf://%s/%s/header" % (self.registry_form.registry.code,
-                                                                self.registry_form.name)
+        context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
