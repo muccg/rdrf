@@ -8,6 +8,27 @@ from tempfile import TemporaryDirectory
 from django.core.management import BaseCommand
 from django.core.management import call_command
 
+explanation = """
+This command extracts English strings used in RDRF pages, forms and CDEs and
+creates a "Django message 'po' file.
+The command has two modes:
+A) CDE labels and values translation: Extract strings from a yaml file and pump out to standard output:
+
+django-admin create_translation_file --yaml_file=/data/fh.yaml  > output.po
+
+   
+B) Embedded HTML for headers, information text and splash screen in the yaml file - IMPORTANT: This
+does NOT pump to standard output but delegates to django's "makemessages" command which unfortunately
+writes out the po file only to the locale directory - so the existing po file there will be overwritten.
+Therefore when building a complete po file ready for translation ensure that any intermediate output is copied to
+separate files and them merged.
+
+django-admin create_translation_file --yaml_file=/data/fh.yaml --extract_html_strings
+
+
+"""
+
+
 class Command(BaseCommand):
     help = 'Creates a translation po file for a given registry'
 
@@ -17,11 +38,6 @@ class Command(BaseCommand):
                             dest='yaml_file',
                             default=None,
                             help='Registry Yaml file name')
-        parser.add_argument('--registry_code',
-                            action='store',
-                            dest='registry_code',
-                            default=None,
-                            help='Registry Code')
 
         parser.add_argument('--system_po_file',
                             action='store',
@@ -31,42 +47,25 @@ class Command(BaseCommand):
         parser.add_argument('--extract_html_strings', action='store_true', help='extract message strings from embedded html in yaml file')
 
     def _usage(self):
-        print("django-admin create_translation_file --registry_code=fh")
-        print("OR")
-        print("django-admin create_translation_file --yaml_file=/data/fh.yaml")
-        print("OR")
-        print("django-admin create_translation_file --yaml_file=/data/fh.yaml --extract_html_strings")
-        
-
+        print(explanation)
 
     def handle(self, *args, **options):
         extract_html_strings = options.get("extract_html_strings", False)
-        
         file_name = options.get("yaml_file", None)
-        registry_code = options.get("registry_code", None)
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
         self.number = re.compile("^\d+$")
         self.translation_no = 1
         
-        if file_name is not None and registry_code is not None:
-            self._usage()
-            sys.exit(1)
-
         if system_po_file:
             # splurp in existing messages in the system file so we don't dupe
             # when we cat this file to it
             self._load_system_messages(system_po_file)
         
-        if registry_code:
-            registry_model = Registry.objects.get(code=registry_code)
-            raise NotImplementedError("this functionality does not exist yet")
+        if extract_html_strings:
+            self._extract_html_strings(file_name)
         else:
-            if not extract_html_strings:
-                self._emit_strings_from_yaml(file_name)
-                print("# Total of %s message strings" % len(self.msgids))
-            else:
-                self._extract_html_strings(file_name)
+            self._emit_strings_from_yaml(file_name)
 
     def _extract_html_strings(self, yaml_file):
         # This dumps the embedded html templates from the yaml into a temporary folder and
