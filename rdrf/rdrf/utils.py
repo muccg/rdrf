@@ -627,11 +627,6 @@ def get_registry_definition_value(field_path):
     # find a value in a registry definition
     # model/<ModelName>/<pk>/<fieldname> - delegated to get_field_from_model above
 
-    from rdrf.models import Registry
-    from rdrf.models import RegistryForm
-    from rdrf.models import Section
-    from rdrf.models import CommonDataElement
-
     if field_path.startswith("model/"):
         return get_field_from_model(field_path)
     else:
