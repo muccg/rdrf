@@ -21,7 +21,7 @@ else
     echo ".env file not found, settings such as project name and proxies will not be set"
 fi
 
-# Pass through the ip of the host if we can
+#  Pass through the ip of the host if we can
 # There is no docker0 interface on Mac OS, so don't do any proxy detection
 if [ "$(uname)" != "Darwin" ]; then
     set +e

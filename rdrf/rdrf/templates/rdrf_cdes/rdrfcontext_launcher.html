@@ -1,5 +1,6 @@
 <!-- start demographics form launcher -->
 {% load i18n %}
+{% load translate %}
 <script>
   /*
   var USE_ACCORDION = false;
@@ -18,9 +19,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Demographics" %}
-     <i>Demographics</i>
+     <i>{% trans 'Demographics' %}</i>
   {% else %}
-     <a href="{{demographics_link}}">Demographics</a>
+     <a href="{{demographics_link}}">{% trans 'Demographics' %}</a>
   {% endif %}
   </div>
 </div>
@@ -30,7 +31,7 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Consents" %}
-     <i>Consents</i>
+     <i>{% trans 'Consents' %}</i>
   {% else %}
      <a href="{{consents_link}}">{% trans 'Consents' %}</a>
   {% endif %}
@@ -40,7 +41,7 @@
 {% if family_linkage_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    <a href="{{family_linkage_link}}">Family Linkage</a>
+    <a href="{{family_linkage_link}}">{% trans 'Family Linkage' %}</a>
   </div>
 </div>
 {% endif %}
@@ -50,15 +51,15 @@
 {% for fixed_context in fixed_contexts %}
   <div class="panel panel-default collapsible">
     <div class="panel-heading">
-      {{fixed_context.name}}
+      {{fixed_context.name|translate}}
     </div>
     <div class="panel-body">
       {% for form in fixed_context.forms %}
         <p>
           {% if form.current %}
-              <i>{{form.text}}</i>
+              <i>{{form.text|translate}}</i>
           {% else %}
-            <a href="{{form.url}}">{{form.text}}</a>
+            <a href="{{form.url}}">{{form.text|translate}}</a>
         {% endif %}
         </p>
       {% endfor %}

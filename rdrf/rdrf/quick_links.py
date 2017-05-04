@@ -27,50 +27,50 @@ class Links:
     Links are also grouped into related functional areas to make for easier assignment to menus
     """
 
-    PatientsListing = QuickLink(reverse("patientslisting"), "Patient List")
-    Reports = QuickLink(reverse("reports"), "Reports")
+    PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
+    Reports = QuickLink(reverse("reports"), _("Reports"))
     QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
-                                       "Questionnaire Responses")
-    Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), "Doctors")
-    ArchivedPatients = QuickLink(reverse("admin:patients_archivedpatient_changelist"), "Archived Patients")
-    Genes = QuickLink(reverse("admin:genetic_gene_changelist"), "Genes")
-    Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), "Laboratories")
-    Explorer = QuickLink(reverse("explorer_main"), "Explorer")
-    Users = QuickLink(reverse("admin:groups_customuser_changelist"), 'Users')
-    WorkingGroups = QuickLink(reverse("admin:groups_workinggroup_changelist"), "Working Groups")
-    Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), "Registries")
-    RegistryForms = QuickLink(reverse("admin:rdrf_registryform_changelist"), "Registry Forms")
-    Sections = QuickLink(reverse("admin:rdrf_section_changelist"), "Registry Sections")
-    DataElements = QuickLink(reverse("admin:rdrf_commondataelement_changelist"), "Registry Common Data Elements")
+                                       _("Questionnaire Responses"))
+    Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
+    ArchivedPatients = QuickLink(reverse("admin:patients_archivedpatient_changelist"), _("Archived Patients"))
+    Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
+    Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
+    Explorer = QuickLink(reverse("explorer_main"), _("Explorer"))
+    Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
+    WorkingGroups = QuickLink(reverse("admin:groups_workinggroup_changelist"), _("Working Groups"))
+    Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
+    RegistryForms = QuickLink(reverse("admin:rdrf_registryform_changelist"), _("Registry Forms"))
+    Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
+    DataElements = QuickLink(reverse("admin:rdrf_commondataelement_changelist"), _("Registry Common Data Elements"))
     PermissibleValueGroups = QuickLink(reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
-                                       "Registry Permissible Value Groups")
-    PermissibleValues = QuickLink(reverse("admin:rdrf_cdepermittedvalue_changelist"), "Registry Permissible Values")
-    ConsentSections = QuickLink(reverse("admin:rdrf_consentsection_changelist"), "Registry Consent Sections")
-    ConsentValues = QuickLink(reverse("admin:patients_consentvalue_changelist"), "Registry Consent Values")
-    DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), "Registry Demographics Fields")
-    Importer = QuickLink(reverse("import_registry"), "Importer")
-    Groups = QuickLink(reverse("admin:auth_group_changelist"), "Groups")
+                                       _("Registry Permissible Value Groups"))
+    PermissibleValues = QuickLink(reverse("admin:rdrf_cdepermittedvalue_changelist"), _("Registry Permissible Values"))
+    ConsentSections = QuickLink(reverse("admin:rdrf_consentsection_changelist"), _("Registry Consent Sections"))
+    ConsentValues = QuickLink(reverse("admin:patients_consentvalue_changelist"), _("Registry Consent Values"))
+    DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), _("Registry Demographics Fields"))
+    Importer = QuickLink(reverse("import_registry"), _("Importer"))
+    Groups = QuickLink(reverse("admin:auth_group_changelist"), _("Groups"))
     NextOfKinRelationship = QuickLink(reverse("admin:patients_nextofkinrelationship_changelist"),
-                                      "Next of Kin Relationship")
-    CdePolicy = QuickLink(reverse("admin:rdrf_cdepolicy_changelist"), "Registry Common Data Elements Policy")
-    States = QuickLink(reverse("admin:patients_state_changelist"), "States")
-    ClinicianOther = QuickLink(reverse("admin:patients_clinicianother_changelist"), "Other Clinicians")
-    EmailNotification = QuickLink(reverse("admin:rdrf_emailnotification_changelist"), "Email Notifications")
-    EmailTemplate = QuickLink(reverse("admin:rdrf_emailtemplate_changelist"), "Email Templates")
+                                      _("Next of Kin Relationship"))
+    CdePolicy = QuickLink(reverse("admin:rdrf_cdepolicy_changelist"), _("Registry Common Data Elements Policy"))
+    States = QuickLink(reverse("admin:patients_state_changelist"), _("States"))
+    ClinicianOther = QuickLink(reverse("admin:patients_clinicianother_changelist"), _("Other Clinicians"))
+    EmailNotification = QuickLink(reverse("admin:rdrf_emailnotification_changelist"), _("Email Notifications"))
+    EmailTemplate = QuickLink(reverse("admin:rdrf_emailtemplate_changelist"), _("Email Templates"))
     EmailNotificationHistory = QuickLink(reverse("admin:rdrf_emailnotificationhistory_changelist"),
-                                         "Email Notifications History")
+                                         _("Email Notifications History"))
     RegistrationProfiles = QuickLink(reverse("admin:registration_registrationprofile_changelist"),
-                                     "Registration Profiles")
-    LoginLog = QuickLink(reverse("admin:useraudit_loginlog_changelist"), "User Login Log")
-    FailedLoginLog = QuickLink(reverse("admin:useraudit_failedloginlog_changelist"), "User Failed Login Log")
-    LoginAttempts = QuickLink(reverse("admin:useraudit_loginattempt_changelist"), "User Login Attempts Log")
-    IPRestrictRangeGroup = QuickLink(reverse("admin:iprestrict_rangebasedipgroup_changelist"), "IP Restrict Ranges")
+                                     _("Registration Profiles"))
+    LoginLog = QuickLink(reverse("admin:useraudit_loginlog_changelist"), _("User Login Log"))
+    FailedLoginLog = QuickLink(reverse("admin:useraudit_failedloginlog_changelist"), _("User Failed Login Log"))
+    LoginAttempts = QuickLink(reverse("admin:useraudit_loginattempt_changelist"), _("User Login Attempts Log"))
+    IPRestrictRangeGroup = QuickLink(reverse("admin:iprestrict_rangebasedipgroup_changelist"), _("IP Restrict Ranges"))
     IPRestrictGeoGroup = QuickLink(reverse("admin:iprestrict_locationbasedipgroup_changelist"),
-                                   "IP Restrict Geolocations")
-    IPRestrictRule = QuickLink(reverse("admin:iprestrict_rule_changelist"), "IP Restrict Rules")
-    Sites = QuickLink(reverse("admin:sites_site_changelist"), "Sites")
-    ParentGuardian = QuickLink(reverse("admin:patients_parentguardian_changelist"), "Parents/Guardians")
-    ContextFormGroups = QuickLink(reverse("admin:rdrf_contextformgroup_changelist"), "Registry Context Form Groups")
+                                   _("IP Restrict Geolocations"))
+    IPRestrictRule = QuickLink(reverse("admin:iprestrict_rule_changelist"), _("IP Restrict Rules"))
+    Sites = QuickLink(reverse("admin:sites_site_changelist"), _("Sites"))
+    ParentGuardian = QuickLink(reverse("admin:patients_parentguardian_changelist"), _("Parents/Guardians"))
+    ContextFormGroups = QuickLink(reverse("admin:rdrf_contextformgroup_changelist"), _("Registry Context Form Groups"))
 
     # related links are grouped or convenience
     AUDITING = {
@@ -299,7 +299,7 @@ class QuickLinks(object):
 
             try:
                 text = label + ' (' + registry.name + ')'
-                qlink = QuickLink(reverse(url, args=(registry.code,)), text)
+                qlink = QuickLink(reverse(url, args=(registry.code,)), _(text))
                 rval[text] = qlink
             except NoReverseMatch:
                 logging.exception('No reverse url for {0} with registry code {1}'.format(url, registry.code))

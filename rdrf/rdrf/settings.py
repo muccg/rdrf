@@ -53,11 +53,17 @@ TIME_ZONE = env.get("time_zone", 'Australia/Perth')
 LANGUAGE_CODE = env.get("language_code", 'en')
 USE_I18N = env.get("use_i18n", True)
 
-LANGUAGES = (
-    ('ar', 'Arabic'),
-    ('de', 'German'),
-    ('en', 'English'),
-)
+# This must be a superset of LANGUAGES
+ALL_LANGUAGES = (("en", "English"),
+                 ("ar", "Arabic"),
+                 ("de", "German"))
+
+
+# EnvConfig can't handle structure of tuple of tuples so we pass in a flat association list
+# E.g. ["en","English","ar","Arabic"]
+# This must be a subset of ALL_LANGUAGES
+LANGUAGES_ASSOC_LIST = env.getlist("languages",["en","English","ar","Arabic","de","German"])
+LANGUAGES = tuple(zip(LANGUAGES_ASSOC_LIST[0::2],LANGUAGES_ASSOC_LIST[1::2]))
 
 DATABASES = {
     'default': {
@@ -91,7 +97,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(WEBAPP_ROOT, 'rdrf', 'templates')],
-        "APP_DIRS": True,
+        "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
@@ -104,6 +110,11 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages"
             ],
             "debug": DEBUG,
+            "loaders": [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+                'rdrf.template_loaders.translation.Loader'
+                ]
         },
     },
 ]
@@ -470,3 +481,6 @@ EMAIL_NOTIFICATIONS = (
 
 PROJECT_TITLE = "Rare Disease Registry Framework"
 PROJECT_TITLE_LINK = "patientslisting"
+
+
+LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])

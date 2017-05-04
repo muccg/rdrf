@@ -1,11 +1,13 @@
 {% load static from staticfiles %}
 {% load version_number %}
+{% load i18n %}
+{% load translate %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>RDRF - Rare Disease Registry Framework </title>
+    <title>{% trans "RDRF - Rare Disease Registry Framework" %} </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- stylesheets -->
@@ -35,20 +37,20 @@
             <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
                   <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="https://muccg.github.io/rdrf/">Project</a>
+                        <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                     </li>
                     <li>
-                        <a href="https://github.com/muccg/rdrf/">Source code</a>
+                        <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
                     </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                              Registries on this site <b class="caret"></b>
+                              {% trans "Registries on this site" %} <b class="caret"></b>
                           </a>
                           <ul class="dropdown-menu">
                             {% for reg in registries %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
-                                    {{reg.name}}{% if reg.version %} v{{reg.version}}{% endif %}
+                                    {{reg.name|translate}}{% if reg.version %} v{{reg.version}}{% endif %}
                                 </a>
                             </li>
                             {% endfor %}
@@ -63,12 +65,12 @@
     <div id="hero">
         <div class="container">
             <h1 class="hero-text animated fadeInDown">
-                The Rare Disease Registry<br>
-                Framework
+                {% trans "The Rare Disease Registry" %}<br>
+                {% trans "Framework" %}
 
             </h1>
             <p class="sub-text animated fadeInDown">
-                Create a patient registry without software development.
+                {% trans "Create a patient registry without software development" %}.
             </p>
 
         </div>
@@ -78,23 +80,25 @@
         <div class="container">
             <div class="row header">
                 <div class="col-md-12">
-                    <h3>Need a patient registry for your department, clinic or community?</h3>
-                    <p>RDRF allows for rapid creation of patient registries.</p>
+                    <h3>{% trans "Need a patient registry for your department, clinic or community?" %}</h3>
+                    <p>{% trans "RDRF allows for rapid creation of patient registries" %}.</p>
                 </div>
             </div>
             <div class="divider"></div>
             <div class="row header">
                 <div class="col-md-12">
-                    <h3>What is the Rare Disease Registry Framework?</h3>
-                    <p>The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
+                    <h3>{% trans "What is the Rare Disease Registry Framework?" %}</h3>
+                    <p>{% blocktrans %}
+		      The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
                         based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at
-                        runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia in partnership with the Office of Population Health Genomics, Department of Health Western Australia.</p>
+                      runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia in partnership with the Office of Population Health Genomics, Department of Health Western Australia.
+		      {% endblocktrans %}</p>
                 </div>
             </div>
             <div class="divider"></div>
             <div class="row header">
                 <div class="col-md-12">
-                    <h3>Publications</h3>
+                    <h3>{% trans "Publications" %}</h3>
                     <p>
 M.I. Bellgard, L. Render, M. Radochonski, and A. Hunter, Second generation registry framework, Source Code for Biology and Medicine, 9 (2014), 14.
                     </p>
@@ -134,25 +138,25 @@ M. Rodrigues, G. Hammond-Tooke, A. Kidd, D. Love, R. Patel, H. Dawkins, M. Bellg
                 <div class="col-sm-12 menu">
                     <ul>
                         <li>
-                            <a href="https://muccg.github.io/rdrf/">Project</a>
+                            <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                         </li>
                         <li>
-                            <a href="https://muccg.github.io/rdrf/docs/">Documentation</a>
+                            <a href="https://muccg.github.io/rdrf/docs/">{% trans "Documentation" %}</a>
                         </li>
                         <li>
-                            <a href="https://github.com/muccg/rdrf/">Source code</a>
+                            <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
                         </li>
                     </ul>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-12 copyright">
-                    Authorised by Prof. Matthew Bellgard, Director, Centre for Comparative Genomics, Murdoch University.
+                    {% trans "Authorised by" %} Prof. Matthew Bellgard, {% trans "Director" %}, Centre for Comparative Genomics, Murdoch University.
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-12 copyright">
-                    Copyright © 2015. Murdoch University. Landing page React theme Copyright © 2014
+                    {% trans "Copyright" %} © 2015. Murdoch University. {% trans "Landing page" %} React {% trans "theme" %} {% trans "Copyright" %} © 2014
                 </div>
             </div>
 

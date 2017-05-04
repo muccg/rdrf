@@ -9,6 +9,7 @@
 {% load get_form_object %}
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
+{% load translate %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -194,7 +195,7 @@
                         <table class="table table-striped">
                             <thead>
                             {% for header in matrix_wrapper.matrix.headers %}
-                                <th>{{header}}</th>
+                                <th>{{header|translate}}</th>
                             {% endfor %}
                             </thead>
                             <tbody>
@@ -217,33 +218,6 @@
                     </div>
                  </div>
             </div>
-
-
-
-            <!--<div class="col-md-2">-->
-                <!--<div data-spy="affix" style="width: 150px;">-->
-                    <!--<button type="submit" class="btn btn-success btn-block" value="Save">-->
-                        <!--<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save-->
-                    <!--</button>-->
-                    <!--<a href="" class="btn btn-danger btn-block">-->
-                        <!--<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel-->
-                    <!--</a>-->
-                    <!--{% if show_print_button %}-->
-                    <!--<a class="btn btn-warning btn-block" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">-->
-                        <!--<span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print-->
-                    <!--</a>-->
-                    <!--{% endif %}-->
-
-                    <!--<a class="btn btn-info btn-block" href="{{ next_form_link }}">-->
-                        <!--<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Next-->
-                    <!--</a>-->
-
-                    <!--<a class="btn btn-info btn-block" href="{{ previous_form_link }}">-->
-                        <!--<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous-->
-                    <!--</a>-->
-                <!--</div>-->
-            <!--</div>-->
-
         </div>
 
 

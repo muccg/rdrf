@@ -18,6 +18,7 @@ from rdrf.hooking import run_hooks
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
+from django.utils.translation import ugettext as _
 
 
 import logging
@@ -43,15 +44,15 @@ class Doctor(models.Model):
 
     # TODO: Is it possible for one doctor to work with multiple working groups?
     title = models.CharField(max_length=4, blank=True, null=True)
-    family_name = models.CharField(max_length=100, db_index=True, verbose_name="Family/Last name")
-    given_names = models.CharField(max_length=100, db_index=True, verbose_name="Given/First names")
+    family_name = models.CharField(max_length=100, db_index=True, verbose_name=_("Family/Last name"))
+    given_names = models.CharField(max_length=100, db_index=True, verbose_name=_("Given/First names"))
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
-    suburb = models.CharField(max_length=50, verbose_name="Suburb/Town/City")
+    suburb = models.CharField(max_length=50, verbose_name=_("Suburb/Town/City"))
     postcode = models.CharField(max_length=20, blank=True, null=True)
-    state = models.ForeignKey(State, verbose_name="State/Province/Territory", blank=True, null=True,
+    state = models.ForeignKey(State, verbose_name=_("State/Province/Territory"), blank=True, null=True,
                               on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -66,10 +67,10 @@ class Doctor(models.Model):
 
 
 class NextOfKinRelationship(models.Model):
-    relationship = models.CharField(max_length=100, verbose_name="Relationship")
+    relationship = models.CharField(max_length=100, verbose_name=_("Relationship"))
 
     class Meta:
-        verbose_name = 'Next of Kin Relationship'
+        verbose_name = _('Next of Kin Relationship')
 
     def __str__(self):
         return self.relationship
@@ -115,118 +116,118 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
 
-    SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
+    SEX_CHOICES = (("1", _("Male")), ("2", _("Female")), ("3", _("Indeterminate")))
 
     ETHNIC_ORIGIN = (
-        ("New Zealand European", "New Zealand European"),
-        ("Australian", "Australian"),
-        ("Other Caucasian/European", "Other Caucasian/European"),
-        ("Aboriginal", "Aboriginal"),
-        ("Person from the Torres Strait Islands", "Person from the Torres Strait Islands"),
-        ("Maori", "Maori"),
-        ("NZ European / Maori", "NZ European / Maori"),
-        ("Samoan", "Samoan"),
-        ("Cook Islands Maori", "Cook Islands Maori"),
-        ("Tongan", "Tongan"),
-        ("Niuean", "Niuean"),
-        ("Tokelauan", "Tokelauan"),
-        ("Fijian", "Fijian"),
-        ("Other Pacific Peoples", "Other Pacific Peoples"),
-        ("Southeast Asian", "Southeast Asian"),
-        ("Chinese", "Chinese"),
-        ("Indian", "Indian"),
-        ("Other Asian", "Other Asian"),
-        ("Middle Eastern", "Middle Eastern"),
-        ("Latin American", "Latin American"),
-        ("Black African/African American", "Black African/African American"),
-        ("Other Ethnicity", "Other Ethnicity"),
-        ("Decline to Answer", "Decline to Answer"),
+        ("New Zealand European", _("New Zealand European")),
+        ("Australian", _("Australian")),
+        ("Other Caucasian/European", _("Other Caucasian/European")),
+        ("Aboriginal", _("Aboriginal")),
+        ("Person from the Torres Strait Islands", _("Person from the Torres Strait Islands")),
+        ("Maori", _("Maori")),
+        ("NZ European / Maori", _("NZ European / Maori")),
+        ("Samoan", _("Samoan")),
+        ("Cook Islands Maori", _("Cook Islands Maori")),
+        ("Tongan", _("Tongan")),
+        ("Niuean", _("Niuean")),
+        ("Tokelauan", _("Tokelauan")),
+        ("Fijian", _("Fijian")),
+        ("Other Pacific Peoples", _("Other Pacific Peoples")),
+        ("Southeast Asian", _("Southeast Asian")),
+        ("Chinese", _("Chinese")),
+        ("Indian", _("Indian")),
+        ("Other Asian", _("Other Asian")),
+        ("Middle Eastern", _("Middle Eastern")),
+        ("Latin American", _("Latin American")),
+        ("Black African/African American", _("Black African/African American")),
+        ("Other Ethnicity", _("Other Ethnicity")),
+        ("Decline to Answer", _("Decline to Answer")),
     )
 
-    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
+    LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry, related_name='patients')
+    rdrf_registry = models.ManyToManyField(Registry, related_name='patients', verbose_name=_("Rdrf Registry"))
     working_groups = models.ManyToManyField(
-        registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name="Centre")
+        registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name=_("Centre"))
     consent = models.BooleanField(
         null=False,
         blank=False,
-        help_text="The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them.",
-        verbose_name="consent given")
+        help_text=_("The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them."),
+        verbose_name=_("consent given"))
     consent_clinical_trials = models.BooleanField(
         null=False,
         blank=False,
-        help_text="Consent given to be contacted about clinical trials or other studies related to their condition.",
+        help_text=_("Consent given to be contacted about clinical trials or other studies related to their condition."),
         default=False)
     consent_sent_information = models.BooleanField(
         null=False,
         blank=False,
-        help_text="Consent given to be sent information on their condition",
-        verbose_name="consent to be sent information given",
+        help_text=_("Consent given to be sent information on their condition"),
+        verbose_name=_("consent to be sent information given"),
         default=False)
     consent_provided_by_parent_guardian = models.BooleanField(
         null=False,
         blank=False,
-        help_text="Parent/Guardian consent provided on behalf of the patient.",
+        help_text=_("Parent/Guardian consent provided on behalf of the patient."),
         default=False)
-    family_name = models.CharField(max_length=100, db_index=True)
-    given_names = models.CharField(max_length=100, db_index=True)
+    family_name = models.CharField(max_length=100, db_index=True, verbose_name=_("Family Name"))
+    given_names = models.CharField(max_length=100, db_index=True, verbose_name=_("Given Names"))
     maiden_name = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Maiden name (if applicable)")
+        max_length=100, null=True, blank=True, verbose_name=_("Maiden name (if applicable)"))
     umrn = models.CharField(
-        max_length=50, null=True, blank=True, db_index=True, verbose_name="Hospital/Clinic ID")
-    date_of_birth = models.DateField()
+        max_length=50, null=True, blank=True, db_index=True, verbose_name=_("Hospital/Clinic ID"))
+    date_of_birth = models.DateField(verbose_name=_("Date of birth"))
     place_of_birth = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Place of birth")
+        max_length=100, null=True, blank=True, verbose_name=_("Place of birth"))
 
-    date_of_migration = models.DateField(blank=True, null=True)
+    date_of_migration = models.DateField(blank=True, null=True, verbose_name=_("Date of migration"))
     country_of_birth = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Country of birth")
+        max_length=100, null=True, blank=True, verbose_name=_("Country of birth"))
     ethnic_origin = models.CharField(
-        choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True)
-    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    home_phone = models.CharField(max_length=30, blank=True, null=True)
-    mobile_phone = models.CharField(max_length=30, blank=True, null=True)
-    work_phone = models.CharField(max_length=30, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+        choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True, verbose_name=_('Ethnic origin'))
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, verbose_name=_("Sex"))
+    home_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
+    mobile_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Mobile phone"))
+    work_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Work phone"))
+    email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
     next_of_kin_family_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="family name")
+        max_length=100, blank=True, null=True, verbose_name=_("Family name"))
     next_of_kin_given_names = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="given names")
+        max_length=100, blank=True, null=True, verbose_name=_("Given names"))
     next_of_kin_relationship = models.ForeignKey(
         NextOfKinRelationship,
-        verbose_name="Relationship",
+        verbose_name=_("Relationship"),
         blank=True,
         null=True,
         on_delete=models.SET_NULL)
-    next_of_kin_address = models.TextField(blank=True, null=True, verbose_name="Address")
+    next_of_kin_address = models.TextField(blank=True, null=True, verbose_name=_("Address"))
     next_of_kin_suburb = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name="Suburb/Town")
+        max_length=50, blank=True, null=True, verbose_name=_("Suburb/Town"))
     next_of_kin_state = models.CharField(
-        max_length=20, verbose_name="State/Province/Territory", blank=True, null=True)
-    next_of_kin_postcode = models.IntegerField(verbose_name="Postcode", blank=True, null=True)
+        max_length=20, verbose_name=_("State/Province/Territory"), blank=True, null=True)
+    next_of_kin_postcode = models.IntegerField(verbose_name=_("Postcode"), blank=True, null=True)
     next_of_kin_home_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name="home phone")
+        max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
     next_of_kin_mobile_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name="mobile phone")
+        max_length=30, blank=True, null=True, verbose_name=_("Mobile phone"))
     next_of_kin_work_phone = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name="work phone")
-    next_of_kin_email = models.EmailField(blank=True, null=True, verbose_name="email")
+        max_length=30, blank=True, null=True, verbose_name=_("Work phone"))
+    next_of_kin_email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
     next_of_kin_parent_place_of_birth = models.CharField(
-        max_length=100, verbose_name="Place of birth of parents", blank=True, null=True)
+        max_length=100, verbose_name=_("Place of birth of parents"), blank=True, null=True)
     next_of_kin_country = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="Country")
+        max_length=100, blank=True, null=True, verbose_name=_("Country"))
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
     active = models.BooleanField(
         default=True,
-        help_text="Ticked if active in the registry, ie not a deleted record, or deceased patient.")
+        help_text=_("Ticked if active in the registry, ie not a deleted record, or deceased patient."))
     inactive_reason = models.TextField(
         blank=True,
         null=True,
-        verbose_name="Reason",
-        help_text="Please provide reason for deactivating the patient")
-    clinician = models.ForeignKey(CustomUser, blank=True, null=True)
+        verbose_name=_("Reason"),
+        help_text=_("Please provide reason for deactivating the patient"))
+    clinician = models.ForeignKey(CustomUser, blank=True, null=True, verbose_name=_("Clinician"))
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -234,20 +235,20 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
-    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive')
+    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive', verbose_name=_("Living status"))
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
-        verbose_name_plural = "Patient List"
+        verbose_name_plural = _("Patient List")
 
         permissions = (
-            ("can_see_full_name", "Can see Full Name column"),
-            ("can_see_dob", "Can see Date of Birth column"),
-            ("can_see_working_groups", "Can see Working Groups column"),
-            ("can_see_diagnosis_progress", "Can see Diagnosis Progress column"),
-            ("can_see_diagnosis_currency", "Can see Diagnosis Currency column"),
-            ("can_see_genetic_data_map", "Can see Genetic Module column"),
-            ("can_see_data_modules", "Can see Data Modules column"),
+            ("can_see_full_name", _("Can see Full Name column")),
+            ("can_see_dob", _("Can see Date of Birth column")),
+            ("can_see_working_groups", _("Can see Working Groups column")),
+            ("can_see_diagnosis_progress", _("Can see Diagnosis Progress column")),
+            ("can_see_diagnosis_currency", _("Can see Diagnosis Currency column")),
+            ("can_see_genetic_data_map", _("Can see Genetic Module column")),
+            ("can_see_data_modules", _("Can see Data Modules column")),
         )
 
     @property
@@ -319,7 +320,6 @@ class Patient(models.Model):
                 if "genetic" in form_model.name.lower():
                     continue
                 form_timestamp = self.get_form_timestamp(form_model)
-                logger.debug("form timestamp %s = %s" % (form_model, form_timestamp))
                 if form_timestamp and form_timestamp >= time_window_start:
                     last_updated_in_window = True
                     break
@@ -405,49 +405,31 @@ class Patient(models.Model):
         parser = GeneralisedFieldExpressionParser(registry_model)
         mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
-        logger.debug("updating field expressions ...")
         errors = 0
         error_messages = []
         succeeded = 0
         total = 0
 
         for field_expression, new_value in field_expressions:
-            logger.debug("errors = %s" % errors)
-            logger.debug("succeeded = %s" % succeeded)
-            logger.debug("total = %s" % total)
-
-            logger.debug("%%%%%%%% updating field %s" % field_expression)
-
             total += 1
             try:
                 expression_object = parser.parse(field_expression)
-                logger.debug("parsed %s OK: is a %s" % (field_expression,
-                                                        expression_object.__class__.__name__))
             except Exception as ex:
                 errors += 1
-                logger.debug("couldn't parse field expression: %s - skipping" % field_expression)
                 error_messages.append("Parse error: %s" % field_expression)
                 continue
 
             try:
-                logger.debug("attempting to update %s --> %s" % (field_expression, new_value))
                 self, mongo_data = expression_object.set_value(self, mongo_data, new_value, context_id=context_model.pk)
-                logger.debug("%s --> %s OK!" % (field_expression, new_value))
                 succeeded += 1
             except NotImplementedError:
                 errors += 1
-                logger.debug("need to implement %s - skipping" % field_expression)
                 error_messages.append("Not Implemented: %s" % field_expression)
                 continue
 
             except Exception as ex:
                 errors += 1
-                logger.debug("Erroring setting value for field_expression %s: %s" % (field_expression, ex))
                 error_messages.append("Error setting value for %s: %s" % (field_expression, ex))
-
-        logger.debug("errors = %s" % errors)
-        logger.debug("succeeded = %s" % succeeded)
-        logger.debug("total = %s" % total)
 
         try:
             wrapper.update_dynamic_data(registry_model, mongo_data)
@@ -547,26 +529,18 @@ class Patient(models.Model):
 
     @property
     def my_index(self):
-        logger.debug("Finding index of %s" % self)
         # This property is only applicable to FH
         if self.in_registry("fh"):
             # try to find patient relative object corresponding to this patient and
             # then locate that relative's index patient
-            logger.debug("patient is in FH so this makes sense")
             try:
                 patient_relative = PatientRelative.objects.get(relative_patient=self)
-                logger.debug("There is a PatientRelative I was created from: %s" % patient_relative)
                 if patient_relative.patient:
-                    logger.debug("This patient relative has a patient property: index = %s" % patient_relative.patient)
                     return patient_relative.patient
                 else:
-                    logger.debug("PatientRelative %s has no patient property (is null)" % patient_relative)
                     return None
             except PatientRelative.DoesNotExist:
-                logger.debug("no patient relative exists for %s so my index is None" % self)
                 return None
-
-        logger.debug("%s not in FH - so my_index is None" % self)
 
         return None
 
@@ -583,15 +557,12 @@ class Patient(models.Model):
             return full_url
 
     def sync_patient_relative(self):
-        logger.debug("Attempting to sync PatientRelative")
         # If there is a patient relative ( from which I was created)
         # then synchronise my common properties:
         try:
             pr = PatientRelative.objects.get(relative_patient=self)
         except PatientRelative.DoesNotExist:
-            logger.debug("no PatientRelative to sync")
             return
-        logger.debug("Patient %s updating PatientRelative %s" % (self, pr))
         
         pr.given_names = self.given_names
         pr.family_name = self.family_name
@@ -601,15 +572,9 @@ class Patient(models.Model):
 
         # sever the link if we've deactivated
         if not self.active:
-            logger.debug("%s is inactive so unlinking PR %s from me" % (self,
-                                                                        pr))
-            
             pr.relative_patient = None
             
         pr.save()
-        logger.debug("PR rp = %s" % pr.relative_patient)
-        
-        logger.debug("synced PatientRelative OK")
 
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
@@ -716,7 +681,6 @@ class Patient(models.Model):
         If a superuser deletes a patent it's active flag is false, so we should delete the object.
         """
         if self.active:
-            logger.debug("Archiving patient record.")
             self.active = False
             self.save()
             self.sync_patient_relative()
@@ -888,7 +852,6 @@ class Patient(models.Model):
 
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
         from rdrf.dynamic_data import DynamicDataWrapper
-        logger.debug("in get_dynamic_data")
         if context_id is None:
             default_context = self.default_context(registry_model)
             if default_context is not None:
@@ -1002,15 +965,15 @@ class AddressType(models.Model):
 
 class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
-    address_type = models.ForeignKey(AddressType, default=1)
+    address_type = models.ForeignKey(AddressType, default=1, verbose_name=_("Address type"))
     address = models.TextField()
-    suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
-    country = models.CharField(max_length=100)
-    state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
-    postcode = models.CharField(max_length=50)
+    suburb = models.CharField(max_length=100, verbose_name=_("Suburb/Town"))
+    country = models.CharField(max_length=100, verbose_name=_("Country"))
+    state = models.CharField(max_length=50, verbose_name=_("State"))
+    postcode = models.CharField(max_length=50, verbose_name=_("Postcode"))
 
     class Meta:
-        verbose_name_plural = "Patient Addresses"
+        verbose_name_plural = _("Patient Addresses")
 
     def __str__(self):
         return ""
@@ -1111,7 +1074,6 @@ class PatientRelative(models.Model):
 
     def create_patient_from_myself(self, registry_model, working_groups):
         # Create the patient corresponding to this relative
-        logger.debug("creating a patient model from patient relative %s ..." % self)
         p = Patient()
         p.given_names = self.given_names
         p.family_name = self.family_name
@@ -1129,15 +1091,9 @@ class PatientRelative(models.Model):
         p.rdrf_registry = [registry_model]
         p.working_groups = working_groups
         p.save()
-        logger.debug("saved created patient ok with pk = %s" % p.pk)
         run_hooks('patient_created_from_relative', p)
-        logger.debug("ran hooks ok")
-
-        # set the patient relative model relative_patient field to point to this
-        # newly created patient
         self.relative_patient = p
         self.save()
-        logger.debug("updated %s relative_patient to %s" % (self, p))
         return p
 
     def sync_relative_patient(self):
@@ -1192,7 +1148,6 @@ def save_patient_hooks(sender, instance, created, **kwargs):
 
 @receiver(m2m_changed, sender=Patient.rdrf_registry.through)
 def registry_changed_on_patient(sender, **kwargs):
-    logger.debug("registry changed on patient %s: kwargs = %s" % (kwargs['instance'], kwargs))
     if kwargs["action"] == "post_add":
         from rdrf.contexts_api import create_rdrf_default_contexts
         instance = kwargs['instance']
@@ -1215,13 +1170,6 @@ class ConsentValue(models.Model):
 
 @receiver(post_delete, sender=PatientRelative)
 def delete_associated_patient_if_any(sender, instance, **kwargs):
-    logger.debug("post_delete of patient relative")
-    logger.debug("instance = %s" % instance)
-    logger.debug("sender = %s kwargs = %s" % (sender, kwargs))
     if instance.relative_patient:
-        logger.debug("about to delete patient created from relative: %s" % instance.relative_patient)
         if not hasattr(instance, "skip_archiving"):
-            logger.debug("no skip_archiving attribute so deleting the PatientRelative.relative_patient")
             instance.relative_patient.delete()
-        else:
-            logger.debug("skip_archiving is set on PatientRelative so won't archive")

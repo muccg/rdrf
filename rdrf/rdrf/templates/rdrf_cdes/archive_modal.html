@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load translate %}
 {% csrf_token %}
 {% if show_archive_button %}
 	<!-- Modal for deleting patient -->
@@ -45,7 +46,7 @@
 	             window.location.replace("{% url 'patientslisting' %}");
           },
 	  error: function() {
-            alert("An error occurred deleting patient");
+            alert("{% trans "An error occurred deleting patient" %}");
           }});}}
 	</script>
 	{% endif %}

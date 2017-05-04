@@ -1,6 +1,8 @@
 from django.forms import ModelForm, SelectMultiple, ChoiceField
 from .models import RegistryForm, CommonDataElement, Section
 from registry.patients.models import Patient
+from rdrf.models import EmailTemplate
+from django.conf import settings
 
 
 class RegistryFormAdminForm(ModelForm):
@@ -37,3 +39,20 @@ class DemographicFieldsAdminForm(ModelForm):
 
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)
+
+
+class EmailTemplateAdminForm(ModelForm):
+    """
+    This form introduced so we can parametrise the languages list from settings.
+    If we do this on the model it causes a migration fail in the build.
+    """
+
+    def __init__(self, *args, **kwargs): 
+        super().__init__(*args, **kwargs)
+        field_choices = settings.LANGUAGES
+        self.fields['language'] = ChoiceField(choices=field_choices)
+
+    class Meta:
+        fields = "__all__"
+        model = EmailTemplate
+

@@ -10,6 +10,8 @@
 {% load get_form_object %}
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
+{% load translate %}
+
 
 {% block extrastyle %}
     {{ block.super }}
@@ -306,9 +308,9 @@
     
                     <div class="panel-heading">
                         {% if request.user.is_superuser %}
-                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
+                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s|translate}}</strong></a>
                         {% else %}
-                            <strong>{{display_names|get_display_name:s}}</strong>
+                            <strong>{{display_names|get_display_name:s|translate}}</strong>
                         {% endif %}
                         
                         {% if forms|is_formset:s %}

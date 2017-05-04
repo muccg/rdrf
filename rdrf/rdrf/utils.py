@@ -44,7 +44,8 @@ def models_from_mongo_key(registry_model, delimited_key):
     from rdrf.models import RegistryForm, Section, CommonDataElement
     form_name, section_code, cde_code = get_form_section_code(delimited_key)
     try:
-        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
+        form_model = RegistryForm.objects.get(
+            name=form_name, registry=registry_model)
     except RegistryForm.DoesNotExist:
         raise BadKeyError()
 
@@ -128,7 +129,8 @@ def get_users(usernames):
 
 def get_full_link(request, partial_link, login_link=False):
     if login_link:
-        # return a redirect login    https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
+        # return a redirect login
+        # https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
         login_url = "/login?next=" + partial_link
         return get_site_url(request, login_url)
     else:
@@ -153,7 +155,8 @@ def location_name(registry_form, current_rdrf_context_model=None):
             if context_form_group is not None:
                 # context type name
                 if context_form_group.naming_scheme == "C":
-                    context_type_name = context_form_group.get_name_from_cde(patient_model, current_rdrf_context_model)
+                    context_type_name = context_form_group.get_name_from_cde(
+                        patient_model, current_rdrf_context_model)
                     if context_form_group.supports_direct_linking:
                         return form_display_name + "/" + context_type_name
                 else:
@@ -235,7 +238,8 @@ def create_permission(app_label, model, code_name, name):
 
     try:
         with transaction.atomic():
-            Permission.objects.create(codename=code_name, name=name, content_type=content_type)
+            Permission.objects.create(
+                codename=code_name, name=name, content_type=content_type)
     except IntegrityError:
         pass
 
@@ -275,7 +279,8 @@ def consent_status_for_patient(registry_code, patient):
     from registry.patients.models import ConsentValue
     from .models import ConsentSection, ConsentQuestion
 
-    consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
+    consent_sections = ConsentSection.objects.filter(
+        registry__code=registry_code)
     answers = {}
     valid = []
     for consent_section in consent_sections:
@@ -283,7 +288,8 @@ def consent_status_for_patient(registry_code, patient):
             questions = ConsentQuestion.objects.filter(section=consent_section)
             for question in questions:
                 try:
-                    cv = ConsentValue.objects.get(patient=patient, consent_question=question)
+                    cv = ConsentValue.objects.get(
+                        patient=patient, consent_question=question)
                     answers[cv.consent_question.code] = cv.answer
                 except ConsentValue.DoesNotExist:
                     pass
@@ -297,7 +303,8 @@ def get_error_messages(forms):
     messages = []
 
     def display(form_or_formset, field, error):
-        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace("Set", "")
+        form_name = form_or_formset.__class__.__name__.replace(
+            "Form", "").replace("Set", "")
         return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
 
     for i, form in enumerate(forms):
@@ -393,13 +400,16 @@ def format_date(value):
     """
     return "{d.day}-{d.month}-{d.year}".format(d=value)
 
+
 def parse_iso_date(s):
     "Opposite of datetime.datetime.isoformat()"
     return datetime.datetime.strptime(s, "%Y-%m-%d").date() if s else None
 
+
 def parse_iso_datetime(s):
     "Opposite of datetime.date.isoformat()"
     return dateutil.parser.parse(s) if s else None
+
 
 def wrap_uploaded_files(registry_code, post_files_data):
     from django.core.files.uploadedfile import UploadedFile
@@ -413,10 +423,11 @@ def wrap_uploaded_files(registry_code, post_files_data):
         else:
             return value
 
-    return { key: wrap(key, value) for key, value in list(post_files_data.items()) }
+    return {key: wrap(key, value) for key, value in list(post_files_data.items())}
 
 
 class Message():
+
     def __init__(self, text, tags=None):
         self.text = text
         self.tags = tags
@@ -445,34 +456,33 @@ class Message():
         return self.text
 
 
-
 class TimeStripper(object):
+
     """
     This class exists to fix an error we introduced in the migration
     moving from Mongo to pure Django models with JSON fields ( "Modjgo" objects.)
     CDE date values were converted  into iso strings including a time T substring.
-    This was done recursively for the cdes and history collections 
+    This was done recursively for the cdes and history collections
     """
-    
+
     def __init__(self, dataset):
-        self.dataset = dataset # queryset live , lists of data records for testing
+        self.dataset = dataset  # queryset live , lists of data records for testing
         # following fields used for testing
         self.test_mode = False
         self.converted_date_cdes = []
         self.date_cde_codes = []
-        self.num_updates = 0 # actual conversions performed
-        
+        self.num_updates = 0  # actual conversions performed
 
     def forward(self):
         for thing in self.dataset:
             print("Checking Modjgo object pk %s" % thing.pk)
-            
+
             self.update(thing)
         print("Finished: Updated %s Modjgo objects" % self.num_updates)
 
     def get_id(self, m):
         pk = m.pk
-        
+
         if m.data:
             if "django_id" in m.data:
                 django_id = m.data["django_id"]
@@ -488,14 +498,11 @@ class TimeStripper(object):
                                                                   django_id)
         else:
             return "Modjgo pk %s" % pk
-        
-
-            
 
     def munge_timestamp(self, datestring):
         if datestring is None:
             return datestring
-        
+
         if "T" in datestring:
             t_index = datestring.index("T")
             return datestring[:t_index]
@@ -516,7 +523,8 @@ class TimeStripper(object):
                     return value
 
             except CommonDataElement.DoesNotExist:
-                print("Missing CDE Model! Data has code %s which does not exist on the site" % code)
+                print(
+                    "Missing CDE Model! Data has code %s which does not exist on the site" % code)
 
     def update_cde(self, cde):
         code = cde.get("code", None)
@@ -547,10 +555,11 @@ class TimeStripper(object):
                     print("%s saved OK" % ident)
                     self.num_updates += 1
                 except Exception as ex:
-                    print("Error saving Modjgo object %s after updating: %s" % (ident,
-                                                                                ex))
+                    print(
+                        "Error saving Modjgo object %s after updating: %s" % (ident,
+                                                                              ex))
                     raise   # rollback
-                    
+
     def munge_data(self, data):
         updated = 0
         if "forms" in data:
@@ -570,21 +579,23 @@ class TimeStripper(object):
                                     if self.is_date_cde(cde):
                                         if self.update_cde(cde):
                                             updated += 1
-                                            
+
         return updated > 0
-                    
+
 
 class HistoryTimeStripper(TimeStripper):
+
     def munge_data(self, data):
         # History embeds the full forms dictionary in the record key
         return super().munge_data(data["record"])
 
 
-
 # Python 3.5 doesn't raises run time error when lists which contain None values are sorted
-# see stackover flow http://stackoverflow.com/questions/12971631/sorting-list-by-an-attribute-that-can-be-none
+# see stackover flow
+# http://stackoverflow.com/questions/12971631/sorting-list-by-an-attribute-that-can-be-none
 @total_ordering
 class MinType(object):
+
     def __le__(self, other):
         return True
 
@@ -592,3 +603,31 @@ class MinType(object):
         return (self is other)
 
 
+def get_field_from_model(model_path):
+    # model_path looks like:  model/ConsentSection/23/information_text
+    # model must be in rdrf.models
+    from django.apps import apps
+    try:
+        parts = model_path.split("/")
+        model_name = parts[1]
+        pk = int(parts[2])
+        field = parts[3]
+        model_class = apps.get_model('rdrf', model_name)
+        model_instance = model_class.objects.get(pk=pk)
+        value = getattr(model_instance, field)
+        return value
+    except Exception as ex:
+        logger.exception(
+            "Error retrieving value from model_path %s: %s" % (model_path,
+                                                               ex))
+        return
+
+
+def get_registry_definition_value(field_path):
+    # find a value in a registry definition
+    # model/<ModelName>/<pk>/<fieldname> - delegated to get_field_from_model above
+
+    if field_path.startswith("model/"):
+        return get_field_from_model(field_path)
+    else:
+        raise ValueError("Unsupported fieldpath: %s" % field_path)

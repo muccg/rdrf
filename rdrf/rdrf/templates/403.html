@@ -1,7 +1,9 @@
 {% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+
 
 {% block content %}
     <div class="alert alert-danger">
-        Looks like you don't have access to this page...
+        {% trans "Looks like you don't have access to this page" %} ...
     </div>
 {% endblock %}
