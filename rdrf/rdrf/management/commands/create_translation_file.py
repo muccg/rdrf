@@ -6,16 +6,22 @@ from rdrf.utils import de_camelcase
 from rdrf.models import Registry
 from tempfile import TemporaryDirectory
 from django.core.management import BaseCommand
+from django.core.management.base import CommandError
 from django.core.management import call_command
 
 explanation = """
+Usage:
+
 This command extracts English strings used in RDRF pages, forms and CDEs and
 creates a "Django message 'po' file.
 The command has two modes:
+
 A) CDE labels and values translation: Extract strings from a yaml file and pump out to standard output:
 
-django-admin create_translation_file --yaml_file=/data/fh.yaml  > output.po
+> django-admin create_translation_file --yaml_file=<yaml file path> [--system_po_file <app level po file> ]  > <output po file>
 
+NB. --system_po_file is the path the "standard po file" created by running django makemessages. By passing it
+in the script avoids creating duplicate message ids  which prevent compilation.
    
 B) Embedded HTML for headers, information text and splash screen in the yaml file - IMPORTANT: This
 does NOT pump to standard output but delegates to django's "makemessages" command which unfortunately
@@ -23,8 +29,7 @@ writes out the po file only to the locale directory - so the existing po file th
 Therefore when building a complete po file ready for translation ensure that any intermediate output is copied to
 separate files and them merged.
 
-django-admin create_translation_file --yaml_file=/data/fh.yaml --extract_html_strings
-
+> django-admin create_translation_file --yaml_file=<yaml file path> --extract_html_strings
 
 """
 
@@ -56,6 +61,10 @@ class Command(BaseCommand):
         self.msgids = set([])
         self.number = re.compile("^\d+$")
         self.translation_no = 1
+
+        if not file_name:
+            self._usage()
+            raise CommandError("Must provide yaml file")
         
         if system_po_file:
             # splurp in existing messages in the system file so we don't dupe
