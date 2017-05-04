@@ -617,7 +617,7 @@ def get_field_from_model(model_path):
         value = getattr(model_instance, field)
         return value
     except Exception as ex:
-        logger.error(
+        logger.exception(
             "Error retrieving value from model_path %s: %s" % (model_path,
                                                                ex))
         return
