@@ -95,20 +95,12 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
 
     def set_value(self, patient_model, mongo_data, replacement_items, **kwargs):
         # mongo data must be _nested_
-        items = []
-        for cde_map in replacement_items:
-            cde_dict_list = []
-            for cde_code in cde_map:
-                cde_dict = {"code": cde_code,
-                            "value": cde_map[cde_code]}
-                cde_dict_list.append(cde_dict)
-            items.append(cde_dict_list)
-
+    
         if mongo_data is None:
             mongo_data = {"forms": [{"name": self.form_model.name,
                                      "sections": [{"code": self.section_model.code,
                                                    "allow_multiple": True,
-                                                   "cdes": items}]}]}
+                                                   "cdes": replacement_items}]}]}
             return patient_model, mongo_data
 
         else:
@@ -121,19 +113,19 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                     for section_dict in form_dict["sections"]:
                         if section_dict["code"] == self.section_model.code:
                             section_exists = True
-                            section_dict["cdes"] = items
+                            section_dict["cdes"] = replacement_items
                             return patient_model, mongo_data
                     if not section_exists:
                         section_dict = {"code": self.section_model.code,
                                         "allow_multiple": True,
-                                        "cdes": items}
+                                        "cdes": replacement_items}
                         form_dict["sections"].append(section_dict)
                         return patient_model, mongo_data
             if not form_exists:
                 form_dict = {"name": self.form_model.name,
                              "sections": [{"code": self.section_model.code,
                                            "allow_multiple": True,
-                                           "cdes": items}]
+                                           "cdes": replacement_items}]
                              }
                 mongo_data["forms"].append(form_dict)
                 return patient_model, mongo_data
