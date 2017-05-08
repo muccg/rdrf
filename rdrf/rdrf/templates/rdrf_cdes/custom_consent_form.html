@@ -71,7 +71,7 @@
             
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return {% trans '"You have unsaved changes!"' %};
+                    return "{% trans 'You have unsaved changes!' %}";
                 } else {
                     e=null;
                 }
