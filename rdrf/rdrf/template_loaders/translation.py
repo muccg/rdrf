@@ -14,7 +14,7 @@ class Loader(BaseLoader):
     models.
     """
     PREFIX = "rdrf://"
-    PRELUDE = "{% load i18n %}"
+    PRELUDE = "{% load i18n %}\n{% load static %}"
     
     def get_contents(self, origin):
         name = origin.name
