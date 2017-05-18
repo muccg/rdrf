@@ -631,3 +631,6 @@ def get_registry_definition_value(field_path):
         return get_field_from_model(field_path)
     else:
         raise ValueError("Unsupported fieldpath: %s" % field_path)
+
+
+def trans_file(request, doc_name_with_out_language
