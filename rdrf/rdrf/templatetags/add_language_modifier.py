@@ -4,7 +4,7 @@ from django.conf import settings
 register = template.Library()
 
 @register.filter(name='add_language_modifier')
-def add_language_modifier(request, file_name):
+def add_language_modifier(file_name, request):
     """
     If the request ACCEPT_LANGUAGE header is non english then return a different file name
     """
