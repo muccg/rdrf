@@ -12,7 +12,7 @@
 {% load get_info_text_expression %}
 {% load i18n %}
 {% load translate %}
-{% load add_language_specifier %}
+{% load add_language_modifier %}
 
 
 {% block extrastyle %}
@@ -267,8 +267,10 @@
                                 <div class="panel-heading"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text_expression=section|get_info_text_expression %}
-                                {% with doc="docs/"|add:link|add_language_specifier:request %}
-                                    {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
+                                {% with docfile=link|add_language_modifier:request %}
+				{% with doc="docs/"|add:docfile %}
+				  
+                                {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
                                     {% if info_text_expression %}
                                         <br>
                                         <hr>
@@ -276,6 +278,7 @@
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}
+		                {% endwith %}
                                 </div>
                                 <div class="panel-body">
                                     {% for s in section %}

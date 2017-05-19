@@ -12,5 +12,7 @@ def add_language_modifier(request, file_name):
     language = request.META.get("HTTP_ACCEPT_LANGUAGE", "EN").upper()
     if language != "EN":
         if language in allowed_languages:
+            # docs/filename  -> docs/DE_filename
+            
             return language + "_" + file_name
     return file_name
