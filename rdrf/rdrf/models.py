@@ -1903,8 +1903,8 @@ class EmailNotification(models.Model):
     EMAIL_NOTIFICATIONS = (
         (EventType.ACCOUNT_LOCKED, "Account Locked"),
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
-        (EventType.NEW_PATIENT, "New Patient Registered")
-        (EventType.ACCOUNT_VERIFIED, "Account Verified"),
+        (EventType.NEW_PATIENT, "New Patient Registered"),
+        (EventType.ACCOUNT_VERIFIED, "Account Verified")
     )
 
     description = models.CharField(max_length=100, choices=self.EMAIL_NOTIFICATIONS)
