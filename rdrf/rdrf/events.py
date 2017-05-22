@@ -1,1 +1,6 @@
-lee@lee-XPS-L421X.2697:1495417798
+class EventType:
+    OTHER_CLINICIAN = "other-clinician"
+    NEW_PATIENT = "new-patient"
+    ACCOUNT_LOCKED = "account-locked"
+    ACCOUNT_VERIFIED = "account-verified"
+
