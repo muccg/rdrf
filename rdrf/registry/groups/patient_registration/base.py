@@ -64,6 +64,14 @@ class BaseRegistration(object):
         )
         return address
 
+    @property
+    def language(self):
+        from django.conf import settings
+        language = self.request.META.get("HTTP_ACCEPT_LANGUAGE","en").upper()
+        if "-" in language:
+            language = language.split("-")[0]
+        return language
+
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(
             first_name=request.POST["parent_guardian_first_name"],
