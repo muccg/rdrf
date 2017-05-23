@@ -7,7 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
 
+from registration.signals import user_activated
 from registration.signals import user_registered
+
 from rdrf.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -232,3 +234,28 @@ def user_registered_callback(sender, user, request, **kwargs):
         patient_reg = MtmRegistration(user, request)
 
     patient_reg.process()
+
+@receiver(user_activated)
+def user_activated_callback(sender, username, request, **kwargs):
+     from rdrf.email_notification import process_notification
+     from rdrf.events import EventType
+     email_notification_description = EventType.ACCOUNT_VERIFIED
+     user_model = CustomUser.objects.get(username=username)
+     template_data = {"user": user_model}
+     preferred_language = request.META.get("HTTP_ACCEPT_LANGUAGE", "en")
+                     
+     for registry_model in user_model.rdrf_registry.objects.all():
+         registry_code = registry_model.code
+         process_notification(registry_code,
+                              email_notification_description,
+                              preferred_language,
+                              template_data)
+                              
+                              
+         
+
+         
+     
+
+
+    
