@@ -40,6 +40,8 @@ class WorkingGroup(models.Model):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    LANGUAGE_CHOICES = (("en", _("English")),
+                        ("de", _("German")))
     username = models.CharField(
         _('username'),
         max_length=254,
@@ -63,6 +65,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
+    preferred_language = models.CharField(_("preferred language"),
+                                          max_length=20,
+                                          default="en",
+                                          choices=LANGUAGE_CHOICES,
+                                          help_text=_("Preferred language for communications"))
 
     USERNAME_FIELD = "username"
 
