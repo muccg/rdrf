@@ -249,13 +249,11 @@ def user_activated_callback(sender, user, request, **kwargs):
      from rdrf.events import EventType
      email_notification_description = EventType.ACCOUNT_VERIFIED
      template_data = {"user": user}
-     preferred_language = request.META.get("HTTP_ACCEPT_LANGUAGE", "en")
                      
      for registry_model in user.registry.all():
          registry_code = registry_model.code
          process_notification(registry_code,
                               email_notification_description,
-                              preferred_language,
                               template_data)
 
 
