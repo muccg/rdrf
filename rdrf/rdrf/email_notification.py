@@ -72,12 +72,11 @@ class RdrfEmail(object):
         recipients = []
         if self.email_notification.recipient:
             recipient = self._get_recipient_template(self.email_notification.recipient)
-            recipients.append(recipients)
+            recipients.append(recipient)
         if self.email_notification.group_recipient:
             group_emails = self._get_group_emails(self.email_notification.group_recipient)
             recipients.extend(group_emails)
 
-        raise Exception(recipients)
 
         logger.debug("recipients list = %s" % recipients)
         return recipients
