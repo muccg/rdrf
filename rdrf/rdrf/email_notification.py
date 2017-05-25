@@ -16,7 +16,7 @@ class RdrfEmail(object):
 
     _DEFAULT_LANGUAGE = "en"
 
-    def __init__(self, reg_code=None, description=None, email_notification=None):
+    def __init__(self, reg_code=None, description=None, email_notification=None, language=None):
         self.email_from = None
         self.recipients = []
         self.email_templates = []
@@ -24,6 +24,7 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
+        self.language = language # used to only send to subset of languages by EmailNotificationHistory resend
 
         if email_notification:
             self.email_notification = email_notification
@@ -36,18 +37,23 @@ class RdrfEmail(object):
 
     def send(self):
         try:
+            notification_record_saved = []
+            
             for recipient in self._get_recipients():
-                logger.debug("sending email to %s for %s" % (recipient,
-                                                             self.description))
-                
                 language = self._get_preferred_language(recipient)
-                logger.debug("language = %s" % language)
+                if self.language and self.language != language:
+                    # skip recipients with diff language
+                    # this is used in resend when we resend per language template
+                    continue
+                    
                 email_subject, email_body = self._get_email_subject_and_body(language)
                 logger.debug("email_subject = %s" % email_subject)
                 logger.debug("email_body = %s" % email_body)
-                send_mail(email_subject, email_body, self.email_notification.email_from, recipient, html_message=email_body)
+                send_mail(email_subject, email_body, self.email_notification.email_from, [recipient], html_message=email_body)
+                if language not in notification_record_saved: 
+                    self._save_notification_record(language)
+                    notification_record_saved.append(language)
             logger.info("Sent email(s) %s" % self.description)
-            self._save_notification_record()
             logger.info("Email %s saved in history table" % self.description)
         except RdrfEmailException as rdrfex:
             logger.debug("RdrfEmailException: %s" % rdrfex)
@@ -121,7 +127,7 @@ class RdrfEmail(object):
 
         return recipient_template.render(context)
 
-    def _save_notification_record(self):
+    def _save_notification_record(self, language):
         _template_data = {}
 
         for key, value in self.template_data.items():
@@ -133,7 +139,7 @@ class RdrfEmail(object):
                 }
 
         enh = EmailNotificationHistory(
-            language=self.language,
+            language=language,
             email_notification=self.email_notification,
             template_data=json.dumps(_template_data)
         )
