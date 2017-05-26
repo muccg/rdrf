@@ -19,8 +19,7 @@ def account_lockout_handler(sender, user=None, **kwargs):
     registry_code = getattr(settings, "FALLBACK_REGISTRY_CODE", None)
 
     if registry_code:
-        process_notification(registry_code,"account-locked",
-                             get_request().LANGUAGE_CODE, template_data)
+        process_notification(registry_code,"account-locked", template_data)
     else:
         logger.debug("No settings.FALLBACK_REGISTRY_CODE- no notifications sent")
 

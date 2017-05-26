@@ -261,7 +261,8 @@ def user_activated_callback(sender, user, request, **kwargs):
         # is the user is a parent they will have created 1 patient (only?)
         parent = ParentGuardian.objects.get(user=user)
         patients = [ p for p in parent.patient.all()]
-        patient = patients[0]
+        if len(patients) >= 1:
+            patient = patients[0]
 
     if patient:
         template_data["patient"] = patient
