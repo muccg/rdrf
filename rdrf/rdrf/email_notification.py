@@ -38,7 +38,11 @@ class RdrfEmail(object):
     def send(self):
         try:
             notification_record_saved = []
-            
+            recipients = self._get_recipients()
+            if len(recipients) == 0:
+                # If the recipient template does not evaluate to a valid email address this will be
+                # true
+                return
             for recipient in self._get_recipients():
                 language = self._get_preferred_language(recipient)
                 if self.language and self.language != language:
@@ -83,9 +87,14 @@ class RdrfEmail(object):
             group_emails = self._get_group_emails(self.email_notification.group_recipient)
             recipients.extend(group_emails)
 
+        # NB If a patient registers as a patient ( not a parent)
+        # and a parent template is registered against the account verified
+        # event , the recipient template will evaulate to an empty string ..
+        
+        return [r for r in recipients  if self._valid_email(r)]
 
-        logger.debug("recipients list = %s" % recipients)
-        return recipients
+    def _valid_email(self, s):
+        return "@" in s
     
     def _get_email_subject_and_body(self, language):
         try:
