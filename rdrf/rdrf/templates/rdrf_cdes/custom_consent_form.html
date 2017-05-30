@@ -267,7 +267,7 @@
                                 <div class="panel-heading"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text_expression=section|get_info_text_expression %}
-                                {% with docfile=link|add_language_modifier:request %}
+                                {% with docfile=link|add_language_modifier %}
 				{% with doc="docs/"|add:docfile %}
 				  
                                 {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}

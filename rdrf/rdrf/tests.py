@@ -1004,54 +1004,6 @@ class MinTypeTest(TestCase):
         l = [10,1,-7,bottom]
         g = sorted(l)
         self.assertTrue(g[0] is bottom)
-
-
-class AcceptLanguageTest(TestCase):
-    def test_parse_accept_language(self):
-        from rdrf.utils import parse_accept_language
-        def test_parser(s, expected):
-            parsed = parse_accept_language(s)
-            self.assertTrue(parsed == expected, "parse_accept_language error for '%s' - Expected: %s Actual: %s" % (s,
-                                                                                                                    expected,
-                                                                                                                    parsed))
-
-        test_parser("", [("",1.0)])
-        test_parser("de", [("de",1.0)])
-        test_parser("en-us", [("en-us",1.0)])
-        test_parser("en,de", [("en", 1.0), ("de", 1.0)])
-        test_parser("en,  de", [("en", 1.0), ("de", 1.0)])
-        test_parser("de,en", [("de", 1.0), ("en", 1.0)])
-        test_parser("en,de-ch,fr", [("en", 1.0), ("de-ch",1.0), ("fr", 1.0)])
-        test_parser("en, de-ch,    fr", [("en", 1.0), ("de-ch",1.0), ("fr", 1.0)])
-
-        # quality scores
-        test_parser("en,    de; q=.5", [("en", 1.0), ("de", 0.5)])
-        test_parser("de-ch; q=0.623, en;q=0.8", [("en", 0.8), ("de-ch", 0.623)])
-
-
-    def test_get_language(self):
-        from rdrf.utils import get_language
-        class MockRequest:
-            def __init__(self, accept_language_header):
-                self.META = {}
-                self.META["HTTP_ACCEPT_LANGUAGE"] = accept_language_header
-
-        def test_result(s, expected):
-            mock_request = MockRequest(s)
-            l = get_language(mock_request)
-            self.assertTrue(l == expected, "get_language failed with ACCEPT_LANGUAGE header '%s' - Expected: %s Actual: %s" % (s,
-                                                                                                        expected,
-                                                                                                        l))
-        test_result("", "EN")
-        test_result("de", "DE")
-        test_result("en", "EN")
-        test_result("en-US", "EN")
-        test_result("fr;q=0.4, de, en;q=0.8", "DE")
-        test_result("fr;q=0.4, xx, en; q=0.8, de;q=0.82", "DE")
-        test_result("fr;q=0.4, xx, en;  q=0.8, de; q=0.72", "EN")
-        test_result("fr;q=0.4, xx, en-us;  q=0.8, de; q=0.72", "EN")
-        test_result("xx,   yy, zz,en;q=0.2, de;   q= .3", "DE")
-        test_result("*","EN")
         
 
         

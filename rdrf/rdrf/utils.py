@@ -647,52 +647,6 @@ def trans_file(request, doc_name_with_out_language):
     return doc_name_with_out_language
 
 
-def get_language(request):
-    """
-    Find the best matching language for which we have translations
-    """
-    default_language = "EN"
-    from django.conf import settings
-    languages_with_translations = [pair[0].upper() for pair in settings.LANGUAGES]
-    
-    l = request.META.get("HTTP_ACCEPT_LANGUAGE",default_language).upper()
-    quality_pairs = parse_accept_language(l)
-    for (language_code, quality_score) in quality_pairs:
-        if language_code == default_language:
-            return default_language
-        if language_code in languages_with_translations:
-            # if we have an exact match to the locale return it
-            return language_code
-        if "-" in language_code:
-            # e.g. en-US 
-            main_part, secondary_part = language_code.split("-")
-            if main_part in languages_with_translations:
-                return main_part
-
-    # too bad
-    return default_language
-        
-
-def parse_accept_language(accept_language):
-    # snarfed from https://siongui.github.io/2012/10/11/python-parse-accept-language-in-http-request-header/
-    from operator import itemgetter
-    languages = accept_language.split(",")
-    locale_q_pairs = []
-
-    for language in languages:
-        if language.split(";")[0] == language:
-            # no q => q = 1
-            locale_q_pairs.append((language.strip(), 1.0))
-        else:
-            locale = language.split(";")[0].strip()
-            q = language.split(";")[1].split("=")[1]
-            locale_q_pairs.append((locale, float(q)))
-
-    return sorted(locale_q_pairs, key=itemgetter(1), reverse=True)
-    
-
-    
-
     
     
     
