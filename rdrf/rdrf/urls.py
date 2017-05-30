@@ -2,6 +2,8 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
+import django.contrib.auth.views
+from django.views.i18n import JavaScriptCatalog
 
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
@@ -42,9 +44,10 @@ def handlerApplicationError(request):
         "application_error": "Example config Error",
     })
 
-import django.contrib.auth.views
+JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
 urlpatterns = [
+    url(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^test404', handler404),
     url(r'^test500', handler500),
     url(r'^testAppError', handlerApplicationError),

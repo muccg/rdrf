@@ -19,6 +19,7 @@ from django.forms.models import model_to_dict
 from .notifications import Notifier, NotificationError
 from .utils import get_full_link, check_calculation
 from .utils import format_date, parse_iso_date, parse_iso_datetime
+from rdrf.events import EventType
 
 from .jsonb import DataField
 
@@ -1899,7 +1900,14 @@ class EmailTemplate(models.Model):
 
 
 class EmailNotification(models.Model):
-    description = models.CharField(max_length=100, choices=settings.EMAIL_NOTIFICATIONS)
+    EMAIL_NOTIFICATIONS = (
+        (EventType.ACCOUNT_LOCKED, "Account Locked"),
+        (EventType.OTHER_CLINICIAN, "Other Clinician"),
+        (EventType.NEW_PATIENT, "New Patient Registered"),
+        (EventType.ACCOUNT_VERIFIED, "Account Verified")
+    )
+
+    description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry)
     email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
     recipient = models.CharField(max_length=100, null=True, blank=True)

@@ -4,6 +4,7 @@ from rdrf.models import Registry
 from registry.patients.models import PatientAddress, AddressType
 from registry.patients.models import ParentGuardian
 from django.contrib.auth.models import Group
+from django.utils.translation import get_language
 
 
 class BaseRegistration(object):
@@ -63,6 +64,10 @@ class BaseRegistration(object):
             country=request.POST["country"]
         )
         return address
+
+    @property
+    def language(self):
+        return get_language()
 
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(
