@@ -160,6 +160,10 @@ class RdrfEmail(object):
 
 
 def process_notification(reg_code=None, description=None, template_data={}):
+    logger.debug("process_notification %s %s %s" % (reg_code,
+                                                    description,
+                                                    template_data))
+    
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     for note in notes:
         if note.disabled:

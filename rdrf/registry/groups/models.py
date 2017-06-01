@@ -270,6 +270,10 @@ def user_activated_callback(sender, user, request, **kwargs):
     if parent:
         template_data["parent"] = parent
 
+
+    template_data["user"] = user
+    
+
     for registry_model in user.registry.all():
          registry_code = registry_model.code
          process_notification(registry_code,
