@@ -601,14 +601,16 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            messages.add_message(
-                request, messages.SUCCESS, 'Patient %s saved successfully' % patient_name)
+            success_message = _("Patient %(patient_name)s saved successfully") % {"patient_name": patient_name}
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 success_message)
         else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                'Patient %s not saved due to validation errors' %
-                patient_name)
+            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {"patient_name": patient_name}
+
+            messages.add_message(request,
+                                 messages.ERROR,
+                                 failure_message)
 
         return render(request, self._get_template(), context)
 
