@@ -308,9 +308,11 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
+							{% if not element.is_hidden %}
                                                         <small class="text-muted">
                                                             {{ element.help_text }}
                                                         </small>
+							{% endif %}
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
@@ -341,9 +343,11 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
+							{% if not element.is_hidden %}
                                                         <small class="text-muted">
                                                             {{ element.help_text }}
                                                         </small>
+							{% endif %}
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}

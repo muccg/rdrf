@@ -12,6 +12,8 @@
 {% load get_info_text_expression %}
 {% load i18n %}
 {% load translate %}
+{% load add_language_modifier %}
+
 
 {% block extrastyle %}
     {{block.super}}
@@ -181,9 +183,11 @@
                                             </label>
                                             <div class="col-sm-9">
                                                 {{ element|safe }}
+						{% if not element.is_hidden %}
                                                 <small class="text-muted">
                                                     {{ element.help_text|translate }}
                                                 </small>
+						{% endif %}
                                                 {% if element.errors %}
                                                     <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                 {% endif %}
@@ -239,9 +243,11 @@
                                                                         {{ element }}
 
                                                                     {% endif %}
+								    {% if not element.is_hidden %}
                                                                     <small class="text-muted">
                                                                         {{ element.help_text|translate }}
                                                                     </small>
+								    {% endif %}
                                                                     {% if element.errors %}
                                                                         <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                                     {% endif %}
@@ -265,8 +271,10 @@
                                 <div class="panel-heading"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text_expression=section|get_info_text_expression %}
-                                {% with doc="docs/"|add:link %}
-                                    {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
+                                {% with docfile=link|add_language_modifier %}
+				{% with doc="docs/"|add:docfile %}
+				  
+                                {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
                                     {% if info_text_expression %}
                                         <br>
                                         <hr>
@@ -274,6 +282,7 @@
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}
+		                {% endwith %}
                                 </div>
                                 <div class="panel-body">
                                     {% for s in section %}
@@ -296,9 +305,11 @@
                                                     <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
                                                         {{ element.label|translate }}
 							<br>
+						    {% if not element.is_hidden %}
                                                     <small class="text-muted">
                                                         {{ element.help_text|translate }}
                                                     </small>
+						    {% endif %}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}

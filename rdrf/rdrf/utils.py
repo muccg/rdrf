@@ -631,3 +631,23 @@ def get_registry_definition_value(field_path):
         return get_field_from_model(field_path)
     else:
         raise ValueError("Unsupported fieldpath: %s" % field_path)
+
+
+def trans_file(request, doc_name_with_out_language):
+    from django.conf import settings
+    default_language = "EN"
+    languages = [ pair[0].upper() for pair in settings.LANGUAGES]
+    language = request.META.get("HTTP_ACCEPT_LANGUAGE", default_language)
+    if language != default_language:
+        if language in languages:
+            new_file_name = language + "_" + doc_name_with_out_language
+            return new_file_name
+
+
+    return doc_name_with_out_language
+
+
+    
+    
+    
+

@@ -7,7 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
 
+from registration.signals import user_activated
 from registration.signals import user_registered
+
 from rdrf.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -38,6 +40,8 @@ class WorkingGroup(models.Model):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    LANGUAGE_CHOICES = (("en", _("English")),
+                        ("de", _("German")))
     username = models.CharField(
         _('username'),
         max_length=254,
@@ -61,6 +65,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
     registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
+    preferred_language = models.CharField(_("preferred language"),
+                                          max_length=20,
+                                          default="en",
+                                          choices=LANGUAGE_CHOICES,
+                                          help_text=_("Preferred language for communications"))
 
     USERNAME_FIELD = "username"
 
@@ -232,3 +241,48 @@ def user_registered_callback(sender, user, request, **kwargs):
         patient_reg = MtmRegistration(user, request)
 
     patient_reg.process()
+
+
+@receiver(user_activated)
+def user_activated_callback(sender, user, request, **kwargs):
+    from rdrf.email_notification import process_notification
+    from rdrf.events import EventType
+    from registry.patients.models import Patient
+    from registry.patients.models import ParentGuardian
+    
+    parent = patient = None
+    email_notification_description = EventType.ACCOUNT_VERIFIED
+    template_data = {}
+
+    if user.is_patient:
+        patient = Patient.objects.get(user=user)
+
+    elif user.is_parent:
+        # is the user is a parent they will have created 1 patient (only?)
+        parent = ParentGuardian.objects.get(user=user)
+        patients = [ p for p in parent.patient.all()]
+        if len(patients) >= 1:
+            patient = patients[0]
+
+    if patient:
+        template_data["patient"] = patient
+
+    if parent:
+        template_data["parent"] = parent
+
+
+    template_data["user"] = user
+    
+
+    for registry_model in user.registry.all():
+         registry_code = registry_model.code
+         process_notification(registry_code,
+                              email_notification_description,
+                              template_data)
+
+
+         
+     
+
+
+    

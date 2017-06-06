@@ -1005,4 +1005,12 @@ class MinTypeTest(TestCase):
         g = sorted(l)
         self.assertTrue(g[0] is bottom)
         
+
+        
+        
+        
+        
+        
+            
+        
         
