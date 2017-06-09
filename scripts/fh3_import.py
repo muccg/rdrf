@@ -3,36 +3,38 @@ django.setup()
 
 import sys
 from operator import itemgetter
+import csv
+
 from django.db import transaction
+
 from rdrf.models import Registry
 from rdrf.models import CommonDataElement
 from rdrf.models import CDEPermittedValue
 
 from registry.patients.models import Patient
 
+
 class MissingCodeError(Exception):
     pass
 
 
-class Codes:
-    FORM = "ClinicalData"
-    MULTISECTION = "FHMutationDetails"
-    GENEVARIANT = "FHMutation"
-    DESCRIPTION = "FHMutationDescription"
-    PATHOGENICITY = "Pathogenicity"
-
 class PatientData:
+
     def __init__(self, patient_id, items):
         self.old_id = patient_id
         self.items = items
 
+    @property
+    def fields(self):
+        return []
+
 class Reader:
+
     def __init__(self, csv_file):
         self.csv_file = csv_file
         self.patient_data = []
-        
+
     def read(self):
-        import csv
         patient_map = {}
         with open(self.csv_file) as f:
             csvreader = csv.DictReader(f)
@@ -41,30 +43,6 @@ class Reader:
                     patient_map[row["PatientID"]].append(row)
                 else:
                     patient_map[row["PatientID"]] = [row]
-        for patient_id in patient_map:
-            items = self._make_items(patient_id, patient_map[patient_id])
-            self.patient_data.append(PatientData(patient_id, items))
-
-
-    def _make_items(self, patient_id, rows):
-        items = []
-        for row in sorted(rows,key=itemgetter('SectionIndex')):
-            cde_dicts = []
-            if row["GeneVariant"]:
-                cde_dicts.append(self._make_cde_dict(Codes.GENEVARIANT,
-                                                     row["GeneVariant"]))
-
-            if row["Description"]:
-                cde_dicts.append(self._make_cde_dict(Codes.DESCRIPTION,
-                                                     row["Description"]))
-
-            if row["Pathogenicity"]:
-                cde_dicts.append(self._make_cde_dict(Codes.PATHOGENICITY,
-                                                     row["Pathogenicity"]))
-
-            items.append(cde_dicts)
-
-        return items
 
     def _make_cde_dict(self, code, display_value):
         cde_model = CommonDataElement.objects.get(code=code)
@@ -74,15 +52,14 @@ class Reader:
                 value = self._get_pv_code(cde_model.pv_group,
                                           display_value)
             except MissingCodeError:
-                error("Missing code for pvg %s display_value '%s'" % (cde_model.pv_group.code,
-                                                                      display_value))
+                error(
+                    "Missing code for pvg %s display_value '%s'" % (cde_model.pv_group.code,
+                                                                    display_value))
                 value = None
-                
+
         else:
             value = display_value
 
-            
-            
         return {"code": code,
                 "value": value}
 
@@ -94,13 +71,11 @@ class Reader:
 
         raise MissingCodeError()
 
-        
-
-    
     def __iter__(self):
         for data in self.patient_data:
             yield data
-           
+
+
 def build_idmap(mapfile):
     idmap = {}
     with open(mapfile) as mf:
@@ -109,16 +84,19 @@ def build_idmap(mapfile):
             idmap[old_id] = new_id
     return idmap
 
+
 def error(msg):
     print("Error: %s" % msg)
+
 
 def info(msg):
     print("Info: %s" % msg)
 
+
 def existing_data(patient_model):
-    return False 
-    
-    
+    return False
+
+
 idmap_file = sys.argv[1]
 csv_file = sys.argv[2]
 
@@ -129,36 +107,91 @@ reader.read()
 
 idmap = build_idmap(idmap_file)
 
-# we're updating just one multisection
-field_expression = "$ms/%s/%s/items" % (Codes.FORM,
-                                        Codes.MULTISECTION)
-
 for patient_data in reader:
     rdrf_id = idmap.get(patient_data.old_id, None)
     if rdrf_id is None:
-        error("Patient %s does not exist in mapping file" % patient_data.old_id)
+        error("%s UNMAPPED" % patient_data.old_id)
         continue
     else:
         try:
             patient_model = Patient.objects.get(pk=rdrf_id)
-            moniker = "%s\%s" % (patient_data.old_id,
-                                 rdrf_id)
-            
-            info("Found patient %s" % patient_model)
-            
 
-            info("Updating patient %s .." % moniker)
+            for field_expression, value in patient_data.fields:
+                try:
+                    with transaction.atomic():
+                        patient_model.evaluate_field_expression(fh_registry,
+                                                                field_expression,
+                                                                value=value)
 
-            try:
-                with transaction.atomic():
-                    patient_model.evaluate_field_expression(fh_registry,
-                                                            field_expression,
-                                                            value=patient_data.items)
-                
-                    info("Updated patient %s OK" % moniker)
-            except Exception as ex:
-                    error("Updated failed for %s ( no change to this patient): %s" % (moniker,
-                                                                                      ex))
-                    
+                        info("%s %s OK" % (rdrf_id, field_expression))
+                except Exception as ex:
+                    error("%s %s FAIL: %s" % (rdrf_id, field_expression, ex))
+
         except Patient.DoesNotExist:
-            error("No patient with id %s - skipping" % rdrf_id)
+            error("%s DOES NOT EXIST" % rdrf_id)
+
+
+
+
+class FieldInfo(self):
+    def __init__(self):
+        self.form_model = None
+        self.section_model = None
+        self.cde_model = None
+        self.field_expression = None
+
+        
+
+class PatientUpdater:
+    def __init__(self, idmap, rows, logger):
+        self.headers = rows[0]
+        self.rows = rows[1:]
+        self.idmap = idmap
+        self.logger = logger
+        self.field_map = self._create_field_map()
+
+    def _get_patient(self, row):
+        old_id = row[0]
+        new_id = self.idmap.get(old_id, None)
+        if new_id is None:
+            self.logger.error("Patient %s unmapped" % old_id)
+            return None
+
+        try:
+            patient_model = Patient.objects.get(id=new_id)
+            return patient_model
+        except Patient.DoesNotExist:
+            self.logger.error("Patient %s/%s does not exist" % (old_id,
+                                                                new_id))
+            return None
+
+    def _get_field_data(self, row):
+        for column_index in range(1, self.last_column + 1):
+            field_info = self._get_column_info(column_index)
+            raw_value = row[column_index]
+            yield field_info, raw_value
+
+    def _get_column_info(self, column_index):
+        field_info = FieldInfo()
+        return field_info
+
+    def _apply_field_expression(self, field_expression, patient_model, rdrf_value):
+        pass
+
+    def _get_rdrf_value(self, value, field_info):
+        return None
+    
+    def update(self):
+        for row in rows:
+            patient_model = self.get_patient(row)
+            if patient_model:
+                for field_info, value in get_field_columns(row):
+                    rdrf_value = sef._get_rdrf_value(value, field_info)
+                    self._apply_field_expression(field_info.field_expression, patient_model, rdrf_value)
+
+
+
+        
+        
+        
+        
