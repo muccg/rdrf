@@ -85,6 +85,59 @@ def build_idmap(mapfile):
     return idmap
 
 
+def build_field_map(registry_model,field_map_file):
+    field_map = {}
+    
+    with open(field_map_file) as f:
+        csvreader = csv.DictReader(f)
+        for row in csvreader:
+            fieldnum = row["FIELDNUM"]
+            form_name = row["FORM"]
+            section_name = row["SECTION"]
+            cde_name = row["CDE"]
+
+            try:
+                form_model = RegistryForm.objects.get(registry=registry_model,
+                                                      name=form_name)
+
+                section_model = None
+
+                for sec_model in form_model.section_models:
+                    if sec_model.name == section_name:
+                        section_model = sec_model
+                        break
+
+                cde_model = None
+
+                for c_model in section_model.cde_models:
+                    if c_model.name == cde_name:
+                        cde_model = c_model
+                        break
+
+                field_info = FieldInfo(registry_model,
+                                       form_model,
+                                       section_model,
+                                       cde_model)
+
+                field_map[fieldnum] = field_info
+            except Exception as ex:
+                error("Bad field: fieldnum = %s error: %s" % (fieldnum,
+                                                              ex))
+    return field_map
+
+                
+                
+
+            
+
+            
+            
+            
+            
+    
+    
+
+
 def error(msg):
     print("Error: %s" % msg)
 
@@ -97,64 +150,62 @@ def existing_data(patient_model):
     return False
 
 
-idmap_file = sys.argv[1]
-csv_file = sys.argv[2]
 
-fh_registry = Registry.objects.get(code="fh")
 
-reader = Reader(csv_file)
-reader.read()
 
-idmap = build_idmap(idmap_file)
+# for patient_data in reader:
+#     rdrf_id = idmap.get(patient_data.old_id, None)
+#     if rdrf_id is None:
+#         error("%s UNMAPPED" % patient_data.old_id)
+#         continue
+#     else:
+#         try:
+#             patient_model = Patient.objects.get(pk=rdrf_id)
 
-for patient_data in reader:
-    rdrf_id = idmap.get(patient_data.old_id, None)
-    if rdrf_id is None:
-        error("%s UNMAPPED" % patient_data.old_id)
-        continue
-    else:
-        try:
-            patient_model = Patient.objects.get(pk=rdrf_id)
+#             for field_expression, value in patient_data.fields:
+#                 try:
+#                     with transaction.atomic():
+#                         patient_model.evaluate_field_expression(fh_registry,
+#                                                                 field_expression,
+#                                                                 value=value)
 
-            for field_expression, value in patient_data.fields:
-                try:
-                    with transaction.atomic():
-                        patient_model.evaluate_field_expression(fh_registry,
-                                                                field_expression,
-                                                                value=value)
+#                         info("%s %s OK" % (rdrf_id, field_expression))
+#                 except Exception as ex:
+#                     error("%s %s FAIL: %s" % (rdrf_id, field_expression, ex))
 
-                        info("%s %s OK" % (rdrf_id, field_expression))
-                except Exception as ex:
-                    error("%s %s FAIL: %s" % (rdrf_id, field_expression, ex))
-
-        except Patient.DoesNotExist:
-            error("%s DOES NOT EXIST" % rdrf_id)
+#         except Patient.DoesNotExist:
+#             error("%s DOES NOT EXIST" % rdrf_id)
 
 
 
 
-class FieldInfo(self):
-    def __init__(self):
+class FieldInfo:
+    def __init__(self, registry_model, field_map):
+        self.registry_model = registry_model
+        self.field_map = field_map
+        self.column_index = None
         self.form_model = None
         self.section_model = None
         self.cde_model = None
         self.field_expression = None
+        self._load()
 
-        
+
 
 class PatientUpdater:
-    def __init__(self, idmap, rows, logger):
+    def __init__(self, registry_model, field_map, id_map, rows, logger):
+        self.registry_model = registry_model
+        self.field_map = field_map
         self.headers = rows[0]
         self.rows = rows[1:]
-        self.idmap = idmap
-        self.logger = logger
+        self.id_map = id_map
         self.field_map = self._create_field_map()
 
     def _get_patient(self, row):
         old_id = row[0]
         new_id = self.idmap.get(old_id, None)
         if new_id is None:
-            self.logger.error("Patient %s unmapped" % old_id)
+            error("Patient %s unmapped" % old_id)
             return None
 
         try:
@@ -188,10 +239,20 @@ class PatientUpdater:
                 for field_info, value in get_field_columns(row):
                     rdrf_value = sef._get_rdrf_value(value, field_info)
                     self._apply_field_expression(field_info.field_expression, patient_model, rdrf_value)
+        
+        
+if __name__ == '__main__':
+    registry_model = Registry.objects.get(code='fh')
+    field_map_file = sys.argv[1]
+    idmap_file = sys.argv[2]
+    csv_file = sys.argv[3]
 
+    id_map = build_id_map(idmap_file)
+    field_map = build_field_map(registry_model, field_map_file)
+    reader = Reader(csv_file)
+    rows = reader.read()
 
-
-        
-        
-        
-        
+    patient_updater = PatientUpdater(registry_model, id_map, field_map, rows)
+    patient_updater.update()
+    
+    
