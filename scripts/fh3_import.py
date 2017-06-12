@@ -8,6 +8,7 @@ import csv
 from django.db import transaction
 
 from rdrf.models import Registry
+from rdrf.models import RegistryForm
 from rdrf.models import CommonDataElement
 from rdrf.models import CDEPermittedValue
 
@@ -49,21 +50,30 @@ def build_field_map(registry_model, field_map_file):
 
     with open(field_map_file) as f:
         csvreader = csv.DictReader(f)
-        for row in csvreader:
+        rows = [ row for row in csvreader ][1:]
+        
+        for row in rows:
             fieldnum = row["FIELDNUM"]
+            info("reading field %s" % fieldnum)
             form_name = row["FORM"]
+            info("form name = %s" % form_name)
             section_name = row["SECTION"]
+            info("section name = %s" % section_name)
             cde_name = row["CDE"]
+            info("cde name = %s" % cde_name)
 
             try:
                 form_model = RegistryForm.objects.get(registry=registry_model,
                                                       name=form_name)
 
+                info("found registry form %s" % form_model)
+
                 section_model = None
 
                 for sec_model in form_model.section_models:
-                    if sec_model.name == section_name:
+                    if sec_model.display_name == section_name:
                         section_model = sec_model
+                        info("found section model %s" % section_model)
                         break
 
                 cde_model = None
@@ -71,12 +81,15 @@ def build_field_map(registry_model, field_map_file):
                 for c_model in section_model.cde_models:
                     if c_model.name == cde_name:
                         cde_model = c_model
+                        info("found cde_model %s" % cde_model)
                         break
 
                 field_info = FieldInfo(registry_model,
                                        form_model,
                                        section_model,
                                        cde_model)
+
+                info("created field info object")
 
                 field_map[fieldnum] = field_info
             except Exception as ex:
@@ -112,12 +125,9 @@ class Reader:
         patient_map = {}
         with open(self.csv_file) as f:
             csvreader = csv.DictReader(f)
-            for row in csvreader:
-                if row["PatientID"] in patient_map:
-                    patient_map[row["PatientID"]].append(row)
-                else:
-                    patient_map[row["PatientID"]] = [row]
-
+            rows = [ row for row in csvreader]
+            return rows
+        
     def _make_cde_dict(self, code, display_value):
         cde_model = CommonDataElement.objects.get(code=code)
         if cde_model.pv_group:
@@ -152,17 +162,17 @@ class Reader:
 
 class PatientUpdater:
 
-    def __init__(self, registry_model, field_map, id_map, rows, logger):
+    def __init__(self, registry_model, field_map, id_map, rows):
         self.registry_model = registry_model
         self.field_map = field_map
+        self.id_map = id_map
         self.headers = rows[0]
         self.rows = rows[1:]
-        self.id_map = id_map
         self.field_map = field_map
 
     def _get_patient(self, row):
-        old_id = row[0]
-        new_id = self.idmap.get(old_id, None)
+        old_id = row["1"]
+        new_id = self.id_map.get(old_id, None)
         if new_id is None:
             error("Patient %s unmapped" % old_id)
             return None
@@ -192,7 +202,7 @@ class PatientUpdater:
 
     def update(self):
         for row in rows:
-            patient_model = self.get_patient(row)
+            patient_model = self._get_patient(row)
             if patient_model:
                 for field_info, value in get_field_columns(row):
                     rdrf_value = sef._get_rdrf_value(value, field_info)
@@ -208,6 +218,9 @@ if __name__ == '__main__':
 
     id_map = build_id_map(idmap_file)
     field_map = build_field_map(registry_model, field_map_file)
+    if field_map is None:
+        error("Field Map error - aborting")
+        sys.exit(1)
     reader = Reader(csv_file)
     rows = reader.read()
 
