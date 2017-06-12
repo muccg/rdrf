@@ -176,12 +176,6 @@ class PatientUpdater:
                                                     new_id))
             return None
 
-    def _get_field_data(self, row):
-        for column_index in range(1, self.last_column + 1):
-            field_info = self._get_column_info(column_index)
-            raw_value = row[column_index]
-            yield field_info, raw_value
-
     def _get_column_info(self, column_index):
         return self.field_map[column_index]
 
@@ -191,10 +185,8 @@ class PatientUpdater:
                                                     field_expression,
                                                     value=rdrf_value)
         else:
+            # if data not supplied, we don't attempt to import
             info("Not applying empty value for this field")
-            
-
-        
 
     def _get_rdrf_value(self, value, field_info):
         if field_info.is_range:
@@ -218,6 +210,8 @@ class PatientUpdater:
                             error("No field info for column %s" % column_key)
                             continue
                         else:
+                            if field_info.is_multi:
+                                continue
                             info(
                                 "found field info for column %s: %s" % (column_key,
                                                                         field_info))
@@ -228,7 +222,6 @@ class PatientUpdater:
                                 raw_value, field_info)
 
                             field_expression = field_info.field_expression
-                            
 
                             if not field_info.in_multi:
                                 
@@ -236,9 +229,21 @@ class PatientUpdater:
                                                              field_expression,
                                                              patient_model,
                                                              rdrf_value)
+
+                                
                             else:
                                 info("dummy updating cde in mulisection %s --> %s" % (field_expression,
                                                                                       rdrf_value))
+
+                                self._update_multisection(field_info,
+                                                          rdrf_value,
+                                                          patient_model)
+
+    def _update_multisection(self, field_info, rdrf_value, patient_model):
+        # assumption from sheet is that we are updating the 1st item of the multisection
+        # if none exists, we create the multisection item
+        pass
+    
                                 
 
 
