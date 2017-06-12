@@ -11,7 +11,6 @@ from rdrf.models import Registry
 from rdrf.models import RegistryForm
 from rdrf.models import CommonDataElement
 from rdrf.models import CDEPermittedValue
-
 from registry.patients.models import Patient
 
 
@@ -22,9 +21,10 @@ def error(msg):
 def info(msg):
     print("Info: %s" % msg)
 
-
-def existing_data(patient_model):
-    return False
+def blank_lines(n):
+    for i in range(n):
+        print("")
+        
 
 
 class FieldInfo:
@@ -34,6 +34,50 @@ class FieldInfo:
         self.form_model = form_model
         self.section_model = section_model
         self.cde_model = cde_model
+        self.is_multi = self.section_model.allow_multiple
+
+    def __str__(self):
+        return "%s/%s/%s/%s" % (self.registry_model.code,
+                                self.form_model.name,
+                                self.section_model.code,
+                                self.cde_model.code)
+
+    @property
+    def field_expression(self):
+        if not self.is_multi:
+            fe = "%s/%s/%s" % (self.form_model.name,
+                               self.section_model.code,
+                               self.cde_model.code)
+            return fe
+
+    @property
+    def is_range(self):
+        return self.cde_model.pv_group is not None
+
+    @property
+    def in_multi(self):
+        return self.section_model.allow_multiple
+
+    def get_range_code(self, display_value):
+        if not self.is_range:
+            raise ValueError(
+                "Field info is not a range: Can't look up value [%s]" % display_value)
+
+        range_value_dicts = self.cde_model.pv_group.as_dict()["values"]
+        
+        for range_value_dict in range_value_dicts:
+            # code is what needs to be stored in the db
+            range_display_value = range_value_dict["value"]
+            if display_value == range_display_value:
+                return range_value_dict["code"]
+
+
+    def should_apply(self, value):
+        if self.is_range and value is None:
+            # cell was empty
+            return False
+
+        return True
 
 
 def build_id_map(map_file):
@@ -50,8 +94,8 @@ def build_field_map(registry_model, field_map_file):
 
     with open(field_map_file) as f:
         csvreader = csv.DictReader(f)
-        rows = [ row for row in csvreader ][1:]
-        
+        rows = [row for row in csvreader][1:]
+
         for row in rows:
             fieldnum = row["FIELDNUM"]
             info("reading field %s" % fieldnum)
@@ -100,64 +144,11 @@ def build_field_map(registry_model, field_map_file):
     return field_map
 
 
-class MissingCodeError(Exception):
-    pass
-
-
-class PatientData:
-
-    def __init__(self, patient_id, items):
-        self.old_id = patient_id
-        self.items = items
-
-    @property
-    def fields(self):
-        return []
-
-
-class Reader:
-
-    def __init__(self, csv_file):
-        self.csv_file = csv_file
-        self.patient_data = []
-
-    def read(self):
-        patient_map = {}
-        with open(self.csv_file) as f:
-            csvreader = csv.DictReader(f)
-            rows = [ row for row in csvreader]
-            return rows
-        
-    def _make_cde_dict(self, code, display_value):
-        cde_model = CommonDataElement.objects.get(code=code)
-        if cde_model.pv_group:
-            # need to get the value code from  the display value provided
-            try:
-                value = self._get_pv_code(cde_model.pv_group,
-                                          display_value)
-            except MissingCodeError:
-                error(
-                    "Missing code for pvg %s display_value '%s'" % (cde_model.pv_group.code,
-                                                                    display_value))
-                value = None
-
-        else:
-            value = display_value
-
-        return {"code": code,
-                "value": value}
-
-    def _get_pv_code(self, pv_group, display_value):
-        for pv in CDEPermittedValue.objects.filter(
-                pv_group=pv_group).order_by('position'):
-            if pv.value == display_value:
-                return pv.code
-
-        raise MissingCodeError()
-
-    def __iter__(self):
-        for data in self.patient_data:
-            yield data
+def read_patients(csv_file):
+    with open(csv_file) as f:
+        csvreader = csv.DictReader(f)
+        rows = [row for row in csvreader]
+        return rows
 
 
 class PatientUpdater:
@@ -181,8 +172,8 @@ class PatientUpdater:
             patient_model = Patient.objects.get(id=new_id)
             return patient_model
         except Patient.DoesNotExist:
-            self.logger.error("Patient %s/%s does not exist" % (old_id,
-                                                                new_id))
+            error("Patient %s/%s does not exist" % (old_id,
+                                                    new_id))
             return None
 
     def _get_field_data(self, row):
@@ -194,20 +185,61 @@ class PatientUpdater:
     def _get_column_info(self, column_index):
         return self.field_map[column_index]
 
-    def _apply_field_expression(self, field_expression, patient_model, rdrf_value):
-        pass
+    def _apply_field_expression(self, field_info, field_expression, patient_model, rdrf_value):
+        if field_info.should_apply(rdrf_value):
+            patient_model.evaluate_field_expression(self.registry_model,
+                                                    field_expression,
+                                                    value=rdrf_value)
+        else:
+            info("Not applying empty value for this field")
+            
+
+        
 
     def _get_rdrf_value(self, value, field_info):
-        return None
+        if field_info.is_range:
+            info("getting rdrf value for range")
+            return field_info.get_range_code(value)
+        else:
+            info("returning rdrf value for non-range")
+            return value
 
     def update(self):
         for row in rows:
+            blank_lines(1)
             patient_model = self._get_patient(row)
             if patient_model:
-                for field_info, value in get_field_columns(row):
-                    rdrf_value = sef._get_rdrf_value(value, field_info)
-                    self._apply_field_expression(
-                        field_info.field_expression, patient_model, rdrf_value)
+                info("starting update of patient %s" % patient_model)
+                keys = sorted(row.keys())
+                for column_key in keys:
+                    if column_key != "1":
+                        field_info = self.field_map.get(column_key, None)
+                        if field_info is None:
+                            error("No field info for column %s" % column_key)
+                            continue
+                        else:
+                            info(
+                                "found field info for column %s: %s" % (column_key,
+                                                                        field_info))
+
+                            raw_value = row[column_key]
+                            info("found raw value: [%s]" % raw_value)
+                            rdrf_value = self._get_rdrf_value(
+                                raw_value, field_info)
+
+                            field_expression = field_info.field_expression
+                            
+
+                            if not field_info.in_multi:
+                                
+                                self._apply_field_expression(field_info,
+                                                             field_expression,
+                                                             patient_model,
+                                                             rdrf_value)
+                            else:
+                                info("dummy updating cde in mulisection %s --> %s" % (field_expression,
+                                                                                      rdrf_value))
+                                
 
 
 if __name__ == '__main__':
@@ -217,12 +249,17 @@ if __name__ == '__main__':
     csv_file = sys.argv[3]
 
     id_map = build_id_map(idmap_file)
+    blank_lines(2)
     field_map = build_field_map(registry_model, field_map_file)
+
+
     if field_map is None:
         error("Field Map error - aborting")
         sys.exit(1)
-    reader = Reader(csv_file)
-    rows = reader.read()
 
-    patient_updater = PatientUpdater(registry_model, id_map, field_map, rows)
+    blank_lines(2)
+
+    rows = read_patients(csv_file)
+
+    patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
     patient_updater.update()
