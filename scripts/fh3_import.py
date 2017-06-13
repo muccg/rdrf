@@ -242,7 +242,7 @@ class PatientUpdater:
     def _update_multisection(self, field_info, rdrf_value, patient_model):
         # assumption from sheet is that we are updating the 1st item of the multisection
         # if none exists, we create the multisection item
-        pass
+        field_expression = "%s/%s
     
                                 
 
@@ -265,6 +265,5 @@ if __name__ == '__main__':
     blank_lines(2)
 
     rows = read_patients(csv_file)
-
     patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
     patient_updater.update()

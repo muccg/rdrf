@@ -162,6 +162,40 @@ class AddMultiSectionItemExpression(GeneralisedFieldExpression):
                             raise Exception("cannot add an item to a non multisection!")
         return patient_model, mongo_data
 
+class CDEInMultiSectionItemExpression(GeneralisedFieldExpression):
+    # "[pick|poke]/<FORMNAME>/<SECTIONCODE/items/2/CDECODE"
+    # returns the value of CDECODE in the 2nd item
+    # 
+    
+    def __init__(self, registry_model, form_model, section_model):
+        self.registry_model = registry_model
+        self.form_model = form_model
+        if not section_model.allow_multiple:
+            raise Exception(
+                "Can't create a multisection expression from nonmultisection")
+        else:
+            self.section_model = section_model
+
+    def set_value(self, patient_model, mongo_data, item_cde_map, **kwargs):
+        # add new item which is a list of cde dicts
+        item = []
+        for cde_code in item_cde_map:
+            value = item_cde_map[cde_code]
+            cde_dict = {"code": cde_code,
+                        "value": value}
+            item.append(cde_dict)
+
+        for form_dict in mongo_data["forms"]:
+            if form_dict["name"] == self.form_model.name:
+                for section_dict in form_dict["sections"]:
+                    if section_dict["code"] == self.section_model.code:
+                        if section_dict["allow_multiple"]:
+                            section_dict["cdes"].append(item)
+                        else:
+                            raise Exception("cannot add an item to a non multisection!")
+        return patient_model, mongo_data
+
+
 
 class BadColumnExpression(GeneralisedFieldExpression):
     # used when a column parse fails
@@ -493,6 +527,12 @@ class GeneralisedFieldExpressionParser(object):
 
     def _parse_ms_expression(self, field_expression):
         try:
+            if field_expression.startswith("pick/") or field_expression.startswith("poke/"):
+                return self._parse_poke_expression(self.registry_model,
+                                                   field_expression)
+            
+                            
+                                                   
             ms_designator, form_name, multisection_code, action_code = field_expression.split("/")
         except ValueError:
             raise FieldExpressionError("Cannot parse multisection expression")
@@ -522,6 +562,19 @@ class GeneralisedFieldExpressionParser(object):
                                                section_model)
         else:
             raise FieldExpressionError("ms expression not understood: %s" % field_expression)
+
+    def _parse_poke_expression(self, field_expression, registry_model):
+        form_model = None
+        section_model = None
+        cde_model = None
+        operation = None
+        
+        return CDEInMultiSectionItemExpression(registry_model,
+                                               form_model,
+                                               section_model,
+                                               cde_model,
+                                               operation)
+    
 
     def _parse_consent_expression(self, consent_expression):
         """
