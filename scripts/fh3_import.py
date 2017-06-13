@@ -71,13 +71,17 @@ class FieldInfo:
             if display_value == range_display_value:
                 return range_value_dict["code"]
 
+        info("Range Value [%s] is outside of allowed inputs of cde so won't be entered" % display_value)
+        return None
+
 
     def should_apply(self, value):
-        if self.is_range and value is None:
-            # cell was empty
-            return False
+        if self.is_range:
+            # out of bound values result in None
+            return value is not None
 
         return True
+        
 
 
 def build_id_map(map_file):
@@ -210,7 +214,7 @@ class PatientUpdater:
                             error("No field info for column %s" % column_key)
                             continue
                         else:
-                            if field_info.is_multi:
+                            if not field_info.is_multi:
                                 continue
                             info(
                                 "found field info for column %s: %s" % (column_key,
@@ -242,7 +246,19 @@ class PatientUpdater:
     def _update_multisection(self, field_info, rdrf_value, patient_model):
         # assumption from sheet is that we are updating the 1st item of the multisection
         # if none exists, we create the multisection item
-        field_expression = "%s/%s
+
+        if field_info.should_apply(rdrf_value):
+
+            # update the 1st item
+    
+            field_expression = "poke/%s/%s/1/%s" % (field_info.form_model.name,
+                                                    field_info.section_model.code,
+                                                    field_info.cde_model.code)
+
+            patient_model.evaluate_field_expression(self.registry_model,
+                                                    field_expression,
+                                                    value=rdrf_value)
+        
     
                                 
 

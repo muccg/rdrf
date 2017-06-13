@@ -162,39 +162,91 @@ class AddMultiSectionItemExpression(GeneralisedFieldExpression):
                             raise Exception("cannot add an item to a non multisection!")
         return patient_model, mongo_data
 
-class CDEInMultiSectionItemExpression(GeneralisedFieldExpression):
+class PokeFieldExpression(GeneralisedFieldExpression):
     # "[pick|poke]/<FORMNAME>/<SECTIONCODE/items/2/CDECODE"
     # returns the value of CDECODE in the 2nd item
     # 
     
-    def __init__(self, registry_model, form_model, section_model):
+    def __init__(self, registry_model, field_expression):
         self.registry_model = registry_model
-        self.form_model = form_model
-        if not section_model.allow_multiple:
-            raise Exception(
-                "Can't create a multisection expression from nonmultisection")
-        else:
-            self.section_model = section_model
+        self._parse_poke(field_expression)
 
-    def set_value(self, patient_model, mongo_data, item_cde_map, **kwargs):
-        # add new item which is a list of cde dicts
-        item = []
-        for cde_code in item_cde_map:
-            value = item_cde_map[cde_code]
-            cde_dict = {"code": cde_code,
-                        "value": value}
-            item.append(cde_dict)
+    def _parse_poke(self, field_expression):
+        # e.g. poke/<FORMNAME>/<SECTIONCODE>/2/<CDECODE>
+        # means the value of the cde CDECODE in the second item of
+        # FORMNAME, SECTIONCODE  - set_value will update
+        _, form_name, section_code, item_num_string, cde_code = field_expression.split("/")
+        self.item_number = int(item_num_string)
+        self.form_model = RegistryForm.objects.get(registry=self.registry_model,
+                                                   name=form_name)
+        self.section_model = self._get_section_model(section_code)
+        self.cde_model = self._get_code_model(cde_code)
 
+    def _get_section_model(self, section_code):
+        for section_model in self.form_model.section_models:
+            if section_model.code == section_code:
+                return section_model
+
+    def _get_cde_model(self, cde_code):
+        for cde_model in self.section_model.cde_models:
+            if cde_model.code == cde_code:
+                return cde_model
+
+    def evaluate(self, patient_model, mongo_data):
+        if mongo_data is not None:
+            return self._iterate_through_forms(mongo_data)
+
+        raise ValueError("cde not found")
+
+
+    def _iterate_through_forms(self, mongo_data, **kwargs):
         for form_dict in mongo_data["forms"]:
             if form_dict["name"] == self.form_model.name:
                 for section_dict in form_dict["sections"]:
                     if section_dict["code"] == self.section_model.code:
-                        if section_dict["allow_multiple"]:
-                            section_dict["cdes"].append(item)
+                        if not section_dict["allow_multiple"]:
+                            raise Exception("Can't get cde in item if not a multisection")
                         else:
-                            raise Exception("cannot add an item to a non multisection!")
-        return patient_model, mongo_data
+                            for item_index, cde_dict_list in enumerate(section_dict["cdes"]):
+                                num = item_index + 1
+                                if num == self.item_number:
+                                    for cde_dict in cde_dict_list:
+                                        if cde_dict["code"] == self.cde_model.code:
+                                            if "value" in kwargs:
+                                                cde_dict["value"] = kwargs["value"]
+                                                return True
+                                            else:
+                                                return cde_dict["value"]
 
+        if "value" in kwargs:
+            raise ValueError("can't update value as the cde or item doesn't exist")
+        else:
+            raise ValueError("can't retrieve value")
+
+    def set_value(self, patient_model, mongo_data, new_value, **kwargs):
+
+        if mongo_data is None:
+            if self.item_number == 1:
+                item = {"code": self.cde_model.code,
+                        "value": new_value}
+
+                items = [item]
+                mongo_data = {"forms": [{"name": self.form_model.name,
+                                         "sections": [{"code": self.section_model.code,
+                                                       "allow_multiple": True,
+                                                       "cdes": items}]}]}
+
+            else:
+                raise ValueError("Can't update item %s as there is no data" % self.item_number)
+
+        else:
+            # this updates mongo_data
+            succeeded = self._iterate_through_forms(mongo_datavalue=new_value)
+            # if we couldn't poke the right item, fail
+            if not succeeded:
+                raise ValueError("can't update this cde")
+            else:
+                return patient_model, mongo_data
 
 
 class BadColumnExpression(GeneralisedFieldExpression):
@@ -503,6 +555,8 @@ class GeneralisedFieldExpressionParser(object):
         try:
             if field_expression.startswith("Consents/"):
                 return self._parse_consent_expression(field_expression)
+            elif field_expression.startswith("poke/"):
+                return self._parse_poke_expression(field_expression)
             elif field_expression.startswith("@"):
                 return self._parse_report_function_expression(field_expression)
             elif field_expression.startswith("$ms"):
@@ -521,6 +575,9 @@ class GeneralisedFieldExpressionParser(object):
         except Exception as ex:
             logger.error("Error parsing %s: %s" % (field_expression, ex))
             return BadColumnExpression()
+
+    def _parse_poke_expression(self, field_expression):
+        return PokeFieldExpression(self.registry_model, field_expression)
 
     def _parse_patient_fields_expression(self, field_expression):
         return PatientFieldExpression(self.registry_model, field_expression)
