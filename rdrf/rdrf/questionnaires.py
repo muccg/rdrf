@@ -1168,13 +1168,51 @@ class Questionnaire(object):
         logger.debug("applying %s multisection updates" %
                      len(multisection_questions))
 
+        def correct_structure(ordered_dicts):
+            # multisection expects different structure to what was being persisted:
+            # what this function receives:
+            # a list of (ordered) dictionaries like:
+            # [ {"DrugName": "Aspirin", "DrugDose": 23},
+            #   {"DrugName": "Neurophen","DrugDose": 100}]
+            #   
+            # ( i.e. 2 section items in the multisection )
+
+            # The structure actually used in the clinical forms is:
+            # in the multisection record would be:
+            # cdes: [  [ {"code": "DrugName", "value": "Aspirin"}, {"code": "DrugDose",
+            # "value" : 23 } ],  [ {"code" "DrugName", "value": "Neurophen"},
+            # {"code": "DrugDose", "value": 100}]]
+            
+            items = []
+            
+            for ordered_dict in ordered_dicts:
+                item = []
+                for cde_code, cde_value in ordered_dict.items():
+                    cde_dict = {}
+                    cde_dict["code"] = cde_code
+                    cde_dict["value"] = cde_value
+                    item.append(cde_dict)
+                items.append(item)
+                    
+                
+            return items
+
         for q in multisection_questions:
             logger.debug("about to evaluate field expression %s" %
                          q.field_expression)
             try:
+                logger.debug("Updating multisection from questionnaire!")
+                if not q.field_expression.startswith("Demographics/"):
+                    # clinical multisection structure is in incorrect format
+                    items = correct_structure(q.value)
+                else:
+                    items = q.value
+                logger.debug("field_expression = %s" % q.field_expression)
+                logger.debug("items list = %s" % items)
+                
                 patient_model.evaluate_field_expression(self.registry_model,
                                                         q.field_expression,
-                                                        value=q.value)
+                                                        value=items)
             except Exception as ex:
                 msg = "Error setting field expression %s: %s" % (
                     q.field_expression, ex)
