@@ -7,6 +7,7 @@
 {% load lookup %}
 {% load get_forms %}
 {% load get_form_var %}
+{% load get_form_object %}
 {% load widget_name %}
 {% load add_attr %}
 {% load static %}
@@ -79,6 +80,58 @@
                 });
             }
         }
+
+
+        function add_form(prefix) {
+            var mgmt_form = $("#mgmt_" + prefix);
+            var empty_form = $("#empty_" + prefix);
+            var forms = $("#forms_" + prefix);
+
+            var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+            var initial_forms = mgmt_form.find("input[id=id_"+ prefix +"-INITIAL_FORMS]")
+            
+            var new_form = empty_form.clone(true, true);
+            
+            new_form.find(":input").each(function() {
+		$(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+		$(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+		
+		if ($(this).hasClass("datepicker")) {
+                    $(this).datepicker({
+			changeMonth: true,
+			changeYear: true,
+			dateFormat: 'dd-mm-yy',
+			yearRange: '-100:+0',
+			buttonImage: "/static/images/calendar.gif",
+			buttonImageOnly: true,
+                    });
+		}
+            });
+
+            var total_forms_inc = parseInt(total_forms.val()) + 1;
+	    console.log("There are now " + total_forms_inc.toString() + " forms for " + prefix);
+            total_forms.attr("value", total_forms_inc);
+            //initial_forms.attr("value", total_forms_inc);
+            initial_forms.attr("value", 0);
+
+            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+
+	    //new_form.appendTo(forms).show("fast");
+	    new_form.appendTo(forms).show("fast");
+    }
+
+    function delete_form(form_div, prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        var initial_forms = mgmt_form.find("input[id=id_"+ prefix +"-INITIAL_FORMS]")
+        var total_forms_dec = parseInt(total_forms.val()) - 1;
+        total_forms.attr("value", total_forms_dec);
+        //initial_forms.attr("value", total_forms_dec);
+        initial_forms.attr("value", 0);
+
+        $(form_div).parent().parent().parent().remove();
+    }
+
     </script>
 {% endblock %}
 
@@ -140,34 +193,39 @@
 
                 <div class="panel-body">
                     {% if forms|is_formset:s %}
+		    
                         <!-- start management form for {{s}}-->
-                        {{ forms|get_management_form:s }}
+			{% with formset=forms|get_form_object:s %}
+			<div id="mgmt_{{formset.prefix}}">
+			  {{formset.management_form}}
+			</div>
                         <!-- end management form for {{s}} -->
-                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
-                        <table class="table" id="section_table_{{s}}">
-                            <script>
-                                $(document).ready(function() {
-                                    $("#section_table_{{s}}").allow_dynamic_formsets({
-                                        cde_codes: '{{section_field_ids_map|lookup:s}}',
-                                        add_button_id: "add_button_for_section_{{s}}",
-                                        remove_button_id: "remove_button_for_section_{{s}}",
-                                        table_id: "section_table_{{s}}",
-                                        total_forms_id: "{{total_forms_ids|lookup:s}}",
-                                        initial_forms_id: "{{initial_forms_ids|lookup:s}}",
-                                        formset_prefix: "{{formset_prefixes|lookup:s}}"
-                                    });
-                                });
-                            </script>
+			
+			<!-- start of hidden empty form for {{s}} -->
+			<div style="display: none;" id="empty_{{formset.prefix}}">
+			  {{formset.empty_form.as_table}}
+                           <div class="form-group">
+                                        <div class="col-sm-9 col-sm-offset-3">
+                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
+                                            </a>
+                                        </div>
+                                    </div>
+
+			</div>
+			<!-- end of hidden empty form for {{s}} -->
+
+                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-success btn-small" onclick="add_form('{{formset.prefix}}');"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
+			<div id="forms_{{formset.prefix}}">
+
                             {% for f in forms|get_forms:s %}
-                                {{ f.as_table }}
-                                <tr id="remove_formset_{{s}}_{{forloop.counter0}}" class="actionbutton">
-                                    <td onclick="do_remove(this,'section_table_{{s}}',{{section_element_map|lookup:s|length}},'id_formset_{{s}}-TOTAL_FORMS','id_formset_{{s}}-INITIAL_FORMS');"><button type="button" class="btn btn-danger btn-small">
-                                        <i class="icon-white icon-minus"></i> {% trans 'Remove' %}
-                                    </button>
-                                    </td>
-                                </tr>
+                                <div>
+                                   {{ f }}
+                                </div>
                             {% endfor %}
-                        </table>
+			   
+			</div>
+			{% endwith %}
                     {% else %}
                         <table class="table table-bordered table-hover table-condensed">
                             {% autoescape off %}
