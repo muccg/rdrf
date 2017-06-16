@@ -192,6 +192,7 @@ class FormView(View):
         self.patient_id = None
         self.user = None
         self.rdrf_context = None
+        self.show_multisection_delete_checkbox = True
 
         super(FormView, self).__init__(*args, **kwargs)
 
@@ -706,7 +707,7 @@ class FormView(View):
                     extra = section_model.extra
                 else:
                     extra = 0
-                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
+                form_set_class = formset_factory(form_class, extra=extra, can_delete=self.show_multisection_delete_checkbox)
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
@@ -894,6 +895,7 @@ class QuestionnaireView(FormView):
         self.questionnaire_context = None
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
+        self.show_multisection_delete_checkbox = False
 
     @method_decorator(patient_questionnaire_access)
     def get(self, request, registry_code, questionnaire_context="au"):
