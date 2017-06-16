@@ -113,6 +113,10 @@
 
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
 
+	    if(total_forms_inc == 2) {
+		$("<hr>").attr("style", "border: solid 1px gray").prependTo(new_form);
+	    }
+
 	    var nodes = $(new_form).children().detach();
 	    var new_item = $("<div class='item'>").append(nodes);
 	    new_item.appendTo(forms).show("fast");
