@@ -109,15 +109,13 @@
             });
 
             var total_forms_inc = parseInt(total_forms.val()) + 1;
-	    console.log("There are now " + total_forms_inc.toString() + " forms for " + prefix);
             total_forms.attr("value", total_forms_inc);
-            //initial_forms.attr("value", total_forms_inc);
-            initial_forms.attr("value", 0);
 
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
 
-	    //new_form.appendTo(forms).show("fast");
-	    new_form.appendTo(forms).show("fast");
+	    var nodes = $(new_form).children().detach();
+	    var new_item = $("<div class='item'>").append(nodes);
+	    new_item.appendTo(forms).show("fast");
     }
 
     function delete_form(form_div, prefix) {
@@ -126,10 +124,33 @@
         var initial_forms = mgmt_form.find("input[id=id_"+ prefix +"-INITIAL_FORMS]")
         var total_forms_dec = parseInt(total_forms.val()) - 1;
         total_forms.attr("value", total_forms_dec);
-        //initial_forms.attr("value", total_forms_dec);
-        initial_forms.attr("value", 0);
 
         $(form_div).parent().parent().parent().remove();
+
+	// update indices
+
+	var forms = $("#forms_" + prefix);
+	var items = $(forms).find(".item");
+
+	$.each(items, function(i, item) {
+	    console.log("Checking item number " + i.toString());
+	    $(item).find(":input").each(function() {
+		// replace id
+		var currentId = $(this).attr('id');
+		var newIndex = '-' + i.toString() + '-';
+		var newId = currentId.replace(/-\d-/,newIndex);
+		$(this).attr('id', newId);
+
+		// replace name
+		var currentName = $(this).attr('name');
+		var newIndex = '-' + i.toString() + '-';
+		var newName = currentName.replace(/-\d-/,newIndex);
+		$(this).attr('name', newName);
+		
+		console.log("found input with id " + currentId);
+	    });
+	});
+	
     }
 
     </script>
@@ -219,7 +240,7 @@
 			<div id="forms_{{formset.prefix}}">
 
                             {% for f in forms|get_forms:s %}
-                                <div>
+                                <div class="item">
                                    {{ f }}
                                 </div>
                             {% endfor %}
