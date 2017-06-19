@@ -9,7 +9,6 @@ from registry.patients.models import PatientAddress, AddressType
 from .dynamic_data import DynamicDataWrapper
 from django.conf import settings
 from registry.groups.models import WorkingGroup
-from django.db import transaction
 from datetime import date
 from datetime import datetime
 import pycountry
@@ -1147,7 +1146,6 @@ class Questionnaire(object):
                                     )
 
     def update_patient(self, patient_model, selected_questions):
-        # begin transaction ... etc
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
         errors = []
